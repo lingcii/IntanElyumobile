@@ -89,6 +89,12 @@ class LeaderboardController extends Controller
         $myRank = null;
         $me = null;
         $user = $request->user();
+        if (!$user) {
+            $bearerToken = $request->bearerToken();
+            if ($bearerToken) {
+                $user = \App\Models\User::where('api_token', $bearerToken)->first();
+            }
+        }
         if ($user) {
             try {
                 $myRankRow = DB::selectOne(

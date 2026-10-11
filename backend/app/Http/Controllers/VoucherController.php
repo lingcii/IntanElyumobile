@@ -255,33 +255,19 @@ class VoucherController extends Controller
                 return response()->json(['status' => 'error', 'message' => 'Voucher is fully claimed.'], 400);
             }
 
-            // Check if user has reached max claims for this voucher
-            $maxPerUser = (int) ($voucher->maximum_redemption_per_user ?: 1);
-            $alreadyClaimedCount = 0;
-
+            // Enforce one-time claim per tourist account per voucher
             if (\Illuminate\Support\Facades\Schema::hasTable('voucher_redemptions')) {
-                $alreadyClaimedCount = (int) \Illuminate\Support\Facades\DB::table('voucher_redemptions')
+                $alreadyClaimed = \Illuminate\Support\Facades\DB::table('voucher_redemptions')
                     ->where('user_id', $user->id)
                     ->where('voucher_id', $voucher->id)
-                    ->count();
-            }
+                    ->exists();
 
-            if ($alreadyClaimedCount === 0 && \Illuminate\Support\Facades\Schema::hasTable('point_redemptions')) {
-                $alreadyClaimedCount = PointRedemption::where('user_id', $user->id)
-                    ->where(function($q) use ($voucher) {
-                        $q->where('type', $voucher->voucher_name);
-                        if ($voucher->voucher_code) {
-                            $q->orWhere('voucher_code', 'LIKE', $voucher->voucher_code . '%');
-                        }
-                    })
-                    ->count();
-            }
-
-            if ($alreadyClaimedCount >= $maxPerUser) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'You have already redeemed this voucher.'
-                ], 400);
+                if ($alreadyClaimed) {
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => 'You have already claimed this voucher. Each voucher is valid for one-time claim only.'
+                    ], 400);
+                }
             }
 
             $cost = (int) ($voucher->required_points ?: 100);
@@ -359,7 +345,7 @@ class VoucherController extends Controller
                             'qr_token'        => $qrToken,
                             'points_used'     => $cost,
                             'status'          => 'claimed',
-                            'redeemed_at'     => now(),
+                            'redeemed_at'     => null,
                             'claimed_at'      => now(),
                             'created_at'      => now(),
                             'updated_at'      => now(),
@@ -497,11 +483,16 @@ class VoucherController extends Controller
             }
 
             $isRedeemed = in_array(strtolower($record->status ?? ''), ['redeemed', 'used', 'completed']);
-            $partnerName = 'Mabanag Hall';
+            $partnerName = 'Official Partner Merchant';
             if (!empty($record->redeemed_by_partner_id)) {
                 $partner = \Illuminate\Support\Facades\DB::table('partner_establishments')->where('id', $record->redeemed_by_partner_id)->first();
                 if ($partner) {
                     $partnerName = $partner->name;
+                }
+            } elseif (!empty($record->voucher_id)) {
+                $voucherModel = Voucher::find($record->voucher_id);
+                if ($voucherModel && !empty($voucherModel->partner_establishment)) {
+                    $partnerName = $voucherModel->partner_establishment;
                 }
             }
 

@@ -1,50 +1,65 @@
 <?php
 $pageTitle = 'Discounts & Vouchers';
-$backRoute = 'dashboard';
+$backRoute = 'profile';
 ?>
 
 <!-- Include Header Component -->
 <?php include __DIR__ . '/../components/header.php'; ?>
 
 <div class="merch-page-container has-header animate-fade-in">
-    <!-- Hero Section -->
-    <div class="merch-hero" style="background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline: none !important; border-radius: 24px; padding: 20px 18px; text-align: center; margin-bottom: 18px; box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important; color: #ffffff !important;">
-        <p style="margin: 0 0 12px; font-size: 13.5px; color: rgba(255, 255, 255, 0.95); line-height: 1.45; max-width: 320px; margin-left: auto; margin-right: auto; font-weight: 600;">
-            Redeem your <strong style="color: #ffffff; font-weight: 800;">Explorer Points</strong> for exclusive discounts!
-        </p>
-        <div style="display:inline-flex; align-items:center; gap:8px; background:#ffffff !important; border:none !important; outline:none !important; padding:7px 18px; border-radius:100px; box-shadow: 0 2px 10px rgba(0,0,0,0.12);">
-            <i class="fa-solid fa-coins" style="color:#f59e0b; font-size:14px;"></i>
-            <span style="font-size:12px; color:#475569; font-weight:700;">Your Balance:</span>
-            <strong id="discount-user-pts" style="color:#203f8d; font-size:14px; font-weight:900;">-- Points</strong>
+    <!-- Hero Section with User Account Profile & Live Points -->
+    <div class="merch-hero" style="background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #0284c7 100%) !important; border: none !important; outline: none !important; border-radius: 24px; padding: 18px 20px; margin-bottom: 18px; box-shadow: 0 8px 24px rgba(30, 58, 138, 0.25) !important; color: #ffffff !important;">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px;">
+            <div style="display: flex; align-items: center; gap: 12px; min-width: 0; text-align: left;">
+                <div style="width: 44px; height: 44px; border-radius: 50%; background: #ffffff; border: 2px solid rgba(255,255,255,0.8); display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
+                    <img id="discount-user-avatar" src="https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/logo/LOGO.png" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.onerror=null; this.src='https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/logo/LOGO.png';">
+                </div>
+                <div style="min-width: 0;">
+                    <div style="font-size: 10.5px; font-weight: 800; color: #7dd3fc; text-transform: uppercase; letter-spacing: 0.5px;">Explorer Account</div>
+                    <div id="discount-user-name" style="font-size: 15.5px; font-weight: 800; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.25;">Tourist Explorer</div>
+                </div>
+            </div>
+            <div style="display:inline-flex; align-items:center; gap:7px; background:#ffffff !important; padding:6px 14px; border-radius:100px; box-shadow: 0 2px 8px rgba(0,0,0,0.12); flex-shrink:0;">
+                <i class="fa-solid fa-coins" style="color:#f59e0b; font-size:13px;"></i>
+                <strong id="discount-user-pts" style="color:#1e3a8a; font-size:13.5px; font-weight:900;">-- Points</strong>
+            </div>
         </div>
+        <p style="margin: 0; font-size: 12px; color: rgba(255, 255, 255, 0.92); line-height: 1.4; text-align: left; font-weight: 500;">
+            Redeem your points for exclusive discounts and partner vouchers across La Union.
+        </p>
     </div>
 
-    <!-- Search & Town Filters Bar -->
-    <div style="margin-bottom: 14px;">
-        <div style="position: relative; margin-bottom: 10px;">
+    <!-- Search Bar -->
+    <div style="margin-bottom: 12px;">
+        <div style="position: relative;">
             <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 14px;"></i>
             <input type="text" id="voucher-search-input" placeholder="Search vouchers, merchants, or towns..." oninput="handleVoucherSearch(this.value)" style="width: 100%; box-sizing: border-box; padding: 11px 14px 11px 38px; border-radius: 14px; border: 1.5px solid #e2e8f0; font-size: 13px; font-weight: 600; outline: none; background: #f8fafc; color: #1e293b; transition: all 0.2s;">
             <button id="btn-clear-search" onclick="clearVoucherSearch()" style="display: none; position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: #e2e8f0; border: none; border-radius: 50%; width: 22px; height: 22px; color: #64748b; font-size: 11px; cursor: pointer; align-items: center; justify-content: center;">
                 <i class="fa-solid fa-xmark"></i>
             </button>
         </div>
-
-        <!-- Municipalities Scrollable Filter -->
-        <div style="display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none;" id="muni-filter-bar">
-            <button class="muni-pill active" onclick="filterMunicipality('All')">All Towns</button>
-            <!-- Dynamic Municipality Pills -->
-        </div>
     </div>
 
-    <!-- Category Filters -->
-    <div style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 12px; margin-bottom: 18px; scrollbar-width: none;" id="discount-filters">
-        <button class="discount-cat-btn active" onclick="filterDiscounts('All')">All Deals</button>
-        <button class="discount-cat-btn" onclick="filterDiscounts('Mabanag Hall')"><i class="fa-solid fa-landmark" style="margin-right: 4px;"></i>Mabanag Hall</button>
-        <button class="discount-cat-btn" id="btn-my-claimed" onclick="filterDiscounts('Claimed')">My Vouchers (<span id="claimed-count">0</span>)</button>
-        <button class="discount-cat-btn" onclick="filterDiscounts('Food & Dining')">Food & Dining</button>
-        <button class="discount-cat-btn" onclick="filterDiscounts('Activities')">Activities & Surf</button>
-        <button class="discount-cat-btn" onclick="filterDiscounts('Accommodations')">Accommodations</button>
-        <button class="discount-cat-btn" onclick="filterDiscounts('Upcoming')">Upcoming</button>
+    <!-- Voucher Status Dedicated Floating Droplist (All, Claimed, Redeemed, Upcoming, Expired) -->
+    <div id="floating-status-wrapper" style="position: relative; margin-bottom: 16px; z-index: 98;">
+        <!-- Floating Trigger Card -->
+        <div id="floating-status-trigger" onclick="toggleFloatingStatusDropdown(event)" style="background: #ffffff; border: 1.5px solid #cbd5e1; border-radius: 16px; padding: 10px 14px; box-shadow: 0 10px 25px -4px rgba(30, 58, 138, 0.10), 0 4px 10px -2px rgba(30, 58, 138, 0.05); display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; touch-action: manipulation; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);">
+            <div style="display: flex; flex-direction: column; min-width: 0; text-align: left; flex: 1;">
+                <span style="font-size: 9.5px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; line-height: 1.1;">Voucher Status</span>
+                <span id="floating-status-selected-label" style="font-size: 13px; font-weight: 800; color: #1e3a8a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.25;">All Vouchers</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0; margin-left: 8px;">
+                <span id="floating-status-selected-badge" style="font-size: 10.5px; font-weight: 800; background: #eff6ff; color: #1d4ed8; padding: 2px 8px; border-radius: 100px; border: 1px solid #bfdbfe;">0</span>
+                <i id="floating-status-chevron" class="fa-solid fa-chevron-down" style="color: #64748b; font-size: 10.5px; transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);"></i>
+            </div>
+        </div>
+
+        <!-- Floating Menu Panel (Elevated Floating Card) -->
+        <div id="floating-status-menu" class="hide-scrollbar" style="display: none; position: absolute; top: calc(100% + 8px); left: 0; width: 100%; background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border: 1.5px solid #cbd5e1; border-radius: 18px; box-shadow: 0 20px 40px -8px rgba(15, 23, 42, 0.22), 0 4px 12px rgba(0, 0, 0, 0.06); padding: 6px; max-height: 330px; overflow-y: auto; z-index: 1000; opacity: 0; transform: translateY(-8px) scale(0.98); transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1); box-sizing: border-box;">
+            <div id="floating-status-items-list" style="display: flex; flex-direction: column; gap: 4px;">
+                <!-- Populated dynamically: All Vouchers, Claimed Voucher, Redeemed Voucher, Upcoming Voucher, Expired Voucher -->
+            </div>
+        </div>
     </div>
 
     <!-- Mabanag Hall Partner Merchant Spotlight Hero (Shown when Mabanag Hall filter or San Fernando town active) -->
@@ -155,23 +170,41 @@ $backRoute = 'dashboard';
                 <p id="modal-terms-text" style="margin: 0; font-size: 11.5px; color: #475569; line-height: 1.4; white-space: pre-line;"></p>
             </div>
 
-            <!-- QR Code & Voucher Code Box (Shown when Claimed) -->
+            <!-- QR Code Box (Shown when Claimed - Verified Digital Pass) -->
             <div id="modal-claimed-box" style="display: none; background: #eff6ff !important; border: 1.5px dashed #bfdbfe; border-radius: 18px; padding: 16px; margin-bottom: 14px; text-align: center;">
                 <div style="background: #ffffff; border-radius: 14px; padding: 10px; width: 150px; height: 150px; margin: 0 auto 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 14px rgba(0,0,0,0.08); border: 1px solid #e2e8f0;">
                     <img id="modal-qr-img" src="" alt="Voucher QR Code" style="width: 100%; height: 100%; object-fit: contain;" onerror="this.style.display='none'">
                 </div>
                 
-                <div style="margin-bottom: 8px;">
-                    <span style="display: block; font-size: 10.5px; color: #64748b; text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px;">Your Unique Claim Code</span>
-                    <span id="modal-code" style="font-size: 20px; font-weight: 900; color: #1e3a8a; letter-spacing: 1.5px; word-break: break-all;">ELYU-PROMO</span>
+                <!-- Verified Digital Pass Badge -->
+                <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 10px;">
+                    <span style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 100px; font-size: 10.5px; font-weight: 800; background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; text-transform: uppercase; letter-spacing: 0.6px;">
+                        <i class="fa-solid fa-shield-halved" style="color: #10b981; font-size: 11px;"></i> Verified Digital QR Pass
+                    </span>
                 </div>
 
-                <button id="btn-copy-voucher" onclick="copyVoucherCode()" style="background: #ffffff !important; border: 1px solid #bfdbfe !important; color: #1e3a8a !important; padding: 9px 18px; border-radius: 10px; font-weight: 800; font-size: 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.05);">
-                    <i class="fa-solid fa-copy" id="copy-btn-icon" style="color: #1e3a8a !important;"></i> <span id="copy-btn-label">Copy Voucher Code</span>
-                </button>
-                <p style="margin: 10px 0 0 0; font-size: 11px; color: #64748b; line-height: 1.35;">
-                    Present this QR code or alphanumeric code directly to staff at checkout.
+                <!-- Clickable Masked Code Container (Tap to Unmask/Mask) -->
+                <div id="modal-qr-mask-container" onclick="window.toggleDiscountVoucherCodeMask()" role="button" tabindex="0" title="Tap to reveal or hide voucher code"
+                    style="background: #ffffff; border: 1.5px solid #bfdbfe; border-radius: 14px; padding: 10px 14px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(30,58,138,0.06); display: flex; align-items: center; justify-content: space-between; gap: 10px; cursor: pointer; user-select: none; transition: all 0.2s ease;"
+                    onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
+                    <div style="text-align: left; min-width: 0; flex: 1;">
+                        <div style="font-size: 9.5px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 5px; margin-bottom: 2px;">
+                            <i class="fa-solid fa-key" style="color: #0284c7; font-size: 10px;"></i>
+                            <span id="modal-qr-mask-label">Voucher Code (Tap to reveal)</span>
+                        </div>
+                        <div id="modal-qr-mask-code" style="font-size: 16px; font-weight: 900; color: #1e3a8a; letter-spacing: 2.5px; font-family: monospace; word-break: break-all;">
+                            ••••••••••••
+                        </div>
+                    </div>
+                    <div id="modal-qr-mask-btn" style="background: #eff6ff; border: 1px solid #bfdbfe; color: #1e3a8a; width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; transition: all 0.15s ease;">
+                        <i class="fa-solid fa-eye" id="modal-qr-mask-icon" style="color: #1e3a8a;"></i>
+                    </div>
+                </div>
+
+                <p style="margin: 8px 0 0 0; font-size: 11.5px; color: #64748b; line-height: 1.45;">
+                    Present this QR code directly to merchant or staff at checkout for instant scanning.
                 </p>
+
                 <div id="modal-live-status-badge" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 100px; font-size: 11px; font-weight: 800; background: #e0f2fe; color: #0369a1; margin-top: 10px; transition: all 0.3s ease;">
                     <i class="fa-solid fa-circle-notch fa-spin"></i> Ready for scan at checkout
                 </div>
@@ -191,6 +224,39 @@ $backRoute = 'dashboard';
 (function() {
 const VOUCHERS_CACHE_KEY = 'intan_elyu_cached_vouchers';
 const VOUCHERS_CACHE_TTL = 900000; // 15 mins
+
+let activeStatus = 'All';
+let activeCategory = 'All';
+let activeMunicipality = 'All';
+let searchQuery = '';
+let vouchersData = [];
+let currentVoucherId = null;
+let userPointsBalance = 0;
+let isStatusDropdownOpen = false;
+let isCatDropdownOpen = false;
+let isMuniDropdownOpen = false;
+
+// ── Instant Synchronous Profile Hydration (0ms, Zero Latency) ──
+function hydrateDiscountUser() {
+    try {
+        const cached = JSON.parse(localStorage.getItem('auth_user') || '{}');
+        if (cached.name) {
+            const nameEl = document.getElementById('discount-user-name');
+            if (nameEl) nameEl.textContent = cached.name;
+        }
+        if (cached.avatar) {
+            const imgEl = document.getElementById('discount-user-avatar');
+            if (imgEl) imgEl.src = window.getFullImageUrl ? window.getFullImageUrl(cached.avatar) : cached.avatar;
+        }
+        if (cached.points !== undefined || cached.xp !== undefined) {
+            const pts = parseInt(cached.points !== undefined ? cached.points : cached.xp) || 0;
+            userPointsBalance = pts;
+            const ptsEl = document.getElementById('discount-user-pts');
+            if (ptsEl) ptsEl.textContent = `${pts.toLocaleString()} Points`;
+        }
+    } catch (e) { }
+}
+hydrateDiscountUser();
 
 function getVoucherImageUrl(v) {
     if (!v) return 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/logo/LUPTO.png';
@@ -235,13 +301,6 @@ function getVoucherImageUrl(v) {
 
     return `${r2Base}/logo/LUPTO.png`;
 }
-
-let activeCategory = 'All';
-let activeMunicipality = 'All';
-let searchQuery = '';
-let vouchersData = [];
-let currentVoucherId = null;
-let userPointsBalance = 0;
 
 function getExpiryInfo(dateStr, isExpiredExplicit, isUpcomingExplicit, validFromStr, validFromFormatted, isNoExpiration, expirationType) {
     if (isExpiredExplicit === true) {
@@ -347,28 +406,39 @@ function getExpiryInfo(dateStr, isExpiredExplicit, isUpcomingExplicit, validFrom
 }
 
 function filterDiscounts(cat) {
-    activeCategory = cat;
-    document.querySelectorAll('.discount-cat-btn').forEach(btn => {
-        btn.classList.remove('active');
-        const text = btn.textContent.trim();
-        if ((cat === 'All' && text.includes('All Deals')) ||
-            (cat === 'Claimed' && text.includes('My Vouchers')) ||
-            (cat === 'Mabanag Hall' && text.includes('Mabanag Hall')) ||
-            (cat !== 'All' && text.includes(cat))) {
-            btn.classList.add('active');
+    activeCategory = cat || 'All';
+
+    // 1. Synchronize Categories Drop List select element
+    const catSelect = document.getElementById('category-dropdown-select');
+    if (catSelect && catSelect.value !== activeCategory) {
+        let matched = false;
+        for (let i = 0; i < catSelect.options.length; i++) {
+            if (catSelect.options[i].value.toLowerCase() === activeCategory.toLowerCase()) {
+                catSelect.selectedIndex = i;
+                matched = true;
+                break;
+            }
         }
-    });
+        if (!matched && !['All', 'Claimed', 'History'].includes(activeCategory)) {
+            const opt = document.createElement('option');
+            opt.value = activeCategory;
+            opt.textContent = activeCategory;
+            catSelect.appendChild(opt);
+            catSelect.value = activeCategory;
+        }
+    }
+
+    // 2. Synchronize Floating Dropdowns UI items & trigger cards
+    populateCategoryDropdown();
+    populateMunicipalityDropdown();
+
     renderDiscounts();
 }
 
 function filterMunicipality(muni) {
-    activeMunicipality = muni;
-    document.querySelectorAll('.muni-pill').forEach(btn => {
-        btn.classList.remove('active');
-        if (btn.textContent.trim() === (muni === 'All' ? 'All Towns' : muni)) {
-            btn.classList.add('active');
-        }
-    });
+    activeMunicipality = muni || 'All';
+    populateMunicipalityDropdown();
+    populateCategoryDropdown();
     renderDiscounts();
 }
 
@@ -388,40 +458,267 @@ function clearVoucherSearch() {
     renderDiscounts();
 }
 
-function getClaimedVouchers() {
+function getAuthUserId() {
     try {
-        return JSON.parse(localStorage.getItem('intan_elyu_claimed_vouchers') || '[]');
+        const u = JSON.parse(localStorage.getItem('auth_user') || '{}');
+        if (u && (u.id || u.user_id)) return String(u.id || u.user_id);
+    } catch(e) {}
+    const tok = localStorage.getItem('intan_elyu_token');
+    return (tok && tok.length > 10) ? 'tok_' + tok.substring(0, 12) : null;
+}
+
+function getClaimedVouchersKey() {
+    const uid = getAuthUserId();
+    return uid ? 'intan_elyu_claimed_vouchers_' + uid : 'intan_elyu_claimed_vouchers_guest';
+}
+
+function getClaimedVouchers() {
+    const uid = getAuthUserId();
+    if (!uid) return [];
+    try {
+        return JSON.parse(localStorage.getItem(getClaimedVouchersKey()) || '[]');
     } catch(e) {
         return [];
     }
 }
 
-function updateClaimedBadge() {
+function setClaimedVouchers(claimedArr) {
+    const uid = getAuthUserId();
+    if (!uid) return;
+    try {
+        localStorage.setItem(getClaimedVouchersKey(), JSON.stringify(Array.from(new Set(claimedArr))));
+        localStorage.removeItem('intan_elyu_claimed_vouchers'); // clear un-scoped legacy key
+    } catch(e) {}
+}
+
+function isVoucherRedeemed(v) {
+    if (!v) return false;
+
+    // 1. If this object is already a specific redemption item with redemptionStatus or status:
+    const rStatus = (v.redemptionStatus || v.status || '').toLowerCase().trim();
+    if (rStatus === 'claimed') return false; // Strictly active claimed, NOT redeemed!
+    if (['redeemed', 'used', 'completed'].includes(rStatus)) return true;
+
+    // 2. If it has a specific unique voucher code (from a redemption):
+    const vcode = (v.code || v.voucher_code || '').toUpperCase().trim();
+    if (vcode && Array.isArray(window._touristRedemptions) && window._touristRedemptions.length > 0) {
+        const matchCode = window._touristRedemptions.find(r => {
+            const rCode = (r.voucher_code || '').toUpperCase().trim();
+            return rCode && rCode === vcode;
+        });
+        if (matchCode) {
+            return ['redeemed', 'used', 'completed'].includes((matchCode.status || '').toLowerCase());
+        }
+    }
+
+    // 3. For catalog templates in vouchersData (deals not yet individually claimed):
+    const vid = String(v.dbId || v.id || '').replace(/^db_/, '').replace(/^rdm_/, '');
+    if (vid && Array.isArray(window._touristRedemptions) && window._touristRedemptions.length > 0) {
+        const userRedemptionsForThisVoucher = window._touristRedemptions.filter(r => {
+            const rVid = String(r.voucher_id || '').replace(/^db_/, '');
+            return rVid === vid;
+        });
+        if (userRedemptionsForThisVoucher.length > 0) {
+            // If the user has any active unredeemed claim, it is NOT redeemed
+            const hasActiveClaim = userRedemptionsForThisVoucher.some(r => (r.status || '').toLowerCase() === 'claimed');
+            if (hasActiveClaim) return false;
+            // Only considered redeemed if all instances are redeemed
+            return userRedemptionsForThisVoucher.every(r => ['redeemed', 'used', 'completed'].includes((r.status || '').toLowerCase()));
+        }
+    }
+
+    return false;
+}
+
+function isVoucherExpired(v) {
+    if (!v) return false;
+    if (v.is_expired === true) return true;
+    if (v.status && v.status.toLowerCase() === 'expired') return true;
+    if (v.expires) {
+        try {
+            return new Date(v.expires).getTime() < Date.now();
+        } catch(e) {}
+    }
+    return false;
+}
+
+function isVoucherUpcoming(v) {
+    if (!v) return false;
+    if (v.is_upcoming === true) return true;
+    const st = (v.status || '').toLowerCase().trim();
+    if (st === 'upcoming' || st === 'scheduled' || st === 'soon') return true;
+    const badge = (v.badge || '').toLowerCase().trim();
+    if (badge.includes('upcoming') || badge.includes('soon')) return true;
+    if (v.valid_from) {
+        try {
+            const validFromStr = String(v.valid_from).replace(' ', 'T');
+            const validFrom = validFromStr.includes('T') ? new Date(validFromStr) : new Date(validFromStr + 'T00:00:00');
+            if (validFrom > new Date()) return true;
+        } catch(e) {}
+    }
+    return false;
+}
+
+function isVoucherFullyClaimed(v) {
+    if (!v) return false;
+    if (v.is_out_of_stock === true) return true;
+    if (v.remaining_quantity !== null && v.remaining_quantity !== undefined && v.remaining_quantity <= 0) return true;
+    return false;
+}
+
+function isVoucherClaimed(v) {
+    if (!v) return false;
+
+    // 1. If this object is already a specific redemption item:
+    const rStatus = (v.redemptionStatus || v.status || '').toLowerCase().trim();
+    if (['redeemed', 'used', 'completed'].includes(rStatus)) return false; // Already redeemed, not active claimed!
+    if (rStatus === 'claimed') return true;
+
+    // 2. If it has a specific unique voucher code:
+    const vcode = (v.code || v.voucher_code || '').toUpperCase().trim();
+    if (vcode && Array.isArray(window._touristRedemptions) && window._touristRedemptions.length > 0) {
+        const matchCode = window._touristRedemptions.find(r => {
+            const rCode = (r.voucher_code || '').toUpperCase().trim();
+            return rCode && rCode === vcode;
+        });
+        if (matchCode) {
+            return (matchCode.status || '').toLowerCase() === 'claimed';
+        }
+    }
+
+    // 3. For catalog templates in vouchersData:
+    const vid = String(v.dbId || v.id || '').replace(/^db_/, '').replace(/^rdm_/, '');
+    if (vid && Array.isArray(window._touristRedemptions) && window._touristRedemptions.length > 0) {
+        const userRedemptionsForThisVoucher = window._touristRedemptions.filter(r => {
+            const rVid = String(r.voucher_id || '').replace(/^db_/, '');
+            return rVid === vid;
+        });
+        if (userRedemptionsForThisVoucher.length > 0) {
+            // Check if user currently has an active unredeemed claim
+            return userRedemptionsForThisVoucher.some(r => (r.status || '').toLowerCase() === 'claimed');
+        }
+    }
+
     const claimed = getClaimedVouchers();
+    if (claimed.includes(v.id)) return true;
+    if (v.dbId && (claimed.includes('db_' + v.dbId) || claimed.includes(String(v.dbId)))) return true;
+    return false;
+}
+
+function getUserRedemptionItems() {
+    const redemptions = Array.isArray(window._touristRedemptions) ? window._touristRedemptions : [];
+    if (redemptions.length === 0) return [];
+
+    return redemptions.map(r => {
+        const rVid = r.voucher_id ? String(r.voucher_id) : null;
+        const rCode = r.voucher_code ? String(r.voucher_code).toUpperCase().trim() : '';
+
+        // Match with catalog template for rich metadata if available
+        const match = vouchersData.find(v => {
+            if (rVid && (String(v.dbId) === rVid || v.id === 'db_' + rVid || v.id === rVid)) return true;
+            const vCode = v.code ? String(v.code).toUpperCase().trim() : '';
+            if (vCode && rCode && vCode === rCode) return true;
+            return false;
+        });
+
+        const status = (r.status || 'claimed').toLowerCase().trim();
+        const isRedeemed = ['redeemed', 'used', 'completed'].includes(status);
+        const title = r.type || (match ? match.title : 'Reward Voucher');
+        const partner = r.partner_establishment || (match ? match.partner : 'LUPTO Tourism Partner');
+        const location = match ? match.location : 'La Union';
+        const category = r.category || (match ? match.category : 'Food & Dining');
+        const pointsCost = r.points_cost || (match ? match.pointsCost : 100);
+        const description = r.description || (match ? match.description : 'Present this voucher code at merchant checkout.');
+        const badge = isRedeemed ? 'REDEEMED' : 'CLAIMED';
+        const image = match ? match.image : (r.image || null);
+        const code = r.voucher_code || (match ? match.code : 'ELYU-PROMO');
+
+        return {
+            id: 'rdm_' + r.id,
+            redemptionId: r.id,
+            dbId: r.voucher_id || (match ? match.dbId : null),
+            title: title,
+            category: category,
+            partner: partner,
+            partner_establishments: match ? match.partner_establishments : [partner],
+            location: location,
+            municipalities: match ? match.municipalities : [],
+            badge: badge,
+            discount_type: match ? match.discount_type : (r.discount_type || 'percentage'),
+            discount_value: match ? match.discount_value : (r.discount_value || 0),
+            pointsCost: pointsCost,
+            required_points: pointsCost,
+            points: pointsCost,
+            code: code,
+            image: image,
+            valid_from: match ? match.valid_from : null,
+            valid_from_formatted: match ? match.valid_from_formatted : null,
+            expiration_type: match ? match.expiration_type : 'no_expiry_usable',
+            is_no_expiration: match ? match.is_no_expiration : true,
+            expires: match ? match.expires : null,
+            expires_formatted: isRedeemed ? 'Redeemed & Recorded' : (match ? match.expires_formatted : 'Claimed & Usable'),
+            is_expired: match ? match.is_expired : false,
+            is_upcoming: false,
+            is_out_of_stock: false,
+            id_needed: match ? match.id_needed : false,
+            terms_and_conditions: r.terms_and_conditions || (match ? match.terms_and_conditions : null),
+            status: status,
+            redemptionStatus: status,
+            isRedeemed: isRedeemed,
+            isClaimed: !isRedeemed && status === 'claimed',
+            redeemedAt: r.redeemed_at,
+            createdAt: r.created_at,
+            description: description,
+            is_mabanag: match ? match.is_mabanag : (partner.toLowerCase().includes('mabanag'))
+        };
+    });
+}
+
+function updateClaimedBadge() {
+    const redemptions = getUserRedemptionItems();
+    const activeClaimed = redemptions.filter(r => (r.redemptionStatus === 'claimed' || r.status === 'claimed') && !['redeemed', 'used', 'completed'].includes((r.redemptionStatus || r.status || '').toLowerCase()));
+    const historyClaimed = redemptions.filter(r => ['redeemed', 'used', 'completed'].includes((r.redemptionStatus || r.status || '').toLowerCase()));
+
     const countEl = document.getElementById('claimed-count');
-    if (countEl) countEl.textContent = claimed.length;
+    const histEl = document.getElementById('history-count');
+    if (countEl) countEl.textContent = activeClaimed.length;
+    if (histEl) histEl.textContent = historyClaimed.length;
+
+    if (typeof populateStatusDropdown === 'function') {
+        populateStatusDropdown();
+    }
 }
 
 function syncClaimedVouchersWithData() {
-    const redemptions = window._touristRedemptions || [];
-    let claimed = getClaimedVouchers();
-    if (redemptions.length > 0 && vouchersData.length > 0) {
+    const uid = getAuthUserId();
+    if (!uid) {
+        setClaimedVouchers([]);
+        return;
+    }
+
+    const redemptions = Array.isArray(window._touristRedemptions) ? window._touristRedemptions : [];
+    let claimedSet = new Set();
+
+    if (redemptions.length > 0) {
         redemptions.forEach(v => {
-            const match = vouchersData.find(item => 
-                item.code === v.voucher_code || 
-                (v.voucher_code && item.code && v.voucher_code.startsWith(item.code)) || 
-                (item.dbId && item.title === v.type)
-            );
-            if (match) {
-                if (v.voucher_code) match.code = v.voucher_code;
-                if (v.status) match.redemptionStatus = v.status;
-                if (!claimed.includes(match.id)) {
-                    claimed.push(match.id);
+            const vId = v.voucher_id ? String(v.voucher_id) : null;
+            const vCode = v.voucher_code ? String(v.voucher_code).toUpperCase().trim() : '';
+            const status = (v.status || '').toLowerCase().trim();
+
+            // ONLY track active, UNREDEEMED vouchers in claimedSet
+            if (status === 'claimed') {
+                if (vId) {
+                    claimedSet.add(vId);
+                    claimedSet.add('db_' + vId);
+                }
+                if (vCode) {
+                    claimedSet.add(vCode);
                 }
             }
         });
-        localStorage.setItem('intan_elyu_claimed_vouchers', JSON.stringify(claimed));
     }
+
+    setClaimedVouchers(Array.from(claimedSet));
 }
 
 async function fetchUserPointsAndRedemptions() {
@@ -431,6 +728,22 @@ async function fetchUserPointsAndRedemptions() {
         if (ptsBadge) ptsBadge.textContent = '0 Points';
         return;
     }
+
+    // Pre-hydrate balance immediately from auth_user
+    try {
+        const u = JSON.parse(localStorage.getItem('auth_user') || '{}');
+        if (u.points !== undefined || u.xp !== undefined) {
+            userPointsBalance = (u.points !== undefined) ? u.points : (u.xp ?? 0);
+            const ptsBadge = document.getElementById('discount-user-pts');
+            if (ptsBadge) ptsBadge.textContent = `${userPointsBalance.toLocaleString()} Points`;
+        }
+    } catch (e) { }
+
+    syncClaimedVouchersWithData();
+    updateClaimedBadge();
+    populateStatusDropdown();
+    populateCategoryDropdown();
+    renderDiscounts();
 
     try {
         const baseUrl = (window.backendUrl || 'https://api.intan-elyu.online').replace(/\/+$/, '');
@@ -444,16 +757,23 @@ async function fetchUserPointsAndRedemptions() {
         if (res.ok) {
             const data = await res.json();
             if (data.status === 'success') {
+                window._hasFetchedRedemptions = true;
+                window._touristRedemptions = Array.isArray(data.vouchers) ? data.vouchers : [];
                 userPointsBalance = (data.points !== undefined) ? data.points : (data.xp ?? 0);
                 const ptsBadge = document.getElementById('discount-user-pts');
                 if (ptsBadge) ptsBadge.textContent = `${userPointsBalance.toLocaleString()} Points`;
 
-                if (Array.isArray(data.vouchers)) {
-                    window._touristRedemptions = data.vouchers;
-                    syncClaimedVouchersWithData();
-                    updateClaimedBadge();
-                    renderDiscounts();
-                }
+                try {
+                    const u = JSON.parse(localStorage.getItem('auth_user') || '{}');
+                    u.points = userPointsBalance;
+                    localStorage.setItem('auth_user', JSON.stringify(u));
+                } catch (e) { }
+
+                syncClaimedVouchersWithData();
+                updateClaimedBadge();
+                populateStatusDropdown();
+                populateCategoryDropdown();
+                renderDiscounts();
             }
         }
     } catch(e) {
@@ -462,28 +782,7 @@ async function fetchUserPointsAndRedemptions() {
 }
 
 function buildMunicipalityFilterBar() {
-    const bar = document.getElementById('muni-filter-bar');
-    if (!bar) return;
-
-    const townSet = new Set();
-    vouchersData.forEach(v => {
-        if (Array.isArray(v.municipalities) && v.municipalities.length > 0) {
-            v.municipalities.forEach(m => townSet.add(m));
-        } else if (v.location && v.location !== 'La Union') {
-            const firstPart = v.location.split(',')[0].trim();
-            if (firstPart) townSet.add(firstPart);
-        }
-    });
-
-    const towns = Array.from(townSet).sort();
-    if (towns.length === 0) return;
-
-    let html = `<button class="muni-pill ${activeMunicipality === 'All' ? 'active' : ''}" onclick="filterMunicipality('All')">All Towns</button>`;
-    towns.forEach(t => {
-        const isActive = activeMunicipality.toLowerCase() === t.toLowerCase();
-        html += `<button class="muni-pill ${isActive ? 'active' : ''}" onclick="filterMunicipality('${t.replace(/'/g, "\\'")}')">${t}</button>`;
-    });
-    bar.innerHTML = html;
+    populateMunicipalityDropdown();
 }
 
 function renderDiscounts() {
@@ -498,20 +797,37 @@ function renderDiscounts() {
     }
 
     const claimed = getClaimedVouchers();
-    let filtered = [...vouchersData];
+    let filtered = [];
 
-    // 1. Category Filter
-    if (activeCategory === 'Claimed') {
-        filtered = filtered.filter(v => claimed.includes(v.id));
-    } else if (activeCategory === 'Upcoming') {
-        filtered = filtered.filter(v => (v.is_upcoming || (v.status && v.status.toLowerCase() === 'upcoming')) && !v.is_expired);
+    // 1. Status Filter (Dedicated Status Droplist)
+    if (activeStatus === 'Claimed') {
+        filtered = getUserRedemptionItems().filter(r => (r.redemptionStatus === 'claimed' || r.status === 'claimed') && !['redeemed', 'used', 'completed'].includes((r.redemptionStatus || r.status || '').toLowerCase()));
+    } else if (activeStatus === 'Redeemed') {
+        filtered = getUserRedemptionItems().filter(r => ['redeemed', 'used', 'completed'].includes((r.redemptionStatus || r.status || '').toLowerCase()));
+    } else if (activeStatus === 'Upcoming') {
+        filtered = vouchersData.filter(v => isVoucherUpcoming(v) && !isVoucherExpired(v));
+    } else if (activeStatus === 'Expired') {
+        filtered = vouchersData.filter(v => isVoucherExpired(v));
+    } else {
+        // 'All': Exclude already claimed, redeemed, expired, or upcoming deals from available catalog browsing
+        filtered = vouchersData.filter(v => !isVoucherClaimed(v) && !isVoucherRedeemed(v) && !isVoucherExpired(v) && !isVoucherUpcoming(v));
+    }
+
+    // 2. Category Filter
+    if (activeCategory === 'Upcoming') {
+        filtered = filtered.filter(v => (v.is_upcoming || (v.status && v.status.toLowerCase() === 'upcoming')) && !isVoucherExpired(v));
     } else if (activeCategory === 'Mabanag Hall') {
         filtered = filtered.filter(v => v.is_mabanag || (v.partner && v.partner.toLowerCase().includes('mabanag')) || (v.location && v.location.toLowerCase().includes('mabanag')));
     } else if (activeCategory !== 'All') {
-        filtered = filtered.filter(v => v.category === activeCategory);
+        const targetCat = activeCategory.toLowerCase();
+        filtered = filtered.filter(v => {
+            if (!v.category) return false;
+            const c = v.category.toLowerCase();
+            return c === targetCat || c.includes(targetCat) || targetCat.includes(c);
+        });
     }
 
-    // 2. Municipality Filter
+    // 3. Municipality Filter
     if (activeMunicipality !== 'All') {
         const targetMuni = activeMunicipality.toLowerCase();
         filtered = filtered.filter(v => {
@@ -522,7 +838,7 @@ function renderDiscounts() {
         });
     }
 
-    // 3. Search Filter
+    // 4. Search Filter
     if (searchQuery) {
         filtered = filtered.filter(v => {
             const haystack = `${v.title} ${v.partner} ${v.location} ${v.description} ${v.code} ${v.category}`.toLowerCase();
@@ -530,19 +846,16 @@ function renderDiscounts() {
         });
     }
 
-    // 4. Sort order for browsing:
-    // Available unredeemed vouchers first, then upcoming, then already claimed, then out-of-stock/expired
-    if (activeCategory !== 'Claimed') {
+    // 5. Sort order for browsing:
+    if (activeStatus !== 'Claimed' && activeStatus !== 'Redeemed' && activeCategory !== 'Claimed' && activeCategory !== 'History') {
         filtered.sort((a, b) => {
-            const aClaimed = claimed.includes(a.id) ? 1 : 0;
-            const bClaimed = claimed.includes(b.id) ? 1 : 0;
-            const aExpired = (a.is_expired || a.status === 'expired') ? 2 : (a.is_out_of_stock ? 1 : 0);
-            const bExpired = (b.is_expired || b.status === 'expired') ? 2 : (b.is_out_of_stock ? 1 : 0);
+            const aExpired = (isVoucherExpired(a) || a.status === 'expired') ? 2 : (isVoucherFullyClaimed(a) ? 1 : 0);
+            const bExpired = (isVoucherExpired(b) || b.status === 'expired') ? 2 : (isVoucherFullyClaimed(b) ? 1 : 0);
             const aUpcoming = (a.is_upcoming || a.status === 'upcoming') ? 1 : 0;
             const bUpcoming = (b.is_upcoming || b.status === 'upcoming') ? 1 : 0;
 
-            const aPriority = aExpired > 0 ? (10 + aExpired) : (aClaimed ? 5 : (aUpcoming ? 2 : 0));
-            const bPriority = bExpired > 0 ? (10 + bExpired) : (bClaimed ? 5 : (bUpcoming ? 2 : 0));
+            const aPriority = aExpired > 0 ? (10 + aExpired) : (aUpcoming ? 2 : 0);
+            const bPriority = bExpired > 0 ? (10 + bExpired) : (bUpcoming ? 2 : 0);
 
             return aPriority - bPriority;
         });
@@ -550,14 +863,24 @@ function renderDiscounts() {
 
     if (filtered.length === 0) {
         let msg = 'No vouchers match your current filters.';
-        if (vouchersData.length === 0) {
+        if (vouchersData.length === 0 && getUserRedemptionItems().length === 0) {
             msg = 'No discounts or vouchers are currently available. Check back soon for exciting deals!';
-        } else if (activeCategory === 'Claimed') {
-            msg = 'You have not claimed any vouchers yet. Redeem your Points to store vouchers here!';
+        } else if (activeStatus === 'Claimed') {
+            msg = 'You have no active claimed vouchers right now. Claim reward deals from "All Vouchers" using your Explorer Points!';
+        } else if (activeStatus === 'Redeemed') {
+            msg = 'No redeemed voucher history yet. Vouchers scanned at checkout by partner merchants will appear here.';
+        } else if (activeStatus === 'Upcoming') {
+            msg = 'No upcoming vouchers scheduled right now. Check back soon for exciting new promotions and deals opening soon!';
+        } else if (activeStatus === 'Expired') {
+            msg = 'No expired vouchers found. All promotions are currently active or upcoming!';
+        } else if (activeStatus === 'All' && getUserRedemptionItems().length > 0) {
+            msg = '🎉 You have claimed all available deals! Select "Claimed Voucher" in Voucher Status above to view your claimed discounts.';
         } else if (activeCategory === 'Mabanag Hall') {
-            msg = 'No vouchers found for Mabanag Hall right now. Check "My Vouchers" if already claimed!';
+            msg = 'No vouchers for Mabanag Hall match your current filter.';
         } else if (activeCategory === 'Upcoming') {
             msg = 'No upcoming promotions scheduled right now. Check back soon for new discounts!';
+        } else if (activeCategory !== 'All') {
+            msg = `No vouchers found under the "${activeCategory}" category. Check back soon for new offers!`;
         } else if (searchQuery) {
             msg = `No vouchers found matching "${searchQuery}". Try a different keyword or town.`;
         }
@@ -567,15 +890,22 @@ function renderDiscounts() {
 
     let html = '';
     filtered.forEach(v => {
-        const isClaimed = claimed.includes(v.id);
+        const isClaimed = isVoucherClaimed(v);
+        const isRedeemed = isVoucherRedeemed(v);
         const imgUrl = getVoucherImageUrl(v);
         const expiryInfo = getExpiryInfo(v.expires, v.is_expired, v.is_upcoming, v.valid_from, v.valid_from_formatted, v.is_no_expiration, v.expiration_type);
-        const isCardExpired = v.is_expired || expiryInfo.isExpired;
+        const isCardExpired = isVoucherExpired(v) || expiryInfo.isExpired;
         const isCardUpcoming = !isCardExpired && (v.is_upcoming || expiryInfo.isUpcoming);
-        const isOutOfStock = v.is_out_of_stock || (v.remaining_quantity !== null && v.remaining_quantity <= 0);
+        const isOutOfStock = isVoucherFullyClaimed(v);
 
         let actionBtnHtml = '';
-        if (isClaimed) {
+        if (isRedeemed) {
+            actionBtnHtml = `
+                <button onclick="openVoucherModal('${v.id}')" style="background: #dc2626 !important; border: none !important; color: #ffffff !important; padding: 8px 14px; border-radius: 10px; font-weight: 800; font-size: 12px; cursor: pointer; display:flex; align-items:center; gap:4px; box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3) !important;">
+                    <i class="fa-solid fa-check-double"></i> Redeemed
+                </button>
+            `;
+        } else if (isClaimed) {
             actionBtnHtml = `
                 <button onclick="openVoucherModal('${v.id}')" style="background: #10b981 !important; border: none !important; color: #ffffff !important; padding: 8px 14px; border-radius: 10px; font-weight: 800; font-size: 12px; cursor: pointer; display:flex; align-items:center; gap:4px; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3) !important;">
                     <i class="fa-solid fa-check"></i> Claimed
@@ -589,8 +919,8 @@ function renderDiscounts() {
             `;
         } else if (isOutOfStock) {
             actionBtnHtml = `
-                <button disabled style="background: #dc2626 !important; border: none !important; color: #ffffff !important; padding: 8px 14px; border-radius: 10px; font-weight: 800; font-size: 12px; cursor: not-allowed;">
-                    Fully Claimed
+                <button disabled style="background: #ea580c !important; border: none !important; color: #ffffff !important; padding: 8px 14px; border-radius: 10px; font-weight: 800; font-size: 12px; cursor: not-allowed;">
+                    <i class="fa-solid fa-ban" style="margin-right:4px;"></i> Fully Claimed
                 </button>
             `;
         } else if (isCardUpcoming) {
@@ -623,15 +953,19 @@ function renderDiscounts() {
             stockBadgeHtml = `<span style="font-size: 9.5px; font-weight: 800; background: #f59e0b !important; color: #ffffff !important; padding: 3px 8px; border-radius: 6px; display: inline-flex; align-items: center; gap: 3px;"><i class="fa-solid fa-fire"></i> Only ${v.remaining_quantity} left</span>`;
         }
 
+        const topBadgeBg = isRedeemed ? '#dc2626' : (isClaimed ? '#10b981' : '#ffffff');
+        const topBadgeColor = isRedeemed ? '#ffffff' : (isClaimed ? '#ffffff' : '#203f8d');
+        const topBadgeText = isRedeemed ? 'REDEEMED' : (isClaimed ? 'CLAIMED' : v.badge);
+
         html += `
-        <div class="voucher-card">
+        <div class="voucher-card" onclick="openVoucherModal('${v.id}')" style="cursor: pointer;">
             <div>
                 <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 12px; gap: 8px;">
                     <div style="width: 44px; height: 44px; border-radius: 14px; background: #ffffff; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.14);">
                         <img src="${imgUrl}" alt="${v.title}" style="width: 100%; height: 100%; object-fit: contain; padding: 4px;" onerror="this.onerror=null; this.src='https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/logo/LUPTO.png';">
                     </div>
                     <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
-                        <span style="font-size: 11px; font-weight: 900; background: #ffffff !important; color: #203f8d !important; padding: 4px 10px; border-radius: 8px; text-transform: uppercase; box-shadow: 0 2px 6px rgba(0,0,0,0.12);">${v.badge}</span>
+                        <span style="font-size: 11px; font-weight: 900; background: ${topBadgeBg} !important; color: ${topBadgeColor} !important; padding: 4px 10px; border-radius: 8px; text-transform: uppercase; box-shadow: 0 2px 6px rgba(0,0,0,0.12);">${topBadgeText}</span>
                         ${mabanagBadgeHtml}
                         ${idBadgeHtml}
                         ${stockBadgeHtml}
@@ -650,7 +984,7 @@ function renderDiscounts() {
 
                 <div style="display: inline-flex; align-items: center; gap: 5px; background: rgba(255, 255, 255, 0.16); padding: 3px 8px; border-radius: 6px; margin-bottom: 10px;">
                     <i class="${expiryInfo.icon}" style="font-size: 9px; color: #ffffff;"></i>
-                    <span style="font-size: 10px; font-weight: 700; color: #ffffff;">${expiryInfo.label}</span>
+                    <span style="font-size: 10px; font-weight: 700; color: #ffffff;">${isRedeemed ? 'Redeemed & Recorded' : (isClaimed ? 'Claimed & Ready to Use' : expiryInfo.label)}</span>
                 </div>
 
                 <p style="margin: 0 0 14px; font-size: 12px; color: rgba(255, 255, 255, 0.88); line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${v.description}</p>
@@ -663,7 +997,8 @@ function renderDiscounts() {
                 </div>
                 ${actionBtnHtml}
             </div>
-        </div>`;
+        </div>
+        `;
     });
 
     grid.innerHTML = html;
@@ -676,6 +1011,7 @@ function startLiveRedemptionSync(code) {
     if (!code) return;
 
     const check = async () => {
+        if (!navigator.onLine) return; // Ambient check: pause polling while offline
         try {
             const baseUrl = (window.backendUrl || 'https://api.intan-elyu.online').replace(/\/+$/, '');
             const res = await fetch(`${baseUrl}/api/public/redemptions/${encodeURIComponent(code)}/status`, {
@@ -712,12 +1048,20 @@ function stopLiveRedemptionSync() {
 }
 
 function openVoucherModal(id) {
-    const item = vouchersData.find(v => v.id === id);
+    let item = null;
+    if (typeof id === 'string' && id.startsWith('rdm_') && typeof getUserRedemptionItems === 'function') {
+        item = getUserRedemptionItems().find(v => v.id === id);
+    }
+    if (!item) {
+        item = vouchersData.find(v => v.id === id);
+    }
+    if (!item && typeof getUserRedemptionItems === 'function') {
+        item = getUserRedemptionItems().find(v => v.id === id);
+    }
     if (!item) return;
     currentVoucherId = id;
 
-    const claimed = getClaimedVouchers();
-    const isAlreadyClaimed = claimed.includes(id);
+    const isAlreadyClaimed = isVoucherClaimed(item) || isVoucherRedeemed(item) || item.redemptionStatus === 'claimed' || item.redemptionStatus === 'redeemed';
 
     // Basic text
     document.getElementById('modal-title').textContent = item.title;
@@ -793,25 +1137,29 @@ function openVoucherModal(id) {
         statusBadge.style.border = 'none';
     }
 
-    // Reset copy button feedback
-    const copyBtn = document.getElementById('btn-copy-voucher');
-    const copyLabel = document.getElementById('copy-btn-label');
-    const copyIcon = document.getElementById('copy-btn-icon');
-    if (copyBtn) {
-        copyBtn.style.background = '#ffffff';
-        copyBtn.style.borderColor = '#bfdbfe';
-        copyBtn.style.color = '#1e3a8a';
-    }
-    if (copyLabel) copyLabel.textContent = 'Copy Voucher Code';
-    if (copyIcon) copyIcon.className = 'fa-solid fa-copy';
-
     if (isAlreadyClaimed) {
         const claimCode = item.code || 'ELYU-PROMO';
-        const isRedeemedOnWeb = (item.redemptionStatus || '').toLowerCase() === 'redeemed';
+        const isRedeemedOnWeb = isVoucherRedeemed(item);
         if (claimedBox) {
             claimedBox.style.display = 'block';
-            const codeEl = document.getElementById('modal-code');
-            if (codeEl) codeEl.textContent = claimCode;
+            window._currentDiscountClaimCode = claimCode;
+            window._isDiscountCodeUnmasked = false;
+            const codeEl = document.getElementById('modal-qr-mask-code');
+            const iconEl = document.getElementById('modal-qr-mask-icon');
+            const labelEl = document.getElementById('modal-qr-mask-label');
+            const maskBtn = document.getElementById('modal-qr-mask-btn');
+            if (codeEl) {
+                codeEl.textContent = '••••••••••••';
+                codeEl.style.letterSpacing = '2.5px';
+                codeEl.style.color = '#1e3a8a';
+            }
+            if (iconEl) iconEl.className = 'fa-solid fa-eye';
+            if (labelEl) labelEl.textContent = 'Voucher Code (Tap to reveal)';
+            if (maskBtn) {
+                maskBtn.style.background = '#eff6ff';
+                maskBtn.style.borderColor = '#bfdbfe';
+            }
+
             const qrImg = document.getElementById('modal-qr-img');
             if (qrImg) {
                 qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(claimCode)}`;
@@ -845,22 +1193,23 @@ function openVoucherModal(id) {
                 redeemBtn.disabled = true;
                 redeemBtn.style.opacity = '0.6';
                 redeemBtn.style.cursor = 'not-allowed';
-                if (redeemLabel) redeemLabel.innerHTML = '<i class="fa-solid fa-lock"></i> Voucher Expired';
+                redeemBtn.innerHTML = '<i class="fa-solid fa-lock" style="color: #1e3a8a !important;"></i> <span id="modal-redeem-btn-label">Voucher Expired</span>';
             } else if (isOutOfStock) {
                 redeemBtn.disabled = true;
                 redeemBtn.style.opacity = '0.6';
                 redeemBtn.style.cursor = 'not-allowed';
-                if (redeemLabel) redeemLabel.innerHTML = '<i class="fa-solid fa-ban"></i> Fully Claimed';
+                redeemBtn.innerHTML = '<i class="fa-solid fa-ban" style="color: #1e3a8a !important;"></i> <span id="modal-redeem-btn-label">Fully Claimed</span>';
             } else if (isUpcoming) {
                 redeemBtn.disabled = true;
                 redeemBtn.style.opacity = '0.7';
                 redeemBtn.style.cursor = 'not-allowed';
-                if (redeemLabel) redeemLabel.innerHTML = `<i class="fa-regular fa-clock"></i> Starts on ${item.valid_from_formatted || 'Soon'}`;
+                redeemBtn.innerHTML = `<i class="fa-regular fa-clock" style="color: #1e3a8a !important;"></i> <span id="modal-redeem-btn-label">Starts on ${item.valid_from_formatted || 'Soon'}</span>`;
             } else {
                 redeemBtn.disabled = false;
                 redeemBtn.style.opacity = '1';
                 redeemBtn.style.cursor = 'pointer';
-                if (redeemLabel) redeemLabel.textContent = `Redeem for ${item.pointsCost || item.required_points || 100} Points`;
+                const cost = item.pointsCost || item.required_points || 100;
+                redeemBtn.innerHTML = `<i class="fa-solid fa-gift" style="color: #1e3a8a !important;"></i> <span id="modal-redeem-btn-label">Redeem for ${cost} Points</span>`;
             }
         }
     }
@@ -875,6 +1224,13 @@ function openVoucherModal(id) {
 
 function closeVoucherModal() {
     stopLiveRedemptionSync();
+    window._isDiscountCodeUnmasked = false;
+    const btn = document.getElementById('modal-redeem-btn');
+    if (btn) {
+        btn.disabled = false;
+        btn.style.opacity = '1';
+        btn.innerHTML = '<i class="fa-solid fa-gift" style="color: #1e3a8a !important;"></i> <span id="modal-redeem-btn-label">Redeem Points</span>';
+    }
     const modal = document.getElementById('voucher-modal');
     if (modal) {
         modal.classList.remove('active');
@@ -886,98 +1242,66 @@ function closeVoucherModal() {
     }
 }
 
-function copyVoucherCode() {
-    const codeEl = document.getElementById('modal-code');
-    let code = codeEl ? (codeEl.innerText || codeEl.textContent || '').trim() : '';
+window._currentDiscountClaimCode = '';
+window._isDiscountCodeUnmasked = false;
+window.toggleDiscountVoucherCodeMask = function () {
+    if (!window._currentDiscountClaimCode) return;
+    window._isDiscountCodeUnmasked = !window._isDiscountCodeUnmasked;
+    const codeEl = document.getElementById('modal-qr-mask-code');
+    const iconEl = document.getElementById('modal-qr-mask-icon');
+    const labelEl = document.getElementById('modal-qr-mask-label');
+    const maskBtn = document.getElementById('modal-qr-mask-btn');
 
-    if (!code && currentVoucherId) {
-        const currentItem = vouchersData.find(v => v.id === currentVoucherId);
-        if (currentItem && currentItem.code) {
-            code = String(currentItem.code).trim();
+    if (window._isDiscountCodeUnmasked) {
+        if (codeEl) {
+            codeEl.textContent = window._currentDiscountClaimCode;
+            codeEl.style.letterSpacing = '1px';
+            codeEl.style.color = '#0284c7';
         }
-    }
-
-    if (!code) {
-        if (typeof showToast === 'function') showToast("No voucher code available to copy.");
-        return;
-    }
-
-    const btn = document.getElementById('btn-copy-voucher');
-    const label = document.getElementById('copy-btn-label');
-    const icon = document.getElementById('copy-btn-icon');
-
-    const showCopiedSuccess = () => {
-        if (label) label.textContent = 'Code Copied!';
-        if (icon) icon.className = 'fa-solid fa-check';
-        if (btn) {
-            btn.style.background = '#dcfce7';
-            btn.style.borderColor = '#86efac';
-            btn.style.color = '#15803d';
+        if (iconEl) iconEl.className = 'fa-solid fa-eye-slash';
+        if (labelEl) labelEl.textContent = 'Voucher Code (Tap to hide)';
+        if (maskBtn) {
+            maskBtn.style.background = '#dbeafe';
+            maskBtn.style.borderColor = '#93c5fd';
         }
-        if (typeof showToast === 'function') showToast("Voucher code copied to clipboard!");
-
-        setTimeout(() => {
-            if (label) label.textContent = 'Copy Voucher Code';
-            if (icon) icon.className = 'fa-solid fa-copy';
-            if (btn) {
-                btn.style.background = '#ffffff';
-                btn.style.borderColor = '#bfdbfe';
-                btn.style.color = '#1e3a8a';
-            }
-        }, 2500);
-    };
-
-    const showCopiedFallback = () => {
-        if (typeof showToast === 'function') showToast("Voucher Code: " + code);
-    };
-
-    if (typeof window.copyToClipboard === 'function') {
-        window.copyToClipboard(code, showCopiedSuccess, showCopiedFallback);
-    } else if (navigator.clipboard && window.isSecureContext && typeof navigator.clipboard.writeText === 'function') {
-        navigator.clipboard.writeText(code)
-            .then(showCopiedSuccess)
-            .catch(() => localFallbackCopy(code, showCopiedSuccess, showCopiedFallback));
     } else {
-        localFallbackCopy(code, showCopiedSuccess, showCopiedFallback);
-    }
-}
-
-function localFallbackCopy(text, onSuccess, onError) {
-    let ta = null;
-    try {
-        ta = document.createElement('textarea');
-        ta.value = text;
-        ta.setAttribute('readonly', '');
-        ta.style.position = 'fixed';
-        ta.style.top = '0';
-        ta.style.left = '-9999px';
-        ta.style.width = '2em';
-        ta.style.height = '2em';
-        ta.style.opacity = '0.01';
-        document.body.appendChild(ta);
-        ta.focus();
-        ta.select();
-        ta.setSelectionRange(0, ta.value.length);
-        const ok = document.execCommand('copy');
-        document.body.removeChild(ta);
-        ta = null;
-        if (ok) {
-            if (typeof onSuccess === 'function') onSuccess();
-        } else {
-            if (typeof onError === 'function') onError();
+        if (codeEl) {
+            codeEl.textContent = '••••••••••••';
+            codeEl.style.letterSpacing = '2.5px';
+            codeEl.style.color = '#1e3a8a';
         }
-    } catch(e) {
-        if (ta && ta.parentNode) ta.parentNode.removeChild(ta);
-        if (typeof onError === 'function') onError();
+        if (iconEl) iconEl.className = 'fa-solid fa-eye';
+        if (labelEl) labelEl.textContent = 'Voucher Code (Tap to reveal)';
+        if (maskBtn) {
+            maskBtn.style.background = '#eff6ff';
+            maskBtn.style.borderColor = '#bfdbfe';
+        }
+    }
+};
+
+function copyVoucherCode() {
+    if (typeof showToast === 'function') {
+        showToast("Present your digital QR pass directly to merchant staff.");
     }
 }
 
 async function handleModalRedeem() {
-    const item = vouchersData.find(v => v.id === currentVoucherId);
+    let item = vouchersData.find(v => v.id === currentVoucherId);
+    if (!item && typeof getUserRedemptionItems === 'function') {
+        item = getUserRedemptionItems().find(v => v.id === currentVoucherId);
+    }
     if (!item) return;
 
+    // Strict One-Time Claim: prevent duplicate claim and trigger toast
+    if (isVoucherClaimed(item) || isVoucherRedeemed(item) || item.redemptionStatus === 'claimed' || item.redemptionStatus === 'redeemed') {
+        if (typeof showToast === 'function') {
+            showToast("You have already claimed this voucher. Each voucher is valid for one-time claim only.");
+        }
+        return;
+    }
+
     const expiryInfo = getExpiryInfo(item.expires, item.is_expired, item.is_upcoming, item.valid_from, item.valid_from_formatted, item.is_no_expiration, item.expiration_type);
-    if (item.is_expired || expiryInfo.isExpired) {
+    if (isVoucherExpired(item) || expiryInfo.isExpired) {
         if (typeof showToast === 'function') showToast("This voucher has expired.");
         return;
     }
@@ -987,7 +1311,8 @@ async function handleModalRedeem() {
         return;
     }
 
-    if (item.is_out_of_stock || (item.remaining_quantity !== null && item.remaining_quantity <= 0)) {
+
+    if (isVoucherFullyClaimed(item)) {
         if (typeof showToast === 'function') showToast("This voucher is fully claimed.");
         return;
     }
@@ -1033,12 +1358,34 @@ async function handleModalRedeem() {
                 window.confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
             }
 
-            // Save to claimed in localStorage
+            // Save to claimed in user-scoped storage
             let claimed = getClaimedVouchers();
-            if (!claimed.includes(item.id)) {
-                claimed.push(item.id);
-                localStorage.setItem('intan_elyu_claimed_vouchers', JSON.stringify(claimed));
+            if (!claimed.includes(item.id)) claimed.push(item.id);
+            if (item.dbId) {
+                if (!claimed.includes('db_' + item.dbId)) claimed.push('db_' + item.dbId);
+                if (!claimed.includes(String(item.dbId))) claimed.push(String(item.dbId));
             }
+            setClaimedVouchers(claimed);
+            item.redemptionStatus = 'claimed';
+
+            const claimCode = (data.data && data.data.voucher_code) ? data.data.voucher_code : (data.claim_code || item.code);
+            item.code = claimCode;
+
+            // Immediately register into window._touristRedemptions
+            if (!Array.isArray(window._touristRedemptions)) window._touristRedemptions = [];
+            const newRedemptionId = (data.data && data.data.id) ? data.data.id : Date.now();
+            window._touristRedemptions.unshift({
+                id: newRedemptionId,
+                voucher_id: item.dbId || String(item.id).replace('db_', ''),
+                type: item.title,
+                points_cost: cost,
+                voucher_code: claimCode,
+                status: 'claimed',
+                redeemed_at: null,
+                created_at: new Date().toISOString(),
+                partner_establishment: item.partner,
+                category: item.category
+            });
 
             // Update user's points
             let storedUser = null;
@@ -1053,26 +1400,52 @@ async function handleModalRedeem() {
             }
 
             window.dashboardNeedsRefresh = true;
+            window.profileNeedsRefresh = true;
 
-            // Invalidate cached vouchers so stock is re-synced
-            try { localStorage.removeItem(VOUCHERS_CACHE_KEY); } catch(e) {}
+            // Invalidate cached vouchers & profile points balance so fresh claimed vouchers immediately appear in Profile
+            try { 
+                localStorage.removeItem(VOUCHERS_CACHE_KEY); 
+                for (let i = localStorage.length - 1; i >= 0; i--) {
+                    const k = localStorage.key(i);
+                    if (k && (k.startsWith('points_balance_') || k.startsWith('profile_data_') || k.startsWith('dashboard_data_'))) {
+                        localStorage.removeItem(k);
+                    }
+                }
+            } catch(e) {}
 
             // Switch modal to Claimed Box immediately
-            const claimCode = (data.data && data.data.voucher_code) ? data.data.voucher_code : (data.claim_code || item.code);
-            item.code = claimCode;
-            
             const claimedBox = document.getElementById('modal-claimed-box');
             if (claimedBox) {
                 claimedBox.style.display = 'block';
-                const codeEl = document.getElementById('modal-code');
-                if (codeEl) codeEl.textContent = claimCode;
+                window._currentDiscountClaimCode = claimCode;
+                window._isDiscountCodeUnmasked = false;
+                const codeEl = document.getElementById('modal-qr-mask-code');
+                const iconEl = document.getElementById('modal-qr-mask-icon');
+                const labelEl = document.getElementById('modal-qr-mask-label');
+                const maskBtn = document.getElementById('modal-qr-mask-btn');
+                if (codeEl) {
+                    codeEl.textContent = '••••••••••••';
+                    codeEl.style.letterSpacing = '2.5px';
+                    codeEl.style.color = '#1e3a8a';
+                }
+                if (iconEl) iconEl.className = 'fa-solid fa-eye';
+                if (labelEl) labelEl.textContent = 'Voucher Code (Tap to reveal)';
+                if (maskBtn) {
+                    maskBtn.style.background = '#eff6ff';
+                    maskBtn.style.borderColor = '#bfdbfe';
+                }
+
                 const qrImg = document.getElementById('modal-qr-img');
                 if (qrImg) {
                     qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(claimCode)}`;
                     qrImg.style.display = 'block';
                 }
             }
-            if (btn) btn.style.display = 'none';
+            if (btn) {
+                btn.innerHTML = `<i class="fa-solid fa-gift"></i> <span id="modal-redeem-btn-label">Redeem for ${cost} Points</span>`;
+                btn.disabled = false;
+                btn.style.display = 'none';
+            }
             const footerBanner = document.getElementById('modal-footer-banner');
             if (footerBanner) footerBanner.style.display = 'none';
 
@@ -1133,7 +1506,16 @@ async function fetchLiveDatabaseVouchers() {
 }
 
 function processVouchersData(rawList) {
-    vouchersData = rawList.map(v => {
+    // Strict deduplication by unique id or code
+    const seenKeys = new Set();
+    const uniqueRaw = (rawList || []).filter(v => {
+        const key = v.id ? String(v.id) : (v.code || v.voucher_code || v.title);
+        if (!key || seenKeys.has(key)) return false;
+        seenKeys.add(key);
+        return true;
+    });
+
+    vouchersData = uniqueRaw.map(v => {
         const icon = v.category === 'Activities' ? 'fa-person-hiking' : (v.category === 'Accommodations' ? 'fa-hotel' : (v.category === 'Souvenirs' ? 'fa-gift' : 'fa-utensils'));
         return {
             id: 'db_' + v.id,
@@ -1173,11 +1555,464 @@ function processVouchersData(rawList) {
     });
 
     syncClaimedVouchersWithData();
+    populateCategoryDropdown();
     buildMunicipalityFilterBar();
     renderDiscounts();
 }
 
+function populateCategoryDropdown() {
+    const catSelect = document.getElementById('category-dropdown-select');
+    const floatingList = document.getElementById('floating-cat-items-list');
+    if (!floatingList && !catSelect) return;
+
+    let baseList = [];
+    if (activeStatus === 'Claimed') {
+        baseList = (typeof getUserRedemptionItems === 'function') ? getUserRedemptionItems().filter(r => (r.redemptionStatus === 'claimed' || r.status === 'claimed') && !['redeemed', 'used', 'completed'].includes((r.redemptionStatus || r.status || '').toLowerCase())) : [];
+    } else if (activeStatus === 'Redeemed') {
+        baseList = (typeof getUserRedemptionItems === 'function') ? getUserRedemptionItems().filter(r => ['redeemed', 'used', 'completed'].includes((r.redemptionStatus || r.status || '').toLowerCase())) : [];
+    } else if (activeStatus === 'Upcoming') {
+        baseList = vouchersData.filter(v => isVoucherUpcoming(v) && !isVoucherExpired(v));
+    } else if (activeStatus === 'Expired') {
+        baseList = vouchersData.filter(v => isVoucherExpired(v));
+    } else {
+        baseList = vouchersData.filter(v => !isVoucherClaimed(v) && !isVoucherRedeemed(v) && !isVoucherExpired(v) && !isVoucherUpcoming(v));
+    }
+
+    // Dynamic counts per category
+    const catCounts = {};
+    baseList.forEach(v => {
+        if (v.category) {
+            const c = v.category.trim();
+            catCounts[c] = (catCounts[c] || 0) + 1;
+        }
+    });
+
+    const currentVal = activeCategory || (catSelect ? catSelect.value : 'All') || 'All';
+
+    // Compile ordered list of clean categories (NO status duplicates)
+    const categoriesList = [
+        { value: 'All', label: 'All Deals', count: baseList.length }
+    ];
+
+    ['Food & Dining', 'Activities', 'Accommodations', 'Souvenirs'].forEach(cat => {
+        categoriesList.push({
+            value: cat,
+            label: cat,
+            count: catCounts[cat] || 0
+        });
+    });
+
+    Object.keys(catCounts).forEach(cat => {
+        if (!['Food & Dining', 'Activities', 'Accommodations', 'Souvenirs', 'All'].includes(cat)) {
+            categoriesList.push({
+                value: cat,
+                label: cat,
+                count: catCounts[cat] || 0
+            });
+        }
+    });
+
+    const mabanagCount = baseList.filter(v => v.is_mabanag || (v.partner && v.partner.toLowerCase().includes('mabanag'))).length;
+    categoriesList.push({
+        value: 'Mabanag Hall',
+        label: 'Mabanag Hall Deals',
+        count: mabanagCount
+    });
+
+    const upcomingCount = baseList.filter(v => (v.is_upcoming || (v.status && v.status.toLowerCase() === 'upcoming')) && !v.is_expired).length;
+    categoriesList.push({
+        value: 'Upcoming',
+        label: 'Upcoming Promotions',
+        count: upcomingCount
+    });
+
+    // 1. Sync hidden select element for complete compatibility
+    if (catSelect) {
+        catSelect.innerHTML = categoriesList.map(c => `<option value="${c.value}">${c.label} (${c.count})</option>`).join('');
+        catSelect.value = currentVal;
+    }
+
+    // 2. Render floating droplist items (clean, elevated, interactive)
+    if (floatingList) {
+        floatingList.innerHTML = categoriesList.map(c => {
+            const isSelected = currentVal.toLowerCase() === c.value.toLowerCase();
+            return `
+                <div onclick="selectFloatingCategory('${c.value.replace(/'/g, "\\'")}', event)" role="button" tabindex="0" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-radius: 12px; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; touch-action: manipulation; transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1); ${isSelected ? 'background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%) !important; color: #ffffff !important; font-weight: 800; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);' : 'background: transparent; color: #1e293b; font-weight: 700;'}" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
+                    <span style="font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 6px; pointer-events: none;">${c.label}</span>
+                    <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0; pointer-events: none;">
+                        <span style="font-size: 10.5px; font-weight: 800; padding: 2px 7px; border-radius: 100px; ${isSelected ? 'background: rgba(255, 255, 255, 0.22); color: #ffffff;' : 'background: #f1f5f9; color: #475569;'}">${c.count}</span>
+                        ${isSelected ? '<span style="font-size: 13px; font-weight: 900; line-height: 1;">✓</span>' : ''}
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    // 3. Update Trigger Card selected display
+    const activeItem = categoriesList.find(c => c.value.toLowerCase() === currentVal.toLowerCase()) || categoriesList[0];
+    const triggerLabel = document.getElementById('floating-cat-selected-label');
+    const triggerBadge = document.getElementById('floating-cat-selected-badge');
+    if (triggerLabel && activeItem) triggerLabel.textContent = activeItem.label;
+    if (triggerBadge && activeItem) triggerBadge.textContent = activeItem.count;
+}
+
+function populateMunicipalityDropdown() {
+    const floatingMuniList = document.getElementById('floating-muni-items-list');
+    if (!floatingMuniList) return;
+
+    let baseList = [];
+    if (activeStatus === 'Claimed') {
+        baseList = (typeof getUserRedemptionItems === 'function') ? getUserRedemptionItems().filter(r => (r.redemptionStatus === 'claimed' || r.status === 'claimed') && !['redeemed', 'used', 'completed'].includes((r.redemptionStatus || r.status || '').toLowerCase())) : [];
+    } else if (activeStatus === 'Redeemed') {
+        baseList = (typeof getUserRedemptionItems === 'function') ? getUserRedemptionItems().filter(r => ['redeemed', 'used', 'completed'].includes((r.redemptionStatus || r.status || '').toLowerCase())) : [];
+    } else if (activeStatus === 'Upcoming') {
+        baseList = vouchersData.filter(v => isVoucherUpcoming(v) && !isVoucherExpired(v));
+    } else if (activeStatus === 'Expired') {
+        baseList = vouchersData.filter(v => isVoucherExpired(v));
+    } else {
+        baseList = vouchersData.filter(v => !isVoucherClaimed(v) && !isVoucherRedeemed(v) && !isVoucherExpired(v) && !isVoucherUpcoming(v));
+    }
+
+    const townSet = new Set();
+    vouchersData.forEach(v => {
+        if (Array.isArray(v.municipalities) && v.municipalities.length > 0) {
+            v.municipalities.forEach(m => {
+                if (m && m.trim()) townSet.add(m.trim());
+            });
+        } else if (v.location && v.location !== 'La Union') {
+            const firstPart = v.location.split(',')[0].trim();
+            if (firstPart) townSet.add(firstPart);
+        }
+    });
+
+    const standardTowns = ['Agoo', 'Aringay', 'Bacnotan', 'Bagulin', 'Balaoan', 'Bangar', 'Bauang', 'Burgos', 'Caba', 'Luna', 'Naguilian', 'Pugo', 'Rosario', 'San Fernando', 'San Gabriel', 'San Juan', 'Santo Tomas', 'Santol', 'Sudipen', 'Tubao'];
+    if (townSet.size === 0) {
+        standardTowns.forEach(t => townSet.add(t));
+    }
+
+    const sortedTowns = Array.from(townSet).sort();
+
+    const getTownCount = (townName) => {
+        if (townName === 'All') return baseList.length;
+        const target = townName.toLowerCase();
+        return baseList.filter(v => {
+            if (Array.isArray(v.municipalities) && v.municipalities.length > 0) {
+                return v.municipalities.some(m => m.toLowerCase().includes(target));
+            }
+            return (v.location || '').toLowerCase().includes(target);
+        }).length;
+    };
+
+    const muniList = [
+        { value: 'All', label: 'All Towns', count: baseList.length }
+    ];
+
+    sortedTowns.forEach(t => {
+        muniList.push({
+            value: t,
+            label: t,
+            count: getTownCount(t)
+        });
+    });
+
+    const currentMuni = activeMunicipality || 'All';
+
+    floatingMuniList.innerHTML = muniList.map(m => {
+        const isSelected = currentMuni.toLowerCase() === m.value.toLowerCase();
+        return `
+            <div onclick="selectFloatingMunicipality('${m.value.replace(/'/g, "\\'")}', event)" role="button" tabindex="0" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-radius: 12px; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; touch-action: manipulation; transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1); ${isSelected ? 'background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%) !important; color: #ffffff !important; font-weight: 800; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);' : 'background: transparent; color: #1e293b; font-weight: 700;'}" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
+                <span style="font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 6px; pointer-events: none;">${m.label}</span>
+                <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0; pointer-events: none;">
+                    <span style="font-size: 10.5px; font-weight: 800; padding: 2px 7px; border-radius: 100px; ${isSelected ? 'background: rgba(255, 255, 255, 0.22); color: #ffffff;' : 'background: #f1f5f9; color: #475569;'}">${m.count}</span>
+                    ${isSelected ? '<span style="font-size: 13px; font-weight: 900; line-height: 1;">✓</span>' : ''}
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    // Update Right Trigger Card
+    const activeItem = muniList.find(m => m.value.toLowerCase() === currentMuni.toLowerCase()) || muniList[0];
+    const triggerLabel = document.getElementById('floating-muni-selected-label');
+    const triggerBadge = document.getElementById('floating-muni-selected-badge');
+    if (triggerLabel && activeItem) triggerLabel.textContent = activeItem.label;
+    if (triggerBadge && activeItem) triggerBadge.textContent = activeItem.count;
+}
+
+function closeFloatingStatus() {
+    isStatusDropdownOpen = false;
+    const menu = document.getElementById('floating-status-menu');
+    const chevron = document.getElementById('floating-status-chevron');
+    const trigger = document.getElementById('floating-status-trigger');
+    const wrapper = document.getElementById('floating-status-wrapper');
+    if (!menu) return;
+
+    menu.style.opacity = '0';
+    menu.style.transform = 'translateY(-8px) scale(0.98)';
+    menu.style.pointerEvents = 'none';
+    if (chevron) chevron.style.transform = 'rotate(0deg)';
+    if (trigger) {
+        trigger.style.borderColor = '#cbd5e1';
+        trigger.style.boxShadow = '0 10px 25px -4px rgba(30, 58, 138, 0.10), 0 4px 10px -2px rgba(30, 58, 138, 0.05)';
+    }
+    if (wrapper) wrapper.style.zIndex = '98';
+    setTimeout(() => {
+        if (!isStatusDropdownOpen) {
+            menu.style.display = 'none';
+        }
+    }, 150);
+}
+
+function toggleFloatingStatusDropdown(e, forceClose = false) {
+    if (e && e.stopPropagation) e.stopPropagation();
+    const menu = document.getElementById('floating-status-menu');
+    const chevron = document.getElementById('floating-status-chevron');
+    const trigger = document.getElementById('floating-status-trigger');
+    const wrapper = document.getElementById('floating-status-wrapper');
+    if (!menu) return;
+
+    if (forceClose === true || isStatusDropdownOpen) {
+        closeFloatingStatus();
+    } else {
+        closeFloatingCategory();
+        closeFloatingMunicipality();
+
+        isStatusDropdownOpen = true;
+        if (wrapper) wrapper.style.zIndex = '1002';
+        menu.style.display = 'block';
+        menu.style.pointerEvents = 'auto';
+        if (chevron) chevron.style.transform = 'rotate(180deg)';
+        if (trigger) {
+            trigger.style.borderColor = '#2563eb';
+            trigger.style.boxShadow = '0 12px 28px -4px rgba(37, 99, 235, 0.20), 0 4px 12px -2px rgba(37, 99, 235, 0.10)';
+        }
+        requestAnimationFrame(() => {
+            menu.style.opacity = '1';
+            menu.style.transform = 'translateY(0) scale(1)';
+        });
+    }
+}
+
+function selectFloatingStatus(statusVal, e) {
+    if (e && e.stopPropagation) e.stopPropagation();
+    closeFloatingStatus();
+    filterStatus(statusVal);
+}
+
+function filterStatus(statusVal) {
+    activeStatus = statusVal || 'All';
+    populateStatusDropdown();
+    populateCategoryDropdown();
+    populateMunicipalityDropdown();
+    renderDiscounts();
+}
+
+function populateStatusDropdown() {
+    const floatingList = document.getElementById('floating-status-items-list');
+    const claimed = getClaimedVouchers();
+
+    const redemptions = (typeof getUserRedemptionItems === 'function') ? getUserRedemptionItems() : [];
+    const countAll = vouchersData.filter(v => !isVoucherClaimed(v) && !isVoucherRedeemed(v) && !isVoucherExpired(v) && !isVoucherUpcoming(v)).length;
+    const countClaimed = redemptions.filter(r => (r.redemptionStatus === 'claimed' || r.status === 'claimed') && !['redeemed', 'used', 'completed'].includes((r.redemptionStatus || r.status || '').toLowerCase())).length;
+    const countRedeemed = redemptions.filter(r => ['redeemed', 'used', 'completed'].includes((r.redemptionStatus || r.status || '').toLowerCase())).length;
+    const countUpcoming = vouchersData.filter(v => isVoucherUpcoming(v) && !isVoucherExpired(v)).length;
+    const countExpired = vouchersData.filter(v => isVoucherExpired(v)).length;
+
+    const statusList = [
+        {
+            value: 'All',
+            label: 'All Vouchers',
+            desc: 'Available reward deals to claim',
+            count: countAll
+        },
+        {
+            value: 'Claimed',
+            label: 'Claimed Voucher',
+            desc: 'Active & ready to scan at checkout',
+            count: countClaimed
+        },
+        {
+            value: 'Redeemed',
+            label: 'Redeemed Voucher',
+            desc: 'Used & verified at merchant store',
+            count: countRedeemed
+        },
+        {
+            value: 'Upcoming',
+            label: 'Upcoming Voucher',
+            desc: 'Scheduled promotions opening soon',
+            count: countUpcoming
+        },
+        {
+            value: 'Expired',
+            label: 'Expired Voucher',
+            desc: 'Promotion validity period ended',
+            count: countExpired
+        }
+    ];
+
+    if (floatingList) {
+        floatingList.innerHTML = statusList.map(s => {
+            const isSelected = activeStatus.toLowerCase() === s.value.toLowerCase();
+            return `
+                <div onclick="selectFloatingStatus('${s.value.replace(/'/g, "\\'")}', event)" role="button" tabindex="0" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-radius: 12px; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; touch-action: manipulation; transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1); ${isSelected ? 'background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%) !important; color: #ffffff !important; font-weight: 800; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);' : 'background: transparent; color: #1e293b; font-weight: 700;'}" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
+                    <div style="display: flex; flex-direction: column; text-align: left; min-width: 0; flex: 1; pointer-events: none;">
+                        <span style="font-size: 13px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.25;">${s.label}</span>
+                        <span style="font-size: 10.5px; font-weight: 600; ${isSelected ? 'color: rgba(255,255,255,0.85);' : 'color: #64748b;'} line-height: 1.2;">${s.desc}</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0; pointer-events: none; margin-left: 8px;">
+                        <span style="font-size: 10.5px; font-weight: 800; padding: 2px 7px; border-radius: 100px; ${isSelected ? 'background: rgba(255, 255, 255, 0.22); color: #ffffff;' : 'background: #f1f5f9; color: #475569;'}">${s.count}</span>
+                        ${isSelected ? '<span style="font-size: 13px; font-weight: 900; line-height: 1;">✓</span>' : ''}
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    const currentItem = statusList.find(s => s.value.toLowerCase() === activeStatus.toLowerCase()) || statusList[0];
+    const triggerLabel = document.getElementById('floating-status-selected-label');
+    const triggerBadge = document.getElementById('floating-status-selected-badge');
+    if (triggerLabel && currentItem) triggerLabel.textContent = currentItem.label;
+    if (triggerBadge && currentItem) triggerBadge.textContent = currentItem.count;
+}
+
+function closeFloatingCategory() {
+    isCatDropdownOpen = false;
+    const menu = document.getElementById('floating-cat-menu');
+    const chevron = document.getElementById('floating-cat-chevron');
+    const trigger = document.getElementById('floating-cat-trigger');
+    const wrapper = document.getElementById('floating-cat-wrapper');
+    if (!menu) return;
+
+    menu.style.opacity = '0';
+    menu.style.transform = 'translateY(-8px) scale(0.98)';
+    menu.style.pointerEvents = 'none';
+    if (chevron) chevron.style.transform = 'rotate(0deg)';
+    if (trigger) {
+        trigger.style.borderColor = '#cbd5e1';
+        trigger.style.boxShadow = '0 10px 25px -4px rgba(30, 58, 138, 0.10), 0 4px 10px -2px rgba(30, 58, 138, 0.05)';
+    }
+    if (wrapper) wrapper.style.zIndex = '1';
+    setTimeout(() => {
+        if (!isCatDropdownOpen) {
+            menu.style.display = 'none';
+        }
+    }, 150);
+}
+
+function closeFloatingMunicipality() {
+    isMuniDropdownOpen = false;
+    const menu = document.getElementById('floating-muni-menu');
+    const chevron = document.getElementById('floating-muni-chevron');
+    const trigger = document.getElementById('floating-muni-trigger');
+    const wrapper = document.getElementById('floating-muni-wrapper');
+    if (!menu) return;
+
+    menu.style.opacity = '0';
+    menu.style.transform = 'translateY(-8px) scale(0.98)';
+    menu.style.pointerEvents = 'none';
+    if (chevron) chevron.style.transform = 'rotate(0deg)';
+    if (trigger) {
+        trigger.style.borderColor = '#cbd5e1';
+        trigger.style.boxShadow = '0 10px 25px -4px rgba(30, 58, 138, 0.10), 0 4px 10px -2px rgba(30, 58, 138, 0.05)';
+    }
+    if (wrapper) wrapper.style.zIndex = '1';
+    setTimeout(() => {
+        if (!isMuniDropdownOpen) {
+            menu.style.display = 'none';
+        }
+    }, 150);
+}
+
+function toggleFloatingCategoryDropdown(e, forceClose = false) {
+    if (e && e.stopPropagation) e.stopPropagation();
+    const menu = document.getElementById('floating-cat-menu');
+    const chevron = document.getElementById('floating-cat-chevron');
+    const trigger = document.getElementById('floating-cat-trigger');
+    const wrapper = document.getElementById('floating-cat-wrapper');
+    if (!menu) return;
+
+    if (forceClose === true || isCatDropdownOpen) {
+        closeFloatingCategory();
+    } else {
+        closeFloatingStatus();
+        closeFloatingMunicipality();
+
+        isCatDropdownOpen = true;
+        if (wrapper) wrapper.style.zIndex = '1001';
+        menu.style.display = 'block';
+        menu.style.pointerEvents = 'auto';
+        if (chevron) chevron.style.transform = 'rotate(180deg)';
+        if (trigger) {
+            trigger.style.borderColor = '#2563eb';
+            trigger.style.boxShadow = '0 12px 28px -4px rgba(37, 99, 235, 0.20), 0 4px 12px -2px rgba(37, 99, 235, 0.10)';
+        }
+        requestAnimationFrame(() => {
+            menu.style.opacity = '1';
+            menu.style.transform = 'translateY(0) scale(1)';
+        });
+    }
+}
+
+function selectFloatingCategory(catValue, e) {
+    if (e && e.stopPropagation) e.stopPropagation();
+    closeFloatingCategory();
+    filterDiscounts(catValue);
+}
+
+function toggleFloatingMunicipalityDropdown(e, forceClose = false) {
+    if (e && e.stopPropagation) e.stopPropagation();
+    const menu = document.getElementById('floating-muni-menu');
+    const chevron = document.getElementById('floating-muni-chevron');
+    const trigger = document.getElementById('floating-muni-trigger');
+    const wrapper = document.getElementById('floating-muni-wrapper');
+    if (!menu) return;
+
+    if (forceClose === true || isMuniDropdownOpen) {
+        closeFloatingMunicipality();
+    } else {
+        closeFloatingStatus();
+        closeFloatingCategory();
+
+        isMuniDropdownOpen = true;
+        if (wrapper) wrapper.style.zIndex = '1001';
+        menu.style.display = 'block';
+        menu.style.pointerEvents = 'auto';
+        if (chevron) chevron.style.transform = 'rotate(180deg)';
+        if (trigger) {
+            trigger.style.borderColor = '#2563eb';
+            trigger.style.boxShadow = '0 12px 28px -4px rgba(37, 99, 235, 0.20), 0 4px 12px -2px rgba(37, 99, 235, 0.10)';
+        }
+        requestAnimationFrame(() => {
+            menu.style.opacity = '1';
+            menu.style.transform = 'translateY(0) scale(1)';
+        });
+    }
+}
+
+function selectFloatingMunicipality(muniValue, e) {
+    if (e && e.stopPropagation) e.stopPropagation();
+    closeFloatingMunicipality();
+    filterMunicipality(muniValue);
+}
+
+// Click outside listener to dismiss floating dropdowns
+document.addEventListener('click', function(e) {
+    const statusWrapper = document.getElementById('floating-status-wrapper');
+    if (isStatusDropdownOpen && statusWrapper && !statusWrapper.contains(e.target)) {
+        closeFloatingStatus();
+    }
+    const catWrapper = document.getElementById('floating-cat-wrapper');
+    if (isCatDropdownOpen && catWrapper && !catWrapper.contains(e.target)) {
+        closeFloatingCategory();
+    }
+    const muniWrapper = document.getElementById('floating-muni-wrapper');
+    if (isMuniDropdownOpen && muniWrapper && !muniWrapper.contains(e.target)) {
+        closeFloatingMunicipality();
+    }
+});
+
 // Expose global functions
+window.filterStatus = filterStatus;
 window.filterDiscounts = filterDiscounts;
 window.filterMunicipality = filterMunicipality;
 window.handleVoucherSearch = handleVoucherSearch;
@@ -1187,8 +2022,44 @@ window.closeVoucherModal = closeVoucherModal;
 window.copyVoucherCode = copyVoucherCode;
 window.handleModalRedeem = handleModalRedeem;
 window.renderDiscounts = renderDiscounts;
+window.toggleFloatingStatusDropdown = toggleFloatingStatusDropdown;
+window.selectFloatingStatus = selectFloatingStatus;
+window.closeFloatingStatus = closeFloatingStatus;
+window.populateStatusDropdown = populateStatusDropdown;
+window.toggleFloatingCategoryDropdown = toggleFloatingCategoryDropdown;
+window.selectFloatingCategory = selectFloatingCategory;
+window.toggleFloatingMunicipalityDropdown = toggleFloatingMunicipalityDropdown;
+window.selectFloatingMunicipality = selectFloatingMunicipality;
+window.closeFloatingCategory = closeFloatingCategory;
+window.closeFloatingMunicipality = closeFloatingMunicipality;
+window.populateCategoryDropdown = populateCategoryDropdown;
+window.populateMunicipalityDropdown = populateMunicipalityDropdown;
+
+// Synchronously populate default dropdown items right away
+populateStatusDropdown();
+populateCategoryDropdown();
+populateMunicipalityDropdown();
 
 fetchLiveDatabaseVouchers();
 fetchUserPointsAndRedemptions();
+
+window.addEventListener('online', function () {
+    const current = (document.body ? document.body.getAttribute('data-view') : '') || (window.currentView || '');
+    if (current !== 'discount') {
+        window.discountNeedsRefresh = true;
+        return;
+    }
+    fetchLiveDatabaseVouchers();
+    fetchUserPointsAndRedemptions();
+});
+window.addEventListener('appOnline', function () {
+    const current = (document.body ? document.body.getAttribute('data-view') : '') || (window.currentView || '');
+    if (current !== 'discount') {
+        window.discountNeedsRefresh = true;
+        return;
+    }
+    fetchLiveDatabaseVouchers();
+    fetchUserPointsAndRedemptions();
+});
 })();
 </script>

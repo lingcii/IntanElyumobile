@@ -4,10 +4,10 @@
    ========================================================================== */
 
 :root {
-    --safe-area-top: max(env(safe-area-inset-top, 0px), 40px);
+    --safe-area-top: max(env(safe-area-inset-top, 0px), 36px);
     --header-content-height: 48px;
     --header-height: calc(var(--safe-area-top) + var(--header-content-height));
-    --header-gap: 16px;
+    --header-gap: 12px;
     --content-top-padding: calc(var(--header-height) + var(--header-gap));
 }
 
@@ -15,9 +15,10 @@
 .mobile-header {
     position: fixed;
     top: 0;
-    left: 0;
-    right: 0;
-    width: 100%;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    width: 100% !important;
+    max-width: 480px !important;
     background: #1e3a8a !important;
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
@@ -27,10 +28,10 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px 18px;
+    padding: 10px clamp(12px, 3.8vw, 18px);
     z-index: 9000 !important;
     /* Ensure Android gets safe padding since safe-area-inset-top is sometimes 0 on Android WebViews */
-    padding-top: max(env(safe-area-inset-top, 0px), 40px);
+    padding-top: max(env(safe-area-inset-top, 0px), 36px);
     box-shadow: none !important;
     box-sizing: border-box;
 }
@@ -111,9 +112,15 @@
     }
 }
 
-/* Ensure content below header has proper top padding with consistent 16px gap */
+/* Ensure content below header has proper top padding with consistent fluid gap */
 .has-header {
-    padding-top: calc(max(env(safe-area-inset-top, 0px), 40px) + 64px) !important;
+    padding-top: var(--page-top-padding, calc(max(env(safe-area-inset-top, 0px), 36px) + 52px)) !important;
+}
+
+@media (max-height: 680px) {
+    .has-header {
+        padding-top: calc(max(env(safe-area-inset-top, 0px), 24px) + 46px) !important;
+    }
 }
 
 /* Hide scrollbars for Notifications Dropdown and List */

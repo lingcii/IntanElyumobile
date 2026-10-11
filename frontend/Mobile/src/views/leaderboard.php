@@ -10,11 +10,16 @@ $activeTab = 'leaderboard';
 <div class="leaderboard-container has-header has-bottom-nav animate-fade-in">
 
     <!-- Title & Season Header -->
-    <div class="leaderboard-title stagger-0">
+    <div class="leaderboard-title stagger-0" style="position: relative;">
         <h2>
             <i class="fa-solid fa-trophy" style="color: #fbbf24;"></i> La Union Top Explorers
         </h2>
         <p>Earn Points across Elyu</p>
+        <button id="leaderboard-refresh-btn" type="button" onclick="window.refreshLeaderboard(true)" aria-label="Refresh Leaderboard"
+            style="position: absolute; right: 4px; top: 2px; background: rgba(30, 58, 138, 0.08); border: none; color: #1e3a8a; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; cursor: pointer; transition: transform 0.25s ease;"
+            onpointerdown="this.style.transform='rotate(180deg) scale(0.9)'" onpointerup="this.style.transform='rotate(0deg) scale(1)'">
+            <i class="fa-solid fa-rotate-right" id="leaderboard-refresh-icon"></i>
+        </button>
     </div>
 
     <!-- Your Current Standing Banner -->
@@ -66,8 +71,8 @@ $activeTab = 'leaderboard';
                 style="font-size: 15px; font-weight: 800; color: #0f172a !important; margin: 0; display: flex; align-items: center; gap: 6px;">
                 <i class="fa-solid fa-list-ol" style="color: #1e3a8a;"></i> Explorer Leaderboard
             </h3>
-            <span style="font-size: 11px; font-weight: 700; color: #64748b !important;"
-                id="explorers-count-badge">Top Ranks</span>
+            <span style="font-size: 11px; font-weight: 700; color: #64748b !important;" id="explorers-count-badge">Top
+                Ranks</span>
         </div>
 
         <!-- Rank List -->
@@ -150,14 +155,15 @@ $activeTab = 'leaderboard';
 </div>
 
 <script>
-    var currentSortMode = 'points';
-    var rawLeadersList = [];
-    var cachedMeData = null;
-    var cachedMyRank = 999;
+    var currentSortMode = window._cachedLeaderboardSortMode || 'points';
+    var rawLeadersList = window._cachedRawLeadersList || [];
+    var cachedMeData = window._cachedMeData || null;
+    var cachedMyRank = (window._cachedMyRank !== undefined && window._cachedMyRank !== null) ? window._cachedMyRank : 999;
 
     function setLeaderboardSort(mode) {
         if (currentSortMode === mode && arguments[1] !== true) return;
         currentSortMode = mode;
+        window._cachedLeaderboardSortMode = mode;
 
         const tabsWrapper = document.querySelector('.leaderboard-tabs-wrapper');
         if (tabsWrapper) {
@@ -175,37 +181,81 @@ $activeTab = 'leaderboard';
     }
     window.setLeaderboardSort = setLeaderboardSort;
 
-    function renderLeaderboardUI() {
+    function renderLeaderboardLoading() {
         const podiumContainer = document.getElementById('podium-container');
         const rankListContainer = document.getElementById('rank-list-container');
-        if (!podiumContainer && !rankListContainer) return;
-        if (!rawLeadersList) return;
+        const banner = document.getElementById('my-standing-banner');
 
-            // Filter out users based on active sort mode
+        if (banner) {
+            banner.style.display = 'flex';
+            const authUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
+            const myRawName = String((cachedMeData && (cachedMeData.name || cachedMeData.full_name)) || (authUser && (authUser.name || authUser.full_name)) || 'Explorer').trim() || 'Explorer';
+            const titleEl = document.getElementById('my-explorer-title');
+            const avatarEl = document.getElementById('my-standing-avatar');
+            const subtext = document.getElementById('my-standing-subtext');
+            const rankCircle = document.getElementById('my-rank-circle');
+            if (titleEl) titleEl.textContent = myRawName;
+            if (avatarEl) avatarEl.src = (cachedMeData && cachedMeData.avatar) ? cachedMeData.avatar : (authUser.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(myRawName)}&background=007AFF&color=fff&rounded=true&bold=true&size=128`);
+            if (rankCircle) rankCircle.textContent = (cachedMyRank && cachedMyRank < 999) ? '#' + cachedMyRank : '★';
+            if (subtext) subtext.textContent = 'Syncing rankings...';
+        }
+
+        if (podiumContainer && (!rawLeadersList || rawLeadersList.length === 0)) {
+            podiumContainer.innerHTML = `
+                <div style="grid-column: 1 / -1; width: 100%; text-align: center; padding: 28px 16px; background: transparent; border: none !important;">
+                    <div style="width: 44px; height: 44px; border-radius: 50%; background: rgba(30, 58, 138, 0.08); display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; color: #1e3a8a; font-size: 20px;">
+                        <i class="fa-solid fa-spinner fa-spin"></i>
+                    </div>
+                    <div style="font-size: 14px; font-weight: 800; color: #0f172a; margin-bottom: 4px;">Loading Provincial Rankings...</div>
+                    <div style="font-size: 12px; color: #64748b; max-width: 270px; margin: 0 auto; line-height: 1.4;">Syncing explorer standings across La Union</div>
+                </div>`;
+        }
+
+        if (rankListContainer && (!rawLeadersList || rawLeadersList.length === 0)) {
+            rankListContainer.innerHTML = `
+                <div style="text-align: center; padding: 20px 12px; color: #94a3b8; font-size: 12.5px; font-weight: 600;">
+                    <i class="fa-solid fa-circle-notch fa-spin" style="margin-right: 6px; color: #1e3a8a;"></i> Retrieving ranked explorers...
+                </div>`;
+        }
+    }
+
+    function renderLeaderboardUI() {
+        try {
+            const podiumContainer = document.getElementById('podium-container');
+            const rankListContainer = document.getElementById('rank-list-container');
+            if (!podiumContainer && !rankListContainer) return;
+            if (!rawLeadersList) return;
+
+            // Filter out users based on active sort mode (resilient against zero stats)
             let leaders = (rawLeadersList || []).filter(u => {
-                const pts = parseInt(u.points || u.pts || u.total_points || u.claimable_points || 0);
-                const act = parseInt(u.completed_activities || u.places_visited || 0);
-                if (currentSortMode === 'visited') return act > 0;
-                return pts > 0;
+                const pts = parseInt(u.points ?? u.pts ?? u.total_points ?? u.claimable_points ?? u.xp ?? 0);
+                const act = parseInt(u.completed_activities ?? u.activities ?? u.total_activities ?? u.places_visited ?? 0);
+                if (currentSortMode === 'visited') return act > 0 || pts > 0;
+                return pts > 0 || act > 0;
             });
+
+            // If filtering resulted in empty array but we have raw leaders, display all raw leaders rather than blanking out
+            if (leaders.length === 0 && rawLeadersList && rawLeadersList.length > 0) {
+                leaders = [...rawLeadersList];
+            }
 
             // Sort items based on current sort mode
             if (currentSortMode === 'visited') {
                 leaders.sort((a, b) => {
-                    const actA = parseInt(a.completed_activities || a.places_visited || 0);
-                    const actB = parseInt(b.completed_activities || b.places_visited || 0);
+                    const actA = parseInt(a.completed_activities ?? a.activities ?? a.total_activities ?? a.places_visited ?? 0);
+                    const actB = parseInt(b.completed_activities ?? b.activities ?? b.total_activities ?? b.places_visited ?? 0);
                     if (actB !== actA) return actB - actA;
-                    const ptsA = parseInt(a.points || a.pts || a.total_points || a.claimable_points || 0);
-                    const ptsB = parseInt(b.points || b.pts || b.total_points || b.claimable_points || 0);
+                    const ptsA = parseInt(a.points ?? a.pts ?? a.total_points ?? a.claimable_points ?? a.xp ?? 0);
+                    const ptsB = parseInt(b.points ?? b.pts ?? b.total_points ?? b.claimable_points ?? b.xp ?? 0);
                     return ptsB - ptsA;
                 });
             } else {
                 leaders.sort((a, b) => {
-                    const ptsA = parseInt(a.points || a.pts || a.total_points || a.claimable_points || 0);
-                    const ptsB = parseInt(b.points || b.pts || b.total_points || b.claimable_points || 0);
+                    const ptsA = parseInt(a.points ?? a.pts ?? a.total_points ?? a.claimable_points ?? a.xp ?? 0);
+                    const ptsB = parseInt(b.points ?? b.pts ?? b.total_points ?? b.claimable_points ?? b.xp ?? 0);
                     if (ptsB !== ptsA) return ptsB - ptsA;
-                    const actA = parseInt(a.completed_activities || a.places_visited || 0);
-                    const actB = parseInt(b.completed_activities || b.places_visited || 0);
+                    const actA = parseInt(a.completed_activities ?? a.activities ?? a.total_activities ?? a.places_visited ?? 0);
+                    const actB = parseInt(b.completed_activities ?? b.activities ?? b.total_activities ?? b.places_visited ?? 0);
                     return actB - actA;
                 });
             }
@@ -214,6 +264,26 @@ $activeTab = 'leaderboard';
             if (countBadge) {
                 countBadge.textContent = leaders.length > 0 ? `Top ${Math.min(leaders.length, 10)} Explorers` : '0 Explorers';
             }
+
+            // Prepare current logged-in user standing information (function-scoped for ranking comparisons)
+            const authUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
+            const myPts = cachedMeData ? parseInt(cachedMeData.points ?? cachedMeData.pts ?? cachedMeData.total_points ?? cachedMeData.claimable_points ?? 0) : parseInt(authUser.points || 0);
+            const myActivities = cachedMeData ? parseInt(cachedMeData.completed_activities ?? cachedMeData.activities ?? cachedMeData.total_activities ?? cachedMeData.places_visited ?? 0) : parseInt(authUser.completed_activities || authUser.places_visited || 0);
+            const isUnranked = (myPts === 0 && myActivities === 0);
+            const myRankNum = (!isUnranked && cachedMyRank && cachedMyRank < 999) ? cachedMyRank : (isUnranked ? '—' : 1);
+            const myRawName = String((cachedMeData && (cachedMeData.name || cachedMeData.full_name)) || (authUser && (authUser.name || authUser.full_name)) || 'Explorer').trim() || 'Explorer';
+            const myDisplayName = isUnranked ? 'Unranked Explorer' : myRawName;
+            const myAvatar = cachedMeData && cachedMeData.avatar ? cachedMeData.avatar : (authUser.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(myRawName)}&background=007AFF&color=fff&rounded=true&bold=true&size=128`);
+
+            window.myUserData = {
+                name: myDisplayName,
+                avatar: myAvatar,
+                pts: myPts,
+                rank: myRankNum,
+                activities: myActivities,
+                location: cachedMeData ? (cachedMeData.home_location || cachedMeData.municipality || '') : '',
+                bio: cachedMeData ? (cachedMeData.bio || '') : ''
+            };
 
             // Render Standing Banner
             const banner = document.getElementById('my-standing-banner');
@@ -224,25 +294,6 @@ $activeTab = 'leaderboard';
 
             if (banner) {
                 banner.style.display = 'flex';
-                const authUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
-                const myPts = cachedMeData ? parseInt(cachedMeData.points ?? cachedMeData.pts ?? cachedMeData.total_points ?? cachedMeData.claimable_points ?? 0) : (authUser.points || 0);
-                const myActivities = cachedMeData ? parseInt(cachedMeData.completed_activities ?? cachedMeData.places_visited ?? 0) : 0;
-                const isUnranked = (myPts === 0 && myActivities === 0);
-                const myRankNum = (!isUnranked && cachedMyRank && cachedMyRank < 999) ? cachedMyRank : (isUnranked ? '—' : 1);
-                const myDisplayName = isUnranked ? 'Unranked Explorer' : `${myRankNum}# Explorer`;
-                const myRawName = (cachedMeData ? (cachedMeData.name || cachedMeData.full_name) : (authUser.name || authUser.full_name || 'Explorer')).replace(/[^a-zA-Z\s]/g, '').trim() || 'Explorer';
-                const myAvatar = cachedMeData && cachedMeData.avatar ? cachedMeData.avatar : (authUser.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(myRawName)}&background=007AFF&color=fff&rounded=true&bold=true&size=128`);
-
-                window.myUserData = {
-                    name: myDisplayName,
-                    avatar: myAvatar,
-                    pts: myPts,
-                    rank: myRankNum,
-                    activities: myActivities,
-                    location: cachedMeData ? (cachedMeData.home_location || '') : '',
-                    bio: cachedMeData ? (cachedMeData.bio || '') : ''
-                };
-
                 if (avatarEl) avatarEl.src = myAvatar;
                 if (titleEl) titleEl.textContent = myDisplayName;
                 if (rankCircle) {
@@ -250,6 +301,8 @@ $activeTab = 'leaderboard';
                         rankCircle.textContent = '—';
                     } else if (cachedMyRank && cachedMyRank < 999) {
                         rankCircle.textContent = '#' + cachedMyRank;
+                    } else if (myRankNum && myRankNum !== '—') {
+                        rankCircle.textContent = '#' + myRankNum;
                     } else {
                         rankCircle.textContent = '★';
                     }
@@ -272,16 +325,16 @@ $activeTab = 'leaderboard';
                 }
                 if (podiumContainer) {
                     podiumContainer.innerHTML = `
-                        <div style="grid-column: 1 / -1; width: 100%; text-align: center; padding: 24px 16px; background: transparent; border:none !important; outline:none !important;">
-                            <div style="width: 52px; height: 52px; border-radius: 50%; background: #fef3c7; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; color: #d97706; font-size: 22px; border:none !important;">
-                                <i class="fa-solid fa-trophy"></i>
+                            <div style="grid-column: 1 / -1; width: 100%; text-align: center; padding: 24px 16px; background: transparent; border:none !important; outline:none !important;">
+                                <div style="width: 52px; height: 52px; border-radius: 50%; background: #fef3c7; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; color: #d97706; font-size: 22px; border:none !important;">
+                                    <i class="fa-solid fa-trophy"></i>
+                                </div>
+                                <div style="font-size: 15px; font-weight: 800; color: #0f172a; margin-bottom: 5px;">No Ranked Explorers Yet</div>
+                                <div style="font-size: 12px; color: #64748b; max-width: 270px; margin: 0 auto; line-height: 1.4;">
+                                    ${emptySubtext}
+                                </div>
                             </div>
-                            <div style="font-size: 15px; font-weight: 800; color: #0f172a; margin-bottom: 5px;">No Ranked Explorers Yet</div>
-                            <div style="font-size: 12px; color: #64748b; max-width: 270px; margin: 0 auto; line-height: 1.4;">
-                                ${emptySubtext}
-                            </div>
-                        </div>
-                    `;
+                        `;
                 }
             } else {
                 if (leaders[1]) podiumHTML += generatePodiumPlace(leaders[1], 2);
@@ -295,7 +348,7 @@ $activeTab = 'leaderboard';
             if (leaders.length > 3) {
                 for (let i = 3; i < Math.min(leaders.length, 10); i++) {
                     const user = leaders[i];
-                    const isMe = cachedMeData && (user.id === cachedMeData.id || user.user_id === cachedMeData.id);
+                    const isMe = Boolean(cachedMeData && ((user.id && user.id === cachedMeData.id) || (user.user_id && user.user_id === (cachedMeData.user_id || cachedMeData.id))));
                     rankListHTML += generateRankItem(user, i + 1, isMe);
                 }
             }
@@ -313,66 +366,75 @@ $activeTab = 'leaderboard';
                 }
             }
             if (rankListSec) rankListSec.style.display = 'block';
+        } catch (err) {
+            console.error("renderLeaderboardUI error:", err);
+        }
+    }
+
+    function getUserDisplayName(user, rank) {
+        if (!user) return rank ? `${rank}# Explorer` : 'Explorer';
+        const name = String(user.name || user.full_name || user.real_name || '').trim();
+        if (name && !name.match(/^Explorer\s*#?\d*$/i) && name.toLowerCase() !== 'explorer') {
+            return name;
+        }
+        if (rank) {
+            return `${rank}# Explorer`;
+        }
+        const idToUse = user.rank || user.user_id || user.id || 1;
+        return `${idToUse}# Explorer`;
+    }
+
+    function generatePodiumPlace(user, rank) {
+        const displayName = getUserDisplayName(user, rank);
+        const rawName = String(user.name || user.full_name || user.real_name || 'Explorer').replace(/[^a-zA-Z\s]/g, '').trim() || 'Explorer';
+        const bUrl = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || '')).replace(/\/+$/, '');
+        let avatarUrl = user.avatar ? user.avatar : `https://ui-avatars.com/api/?name=${encodeURIComponent(rawName)}&background=007AFF&color=fff&rounded=true&bold=true&size=128`;
+        if (avatarUrl && !avatarUrl.startsWith('http') && !avatarUrl.startsWith('data:')) {
+            avatarUrl = bUrl ? (bUrl + '/' + avatarUrl.replace(/^\//, '')) : avatarUrl;
         }
 
-        function getUserDisplayName(user, rank) {
-            if (rank) {
-                return `${rank}# Explorer`;
-            }
-            const idToUse = user.rank || user.user_id || user.id || 1;
-            return `${idToUse}# Explorer`;
+        let medalIcon = '';
+        let stepHeight = 'clamp(50px, 7vh, 70px)';
+        let badgeLabel = '3RD';
+
+        if (rank === 1) {
+            medalIcon = `<div class="podium-crown-icon"><i class="fa-solid fa-crown" style="color:#FFD700; font-size:26px;"></i></div>`;
+            stepHeight = 'clamp(80px, 11vh, 112px)';
+            badgeLabel = '1ST';
+        } else if (rank === 2) {
+            medalIcon = `<div class="podium-medal-icon"><i class="fa-solid fa-medal" style="color:#e2e8f0; font-size:20px;"></i></div>`;
+            stepHeight = 'clamp(64px, 9vh, 88px)';
+            badgeLabel = '2ND';
+        } else if (rank === 3) {
+            medalIcon = `<div class="podium-medal-icon"><i class="fa-solid fa-award" style="color:#fb923c; font-size:20px;"></i></div>`;
+            stepHeight = 'clamp(50px, 7vh, 70px)';
+            badgeLabel = '3RD';
         }
 
-        function generatePodiumPlace(user, rank) {
-            const displayName = getUserDisplayName(user, rank);
-            const rawName = (user.name || user.full_name || user.real_name || 'Explorer').replace(/[^a-zA-Z\s]/g, '').trim() || 'Explorer';
-            let avatarUrl = user.avatar ? user.avatar : `https://ui-avatars.com/api/?name=${encodeURIComponent(rawName)}&background=007AFF&color=fff&rounded=true&bold=true&size=128`;
-            if (avatarUrl && !avatarUrl.startsWith('http') && !avatarUrl.startsWith('data:')) {
-                avatarUrl = (window.backendUrl || '') + '/' + avatarUrl.replace(/^\//, '');
-            }
+        const isMe = Boolean(cachedMeData && (user.id === cachedMeData.id || user.user_id === cachedMeData.id));
+        const safeName = displayName.replace(/'/g, "\\'");
+        const pts = parseInt(user.points ?? user.pts ?? user.total_points ?? user.claimable_points ?? 0);
+        const activities = parseInt(user.completed_activities ?? user.places_visited ?? 0);
+        const safeLocation = (user.home_location || '').replace(/'/g, "\\'");
+        const safeBio = (user.bio || '').replace(/'/g, "\\'");
 
-            let medalIcon = '';
-            let stepHeight = '72px';
-            let badgeLabel = '3RD';
+        let iconHtml = '';
+        let textMetric = '';
 
-            if (rank === 1) {
-                medalIcon = `<div class="podium-crown-icon"><i class="fa-solid fa-crown" style="color:#FFD700; font-size:26px;"></i></div>`;
-                stepHeight = '112px';
-                badgeLabel = '1ST';
-            } else if (rank === 2) {
-                medalIcon = `<div class="podium-medal-icon"><i class="fa-solid fa-medal" style="color:#e2e8f0; font-size:20px;"></i></div>`;
-                stepHeight = '88px';
-                badgeLabel = '2ND';
-            } else if (rank === 3) {
-                medalIcon = `<div class="podium-medal-icon"><i class="fa-solid fa-award" style="color:#fb923c; font-size:20px;"></i></div>`;
-                stepHeight = '70px';
-                badgeLabel = '3RD';
-            }
+        if (currentSortMode === 'visited') {
+            iconHtml = '<i class="fa-solid fa-map-location-dot" style="font-size:10px;"></i>';
+            textMetric = `${activities} Visited`;
+        } else {
+            iconHtml = '<i class="fa-solid fa-coins" style="font-size:10px; color:#fbbf24;"></i>';
+            textMetric = `${pts.toLocaleString()} PTS`;
+        }
 
-            const isMe = Boolean(cachedMeData && (user.id === cachedMeData.id || user.user_id === cachedMeData.id));
-            const safeName = displayName.replace(/'/g, "\\'");
-            const pts = parseInt(user.points ?? user.pts ?? user.total_points ?? user.claimable_points ?? 0);
-            const activities = parseInt(user.completed_activities ?? user.places_visited ?? 0);
-            const safeLocation = (user.home_location || '').replace(/'/g, "\\'");
-            const safeBio = (user.bio || '').replace(/'/g, "\\'");
-
-            let iconHtml = '';
-            let textMetric = '';
-
-            if (currentSortMode === 'visited') {
-                iconHtml = '<i class="fa-solid fa-map-location-dot" style="font-size:10px;"></i>';
-                textMetric = `${activities} Visited`;
-            } else {
-                iconHtml = '<i class="fa-solid fa-coins" style="font-size:10px; color:#fbbf24;"></i>';
-                textMetric = `${pts.toLocaleString()} PTS`;
-            }
-
-            const metricPillHtml = `
+        const metricPillHtml = `
             <div class="podium-metric-pill podium-metric-${rank}" style="margin-bottom:10px;">
                 ${iconHtml} ${textMetric}
             </div>`;
 
-            return `
+        return `
         <div class="podium-place rank-${rank}" onclick="showUserProfile('${safeName}', '${avatarUrl}', ${pts}, ${rank}, ${activities}, '${safeLocation}', '${safeBio}', ${isMe})">
             <div class="podium-avatar-wrap">
                 ${medalIcon}
@@ -385,42 +447,43 @@ $activeTab = 'leaderboard';
                 <span class="block-label">${badgeLabel}</span>
             </div>
         </div>`;
+    }
+
+    function generateRankItem(user, rank, isMe) {
+        const displayName = getUserDisplayName(user, rank);
+        const rawName = (user.name || user.full_name || user.real_name || 'Explorer').replace(/[^a-zA-Z\s]/g, '').trim() || 'Explorer';
+        const bUrl = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || '')).replace(/\/+$/, '');
+        let avatarUrl = user.avatar ? user.avatar : `https://ui-avatars.com/api/?name=${encodeURIComponent(rawName)}&background=007AFF&color=fff&rounded=true&bold=true&size=128`;
+        if (avatarUrl && !avatarUrl.startsWith('http') && !avatarUrl.startsWith('data:')) {
+            avatarUrl = bUrl ? (bUrl + '/' + avatarUrl.replace(/^\//, '')) : avatarUrl;
         }
 
-        function generateRankItem(user, rank, isMe) {
-            const displayName = getUserDisplayName(user, rank);
-            const rawName = (user.name || user.full_name || user.real_name || 'Explorer').replace(/[^a-zA-Z\s]/g, '').trim() || 'Explorer';
-            let avatarUrl = user.avatar ? user.avatar : `https://ui-avatars.com/api/?name=${encodeURIComponent(rawName)}&background=007AFF&color=fff&rounded=true&bold=true&size=128`;
-            if (avatarUrl && !avatarUrl.startsWith('http') && !avatarUrl.startsWith('data:')) {
-                avatarUrl = (window.backendUrl || '') + '/' + avatarUrl.replace(/^\//, '');
-            }
+        const activeClass = isMe ? 'is-me' : '';
+        const youTag = isMe ? `<span style="font-size:9px; background:linear-gradient(135deg, #38bdf8, #2563eb); color:white; padding:2px 7px; border-radius:100px; font-weight:800; margin-left:6px;">YOU</span>` : '';
+        const delay = 0.15 + ((rank - 4) * 0.03);
 
-            const activeClass = isMe ? 'is-me' : '';
-            const youTag = isMe ? `<span style="font-size:9px; background:linear-gradient(135deg, #38bdf8, #2563eb); color:white; padding:2px 7px; border-radius:100px; font-weight:800; margin-left:6px;">YOU</span>` : '';
-            const delay = 0.15 + ((rank - 4) * 0.03);
+        const safeName = displayName.replace(/'/g, "\\'");
+        const pts = parseInt(user.points ?? user.pts ?? user.total_points ?? user.claimable_points ?? 0);
+        const activities = parseInt(user.completed_activities ?? user.places_visited ?? 0);
+        const safeLocation = (user.home_location || '').replace(/'/g, "\\'");
+        const safeBio = (user.bio || '').replace(/'/g, "\\'");
 
-            const safeName = displayName.replace(/'/g, "\\'");
-            const pts = parseInt(user.points ?? user.pts ?? user.total_points ?? user.claimable_points ?? 0);
-            const activities = parseInt(user.completed_activities ?? user.places_visited ?? 0);
-            const safeLocation = (user.home_location || '').replace(/'/g, "\\'");
-            const safeBio = (user.bio || '').replace(/'/g, "\\'");
+        let rightBadgeHtml = '';
+        let subMetaText = `<span>${activities} Spots Visited</span>`;
 
-            let rightBadgeHtml = '';
-            let subMetaText = `<span>${activities} Spots Visited</span>`;
-
-            if (currentSortMode === 'visited') {
-                rightBadgeHtml = `
+        if (currentSortMode === 'visited') {
+            rightBadgeHtml = `
             <div class="rank-metric-badge" style="color:#38bdf8;">
                 ${activities} <small style="font-size:10px; font-weight:700; color:rgba(56,189,248,0.85); margin-left:3px;">VISITED</small>
             </div>`;
-            } else {
-                rightBadgeHtml = `
+        } else {
+            rightBadgeHtml = `
             <div class="rank-metric-badge" style="color:#fbbf24;">
                 <i class="fa-solid fa-coins" style="font-size:11px; margin-right:3px;"></i>${pts.toLocaleString()} <small style="font-size:10px; font-weight:700; color:rgba(251,191,36,0.85); margin-left:3px;">PTS</small>
             </div>`;
-            }
+        }
 
-            return `
+        return `
         <div class="rank-item ${activeClass}" style="animation-delay: ${Math.max(0, delay)}s;" onclick="showUserProfile('${safeName}', '${avatarUrl}', ${pts}, ${rank}, ${activities}, '${safeLocation}', '${safeBio}', ${Boolean(isMe)})">
             <div style="display: flex; align-items: center; min-width: 0; flex: 1;">
                 <img src="${avatarUrl}" alt="${displayName}" class="rank-avatar" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(rawName)}&background=007AFF&color=fff&rounded=true&bold=true&size=128';">
@@ -436,224 +499,418 @@ $activeTab = 'leaderboard';
             </div>
             ${rightBadgeHtml}
         </div>`;
+    }
+
+    window.showUserProfile = function (name, avatar, pts, rank, activities, location, bio, isMe = false) {
+        // Determine if the viewed profile is the current logged-in user
+        const isSelf = Boolean(
+            isMe === true ||
+            (window.myUserData && window.myUserData.name && name === window.myUserData.name) ||
+            (window.myUserData && name === 'Unranked Explorer') ||
+            (name && (name.includes('(You)') || name.includes('Your Standing'))) ||
+            (cachedMeData && (
+                (cachedMeData.name && name === cachedMeData.name) ||
+                (cachedMeData.full_name && name === cachedMeData.full_name) ||
+                (cachedMeData.username && name === cachedMeData.username) ||
+                (cachedMeData.id && String(rank).includes(String(cachedMyRank)))
+            ))
+        );
+
+        let displayPts = Number(pts || 0);
+        if (isSelf) {
+            const authUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
+            const knownPts = cachedMeData ? parseInt(cachedMeData.points ?? cachedMeData.pts ?? cachedMeData.total_points ?? 0) : parseInt(authUser.points || 0);
+            if (knownPts > displayPts) {
+                displayPts = knownPts;
+            }
+            if (window.myUserData && window.myUserData.pts && window.myUserData.pts > displayPts) {
+                displayPts = window.myUserData.pts;
+            }
         }
 
-        window.showUserProfile = function (name, avatar, pts, rank, activities, location, bio, isMe = false) {
-            // Determine if the viewed profile is the current logged-in user
-            const isSelf = Boolean(
-                isMe === true || 
-                (window.myUserData && window.myUserData.name && name === window.myUserData.name) ||
-                (window.myUserData && name === 'Unranked Explorer') ||
-                (name && (name.includes('(You)') || name.includes('Your Standing'))) ||
-                (cachedMeData && (
-                    (cachedMeData.name && name === cachedMeData.name) ||
-                    (cachedMeData.full_name && name === cachedMeData.full_name) ||
-                    (cachedMeData.username && name === cachedMeData.username) ||
-                    (cachedMeData.id && String(rank).includes(String(cachedMyRank)))
-                ))
-            );
+        document.getElementById('modal-avatar').src = avatar;
+        document.getElementById('modal-name').innerText = name;
+        document.getElementById('modal-pts').innerText = displayPts.toLocaleString();
+        document.getElementById('modal-rank-badge').innerText = rank;
+        const rankNumEl = document.getElementById('modal-rank-num');
+        if (rankNumEl) rankNumEl.innerText = rank ? (String(rank).startsWith('#') ? rank : '#' + rank) : '—';
+        document.getElementById('modal-activities').innerText = activities ? Number(activities).toLocaleString() : '0';
 
-            let displayPts = Number(pts || 0);
-            if (isSelf) {
-                const authUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
-                const knownPts = cachedMeData ? parseInt(cachedMeData.points ?? cachedMeData.pts ?? cachedMeData.total_points ?? 0) : parseInt(authUser.points || 0);
-                if (knownPts > displayPts) {
-                    displayPts = knownPts;
-                }
-                if (window.myUserData && window.myUserData.pts && window.myUserData.pts > displayPts) {
-                    displayPts = window.myUserData.pts;
-                }
-            }
-
-            document.getElementById('modal-avatar').src = avatar;
-            document.getElementById('modal-name').innerText = name;
-            document.getElementById('modal-pts').innerText = displayPts.toLocaleString();
-            document.getElementById('modal-rank-badge').innerText = rank;
-            const rankNumEl = document.getElementById('modal-rank-num');
-            if (rankNumEl) rankNumEl.innerText = rank ? (String(rank).startsWith('#') ? rank : '#' + rank) : '—';
-            document.getElementById('modal-activities').innerText = activities ? Number(activities).toLocaleString() : '0';
-
-            // When viewing self, fetch fresh live balance to guarantee accuracy
-            if (isSelf) {
-                const token = localStorage.getItem('api_token') || localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
-                if (token) {
-                    const backendUrl = (window.backendUrl || 'https://api.intan-elyu.online').replace(/\/+$/, '');
-                    fetch(backendUrl + '/api/tourist/points/balance', {
-                        headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/json' }
-                    }).then(r => r.json()).then(d => {
-                        if (d && d.status === 'success' && d.points !== undefined) {
-                            const livePts = parseInt(d.points);
-                            const ptsEl = document.getElementById('modal-pts');
-                            if (ptsEl) ptsEl.innerText = livePts.toLocaleString();
-                            if (window.myUserData) window.myUserData.pts = livePts;
-                            const subtext = document.getElementById('my-standing-subtext');
-                            if (subtext && window.myUserData) {
-                                subtext.textContent = `${livePts.toLocaleString()} Points • ${window.myUserData.activities || 0} Spots Visited`;
-                            }
-                            try {
-                                const authUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
-                                authUser.points = livePts;
-                                localStorage.setItem('auth_user', JSON.stringify(authUser));
-                            } catch(e) {}
+        // When viewing self, fetch fresh live balance to guarantee accuracy
+        if (isSelf) {
+            const token = localStorage.getItem('api_token') || localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+            if (token) {
+                const backendUrl = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
+                fetch(backendUrl + '/api/tourist/points/balance', {
+                    headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/json' }
+                }).then(r => r.json()).then(d => {
+                    if (d && d.status === 'success' && d.points !== undefined) {
+                        const livePts = parseInt(d.points);
+                        const ptsEl = document.getElementById('modal-pts');
+                        if (ptsEl) ptsEl.innerText = livePts.toLocaleString();
+                        if (window.myUserData) window.myUserData.pts = livePts;
+                        const subtext = document.getElementById('my-standing-subtext');
+                        if (subtext && window.myUserData) {
+                            subtext.textContent = `${livePts.toLocaleString()} Points • ${window.myUserData.activities || 0} Spots Visited`;
                         }
-                    }).catch(() => {});
+                        try {
+                            const authUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
+                            authUser.points = livePts;
+                            localStorage.setItem('auth_user', JSON.stringify(authUser));
+                        } catch (e) { }
+                    }
+                }).catch(() => { });
+            }
+        }
+
+        const rankPill = document.getElementById('modal-rank-pill');
+        if (rankPill) {
+            if (isSelf) {
+                rankPill.innerText = (rank && rank !== '—') ? `#${rank} Ranked Explorer (You)` : `Your Explorer Profile`;
+            } else {
+                rankPill.innerText = `#${rank} Ranked Explorer`;
+            }
+        }
+
+        // Notification Header Badge & Status
+        const headerBadge = document.getElementById('modal-header-badge');
+        if (headerBadge) {
+            headerBadge.textContent = isSelf ? 'YOUR PROFILE' : 'EXPLORER PROFILE';
+        }
+        const headerStatus = document.getElementById('modal-header-status');
+        if (headerStatus) {
+            headerStatus.textContent = isSelf ? 'Your Standing' : 'Leaderboard Standing';
+        }
+
+        // Yourself should not be sending high fives to yourself
+        const cheerBtn = document.getElementById('modal-cheer-btn');
+        if (cheerBtn) {
+            cheerBtn.style.display = isSelf ? 'none' : 'flex';
+        }
+        const dismissBtn = document.getElementById('modal-dismiss-btn');
+        if (dismissBtn) {
+            if (isSelf) {
+                dismissBtn.classList.add('is-self');
+                dismissBtn.textContent = 'Close';
+            } else {
+                dismissBtn.classList.remove('is-self');
+                dismissBtn.textContent = 'Dismiss';
+            }
+        }
+
+        const elLoc = document.getElementById('modal-location');
+        if (elLoc) {
+            if (location && location.trim()) {
+                elLoc.querySelector('span').innerText = location;
+                elLoc.style.display = 'inline-flex';
+            } else {
+                elLoc.style.display = 'none';
+            }
+        }
+
+        const elBio = document.getElementById('modal-bio');
+        if (elBio) {
+            if (bio && bio.trim()) {
+                elBio.innerText = `"${bio}"`;
+                elBio.style.display = 'block';
+            } else {
+                elBio.style.display = 'none';
+            }
+        }
+
+        document.getElementById('user-profile-modal').classList.add('active');
+    };
+
+    window.closeUserProfile = function () {
+        document.getElementById('user-profile-modal').classList.remove('active');
+    };
+
+    function applyLeaderboardData(data) {
+        if (!data) return;
+        const authUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
+        const list = data.users || data.leaders || data.tourists || data.data || data.leaderboard || (Array.isArray(data) ? data : []);
+        if (Array.isArray(list) && list.length > 0) {
+            rawLeadersList = list;
+            window._cachedRawLeadersList = list;
+        }
+        if (data.me) {
+            cachedMeData = data.me;
+            window._cachedMeData = data.me;
+        }
+        if (data.my_rank !== undefined && data.my_rank !== null) {
+            cachedMyRank = parseInt(data.my_rank);
+            window._cachedMyRank = cachedMyRank;
+        } else if (data.myRank !== undefined && data.myRank !== null) {
+            cachedMyRank = parseInt(data.myRank);
+            window._cachedMyRank = cachedMyRank;
+        }
+
+        // Resilient self-matching if cachedMeData was not provided directly by API
+        if (!cachedMeData && authUser && (authUser.id || authUser.email) && rawLeadersList.length > 0) {
+            const found = rawLeadersList.find(u => (
+                (authUser.id && (u.id === authUser.id || u.user_id === authUser.id)) ||
+                (authUser.email && u.email && u.email.toLowerCase() === authUser.email.toLowerCase())
+            ));
+            if (found) {
+                cachedMeData = found;
+                window._cachedMeData = found;
+                cachedMyRank = found.rank || (rawLeadersList.indexOf(found) + 1);
+                window._cachedMyRank = cachedMyRank;
+            }
+        }
+        renderLeaderboardUI();
+    }
+
+    window.refreshLeaderboard = async function (force = true) {
+        const refreshIcon = document.getElementById('leaderboard-refresh-icon');
+        if (refreshIcon) refreshIcon.classList.add('fa-spin');
+        try {
+            const token = localStorage.getItem('api_token') || localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+            const cacheKey = 'leaderboard_data_v22_' + (token ? token.substring(0, 10) : 'public');
+            localStorage.removeItem(cacheKey);
+            for (let i = localStorage.length - 1; i >= 0; i--) {
+                const k = localStorage.key(i);
+                if (k && k.startsWith('leaderboard_data_')) localStorage.removeItem(k);
+            }
+        } catch (e) { }
+        window.leaderboardNeedsRefresh = true;
+        await window.initLeaderboardView(true);
+        if (refreshIcon) refreshIcon.classList.remove('fa-spin');
+        if (typeof showToast === 'function') {
+            showToast('Leaderboard rankings synced!');
+        }
+    };
+
+    let _isFetchingLeaderboard = false;
+    let _lastLeaderboardFetchTime = 0;
+
+    window.initLeaderboardView = async function (forceRefresh = false) {
+        const podiumContainer = document.getElementById('podium-container');
+        const rankListContainer = document.getElementById('rank-list-container');
+        const refreshIcon = document.getElementById('leaderboard-refresh-icon');
+
+        // Prevent overlapping fetches and rapid re-fetch flapping
+        if (_isFetchingLeaderboard) return;
+        const now = Date.now();
+        if (forceRefresh && (now - _lastLeaderboardFetchTime < 6000) && rawLeadersList && rawLeadersList.length > 0) {
+            return;
+        }
+        _isFetchingLeaderboard = true;
+        _lastLeaderboardFetchTime = now;
+
+        if (refreshIcon && forceRefresh) refreshIcon.classList.add('fa-spin');
+
+        // 1. If we already have leaders in memory or window cache, render immediately! Otherwise show loading state
+        if (rawLeadersList && rawLeadersList.length > 0) {
+            renderLeaderboardUI();
+        } else {
+            renderLeaderboardLoading();
+        }
+
+        try {
+            const token = localStorage.getItem('api_token') || localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+            var backendUrl = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
+            const cacheKey = 'leaderboard_data_v22_' + (token ? token.substring(0, 10) : 'public');
+
+            if (forceRefresh) {
+                window.leaderboardNeedsRefresh = true;
+            }
+
+            // In parallel, fetch live points balance if user is authenticated
+            if (token) {
+                fetch(backendUrl + '/api/tourist/points/balance', {
+                    headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/json' }
+                }).then(r => r.json()).then(d => {
+                    if (d && d.status === 'success' && d.points !== undefined) {
+                        const ptsVal = parseInt(d.points);
+                        if (window.myUserData) {
+                            window.myUserData.pts = ptsVal;
+                            const subtext = document.getElementById('my-standing-subtext');
+                            if (subtext) {
+                                const currentActivities = window.myUserData.activities || (cachedMeData ? parseInt(cachedMeData.completed_activities ?? cachedMeData.activities ?? cachedMeData.places_visited ?? 0) : 0);
+                                if (currentSortMode === 'visited') {
+                                    subtext.textContent = `${currentActivities} Spots Visited • ${ptsVal.toLocaleString()} Points`;
+                                } else {
+                                    subtext.textContent = `${ptsVal.toLocaleString()} Points • ${currentActivities} Spots Visited`;
+                                }
+                            }
+                        }
+                    }
+                }).catch(() => { });
+            }
+
+            const fetchCache = window.useCache || (async (key, fetcher, renderer) => { const d = await fetcher(); if (renderer) renderer(d); return d; });
+
+            // Ambient offline check: Pre-hydrate from cache if available
+            try {
+                const storedRaw = localStorage.getItem(cacheKey);
+                if (storedRaw) {
+                    const parsed = JSON.parse(storedRaw);
+                    const d = parsed.data || parsed;
+                    if (d) {
+                        applyLeaderboardData(d);
+                    }
                 }
-            }
+            } catch (e) { }
 
-            const rankPill = document.getElementById('modal-rank-pill');
-            if (rankPill) {
-                if (isSelf) {
-                    rankPill.innerText = (rank && rank !== '—') ? `#${rank} Ranked Explorer (You)` : `Your Explorer Profile`;
-                } else {
-                    rankPill.innerText = `#${rank} Ranked Explorer`;
+
+            // Robust multi-tier fetch with cascaded fallbacks
+            async function fetchLeaderboardWithFallbacks() {
+                // Tier 1: Tourist authenticated endpoint
+                if (token) {
+                    try {
+                        const res = await fetch(backendUrl + '/api/tourist/leaderboard?limit=50', {
+                            headers: { 'Accept': 'application/json', 'Authorization': 'Bearer ' + token }
+                        });
+                        if (res.ok) {
+                            const json = await res.json();
+                            const users = json.users || json.leaders || json.data || json.tourists || (Array.isArray(json) ? json : []);
+                            if (Array.isArray(users)) return json;
+                        }
+                    } catch (err1) {
+                        console.warn("Tier 1 tourist leaderboard fetch error:", err1);
+                    }
                 }
-            }
 
-            // Notification Header Badge & Status
-            const headerBadge = document.getElementById('modal-header-badge');
-            if (headerBadge) {
-                headerBadge.textContent = isSelf ? 'YOUR PROFILE' : 'EXPLORER PROFILE';
-            }
-            const headerStatus = document.getElementById('modal-header-status');
-            if (headerStatus) {
-                headerStatus.textContent = isSelf ? 'Your Standing' : 'Leaderboard Standing';
-            }
-
-            // Yourself should not be sending high fives to yourself
-            const cheerBtn = document.getElementById('modal-cheer-btn');
-            if (cheerBtn) {
-                cheerBtn.style.display = isSelf ? 'none' : 'flex';
-            }
-            const dismissBtn = document.getElementById('modal-dismiss-btn');
-            if (dismissBtn) {
-                if (isSelf) {
-                    dismissBtn.classList.add('is-self');
-                    dismissBtn.textContent = 'Close';
-                } else {
-                    dismissBtn.classList.remove('is-self');
-                    dismissBtn.textContent = 'Dismiss';
+                // Tier 2: Public leaderboard endpoint on configured backend
+                try {
+                    const headers2 = { 'Accept': 'application/json' };
+                    if (token) headers2['Authorization'] = 'Bearer ' + token;
+                    const res2 = await fetch(backendUrl + '/api/public/leaderboard?limit=50', { headers: headers2 });
+                    if (res2.ok) {
+                        const json2 = await res2.json();
+                        const users2 = json2.users || json2.leaders || json2.data || json2.tourists || (Array.isArray(json2) ? json2 : []);
+                        if (Array.isArray(users2)) return json2;
+                    }
+                } catch (err2) {
+                    console.warn("Tier 2 public leaderboard fetch error:", err2);
                 }
-            }
 
-            const elLoc = document.getElementById('modal-location');
-            if (elLoc) {
-                if (location && location.trim()) {
-                    elLoc.querySelector('span').innerText = location;
-                    elLoc.style.display = 'inline-flex';
-                } else {
-                    elLoc.style.display = 'none';
+                // Tier 3: Standard public endpoint /api/leaderboard on configured backend
+                try {
+                    const headers3 = { 'Accept': 'application/json' };
+                    if (token) headers3['Authorization'] = 'Bearer ' + token;
+                    const res3 = await fetch(backendUrl + '/api/leaderboard?limit=50', { headers: headers3 });
+                    if (res3.ok) {
+                        const json3 = await res3.json();
+                        const users3 = json3.users || json3.leaders || json3.data || json3.tourists || (Array.isArray(json3) ? json3 : []);
+                        if (Array.isArray(users3)) return json3;
+                    }
+                } catch (err3) {
+                    console.warn("Tier 3 public leaderboard fetch error:", err3);
                 }
-            }
 
-            const elBio = document.getElementById('modal-bio');
-            if (elBio) {
-                if (bio && bio.trim()) {
-                    elBio.innerText = `"${bio}"`;
-                    elBio.style.display = 'block';
-                } else {
-                    elBio.style.display = 'none';
+                // Tier 4: Direct canonical production domain
+                try {
+                    const res4 = await fetch('https://api.intan-elyu.online/api/public/leaderboard?limit=50', {
+                        headers: { 'Accept': 'application/json' }
+                    });
+                    if (res4.ok) {
+                        const json4 = await res4.json();
+                        const users4 = json4.users || json4.leaders || json4.data || json4.tourists || (Array.isArray(json4) ? json4 : []);
+                        if (Array.isArray(users4)) return json4;
+                    }
+                } catch (err4) {
+                    console.warn("Tier 4 direct API fetch error:", err4);
                 }
+
+                throw new Error("Could not reach any leaderboard endpoint");
             }
 
-            document.getElementById('user-profile-modal').classList.add('active');
-        };
+            await fetchCache(
+                cacheKey,
+                fetchLeaderboardWithFallbacks,
+                (data) => {
+                    if (!data) {
+                        if (!rawLeadersList || rawLeadersList.length === 0) {
+                            renderLeaderboardUI();
+                        }
+                        return;
+                    }
+                    applyLeaderboardData(data);
+                },
+                Boolean(forceRefresh || window.leaderboardNeedsRefresh),
+                15000 // 15 seconds TTL
+            );
+            window.leaderboardNeedsRefresh = false;
 
-        window.closeUserProfile = function () {
-            document.getElementById('user-profile-modal').classList.remove('active');
-        };
-
-        window.initLeaderboardView = async function () {
-            const podiumContainer = document.getElementById('podium-container');
-            const rankListContainer = document.getElementById('rank-list-container');
-
-            // 1. If we already have leaders in memory, render immediately!
+            // Re-render after fetch to ensure latest data is displayed
             if (rawLeadersList && rawLeadersList.length > 0) {
                 renderLeaderboardUI();
             }
 
-            try {
-                const token = localStorage.getItem('api_token') || localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
-                const headers = { 'Accept': 'application/json' };
-
-                var backendUrl = (window.backendUrl || 'https://api.intan-elyu.online').replace(/\/+$/, '');
-                let url = backendUrl + '/api/public/leaderboard?limit=50';
-                if (token) {
-                    headers['Authorization'] = 'Bearer ' + token;
-                    url = backendUrl + '/api/tourist/leaderboard?limit=50';
-                }
-
-                // In parallel, fetch live points balance if user is authenticated
-                if (token) {
-                    fetch(backendUrl + '/api/tourist/points/balance', {
-                        headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/json' }
-                    }).then(r => r.json()).then(d => {
-                        if (d && d.status === 'success' && d.points !== undefined) {
-                            const ptsVal = parseInt(d.points);
-                            if (window.myUserData) {
-                                window.myUserData.pts = ptsVal;
-                                const subtext = document.getElementById('my-standing-subtext');
-                                if (subtext) {
-                                    if (currentSortMode === 'visited') {
-                                        subtext.textContent = `${window.myUserData.activities || 0} Spots Visited • ${ptsVal.toLocaleString()} Points`;
-                                    } else {
-                                        subtext.textContent = `${ptsVal.toLocaleString()} Points • ${window.myUserData.activities || 0} Spots Visited`;
-                                    }
-                                }
-                            }
-                        }
-                    }).catch(() => {});
-                }
-
-                const cacheKey = 'leaderboard_data_v15_' + (token ? token.substring(0, 10) : 'public');
-                const fetchCache = window.useCache || (async (key, fetcher, renderer) => { const d = await fetcher(); if (renderer) renderer(d); return d; });
-
-                await fetchCache(
-                    cacheKey,
-                    async () => {
-                        let res = await fetch(url, { headers: { ...headers } });
-                        if (res.status === 401 && token) {
-                            localStorage.removeItem('intan_elyu_token');
-                            localStorage.removeItem('Intan_Elyu_Token');
-                            localStorage.removeItem('api_token');
-                            res = await fetch(backendUrl + '/api/public/leaderboard?limit=50', { headers: { 'Accept': 'application/json' } });
-                        }
-                        if (!res.ok) throw new Error("Failed to fetch leaderboard");
-                        return await res.json();
-                    },
-                    (data) => {
-                        if (!data) return;
-                        rawLeadersList = data.users || data.leaders || [];
-                        cachedMeData = data.me || null;
-                        cachedMyRank = data.my_rank || 999;
-                        renderLeaderboardUI();
-                    },
-                    Boolean(window.leaderboardNeedsRefresh),
-                    30000 // 30 seconds TTL
-                );
-                window.leaderboardNeedsRefresh = false;
-
-                // 2. Re-render after fetch to ensure latest data is displayed
-                if (rawLeadersList && rawLeadersList.length > 0) {
-                    renderLeaderboardUI();
-                }
-
-            } catch (e) {
-                console.error("Leaderboard error:", e);
-                if (podiumContainer && (!rawLeadersList || rawLeadersList.length === 0)) {
-                    podiumContainer.innerHTML = "<div style='color:rgba(239,68,68,0.8); text-align:center; width:100%; padding:20px; font-size:14px;'>Failed to load leaderboard.</div>";
+        } catch (e) {
+            console.warn("Leaderboard fetch error:", e);
+            renderLeaderboardUI();
+            // Only show offline empty state if we genuinely have NO cached data at all
+            if (!rawLeadersList || rawLeadersList.length === 0) {
+                if (!navigator.onLine) {
+                    if (podiumContainer) {
+                        podiumContainer.innerHTML = `
+                            <div style="grid-column: 1 / -1; width: 100%; text-align: center; padding: 28px 16px;">
+                                <div style="width: 48px; height: 48px; border-radius: 50%; background: rgba(245, 158, 11, 0.12); display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; color: #f59e0b; font-size: 20px;">
+                                    <i class="fa-solid fa-cloud-slash"></i>
+                                </div>
+                                <div style="font-size: 14px; font-weight: 700; color: #1e293b; margin-bottom: 4px;">Rankings Offline</div>
+                                <div style="font-size: 12px; color: #64748b; max-width: 260px; margin: 0 auto; line-height: 1.4;">
+                                    Full provincial rankings will update automatically when reconnected.
+                                </div>
+                            </div>`;
+                    }
+                } else {
+                    if (podiumContainer) {
+                        podiumContainer.innerHTML = `
+                            <div style="grid-column: 1 / -1; width: 100%; text-align: center; padding: 28px 16px;">
+                                <div style="font-size: 14px; font-weight: 700; color: #dc2626; margin-bottom: 6px;">Rankings Temporarily Unavailable</div>
+                                <button onclick="window.refreshLeaderboard(true)" style="background: #1e3a8a; color: white; border: none; padding: 8px 18px; border-radius: 100px; font-size: 12px; font-weight: 800; cursor: pointer;">
+                                    <i class="fa-solid fa-rotate-right" style="margin-right: 5px;"></i> Try Again
+                                </button>
+                            </div>`;
+                    }
                 }
             }
-        };
+        } finally {
+            _isFetchingLeaderboard = false;
+            if (refreshIcon) refreshIcon.classList.remove('fa-spin');
+        }
+    };
 
-        // Initialize immediately
-        window.initLeaderboardView();
+    // Initialize immediately
+    window.initLeaderboardView();
 
-        // Also listen for SPA viewLoaded event when navigating back to leaderboard
-        document.addEventListener('viewLoaded', function (e) {
-            if (e.detail && e.detail.view === 'leaderboard') {
-                if (typeof window.initLeaderboardView === 'function') {
-                    window.initLeaderboardView();
-                }
+    // Ambient automatic reconnect listeners (debounced to avoid multiple rapid-fire fetches)
+    let _leaderboardReconnectTimer = null;
+    function handleLeaderboardReconnect() {
+        if (_leaderboardReconnectTimer) clearTimeout(_leaderboardReconnectTimer);
+        _leaderboardReconnectTimer = setTimeout(() => {
+            const current = (document.body ? document.body.getAttribute('data-view') : '') || (window.currentView || '');
+            if (current !== 'leaderboard') {
+                window.leaderboardNeedsRefresh = true;
+                return;
             }
-        });
-    </script>
+            if (typeof window.initLeaderboardView === 'function') {
+                window.leaderboardNeedsRefresh = true;
+                window.initLeaderboardView(true);
+            }
+        }, 400);
+    }
+    window.addEventListener('online', handleLeaderboardReconnect);
+    window.addEventListener('appOnline', handleLeaderboardReconnect);
+    document.addEventListener('visibilitychange', function () {
+        if (!document.hidden && (!rawLeadersList || rawLeadersList.length === 0 || window.leaderboardNeedsRefresh)) {
+            handleLeaderboardReconnect();
+        }
+    });
+
+    // Also listen for SPA viewLoaded event when navigating back to leaderboard
+    function handleLeaderboardViewLoaded(e) {
+        if (e && e.detail && e.detail.view === 'leaderboard') {
+            if (typeof window.initLeaderboardView === 'function') {
+                const mustForce = (!rawLeadersList || rawLeadersList.length === 0 || window.leaderboardNeedsRefresh);
+                window.initLeaderboardView(mustForce);
+            }
+        }
+    }
+    window.addEventListener('viewLoaded', handleLeaderboardViewLoaded);
+    document.addEventListener('viewLoaded', handleLeaderboardViewLoaded);
+</script>

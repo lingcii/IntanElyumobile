@@ -61,21 +61,36 @@ if (is_dir($imgDir)) {
         <div class="stats-row" style="margin-bottom:0; display:grid; grid-template-columns:repeat(3, 1fr); gap:8px;">
             <div class="stat-card" onclick="event.stopPropagation(); navigateTo('itinerary');"
                 style="background: linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.14) 100%) !important; border: none !important; outline: none !important; border-radius: 16px; padding: 10px 6px; text-align: center; cursor: pointer; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 4px 14px rgba(10, 25, 60, 0.2) !important; transition: transform 0.2s ease;">
-                <div class="stat-icon" style="font-size:18px; margin-bottom:3px;"><i class="fa-solid fa-map-location-dot" style="color:#38bdf8;"></i></div>
-                <div class="stat-value" id="dash-stat-places" style="font-size:17px; font-weight:900; color:#ffffff; margin-bottom:1px; letter-spacing:-0.4px;">—</div>
-                <div class="stat-label" style="font-size:10px; font-weight:800; color:#ffffff !important; text-transform:uppercase; letter-spacing:0.5px; opacity:0.95;">Places</div>
+                <div class="stat-icon" style="font-size:18px; margin-bottom:3px;"><i
+                        class="fa-solid fa-map-location-dot" style="color:#38bdf8;"></i></div>
+                <div class="stat-value" id="dash-stat-places"
+                    style="font-size:17px; font-weight:900; color:#ffffff; margin-bottom:1px; letter-spacing:-0.4px;">—
+                </div>
+                <div class="stat-label"
+                    style="font-size:10px; font-weight:800; color:#ffffff !important; text-transform:uppercase; letter-spacing:0.5px; opacity:0.95;">
+                    Places</div>
             </div>
             <div class="stat-card" onclick="event.stopPropagation(); navigateTo('leaderboard');"
                 style="background: linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.14) 100%) !important; border: none !important; outline: none !important; border-radius: 16px; padding: 10px 6px; text-align: center; cursor: pointer; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 4px 14px rgba(10, 25, 60, 0.2) !important; transition: transform 0.2s ease;">
-                <div class="stat-icon" style="font-size:18px; margin-bottom:3px;"><i class="fa-solid fa-coins" style="color:#fbbf24;"></i></div>
-                <div class="stat-value" id="dash-stat-points" style="font-size:17px; font-weight:900; color:#ffffff; margin-bottom:1px; letter-spacing:-0.4px;">—</div>
-                <div class="stat-label" style="font-size:10px; font-weight:800; color:#ffffff !important; text-transform:uppercase; letter-spacing:0.5px; opacity:0.95;">Points</div>
+                <div class="stat-icon" style="font-size:18px; margin-bottom:3px;"><i class="fa-solid fa-coins"
+                        style="color:#fbbf24;"></i></div>
+                <div class="stat-value" id="dash-stat-points"
+                    style="font-size:17px; font-weight:900; color:#ffffff; margin-bottom:1px; letter-spacing:-0.4px;">—
+                </div>
+                <div class="stat-label"
+                    style="font-size:10px; font-weight:800; color:#ffffff !important; text-transform:uppercase; letter-spacing:0.5px; opacity:0.95;">
+                    Points</div>
             </div>
             <div class="stat-card" onclick="event.stopPropagation(); navigateTo('leaderboard');"
                 style="background: linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.14) 100%) !important; border: none !important; outline: none !important; border-radius: 16px; padding: 10px 6px; text-align: center; cursor: pointer; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 4px 14px rgba(10, 25, 60, 0.2) !important; transition: transform 0.2s ease;">
-                <div class="stat-icon" style="font-size:18px; margin-bottom:3px;"><i class="fa-solid fa-trophy" style="color:#f59e0b;"></i></div>
-                <div class="stat-value" id="dash-stat-rank" style="font-size:17px; font-weight:900; color:#ffffff; margin-bottom:1px; letter-spacing:-0.4px;">—</div>
-                <div class="stat-label" style="font-size:10px; font-weight:800; color:#ffffff !important; text-transform:uppercase; letter-spacing:0.5px; opacity:0.95;">Rank</div>
+                <div class="stat-icon" style="font-size:18px; margin-bottom:3px;"><i class="fa-solid fa-trophy"
+                        style="color:#f59e0b;"></i></div>
+                <div class="stat-value" id="dash-stat-rank"
+                    style="font-size:17px; font-weight:900; color:#ffffff; margin-bottom:1px; letter-spacing:-0.4px;">—
+                </div>
+                <div class="stat-label"
+                    style="font-size:10px; font-weight:800; color:#ffffff !important; text-transform:uppercase; letter-spacing:0.5px; opacity:0.95;">
+                    Rank</div>
             </div>
         </div>
     </div>
@@ -170,7 +185,8 @@ if (is_dir($imgDir)) {
         </div>
         <div
             style="width: 34px; height: 34px; border-radius: 50%; background: #ffffff !important; display: flex; align-items: center; justify-content: center; color: #1e3a8a !important; font-size: 13px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18) !important; flex-shrink: 0;">
-            <i class="fa-solid fa-play" style="color: #1e3a8a !important; margin-left: 2px;"></i></div>
+            <i class="fa-solid fa-play" style="color: #1e3a8a !important; margin-left: 2px;"></i>
+        </div>
     </div>
 
     <!-- Categories Section -->
@@ -227,7 +243,9 @@ if (is_dir($imgDir)) {
     <div class="dash-section stagger-2">
         <div class="section-title">
             <h3>Trending Sites</h3>
-            <a href="javascript:void(0);" onclick="localStorage.setItem('intan_elyu_explore_mode', 'trending'); navigateTo('trending');">See All</a>
+            <a href="javascript:void(0);"
+                onclick="localStorage.setItem('intan_elyu_explore_mode', 'trending'); navigateTo('trending');">See
+                All</a>
         </div>
         <div class="favorites-row is-empty" id="trending-container">
             <div class="dash-loading-state">
@@ -245,7 +263,8 @@ if (is_dir($imgDir)) {
                     <span>Tourist Sites</span>
                     <span id="all-spots-count-badge" class="dash-count-pill">0 Spots</span>
                 </h3>
-                <p class="section-subtitle" id="all-spots-subtitle">Browse verified attractions & hidden gems across La Union</p>
+                <p class="section-subtitle" id="all-spots-subtitle">Browse verified attractions & hidden gems across La
+                    Union</p>
             </div>
             <a href="javascript:void(0);" onclick="window.navigateToTouristSitesPage()">See All</a>
         </div>
@@ -373,63 +392,63 @@ if (is_dir($imgDir)) {
 
             // Beach, Coastal & Surfing
             if (t.includes('beach') || t.includes('surf') || t.includes('coastal') || t.includes('island')) {
-                return combined.includes('beach') || combined.includes('surf') || combined.includes('coastal') || 
-                       combined.includes('island') || combined.includes('seascape') || combined.includes('water sports');
+                return combined.includes('beach') || combined.includes('surf') || combined.includes('coastal') ||
+                    combined.includes('island') || combined.includes('seascape') || combined.includes('water sports');
             }
 
             // Nature & Parks
             if (t.includes('nature') || t.includes('park')) {
-                return c.includes('nature') || c.includes('park') || combined.includes('park') || 
-                       combined.includes('plaza') || combined.includes('agro-forestry') || combined.includes('tree') ||
-                       combined.includes('mangrove') || combined.includes('lagoon') || combined.includes('baywalk');
+                return c.includes('nature') || c.includes('park') || combined.includes('park') ||
+                    combined.includes('plaza') || combined.includes('agro-forestry') || combined.includes('tree') ||
+                    combined.includes('mangrove') || combined.includes('lagoon') || combined.includes('baywalk');
             }
 
             // Mountains & Hiking
             if (t.includes('mountain') || t.includes('hiking') || t.includes('trail') || t.includes('view')) {
-                return c.includes('mountain') || c.includes('hiking') || combined.includes('trail') || 
-                       combined.includes('peak') || combined.includes('view deck') || combined.includes('viewdeck') || 
-                       combined.includes('terrace') || combined.includes('mt.') || combined.includes('mountain');
+                return c.includes('mountain') || c.includes('hiking') || combined.includes('trail') ||
+                    combined.includes('peak') || combined.includes('view deck') || combined.includes('viewdeck') ||
+                    combined.includes('terrace') || combined.includes('mt.') || combined.includes('mountain');
             }
 
             // Lakes, Falls & Waterways
             if (t.includes('lake') || t.includes('fall') || t.includes('water') || t.includes('river')) {
-                return c.includes('waterfall') || c.includes('river') || c.includes('lake') || 
-                       combined.includes('fall') || combined.includes('river') || combined.includes('lake') || 
-                       combined.includes('dam') || combined.includes('spring');
+                return c.includes('waterfall') || c.includes('river') || c.includes('lake') ||
+                    combined.includes('fall') || combined.includes('river') || combined.includes('lake') ||
+                    combined.includes('dam') || combined.includes('spring');
             }
 
             // Heritage, Cultural, Historical & Monuments
             if (t.includes('heritage') || t.includes('cultural') || t.includes('historical') || t.includes('monument') || t.includes('museum')) {
-                return c.includes('cultural') || c.includes('heritage') || c.includes('historical') || 
-                       c.includes('monument') || c.includes('museum') || combined.includes('watchtower') || 
-                       combined.includes('tunnel') || combined.includes('marker') || combined.includes('station') || 
-                       combined.includes('memorial') || combined.includes('ancestral') || combined.includes('church') || 
-                       combined.includes('shrine') || combined.includes('parish') || combined.includes('basilica');
+                return c.includes('cultural') || c.includes('heritage') || c.includes('historical') ||
+                    c.includes('monument') || c.includes('museum') || combined.includes('watchtower') ||
+                    combined.includes('tunnel') || combined.includes('marker') || combined.includes('station') ||
+                    combined.includes('memorial') || combined.includes('ancestral') || combined.includes('church') ||
+                    combined.includes('shrine') || combined.includes('parish') || combined.includes('basilica');
             }
 
             // Food & Dining
             if (t.includes('food') || t.includes('dining') || t.includes('restaurant')) {
-                return c.includes('food') || combined.includes('restaurant') || combined.includes('seafood') || 
-                       combined.includes('dining') || combined.includes('eatery') || combined.includes('cafe') || 
-                       combined.includes('bistro') || combined.includes('grill');
+                return c.includes('food') || combined.includes('restaurant') || combined.includes('seafood') ||
+                    combined.includes('dining') || combined.includes('eatery') || combined.includes('cafe') ||
+                    combined.includes('bistro') || combined.includes('grill');
             }
 
             // Arts & Crafts
             if (t.includes('art') || t.includes('craft') || t.includes('weaving')) {
-                return c.includes('arts') || combined.includes('weaving') || combined.includes('pottery') || 
-                       combined.includes('gallery') || combined.includes('craft') || combined.includes('paper');
+                return c.includes('arts') || combined.includes('weaving') || combined.includes('pottery') ||
+                    combined.includes('gallery') || combined.includes('craft') || combined.includes('paper');
             }
 
             // Farms & Agriculture
             if (t.includes('farm') || t.includes('agro') || t.includes('plant')) {
-                return c.includes('farm') || combined.includes('plantation') || combined.includes('grapes') || 
-                       combined.includes('mushroom') || combined.includes('fishery') || combined.includes('agri');
+                return c.includes('farm') || combined.includes('plantation') || combined.includes('grapes') ||
+                    combined.includes('mushroom') || combined.includes('fishery') || combined.includes('agri');
             }
 
             // Nightlife (Strict matching for authentic nightlife spots only)
             if (t === 'nightlife' || t.includes('nightlife')) {
-                return c.includes('nightlife') || combined.includes('nightlife') || 
-                       /\b(nightclub|night club|pub|pubs|disco|discotheque|restobar|resto-bar|sports bar|comedy bar|karaoke bar|lounge bar)\b/i.test(combined);
+                return c.includes('nightlife') || combined.includes('nightlife') ||
+                    /\b(nightclub|night club|pub|pubs|disco|discotheque|restobar|resto-bar|sports bar|comedy bar|karaoke bar|lounge bar)\b/i.test(combined);
             }
 
             // Recreation & Resorts (Separated from Nightlife so resorts & recreation do not pollute nightlife)
@@ -710,6 +729,18 @@ if (is_dir($imgDir)) {
                     return await res.json();
                 },
                 (data) => {
+                    // Check fallback if data is missing or offline
+                    if (!data || !data.destinations) {
+                        try {
+                            const fallbackRaw = localStorage.getItem('intan_elyu_cached_spots_map');
+                            if (fallbackRaw) {
+                                const parsed = JSON.parse(fallbackRaw)?.data;
+                                if (parsed && (parsed.destinations || parsed.spots)) {
+                                    data = { destinations: parsed.destinations || parsed.spots };
+                                }
+                            }
+                        } catch(e) {}
+                    }
                     if (data && data.destinations) {
                         window.allTouristSpots = (data.destinations || [])
                             .filter(d => !d.status || !['pending', 'draft', 'rejected'].includes(d.status.toLowerCase()))
@@ -815,7 +846,7 @@ if (is_dir($imgDir)) {
         }
     };
 
-    (async function dashboardInit() {
+    async function dashboardInit(forceRefresh = false) {
         const setTxt = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
         const setHtml = (id, html) => { const el = document.getElementById(id); if (el) el.innerHTML = html; };
         const setSrc = (id, src) => { const el = document.getElementById(id); if (el) el.src = src; };
@@ -1180,6 +1211,19 @@ if (is_dir($imgDir)) {
                     return await res.json();
                 },
                 (data) => {
+                    // Check fallback if data is missing or offline
+                    if (!data || !data.destinations) {
+                        try {
+                            const fallbackRaw = localStorage.getItem('intan_elyu_cached_spots_map');
+                            if (fallbackRaw) {
+                                const parsed = JSON.parse(fallbackRaw)?.data;
+                                if (parsed && (parsed.destinations || parsed.spots)) {
+                                    data = { destinations: parsed.destinations || parsed.spots };
+                                }
+                            }
+                        } catch(e) {}
+                    }
+
                     if (!data || !data.destinations) {
                         nearContainer.classList.add('is-empty');
                         nearContainer.style.paddingLeft = '0';
@@ -1406,7 +1450,7 @@ if (is_dir($imgDir)) {
                         renderDashboard(data);
                     }
                 },
-                Boolean(window.dashboardNeedsRefresh),
+                Boolean(forceRefresh || window.dashboardNeedsRefresh),
                 30000 // 30 seconds TTL for dashboard
             );
             window.dashboardNeedsRefresh = false;
@@ -1440,7 +1484,7 @@ if (is_dir($imgDir)) {
                         if (el) el.textContent = 'Unranked';
                     }
                 },
-                false,
+                Boolean(forceRefresh || window.dashboardNeedsRefresh),
                 60000 // 1 minute TTL for rank
             );
 
@@ -1458,8 +1502,11 @@ if (is_dir($imgDir)) {
                         throw new Error("Trips fetch failed");
                     },
                     (itinData) => {
-                        if (!itinData) return;
-                        const allItineraries = itinData.itineraries || [];
+                        const queuedTrips = (window.OfflineTripManager && typeof window.OfflineTripManager.getQueuedTrips === 'function')
+                            ? window.OfflineTripManager.getQueuedTrips()
+                            : [];
+                        const serverItineraries = (itinData && itinData.itineraries) ? itinData.itineraries : [];
+                        const allItineraries = [...queuedTrips, ...serverItineraries];
                         const itineraries = allItineraries.filter(t => t.status !== 'completed');
                         if (itineraries.length > 0) {
                             let tripsHtml = '';
@@ -1520,53 +1567,53 @@ if (is_dir($imgDir)) {
                                                     <span style="color:rgba(255,255,255,0.4);">&bull;</span>
                                                     <span><i class="fa-regular fa-calendar" style="margin-right:4px; color:#ffffff;"></i>${trip.trip_date ? new Date(trip.trip_date).toLocaleDateString() : 'No Date'}</span>
                                                     ${trip.transport_mode ? (() => {
-                                                        const parts = String(trip.transport_mode).split(/[,+]|\band\b/i).map(s => s.trim().toLowerCase().replace(/[- ]/g, '_')).filter(Boolean);
-                                                        if (parts.length === 0 || parts[0].includes('no_vehicle') || parts[0].includes('no vehicle')) {
-                                                            return `<span style="color:rgba(255,255,255,0.4);">&bull;</span><span><i class="fa-solid fa-ban" style="margin-right:4px; color:#f87171;"></i>No Vehicle Selected</span>`;
-                                                        }
-                                                        if (parts.length > 1) {
-                                                            return `<span style="color:rgba(255,255,255,0.4);">&bull;</span><span><i class="fa-solid fa-route" style="margin-right:4px; color:#38bdf8;"></i>${parts.length} Vehicles</span>`;
-                                                        }
-                                                        const rawT = parts[0];
-                                                        const tMap = {
-                                                            'own_car': 'Own Car',
-                                                            'mpuj': 'MPUJ',
-                                                            'tpuj': 'TPUJ',
-                                                            'pub_aircon': 'PUB Aircon',
-                                                            'pub_ordinary': 'PUB Ordinary',
-                                                            'pub_regular': 'PUB Regular',
-                                                            'uve': 'UV Express',
-                                                            'jeepney': 'Jeepney',
-                                                            'tricycle': 'Tricycle',
-                                                            'bus': 'Bus',
-                                                            'private_bus': 'PUB Aircon',
-                                                            'mini_bus': 'Mini Bus',
-                                                            'lutrampco': 'LUTRAMPCO',
-                                                            'taxi': 'Taxi',
-                                                            'motorcycle': 'Motorcycle',
-                                                            'walking': 'Walking'
-                                                        };
-                                                        const tIco = {
-                                                            'own_car': 'fa-car',
-                                                            'mpuj': 'fa-van-shuttle',
-                                                            'tpuj': 'fa-van-shuttle',
-                                                            'pub_aircon': 'fa-bus',
-                                                            'pub_ordinary': 'fa-bus-simple',
-                                                            'pub_regular': 'fa-bus-simple',
-                                                            'uve': 'fa-van-shuttle',
-                                                            'jeepney': 'fa-van-shuttle',
-                                                            'tricycle': 'fa-motorcycle',
-                                                            'bus': 'fa-bus',
-                                                            'private_bus': 'fa-bus',
-                                                            'mini_bus': 'fa-bus-simple',
-                                                            'lutrampco': 'fa-van-shuttle',
-                                                            'taxi': 'fa-taxi',
-                                                            'motorcycle': 'fa-motorcycle',
-                                                            'walking': 'fa-person-walking'
-                                                        };
-                                                        const displayName = tMap[rawT] || rawT.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-                                                        return `<span style="color:rgba(255,255,255,0.4);">&bull;</span><span><i class="fa-solid ${tIco[rawT] || 'fa-car'}" style="margin-right:4px; color:#38bdf8;"></i>${displayName}</span>`;
-                                                    })() : ''}
+                                        const parts = String(trip.transport_mode).split(/[,+]|\band\b/i).map(s => s.trim().toLowerCase().replace(/[- ]/g, '_')).filter(Boolean);
+                                        if (parts.length === 0 || parts[0].includes('no_vehicle') || parts[0].includes('no vehicle')) {
+                                            return `<span style="color:rgba(255,255,255,0.4);">&bull;</span><span><i class="fa-solid fa-ban" style="margin-right:4px; color:#f87171;"></i>No Vehicle Selected</span>`;
+                                        }
+                                        if (parts.length > 1) {
+                                            return `<span style="color:rgba(255,255,255,0.4);">&bull;</span><span><i class="fa-solid fa-route" style="margin-right:4px; color:#38bdf8;"></i>${parts.length} Vehicles</span>`;
+                                        }
+                                        const rawT = parts[0];
+                                        const tMap = {
+                                            'own_car': 'Own Car',
+                                            'mpuj': 'MPUJ',
+                                            'tpuj': 'TPUJ',
+                                            'pub_aircon': 'PUB Aircon',
+                                            'pub_ordinary': 'PUB Ordinary',
+                                            'pub_regular': 'PUB Regular',
+                                            'uve': 'UV Express',
+                                            'jeepney': 'Jeepney',
+                                            'tricycle': 'Tricycle',
+                                            'bus': 'Bus',
+                                            'private_bus': 'PUB Aircon',
+                                            'mini_bus': 'Mini Bus',
+                                            'lutrampco': 'LUTRAMPCO',
+                                            'taxi': 'Taxi',
+                                            'motorcycle': 'Motorcycle',
+                                            'walking': 'Walking'
+                                        };
+                                        const tIco = {
+                                            'own_car': 'fa-car',
+                                            'mpuj': 'fa-van-shuttle',
+                                            'tpuj': 'fa-van-shuttle',
+                                            'pub_aircon': 'fa-bus',
+                                            'pub_ordinary': 'fa-bus-simple',
+                                            'pub_regular': 'fa-bus-simple',
+                                            'uve': 'fa-van-shuttle',
+                                            'jeepney': 'fa-van-shuttle',
+                                            'tricycle': 'fa-motorcycle',
+                                            'bus': 'fa-bus',
+                                            'private_bus': 'fa-bus',
+                                            'mini_bus': 'fa-bus-simple',
+                                            'lutrampco': 'fa-van-shuttle',
+                                            'taxi': 'fa-taxi',
+                                            'motorcycle': 'fa-motorcycle',
+                                            'walking': 'fa-person-walking'
+                                        };
+                                        const displayName = tMap[rawT] || rawT.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                                        return `<span style="color:rgba(255,255,255,0.4);">&bull;</span><span><i class="fa-solid ${tIco[rawT] || 'fa-car'}" style="margin-right:4px; color:#38bdf8;"></i>${displayName}</span>`;
+                                    })() : ''}
                                                 </span>
                                             </div>
                                             <i class="fa-solid fa-chevron-right toggle-icon" style="color: rgba(255,255,255,0.7); font-size: 14px; margin-right:4px; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);"></i>
@@ -1605,14 +1652,49 @@ if (is_dir($imgDir)) {
                         `;
                         }
                     },
-                    false,
+                    Boolean(forceRefresh || window.dashboardNeedsRefresh),
                     60000 // 1 minute TTL for trips
                 );
             }
         } catch (e) {
             console.error(e);
         }
-    })();
+    }
+    window.dashboardInit = dashboardInit;
+
+    // Ambient automatic reconnect & lifecycle listeners
+    window.addEventListener('online', function () {
+        const current = (document.body ? document.body.getAttribute('data-view') : '') || (window.currentView || '');
+        if (current !== 'dashboard') {
+            window.dashboardNeedsRefresh = true;
+            return;
+        }
+        if (typeof window.dashboardInit === 'function') window.dashboardInit(true);
+    });
+    window.addEventListener('appOnline', function () {
+        const current = (document.body ? document.body.getAttribute('data-view') : '') || (window.currentView || '');
+        if (current !== 'dashboard') {
+            window.dashboardNeedsRefresh = true;
+            return;
+        }
+        if (typeof window.dashboardInit === 'function') window.dashboardInit(true);
+    });
+    document.addEventListener('visibilitychange', function () {
+        const current = (document.body ? document.body.getAttribute('data-view') : '') || (window.currentView || '');
+        if (current !== 'dashboard') return;
+        if (!document.hidden && window.dashboardNeedsRefresh) {
+            if (typeof window.dashboardInit === 'function') window.dashboardInit(true);
+        }
+    });
+    window.addEventListener('viewLoaded', function (e) {
+        if (e && e.detail && e.detail.view === 'dashboard') {
+            if (typeof window.dashboardInit === 'function') {
+                window.dashboardInit(Boolean(window.dashboardNeedsRefresh));
+            }
+        }
+    });
+
+    dashboardInit();
 
     window.toggleFavorite = function (destId, element) {
         const token = localStorage.getItem('intan_elyu_token');
@@ -2116,9 +2198,33 @@ if (is_dir($imgDir)) {
             const apiBase = window.backendUrl || '';
             const isCurrentParam = isCurrentLoc ? '&is_current_location=1' : '';
             const url = `${apiBase}/api/public/weather?lat=${lat}&lng=${lng}&location=${encodeURIComponent(locationName)}${isCurrentParam}`;
+            
+            // Fast offline render
+            if (!navigator.onLine) {
+                try {
+                    const rawW = localStorage.getItem('intan_elyu_cached_weather');
+                    if (rawW) {
+                        const cw = JSON.parse(rawW)?.data;
+                        if (cw) {
+                            if (tempEl) tempEl.textContent = `${cw.temperature}°C`;
+                            if (descEl) descEl.textContent = cw.condition;
+                            if (locEl) locEl.innerHTML = `<i class="fa-solid fa-location-dot" style="color:#38bdf8; margin-right:4px;"></i> ${cw.location}`;
+                            if (humidityEl) humidityEl.textContent = `${cw.humidity}%`;
+                            if (windEl) windEl.textContent = `${cw.wind_speed} km/h`;
+                            if (uvEl) uvEl.textContent = cw.uv_index;
+                            if (iconEl) iconEl.innerHTML = window.renderWeatherIconHtml(cw.icon, cw.fa_icon);
+                            window.updateWeatherModal(cw);
+                            return;
+                        }
+                    }
+                } catch(e) {}
+            }
+
             const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
             if (!res.ok) throw new Error('Weather request failed with status ' + res.status);
             const data = await res.json();
+
+            try { localStorage.setItem('intan_elyu_cached_weather', JSON.stringify({ data, timestamp: Date.now() })); } catch(e) {}
 
             if (tempEl) tempEl.textContent = `${data.temperature}°C`;
             if (descEl) descEl.textContent = data.condition;
@@ -2130,12 +2236,28 @@ if (is_dir($imgDir)) {
 
             window.updateWeatherModal(data);
         } catch (e) {
-            console.warn('Weather fetch error, falling back:', e);
-            if (tempEl) tempEl.textContent = '29°C';
-            if (descEl) descEl.textContent = 'Partly Cloudy';
-            if (humidityEl) humidityEl.textContent = '72%';
-            if (windEl) windEl.textContent = '14 km/h';
-            if (uvEl) uvEl.textContent = '6';
+            console.warn('Weather fetch error, checking cache or fallback:', e);
+            let cachedW = null;
+            try {
+                const rawW = localStorage.getItem('intan_elyu_cached_weather');
+                if (rawW) cachedW = JSON.parse(rawW)?.data;
+            } catch(err) {}
+
+            if (cachedW) {
+                if (tempEl) tempEl.textContent = `${cachedW.temperature}°C`;
+                if (descEl) descEl.textContent = cachedW.condition;
+                if (locEl) locEl.innerHTML = `<i class="fa-solid fa-location-dot" style="color:#38bdf8; margin-right:4px;"></i> ${cachedW.location}`;
+                if (humidityEl) humidityEl.textContent = `${cachedW.humidity}%`;
+                if (windEl) windEl.textContent = `${cachedW.wind_speed} km/h`;
+                if (uvEl) uvEl.textContent = cachedW.uv_index;
+                if (iconEl) iconEl.innerHTML = window.renderWeatherIconHtml(cachedW.icon, cachedW.fa_icon);
+            } else {
+                if (tempEl) tempEl.textContent = '29°C';
+                if (descEl) descEl.textContent = 'Partly Cloudy';
+                if (humidityEl) humidityEl.textContent = '72%';
+                if (windEl) windEl.textContent = '14 km/h';
+                if (uvEl) uvEl.textContent = '6';
+            }
         }
     };
 

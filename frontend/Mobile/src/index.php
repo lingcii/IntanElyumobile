@@ -56,11 +56,11 @@ if (
 // Extract view name safely - from $_GET['view'] or URI path (e.g. /download)
 // Detect if running inside the native Android APK vs regular web browser (Brave, Chrome, Safari, etc.)
 $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? '';
-$isApk = (strpos($userAgent, 'IntanElyuAPK') !== false) || 
-         (strpos($userAgent, 'Capacitor') !== false) ||
-         isset($_GET['app']) ||
-         isset($_COOKIE['is_intan_elyu_app']) ||
-         (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strpos($_SERVER['HTTP_X_REQUESTED_WITH'], 'com.intan.elyu') !== false);
+$isApk = (strpos($userAgent, 'IntanElyuAPK') !== false) ||
+    (strpos($userAgent, 'Capacitor') !== false) ||
+    isset($_GET['app']) ||
+    isset($_COOKIE['is_intan_elyu_app']) ||
+    (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strpos($_SERVER['HTTP_X_REQUESTED_WITH'], 'com.intan.elyu') !== false);
 
 // WEB BROWSER PROTECTION:
 // If accessed via a normal web browser (like Brave, Chrome, Safari, Edge) and NOT inside the Android APK:
@@ -168,8 +168,10 @@ if ($isAjax) {
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=overlays-content">
     <title>Intan Elyu — Official Tourism Portal & Mobile App | Province of La Union</title>
-    <meta name="description" content="Official smart tourism mobile platform and portal of the Provincial Government of La Union (PGLU). Discover 20 municipalities, attractions, surf spots, discounts, travel fares, and download the Intan Elyu mobile app.">
-    <meta name="keywords" content="Intan Elyu, Intan Elyu mobile, Intan Elyu app, Intan Elyu download, Intan Elyu APK, La Union tourism, Elyu, San Juan surfing, PGLU, LUPTO, PICTO, Tangadan Falls, Balaoan Immuki Island, Luna Pebble Beach, Bauang grapes, La Union travel guide, mobile tourism app, Northern Luzon">
+    <meta name="description"
+        content="Official smart tourism mobile platform and portal of the Provincial Government of La Union (PGLU). Discover 20 municipalities, attractions, surf spots, discounts, travel fares, and download the Intan Elyu mobile app.">
+    <meta name="keywords"
+        content="Intan Elyu, Intan Elyu mobile, Intan Elyu app, Intan Elyu download, Intan Elyu APK, La Union tourism, Elyu, San Juan surfing, PGLU, LUPTO, PICTO, Tangadan Falls, Balaoan Immuki Island, Luna Pebble Beach, Bauang grapes, La Union travel guide, mobile tourism app, Northern Luzon">
     <meta name="author" content="Provincial Government of La Union (PGLU)">
     <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
     <meta name="googlebot" content="index, follow">
@@ -179,12 +181,14 @@ if ($isAjax) {
     <meta property="og:site_name" content="Intan Elyu">
     <meta property="og:url" content="https://app.intan-elyu.online/">
     <meta property="og:title" content="Intan Elyu — Official Tourism Portal & Mobile App | Province of La Union">
-    <meta property="og:description" content="Discover, explore, and experience the whole of La Union with Intan Elyu. Plan itineraries, discover 20 municipalities, view tourist spots, discounts, and earn gamified rewards.">
+    <meta property="og:description"
+        content="Discover, explore, and experience the whole of La Union with Intan Elyu. Plan itineraries, discover 20 municipalities, view tourist spots, discounts, and earn gamified rewards.">
     <meta property="og:image" content="https://app.intan-elyu.online/assets/img/logo.png">
     <meta property="og:locale" content="en_PH">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Intan Elyu — Official Tourism Portal & Mobile App | Province of La Union">
-    <meta name="twitter:description" content="Discover, explore, and experience the whole of La Union with Intan Elyu. Plan itineraries, discover 20 municipalities, view tourist spots, discounts, and earn gamified rewards.">
+    <meta name="twitter:description"
+        content="Discover, explore, and experience the whole of La Union with Intan Elyu. Plan itineraries, discover 20 municipalities, view tourist spots, discounts, and earn gamified rewards.">
     <meta name="twitter:image" content="https://app.intan-elyu.online/assets/img/logo.png">
     <link rel="icon" type="image/png" href="assets/img/logo.png">
     <link rel="apple-touch-icon" href="assets/img/logo.png">
@@ -216,25 +220,25 @@ if ($isAjax) {
     <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 
 
+    <script src="assets/js/capacitor/capacitor.js?v=<?= time() ?>"></script>
     <script>
         if (window.location.pathname.includes('/Intan-Elyu-Tourism-Management-System/')) {
             window.backendUrl = window.location.protocol + '//' + window.location.host + '/Intan-Elyu-Tourism-Management-System/backend/public';
         } else if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'capacitor:' || window.location.protocol === 'file:') {
-            if (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) {
+            if (window.Capacitor && typeof window.Capacitor.isNativePlatform === 'function' && window.Capacitor.isNativePlatform()) {
                 window.backendUrl = 'https://api.intan-elyu.online';
             } else if (window.location.port === '3000') {
                 window.backendUrl = 'http://localhost:8000';
             } else {
                 window.backendUrl = 'https://api.intan-elyu.online';
             }
-        } else if (window.location.hostname === 'app.intan-elyu.online') {
+        } else if (window.location.hostname.endsWith('intan-elyu.online')) {
             window.backendUrl = 'https://api.intan-elyu.online';
         } else {
-            window.backendUrl = window.BACKEND_URL || window.location.origin.replace('app.', 'api.');
+            window.backendUrl = window.BACKEND_URL || (window.location.origin.includes('app.') ? window.location.origin.replace('app.', 'api.') : 'https://api.intan-elyu.online');
         }
         window.GOOGLE_CLIENT_ID = '620598190857-37a0ucobfd4b3rct7ofti8rtvl3qt884.apps.googleusercontent.com';
     </script>
-    <script src="assets/js/capacitor/capacitor.js?v=<?= time() ?>"></script>
     <script src="assets/js/main.js?v=<?= time() ?>"></script>
 
     <link rel="stylesheet" href="assets/css/style.css?v=<?= time() ?>">
@@ -266,6 +270,12 @@ if ($isAjax) {
 </head>
 
 <body data-view="<?= htmlspecialchars($view) ?>">
+    <!-- Ambient Offline Mode Status Banner -->
+    <div id="elyu-offline-pill" class="elyu-offline-pill hidden">
+        <i class="fa-solid fa-cloud-slash" id="elyu-offline-pill-icon" style="color: #f59e0b; font-size: 11px;"></i>
+        <span id="elyu-offline-pill-text">Offline Mode &bull; Showing saved data</span>
+    </div>
+
     <!-- Global Drifting Clouds -->
     <div class="cloud-container" id="global-cloud-container">
         <!-- Shape A: Fluffy standard -->

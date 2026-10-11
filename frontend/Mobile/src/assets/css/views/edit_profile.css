@@ -53,11 +53,12 @@ body[data-view="edit_profile"] .mobile-header .header-back-btn i {
 
 .edit-profile-container {
     width: 100%;
-    min-height: calc(100vh - 60px);
-    padding-top: calc(max(env(safe-area-inset-top, 0px), 40px) + 64px) !important;
-    padding-left: 16px !important;
-    padding-right: 16px !important;
-    padding-bottom: 120px !important;
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding-top: var(--page-top-padding, calc(max(env(safe-area-inset-top, 0px), 36px) + 52px)) !important;
+    padding-left: var(--page-inline-padding, clamp(12px, 3.8vw, 18px)) !important;
+    padding-right: var(--page-inline-padding, clamp(12px, 3.8vw, 18px)) !important;
+    padding-bottom: var(--page-bottom-padding, calc(max(18px, env(safe-area-inset-bottom, 18px)) + 82px)) !important;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
