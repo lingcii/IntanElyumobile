@@ -1,6 +1,7 @@
 /* ============================================================
  * User Manual View Styles - user_manual.css
- * Intan Elyu Mobile — Clean Pure White Theme with Royal Blue Accents
+ * Intan Elyu Mobile — Clean Solid Royal Navy Theme
+ * All Icons and Text Pure White - Solid Text Backgrounds
  * ============================================================ */
 
 html:has(body[data-view="user_manual"]),
@@ -21,8 +22,9 @@ body[data-view="user_manual"] #main-content {
 body[data-view="user_manual"] .mobile-header,
 .mobile-header {
     background: #1e3a8a !important;
-    backdrop-filter: blur(24px) !important;
-    -webkit-backdrop-filter: blur(24px) !important;
+    background-color: #1e3a8a !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
     border: none !important;
     outline: none !important;
     border-bottom: none !important;
@@ -58,53 +60,62 @@ body[data-view="user_manual"] #bottom-navigation {
     display: none !important;
 }
 
+/* ============================================================
+ * HERO CARD - SOLID ROYAL BLUE (#1e3a8a)
+ * ============================================================ */
 .manual-hero {
-    background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important;
-    border: none !important;
+    background: #1e3a8a !important;
+    background-color: #1e3a8a !important;
+    border: 1px solid #254b9e !important;
     outline: none !important;
     border-radius: 24px;
     padding: 24px 20px;
     margin-bottom: 20px;
-    box-shadow: 0 8px 24px rgba(30, 58, 138, 0.18) !important;
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
 }
 
 .manual-hero-badge {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    background: rgba(255, 255, 255, 0.15);
-    border: none !important;
+    background: #132456 !important;
+    background-color: #132456 !important;
+    border: 1px solid #28448f !important;
     outline: none !important;
-    color: #00f2fe;
+    color: #ffffff !important;
     font-size: 11px;
     font-weight: 800;
-    padding: 5px 12px;
+    padding: 6px 14px;
     border-radius: 100px;
     margin-bottom: 12px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
+.manual-hero-badge i {
+    color: #ffffff !important;
+}
+
 .manual-hero h1 {
     font-size: 22px;
     font-weight: 900;
     margin: 0 0 8px 0;
-    color: #ffffff;
+    color: #ffffff !important;
     line-height: 1.2;
 }
 
 .manual-hero h1 span {
-    color: #00f2fe;
+    color: #ffffff !important;
 }
 
 .manual-hero p {
     font-size: 13px;
-    color: #f1f5f9;
+    color: #ffffff !important;
     line-height: 1.5;
     margin: 0 0 16px 0;
-    opacity: 0.95;
+    opacity: 1 !important;
 }
 
 .manual-search-box {
@@ -115,23 +126,26 @@ body[data-view="user_manual"] #bottom-navigation {
 .manual-search-box input {
     width: 100%;
     padding: 12px 16px 12px 42px;
-    background: rgba(0, 0, 0, 0.25);
-    border: none !important;
+    background: #132456 !important;
+    background-color: #132456 !important;
+    border: 1px solid #28448f !important;
     outline: none !important;
     border-radius: 14px;
-    color: #ffffff;
+    color: #ffffff !important;
     font-size: 13px;
     transition: all 0.2s;
     box-sizing: border-box;
 }
 
 .manual-search-box input::placeholder {
-    color: rgba(255, 255, 255, 0.7);
+    color: rgba(255, 255, 255, 0.8) !important;
 }
 
 .manual-search-box input:focus {
-    background: rgba(0, 0, 0, 0.35);
-    box-shadow: 0 0 0 2px #00f2fe;
+    background: #0f1c44 !important;
+    background-color: #0f1c44 !important;
+    border-color: #ffffff !important;
+    box-shadow: 0 0 0 2px #ffffff !important;
 }
 
 .manual-search-box i {
@@ -139,7 +153,7 @@ body[data-view="user_manual"] #bottom-navigation {
     left: 14px;
     top: 50%;
     transform: translateY(-50%);
-    color: #00f2fe;
+    color: #ffffff !important;
     font-size: 15px;
 }
 
@@ -154,10 +168,11 @@ body[data-view="user_manual"] #bottom-navigation {
 
 .manual-chip {
     flex-shrink: 0;
-    background: rgba(255, 255, 255, 0.18);
-    border: 1px solid rgba(255, 255, 255, 0.25) !important;
+    background: #132456 !important;
+    background-color: #132456 !important;
+    border: 1px solid #28448f !important;
     outline: none !important;
-    color: #ffffff;
+    color: #ffffff !important;
     font-size: 11px;
     font-weight: 700;
     padding: 7px 14px;
@@ -170,22 +185,27 @@ body[data-view="user_manual"] #bottom-navigation {
 
 .manual-chip:hover, .manual-chip.active {
     background: #ffffff !important;
+    background-color: #ffffff !important;
     border: 1px solid #ffffff !important;
     outline: none !important;
     color: #1e3a8a !important;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15) !important;
 }
 
+/* ============================================================
+ * SECTION CARD - SOLID ROYAL BLUE (#1e3a8a)
+ * ============================================================ */
 .manual-section {
-    background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important;
-    border: none !important;
+    background: #1e3a8a !important;
+    background-color: #1e3a8a !important;
+    border: 1px solid #254b9e !important;
     outline: none !important;
     border-radius: 20px;
     padding: 20px;
     margin-bottom: 20px;
-    box-shadow: 0 8px 24px rgba(30, 58, 138, 0.18) !important;
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
 }
 
 .manual-section-header {
@@ -193,7 +213,7 @@ body[data-view="user_manual"] #bottom-navigation {
     align-items: center;
     gap: 12px;
     margin-bottom: 16px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    border-bottom: 1px solid #28448f !important;
     padding-bottom: 12px;
 }
 
@@ -206,35 +226,51 @@ body[data-view="user_manual"] #bottom-navigation {
     justify-content: center;
     font-size: 18px;
     flex-shrink: 0;
-    border: none !important;
+    background: #132456 !important;
+    background-color: #132456 !important;
+    border: 1px solid #28448f !important;
     outline: none !important;
+    color: #ffffff !important;
 }
 
-.manual-section-icon.blue { background: rgba(0, 242, 254, 0.2); color: #00f2fe; }
-.manual-section-icon.purple { background: rgba(167, 139, 250, 0.2); color: #c4b5fd; }
-.manual-section-icon.green { background: rgba(52, 199, 89, 0.2); color: #4ade80; }
-.manual-section-icon.yellow { background: rgba(251, 191, 36, 0.2); color: #fde047; }
-.manual-section-icon.red { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+.manual-section-icon i {
+    color: #ffffff !important;
+}
+
+.manual-section-icon.blue,
+.manual-section-icon.purple,
+.manual-section-icon.green,
+.manual-section-icon.yellow,
+.manual-section-icon.red {
+    background: #132456 !important;
+    background-color: #132456 !important;
+    border: 1px solid #28448f !important;
+    color: #ffffff !important;
+}
 
 .manual-section-title {
     font-size: 17px;
     font-weight: 800;
-    color: #ffffff;
+    color: #ffffff !important;
     margin: 0 0 2px 0;
 }
 
 .manual-section-sub {
     font-size: 12px;
-    color: #f1f5f9;
+    color: #ffffff !important;
     margin: 0;
-    opacity: 0.9;
+    opacity: 0.9 !important;
 }
 
+/* ============================================================
+ * STEP CARDS - SOLID NAVY BACKGROUND FOR TEXT (#132456)
+ * ============================================================ */
 .step-card {
     display: flex;
     gap: 12px;
-    background: rgba(0, 0, 0, 0.22);
-    border: none !important;
+    background: #132456 !important;
+    background-color: #132456 !important;
+    border: 1px solid #28448f !important;
     outline: none !important;
     border-radius: 14px;
     padding: 14px;
@@ -245,15 +281,17 @@ body[data-view="user_manual"] #bottom-navigation {
     width: 26px;
     height: 26px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #00f2fe 0%, #0284c7 100%);
-    color: #ffffff;
+    background: #2563eb !important;
+    background-color: #2563eb !important;
+    color: #ffffff !important;
     font-weight: 900;
     font-size: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    box-shadow: 0 2px 8px rgba(0, 242, 254, 0.35);
+    border: 1px solid #3b82f6 !important;
+    box-shadow: none !important;
 }
 
 .step-content {
@@ -263,15 +301,15 @@ body[data-view="user_manual"] #bottom-navigation {
 .step-title {
     font-size: 13px;
     font-weight: 700;
-    color: #ffffff;
+    color: #ffffff !important;
     margin-bottom: 4px;
 }
 
 .step-desc {
     font-size: 12px;
-    color: #f1f5f9;
+    color: #ffffff !important;
     line-height: 1.5;
-    opacity: 0.95;
+    opacity: 1 !important;
 }
 
 .step-desc ul {
@@ -281,11 +319,21 @@ body[data-view="user_manual"] #bottom-navigation {
 
 .step-desc li {
     margin-bottom: 4px;
+    color: #ffffff !important;
 }
 
+.step-desc strong {
+    color: #ffffff !important;
+    font-weight: 800;
+}
+
+/* ============================================================
+ * INFO BOXES - SOLID NAVY BACKGROUND (#132456)
+ * ============================================================ */
 .manual-info-box {
-    background: rgba(0, 0, 0, 0.25);
-    border: none !important;
+    background: #132456 !important;
+    background-color: #132456 !important;
+    border: 1px solid #28448f !important;
     outline: none !important;
     border-radius: 12px;
     padding: 12px;
@@ -294,24 +342,30 @@ body[data-view="user_manual"] #bottom-navigation {
     align-items: flex-start;
     gap: 10px;
     font-size: 12px;
-    color: #f1f5f9;
+    color: #ffffff !important;
 }
 
 .manual-info-box i {
-    color: #00f2fe;
+    color: #ffffff !important;
     font-size: 16px;
     margin-top: 1px;
 }
 
 .manual-info-box.warning {
-    background: rgba(245, 158, 11, 0.15);
-    border: none !important;
+    background: #78350f !important;
+    background-color: #78350f !important;
+    border: 1px solid #92400e !important;
     outline: none !important;
-    color: #fef3c7;
+    color: #ffffff !important;
 }
 
-.manual-info-box.warning i { color: #f59e0b; }
+.manual-info-box.warning i {
+    color: #ffffff !important;
+}
 
+/* ============================================================
+ * GRID CARDS - SOLID NAVY BACKGROUND FOR TEXT (#132456)
+ * ============================================================ */
 .grid-cards {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
@@ -320,8 +374,9 @@ body[data-view="user_manual"] #bottom-navigation {
 }
 
 .grid-card-item {
-    background: rgba(0, 0, 0, 0.2);
-    border: none !important;
+    background: #132456 !important;
+    background-color: #132456 !important;
+    border: 1px solid #28448f !important;
     outline: none !important;
     border-radius: 14px;
     padding: 12px;
@@ -331,47 +386,62 @@ body[data-view="user_manual"] #bottom-navigation {
 .grid-card-icon {
     font-size: 22px;
     margin-bottom: 6px;
+    color: #ffffff !important;
 }
 
 .grid-card-item h4 {
     font-size: 12px;
     font-weight: 800;
-    color: #ffffff;
+    color: #ffffff !important;
     margin: 0 0 4px 0;
 }
 
 .grid-card-item p {
     font-size: 10px;
-    color: #f1f5f9;
+    color: #ffffff !important;
     margin: 0;
     line-height: 1.4;
-    opacity: 0.9;
+    opacity: 0.95 !important;
 }
 
+/* ============================================================
+ * REFERENCE TABLE - SOLID NAVY BACKGROUND (#132456)
+ * ============================================================ */
 .ref-table {
     width: 100%;
-    border-collapse: collapse;
+    border-collapse: separate;
+    border-spacing: 0;
     margin-top: 10px;
     font-size: 12px;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid #28448f !important;
 }
 
 .ref-table th {
-    background: rgba(0, 0, 0, 0.28);
-    color: #00f2fe;
+    background: #132456 !important;
+    background-color: #132456 !important;
+    color: #ffffff !important;
     text-align: left;
-    padding: 8px 12px;
+    padding: 10px 12px;
     font-size: 11px;
     font-weight: 800;
     text-transform: uppercase;
-    border: none !important;
+    border-bottom: 1px solid #28448f !important;
 }
 
 .ref-table td {
-    padding: 8px 12px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    color: #f1f5f9;
+    padding: 10px 12px;
+    border-bottom: 1px solid #28448f !important;
+    color: #ffffff !important;
+    background: #132456 !important;
+    background-color: #132456 !important;
 }
 
 .ref-table tr:last-child td {
-    border-bottom: none;
+    border-bottom: none !important;
+}
+
+.ref-table td strong {
+    color: #ffffff !important;
 }

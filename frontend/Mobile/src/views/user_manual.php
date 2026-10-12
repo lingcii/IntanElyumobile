@@ -61,7 +61,7 @@ $backRoute = 'settings';
                 <p class="manual-section-sub">Gamified tourism companion for La Union, Philippines</p>
             </div>
         </div>
-        <p style="font-size: 13px; color: rgba(148,163,184,0.9); line-height: 1.5; margin-bottom: 12px;">
+        <p style="font-size: 13px; color: #ffffff; line-height: 1.5; margin-bottom: 12px;">
             Intan Elyu provides smart interactive maps, AI-assisted itinerary planning, AR location verification,
             mini-games, and local merchant voucher rewards.
         </p>
@@ -484,27 +484,27 @@ $backRoute = 'settings';
             <tbody>
                 <tr>
                     <td>AR / Photo Check-In</td>
-                    <td><strong style="color:#38bdf8;">+50 Points</strong></td>
+                    <td><strong style="color:#ffffff;">+50 Points</strong></td>
                     <td>Explore Map / Saved Trips</td>
                 </tr>
                 <tr>
                     <td>Complete Itinerary Trip</td>
-                    <td><strong style="color:#38bdf8;">+100 Points</strong></td>
+                    <td><strong style="color:#ffffff;">+100 Points</strong></td>
                     <td>Trip Planner / Saved Trips</td>
                 </tr>
                 <tr>
                     <td>Solve Slide Puzzle</td>
-                    <td><strong style="color:#34c759;">+100 Points</strong></td>
+                    <td><strong style="color:#ffffff;">+100 Points</strong></td>
                     <td>GameZone</td>
                 </tr>
                 <tr>
                     <td>Complete Memory Match</td>
-                    <td><strong style="color:#34c759;">+75 Points</strong></td>
+                    <td><strong style="color:#ffffff;">+75 Points</strong></td>
                     <td>GameZone</td>
                 </tr>
                 <tr>
                     <td>Solve Word Scramble</td>
-                    <td><strong style="color:#34c759;">+75 Points</strong></td>
+                    <td><strong style="color:#ffffff;">+75 Points</strong></td>
                     <td>GameZone</td>
                 </tr>
             </tbody>
