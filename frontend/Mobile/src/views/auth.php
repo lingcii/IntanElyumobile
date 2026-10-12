@@ -56,6 +56,11 @@
     <!-- Bottom White Section -->
     <div class="auth-bottom">
 
+        <!-- Offline Mode Status Indicator -->
+        <div id="auth-offline-badge" class="auth-offline-badge" style="display: none;">
+            <i class="fa-solid fa-cloud-slash" style="color: #f59e0b; font-size: 11px;"></i>
+            <span>Offline Mode Active &bull; Saved Guides Available</span>
+        </div>
 
         <div class="auth-tabs" id="auth-tabs">
             <div class="auth-tab active" id="tab-login" onclick="toggleAuthMode(false)">Login</div>
@@ -112,6 +117,10 @@
                                 d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.18 2.12 1.21 5.46l4.11 3.22c.94-2.85 3.57-4.93 6.68-4.93z" />
                         </svg>
                         <span>Sign in with Google</span>
+                    </button>
+                    <button type="button" id="btn-offline-mode" class="btn-offline-guest" onclick="window.enterOfflineMode(event)">
+                        <i class="fa-solid fa-compass" style="color: #38bdf8; font-size: 13.5px;"></i>
+                        <span>Explore in Offline Mode</span>
                     </button>
                     <p class="auth-switch-prompt">
                         Don't have an account? <a href="#" onclick="toggleAuthMode(true); return false;"
@@ -214,6 +223,10 @@
                                 d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.18 2.12 1.21 5.46l4.11 3.22c.94-2.85 3.57-4.93 6.68-4.93z" />
                         </svg>
                         <span>Sign up with Google</span>
+                    </button>
+                    <button type="button" class="btn-offline-guest" onclick="window.enterOfflineMode(event)">
+                        <i class="fa-solid fa-compass" style="color: #38bdf8; font-size: 13.5px;"></i>
+                        <span>Explore in Offline Mode</span>
                     </button>
                     <p class="auth-switch-prompt">
                         Already have an account? <a href="#" onclick="toggleAuthMode(false); return false;"
@@ -535,7 +548,27 @@
     </div>
 </div>
 
-<!-- Offline Mode Dialog Modal Removed as requested -->
+<!-- Offline Mode Dialog Modal -->
+<div id="offline-auth-modal" class="auth-offline-modal" style="display: none;">
+    <div class="auth-offline-backdrop" onclick="window.closeOfflineAuthModal()"></div>
+    <div class="auth-offline-card">
+        <div class="auth-offline-icon-circle">
+            <i class="fa-solid fa-cloud-slash"></i>
+        </div>
+        <h3 class="auth-offline-title">Internet Required to Log In</h3>
+        <p class="auth-offline-desc" id="offline-auth-desc">
+            An active internet connection is required to log in and verify your cloud account. You can enter Offline Mode to explore all saved attractions, itineraries, and maps right now.
+        </p>
+        <div class="auth-offline-actions">
+            <button type="button" class="btn-offline-confirm" onclick="window.enterOfflineMode()">
+                <i class="fa-solid fa-compass"></i> Explore in Offline Mode
+            </button>
+            <button type="button" class="btn-offline-dismiss" onclick="window.closeOfflineAuthModal()">
+                Dismiss
+            </button>
+        </div>
+    </div>
+</div>
 
 <script>
     var backendUrl = window.backendUrl || 'https://api.intan-elyu.online';
@@ -559,9 +592,13 @@
     })();
 
     window.showOfflineAuthModal = function (email) {
-        if (typeof showToast === 'function') {
-            showToast('Internet connection is required to log in. Please connect to the internet.', 'warning', 5000);
+        const modal = document.getElementById('offline-auth-modal');
+        if (!modal) return;
+        const desc = document.getElementById('offline-auth-desc');
+        if (desc && email) {
+            desc.innerHTML = `An active internet connection is required to log in with <strong>${email}</strong>. Please connect to Wi-Fi or mobile data, or explore saved guides in Offline Mode.`;
         }
+        modal.style.display = 'flex';
     };
 
     window.closeOfflineAuthModal = function () {

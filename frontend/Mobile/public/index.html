@@ -5,8 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Intan Elyu — Offline Mode</title>
+    <title>Intan Elyu — Province of La Union</title>
     <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/views/auth.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
@@ -15,8 +16,8 @@
             --elyu-light-blue: #0284c7;
             --elyu-cyan: #00f2fe;
             --elyu-amber: #f59e0b;
-            --elyu-card-bg: rgba(255, 255, 255, 0.08);
-            --elyu-border: rgba(255, 255, 255, 0.14);
+            --elyu-bg: #74a3cf;
+            --auth-top-h: 38%;
         }
 
         * {
@@ -26,26 +27,524 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        body {
+        html, body {
             font-family: 'Inter', -apple-system, sans-serif;
-            background: linear-gradient(180deg, #0f172a 0%, #1e3a8a 35%, #0369a1 80%, #0284c7 100%);
-            background-attachment: fixed;
+            background: #74a3cf;
             color: #ffffff;
             min-height: 100vh;
+            overflow-x: hidden;
+            width: 100%;
+        }
+
+        /* Online Alert Banner */
+        .online-alert-banner {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 99999;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            padding: 10px 16px;
+            font-size: 12.5px;
+            font-weight: 700;
+            text-align: center;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from { transform: translateY(-100%); }
+            to { transform: translateY(0); }
+        }
+
+        /* ============================================================
+         * VIEW 1: AUTH / LOGIN INTERFACE (MATCHES SYSTEM AUTH.PHP)
+         * ============================================================ */
+        #view-auth {
             display: flex;
             flex-direction: column;
+            width: 100%;
+            height: 100vh;
+            min-height: 100vh;
+            background: #74a3cf;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .auth-top {
+            position: relative;
+            width: 100%;
+            height: 38%;
+            min-height: 250px;
+            max-height: 330px;
+            background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding-bottom: 26px;
+            overflow: hidden;
+        }
+
+        .auth-offline-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            background: rgba(245, 158, 11, 0.18);
+            border: 1px solid rgba(245, 158, 11, 0.45);
+            color: #fbbf24;
+            padding: 4px 12px;
+            border-radius: 100px;
+            margin-bottom: 8px;
+            letter-spacing: 0.2px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+            position: relative;
+            z-index: 10;
+        }
+
+        .logo-container {
+            width: 120px;
+            height: 120px;
+            background: #ffffff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 8px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+            padding: 5px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .logo-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: 50%;
+        }
+
+        .auth-top h1 {
+            font-size: 20px;
+            font-weight: 800;
+            color: #ffffff;
+            margin: 0;
+            letter-spacing: 0.5px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+            position: relative;
+            z-index: 5;
+        }
+
+        .auth-top p.auth-motto {
+            font-size: 11px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.7);
+            margin-top: 2px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            position: relative;
+            z-index: 5;
+        }
+
+        /* SVG Wave */
+        .wave-bottom {
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 100%;
             overflow-x: hidden;
+            overflow-y: visible;
+            line-height: 0;
+            pointer-events: none;
+            z-index: 6;
+        }
+
+        .wave-bottom svg {
+            display: block;
+            width: 200vw;
+            height: 55px;
+        }
+
+        .wave-layer {
+            transform-origin: center bottom;
+        }
+
+        .wave-1 { animation: moveWave 18s linear infinite; }
+        .wave-2 { animation: moveWave 12s linear infinite reverse; }
+        .wave-3 { animation: moveWave 8s linear infinite; }
+
+        @keyframes moveWave {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        .auth-bottom {
+            flex: 1;
+            background: #74a3cf;
+            padding: 12px 26px calc(14px + env(safe-area-inset-bottom, 0px)) 26px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            position: relative;
+            z-index: 5;
+            margin-top: -1px;
+            overflow-y: auto;
+        }
+
+        .auth-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 28px;
+            align-items: center;
+            margin-bottom: 12px;
+            position: relative;
+        }
+
+        .auth-tab {
+            font-size: 15px;
+            color: rgba(15, 23, 42, 0.6);
+            font-weight: 600;
+            cursor: pointer;
+            padding: 6px 14px 8px 14px;
+            position: relative;
+            z-index: 2;
+            transition: color 0.2s ease;
+        }
+
+        .auth-tab.active {
+            color: #0f172a;
+            font-weight: 800;
+            font-size: 16px;
+        }
+
+        .tab-gooey-glider {
+            position: absolute;
+            bottom: 2px;
+            height: 4px;
+            width: 32px;
+            border-radius: 99px;
+            background: linear-gradient(90deg, #2563eb, #1d4ed8);
+            box-shadow: 0 3px 10px rgba(29, 78, 216, 0.45);
+            transition: left 0.3s cubic-bezier(0.34, 1.4, 0.64, 1);
+        }
+
+        .forms-wrapper {
+            position: relative;
+            width: 100%;
+        }
+
+        .form-panel {
+            width: 100%;
+            display: block;
+        }
+
+        .form-panel.hidden {
+            display: none;
+        }
+
+        .input-group {
+            position: relative;
+            width: 100%;
+            margin-bottom: 11px;
+        }
+
+        .input-group i.input-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #64748b;
+            font-size: 14px;
+            pointer-events: none;
+        }
+
+        .auth-input {
+            width: 100%;
+            height: 46px;
+            padding: 0 44px 0 44px;
+            border-radius: 99px;
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            background: rgba(255, 255, 255, 0.95);
+            color: #0f172a;
+            font-size: 13.5px;
+            font-weight: 600;
+            outline: none;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .auth-input:focus {
+            border-color: #2563eb;
+            background: #ffffff;
+            box-shadow: 0 4px 18px rgba(37, 99, 235, 0.22);
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #64748b;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .auth-options-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            margin-bottom: 12px;
+            padding: 0 4px;
+            color: #0f172a;
+            font-weight: 600;
+        }
+
+        .remember-me-label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+
+        .forgot-pwd {
+            color: #1e3a8a;
+            text-decoration: none;
+            font-weight: 700;
+        }
+
+        .btn-circle-submit {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(135deg, #1e3a8a, #0284c7);
+            color: #ffffff;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 12px auto;
+            cursor: pointer;
+            box-shadow: 0 6px 18px rgba(30, 58, 138, 0.35);
+            transition: transform 0.15s;
+        }
+
+        .btn-circle-submit:active {
+            transform: scale(0.94);
+        }
+
+        .auth-social-section {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .social-divider {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 2px;
+        }
+
+        .social-divider hr {
+            flex: 1;
+            border: none;
+            border-top: 1.5px dashed rgba(255, 255, 255, 0.4);
+        }
+
+        .social-divider span {
+            font-size: 10.5px;
+            font-weight: 800;
+            color: rgba(15, 23, 42, 0.7);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        .btn-google {
+            width: 100%;
+            padding: 9.5px;
+            border-radius: 100px;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            background: rgba(255, 255, 255, 0.9);
+            color: #0f172a;
+            font-size: 13px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            transition: transform 0.15s;
+        }
+
+        .btn-google:active {
+            transform: scale(0.98);
+        }
+
+        /* PRIMARY ACTION: EXPLORE OFFLINE */
+        .btn-offline-guest {
+            width: 100%;
+            padding: 11.5px;
+            border-radius: 100px;
+            border: 1.5px solid rgba(14, 165, 233, 0.6);
+            background: linear-gradient(135deg, #0284c7, #00f2fe);
+            color: #0f172a;
+            font-size: 13.5px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 9px;
+            cursor: pointer;
+            box-shadow: 0 6px 20px rgba(2, 132, 199, 0.35);
+            transition: transform 0.15s, box-shadow 0.15s;
+            margin-top: 2px;
+        }
+
+        .btn-offline-guest:active {
+            transform: scale(0.98);
+        }
+
+        .auth-switch-prompt {
+            font-size: 12px;
+            color: #0f172a;
+            text-align: center;
+            font-weight: 600;
+            margin-top: 4px;
+        }
+
+        .auth-switch-link {
+            color: #1e3a8a;
+            font-weight: 800;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+
+        /* OFFLINE MODAL DIALOG */
+        .auth-offline-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 999999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        .auth-offline-backdrop {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(8px);
+        }
+
+        .auth-offline-card {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            max-width: 360px;
+            background: #0f172a;
+            border: 1.5px solid rgba(255, 255, 255, 0.15);
+            border-radius: 24px;
+            padding: 24px 20px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+            animation: popUpSmooth 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .auth-offline-icon-circle {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: rgba(245, 158, 11, 0.15);
+            border: 1.5px solid rgba(245, 158, 11, 0.4);
+            color: #fbbf24;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            margin: 0 auto 14px auto;
+        }
+
+        .auth-offline-title {
+            font-size: 17px;
+            font-weight: 800;
+            color: #ffffff;
+            margin-bottom: 8px;
+        }
+
+        .auth-offline-desc {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.45;
+            margin-bottom: 18px;
+        }
+
+        .auth-offline-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .btn-offline-confirm {
+            width: 100%;
+            padding: 12px;
+            border-radius: 100px;
+            border: none;
+            background: linear-gradient(135deg, #0284c7, #00f2fe);
+            color: #0f172a;
+            font-size: 13.5px;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .btn-offline-dismiss {
+            width: 100%;
+            padding: 10px;
+            border-radius: 100px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: transparent;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        /* ============================================================
+         * VIEW 2: OFFLINE PORTAL & DIRECTORY
+         * ============================================================ */
+        #view-portal {
+            display: none;
+            width: 100%;
+            min-height: 100vh;
+            background: linear-gradient(180deg, #0f172a 0%, #1e3a8a 35%, #0369a1 80%, #0284c7 100%);
+            background-attachment: fixed;
             padding-bottom: 74px;
         }
 
-        /* Top Offline Banner */
         .offline-top-bar {
             position: sticky;
             top: 0;
             z-index: 999;
-            background: rgba(15, 23, 42, 0.85);
+            background: rgba(15, 23, 42, 0.9);
             backdrop-filter: blur(14px);
-            -webkit-backdrop-filter: blur(14px);
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             padding: 10px 16px;
             display: flex;
@@ -71,72 +570,69 @@
         .offline-brand-text h1 {
             font-size: 14px;
             font-weight: 800;
-            letter-spacing: -0.3px;
             line-height: 1.1;
         }
 
         .offline-pill {
             display: inline-flex;
             align-items: center;
-            gap: 5px;
+            gap: 4px;
             font-size: 10px;
             font-weight: 700;
             background: rgba(245, 158, 11, 0.18);
             border: 1px solid rgba(245, 158, 11, 0.4);
             color: #fbbf24;
-            padding: 2px 8px;
+            padding: 2px 7px;
             border-radius: 100px;
             margin-top: 2px;
+        }
+
+        .portal-top-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-portal-back-auth {
+            background: rgba(255, 255, 255, 0.12);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 6px 12px;
+            border-radius: 100px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
         }
 
         .btn-reconnect {
             background: linear-gradient(135deg, #0284c7, #00f2fe);
             color: #0f172a;
             border: none;
-            padding: 7px 14px;
+            padding: 6px 12px;
             border-radius: 100px;
-            font-size: 11.5px;
+            font-size: 11px;
             font-weight: 800;
             cursor: pointer;
             display: inline-flex;
             align-items: center;
-            gap: 6px;
-            transition: transform 0.15s, opacity 0.15s;
-            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35);
+            gap: 5px;
         }
 
-        .btn-reconnect:active {
-            transform: scale(0.96);
-        }
-
-        /* Online Alert Banner */
-        .online-alert-banner {
-            display: none;
-            background: linear-gradient(135deg, #10b981, #059669);
-            color: white;
-            padding: 10px 16px;
-            font-size: 12.5px;
-            font-weight: 700;
-            text-align: center;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            cursor: pointer;
-        }
-
-        /* Hero Banner */
         .hero-banner {
-            padding: 24px 18px 18px;
+            padding: 20px 18px 14px;
             text-align: left;
         }
 
         .hero-welcome {
-            font-size: 13px;
+            font-size: 12px;
             color: rgba(255, 255, 255, 0.75);
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.8px;
-            margin-bottom: 4px;
+            margin-bottom: 2px;
         }
 
         .hero-title {
@@ -144,26 +640,25 @@
             font-weight: 900;
             line-height: 1.2;
             letter-spacing: -0.5px;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             background: linear-gradient(135deg, #ffffff 40%, #7dd3fc 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
         .hero-subtitle {
-            font-size: 13px;
+            font-size: 12.5px;
             color: rgba(255, 255, 255, 0.8);
-            line-height: 1.45;
+            line-height: 1.4;
         }
 
         /* Tab Navigation Bar */
         .tab-nav {
             display: flex;
-            gap: 8px;
-            padding: 0 16px 14px;
             overflow-x: auto;
+            padding: 4px 16px 12px;
+            gap: 8px;
             scrollbar-width: none;
-            -ms-overflow-style: none;
         }
 
         .tab-nav::-webkit-scrollbar {
@@ -171,16 +666,16 @@
         }
 
         .tab-btn {
-            flex-shrink: 0;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.08);
             color: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.12);
             padding: 8px 14px;
             border-radius: 100px;
             font-size: 12px;
             font-weight: 700;
+            white-space: nowrap;
             cursor: pointer;
-            display: inline-flex;
+            display: flex;
             align-items: center;
             gap: 6px;
             transition: all 0.2s;
@@ -188,324 +683,274 @@
 
         .tab-btn.active {
             background: #ffffff;
-            color: #1e3a8a;
+            color: #0f172a;
             border-color: #ffffff;
-            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+            font-weight: 800;
+            box-shadow: 0 4px 14px rgba(255, 255, 255, 0.25);
         }
 
-        /* Content Container */
         .main-container {
             padding: 0 16px 20px;
-            flex: 1;
         }
 
         .tab-section {
             display: none;
-            animation: fadeIn 0.25s ease-out;
         }
 
         .tab-section.active {
             display: block;
+            animation: fadeIn 0.25s ease;
         }
 
         @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(6px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Filter Chips */
         .filter-row {
             display: flex;
-            gap: 6px;
-            margin-bottom: 14px;
             overflow-x: auto;
+            gap: 8px;
+            padding-bottom: 12px;
             scrollbar-width: none;
-            padding-bottom: 4px;
         }
 
-        .filter-row::-webkit-scrollbar {
-            display: none;
-        }
+        .filter-row::-webkit-scrollbar { display: none; }
 
         .filter-chip {
-            flex-shrink: 0;
-            font-size: 11px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 11.5px;
             font-weight: 700;
             padding: 5px 12px;
             border-radius: 100px;
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            color: rgba(255, 255, 255, 0.7);
+            white-space: nowrap;
             cursor: pointer;
         }
 
         .filter-chip.active {
-            background: rgba(2, 132, 199, 0.45);
+            background: #38bdf8;
+            color: #0f172a;
             border-color: #38bdf8;
-            color: #ffffff;
+            font-weight: 800;
         }
 
-        /* Card Grids */
         .cards-grid {
-            display: grid;
-            grid-template-columns: 1fr;
+            display: flex;
+            flex-direction: column;
             gap: 12px;
         }
 
         .spot-card {
-            background: rgba(255, 255, 255, 0.07);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.13);
-            border-radius: 16px;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            transition: transform 0.15s, border-color 0.15s;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 18px;
+            padding: 14px;
+            backdrop-filter: blur(8px);
+            transition: transform 0.15s;
             cursor: pointer;
         }
 
         .spot-card:active {
-            transform: scale(0.985);
-            border-color: rgba(56, 189, 248, 0.5);
+            transform: scale(0.98);
         }
 
         .spot-card-top {
-            padding: 14px 16px;
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-            background: rgba(0, 0, 0, 0.15);
+            margin-bottom: 6px;
         }
 
         .spot-card-title {
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 800;
             color: #ffffff;
-            margin-bottom: 2px;
         }
 
         .spot-card-muni {
-            font-size: 12px;
-            color: #38bdf8;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 4px;
+            font-size: 11.5px;
+            color: #7dd3fc;
+            font-weight: 600;
+            margin-top: 2px;
         }
 
         .spot-card-badge {
-            font-size: 10px;
+            font-size: 10.5px;
             font-weight: 800;
-            padding: 3px 8px;
-            border-radius: 100px;
-            background: rgba(56, 189, 248, 0.2);
-            color: #7dd3fc;
+            background: rgba(56, 189, 248, 0.18);
             border: 1px solid rgba(56, 189, 248, 0.35);
+            color: #38bdf8;
+            padding: 2px 8px;
+            border-radius: 100px;
         }
 
-        .spot-card-body {
-            padding: 12px 16px 14px;
-        }
-
-        .spot-desc {
-            font-size: 12.5px;
-            color: rgba(255, 255, 255, 0.78);
-            line-height: 1.45;
-            margin-bottom: 10px;
+        .spot-card-body p {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.4;
+            margin-bottom: 8px;
         }
 
         .spot-tags {
             display: flex;
-            gap: 6px;
             flex-wrap: wrap;
+            gap: 5px;
         }
 
         .spot-tag {
-            font-size: 10.5px;
-            font-weight: 600;
+            font-size: 10px;
             background: rgba(255, 255, 255, 0.08);
-            padding: 3px 8px;
+            padding: 2px 7px;
             border-radius: 6px;
-            color: rgba(255, 255, 255, 0.7);
+            color: rgba(255, 255, 255, 0.75);
+            font-weight: 600;
         }
 
-        /* Emergency Cards */
+        /* Hotlines */
         .hotline-card {
-            background: rgba(255, 255, 255, 0.07);
+            background: rgba(255, 255, 255, 0.08);
             border: 1px solid rgba(255, 255, 255, 0.12);
-            border-radius: 14px;
+            border-radius: 16px;
             padding: 14px;
-            margin-bottom: 10px;
             display: flex;
             align-items: center;
-            justify-content: space-between;
             gap: 12px;
+            margin-bottom: 10px;
         }
 
         .hotline-icon {
-            width: 42px;
-            height: 42px;
-            border-radius: 12px;
-            background: rgba(239, 68, 68, 0.2);
-            border: 1px solid rgba(239, 68, 68, 0.4);
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: rgba(37, 99, 235, 0.2);
+            border: 1px solid rgba(37, 99, 235, 0.4);
+            color: #60a5fa;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #f87171;
             font-size: 18px;
             flex-shrink: 0;
         }
 
+        .hotline-info {
+            flex: 1;
+        }
+
         .hotline-info h3 {
-            font-size: 14px;
+            font-size: 13.5px;
             font-weight: 800;
-            margin-bottom: 2px;
         }
 
         .hotline-info p {
-            font-size: 11.5px;
+            font-size: 11px;
             color: rgba(255, 255, 255, 0.7);
         }
 
         .hotline-call-btn {
             background: #10b981;
-            color: white;
+            color: #ffffff;
             text-decoration: none;
-            padding: 8px 12px;
+            padding: 7px 14px;
             border-radius: 100px;
-            font-size: 11.5px;
+            font-size: 12px;
             font-weight: 800;
-            display: inline-flex;
+            display: flex;
             align-items: center;
             gap: 5px;
-            flex-shrink: 0;
         }
 
-        /* Bottom Fixed Navigation Bar */
+        /* Detail Sheet Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(6px);
+            z-index: 10000;
+            display: none;
+            align-items: flex-end;
+        }
+
+        .modal-sheet {
+            width: 100%;
+            max-height: 80vh;
+            background: #0f172a;
+            border-radius: 28px 28px 0 0;
+            border-top: 1.5px solid rgba(255, 255, 255, 0.15);
+            padding: 20px;
+            overflow-y: auto;
+            position: relative;
+            animation: slideUp 0.25s ease;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+
+        .modal-drag-pill {
+            width: 40px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.25);
+            border-radius: 100px;
+            margin: 0 auto 16px auto;
+        }
+
+        .btn-modal-close {
+            position: absolute;
+            top: 18px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Bottom Navigation Bar */
         .bottom-bar {
             position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
-            height: 64px;
-            background: rgba(15, 23, 42, 0.92);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 998;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(14px);
+            border-top: 1px solid rgba(255, 255, 255, 0.12);
             display: flex;
-            align-items: center;
             justify-content: space-around;
-            z-index: 1000;
-            padding-bottom: env(safe-area-inset-bottom, 0);
+            padding: 8px 6px calc(8px + env(safe-area-inset-bottom, 0px));
         }
 
         .bottom-nav-item {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 3px;
-            color: rgba(255, 255, 255, 0.55);
-            font-size: 10px;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 10.5px;
             font-weight: 700;
-            text-decoration: none;
             cursor: pointer;
+            gap: 3px;
+            padding: 4px 8px;
             transition: color 0.15s;
         }
 
         .bottom-nav-item i {
-            font-size: 18px;
+            font-size: 17px;
         }
 
         .bottom-nav-item.active {
             color: #38bdf8;
-        }
-
-        /* Detail Modal */
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            z-index: 2000;
-            background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            align-items: flex-end;
-            justify-content: center;
-        }
-
-        .modal-sheet {
-            background: #1e293b;
-            border-top: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: 24px 24px 0 0;
-            width: 100%;
-            max-width: 520px;
-            max-height: 80vh;
-            overflow-y: auto;
-            padding: 24px 20px 40px;
-            position: relative;
-        }
-
-        .modal-drag-pill {
-            width: 44px;
-            height: 4px;
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 100px;
-            margin: 0 auto 16px;
-        }
-
-        .btn-modal-close {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.1);
-            border: none;
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-        }
-
-        /* Itinerary Form */
-        .itinerary-input {
-            width: 100%;
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.18);
-            color: white;
-            padding: 10px 14px;
-            border-radius: 12px;
-            font-size: 13px;
-            font-family: inherit;
-            margin-bottom: 10px;
-            outline: none;
-        }
-
-        .itinerary-input:focus {
-            border-color: #38bdf8;
-        }
-
-        .btn-save-trip {
-            width: 100%;
-            background: linear-gradient(135deg, #0284c7, #00f2fe);
-            color: #0f172a;
-            border: none;
-            padding: 12px;
-            border-radius: 12px;
-            font-size: 13.5px;
-            font-weight: 800;
-            cursor: pointer;
-            margin-top: 4px;
         }
     </style>
 </head>
@@ -519,202 +964,379 @@
         <i class="fa-solid fa-arrow-right"></i>
     </div>
 
-    <!-- Top Offline Header Bar -->
-    <header class="offline-top-bar">
-        <div class="offline-brand">
-            <img src="assets/img/logo.png" alt="Intan Elyu" onerror="this.style.display='none'">
-            <div class="offline-brand-text">
-                <h1>Intan Elyu</h1>
-                <div class="offline-pill">
-                    <i class="fa-solid fa-cloud-slash"></i>
-                    <span>Offline Mode Active</span>
-                </div>
+    <!-- ============================================================
+         VIEW 1: AUTH / LOGIN PAGE (ALIGNED WITH SYSTEM CONCEPT)
+         ============================================================ -->
+    <div id="view-auth">
+        <!-- Top Blue Wave Section -->
+        <div class="auth-top">
+            <div class="auth-offline-pill">
+                <i class="fa-solid fa-cloud-slash"></i>
+                <span>Offline Mode Active &bull; Provincial Portal</span>
+            </div>
+
+            <div class="logo-container">
+                <img id="auth-logo-img" src="assets/img/logo.png" alt="Intan Elyu Logo" onerror="this.src='assets/img/no_image.svg'">
+            </div>
+            <h1 id="auth-title">Welcome to Elyu</h1>
+            <p class="auth-motto">Official Smart Tourism Platform</p>
+
+            <!-- Animated Triple SVG Wave -->
+            <div class="wave-bottom">
+                <svg viewBox="0 0 2000 100" preserveAspectRatio="none">
+                    <defs>
+                        <linearGradient id="authWaveGrad1" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" stop-color="#00f2fe" stop-opacity="0.85" />
+                            <stop offset="40%" stop-color="#06b6d4" stop-opacity="0.65" />
+                            <stop offset="100%" stop-color="#0284c7" stop-opacity="0.25" />
+                        </linearGradient>
+                        <linearGradient id="authWaveGrad2" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.9" />
+                            <stop offset="50%" stop-color="#0284c7" stop-opacity="0.75" />
+                            <stop offset="100%" stop-color="#1e3a8a" stop-opacity="0.45" />
+                        </linearGradient>
+                    </defs>
+                    <path class="wave-layer wave-1" fill="url(#authWaveGrad1)"
+                        d="M0,50 C150,100 350,0 500,50 C650,100 850,0 1000,50 C1150,100 1350,0 1500,50 C1650,100 1850,0 2000,50 L2000,160 L0,160 Z">
+                    </path>
+                    <path class="wave-layer wave-2" fill="url(#authWaveGrad2)"
+                        d="M0,60 C200,110 300,10 500,60 C700,110 800,10 1000,60 C1200,110 1300,10 1500,60 C1700,110 1800,10 2000,60 L2000,160 L0,160 Z">
+                    </path>
+                    <path class="wave-layer wave-3" fill="#74a3cf"
+                        d="M0,70 C250,120 250,20 500,70 C750,120 750,20 1000,70 C1250,120 1250,20 1500,70 C1750,120 1750,20 2000,70 L2000,160 L0,160 Z">
+                    </path>
+                </svg>
             </div>
         </div>
-        <button class="btn-reconnect" onclick="attemptReconnect()">
-            <i class="fa-solid fa-rotate"></i>
-            <span>Reconnect</span>
-        </button>
-    </header>
 
-    <!-- Hero Header -->
-    <section class="hero-banner">
-        <p class="hero-welcome">Province of La Union &bull; Offline Portal</p>
-        <h2 class="hero-title" id="hero-user-greeting">Welcome, Explorer!</h2>
-        <p class="hero-subtitle">All 20 municipalities, attractions, emergency hotlines, and travel guides are saved locally on this device.</p>
-    </section>
-
-    <!-- Top Horizontal Tab Bar -->
-    <nav class="tab-nav">
-        <button class="tab-btn active" onclick="switchTab('destinations', this)">
-            <i class="fa-solid fa-compass"></i> Attractions
-        </button>
-        <button class="tab-btn" onclick="switchTab('municipalities', this)">
-            <i class="fa-solid fa-map-location-dot"></i> 20 Towns
-        </button>
-        <button class="tab-btn" onclick="switchTab('itinerary', this)">
-            <i class="fa-solid fa-calendar-days"></i> Itinerary
-        </button>
-        <button class="tab-btn" onclick="switchTab('hotlines', this)">
-            <i class="fa-solid fa-phone-volume"></i> Hotlines
-        </button>
-        <button class="tab-btn" onclick="switchTab('trivia', this)">
-            <i class="fa-solid fa-puzzle-piece"></i> Elyu Trivia
-        </button>
-    </nav>
-
-    <!-- Main Container Area -->
-    <main class="main-container">
-
-        <!-- 1. DESTINATIONS SECTION -->
-        <section id="tab-destinations" class="tab-section active">
-            <div class="filter-row">
-                <div class="filter-chip active" onclick="filterSpots('all', this)">All Highlights</div>
-                <div class="filter-chip" onclick="filterSpots('Beach', this)">🏄 Surfing & Beach</div>
-                <div class="filter-chip" onclick="filterSpots('Waterfall', this)">💦 Waterfalls & Nature</div>
-                <div class="filter-chip" onclick="filterSpots('Heritage', this)">🏛️ Heritage & Art</div>
-                <div class="filter-chip" onclick="filterSpots('Agri', this)">🍇 Agri & Grape Picking</div>
+        <!-- Bottom Form Section -->
+        <div class="auth-bottom">
+            <div class="auth-tabs" id="auth-tabs">
+                <div class="auth-tab active" id="tab-login-btn" onclick="toggleAuthMode(false)">Login</div>
+                <div class="auth-tab" id="tab-register-btn" onclick="toggleAuthMode(true)">Register</div>
+                <div class="tab-gooey-glider" id="tab-gooey-glider" style="left: calc(50% - 64px);"></div>
             </div>
-            <div class="cards-grid" id="spots-grid">
-                <!-- Dynamically Rendered by JS -->
-            </div>
-        </section>
 
-        <!-- 2. MUNICIPALITIES SECTION -->
-        <section id="tab-municipalities" class="tab-section">
-            <div class="filter-row">
-                <div class="filter-chip active" onclick="filterMuni('all', this)">All 20 Towns</div>
-                <div class="filter-chip" onclick="filterMuni('North La Union', this)">North Elyu</div>
-                <div class="filter-chip" onclick="filterMuni('Central La Union', this)">Central Elyu</div>
-                <div class="filter-chip" onclick="filterMuni('South La Union', this)">South Elyu</div>
-            </div>
-            <div class="cards-grid" id="muni-grid">
-                <!-- Dynamically Rendered by JS -->
-            </div>
-        </section>
+            <div class="forms-wrapper">
+                <!-- Panel 1: Login Form -->
+                <div class="form-panel" id="panel-login">
+                    <form id="form-login" onsubmit="handleLoginSubmit(event)">
+                        <div class="input-group">
+                            <i class="fa-solid fa-mobile-screen input-icon"></i>
+                            <input type="email" id="login-email" class="auth-input" placeholder="Email Address" required>
+                        </div>
+                        <div class="input-group">
+                            <i class="fa-solid fa-lock input-icon"></i>
+                            <input type="password" id="login-password" class="auth-input" placeholder="Password" required>
+                            <i class="fa-regular fa-eye password-toggle" onclick="togglePasswordVisibility('login-password', this)"></i>
+                        </div>
+                        <div class="auth-options-row">
+                            <label class="remember-me-label" for="login-remember">
+                                <input type="checkbox" id="login-remember">
+                                <span>Remember me</span>
+                            </label>
+                            <a href="#" class="forgot-pwd" onclick="showOfflineInfoModal('Forgot Password'); return false;">Forgot Password?</a>
+                        </div>
 
-        <!-- 3. ITINERARY PLANNER -->
-        <section id="tab-itinerary" class="tab-section">
-            <div style="background: rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.12); border-radius:16px; padding:18px; margin-bottom:16px;">
-                <h3 style="font-size:16px; font-weight:800; margin-bottom:4px;">Plan an Offline Day Trip</h3>
-                <p style="font-size:12px; color:rgba(255,255,255,0.7); margin-bottom:12px;">Saved directly to your device storage.</p>
-                <input type="text" id="trip-title-input" class="itinerary-input" placeholder="Trip Name (e.g. Weekend Surf & Falls)">
-                <input type="text" id="trip-dest-input" class="itinerary-input" placeholder="Town / Destination (e.g. San Juan & San Gabriel)">
-                <input type="date" id="trip-date-input" class="itinerary-input">
-                <button class="btn-save-trip" onclick="saveOfflineTrip()">
-                    <i class="fa-solid fa-plus"></i> Save to Offline Itinerary
+                        <button type="submit" id="btn-login-submit" class="btn-circle-submit">
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Panel 2: Register Form -->
+                <div class="form-panel hidden" id="panel-register">
+                    <form id="form-register" onsubmit="handleRegisterSubmit(event)">
+                        <div class="input-group">
+                            <i class="fa-regular fa-user input-icon"></i>
+                            <input type="text" id="reg-first-name" class="auth-input" placeholder="First Name" required>
+                        </div>
+                        <div class="input-group">
+                            <i class="fa-regular fa-user input-icon"></i>
+                            <input type="text" id="reg-last-name" class="auth-input" placeholder="Last Name" required>
+                        </div>
+                        <div class="input-group">
+                            <i class="fa-solid fa-mobile-screen input-icon"></i>
+                            <input type="email" id="reg-email" class="auth-input" placeholder="Email Address" required>
+                        </div>
+                        <div class="input-group">
+                            <i class="fa-solid fa-lock input-icon"></i>
+                            <input type="password" id="reg-password" class="auth-input" placeholder="Create Password" required>
+                            <i class="fa-regular fa-eye password-toggle" onclick="togglePasswordVisibility('reg-password', this)"></i>
+                        </div>
+                        <button type="submit" id="btn-reg-submit" class="btn-circle-submit">
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Social and Offline Actions -->
+            <div class="auth-social-section">
+                <div class="social-divider">
+                    <hr>
+                    <span>Or Connect With</span>
+                    <hr>
+                </div>
+
+                <!-- Google Button -->
+                <button type="button" class="btn-google" onclick="showOfflineInfoModal('Google Sign-In')">
+                    <svg viewBox="0 0 24 24" width="16" height="16">
+                        <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.53-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-8.7c0-.18-.01-.35-.05-.47z" />
+                        <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.11 0-5.74-2.11-6.68-4.96H1.21v3.15C3.18 21.88 7.31 24 12 24z" />
+                        <path fill="#FBBC05" d="M5.32 14.24A7.16 7.16 0 0 1 5 12c0-.79.13-1.57.32-2.31V6.54H1.21A11.96 11.96 0 0 0 0 12c0 1.92.45 3.74 1.21 5.38l4.11-3.14z" />
+                        <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.18 2.12 1.21 5.46l4.11 3.22c.94-2.85 3.57-4.93 6.68-4.93z" />
+                    </svg>
+                    <span>Sign in with Google</span>
                 </button>
-            </div>
-            <h3 style="font-size:14px; font-weight:800; margin:18px 0 10px; color:#7dd3fc;">Saved Offline Itineraries</h3>
-            <div id="saved-trips-list" class="cards-grid">
-                <!-- Saved trips from localStorage -->
-            </div>
-        </section>
 
-        <!-- 4. EMERGENCY HOTLINES -->
-        <section id="tab-hotlines" class="tab-section">
-            <div style="margin-bottom:14px;">
-                <h3 style="font-size:16px; font-weight:800; margin-bottom:4px;">La Union Emergency Directory</h3>
-                <p style="font-size:12px; color:rgba(255,255,255,0.75);">Instant contact numbers for safety and tourism assistance.</p>
-            </div>
+                <!-- Dedicated Offline Mode Button -->
+                <button type="button" class="btn-offline-guest" onclick="enterOfflinePortal()">
+                    <i class="fa-solid fa-compass" style="color: #0f172a; font-size: 15px;"></i>
+                    <span>Explore in Offline Mode (Guest)</span>
+                </button>
 
-            <div class="hotline-card">
-                <div class="hotline-icon"><i class="fa-solid fa-shield-halved"></i></div>
-                <div class="hotline-info">
-                    <h3>La Union Police Provincial Office</h3>
-                    <p>Camp Diego Silang, San Fernando City</p>
-                </div>
-                <a href="tel:09985987789" class="hotline-call-btn"><i class="fa-solid fa-phone"></i> Call</a>
+                <p class="auth-switch-prompt" id="auth-switch-prompt">
+                    Don't have an account? <a href="#" onclick="toggleAuthMode(true); return false;" class="auth-switch-link">Register now</a>
+                </p>
             </div>
-
-            <div class="hotline-card">
-                <div class="hotline-icon" style="background:rgba(245,158,11,0.2); border-color:rgba(245,158,11,0.4); color:#fbbf24;"><i class="fa-solid fa-truck-medical"></i></div>
-                <div class="hotline-info">
-                    <h3>PDRRMO Emergency Rescue</h3>
-                    <p>Provincial Disaster Risk Reduction Office</p>
-                </div>
-                <a href="tel:09178128362" class="hotline-call-btn"><i class="fa-solid fa-phone"></i> Call</a>
-            </div>
-
-            <div class="hotline-card">
-                <div class="hotline-icon" style="background:rgba(56,189,248,0.2); border-color:rgba(56,189,248,0.4); color:#38bdf8;"><i class="fa-solid fa-sailboat"></i></div>
-                <div class="hotline-info">
-                    <h3>Philippine Coast Guard - La Union</h3>
-                    <p>Maritime & Coastal Safety Watch</p>
-                </div>
-                <a href="tel:09178427954" class="hotline-call-btn"><i class="fa-solid fa-phone"></i> Call</a>
-            </div>
-
-            <div class="hotline-card">
-                <div class="hotline-icon" style="background:rgba(16,185,129,0.2); border-color:rgba(16,185,129,0.4); color:#34d399;"><i class="fa-solid fa-circle-info"></i></div>
-                <div class="hotline-info">
-                    <h3>Provincial Tourism Office (LUPTO)</h3>
-                    <p>Official Traveler & Visitor Inquiries</p>
-                </div>
-                <a href="tel:0728886035" class="hotline-call-btn"><i class="fa-solid fa-phone"></i> Call</a>
-            </div>
-        </section>
-
-        <!-- 5. ELYU TRIVIA -->
-        <section id="tab-trivia" class="tab-section">
-            <div style="background: rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.12); border-radius:16px; padding:18px;">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                    <span style="font-size:11px; font-weight:800; color:#38bdf8; text-transform:uppercase;">Cultural Mini-Game</span>
-                    <span id="trivia-score" style="font-size:12px; font-weight:800; background:rgba(255,255,255,0.1); padding:2px 8px; border-radius:100px;">Score: 0/5</span>
-                </div>
-                <h3 id="trivia-q" style="font-size:16px; font-weight:800; margin-bottom:16px; line-height:1.4;">Loading Trivia Question...</h3>
-                <div id="trivia-options" style="display:flex; flex-direction:column; gap:8px;">
-                    <!-- Rendered by JS -->
-                </div>
-                <div id="trivia-feedback" style="margin-top:14px; font-size:13px; font-weight:700; display:none;"></div>
-                <button id="btn-next-trivia" style="display:none; width:100%; margin-top:12px; padding:10px; border-radius:10px; background:#38bdf8; border:none; font-weight:800; cursor:pointer;" onclick="nextTriviaQuestion()">Next Question</button>
-            </div>
-        </section>
-
-    </main>
-
-    <!-- Detail Sheet Modal -->
-    <div id="detail-modal" class="modal-overlay" onclick="closeDetailModal(event)">
-        <div class="modal-sheet" onclick="event.stopPropagation()">
-            <div class="modal-drag-pill"></div>
-            <button class="btn-modal-close" onclick="closeDetailModal()">&times;</button>
-            <span id="modal-badge" class="spot-card-badge" style="display:inline-block; margin-bottom:8px;">Attraction</span>
-            <h2 id="modal-title" style="font-size:20px; font-weight:900; margin-bottom:4px;">Title</h2>
-            <p id="modal-subtitle" style="font-size:13px; color:#38bdf8; font-weight:700; margin-bottom:14px;">Municipality</p>
-            <div style="background:rgba(255,255,255,0.06); padding:12px 14px; border-radius:12px; margin-bottom:14px;">
-                <p id="modal-desc" style="font-size:13px; color:rgba(255,255,255,0.85); line-height:1.5;">Description goes here...</p>
-            </div>
-            <div id="modal-tips" style="font-size:12.5px; color:#fde047; line-height:1.4; margin-bottom:14px;"></div>
-            <button onclick="closeDetailModal()" style="width:100%; padding:11px; border-radius:12px; border:none; background:rgba(255,255,255,0.12); color:white; font-weight:700; cursor:pointer;">Close</button>
         </div>
     </div>
 
-    <!-- Fixed Bottom Bar -->
-    <footer class="bottom-bar">
-        <div class="bottom-nav-item active" onclick="switchTab('destinations')">
-            <i class="fa-solid fa-compass"></i>
-            <span>Attractions</span>
+    <!-- Offline Auth Modal Dialog -->
+    <div id="offline-auth-modal" class="auth-offline-modal">
+        <div class="auth-offline-backdrop" onclick="closeOfflineAuthModal()"></div>
+        <div class="auth-offline-card">
+            <div class="auth-offline-icon-circle">
+                <i class="fa-solid fa-cloud-slash"></i>
+            </div>
+            <h3 class="auth-offline-title" id="offline-modal-title">Internet Required to Log In</h3>
+            <p class="auth-offline-desc" id="offline-modal-desc">
+                An active internet connection is required to authenticate your cloud account and sync explorer points.
+                <br><br>
+                You can explore all 20 municipalities, attractions, fares, and emergency directories offline right now!
+            </p>
+            <div class="auth-offline-actions">
+                <button type="button" class="btn-offline-confirm" onclick="enterOfflinePortal()">
+                    <i class="fa-solid fa-compass"></i> Explore in Offline Mode
+                </button>
+                <button type="button" class="btn-offline-dismiss" onclick="closeOfflineAuthModal()">
+                    Dismiss
+                </button>
+            </div>
         </div>
-        <div class="bottom-nav-item" onclick="switchTab('municipalities')">
-            <i class="fa-solid fa-map-location-dot"></i>
-            <span>Towns</span>
-        </div>
-        <div class="bottom-nav-item" onclick="switchTab('itinerary')">
-            <i class="fa-solid fa-calendar-days"></i>
-            <span>Itinerary</span>
-        </div>
-        <div class="bottom-nav-item" onclick="switchTab('hotlines')">
-            <i class="fa-solid fa-phone"></i>
-            <span>Hotlines</span>
-        </div>
-        <div class="bottom-nav-item" onclick="attemptReconnect()">
-            <i class="fa-solid fa-cloud-arrow-up"></i>
-            <span>Cloud Live</span>
-        </div>
-    </footer>
+    </div>
 
+    <!-- ============================================================
+         VIEW 2: OFFLINE PORTAL / DESTINATIONS DIRECTORY
+         ============================================================ -->
+    <div id="view-portal">
+        <!-- Top Offline Header Bar -->
+        <header class="offline-top-bar">
+            <div class="offline-brand">
+                <img src="assets/img/logo.png" alt="Intan Elyu" onerror="this.src='assets/img/no_image.svg'">
+                <div class="offline-brand-text">
+                    <h1>Intan Elyu</h1>
+                    <div class="offline-pill">
+                        <i class="fa-solid fa-cloud-slash"></i>
+                        <span>Offline Portal</span>
+                    </div>
+                </div>
+            </div>
+            <div class="portal-top-actions">
+                <button class="btn-portal-back-auth" onclick="exitToAuthView()">
+                    <i class="fa-solid fa-arrow-left"></i>
+                    <span>Login</span>
+                </button>
+                <button class="btn-reconnect" onclick="attemptReconnect()">
+                    <i class="fa-solid fa-rotate"></i>
+                    <span>Reconnect</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Hero Header -->
+        <section class="hero-banner">
+            <p class="hero-welcome">Province of La Union &bull; Offline Portal</p>
+            <h2 class="hero-title" id="hero-user-greeting">Welcome, Explorer!</h2>
+            <p class="hero-subtitle">All 20 municipalities, attractions, emergency hotlines, and travel guides are saved locally on this device.</p>
+        </section>
+
+        <!-- Top Horizontal Tab Bar -->
+        <nav class="tab-nav">
+            <button class="tab-btn active" onclick="switchTab('destinations', this)">
+                <i class="fa-solid fa-compass"></i> Attractions
+            </button>
+            <button class="tab-btn" onclick="switchTab('municipalities', this)">
+                <i class="fa-solid fa-map-location-dot"></i> 20 Towns
+            </button>
+            <button class="tab-btn" onclick="switchTab('itinerary', this)">
+                <i class="fa-solid fa-calendar-days"></i> Itinerary
+            </button>
+            <button class="tab-btn" onclick="switchTab('hotlines', this)">
+                <i class="fa-solid fa-phone-volume"></i> Hotlines
+            </button>
+            <button class="tab-btn" onclick="switchTab('trivia', this)">
+                <i class="fa-solid fa-puzzle-piece"></i> Elyu Trivia
+            </button>
+        </nav>
+
+        <!-- Main Container Area -->
+        <main class="main-container">
+
+            <!-- 1. DESTINATIONS SECTION -->
+            <section id="tab-destinations" class="tab-section active">
+                <div class="filter-row">
+                    <div class="filter-chip active" onclick="filterSpots('all', this)">All Highlights</div>
+                    <div class="filter-chip" onclick="filterSpots('Beach', this)">🏄 Surfing & Beach</div>
+                    <div class="filter-chip" onclick="filterSpots('Waterfall', this)">💦 Waterfalls & Nature</div>
+                    <div class="filter-chip" onclick="filterSpots('Heritage', this)">🏛️ Heritage & Art</div>
+                    <div class="filter-chip" onclick="filterSpots('Agri', this)">🍇 Agri & Grape Picking</div>
+                </div>
+                <div class="cards-grid" id="spots-grid">
+                    <!-- Dynamically Rendered by JS -->
+                </div>
+            </section>
+
+            <!-- 2. MUNICIPALITIES SECTION -->
+            <section id="tab-municipalities" class="tab-section">
+                <div class="filter-row">
+                    <div class="filter-chip active" onclick="filterMuni('all', this)">All 20 Towns</div>
+                    <div class="filter-chip" onclick="filterMuni('North La Union', this)">North Elyu</div>
+                    <div class="filter-chip" onclick="filterMuni('Central La Union', this)">Central Elyu</div>
+                    <div class="filter-chip" onclick="filterMuni('South La Union', this)">South Elyu</div>
+                </div>
+                <div class="cards-grid" id="muni-grid">
+                    <!-- Dynamically Rendered by JS -->
+                </div>
+            </section>
+
+            <!-- 3. ITINERARY PLANNER -->
+            <section id="tab-itinerary" class="tab-section">
+                <div style="background: rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.12); border-radius:16px; padding:18px; margin-bottom:16px;">
+                    <h3 style="font-size:16px; font-weight:800; margin-bottom:4px;">Plan an Offline Day Trip</h3>
+                    <p style="font-size:12px; color:rgba(255,255,255,0.7); margin-bottom:12px;">Saved directly to your device storage.</p>
+                    <input type="text" id="trip-title-input" class="auth-input" style="height:40px; margin-bottom:8px; border-radius:10px;" placeholder="Trip Name (e.g. Weekend Surf & Falls)">
+                    <input type="text" id="trip-dest-input" class="auth-input" style="height:40px; margin-bottom:8px; border-radius:10px;" placeholder="Town / Destination (e.g. San Juan & San Gabriel)">
+                    <input type="date" id="trip-date-input" class="auth-input" style="height:40px; margin-bottom:12px; border-radius:10px;">
+                    <button class="btn-offline-confirm" onclick="saveOfflineTrip()">
+                        <i class="fa-solid fa-plus"></i> Save to Offline Itinerary
+                    </button>
+                </div>
+                <h3 style="font-size:14px; font-weight:800; margin:18px 0 10px; color:#7dd3fc;">Saved Offline Itineraries</h3>
+                <div id="saved-trips-list" class="cards-grid">
+                    <!-- Saved trips from localStorage -->
+                </div>
+            </section>
+
+            <!-- 4. EMERGENCY HOTLINES -->
+            <section id="tab-hotlines" class="tab-section">
+                <div style="margin-bottom:14px;">
+                    <h3 style="font-size:16px; font-weight:800; margin-bottom:4px;">La Union Emergency Directory</h3>
+                    <p style="font-size:12px; color:rgba(255,255,255,0.75);">Instant contact numbers for safety and tourism assistance.</p>
+                </div>
+
+                <div class="hotline-card">
+                    <div class="hotline-icon"><i class="fa-solid fa-shield-halved"></i></div>
+                    <div class="hotline-info">
+                        <h3>La Union Police Provincial Office</h3>
+                        <p>Camp Diego Silang, San Fernando City</p>
+                    </div>
+                    <a href="tel:09985987789" class="hotline-call-btn"><i class="fa-solid fa-phone"></i> Call</a>
+                </div>
+
+                <div class="hotline-card">
+                    <div class="hotline-icon" style="background:rgba(245,158,11,0.2); border-color:rgba(245,158,11,0.4); color:#fbbf24;"><i class="fa-solid fa-truck-medical"></i></div>
+                    <div class="hotline-info">
+                        <h3>PDRRMO Emergency Rescue</h3>
+                        <p>Provincial Disaster Risk Reduction Office</p>
+                    </div>
+                    <a href="tel:09178128362" class="hotline-call-btn"><i class="fa-solid fa-phone"></i> Call</a>
+                </div>
+
+                <div class="hotline-card">
+                    <div class="hotline-icon" style="background:rgba(56,189,248,0.2); border-color:rgba(56,189,248,0.4); color:#38bdf8;"><i class="fa-solid fa-sailboat"></i></div>
+                    <div class="hotline-info">
+                        <h3>Philippine Coast Guard - La Union</h3>
+                        <p>Maritime & Coastal Safety Watch</p>
+                    </div>
+                    <a href="tel:09178427954" class="hotline-call-btn"><i class="fa-solid fa-phone"></i> Call</a>
+                </div>
+
+                <div class="hotline-card">
+                    <div class="hotline-icon" style="background:rgba(16,185,129,0.2); border-color:rgba(16,185,129,0.4); color:#34d399;"><i class="fa-solid fa-circle-info"></i></div>
+                    <div class="hotline-info">
+                        <h3>Provincial Tourism Office (LUPTO)</h3>
+                        <p>Official Traveler & Visitor Inquiries</p>
+                    </div>
+                    <a href="tel:0728886035" class="hotline-call-btn"><i class="fa-solid fa-phone"></i> Call</a>
+                </div>
+            </section>
+
+            <!-- 5. ELYU TRIVIA -->
+            <section id="tab-trivia" class="tab-section">
+                <div style="background: rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.12); border-radius:16px; padding:18px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                        <span style="font-size:11px; font-weight:800; color:#38bdf8; text-transform:uppercase;">Cultural Mini-Game</span>
+                        <span id="trivia-score" style="font-size:12px; font-weight:800; background:rgba(255,255,255,0.1); padding:2px 8px; border-radius:100px;">Score: 0/5</span>
+                    </div>
+                    <h3 id="trivia-q" style="font-size:16px; font-weight:800; margin-bottom:16px; line-height:1.4;">Loading Trivia Question...</h3>
+                    <div id="trivia-options" style="display:flex; flex-direction:column; gap:8px;">
+                        <!-- Rendered by JS -->
+                    </div>
+                    <div id="trivia-feedback" style="margin-top:14px; font-size:13px; font-weight:700; display:none;"></div>
+                    <button id="btn-next-trivia" style="display:none; width:100%; margin-top:12px; padding:10px; border-radius:10px; background:#38bdf8; border:none; font-weight:800; cursor:pointer;" onclick="nextTriviaQuestion()">Next Question</button>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- Detail Sheet Modal -->
+        <div id="detail-modal" class="modal-overlay" onclick="closeDetailModal(event)">
+            <div class="modal-sheet" onclick="event.stopPropagation()">
+                <div class="modal-drag-pill"></div>
+                <button class="btn-modal-close" onclick="closeDetailModal()">&times;</button>
+                <span id="modal-badge" class="spot-card-badge" style="display:inline-block; margin-bottom:8px;">Attraction</span>
+                <h2 id="modal-title" style="font-size:20px; font-weight:900; margin-bottom:4px;">Title</h2>
+                <p id="modal-subtitle" style="font-size:13px; color:#38bdf8; font-weight:700; margin-bottom:14px;">Municipality</p>
+                <div style="background:rgba(255,255,255,0.06); padding:12px 14px; border-radius:12px; margin-bottom:14px;">
+                    <p id="modal-desc" style="font-size:13px; color:rgba(255,255,255,0.85); line-height:1.5;">Description goes here...</p>
+                </div>
+                <div id="modal-tips" style="font-size:12.5px; color:#fde047; line-height:1.4; margin-bottom:14px;"></div>
+                <button onclick="closeDetailModal()" style="width:100%; padding:11px; border-radius:12px; border:none; background:rgba(255,255,255,0.12); color:white; font-weight:700; cursor:pointer;">Close</button>
+            </div>
+        </div>
+
+        <!-- Fixed Bottom Bar -->
+        <footer class="bottom-bar">
+            <div class="bottom-nav-item active" onclick="switchTab('destinations')">
+                <i class="fa-solid fa-compass"></i>
+                <span>Attractions</span>
+            </div>
+            <div class="bottom-nav-item" onclick="switchTab('municipalities')">
+                <i class="fa-solid fa-map-location-dot"></i>
+                <span>Towns</span>
+            </div>
+            <div class="bottom-nav-item" onclick="switchTab('itinerary')">
+                <i class="fa-solid fa-calendar-days"></i>
+                <span>Itinerary</span>
+            </div>
+            <div class="bottom-nav-item" onclick="switchTab('hotlines')">
+                <i class="fa-solid fa-phone"></i>
+                <span>Hotlines</span>
+            </div>
+            <div class="bottom-nav-item" onclick="exitToAuthView()">
+                <i class="fa-solid fa-arrow-left"></i>
+                <span>Login Screen</span>
+            </div>
+        </footer>
+    </div>
+
+    <!-- ============================================================
+         CORE SCRIPT ENGINE
+         ============================================================ -->
     <script>
-        // --- 1. Iconic Spots Database (Built-in Offline Catalog) ---
+        // --- 1. Authentic Offline Dataset ---
         const ELYU_SPOTS = [
             {
                 name: "Urbiztondo Beach",
@@ -808,7 +1430,6 @@
             }
         ];
 
-        // --- 2. 20 Municipalities Dataset ---
         const ELYU_MUNICIPALITIES = [
             { name: "San Juan", zone: "North La Union", tag: "Surfing Capital of the North" },
             { name: "San Fernando City", zone: "Central La Union", tag: "Capital City & Commerce Center" },
@@ -829,10 +1450,9 @@
             { name: "Burgos", zone: "South La Union", tag: "Lakes & Hillside Panorama" },
             { name: "Bagulin", zone: "Central La Union", tag: "Indigenous Culture & Highland Falls" },
             { name: "Santol", zone: "North La Union", tag: "Pine Tree Ridges & Rice Terraces" },
-            { name: "San Juan Beach", zone: "North La Union", tag: "Sunset Dining & Coastal Promenade" }
+            { name: "Sudipen", zone: "North La Union", tag: "Amburayan River & Silag Crafts" }
         ];
 
-        // --- 3. Cultural Trivia Dataset ---
         const TRIVIA_DATA = [
             {
                 q: "What does the name 'La Union' signify in Philippine history?",
@@ -869,9 +1489,111 @@
         let currentTriviaIdx = 0;
         let currentScore = 0;
 
-        // --- 4. Render Functions ---
+        // --- 2. Auth Flow & View Management ---
+        function toggleAuthMode(isRegister) {
+            const loginBtn = document.getElementById('tab-login-btn');
+            const regBtn = document.getElementById('tab-register-btn');
+            const glider = document.getElementById('tab-gooey-glider');
+            const loginPanel = document.getElementById('panel-login');
+            const regPanel = document.getElementById('panel-register');
+            const switchPrompt = document.getElementById('auth-switch-prompt');
+
+            if (isRegister) {
+                loginBtn.classList.remove('active');
+                regBtn.classList.add('active');
+                glider.style.left = 'calc(50% + 20px)';
+                loginPanel.classList.add('hidden');
+                regPanel.classList.remove('hidden');
+                switchPrompt.innerHTML = `Already have an account? <a href="#" onclick="toggleAuthMode(false); return false;" class="auth-switch-link">Log in</a>`;
+            } else {
+                regBtn.classList.remove('active');
+                loginBtn.classList.add('active');
+                glider.style.left = 'calc(50% - 64px)';
+                regPanel.classList.add('hidden');
+                loginPanel.classList.remove('hidden');
+                switchPrompt.innerHTML = `Don't have an account? <a href="#" onclick="toggleAuthMode(true); return false;" class="auth-switch-link">Register now</a>`;
+            }
+        }
+
+        function togglePasswordVisibility(fieldId, iconEl) {
+            const input = document.getElementById(fieldId);
+            if (!input) return;
+            if (input.type === 'password') {
+                input.type = 'text';
+                iconEl.classList.replace('fa-eye', 'fa-eye-slash');
+            } else {
+                input.type = 'password';
+                iconEl.classList.replace('fa-eye-slash', 'fa-eye');
+            }
+        }
+
+        function handleLoginSubmit(e) {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value.trim();
+
+            // Check if user has cached profile in local storage
+            try {
+                const cached = JSON.parse(localStorage.getItem('auth_user') || localStorage.getItem('user') || 'null');
+                if (cached && cached.email && cached.email.toLowerCase() === email.toLowerCase()) {
+                    alert(`Welcome back, ${cached.name || 'Explorer'}!\n\nLogging in with saved local credentials in Offline Mode.`);
+                    enterOfflinePortal();
+                    return;
+                }
+            } catch(e) {}
+
+            // If not cached, explain cloud auth requirements smoothly
+            showOfflineInfoModal('Cloud Login', email);
+        }
+
+        function handleRegisterSubmit(e) {
+            e.preventDefault();
+            const firstName = document.getElementById('reg-first-name').value.trim();
+            showOfflineInfoModal('Account Registration', null, `Welcome ${firstName}! Creating a permanent cloud account requires an active internet connection to register on the provincial server.\n\nYou can explore all 20 municipalities, attractions, and public fares offline right now as a Guest!`);
+        }
+
+        function showOfflineInfoModal(feature, email, customDesc) {
+            const modal = document.getElementById('offline-auth-modal');
+            const titleEl = document.getElementById('offline-modal-title');
+            const descEl = document.getElementById('offline-modal-desc');
+
+            titleEl.textContent = `Internet Required for ${feature}`;
+            if (customDesc) {
+                descEl.innerHTML = customDesc;
+            } else if (email) {
+                descEl.innerHTML = `An active internet connection is required to authenticate <strong>${email}</strong> with the cloud server.<br><br>You can explore all La Union attractions, 20 municipalities, and fares offline right now as a Guest!`;
+            } else {
+                descEl.innerHTML = `<strong>${feature}</strong> requires an active internet connection to communicate with the Provincial Cloud Platform.<br><br>You can explore all saved attractions, itineraries, and maps in Offline Mode right now!`;
+            }
+            modal.style.display = 'flex';
+        }
+
+        function closeOfflineAuthModal() {
+            document.getElementById('offline-auth-modal').style.display = 'none';
+        }
+
+        function enterOfflinePortal() {
+            closeOfflineAuthModal();
+            document.getElementById('view-auth').style.display = 'none';
+            document.getElementById('view-portal').style.display = 'block';
+            window.scrollTo(0, 0);
+
+            // Re-render portal contents
+            renderSpots();
+            renderMunicipalities();
+            renderSavedTrips();
+            renderTriviaQuestion();
+        }
+
+        function exitToAuthView() {
+            document.getElementById('view-portal').style.display = 'none';
+            document.getElementById('view-auth').style.display = 'flex';
+            window.scrollTo(0, 0);
+        }
+
+        // --- 3. Portal Rendering Functions ---
         function renderSpots(filter = 'all') {
             const grid = document.getElementById('spots-grid');
+            if (!grid) return;
             grid.innerHTML = '';
             const filtered = filter === 'all' ? ELYU_SPOTS : ELYU_SPOTS.filter(s => s.type.toLowerCase().includes(filter.toLowerCase()));
             
@@ -900,6 +1622,7 @@
 
         function renderMunicipalities(filter = 'all') {
             const grid = document.getElementById('muni-grid');
+            if (!grid) return;
             grid.innerHTML = '';
             const filtered = filter === 'all' ? ELYU_MUNICIPALITIES : ELYU_MUNICIPALITIES.filter(m => m.zone === filter);
 
@@ -925,6 +1648,7 @@
 
         function renderSavedTrips() {
             const list = document.getElementById('saved-trips-list');
+            if (!list) return;
             list.innerHTML = '';
             let saved = [];
             try { saved = JSON.parse(localStorage.getItem('intan_elyu_saved_trips') || '[]'); } catch(e) {}
@@ -986,7 +1710,9 @@
 
         function renderTriviaQuestion() {
             const qData = TRIVIA_DATA[currentTriviaIdx];
-            document.getElementById('trivia-q').textContent = `Q${currentTriviaIdx + 1}: ${qData.q}`;
+            const qEl = document.getElementById('trivia-q');
+            if (!qEl) return;
+            qEl.textContent = `Q${currentTriviaIdx + 1}: ${qData.q}`;
             document.getElementById('trivia-score').textContent = `Score: ${currentScore}/${TRIVIA_DATA.length}`;
             const optContainer = document.getElementById('trivia-options');
             optContainer.innerHTML = '';
@@ -1029,7 +1755,6 @@
             renderTriviaQuestion();
         }
 
-        // --- 5. Modal and Navigation ---
         function openDetailModal(title, subtitle, desc, tips, badge) {
             document.getElementById('modal-title').textContent = title;
             document.getElementById('modal-subtitle').textContent = subtitle;
@@ -1053,7 +1778,6 @@
 
             if (el) el.classList.add('active');
 
-            // Bottom bar sync
             const navIndex = ['destinations', 'municipalities', 'itinerary', 'hotlines'].indexOf(tabId);
             if (navIndex !== -1) {
                 const bottomItems = document.querySelectorAll('.bottom-nav-item');
@@ -1073,7 +1797,7 @@
             renderMunicipalities(zone);
         }
 
-        // --- 6. Seamless Reconnect Engine ---
+        // --- 4. Reconnection Engine ---
         function attemptReconnect() {
             if (navigator.onLine) {
                 window.location.href = "https://app.intan-elyu.online/?app=true";
@@ -1092,20 +1816,16 @@
             if (banner) banner.style.display = 'none';
         });
 
-        // --- 7. Init ---
+        // --- 5. Init ---
         document.addEventListener('DOMContentLoaded', () => {
             // Check cached user
             try {
-                const user = JSON.parse(localStorage.getItem('auth_user') || 'null');
+                const user = JSON.parse(localStorage.getItem('auth_user') || localStorage.getItem('user') || 'null');
                 if (user && user.name) {
-                    document.getElementById('hero-user-greeting').textContent = `Hi, ${user.name.split(' ')[0]}!`;
+                    const greeting = document.getElementById('hero-user-greeting');
+                    if (greeting) greeting.textContent = `Hi, ${user.name.split(' ')[0]}!`;
                 }
             } catch(e) {}
-
-            renderSpots();
-            renderMunicipalities();
-            renderSavedTrips();
-            renderTriviaQuestion();
 
             if (navigator.onLine) {
                 const banner = document.getElementById('online-alert');
