@@ -346,7 +346,7 @@ body.keyboard-open .auth-top h1 {
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
-    gap: 12px;
+    gap: 9px;
 }
 
 .login-form .input-group {
@@ -485,8 +485,8 @@ body.keyboard-open .auth-bottom {
     position: relative;
     background: #ffffff;
     border: 1.5px solid rgba(255, 255, 255, 0.9);
-    border-radius: 16px;
-    margin-bottom: 12px;
+    border-radius: 12px;
+    margin-bottom: 9px;
     transition: border-color 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
     width: 100%;
     opacity: 0;
@@ -508,7 +508,7 @@ body.keyboard-open .auth-bottom {
 }
 
 .register-form .input-group {
-    margin-bottom: 11px;
+    margin-bottom: 8px !important;
 }
 
 .form-panel .input-group:nth-of-type(1) {
@@ -533,14 +533,14 @@ body.keyboard-open .auth-bottom {
 .input-group > i:first-child,
 .input-group > i:not(.password-toggle):not(.field-status-icon) {
     position: absolute !important;
-    left: 15px !important;
+    left: 14px !important;
     right: auto !important;
     top: 50% !important;
     transform: translateY(-50%) !important;
     color: #1d4ed8 !important;
-    font-size: 17px !important;
-    width: 20px !important;
-    height: 20px !important;
+    font-size: 15px !important;
+    width: 18px !important;
+    height: 18px !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
@@ -558,8 +558,9 @@ body.keyboard-open .auth-bottom {
     width: 100%;
     border: none;
     background: transparent;
-    padding: 13.5px 44px 13.5px 44px !important;
-    font-size: 15px;
+    padding: 10px 40px 10px 40px !important;
+    font-size: 14px;
+    line-height: 1.35;
     color: #0f172a;
     font-weight: 500;
     outline: none;
@@ -584,14 +585,14 @@ body.keyboard-open .auth-bottom {
 /* Password Visibility Toggle Eye Icon - Always fixed on the right */
 .input-group > i.password-toggle {
     position: absolute !important;
-    right: 14px !important;
+    right: 12px !important;
     left: auto !important;
     top: 50% !important;
     transform: translateY(-50%) !important;
     color: #64748b !important;
-    font-size: 17px !important;
-    width: 28px !important;
-    height: 28px !important;
+    font-size: 15px !important;
+    width: 24px !important;
+    height: 24px !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
@@ -615,10 +616,10 @@ body.keyboard-open .auth-bottom {
 /* Inline Field Validation Badges & Microcopy */
 .input-group i.field-status-icon {
     left: auto !important;
-    right: 14px !important;
+    right: 12px !important;
     top: 50% !important;
     transform: translateY(-50%) !important;
-    font-size: 15px !important;
+    font-size: 14px !important;
     width: auto !important;
     pointer-events: none !important;
     transition: opacity 0.2s ease, transform 0.2s ease !important;
@@ -628,7 +629,7 @@ body.keyboard-open .auth-bottom {
 
 .input-group i.field-status-icon.password-offset {
     left: auto !important;
-    right: 40px !important;
+    right: 36px !important;
 }
 
 .input-group i.field-status-icon.valid {
@@ -1675,25 +1676,25 @@ body[data-offline="true"] .btn-offline-guest {
         padding: 5px 14px 7px 14px !important;
     }
     .auth-input {
-        padding: 12px 44px 12px 44px !important;
-        font-size: 14px !important;
+        padding: 9.5px 38px 9.5px 38px !important;
+        font-size: 13.5px !important;
     }
     .input-group > i:first-child,
     .input-group > i:not(.password-toggle):not(.field-status-icon) {
-        font-size: 16px !important;
-        left: 15px !important;
+        font-size: 14.5px !important;
+        left: 13px !important;
         right: auto !important;
     }
     .input-group > i.password-toggle {
-        font-size: 16px !important;
+        font-size: 14.5px !important;
         left: auto !important;
-        right: 14px !important;
+        right: 12px !important;
     }
     .btn-circle-submit {
-        width: 50px !important;
-        height: 50px !important;
-        font-size: 19px !important;
-        margin: 10px auto !important;
+        width: 48px !important;
+        height: 48px !important;
+        font-size: 18px !important;
+        margin: 8px auto !important;
     }
 }
 
@@ -1705,22 +1706,22 @@ body[data-offline="true"] .btn-offline-guest {
         margin-bottom: 8px !important;
     }
     .auth-tab {
-        font-size: 14px !important;
+        font-size: 13.5px !important;
     }
     .auth-input {
-        padding: 11px 44px 11px 44px !important;
-        font-size: 13.5px !important;
+        padding: 8.5px 36px 8.5px 36px !important;
+        font-size: 13px !important;
     }
     .input-group > i:first-child,
     .input-group > i:not(.password-toggle):not(.field-status-icon) {
-        font-size: 15px !important;
-        left: 15px !important;
+        font-size: 14px !important;
+        left: 12px !important;
         right: auto !important;
     }
     .input-group > i.password-toggle {
-        font-size: 15px !important;
+        font-size: 14px !important;
         left: auto !important;
-        right: 14px !important;
+        right: 11px !important;
     }
 }
 
