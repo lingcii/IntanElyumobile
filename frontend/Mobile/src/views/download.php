@@ -224,7 +224,7 @@ if (file_exists($buildGradle)) {
             <i class="fa-brands fa-android"></i> Download APK
           </a>
           <div class="hero-mirror-row">
-            <a href="https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/apks/intan-elyu.apk" target="_blank"
+            <a href="https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/apks/intan-elyu.apk?v=1.4.0" target="_blank"
               rel="noopener" class="hero-mirror-link">
               <i class="fa-solid fa-cloud-arrow-down"></i> Cloud Mirror (R2)
             </a>

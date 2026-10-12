@@ -76,7 +76,7 @@ if (strpos($path, 'intan-elyu.apk') !== false || strpos($path, '.apk') !== false
         }
         exit;
     } else {
-        header('Location: https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/apks/intan-elyu.apk');
+        header('Location: https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/apks/intan-elyu.apk?v=1.4.0');
         exit;
     }
 }
