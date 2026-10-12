@@ -159,30 +159,27 @@
                             onclick="togglePasswordVisibility('reg-password', this)"></i>
                     </div>
                     <div id="pwd-strength-container" class="pwd-strength-wrapper"
-                        style="display: none; margin-top: 6px; margin-bottom: 12px;" data-score="0">
-                        <div class="pwd-strength-segments">
-                            <div class="pwd-segment seg-1"></div>
-                            <div class="pwd-segment seg-2"></div>
-                            <div class="pwd-segment seg-3"></div>
-                            <div class="pwd-segment seg-4"></div>
-                        </div>
-                        <div
-                            style="display: flex; align-items: center; justify-space-between; margin-top: 6px; font-size: 11px; font-weight: 700;">
-                            <span id="pwd-strength-label" style="color: #94a3b8; transition: color 0.2s ease;">Password
-                                Strength</span>
-                            <span id="pwd-strength-score"
-                                style="color: rgba(148, 163, 184, 0.7); font-size: 10px;">0/4</span>
-                        </div>
-                        <div class="pwd-checklist"
-                            style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; font-size: 10.5px; font-weight: 600;">
-                            <span id="chk-len8" class="pwd-chk-item"><i class="fa-solid fa-circle"
-                                    style="font-size: 6px; vertical-align: middle;"></i> 8+ chars</span>
-                            <span id="chk-num" class="pwd-chk-item"><i class="fa-solid fa-circle"
-                                    style="font-size: 6px; vertical-align: middle;"></i> a number</span>
-                            <span id="chk-cap" class="pwd-chk-item"><i class="fa-solid fa-circle"
-                                    style="font-size: 6px; vertical-align: middle;"></i> a capital</span>
-                            <span id="chk-sym" class="pwd-chk-item"><i class="fa-solid fa-circle"
-                                    style="font-size: 6px; vertical-align: middle;"></i> a symbol</span>
+                        style="display: none;" data-score="0">
+                        <div class="pwd-strength-card">
+                            <div class="pwd-strength-header">
+                                <div class="pwd-strength-badge status-weak" id="pwd-strength-badge">
+                                    <i class="fa-solid fa-shield-halved" id="pwd-strength-icon"></i>
+                                    <span id="pwd-strength-label">Password Strength: Weak</span>
+                                </div>
+                                <span id="pwd-strength-score" class="pwd-score-pill">0/4</span>
+                            </div>
+                            <div class="pwd-strength-segments">
+                                <div class="pwd-segment seg-1"></div>
+                                <div class="pwd-segment seg-2"></div>
+                                <div class="pwd-segment seg-3"></div>
+                                <div class="pwd-segment seg-4"></div>
+                            </div>
+                            <div class="pwd-checklist">
+                                <span id="chk-len8" class="pwd-chk-item"><i class="fa-solid fa-circle-dot"></i> 8+ characters</span>
+                                <span id="chk-num" class="pwd-chk-item"><i class="fa-solid fa-circle-dot"></i> A number</span>
+                                <span id="chk-cap" class="pwd-chk-item"><i class="fa-solid fa-circle-dot"></i> A capital letter</span>
+                                <span id="chk-sym" class="pwd-chk-item"><i class="fa-solid fa-circle-dot"></i> A symbol</span>
+                            </div>
                         </div>
                     </div>
 
@@ -903,6 +900,15 @@
         wrapper.classList.remove('show-forgot', 'show-otp');
         positionTabGlider(isRegister, true);
 
+        const authContainer = document.querySelector('.auth-container');
+        if (authContainer) {
+            if (isRegister) {
+                authContainer.classList.add('mode-register');
+            } else {
+                authContainer.classList.remove('mode-register');
+            }
+        }
+
         if (isRegister) {
             wrapper.classList.add('show-register');
             tabLogin.classList.remove('active');
@@ -922,6 +928,9 @@
 
         // Hide tabs
         if (tabsContainer) tabsContainer.style.display = 'none';
+
+        const authContainer = document.querySelector('.auth-container');
+        if (authContainer) authContainer.classList.remove('mode-register');
 
         // Reset forgot form steps
         const formState = document.getElementById('fp-form-state');
@@ -953,6 +962,8 @@
         if (e) e.preventDefault();
         // Restore tabs
         if (tabsContainer) tabsContainer.style.display = 'flex';
+        const authContainer = document.querySelector('.auth-container');
+        if (authContainer) authContainer.classList.remove('mode-register');
         if (wrapper) wrapper.classList.remove('show-forgot', 'show-register');
         if (tabRegister) tabRegister.classList.remove('active');
         if (tabLogin) tabLogin.classList.add('active');
@@ -1149,19 +1160,30 @@
                 if (container) container.dataset.score = score;
                 if (scoreEl) scoreEl.textContent = score + '/4';
 
-                // Update checklist item styles
-                if (chkLen8) chkLen8.className = 'pwd-chk-item' + (len8 ? ' passed' : '');
-                if (chkNum) chkNum.className = 'pwd-chk-item' + (hasNum ? ' passed' : '');
-                if (chkCap) chkCap.className = 'pwd-chk-item' + (hasCap ? ' passed' : '');
-                if (chkSym) chkSym.className = 'pwd-chk-item' + (hasSym ? ' passed' : '');
+                // Update checklist item styles with high-contrast icons
+                const updateChk = (el, passed, text) => {
+                    if (!el) return;
+                    el.className = 'pwd-chk-item' + (passed ? ' passed' : '');
+                    el.innerHTML = passed
+                        ? '<i class="fa-solid fa-circle-check"></i> ' + text
+                        : '<i class="fa-solid fa-circle-dot"></i> ' + text;
+                };
 
-                // Label and status icon update
-                const labels = ['Weak', 'Weak', 'Fair', 'Good', 'Strong'];
-                const colors = ['#f87171', '#f87171', '#fb923c', '#facc15', '#34d399'];
+                updateChk(chkLen8, len8, '8+ characters');
+                updateChk(chkNum, hasNum, 'A number');
+                updateChk(chkCap, hasCap, 'A capital letter');
+                updateChk(chkSym, hasSym, 'A symbol');
+
+                // High-contrast badge and score update
+                const labels = ['Too Weak', 'Weak', 'Fair', 'Good', 'Strong'];
+                const badgeClasses = ['status-weak', 'status-weak', 'status-fair', 'status-good', 'status-strong'];
+                const badgeEl = document.getElementById('pwd-strength-badge');
 
                 if (label) {
-                    label.textContent = labels[score] || 'Password Strength';
-                    label.style.color = colors[score] || '#94a3b8';
+                    label.textContent = 'Strength: ' + (labels[score] || 'Weak');
+                }
+                if (badgeEl) {
+                    badgeEl.className = 'pwd-strength-badge ' + (badgeClasses[score] || 'status-weak');
                 }
 
                 if (score >= 3 && len8) {

@@ -415,9 +415,34 @@
                         </div>
                         <div class="input-group">
                             <i class="fa-solid fa-lock"></i>
-                            <input type="password" id="reg-password" class="auth-input" placeholder="Create Password" required>
+                            <input type="password" id="reg-password" class="auth-input" placeholder="Create Password" required
+                                oninput="validateRegisterFormInline()">
                             <i class="fa-regular fa-eye password-toggle"
                                 onclick="togglePasswordVisibility('reg-password', this)"></i>
+                        </div>
+                        <div id="pwd-strength-container" class="pwd-strength-wrapper"
+                            style="display: none;" data-score="0">
+                            <div class="pwd-strength-card">
+                                <div class="pwd-strength-header">
+                                    <div class="pwd-strength-badge status-weak" id="pwd-strength-badge">
+                                        <i class="fa-solid fa-shield-halved" id="pwd-strength-icon"></i>
+                                        <span id="pwd-strength-label">Password Strength: Weak</span>
+                                    </div>
+                                    <span id="pwd-strength-score" class="pwd-score-pill">0/4</span>
+                                </div>
+                                <div class="pwd-strength-segments">
+                                    <div class="pwd-segment seg-1"></div>
+                                    <div class="pwd-segment seg-2"></div>
+                                    <div class="pwd-segment seg-3"></div>
+                                    <div class="pwd-segment seg-4"></div>
+                                </div>
+                                <div class="pwd-checklist">
+                                    <span id="chk-len8" class="pwd-chk-item"><i class="fa-solid fa-circle-dot"></i> 8+ characters</span>
+                                    <span id="chk-num" class="pwd-chk-item"><i class="fa-solid fa-circle-dot"></i> A number</span>
+                                    <span id="chk-cap" class="pwd-chk-item"><i class="fa-solid fa-circle-dot"></i> A capital letter</span>
+                                    <span id="chk-sym" class="pwd-chk-item"><i class="fa-solid fa-circle-dot"></i> A symbol</span>
+                                </div>
+                            </div>
                         </div>
                         <div class="terms-agreement-row">
                             <input type="checkbox" id="reg-privacy-checkbox" class="custom-terms-checkbox" required>
@@ -605,10 +630,19 @@
             const tabRegister = document.getElementById('tab-register');
             const wrapper = document.getElementById('forms-wrapper');
             const tabsContainer = document.getElementById('auth-tabs');
+            const authContainer = document.querySelector('.auth-container');
 
             if (tabsContainer) tabsContainer.style.display = 'flex';
             if (wrapper) wrapper.classList.remove('show-forgot');
             positionTabGlider(isRegister, true);
+
+            if (authContainer) {
+                if (isRegister) {
+                    authContainer.classList.add('mode-register');
+                } else {
+                    authContainer.classList.remove('mode-register');
+                }
+            }
 
             if (isRegister) {
                 if (tabLogin) tabLogin.classList.remove('active');
@@ -640,10 +674,65 @@
             }
         }
 
+        function validateRegisterFormInline() {
+            const pwdEl = document.getElementById('reg-password');
+            if (!pwdEl) return;
+            const pwd = pwdEl.value;
+            const container = document.getElementById('pwd-strength-container');
+            const label = document.getElementById('pwd-strength-label');
+            const scoreEl = document.getElementById('pwd-strength-score');
+            const badgeEl = document.getElementById('pwd-strength-badge');
+
+            const chkLen8 = document.getElementById('chk-len8');
+            const chkNum = document.getElementById('chk-num');
+            const chkCap = document.getElementById('chk-cap');
+            const chkSym = document.getElementById('chk-sym');
+
+            if (pwd.length === 0) {
+                if (container) container.style.display = 'none';
+            } else {
+                if (container) container.style.display = 'block';
+
+                const len8 = pwd.length >= 8;
+                const hasNum = /\d/.test(pwd);
+                const hasCap = /[A-Z]/.test(pwd);
+                const hasSym = /[^A-Za-z0-9]/.test(pwd);
+
+                const score = [len8, hasNum, hasCap, hasSym].filter(Boolean).length;
+                if (container) container.dataset.score = score;
+                if (scoreEl) scoreEl.textContent = score + '/4';
+
+                const updateChk = (el, passed, text) => {
+                    if (!el) return;
+                    el.className = 'pwd-chk-item' + (passed ? ' passed' : '');
+                    el.innerHTML = passed
+                        ? '<i class="fa-solid fa-circle-check"></i> ' + text
+                        : '<i class="fa-solid fa-circle-dot"></i> ' + text;
+                };
+
+                updateChk(chkLen8, len8, '8+ characters');
+                updateChk(chkNum, hasNum, 'A number');
+                updateChk(chkCap, hasCap, 'A capital letter');
+                updateChk(chkSym, hasSym, 'A symbol');
+
+                const labels = ['Too Weak', 'Weak', 'Fair', 'Good', 'Strong'];
+                const badgeClasses = ['status-weak', 'status-weak', 'status-fair', 'status-good', 'status-strong'];
+
+                if (label) {
+                    label.textContent = 'Strength: ' + (labels[score] || 'Weak');
+                }
+                if (badgeEl) {
+                    badgeEl.className = 'pwd-strength-badge ' + (badgeClasses[score] || 'status-weak');
+                }
+            }
+        }
+
         function showForgotPassword(e) {
             if (e) e.preventDefault();
             const tabsContainer = document.getElementById('auth-tabs');
             const wrapper = document.getElementById('forms-wrapper');
+            const authContainer = document.querySelector('.auth-container');
+            if (authContainer) authContainer.classList.remove('mode-register');
             if (tabsContainer) tabsContainer.style.display = 'none';
             if (wrapper) {
                 wrapper.classList.remove('show-register');
@@ -658,6 +747,8 @@
             const wrapper = document.getElementById('forms-wrapper');
             const tabLogin = document.getElementById('tab-login');
             const tabRegister = document.getElementById('tab-register');
+            const authContainer = document.querySelector('.auth-container');
+            if (authContainer) authContainer.classList.remove('mode-register');
 
             if (tabsContainer) tabsContainer.style.display = 'flex';
             if (wrapper) wrapper.classList.remove('show-forgot', 'show-register');
