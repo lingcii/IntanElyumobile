@@ -5,9 +5,7 @@
         var scrH = (window.screen && window.screen.height) ? window.screen.height : 0;
         var h = Math.max(winH, scrH > 300 ? scrH : winH);
         if (h > 0) {
-            var topH = Math.min(330, Math.max(250, Math.round(h * 0.38)));
             document.documentElement.style.setProperty('--auth-screen-h', h + 'px');
-            document.documentElement.style.setProperty('--auth-top-h', topH + 'px');
         }
     })();
 </script>
@@ -153,7 +151,8 @@
                     <div class="input-group">
                         <i class="fa-solid fa-lock"></i>
                         <input type="password" id="reg-password" class="auth-input" placeholder="Create Password"
-                            required oninput="validateRegisterFormInline()">
+                            required oninput="validateRegisterFormInline()"
+                            onfocus="onPasswordFocus()" onblur="onPasswordBlur()">
                         <i id="reg-password-status-icon" class="fa-solid field-status-icon password-offset"></i>
                         <i class="fa-regular fa-eye password-toggle"
                             onclick="togglePasswordVisibility('reg-password', this)"></i>
@@ -575,11 +574,22 @@
     // =========================================================================
     (function initAuthOfflineStatus() {
         function updateOfflineStatus() {
-            const isOffline = !navigator.onLine || window.isAppOnline === false;
-            const badge = document.getElementById('auth-offline-badge');
-            if (badge) {
-                badge.style.display = isOffline ? 'inline-flex' : 'none';
+            var isOffline = !navigator.onLine || window.isAppOnline === false || window.isOfflineAppMode === true;
+            if (isOffline) {
+                document.body.classList.add('is-offline');
+                document.body.setAttribute('data-offline', 'true');
+            } else {
+                document.body.classList.remove('is-offline');
+                document.body.removeAttribute('data-offline');
             }
+            var badge = document.getElementById('auth-offline-badge');
+            if (badge) {
+                badge.style.setProperty('display', isOffline ? 'inline-flex' : 'none', 'important');
+            }
+            var offlineBtns = document.querySelectorAll('.btn-offline-guest');
+            offlineBtns.forEach(function (btn) {
+                btn.style.setProperty('display', isOffline ? 'flex' : 'none', 'important');
+            });
         }
         updateOfflineStatus();
         window.addEventListener('online', updateOfflineStatus);
@@ -1145,7 +1155,8 @@
             const chkCap = document.getElementById('chk-cap');
             const chkSym = document.getElementById('chk-sym');
 
-            if (pwd.length === 0) {
+            var isFocused = (document.activeElement === pwdEl);
+            if (pwd.length === 0 && !isFocused) {
                 if (pwdIcon) pwdIcon.className = 'fa-solid field-status-icon password-offset';
                 if (container) container.style.display = 'none';
             } else {
@@ -1188,8 +1199,10 @@
 
                 if (score >= 3 && len8) {
                     if (pwdIcon) pwdIcon.className = 'fa-solid fa-circle-check field-status-icon password-offset valid';
-                } else {
+                } else if (pwd.length > 0) {
                     if (pwdIcon) pwdIcon.className = 'fa-solid fa-circle-xmark field-status-icon password-offset invalid';
+                } else {
+                    if (pwdIcon) pwdIcon.className = 'fa-solid field-status-icon password-offset';
                 }
             }
         }
@@ -2200,46 +2213,75 @@
         }, { passive: false });
     })();
 
-    // Freeze and lock Auth viewport height to prevent keyboard squeezing
-    (function freezeAuthLayout() {
-        function applyLockedDimensions() {
-            var winH = window.innerHeight || 0;
-            var scrH = (window.screen && window.screen.height) ? window.screen.height : 0;
-            var storedH = parseInt(sessionStorage.getItem('auth_locked_screen_h') || '0', 10);
-            if (!storedH || winH > storedH) {
-                storedH = Math.max(winH, scrH > 300 ? scrH : winH);
-                try { sessionStorage.setItem('auth_locked_screen_h', storedH); } catch (e) { }
+    // Password Strength Focus Helpers
+    window.onPasswordFocus = function () {
+        var container = document.getElementById('pwd-strength-container');
+        if (container) {
+            container.style.display = 'block';
+            if (typeof window.validateRegisterFormInline === 'function') {
+                window.validateRegisterFormInline();
             }
-            if (storedH > 0) {
-                var topH = Math.min(330, Math.max(250, Math.round(storedH * 0.38)));
-                document.documentElement.style.setProperty('--auth-screen-h', storedH + 'px');
-                document.documentElement.style.setProperty('--auth-top-h', topH + 'px');
-                var container = document.querySelector('.auth-container');
-                if (container) {
-                    container.style.height = storedH + 'px';
-                    container.style.minHeight = storedH + 'px';
-                    container.style.maxHeight = storedH + 'px';
-                }
-                var topEl = document.querySelector('.auth-top');
-                if (topEl) {
-                    topEl.style.height = topH + 'px';
-                    topEl.style.minHeight = topH + 'px';
-                    topEl.style.maxHeight = topH + 'px';
+            setTimeout(function () {
+                try {
+                    container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                } catch (e) { }
+            }, 180);
+        }
+    };
+
+    window.onPasswordBlur = function () {
+        var pwdEl = document.getElementById('reg-password');
+        var container = document.getElementById('pwd-strength-container');
+        if (pwdEl && pwdEl.value.length === 0 && container) {
+            container.style.display = 'none';
+        }
+    };
+
+    // Fluid Keyboard & Visual Viewport Adaptive Engine
+    (function setupKeyboardAdaptiveAuth() {
+        function setKeyboardState(active) {
+            var authContainer = document.querySelector('.auth-container');
+            if (authContainer) {
+                if (active) {
+                    authContainer.classList.add('keyboard-active');
+                    document.body.classList.add('keyboard-open');
+                } else {
+                    authContainer.classList.remove('keyboard-active');
+                    document.body.classList.remove('keyboard-open');
                 }
             }
         }
 
-        applyLockedDimensions();
-        window.addEventListener('resize', function () {
-            var currentH = window.innerHeight || 0;
-            var storedH = parseInt(sessionStorage.getItem('auth_locked_screen_h') || '0', 10);
-            if (currentH > storedH) {
-                applyLockedDimensions();
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener('resize', function () {
+                var screenH = (window.screen && window.screen.height) ? window.screen.height : window.innerHeight;
+                var isKeyboard = window.visualViewport.height < (screenH * 0.76);
+                setKeyboardState(isKeyboard);
+            });
+        }
+
+        document.addEventListener('focusin', function (e) {
+            if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) {
+                setKeyboardState(true);
+                setTimeout(function () {
+                    try {
+                        e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    } catch (err) { }
+                }, 180);
             }
         });
-        window.addEventListener('orientationchange', function () {
-            try { sessionStorage.removeItem('auth_locked_screen_h'); } catch (e) { }
-            setTimeout(applyLockedDimensions, 250);
+
+        document.addEventListener('focusout', function (e) {
+            if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) {
+                setTimeout(function () {
+                    var active = document.activeElement;
+                    if (!active || (active.tagName !== 'INPUT' && active.tagName !== 'TEXTAREA')) {
+                        if (!window.visualViewport || window.visualViewport.height >= (window.innerHeight * 0.76)) {
+                            setKeyboardState(false);
+                        }
+                    }
+                }, 150);
+            }
         });
     })();
 </script>

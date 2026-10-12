@@ -18,9 +18,7 @@
             var scrH = (window.screen && window.screen.height) ? window.screen.height : 0;
             var h = Math.max(winH, scrH > 300 ? scrH : winH);
             if (h > 0) {
-                var topH = Math.min(330, Math.max(250, Math.round(h * 0.38)));
                 document.documentElement.style.setProperty('--auth-screen-h', h + 'px');
-                document.documentElement.style.setProperty('--auth-top-h', topH + 'px');
             }
         })();
     </script>
@@ -111,12 +109,18 @@
             color: #ffffff;
             font-size: 13px;
             font-weight: 700;
-            display: flex;
+            display: none !important; /* Only shown in offline mode */
             align-items: center;
             justify-content: center;
             gap: 9px;
             cursor: pointer;
             transition: background 0.2s, transform 0.1s, border-color 0.2s;
+        }
+
+        body.is-offline .btn-offline-guest,
+        .is-offline .btn-offline-guest,
+        body[data-offline="true"] .btn-offline-guest {
+            display: flex !important;
         }
 
         .btn-offline-guest:active {
@@ -416,7 +420,7 @@
                         <div class="input-group">
                             <i class="fa-solid fa-lock"></i>
                             <input type="password" id="reg-password" class="auth-input" placeholder="Create Password" required
-                                oninput="validateRegisterFormInline()">
+                                oninput="validateRegisterFormInline()" onfocus="onPasswordFocus()" onblur="onPasswordBlur()">
                             <i class="fa-regular fa-eye password-toggle"
                                 onclick="togglePasswordVisibility('reg-password', this)"></i>
                         </div>
@@ -688,7 +692,8 @@
             const chkCap = document.getElementById('chk-cap');
             const chkSym = document.getElementById('chk-sym');
 
-            if (pwd.length === 0) {
+            const isFocused = (document.activeElement === pwdEl);
+            if (pwd.length === 0 && !isFocused) {
                 if (container) container.style.display = 'none';
             } else {
                 if (container) container.style.display = 'block';
@@ -726,6 +731,74 @@
                 }
             }
         }
+
+        function onPasswordFocus() {
+            const container = document.getElementById('pwd-strength-container');
+            if (container) {
+                container.style.display = 'block';
+                validateRegisterFormInline();
+                setTimeout(() => {
+                    try {
+                        container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    } catch (e) { }
+                }, 180);
+            }
+        }
+
+        function onPasswordBlur() {
+            const pwdEl = document.getElementById('reg-password');
+            const container = document.getElementById('pwd-strength-container');
+            if (pwdEl && pwdEl.value.length === 0 && container) {
+                container.style.display = 'none';
+            }
+        }
+
+        (function setupKeyboardAdaptiveAuth() {
+            function setKeyboardState(active) {
+                const authContainer = document.querySelector('.auth-container');
+                if (authContainer) {
+                    if (active) {
+                        authContainer.classList.add('keyboard-active');
+                        document.body.classList.add('keyboard-open');
+                    } else {
+                        authContainer.classList.remove('keyboard-active');
+                        document.body.classList.remove('keyboard-open');
+                    }
+                }
+            }
+
+            if (window.visualViewport) {
+                window.visualViewport.addEventListener('resize', () => {
+                    const screenH = (window.screen && window.screen.height) ? window.screen.height : window.innerHeight;
+                    const isKeyboard = window.visualViewport.height < (screenH * 0.76);
+                    setKeyboardState(isKeyboard);
+                });
+            }
+
+            document.addEventListener('focusin', (e) => {
+                if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) {
+                    setKeyboardState(true);
+                    setTimeout(() => {
+                        try {
+                            e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        } catch (err) { }
+                    }, 180);
+                }
+            });
+
+            document.addEventListener('focusout', (e) => {
+                if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) {
+                    setTimeout(() => {
+                        const active = document.activeElement;
+                        if (!active || (active.tagName !== 'INPUT' && active.tagName !== 'TEXTAREA')) {
+                            if (!window.visualViewport || window.visualViewport.height >= (window.innerHeight * 0.76)) {
+                                setKeyboardState(false);
+                            }
+                        }
+                    }, 150);
+                }
+            });
+        })();
 
         function showForgotPassword(e) {
             if (e) e.preventDefault();
@@ -881,17 +954,34 @@
             }
         }
 
-        window.addEventListener('online', () => {
+        function updateOfflineStatus() {
+            const isOffline = !navigator.onLine || window.isAppOnline === false || window.location.protocol === 'file:';
+            if (isOffline) {
+                document.body.classList.add('is-offline');
+                document.body.setAttribute('data-offline', 'true');
+            } else {
+                document.body.classList.remove('is-offline');
+                document.body.removeAttribute('data-offline');
+            }
+            const badge = document.getElementById('auth-offline-badge');
+            if (badge) {
+                badge.style.setProperty('display', isOffline ? 'inline-flex' : 'none', 'important');
+            }
+            const offlineBtns = document.querySelectorAll('.btn-offline-guest');
+            offlineBtns.forEach(btn => {
+                btn.style.setProperty('display', isOffline ? 'flex' : 'none', 'important');
+            });
             const banner = document.getElementById('online-alert');
-            if (banner) banner.style.display = 'flex';
-        });
+            if (banner) {
+                banner.style.setProperty('display', (!isOffline && window.location.protocol === 'file:') ? 'flex' : 'none', 'important');
+            }
+        }
 
-        window.addEventListener('offline', () => {
-            const banner = document.getElementById('online-alert');
-            if (banner) banner.style.display = 'none';
-        });
+        window.addEventListener('online', updateOfflineStatus);
+        window.addEventListener('offline', updateOfflineStatus);
 
         document.addEventListener('DOMContentLoaded', () => {
+            updateOfflineStatus();
             setTimeout(() => { positionTabGlider(false, false); }, 100);
             window.addEventListener('resize', () => {
                 const wrapper = document.getElementById('forms-wrapper');
@@ -906,11 +996,6 @@
             if (remEmail && emailInput) {
                 emailInput.value = remEmail;
                 if (remChk) remChk.checked = true;
-            }
-
-            if (navigator.onLine) {
-                const banner = document.getElementById('online-alert');
-                if (banner) banner.style.display = 'flex';
             }
         });
     </script>

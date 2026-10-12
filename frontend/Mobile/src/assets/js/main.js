@@ -2942,21 +2942,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
             try { sessionStorage.setItem('auth_locked_screen_h', storedH); } catch (e) { }
         }
         if (storedH > 0) {
-            const topH = Math.min(330, Math.max(250, Math.round(storedH * 0.38)));
             document.documentElement.style.setProperty('--auth-screen-h', storedH + 'px');
-            document.documentElement.style.setProperty('--auth-top-h', topH + 'px');
-            const container = document.querySelector('.auth-container');
-            if (container) {
-                container.style.height = storedH + 'px';
-                container.style.minHeight = storedH + 'px';
-                container.style.maxHeight = storedH + 'px';
-            }
-            const topEl = document.querySelector('.auth-top');
-            if (topEl) {
-                topEl.style.height = topH + 'px';
-                topEl.style.minHeight = topH + 'px';
-                topEl.style.maxHeight = topH + 'px';
-            }
         }
     };
 
