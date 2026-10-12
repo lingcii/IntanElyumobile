@@ -151,7 +151,7 @@
                     <div class="input-group">
                         <i class="fa-solid fa-lock"></i>
                         <input type="password" id="reg-password" class="auth-input" placeholder="Create Password"
-                            required oninput="validateRegisterFormInline()"
+                            autocomplete="off" required oninput="validateRegisterFormInline()"
                             onfocus="onPasswordFocus()" onblur="onPasswordBlur()">
                         <i id="reg-password-status-icon" class="fa-solid field-status-icon password-offset"></i>
                         <i class="fa-regular fa-eye password-toggle"
@@ -2237,50 +2237,15 @@
         }
     };
 
-    // Fluid Keyboard & Visual Viewport Adaptive Engine
+    // Keep login layout 100% intact with splash branding without shrinking header or logo
     (function setupKeyboardAdaptiveAuth() {
-        function setKeyboardState(active) {
-            var authContainer = document.querySelector('.auth-container');
-            if (authContainer) {
-                if (active) {
-                    authContainer.classList.add('keyboard-active');
-                    document.body.classList.add('keyboard-open');
-                } else {
-                    authContainer.classList.remove('keyboard-active');
-                    document.body.classList.remove('keyboard-open');
-                }
-            }
-        }
-
-        if (window.visualViewport) {
-            window.visualViewport.addEventListener('resize', function () {
-                var screenH = (window.screen && window.screen.height) ? window.screen.height : window.innerHeight;
-                var isKeyboard = window.visualViewport.height < (screenH * 0.76);
-                setKeyboardState(isKeyboard);
-            });
-        }
-
         document.addEventListener('focusin', function (e) {
             if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) {
-                setKeyboardState(true);
                 setTimeout(function () {
                     try {
-                        e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        e.target.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                     } catch (err) { }
                 }, 180);
-            }
-        });
-
-        document.addEventListener('focusout', function (e) {
-            if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) {
-                setTimeout(function () {
-                    var active = document.activeElement;
-                    if (!active || (active.tagName !== 'INPUT' && active.tagName !== 'TEXTAREA')) {
-                        if (!window.visualViewport || window.visualViewport.height >= (window.innerHeight * 0.76)) {
-                            setKeyboardState(false);
-                        }
-                    }
-                }, 150);
             }
         });
     })();

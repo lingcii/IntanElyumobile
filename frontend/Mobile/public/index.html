@@ -32,20 +32,15 @@
 
         html, body {
             background: #74a3cf !important;
-            overflow: hidden !important;
-            height: 100% !important;
-            height: var(--auth-screen-h, 100vh) !important;
-            min-height: var(--auth-screen-h, 100vh) !important;
-            max-height: var(--auth-screen-h, 100vh) !important;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
+            margin: 0;
+            padding: 0;
             width: 100%;
+            min-height: 100%;
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             color: #ffffff;
-            overscroll-behavior: none !important;
+            overflow-x: hidden !important;
+            overflow-y: auto !important;
+            -webkit-overflow-scrolling: touch;
         }
 
         /* Online Alert Banner */
@@ -420,7 +415,7 @@
                         <div class="input-group">
                             <i class="fa-solid fa-lock"></i>
                             <input type="password" id="reg-password" class="auth-input" placeholder="Create Password" required
-                                oninput="validateRegisterFormInline()" onfocus="onPasswordFocus()" onblur="onPasswordBlur()">
+                                autocomplete="off" oninput="validateRegisterFormInline()" onfocus="onPasswordFocus()" onblur="onPasswordBlur()">
                             <i class="fa-regular fa-eye password-toggle"
                                 onclick="togglePasswordVisibility('reg-password', this)"></i>
                         </div>
@@ -754,48 +749,14 @@
         }
 
         (function setupKeyboardAdaptiveAuth() {
-            function setKeyboardState(active) {
-                const authContainer = document.querySelector('.auth-container');
-                if (authContainer) {
-                    if (active) {
-                        authContainer.classList.add('keyboard-active');
-                        document.body.classList.add('keyboard-open');
-                    } else {
-                        authContainer.classList.remove('keyboard-active');
-                        document.body.classList.remove('keyboard-open');
-                    }
-                }
-            }
-
-            if (window.visualViewport) {
-                window.visualViewport.addEventListener('resize', () => {
-                    const screenH = (window.screen && window.screen.height) ? window.screen.height : window.innerHeight;
-                    const isKeyboard = window.visualViewport.height < (screenH * 0.76);
-                    setKeyboardState(isKeyboard);
-                });
-            }
-
+            // Keep login layout 100% intact with splash branding without shrinking header or logo
             document.addEventListener('focusin', (e) => {
                 if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) {
-                    setKeyboardState(true);
                     setTimeout(() => {
                         try {
-                            e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            e.target.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                         } catch (err) { }
                     }, 180);
-                }
-            });
-
-            document.addEventListener('focusout', (e) => {
-                if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) {
-                    setTimeout(() => {
-                        const active = document.activeElement;
-                        if (!active || (active.tagName !== 'INPUT' && active.tagName !== 'TEXTAREA')) {
-                            if (!window.visualViewport || window.visualViewport.height >= (window.innerHeight * 0.76)) {
-                                setKeyboardState(false);
-                            }
-                        }
-                    }, 150);
                 }
             });
         })();
