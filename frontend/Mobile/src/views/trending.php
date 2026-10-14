@@ -27,6 +27,12 @@ if (is_dir($imgDir)) {
 
 <div class="trending-page-container has-header animate-slide-up">
 
+    <!-- Offline Status Banner -->
+    <div id="trending-offline-pill" style="display: none; align-items: center; justify-content: center; gap: 8px; margin: 0 auto 14px auto; padding: 7px 16px; border-radius: 100px; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.35); color: #d97706; font-size: 11.5px; font-weight: 800; text-align: center; width: fit-content;">
+        <i class="fa-solid fa-cloud-slash" style="color: #f59e0b;"></i>
+        <span>Offline Mode &bull; Cached Destination Catalog</span>
+    </div>
+
     <!-- Segmented Tab Switcher: All Tourist Sites on Left, Trending Sites on Right -->
     <div class="trending-segmented-wrap" id="trending-segmented-wrap">
         <div class="trending-seg-slider" id="trending-seg-slider"></div>
@@ -582,6 +588,19 @@ if (is_dir($imgDir)) {
                 fetchAllData(mustForce);
             }
         });
+
+        function updateTrendingOfflineStatus() {
+            var pill = document.getElementById('trending-offline-pill');
+            var isOffline = !navigator.onLine || window.isAppOnline === false;
+            if (pill) {
+                pill.style.display = isOffline ? 'inline-flex' : 'none';
+            }
+        }
+        window.addEventListener('online', updateTrendingOfflineStatus);
+        window.addEventListener('offline', updateTrendingOfflineStatus);
+        window.addEventListener('appOnline', updateTrendingOfflineStatus);
+        window.addEventListener('appOffline', updateTrendingOfflineStatus);
+        setTimeout(updateTrendingOfflineStatus, 100);
 
         fetchAllData();
     })();

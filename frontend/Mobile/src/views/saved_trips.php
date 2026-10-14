@@ -10,6 +10,11 @@ $backRoute = 'itinerary';
 
 <!-- Saved Trips Container -->
 <div class="saved-trips-page-container has-header animate-slide-up">
+    <!-- Offline Status Badge -->
+    <div id="saved-trips-offline-badge" style="display: none; align-items: center; justify-content: center; gap: 8px; margin: 0 auto 14px auto; padding: 7px 16px; border-radius: 100px; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.35); color: #d97706; font-size: 11.5px; font-weight: 800; text-align: center; width: fit-content;">
+        <i class="fa-solid fa-cloud-slash" style="color: #f59e0b;"></i>
+        <span>Offline Mode &bull; Cached Trips & Queued Check-ins</span>
+    </div>
     <div id="saved-trips-list">
         <!-- Fetched saved trips will be injected here -->
         <p style="text-align:center; color:#999; margin-top: 20px;">
@@ -205,7 +210,7 @@ $backRoute = 'itinerary';
             }
 
             const cacheKey = 'saved_trips_' + token.substring(0, 10);
-            const fetchCache = (typeof window.useCache === 'function') ? window.useCache : (async (key, fetcher, renderer) => {
+            const fetchCache = (typeof window.useCache === 'function') ? window.useCache : (async (key, fetcher, renderer, forceRefresh) => {
                 try {
                     const d = await fetcher();
                     if (typeof renderer === 'function') renderer(d);
@@ -467,9 +472,10 @@ $backRoute = 'itinerary';
                                 if (!item) return;
                                 const dest = item.destination;
                                 const isVisited = Boolean(item.is_visited || item.proof_status === 'approved');
-                                const isPending = Boolean(item.proof_image && (item.proof_status === 'pending' || !item.proof_status));
+                                const isPending = (item.proof_status === 'pending') || Boolean(item.proof_image && !item.is_visited);
                                 const isRejected = (item.proof_status === 'rejected');
-                                const isQueued = Boolean(window.OfflineCheckinManager && window.OfflineCheckinManager.isItemQueued(item.id));
+                                const queuedItem = window.OfflineCheckinManager ? window.OfflineCheckinManager.getQueuedItem(item.id) : null;
+                                const isQueued = Boolean(queuedItem);
                                 const isNextStop = (!isVisited && !isPending && !isQueued && index === firstUnvisitedIdx);
                                 if (!isVisited && !isQueued) unvisitedCount++;
 
@@ -480,8 +486,21 @@ $backRoute = 'itinerary';
                                         let b = (window.backendUrl || '').replace(/\/+$/, '');
                                         pUrl = b + '/' + pUrl.replace(/^\//, '');
                                     }
-                                    let fallbackUrl = (window.backendUrl || '').replace(/\/+$/, '') + '/api/image/' + item.proof_image.replace(/^\//, '');
-                                    proofImgHtml = `<img src="${pUrl}" onerror="if(this.src!=='${fallbackUrl}'){this.src='${fallbackUrl}';}" alt="Proof" style="width:52px; height:52px; border-radius:10px; object-fit:cover; border:none !important; outline:none !important; box-shadow:0 4px 12px rgba(0,0,0,0.3); flex-shrink:0;">`;
+                                    const cleanImgName = item.proof_image.split('/').pop().replace(/[?#].*$/, '');
+                                    let fallbackUrl = (window.backendUrl || '').replace(/\/+$/, '') + '/api/image/proof_images/' + cleanImgName;
+                                    const destEscaped = (dest && dest.name) ? dest.name.replace(/'/g, "\\'") : 'Destination';
+                                    proofImgHtml = `<img src="${pUrl}" onerror="if(this.dataset.triedFallback!=='1'){this.dataset.triedFallback='1';this.src='${fallbackUrl}';}" onclick="event.stopPropagation(); if(typeof window.viewProofPhotoModal==='function') window.viewProofPhotoModal('${pUrl}', '${destEscaped}', '${isVisited ? 'Verified Visit Proof' : 'Pending Verification'}');" alt="Proof" title="Tap to view proof photo" style="width:52px; height:52px; border-radius:10px; object-fit:cover; border:none !important; outline:none !important; box-shadow:0 4px 12px rgba(0,0,0,0.3); flex-shrink:0; cursor:pointer;">`;
+                                }
+
+                                let queuedThumbnailHtml = '';
+                                if (isQueued && queuedItem) {
+                                    const qSrc = queuedItem.previewUrl || '';
+                                    const destEscaped = (dest && dest.name) ? dest.name.replace(/'/g, "\\'") : 'Destination';
+                                    if (qSrc) {
+                                        queuedThumbnailHtml = `<img src="${qSrc}" onclick="event.stopPropagation(); if(typeof window.viewProofPhotoModal==='function') window.viewProofPhotoModal('${qSrc}', '${destEscaped}', 'Offline Proof (Queued on Device)');" alt="Proof" title="Tap to view offline proof photo" style="width:52px; height:52px; border-radius:10px; object-fit:cover; border:2px solid #f59e0b !important; outline:none !important; box-shadow:0 4px 12px rgba(0,0,0,0.3); flex-shrink:0; cursor:pointer;">`;
+                                    } else {
+                                        queuedThumbnailHtml = `<div style="width:52px; height:52px; border-radius:10px; background:rgba(245,158,11,0.2); border:1.5px dashed #f59e0b; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#fbbf24; flex-shrink:0;"><i class="fa-solid fa-camera" style="font-size:16px;"></i><span style="font-size:8px; font-weight:800; margin-top:2px;">OFFLINE</span></div>`;
+                                    }
                                 }
 
                                 const sClass = (dest && dest.classification_status) ? dest.classification_status : '';
@@ -562,11 +581,12 @@ $backRoute = 'itinerary';
                                                 </div>` :
                                             (isQueued ?
                                                 `<div style="display:flex; align-items:center; gap:10px; margin-top:4px;">
+                                                        ${queuedThumbnailHtml}
                                                         <div>
                                                             <span style="background:rgba(245,158,11,0.25); border:none !important; outline:none !important; color:#fbbf24; font-size:11px; font-weight:800; padding:3px 10px; border-radius:100px; display:inline-flex; align-items:center; gap:4px;">
                                                                 <i class="fa-solid fa-clock-rotate-left"></i> Queued for Sync (Offline)
                                                             </span>
-                                                            <span style="font-size:10px; color:#ffffff; opacity:0.85; display:block; margin-top:4px;"><i class="fa-solid fa-camera" style="color:#fbbf24; margin-right:4px;"></i>Photo proof saved &bull; Auto-syncs when online</span>
+                                                            <span style="font-size:10px; color:#ffffff; opacity:0.85; display:block; margin-top:4px;"><i class="fa-solid fa-camera" style="color:#fbbf24; margin-right:4px;"></i>Photo proof saved on device &bull; Auto-syncs when online</span>
                                                         </div>
                                                     </div>` :
                                             (isPending ?
@@ -576,7 +596,7 @@ $backRoute = 'itinerary';
                                                             <span style="background:rgba(255,149,0,0.2); border:none !important; outline:none !important; color:#FF9500; font-size:11px; font-weight:800; padding:3px 10px; border-radius:100px; display:inline-flex; align-items:center; gap:4px;">
                                                                 <i class="fa-solid fa-clock"></i> Pending Review
                                                             </span>
-                                                            <span style="font-size:10px; color:#ffffff; opacity:0.8; display:block; margin-top:4px;">Awaiting Approval</span>
+                                                            <span style="font-size:10px; color:#ffffff; opacity:0.8; display:block; margin-top:4px;">Proof submitted &bull; Awaiting approval</span>
                                                         </div>
                                                     </div>` :
                                                 `<button class="btn-primary" style="padding: 8px 14px; font-size:12px; font-weight:800; width:max-content; border-radius:100px; background: linear-gradient(135deg, #00f2fe, #0284c7); border:none !important; outline:none !important; box-shadow: none; color:#fff; cursor:pointer;" onclick="window.openCheckinModal('${item.id}')">
@@ -737,6 +757,30 @@ $backRoute = 'itinerary';
                 btn.disabled = true;
             }
             const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+
+            // 1. Fast offline completion
+            if (!navigator.onLine || window.isAppOnline === false) {
+                if (window.OfflineCompletedTripsManager) {
+                    window.OfflineCompletedTripsManager.queueCompletion(tripId);
+                }
+                if (typeof showToast === 'function') {
+                    showToast('🎉 Congratulations! Trip completed offline. Will sync with servers when online.', 'success', 5000);
+                }
+                if (window.confetti) {
+                    window.confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+                }
+                if (token) {
+                    localStorage.removeItem('saved_trips_' + token.substring(0, 10));
+                    localStorage.removeItem('dashboard_trips_' + token.substring(0, 10));
+                }
+                setTimeout(() => {
+                    if (typeof window.fetchSavedTrips === 'function') {
+                        window.fetchSavedTrips(true);
+                    }
+                }, 600);
+                return;
+            }
+
             try {
                 const response = await fetch(backendUrl + '/api/tourist/itineraries/' + tripId + '/complete', {
                     method: 'PATCH',
@@ -773,7 +817,26 @@ $backRoute = 'itinerary';
                     }
                 }
             } catch (e) {
-                console.error('Error completing trip:', e);
+                console.error('Error completing trip, queuing offline:', e);
+                if (window.OfflineCompletedTripsManager) {
+                    window.OfflineCompletedTripsManager.queueCompletion(tripId);
+                    if (typeof showToast === 'function') {
+                        showToast('🎉 Congratulations! Trip completed offline. Will sync with servers when online.', 'success', 5000);
+                    }
+                    if (window.confetti) {
+                        window.confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+                    }
+                    if (token) {
+                        localStorage.removeItem('saved_trips_' + token.substring(0, 10));
+                        localStorage.removeItem('dashboard_trips_' + token.substring(0, 10));
+                    }
+                    setTimeout(() => {
+                        if (typeof window.fetchSavedTrips === 'function') {
+                            window.fetchSavedTrips(true);
+                        }
+                    }, 600);
+                    return;
+                }
                 if (typeof showToast === 'function') showToast('Network error. Please try again.');
                 if (btn) {
                     btn.innerHTML = '<i class="fa-solid fa-flag-checkered" style="margin-right:6px;"></i> Complete';
@@ -1142,6 +1205,35 @@ $backRoute = 'itinerary';
             if (!id) return;
 
             window.closeCompleteTripModal();
+            const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+
+            if (!navigator.onLine || window.isAppOnline === false) {
+                if (window.OfflineCompletedTripsManager) {
+                    window.OfflineCompletedTripsManager.queueCompletion(id);
+                }
+                if (typeof showToast === 'function') {
+                    showToast("🎉 Trip completed offline! Will sync with servers when online.", "success", 5000);
+                }
+                if (window.confetti) {
+                    window.confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+                }
+                const tripCard = document.querySelector(`.trip-swipe-container[data-trip-id="${id}"]`);
+                if (tripCard) {
+                    tripCard.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                    tripCard.style.opacity = '0';
+                    tripCard.style.transform = 'translateY(-10px) scale(0.95)';
+                    setTimeout(() => {
+                        tripCard.remove();
+                    }, 300);
+                }
+                if (token) {
+                    const tokenKey = token.substring(0, 10);
+                    localStorage.removeItem('saved_trips_' + tokenKey);
+                    localStorage.removeItem('dashboard_trips_' + tokenKey);
+                }
+                window.fetchSavedTrips(true);
+                return;
+            }
 
             try {
                 const response = await fetch(backendUrl + '/api/tourist/itineraries/' + id + '/complete', {
@@ -1156,6 +1248,9 @@ $backRoute = 'itinerary';
                 const data = await response.json();
                 if (response.ok) {
                     if (typeof showToast === 'function') showToast(data.message || "Trip completed!");
+                    if (window.confetti) {
+                        window.confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+                    }
 
                     // Immediately animate out and remove completed trip card from DOM
                     const tripCard = document.querySelector(`.trip-swipe-container[data-trip-id="${id}"]`);
@@ -1173,7 +1268,6 @@ $backRoute = 'itinerary';
                     }
 
                     // Invalidate cache and refetch saved trips
-                    const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
                     if (token) {
                         const tokenKey = token.substring(0, 10);
                         localStorage.removeItem('saved_trips_' + tokenKey);
@@ -1192,7 +1286,23 @@ $backRoute = 'itinerary';
                     if (typeof showToast === 'function') showToast(data.message || "Failed to complete trip.");
                 }
             } catch (error) {
-                console.error("Error completing trip:", error);
+                console.error("Error completing trip, queuing offline:", error);
+                if (window.OfflineCompletedTripsManager) {
+                    window.OfflineCompletedTripsManager.queueCompletion(id);
+                    if (typeof showToast === 'function') {
+                        showToast("🎉 Trip completed offline! Will sync with servers when online.", "success", 5000);
+                    }
+                    if (window.confetti) {
+                        window.confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+                    }
+                    if (token) {
+                        const tokenKey = token.substring(0, 10);
+                        localStorage.removeItem('saved_trips_' + tokenKey);
+                        localStorage.removeItem('dashboard_trips_' + tokenKey);
+                    }
+                    window.fetchSavedTrips(true);
+                    return;
+                }
                 if (typeof showToast === 'function') showToast("Network error.");
             }
         };
@@ -1673,6 +1783,19 @@ $backRoute = 'itinerary';
                     window.fetchSavedTrips(true);
                 }
             });
+
+            function updateSavedTripsOfflineStatus() {
+                var badge = document.getElementById('saved-trips-offline-badge');
+                var isOffline = !navigator.onLine || window.isAppOnline === false;
+                if (badge) {
+                    badge.style.display = isOffline ? 'inline-flex' : 'none';
+                }
+            }
+            window.addEventListener('online', updateSavedTripsOfflineStatus);
+            window.addEventListener('offline', updateSavedTripsOfflineStatus);
+            window.addEventListener('appOnline', updateSavedTripsOfflineStatus);
+            window.addEventListener('appOffline', updateSavedTripsOfflineStatus);
+            setTimeout(updateSavedTripsOfflineStatus, 100);
         }
 
     })();

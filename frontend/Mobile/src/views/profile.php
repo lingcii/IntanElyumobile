@@ -9,6 +9,11 @@ $activeTab = 'profile';
 
 <div class="profile-container has-header has-bottom-nav animate-slide-up">
 
+    <!-- Offline status badge -->
+    <div id="profile-offline-badge" style="display: none; background: #fffbeb; border: 1px solid #fde68a; color: #b45309; padding: 7px 12px; border-radius: 12px; font-size: 11px; font-weight: 700; margin-bottom: 14px; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.04);">
+        <i class="fa-solid fa-cloud-arrow-down" style="margin-right: 5px;"></i> Browsing Offline Profile (Cached)
+    </div>
+
     <!-- Profile Main Header Card -->
     <div class="profile-header stagger-1"
         style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border: none; outline: none; border-radius: 24px; padding: 24px 20px; text-align: center; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25); margin-bottom: 20px;">
@@ -859,6 +864,13 @@ $activeTab = 'profile';
 
         if (!confirm(`Redeem '${title}' for ${cost} Points?`)) return;
 
+        if (!navigator.onLine || window.isAppOnline === false) {
+            if (typeof showToast === 'function') {
+                showToast("Voucher redemption requires an active internet connection to generate your official pass.");
+            }
+            return;
+        }
+
         try {
             const response = await fetch(backendUrl + '/api/tourist/points/redeem-voucher', {
                 method: 'POST',
@@ -923,6 +935,13 @@ $activeTab = 'profile';
         }
 
         if (!confirm(`Are you sure you want to redeem this reward for ${cost} Points?`)) return;
+
+        if (!navigator.onLine || window.isAppOnline === false) {
+            if (typeof showToast === 'function') {
+                showToast("Reward redemption requires an active internet connection.");
+            }
+            return;
+        }
 
         try {
             const response = await fetch(backendUrl + '/api/tourist/points/redeem', {
@@ -1756,6 +1775,17 @@ $activeTab = 'profile';
             fetchPointsAndVouchers(true);
         }
     });
+
+    // Offline Indicator Status Management
+    function updateProfileOfflineStatus() {
+        const badge = document.getElementById('profile-offline-badge');
+        const isOff = !navigator.onLine || window.isAppOnline === false;
+        if (badge) badge.style.display = isOff ? 'block' : 'none';
+    }
+    window.addEventListener('online', updateProfileOfflineStatus);
+    window.addEventListener('offline', updateProfileOfflineStatus);
+    window.addEventListener('app-connection-changed', updateProfileOfflineStatus);
+    setTimeout(updateProfileOfflineStatus, 150);
 
     hydrateProfileFromCache();
     fetchProfileData();

@@ -11,6 +11,12 @@ include_once __DIR__ . '/../components/testimony_modal.php';
 <div id="trip-conveyor-wrapper"
     style="position: absolute; bottom: max(env(safe-area-inset-bottom), 16px); left: 0; right: 0; z-index: 1000; display: flex; flex-direction: column; align-items: center; gap: 12px; pointer-events: none; width: 100%; box-sizing: border-box; overflow: hidden;">
 
+    <!-- Offline Navigation Status Pill -->
+    <div id="trip-offline-badge"
+        style="display: none; align-self: center; background: rgba(245, 158, 11, 0.22); border: 1px solid rgba(245, 158, 11, 0.45); border-radius: 100px; padding: 5px 14px; color: #fbbf24; font-size: 11px; font-weight: 800; gap: 6px; align-items: center; pointer-events: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
+        <i class="fa-solid fa-cloud-slash"></i> Offline Navigation &bull; Geodesic Mode
+    </div>
+
     <!-- Trip Overview Summary Header Pill -->
     <div id="trip-summary-pill"
         style="align-self: center; background: linear-gradient(135deg, rgba(30, 58, 138, 0.96) 0%, rgba(63, 125, 183, 0.94) 100%); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: none !important; outline: none !important; border-radius: 100px; padding: 7px 16px; display: flex; align-items: center; gap: 12px; box-shadow: 0 10px 28px rgba(10, 25, 60, 0.35); pointer-events: auto;">
@@ -425,9 +431,10 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                 const lat = parseFloat(dest.lat || dest.latitude);
                 const lng = parseFloat(dest.lng || dest.longitude);
                 const isVisited = Boolean(item.is_visited || item.proof_status === 'approved');
-                const isPending = Boolean(item.proof_image && (item.proof_status === 'pending' || !item.proof_status));
+                const isPending = (item.proof_status === 'pending') || Boolean(item.proof_image && !item.is_visited);
                 const isRejected = (item.proof_status === 'rejected');
-                const isQueued = Boolean(window.OfflineCheckinManager && window.OfflineCheckinManager.isItemQueued(item.id));
+                const queuedItem = window.OfflineCheckinManager ? window.OfflineCheckinManager.getQueuedItem(item.id) : null;
+                const isQueued = Boolean(queuedItem);
                 const isActive = idx === activeIndex;
 
                 let badgeHtml = '';
@@ -452,13 +459,29 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                         let b = (window.backendUrl || '').replace(/\/+$/, '');
                         pUrl = b + '/' + pUrl.replace(/^\//, '');
                     }
-                    let fallbackUrl = (window.backendUrl || '').replace(/\/+$/, '') + '/api/image/' + item.proof_image.replace(/^\//, '');
-                    proofThumbnail = `<img src="${pUrl}" onerror="if(this.src!=='${fallbackUrl}'){this.src='${fallbackUrl}';}" alt="Proof" style="width:34px; height:34px; border-radius:8px; object-fit:cover; border:none !important; box-shadow:none !important; flex-shrink:0;">`;
+                    const cleanImgName = item.proof_image.split('/').pop().replace(/[?#].*$/, '');
+                    let fallbackUrl = (window.backendUrl || '').replace(/\/+$/, '') + '/api/image/proof_images/' + cleanImgName;
+                    const destEscaped = (dest && dest.name) ? dest.name.replace(/'/g, "\\'") : 'Destination';
+                    proofThumbnail = `<img src="${pUrl}" onerror="if(this.dataset.triedFallback!=='1'){this.dataset.triedFallback='1';this.src='${fallbackUrl}';}" onclick="event.stopPropagation(); if(typeof window.viewProofPhotoModal==='function') window.viewProofPhotoModal('${pUrl}', '${destEscaped}', '${isVisited ? 'Verified Visit Proof' : 'Pending Verification'}');" alt="Proof" title="Tap to view proof photo" style="width:34px; height:34px; border-radius:8px; object-fit:cover; border:none !important; box-shadow:none !important; flex-shrink:0; cursor:pointer;">`;
+                }
+
+                let queuedThumbnail = '';
+                if (isQueued && queuedItem) {
+                    const qSrc = queuedItem.previewUrl || '';
+                    const destEscaped = (dest && dest.name) ? dest.name.replace(/'/g, "\\'") : 'Destination';
+                    if (qSrc) {
+                        queuedThumbnail = `<img src="${qSrc}" onclick="event.stopPropagation(); if(typeof window.viewProofPhotoModal==='function') window.viewProofPhotoModal('${qSrc}', '${destEscaped}', 'Offline Proof (Queued on Device)');" alt="Proof" title="Tap to view offline proof photo" style="width:34px; height:34px; border-radius:8px; object-fit:cover; border:1.5px solid #f59e0b !important; box-shadow:none !important; flex-shrink:0; cursor:pointer;">`;
+                    } else {
+                        queuedThumbnail = `<div style="width:34px; height:34px; border-radius:8px; background:rgba(245,158,11,0.2); border:1px dashed #f59e0b; display:flex; align-items:center; justify-content:center; color:#fbbf24; flex-shrink:0;"><i class="fa-solid fa-camera" style="font-size:12px;"></i></div>`;
+                    }
                 }
 
                 let actionBtnHtml = '';
                 if (isQueued) {
-                    actionBtnHtml = `<span style="background:rgba(245,158,11,0.25); border:none !important; outline:none !important; color:#fde68a; font-weight:800; font-size:10.5px; padding:3px 8px; border-radius:100px; display:inline-flex; align-items:center; gap:4px; white-space:nowrap;"><i class="fa-solid fa-cloud-arrow-up"></i> Queued (Offline)</span>`;
+                    actionBtnHtml = `<div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
+                        ${queuedThumbnail}
+                        <span style="background:rgba(245,158,11,0.25); border:none !important; outline:none !important; color:#fde68a; font-weight:800; font-size:10.5px; padding:3px 8px; border-radius:100px; display:inline-flex; align-items:center; gap:4px; white-space:nowrap;"><i class="fa-solid fa-cloud-arrow-up"></i> Queued (Offline)</span>
+                    </div>`;
                 } else if (isVisited) {
                     const sId = item.tourist_spot_id || (item.destination ? item.destination.id : '');
                     const isReviewed = sId && window.userReviewedSpotIds && window.userReviewedSpotIds.has(Number(sId));
@@ -962,7 +985,58 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                                 }
                             }
                         }).catch(e => {
-                            console.error("Trip routing error", e);
+                            console.warn("Trip online routing failed, using geodesic route fallback:", e);
+                            try {
+                                const directCoords = coords.map(c => c.split(',').map(Number));
+                                if (directCoords.length >= 2) {
+                                    const geojson = {
+                                        'type': 'Feature',
+                                        'geometry': {
+                                            'type': 'LineString',
+                                            'coordinates': directCoords
+                                        }
+                                    };
+
+                                    let totalDistKm = 0;
+                                    function getLocalHaversineKm(lat1, lon1, lat2, lon2) {
+                                        const R = 6371;
+                                        const dLat = (lat2 - lat1) * Math.PI / 180;
+                                        const dLon = (lon2 - lon1) * Math.PI / 180;
+                                        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                                            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                                            Math.sin(dLon / 2) * Math.sin(dLon / 2);
+                                        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+                                    }
+
+                                    for (let i = 0; i < directCoords.length - 1; i++) {
+                                        totalDistKm += getLocalHaversineKm(directCoords[i][1], directCoords[i][0], directCoords[i + 1][1], directCoords[i + 1][0]);
+                                    }
+
+                                    const speed = activeVehicle.speedKmH || 35;
+                                    const durationMin = Math.max(5, Math.round((totalDistKm / speed) * 60));
+
+                                    window.setTxt('trip-info-distance', totalDistKm.toFixed(1) + ' km (direct)');
+                                    window.setTxt('trip-info-time', durationMin + ' mins');
+
+                                    if (tripMap.getSource('route')) {
+                                        tripMap.getSource('route').setData(geojson);
+                                        tripMap.setPaintProperty('route-line', 'line-color', '#f59e0b');
+                                        tripMap.setPaintProperty('route-line', 'line-dasharray', [2, 2]);
+                                    } else {
+                                        tripMap.addSource('route', { 'type': 'geojson', 'data': geojson });
+                                        tripMap.addLayer({
+                                            'id': 'route-line',
+                                            'type': 'line',
+                                            'source': 'route',
+                                            'layout': { 'line-join': 'round', 'line-cap': 'round' },
+                                            'paint': { 'line-color': '#f59e0b', 'line-width': 4, 'line-dasharray': [2, 2], 'line-opacity': 0.85 }
+                                        });
+                                    }
+                                    return;
+                                }
+                            } catch (fallbackErr) {
+                                console.error('Geodesic route fallback failed:', fallbackErr);
+                            }
                             const distEl = document.getElementById('trip-info-distance');
                             const timeEl = document.getElementById('trip-info-time');
                             if (distEl) distEl.textContent = "N/A";
@@ -1186,6 +1260,41 @@ include_once __DIR__ . '/../components/testimony_modal.php';
 
 
             const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+
+            // Immediate fast offline check-in queueing
+            if (!navigator.onLine || window.isAppOnline === false) {
+                if (window.OfflineCheckinManager) {
+                    try {
+                        const targetItem = (window.currentTrip && window.currentTrip.items)
+                            ? window.currentTrip.items.find(i => String(i.id) === String(itemId))
+                            : null;
+                        const sName = (targetItem && targetItem.destination && targetItem.destination.name) ? targetItem.destination.name : 'Destination';
+
+                        await window.OfflineCheckinManager.queueOfflineCheckin({
+                            type: 'itinerary',
+                            itemId: itemId,
+                            spotName: sName,
+                            lat: lat,
+                            lng: lng,
+                            accuracy: window.lastGpsAccuracy || null,
+                            image: imageFile,
+                            imageFile: imageFile,
+                            capturedAt: capturedAt
+                        });
+                        closeCheckinModal();
+                        if (typeof showToast === 'function') {
+                            showToast('📴 Offline: Check-in & photo queued locally! Will auto-sync when online.', 'info', 5000);
+                        }
+                        const promptCard = document.getElementById('checkin-prompt-card');
+                        if (promptCard) promptCard.style.display = 'none';
+                        loadTripData();
+                        return;
+                    } catch (e) {
+                        console.error('Immediate offline check-in failed:', e);
+                    }
+                }
+            }
+
             const formData = new FormData();
             formData.append('lat', lat);
             formData.append('lng', lng);
@@ -1228,10 +1337,18 @@ include_once __DIR__ . '/../components/testimony_modal.php';
 
                 if (window.OfflineCheckinManager) {
                     try {
+                        const targetItem = (window.currentTrip && window.currentTrip.items)
+                            ? window.currentTrip.items.find(i => String(i.id) === String(itemId))
+                            : null;
+                        const sName = (targetItem && targetItem.destination && targetItem.destination.name) ? targetItem.destination.name : 'Destination';
+
                         await window.OfflineCheckinManager.queueOfflineCheckin({
+                            type: 'itinerary',
                             itemId: itemId,
+                            spotName: sName,
                             lat: lat,
                             lng: lng,
+                            accuracy: window.lastGpsAccuracy || null,
                             image: imageFile,
                             imageFile: imageFile,
                             capturedAt: capturedAt
@@ -1331,6 +1448,19 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                 if (icon) icon.className = origClass || 'fa-solid fa-location-crosshairs';
             }
         };
+
+        function updateTripOfflineStatus() {
+            var pill = document.getElementById('trip-offline-badge');
+            var isOffline = !navigator.onLine || window.isAppOnline === false;
+            if (pill) {
+                pill.style.display = isOffline ? 'inline-flex' : 'none';
+            }
+        }
+        window.addEventListener('online', updateTripOfflineStatus);
+        window.addEventListener('offline', updateTripOfflineStatus);
+        window.addEventListener('appOnline', updateTripOfflineStatus);
+        window.addEventListener('appOffline', updateTripOfflineStatus);
+        setTimeout(updateTripOfflineStatus, 100);
 
         initTripMap();
     })();

@@ -6,6 +6,11 @@ $backRoute = 'profile';
 <?php include __DIR__ . '/../components/header.php'; ?>
 
 <div class="edit-profile-container has-header animate-slide-up">
+    <!-- Offline Status Badge -->
+    <div id="edit-profile-offline-badge" style="display: none; align-items: center; justify-content: center; gap: 8px; margin: 0 auto 16px auto; padding: 7px 16px; border-radius: 100px; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.35); color: #d97706; font-size: 11.5px; font-weight: 800; text-align: center; width: fit-content;">
+        <i class="fa-solid fa-cloud-slash" style="color: #f59e0b;"></i>
+        <span>Offline Mode &bull; Edits will save locally and sync when online</span>
+    </div>
     <div class="edit-profile-card">
         <!-- Avatar Section -->
         <div class="avatar-upload">
@@ -750,6 +755,40 @@ $backRoute = 'profile';
 
             if (avatarFile) formData.append('avatar', avatarFile);
 
+            // Fast offline profile update
+            if (!navigator.onLine || window.isAppOnline === false) {
+                const stored = JSON.parse(localStorage.getItem('auth_user') || '{}');
+                stored.name = name;
+                stored.email = email;
+                stored.phone = phone;
+                stored.home_location = homeLocation;
+                stored.age = age;
+                stored.gender = gender;
+                stored.bio = bio;
+                stored.travel_preferences = travelPreferences;
+
+                const avatarPreviewImg = document.getElementById('avatar-img');
+                const avatarSrc = (avatarPreviewImg && avatarPreviewImg.src && avatarPreviewImg.style.display !== 'none') ? avatarPreviewImg.src : null;
+                if (avatarSrc && (avatarSrc.startsWith('data:') || avatarSrc.startsWith('blob:'))) {
+                    stored.avatar = avatarSrc;
+                }
+                localStorage.setItem('auth_user', JSON.stringify(stored));
+
+                if (window.OfflineProfileManager && typeof window.OfflineProfileManager.queueProfileUpdate === 'function') {
+                    window.OfflineProfileManager.queueProfileUpdate({
+                        name, email, phone, home_location: homeLocation, age, gender, bio, travel_preferences: travelPreferences,
+                        avatarDataUrl: avatarSrc
+                    });
+                }
+
+                window.profileNeedsRefresh = true;
+                window.dashboardNeedsRefresh = true;
+                window.dispatchEvent(new CustomEvent('userProfileUpdated', { detail: stored }));
+                if (typeof showToast === 'function') showToast('Profile saved on device! Will sync when online.', 'info', 5000);
+                if (typeof navigateTo === 'function') navigateTo('profile');
+                return;
+            }
+
             try {
                 const token = localStorage.getItem('intan_elyu_token');
                 const res = await fetch((window.backendUrl || '') + '/api/tourist/profile', {
@@ -818,10 +857,56 @@ $backRoute = 'profile';
                     throw new Error(errMsg);
                 }
             } catch (err) {
+                console.warn('Profile online save failed, saving offline:', err);
+                const isNetworkError = !navigator.onLine || window.isAppOnline === false || (err && err.message && (err.message.includes('fetch') || err.message.includes('Network')));
+                if (isNetworkError) {
+                    const stored = JSON.parse(localStorage.getItem('auth_user') || '{}');
+                    stored.name = name;
+                    stored.email = email;
+                    stored.phone = phone;
+                    stored.home_location = homeLocation;
+                    stored.age = age;
+                    stored.gender = gender;
+                    stored.bio = bio;
+                    stored.travel_preferences = travelPreferences;
+                    const avatarPreviewImg = document.getElementById('avatar-img');
+                    const avatarSrc = (avatarPreviewImg && avatarPreviewImg.src && avatarPreviewImg.style.display !== 'none') ? avatarPreviewImg.src : null;
+                    if (avatarSrc && (avatarSrc.startsWith('data:') || avatarSrc.startsWith('blob:'))) {
+                        stored.avatar = avatarSrc;
+                    }
+                    localStorage.setItem('auth_user', JSON.stringify(stored));
+
+                    if (window.OfflineProfileManager && typeof window.OfflineProfileManager.queueProfileUpdate === 'function') {
+                        window.OfflineProfileManager.queueProfileUpdate({
+                            name, email, phone, home_location: homeLocation, age, gender, bio, travel_preferences: travelPreferences,
+                            avatarDataUrl: avatarSrc
+                        });
+                    }
+
+                    window.profileNeedsRefresh = true;
+                    window.dashboardNeedsRefresh = true;
+                    window.dispatchEvent(new CustomEvent('userProfileUpdated', { detail: stored }));
+                    if (typeof showToast === 'function') showToast('Profile saved on device! Will sync when online.', 'info', 5000);
+                    if (typeof navigateTo === 'function') navigateTo('profile');
+                    return;
+                }
                 if (typeof showToast === 'function') showToast(err.message || 'Error updating profile');
                 btn.innerHTML = originalContent;
                 btn.disabled = false;
             }
         };
+
+        function updateEditProfileOfflineStatus() {
+            var badge = document.getElementById('edit-profile-offline-badge');
+            var isOffline = !navigator.onLine || window.isAppOnline === false;
+            if (badge) {
+                badge.style.display = isOffline ? 'inline-flex' : 'none';
+            }
+        }
+        window.addEventListener('online', updateEditProfileOfflineStatus);
+        window.addEventListener('offline', updateEditProfileOfflineStatus);
+        window.addEventListener('appOnline', updateEditProfileOfflineStatus);
+        window.addEventListener('appOffline', updateEditProfileOfflineStatus);
+        setTimeout(updateEditProfileOfflineStatus, 100);
     })();
 </script>

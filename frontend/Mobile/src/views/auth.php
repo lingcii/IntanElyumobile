@@ -1032,9 +1032,11 @@
                 return;
             }
 
-            // Not matched or new account while offline: show clear explanation
-            if (typeof showToast === 'function') {
-                showToast('Internet connection is required to log in. Please connect to the internet.', 'warning', 5000);
+            // Not matched or new account while offline: show modal with Explore in Offline Mode option
+            if (typeof window.showOfflineAuthModal === 'function') {
+                window.showOfflineAuthModal(email);
+            } else if (typeof showToast === 'function') {
+                showToast('Internet connection is required to log in. Please connect to the internet or enter Offline Mode.', 'warning', 5000);
             }
             return;
         }

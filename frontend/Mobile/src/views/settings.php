@@ -312,6 +312,10 @@ $backRoute = 'dashboard';
         };
 
         window.handleInitiate2FA = async function () {
+            if (!navigator.onLine || window.isAppOnline === false) {
+                if (typeof showToast === 'function') showToast('Internet connection required to configure 2FA security.');
+                return;
+            }
             try {
                 const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
                 const backendUrl = window.backendUrl || 'https://api.intan-elyu.online';
@@ -344,6 +348,10 @@ $backRoute = 'dashboard';
 
         window.handleVerify2FA = async function (e) {
             if (e) e.preventDefault();
+            if (!navigator.onLine || window.isAppOnline === false) {
+                if (typeof showToast === 'function') showToast('Internet connection required to verify 2FA security.');
+                return;
+            }
             const code = document.getElementById('2fa-otp-input').value.trim();
             if (!code || code.length < 6) {
                 if (typeof showToast === 'function') showToast('Please enter a valid 6-digit code.');
@@ -379,6 +387,10 @@ $backRoute = 'dashboard';
         };
 
         window.handleDisable2FA = async function () {
+            if (!navigator.onLine || window.isAppOnline === false) {
+                if (typeof showToast === 'function') showToast('Internet connection required to update 2FA settings.');
+                return;
+            }
             if (confirm('Are you sure you want to disable Two-Factor Authentication?')) {
                 try {
                     const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
@@ -434,6 +446,9 @@ $backRoute = 'dashboard';
         window.clearAppCache = function () {
             const keys = Object.keys(localStorage);
             keys.forEach(k => {
+                if (k.startsWith('intan_elyu_offline_') || k.includes('queue') || k.includes('sync')) {
+                    return; // Preserve offline sync queues
+                }
                 if (k.startsWith('profile_data_') || k.startsWith('dashboard_data_') || k.startsWith('leaderboard_data_') || k.startsWith('intan_cache_')) {
                     localStorage.removeItem(k);
                 }
@@ -445,7 +460,27 @@ $backRoute = 'dashboard';
         };
 
         window.confirmSignOut = function () {
-            if (confirm('Are you sure you want to sign out of your account?')) {
+            const hasPending = (function () {
+                try {
+                    const c1 = JSON.parse(localStorage.getItem('intan_elyu_offline_checkins_queue') || '[]').length;
+                    const c2 = JSON.parse(localStorage.getItem('intan_elyu_offline_trips_queue') || '[]').length;
+                    const c3 = JSON.parse(localStorage.getItem('intan_elyu_offline_completed_trips_queue') || '[]').length;
+                    const c4 = JSON.parse(localStorage.getItem('intan_elyu_offline_favorites_queue') || '[]').length;
+                    const c5 = JSON.parse(localStorage.getItem('intan_elyu_offline_game_claims_queue') || '[]').length;
+                    const c6 = JSON.parse(localStorage.getItem('intan_elyu_offline_profile_queue') || '[]').length;
+                    return (c1 + c2 + c3 + c4 + c5 + c6);
+                } catch (e) { return 0; }
+            })();
+
+            if (hasPending > 0) {
+                if (!confirm(`You have ${hasPending} unsynced offline item(s) (such as check-ins or trips) that will automatically sync once you go online.\n\nSigning out now will clear this account session. Are you sure you want to sign out?`)) {
+                    return;
+                }
+            } else {
+                if (!confirm('Are you sure you want to sign out of your account?')) {
+                    return;
+                }
+            }
                 try {
                     const keysToRemove = [];
                     for (let i = 0; i < localStorage.length; i++) {
@@ -533,6 +568,10 @@ $backRoute = 'dashboard';
 
         window.submitChangePassword = async function (e) {
             if (e) e.preventDefault();
+            if (!navigator.onLine || window.isAppOnline === false) {
+                if (typeof showToast === 'function') showToast('Internet connection required to change your account password.');
+                return;
+            }
             const currPass = document.getElementById('curr-password').value;
             const newPass = document.getElementById('new-password').value;
             const confPass = document.getElementById('conf-password').value;

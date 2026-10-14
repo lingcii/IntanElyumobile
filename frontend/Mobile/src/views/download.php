@@ -1129,7 +1129,15 @@ if (file_exists($buildGradle)) {
       qrImg.onerror = function () {
         this.src = 'https://chart.googleapis.com/chart?cht=qr&chs=200x200&chl=' + encodeURIComponent(apkUrl) + '&chld=M|1';
       };
-    })();
+    // 5. Offline Download Guard
+    document.querySelectorAll('a[download], a.btn-hero-dl, a.btn-dock-dl').forEach(function(el) {
+      el.addEventListener('click', function(e) {
+        if (!navigator.onLine) {
+          e.preventDefault();
+          alert("Internet connection required to download the Intan Elyu APK package (~226 MB). Please connect to Wi-Fi or mobile data.");
+        }
+      });
+    });
   </script>
 </body>
 

@@ -26,6 +26,12 @@ if (is_dir($imgDir)) {
 
 
 <div id="saved-places-container" class="saved-places-page-container has-header animate-slide-up">
+    <!-- Offline Status Badge -->
+    <div id="saved-places-offline-badge" style="display: none; align-items: center; justify-content: center; gap: 8px; margin: 0 auto 12px auto; padding: 7px 16px; border-radius: 100px; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.35); color: #d97706; font-size: 11.5px; font-weight: 800; text-align: center; width: fit-content;">
+        <i class="fa-solid fa-cloud-slash" style="color: #f59e0b;"></i>
+        <span>Offline Mode &bull; Cached Saved Places</span>
+    </div>
+
     <div id="saved-places-list" style="margin-top: 16px;">
         <p style="text-align:center; color:#64748b; font-size: 14px; font-weight: 600; margin-top:40px;">
             <i class="fa-solid fa-spinner fa-spin" style="margin-right:8px; color:#0284c7;"></i> Loading saved places...
@@ -163,47 +169,81 @@ if (is_dir($imgDir)) {
         window.toggleFavLocal = async function (id, btn) {
             const token = localStorage.getItem('intan_elyu_token');
             if (!token) return;
+
+            const isOffline = !navigator.onLine || window.isAppOnline === false;
+
+            // 1. Instant Optimistic UI Removal
+            const card = btn.closest('.trending-card');
+            if (card) {
+                card.style.transition = 'all 0.3s ease';
+                card.style.opacity = '0';
+                card.style.transform = 'scale(0.9)';
+                setTimeout(() => {
+                    card.remove();
+                    updateScrollviewState();
+                    if (document.querySelectorAll('.trending-card').length === 0) {
+                        renderSavedPlaces([]);
+                    }
+                }, 300);
+            }
+
+            // 2. Update local state and cached lists
+            try {
+                let savedIds = JSON.parse(localStorage.getItem('intan_elyu_saved_place_ids') || '[]');
+                savedIds = savedIds.filter(item => item != id);
+                localStorage.setItem('intan_elyu_saved_place_ids', JSON.stringify(savedIds));
+
+                const tokenPrefix = token ? token.substring(0, 10) : '';
+                const cacheKey = 'saved_places_' + tokenPrefix;
+                const cachedRaw = localStorage.getItem(cacheKey);
+                if (cachedRaw) {
+                    const parsed = JSON.parse(cachedRaw);
+                    if (parsed && Array.isArray(parsed.data)) {
+                        parsed.data = parsed.data.filter(p => p.id != id);
+                        localStorage.setItem(cacheKey, JSON.stringify(parsed));
+                    }
+                }
+
+                // Also update dashboard data caches
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key && key.startsWith('dashboard_data_')) {
+                        const cached = JSON.parse(localStorage.getItem(key) || '{}');
+                        if (cached.savedPlaces && Array.isArray(cached.savedPlaces)) {
+                            cached.savedPlaces = cached.savedPlaces.filter(p => p.id != id);
+                            localStorage.setItem(key, JSON.stringify(cached));
+                        }
+                    }
+                }
+            } catch (e) { }
+
+            // 3. Offline handling or Network Request
+            if (isOffline) {
+                if (window.OfflineFavoriteManager && typeof window.OfflineFavoriteManager.queueToggle === 'function') {
+                    window.OfflineFavoriteManager.queueToggle(id, 'remove');
+                }
+                if (typeof showToast === 'function') {
+                    showToast('Removed from saved places (will sync when online)', 'info');
+                }
+                return;
+            }
+
             try {
                 const res = await fetch(backendUrl + '/api/tourist/destinations/' + id + '/favorite', {
                     method: 'POST',
                     headers: { 'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }
                 });
-                if (res.ok) {
-                    // Invalidate caches
-                    const cacheKey = 'saved_places_' + (token ? token.substring(0, 10) : '');
-                    localStorage.removeItem(cacheKey);
-
-                    try {
-                        let savedIds = JSON.parse(localStorage.getItem('intan_elyu_saved_place_ids') || '[]');
-                        savedIds = savedIds.filter(item => item != id);
-                        localStorage.setItem('intan_elyu_saved_place_ids', JSON.stringify(savedIds));
-                    } catch (e) { }
-
-                    // Also clear dashboard data caches
-                    for (let i = 0; i < localStorage.length; i++) {
-                        const key = localStorage.key(i);
-                        if (key && key.startsWith('dashboard_data_')) {
-                            localStorage.removeItem(key);
-                            i--;
-                        }
-                    }
-
-                    // If toggled from this screen, it means it's removed
-                    const card = btn.closest('.trending-card');
-                    if (card) {
-                        card.style.transition = 'all 0.3s ease';
-                        card.style.opacity = '0';
-                        card.style.transform = 'scale(0.9)';
-                        setTimeout(() => {
-                            card.remove();
-                            updateScrollviewState();
-                            if (document.querySelectorAll('.trending-card').length === 0) {
-                                fetchSavedPlaces(true); // refresh with forceRefresh to show empty state
-                            }
-                        }, 300);
+                if (!res.ok) {
+                    if (window.OfflineFavoriteManager && typeof window.OfflineFavoriteManager.queueToggle === 'function') {
+                        window.OfflineFavoriteManager.queueToggle(id, 'remove');
                     }
                 }
-            } catch (e) { console.error('Error toggling favorite', e); }
+            } catch (e) {
+                console.error('Error toggling favorite, queueing locally:', e);
+                if (window.OfflineFavoriteManager && typeof window.OfflineFavoriteManager.queueToggle === 'function') {
+                    window.OfflineFavoriteManager.queueToggle(id, 'remove');
+                }
+            }
         };
 
         window.viewTrendingDest = function (id, name, encodedDest) {
@@ -215,6 +255,19 @@ if (is_dir($imgDir)) {
                 console.error('Failed to view destination:', e);
             }
         };
+
+        function updateSavedPlacesOfflineStatus() {
+            var badge = document.getElementById('saved-places-offline-badge');
+            var isOffline = !navigator.onLine || window.isAppOnline === false;
+            if (badge) {
+                badge.style.display = isOffline ? 'inline-flex' : 'none';
+            }
+        }
+        window.addEventListener('online', updateSavedPlacesOfflineStatus);
+        window.addEventListener('offline', updateSavedPlacesOfflineStatus);
+        window.addEventListener('appOnline', updateSavedPlacesOfflineStatus);
+        window.addEventListener('appOffline', updateSavedPlacesOfflineStatus);
+        setTimeout(updateSavedPlacesOfflineStatus, 100);
 
         window.addEventListener('online', function () {
             fetchSavedPlaces(true);

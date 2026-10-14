@@ -9,6 +9,11 @@ $activeTab = 'leaderboard';
 
 <div class="leaderboard-container has-header has-bottom-nav animate-fade-in">
 
+    <!-- Offline status badge -->
+    <div id="leaderboard-offline-badge" style="display: none; background: #fffbeb; border: 1px solid #fde68a; color: #b45309; padding: 7px 12px; border-radius: 12px; font-size: 11px; font-weight: 700; margin-bottom: 12px; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.04);">
+        <i class="fa-solid fa-cloud-arrow-down" style="margin-right: 5px;"></i> Showing Cached Season Standings (Offline)
+    </div>
+
     <!-- Title & Season Header -->
     <div class="leaderboard-title stagger-0" style="position: relative;">
         <h2>
@@ -725,6 +730,12 @@ $activeTab = 'leaderboard';
 
         if (refreshIcon && forceRefresh) refreshIcon.classList.add('fa-spin');
 
+        if (forceRefresh && (!navigator.onLine || window.isAppOnline === false)) {
+            if (typeof showToast === 'function') {
+                showToast("Currently offline. Showing cached standings.");
+            }
+        }
+
         // 1. If we already have leaders in memory or window cache, render immediately! Otherwise show loading state
         if (rawLeadersList && rawLeadersList.length > 0) {
             renderLeaderboardUI();
@@ -936,6 +947,17 @@ $activeTab = 'leaderboard';
             }
         }
     }
+    // Offline Indicator Status Management
+    function updateLeaderboardOfflineStatus() {
+        const badge = document.getElementById('leaderboard-offline-badge');
+        const isOff = !navigator.onLine || window.isAppOnline === false;
+        if (badge) badge.style.display = isOff ? 'block' : 'none';
+    }
+    window.addEventListener('online', updateLeaderboardOfflineStatus);
+    window.addEventListener('offline', updateLeaderboardOfflineStatus);
+    window.addEventListener('app-connection-changed', updateLeaderboardOfflineStatus);
+    setTimeout(updateLeaderboardOfflineStatus, 150);
+
     window.addEventListener('viewLoaded', handleLeaderboardViewLoaded);
     document.addEventListener('viewLoaded', handleLeaderboardViewLoaded);
 </script>

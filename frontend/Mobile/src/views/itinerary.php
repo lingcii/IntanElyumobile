@@ -4256,6 +4256,22 @@ try {
                     }))
                 };
 
+                // Fast offline trip queueing
+                if ((!navigator.onLine || window.isAppOnline === false) && tripPayload && window.OfflineTripManager) {
+                    const queued = window.OfflineTripManager.queueOfflineTrip(tripPayload);
+                    showToast("📍 Offline Mode: Trip saved on device for auto-sync!", "info", 5000);
+                    sessionStorage.setItem('just_saved_trip_id', queued.local_id);
+                    sessionStorage.setItem('active_trip_transport_' + queued.local_id, effectiveTransport);
+                    localStorage.setItem('selected_trip_vehicle_' + queued.local_id, effectiveTransport);
+                    localStorage.removeItem('intan_elyu_draft_itinerary');
+                    window.resetSaveModalInputs();
+                    document.getElementById('save-trip-modal').style.display = 'none';
+                    const bottomNav = document.getElementById('bottom-navigation');
+                    if (bottomNav) bottomNav.classList.remove('nav-hidden');
+                    window.renderItinerary();
+                    navigateTo('saved_trips');
+                    return;
+                }
 
                 const response = await fetch(url, {
                     method: method,

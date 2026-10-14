@@ -31,6 +31,12 @@ if (is_dir($imgDir)) {
 
 <div class="dashboard-container has-header has-bottom-nav animate-slide-up">
 
+    <!-- Offline Status Banner -->
+    <div id="dash-offline-pill" style="display: none; align-items: center; justify-content: center; gap: 8px; margin: 0 0 14px 0; padding: 8px 16px; border-radius: 100px; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.35); color: #d97706; font-size: 12px; font-weight: 800; text-align: center;">
+        <i class="fa-solid fa-cloud-slash" style="color: #f59e0b;"></i>
+        <span>Offline Mode &bull; Showing Saved Guides & Local GPS</span>
+    </div>
+
     <!-- Profile Card with embedded Stats -->
     <div class="profile-header stagger-1" onclick="navigateTo('profile')"
         style="background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline: none !important; box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important;">
@@ -369,6 +375,20 @@ if (is_dir($imgDir)) {
 
 <script>
     window.AVAILABLE_MUNI_IMAGES = <?= json_encode($municipalityImages) ?>;
+
+    function updateDashboardOfflineStatus() {
+        var pill = document.getElementById('dash-offline-pill');
+        var isOffline = !navigator.onLine || window.isAppOnline === false;
+        if (pill) {
+            pill.style.display = isOffline ? 'flex' : 'none';
+        }
+    }
+    window.addEventListener('online', updateDashboardOfflineStatus);
+    window.addEventListener('offline', updateDashboardOfflineStatus);
+    window.addEventListener('appOnline', updateDashboardOfflineStatus);
+    window.addEventListener('appOffline', updateDashboardOfflineStatus);
+    setTimeout(updateDashboardOfflineStatus, 100);
+
     window.filterCategoryDash = function (cat, el) {
         document.querySelectorAll('#dash-categories-list .category-card').forEach(card => card.classList.remove('active'));
         if (el) el.classList.add('active');
@@ -1516,6 +1536,9 @@ if (is_dir($imgDir)) {
                                 if (trip.items && trip.items.length > 0) {
                                     trip.items.forEach((item, index) => {
                                         const destName = item.destination ? item.destination.name : 'Unknown Destination';
+                                        const queuedItem = window.OfflineCheckinManager ? window.OfflineCheckinManager.getQueuedItem(item.id) : null;
+                                        const isQueued = Boolean(queuedItem);
+
                                         let proofImgHtml = '';
                                         if (item.proof_image) {
                                             let pUrl = item.proof_image;
@@ -1523,16 +1546,23 @@ if (is_dir($imgDir)) {
                                                 let b = (window.backendUrl || '').replace(/\/+$/, '');
                                                 pUrl = b + '/' + pUrl.replace(/^\//, '');
                                             }
-                                            let fallbackUrl = (window.backendUrl || '').replace(/\/+$/, '') + '/api/image/' + item.proof_image.replace(/^\//, '');
-                                            proofImgHtml = `<img src="${pUrl}" onerror="if(this.src!=='${fallbackUrl}'){this.src='${fallbackUrl}';}" alt="Proof" style="width:28px; height:28px; border-radius:8px; object-fit:cover; border:1px solid ${item.is_visited ? 'rgba(52,199,89,0.5)' : (item.proof_status === 'rejected' ? 'rgba(239,68,68,0.5)' : 'rgba(255,149,0,0.5)')}; flex-shrink:0;">`;
+                                            const cleanImgName = item.proof_image.split('/').pop().replace(/[?#].*$/, '');
+                                            let fallbackUrl = (window.backendUrl || '').replace(/\/+$/, '') + '/api/image/proof_images/' + cleanImgName;
+                                            const destEscaped = destName.replace(/'/g, "\\'");
+                                            proofImgHtml = `<img src="${pUrl}" onerror="if(this.dataset.triedFallback!=='1'){this.dataset.triedFallback='1';this.src='${fallbackUrl}';}" onclick="event.stopPropagation(); if(typeof window.viewProofPhotoModal==='function') window.viewProofPhotoModal('${pUrl}', '${destEscaped}', '${item.is_visited ? 'Verified Visit Proof' : 'Pending Verification'}');" alt="Proof" title="Tap to view proof photo" style="width:28px; height:28px; border-radius:8px; object-fit:cover; border:1px solid ${item.is_visited ? 'rgba(52,199,89,0.5)' : (item.proof_status === 'rejected' ? 'rgba(239,68,68,0.5)' : 'rgba(255,149,0,0.5)')}; flex-shrink:0; cursor:pointer;">`;
+                                        } else if (isQueued && queuedItem && queuedItem.previewUrl) {
+                                            const destEscaped = destName.replace(/'/g, "\\'");
+                                            proofImgHtml = `<img src="${queuedItem.previewUrl}" onclick="event.stopPropagation(); if(typeof window.viewProofPhotoModal==='function') window.viewProofPhotoModal('${queuedItem.previewUrl}', '${destEscaped}', 'Offline Proof (Queued on Device)');" alt="Proof" title="Tap to view offline proof photo" style="width:28px; height:28px; border-radius:8px; object-fit:cover; border:1.5px solid #f59e0b; flex-shrink:0; cursor:pointer;">`;
                                         }
 
                                         let proofBadge = '';
-                                        if (item.is_visited || item.proof_status === 'approved') {
+                                        if (isQueued) {
+                                            proofBadge = `<span style="font-size:10px; font-weight:800; color:#fbbf24; background:rgba(245,158,11,0.18); border:1px solid rgba(245,158,11,0.35); padding:2px 8px; border-radius:100px; margin-left:auto; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-cloud-arrow-up"></i> Queued</span>`;
+                                        } else if (item.is_visited || item.proof_status === 'approved') {
                                             proofBadge = `<span style="font-size:10px; font-weight:800; color:#34c759; background:rgba(52,199,89,0.15); border:1px solid rgba(52,199,89,0.3); padding:2px 8px; border-radius:100px; margin-left:auto; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-circle-check"></i> Verified</span>`;
                                         } else if (item.proof_status === 'rejected') {
                                             proofBadge = `<span style="font-size:10px; font-weight:800; color:#ef4444; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.3); padding:2px 8px; border-radius:100px; margin-left:auto; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-circle-xmark"></i> Rejected</span>`;
-                                        } else if (item.proof_image && (item.proof_status === 'pending' || !item.proof_status)) {
+                                        } else if (item.proof_status === 'pending' || item.proof_image) {
                                             proofBadge = `<span style="font-size:10px; font-weight:800; color:#FF9500; background:rgba(255,149,0,0.15); border:1px solid rgba(255,149,0,0.3); padding:2px 8px; border-radius:100px; margin-left:auto; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-clock"></i> Pending</span>`;
                                         }
 
@@ -1679,6 +1709,14 @@ if (is_dir($imgDir)) {
         }
         if (typeof window.dashboardInit === 'function') window.dashboardInit(true);
     });
+    window.addEventListener('checkins-synced', function () {
+        const current = (document.body ? document.body.getAttribute('data-view') : '') || (window.currentView || '');
+        if (current !== 'dashboard') {
+            window.dashboardNeedsRefresh = true;
+            return;
+        }
+        if (typeof window.dashboardInit === 'function') window.dashboardInit(true);
+    });
     document.addEventListener('visibilitychange', function () {
         const current = (document.body ? document.body.getAttribute('data-view') : '') || (window.currentView || '');
         if (current !== 'dashboard') return;
@@ -1791,17 +1829,26 @@ if (is_dir($imgDir)) {
             }
         } catch (e) { }
 
-        // 2. BACKGROUND NETWORK REQUEST
-        fetch(backendUrl + '/api/tourist/destinations/' + destId + '/favorite', {
-            method: 'POST',
-            credentials: 'include',
-            headers: {
-                'Accept': 'application/json',
-                'Authorization': 'Bearer ' + token
+        // 2. BACKGROUND NETWORK REQUEST OR OFFLINE QUEUE
+        if (!navigator.onLine || window.isAppOnline === false) {
+            if (window.OfflineFavoriteManager && typeof window.OfflineFavoriteManager.queueToggle === 'function') {
+                window.OfflineFavoriteManager.queueToggle(destId, isRemoving ? 'remove' : 'add');
             }
-        }).catch(e => {
-            console.warn('Background favorite sync error:', e);
-        });
+        } else {
+            fetch(backendUrl + '/api/tourist/destinations/' + destId + '/favorite', {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Accept': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                }
+            }).catch(e => {
+                console.warn('Background favorite sync error, queuing locally:', e);
+                if (window.OfflineFavoriteManager && typeof window.OfflineFavoriteManager.queueToggle === 'function') {
+                    window.OfflineFavoriteManager.queueToggle(destId, isRemoving ? 'remove' : 'add');
+                }
+            });
+        }
     };
 
     window.viewDestinationOnMap = function (encodedDest) {
