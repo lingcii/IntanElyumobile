@@ -146,6 +146,48 @@
     </div>
 </div>
 
+<!-- Universal Logout Confirmation Modal -->
+<div id="logout-confirm-modal" onclick="if(event.target===this) window.closeLogoutModal();"
+    style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(10, 25, 60, 0.72); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 999999; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box;">
+    <div style="background: #ffffff; border-radius: 24px; width: 100%; max-width: 340px; padding: 24px 20px; text-align: center; box-shadow: 0 20px 45px rgba(0, 0, 0, 0.28); position: relative; animation: popInLogoutModal 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;">
+        
+        <!-- Icon -->
+        <div style="width: 56px; height: 56px; border-radius: 50%; background: #fee2e2; color: #ef4444; display: flex; align-items: center; justify-content: center; font-size: 22px; margin: 0 auto 16px; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i>
+        </div>
+
+        <!-- Question Title -->
+        <h3 style="margin: 0 0 8px 0; font-size: 18px; font-weight: 800; color: #0f172a; line-height: 1.3;">
+            Are you sure you want to log out?
+        </h3>
+        
+        <!-- Subtitle Note -->
+        <p id="logout-modal-subtext" style="margin: 0 0 20px 0; font-size: 13px; color: #64748b; line-height: 1.45;">
+            You will be signed out of your tourist explorer session.
+        </p>
+
+        <!-- No & Yes Action Buttons -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <button type="button" id="logout-btn-no" onclick="window.closeLogoutModal()"
+                style="padding: 12px 16px; border-radius: 14px; background: #f1f5f9; border: 1.5px solid #e2e8f0; color: #475569; font-size: 14px; font-weight: 800; cursor: pointer; transition: all 0.15s ease;"
+                onpointerdown="this.style.transform='scale(0.97)'" onpointerup="this.style.transform='scale(1)'">
+                No
+            </button>
+            <button type="button" id="logout-btn-yes" onclick="window.confirmExecuteLogout()"
+                style="padding: 12px 16px; border-radius: 14px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border: none; color: #ffffff; font-size: 14px; font-weight: 800; cursor: pointer; box-shadow: 0 4px 14px rgba(220, 38, 38, 0.35); transition: all 0.15s ease;"
+                onpointerdown="this.style.transform='scale(0.97)'" onpointerup="this.style.transform='scale(1)'">
+                Yes
+            </button>
+        </div>
+    </div>
+</div>
+<style>
+@keyframes popInLogoutModal {
+    0% { opacity: 0; transform: scale(0.92); }
+    100% { opacity: 1; transform: scale(1); }
+}
+</style>
+
 <script>
     function updateSidebarUserProfile() {
         try {
@@ -191,12 +233,25 @@
     }
 
     function logoutUser() {
-        if (typeof handleLogout === 'function') {
+        const sidebar = document.getElementById('sidebar-menu');
+        const overlay = document.getElementById('sidebar-overlay');
+        const bottomNav = document.getElementById('bottom-navigation');
+        if (sidebar && overlay) {
+            sidebar.style.left = '-280px';
+            overlay.style.opacity = '0';
+            if (bottomNav) bottomNav.classList.remove('nav-hidden');
+            setTimeout(() => { overlay.style.display = 'none'; }, 300);
+        }
+        if (typeof window.showLogoutConfirmationModal === 'function') {
+            window.showLogoutConfirmationModal();
+        } else if (typeof handleLogout === 'function') {
             handleLogout();
         } else {
-            localStorage.removeItem('intan_elyu_token');
-            localStorage.removeItem('auth_user');
-            window.location.href = '?view=auth';
+            if (confirm("Are you sure you want to log out?")) {
+                localStorage.removeItem('intan_elyu_token');
+                localStorage.removeItem('auth_user');
+                window.location.href = '?view=auth';
+            }
         }
     }
 

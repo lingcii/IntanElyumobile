@@ -2202,20 +2202,57 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
 
 
     /**
-     * Handle Logout
+     * Universal Logout Confirmation Modal Handlers
      */
-    async function handleLogout(e) {
-        if (e) e.preventDefault();
-        showToast('Logging out...', 1000);
+    window.closeLogoutModal = function () {
+        const modal = document.getElementById('logout-confirm-modal');
+        if (modal) modal.style.display = 'none';
+    };
+
+    window.showLogoutConfirmationModal = function () {
+        const modal = document.getElementById('logout-confirm-modal');
+        if (modal) {
+            const hasPending = (function () {
+                try {
+                    const c1 = JSON.parse(localStorage.getItem('intan_elyu_offline_checkins_queue') || '[]').length;
+                    const c2 = JSON.parse(localStorage.getItem('intan_elyu_offline_trips_queue') || '[]').length;
+                    const c3 = JSON.parse(localStorage.getItem('intan_elyu_offline_completed_trips_queue') || '[]').length;
+                    const c4 = JSON.parse(localStorage.getItem('intan_elyu_offline_favorites_queue') || '[]').length;
+                    const c5 = JSON.parse(localStorage.getItem('intan_elyu_offline_game_claims_queue') || '[]').length;
+                    const c6 = JSON.parse(localStorage.getItem('intan_elyu_offline_profile_queue') || '[]').length;
+                    return (c1 + c2 + c3 + c4 + c5 + c6);
+                } catch (e) { return 0; }
+            })();
+
+            const subtext = document.getElementById('logout-modal-subtext');
+            if (subtext) {
+                if (hasPending > 0) {
+                    subtext.innerHTML = `<span style="color: #b45309; font-weight: 700;">⚠️ You have ${hasPending} unsynced offline item(s).</span><br>Logging out will clear this session and unsynced items.`;
+                } else {
+                    subtext.textContent = 'You will be signed out of your tourist explorer session.';
+                }
+            }
+
+            modal.style.display = 'flex';
+        } else {
+            if (confirm("Are you sure you want to log out?")) {
+                window.confirmExecuteLogout();
+            }
+        }
+    };
+
+    window.confirmExecuteLogout = async function () {
+        window.closeLogoutModal();
+        if (typeof showToast === 'function') showToast('Logging out...', 1000);
 
         try {
-            const token = localStorage.getItem('intan_elyu_token');
+            const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
             if (token) {
-                await fetch(window.backendUrl + '/api/auth/logout', {
+                const backend = (window.backendUrl || 'https://api.intan-elyu.online').replace(/\/+$/, '');
+                await fetch(backend + '/api/auth/logout', {
                     method: 'POST',
                     headers: {
                         'Accept': 'application/json',
-
                         'Authorization': 'Bearer ' + token
                     }
                 });
@@ -2249,6 +2286,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
             keysToRemove.forEach(k => localStorage.removeItem(k));
         } catch (e) {
             localStorage.removeItem('intan_elyu_token');
+            localStorage.removeItem('Intan_Elyu_Token');
             localStorage.removeItem('auth_user');
             localStorage.removeItem('intan_elyu_claimed_vouchers');
             localStorage.removeItem('intan_elyu_cached_vouchers');
@@ -2261,8 +2299,20 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
         setTimeout(() => {
             // Hard reset the URL to clear Capacitor saved state and show splash
             window.location.replace('index.php?view=splash');
-        }, 1000);
+        }, 500);
+    };
+
+    /**
+     * Handle Logout - Shows confirmation notification modal
+     */
+    async function handleLogout(e) {
+        if (e) {
+            if (typeof e.preventDefault === 'function') e.preventDefault();
+            if (typeof e.stopPropagation === 'function') e.stopPropagation();
+        }
+        window.showLogoutConfirmationModal();
     }
+    window.handleLogout = handleLogout;
 
     /**
      * Pull to Refresh Logic

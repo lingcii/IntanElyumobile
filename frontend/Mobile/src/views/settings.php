@@ -460,65 +460,15 @@ $backRoute = 'dashboard';
         };
 
         window.confirmSignOut = function () {
-            const hasPending = (function () {
-                try {
-                    const c1 = JSON.parse(localStorage.getItem('intan_elyu_offline_checkins_queue') || '[]').length;
-                    const c2 = JSON.parse(localStorage.getItem('intan_elyu_offline_trips_queue') || '[]').length;
-                    const c3 = JSON.parse(localStorage.getItem('intan_elyu_offline_completed_trips_queue') || '[]').length;
-                    const c4 = JSON.parse(localStorage.getItem('intan_elyu_offline_favorites_queue') || '[]').length;
-                    const c5 = JSON.parse(localStorage.getItem('intan_elyu_offline_game_claims_queue') || '[]').length;
-                    const c6 = JSON.parse(localStorage.getItem('intan_elyu_offline_profile_queue') || '[]').length;
-                    return (c1 + c2 + c3 + c4 + c5 + c6);
-                } catch (e) { return 0; }
-            })();
-
-            if (hasPending > 0) {
-                if (!confirm(`You have ${hasPending} unsynced offline item(s) (such as check-ins or trips) that will automatically sync once you go online.\n\nSigning out now will clear this account session. Are you sure you want to sign out?`)) {
-                    return;
-                }
+            if (typeof window.showLogoutConfirmationModal === 'function') {
+                window.showLogoutConfirmationModal();
+            } else if (typeof handleLogout === 'function') {
+                handleLogout();
             } else {
-                if (!confirm('Are you sure you want to sign out of your account?')) {
-                    return;
-                }
-            }
-                try {
-                    const keysToRemove = [];
-                    for (let i = 0; i < localStorage.length; i++) {
-                        const k = localStorage.key(i);
-                        if (!k) continue;
-                        if (
-                            k.startsWith('intan_elyu_claimed_vouchers') ||
-                            k.startsWith('intan_elyu_cached_vouchers') ||
-                            k.startsWith('profile_data_') ||
-                            k.startsWith('dashboard_data_') ||
-                            k.startsWith('dashboard_trips_') ||
-                            k.startsWith('saved_trips_') ||
-                            k.startsWith('saved_places_') ||
-                            k.startsWith('leaderboard_data_') ||
-                            k.startsWith('intan_cache_') ||
-                            k === 'intan_elyu_token' ||
-                            k === 'Intan_Elyu_Token' ||
-                            k === 'auth_user'
-                        ) {
-                            keysToRemove.push(k);
-                        }
-                    }
-                    keysToRemove.forEach(k => localStorage.removeItem(k));
-                } catch (e) {
+                if (confirm('Are you sure you want to log out?')) {
                     localStorage.removeItem('intan_elyu_token');
                     localStorage.removeItem('Intan_Elyu_Token');
                     localStorage.removeItem('auth_user');
-                    localStorage.removeItem('intan_elyu_claimed_vouchers');
-                    localStorage.removeItem('intan_elyu_cached_vouchers');
-                }
-
-                if (window._touristRedemptions) window._touristRedemptions = [];
-                if (window._cachedActiveVouchers) window._cachedActiveVouchers = [];
-                if (window._cachedHistoryVouchers) window._cachedHistoryVouchers = [];
-
-                if (typeof navigateTo === 'function') {
-                    navigateTo('auth');
-                } else {
                     window.location.href = 'index.php?view=auth';
                 }
             }

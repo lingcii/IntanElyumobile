@@ -185,7 +185,7 @@ $activeTab = 'profile';
             <div class="settings-text">Help & Support Center</div>
             <i class="fa-solid fa-chevron-right settings-arrow"></i>
         </a>
-        <a href="#" class="settings-item" onclick="handleLogout(event)">
+        <a href="#" class="settings-item" onclick="handleLogout(event); return false;">
             <div class="settings-icon logout"
                 style="background: #FF3B30 !important; box-shadow: 0 2px 8px rgba(255, 59, 48, 0.3) !important;"><i
                     class="fa-solid fa-arrow-right-from-bracket" style="color: #ffffff !important;"></i></div>
