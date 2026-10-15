@@ -4799,19 +4799,13 @@ if (is_dir($imgDir)) {
 
 
 
-        // --- Site Testimonies & Policy Recommendations ---
+        // --- Site Testimonies & Policy Recommendations (Offline Resilient) ---
         async function fetchTestimonies(spotId, locData) {
             const list = document.getElementById('testimonies-list-container');
             const summary = document.getElementById('testimonies-summary-metrics');
             const badge = document.getElementById('sheet-testimonies-badge');
             if (!list) return;
 
-            list.innerHTML = '<div style="font-size:12px; color:#94a3b8; text-align:center; padding:16px 10px;"><i class="fa-solid fa-spinner fa-spin" style="margin-right:6px; color:#38bdf8;"></i> Loading reviews...</div>';
-
-            const token = localStorage.getItem('intan_elyu_token');
-            const _backendBase = window.backendUrl || '';
-
-            // Initial classification resolution from passed or cached location data
             const curLocation = locData || window.currentSelectedLocationData || {};
             let spotClassStatus = curLocation.classification_status || '';
 
@@ -4832,137 +4826,125 @@ if (is_dir($imgDir)) {
 
             let classMeta = resolveClassification(spotClassStatus);
 
-            try {
-                const headers = { 'Accept': 'application/json' };
-                if (token) headers['Authorization'] = 'Bearer ' + token;
+            const renderTestimoniesPayload = (d, isOfflineCached = false) => {
+                if (!d || d.status !== 'success') return false;
+                const totalReviews = (d.summary && d.summary.total_reviews) ? parseInt(d.summary.total_reviews) : (d.data ? d.data.length : 0);
 
-                let res = await fetch(_backendBase + '/api/public/feedback?tourist_spot_id=' + spotId, { headers });
-                if (!res.ok && token) {
-                    res = await fetch(_backendBase + '/api/tourist/feedback?tourist_spot_id=' + spotId, { headers });
+                if (d.summary && (d.summary.classification_name || d.summary.classification_status)) {
+                    spotClassStatus = d.summary.classification_name || d.summary.classification_status;
+                    classMeta = resolveClassification(spotClassStatus);
                 }
-                const text = await res.text();
-                const d = window.safeJsonParse(text, null);
-                if (d && d.status === 'success') {
-                    const totalReviews = (d.summary && d.summary.total_reviews) ? parseInt(d.summary.total_reviews) : (d.data ? d.data.length : 0);
+                if (d.summary && d.summary.reward_points) {
+                    classMeta.points = parseInt(d.summary.reward_points) || classMeta.points;
+                }
 
-                    // Update classification metadata from backend summary if present
-                    if (d.summary && (d.summary.classification_name || d.summary.classification_status)) {
-                        spotClassStatus = d.summary.classification_name || d.summary.classification_status;
-                        classMeta = resolveClassification(spotClassStatus);
+                if (badge) {
+                    if (totalReviews > 0) {
+                        badge.textContent = `${totalReviews} Review${totalReviews > 1 ? 's' : ''}${isOfflineCached ? ' (Offline)' : ''}`;
+                    } else {
+                        badge.textContent = isOfflineCached ? 'Offline (No Reviews)' : 'No Reviews';
                     }
-                    if (d.summary && d.summary.reward_points) {
-                        classMeta.points = parseInt(d.summary.reward_points) || classMeta.points;
-                    }
+                }
 
-                    if (badge) {
-                        if (totalReviews > 0) {
-                            badge.textContent = `${totalReviews} Review${totalReviews > 1 ? 's' : ''}`;
-                        } else {
-                            badge.textContent = 'No Reviews';
+                if (d.summary && d.summary.total_reviews > 0) {
+                    const sm = d.summary;
+                    const reviewCount = parseInt(sm.total_reviews) || 0;
+                    const reviewText = reviewCount === 1 ? '1 Review' : `${reviewCount} Reviews`;
+                    const avgRating = (sm.average_rating !== undefined && sm.average_rating !== null && !isNaN(parseFloat(sm.average_rating))) ? parseFloat(sm.average_rating).toFixed(1) : '0.0';
+
+                    summary.style.display = 'block';
+                    summary.innerHTML = `
+                    <div style="background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.18); border-radius:12px; padding:11px 14px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
+                        <div style="display:flex; align-items:center; gap:6px;">
+                            <span style="color:#fbbf24; font-size:16px; font-weight:800;">★ ${avgRating}</span>
+                            <span style="font-size:11.5px; color:rgba(255,255,255,0.75); font-weight:700;">/ 5.0</span>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:6px;">
+                            <span style="font-size:11.5px; color:#ffffff; font-weight:800; display:inline-flex; align-items:center; gap:5px;"><i class="fa-solid fa-chart-simple" style="color:#00f2fe;"></i> Visitor Insights (${reviewText})</span>
+                            ${isOfflineCached ? '<span style="font-size:10px; color:#fde047; font-weight:800; background:rgba(250,204,21,0.2); padding:2px 6px; border-radius:6px;"><i class="fa-solid fa-cloud-arrow-down"></i> Cached</span>' : ''}
+                        </div>
+                    </div>`;
+                } else {
+                    summary.style.display = 'none';
+                }
+
+                if (d.data && d.data.length > 0) {
+                    const maskUserName = (name) => {
+                        if (!name || typeof name !== 'string') return 'Explorer';
+                        const trimmed = name.trim();
+                        if (!trimmed) return 'Explorer';
+
+                        const parts = trimmed.split(/\s+/);
+                        if (parts.length === 1) {
+                            const w = parts[0];
+                            if (w.length <= 2) return w.charAt(0) + '*';
+                            if (w.length <= 4) return w.slice(0, 2) + '*'.repeat(w.length - 2);
+                            return w.slice(0, 2) + '*'.repeat(w.length - 4) + w.slice(-2);
                         }
-                    }
 
-                    // Render summary metrics (rating & review count only)
-                    if (d.summary && d.summary.total_reviews > 0) {
-                        const sm = d.summary;
-                        const reviewCount = parseInt(sm.total_reviews) || 0;
-                        const reviewText = reviewCount === 1 ? '1 Review' : `${reviewCount} Reviews`;
-                        const avgRating = (sm.average_rating !== undefined && sm.average_rating !== null && !isNaN(parseFloat(sm.average_rating))) ? parseFloat(sm.average_rating).toFixed(1) : '0.0';
+                        return parts.map((part, index) => {
+                            part = part || '';
+                            const len = part.length;
+                            if (len <= 2) return part.charAt(0) + '*';
 
-                        summary.style.display = 'block';
-                        summary.innerHTML = `
-                        <div style="background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.18); border-radius:12px; padding:11px 14px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
-                            <div style="display:flex; align-items:center; gap:6px;">
-                                <span style="color:#fbbf24; font-size:16px; font-weight:800;">★ ${avgRating}</span>
-                                <span style="font-size:11.5px; color:rgba(255,255,255,0.75); font-weight:700;">/ 5.0</span>
+                            if (index === 0) {
+                                const visible = Math.min(2, Math.max(1, len - 2));
+                                return part.slice(0, visible) + '*'.repeat(len - visible);
+                            } else if (index === parts.length - 1) {
+                                const visible = Math.min(2, Math.max(1, len - 2));
+                                return '*'.repeat(len - visible) + part.slice(-visible);
+                            } else {
+                                return '*'.repeat(len);
+                            }
+                        }).join(' ');
+                    };
+
+                    const renderCard = (fb) => {
+                        const user = fb.user || { name: 'Explorer' };
+                        const rawName = user.name || user.full_name || 'Explorer';
+                        const maskedName = maskUserName(rawName);
+                        const initial = (rawName || 'E').charAt(0).toUpperCase();
+                        const date = fb.created_at ? new Date(fb.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) : '';
+                        const ratingNum = Math.min(5, Math.max(1, parseInt(fb.rating) || 5));
+                        let starsHtml = '';
+                        for (let s = 1; s <= 5; s++) {
+                            if (s <= ratingNum) {
+                                starsHtml += '<i class="fa-solid fa-star" style="color:#fbbf24; font-size:10.5px;"></i>';
+                            } else {
+                                starsHtml += '<i class="fa-regular fa-star" style="color:rgba(255,255,255,0.3); font-size:10.5px;"></i>';
+                            }
+                        }
+
+                        const rawClean = (fb.cleanliness_level || 'clean').toLowerCase();
+                        const cleanVal = rawClean === 'dirty' ? 'Dirty' : (rawClean === 'moderate' ? 'Moderate' : 'Clean');
+                        const cleanBg = cleanVal === 'Clean' ? '#10b981' : (cleanVal === 'Moderate' ? '#f59e0b' : '#ef4444');
+
+                        const rawSafe = (fb.safety_level || 'safe').toLowerCase();
+                        const safeVal = rawSafe === 'unsafe' ? 'Unsafe' : (rawSafe === 'moderate' ? 'Moderate' : 'Safe');
+                        const safeBg = safeVal === 'Safe' ? '#10b981' : (safeVal === 'Moderate' ? '#f59e0b' : '#ef4444');
+
+                        const metricsHtml = `
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:9px 0 10px 0;">
+                            <div style="background:rgba(255,255,255,0.1); border-radius:10px; padding:7px 10px; display:flex; justify-content:space-between; align-items:center;">
+                                <span style="font-size:10px; color:rgba(255,255,255,0.85); text-transform:uppercase; font-weight:800; letter-spacing:0.4px;">Cleanliness</span>
+                                <span style="font-size:11px; font-weight:800; color:#ffffff; background:${cleanBg}; padding:2px 8px; border-radius:6px; display:inline-flex; align-items:center;">${cleanVal}</span>
                             </div>
-                            <div style="display:flex; align-items:center; gap:6px;">
-                                <span style="font-size:11.5px; color:#ffffff; font-weight:800; display:inline-flex; align-items:center; gap:5px;"><i class="fa-solid fa-chart-simple" style="color:#00f2fe;"></i> Visitor Insights (${reviewText})</span>
+                            <div style="background:rgba(255,255,255,0.1); border-radius:10px; padding:7px 10px; display:flex; justify-content:space-between; align-items:center;">
+                                <span style="font-size:10px; color:rgba(255,255,255,0.85); text-transform:uppercase; font-weight:800; letter-spacing:0.4px;">Safety</span>
+                                <span style="font-size:11px; font-weight:800; color:#ffffff; background:${safeBg}; padding:2px 8px; border-radius:6px; display:inline-flex; align-items:center;">${safeVal}</span>
                             </div>
                         </div>`;
-                    } else {
-                        summary.style.display = 'none';
-                    }
 
-                    // Render testimonies list
-                    if (d.data && d.data.length > 0) {
-                        const maskUserName = (name) => {
-                            if (!name || typeof name !== 'string') return 'Explorer';
-                            const trimmed = name.trim();
-                            if (!trimmed) return 'Explorer';
+                        const policyHtml = fb.policy_recommendation ? `
+                        <div style="background:rgba(0,242,254,0.12); border-left:3px solid #00f2fe; border-radius:10px; padding:10px 12px; margin-top:10px;">
+                            <div style="display:flex; align-items:center; gap:5px; margin-bottom:4px;">
+                                <i class="fa-solid fa-lightbulb" style="color:#00f2fe; font-size:11px;"></i>
+                                <strong style="font-size:10px; color:#00f2fe; text-transform:uppercase; letter-spacing:0.5px; font-weight:800;">Policy Recommendation for LGU</strong>
+                            </div>
+                            <span style="color:#ffffff; font-size:12px; line-height:1.45; display:block;">${fb.policy_recommendation}</span>
+                        </div>` : '';
 
-                            const parts = trimmed.split(/\s+/);
-                            if (parts.length === 1) {
-                                const w = parts[0];
-                                if (w.length <= 2) return w.charAt(0) + '*';
-                                if (w.length <= 4) return w.slice(0, 2) + '*'.repeat(w.length - 2);
-                                return w.slice(0, 2) + '*'.repeat(w.length - 4) + w.slice(-2);
-                            }
-
-                            return parts.map((part, index) => {
-                                part = part || '';
-                                const len = part.length;
-                                if (len <= 2) return part.charAt(0) + '*';
-
-                                if (index === 0) {
-                                    const visible = Math.min(2, Math.max(1, len - 2));
-                                    return part.slice(0, visible) + '*'.repeat(len - visible);
-                                } else if (index === parts.length - 1) {
-                                    const visible = Math.min(2, Math.max(1, len - 2));
-                                    return '*'.repeat(len - visible) + part.slice(-visible);
-                                } else {
-                                    return '*'.repeat(len);
-                                }
-                            }).join(' ');
-                        };
-
-                        const renderCard = (fb) => {
-                            const user = fb.user || { name: 'Explorer' };
-                            const rawName = user.name || user.full_name || 'Explorer';
-                            const maskedName = maskUserName(rawName);
-                            const initial = (rawName || 'E').charAt(0).toUpperCase();
-                            const date = fb.created_at ? new Date(fb.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) : '';
-                            const ratingNum = Math.min(5, Math.max(1, parseInt(fb.rating) || 5));
-                            let starsHtml = '';
-                            for (let s = 1; s <= 5; s++) {
-                                if (s <= ratingNum) {
-                                    starsHtml += '<i class="fa-solid fa-star" style="color:#fbbf24; font-size:10.5px;"></i>';
-                                } else {
-                                    starsHtml += '<i class="fa-regular fa-star" style="color:rgba(255,255,255,0.3); font-size:10.5px;"></i>';
-                                }
-                            }
-
-                            // Cleanliness & Safety Parameters for this review (solid colors)
-                            const rawClean = (fb.cleanliness_level || 'clean').toLowerCase();
-                            const cleanVal = rawClean === 'dirty' ? 'Dirty' : (rawClean === 'moderate' ? 'Moderate' : 'Clean');
-                            const cleanBg = cleanVal === 'Clean' ? '#10b981' : (cleanVal === 'Moderate' ? '#f59e0b' : '#ef4444');
-
-                            const rawSafe = (fb.safety_level || 'safe').toLowerCase();
-                            const safeVal = rawSafe === 'unsafe' ? 'Unsafe' : (rawSafe === 'moderate' ? 'Moderate' : 'Safe');
-                            const safeBg = safeVal === 'Safe' ? '#10b981' : (safeVal === 'Moderate' ? '#f59e0b' : '#ef4444');
-
-                            const metricsHtml = `
-                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:9px 0 10px 0;">
-                                <div style="background:rgba(255,255,255,0.1); border-radius:10px; padding:7px 10px; display:flex; justify-content:space-between; align-items:center;">
-                                    <span style="font-size:10px; color:rgba(255,255,255,0.85); text-transform:uppercase; font-weight:800; letter-spacing:0.4px;">Cleanliness</span>
-                                    <span style="font-size:11px; font-weight:800; color:#ffffff; background:${cleanBg}; padding:2px 8px; border-radius:6px; display:inline-flex; align-items:center;">${cleanVal}</span>
-                                </div>
-                                <div style="background:rgba(255,255,255,0.1); border-radius:10px; padding:7px 10px; display:flex; justify-content:space-between; align-items:center;">
-                                    <span style="font-size:10px; color:rgba(255,255,255,0.85); text-transform:uppercase; font-weight:800; letter-spacing:0.4px;">Safety</span>
-                                    <span style="font-size:11px; font-weight:800; color:#ffffff; background:${safeBg}; padding:2px 8px; border-radius:6px; display:inline-flex; align-items:center;">${safeVal}</span>
-                                </div>
-                            </div>`;
-
-                            const policyHtml = fb.policy_recommendation ? `
-                            <div style="background:rgba(0,242,254,0.12); border-left:3px solid #00f2fe; border-radius:10px; padding:10px 12px; margin-top:10px;">
-                                <div style="display:flex; align-items:center; gap:5px; margin-bottom:4px;">
-                                    <i class="fa-solid fa-lightbulb" style="color:#00f2fe; font-size:11px;"></i>
-                                    <strong style="font-size:10px; color:#00f2fe; text-transform:uppercase; letter-spacing:0.5px; font-weight:800;">Policy Recommendation for LGU</strong>
-                                </div>
-                                <span style="color:#ffffff; font-size:12px; line-height:1.45; display:block;">${fb.policy_recommendation}</span>
-                            </div>` : '';
-
-                            return `
+                        return `
                         <div style="background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.18); border-radius:14px; padding:14px; font-size:12px;">
                             <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
                                 <div style="display:flex; align-items:center; gap:8px;">
@@ -4985,16 +4967,16 @@ if (is_dir($imgDir)) {
                             <p style="margin:0; color:#ffffff; font-size:12.5px; line-height:1.5;">${fb.testimony || 'Visited this destination.'}</p>
                             ${policyHtml}
                         </div>`;
-                        };
+                    };
 
-                        let html = renderCard(d.data[0]);
+                    let html = renderCard(d.data[0]);
 
-                        if (d.data.length > 1) {
-                            let extraCardsHtml = '';
-                            for (let i = 1; i < d.data.length; i++) {
-                                extraCardsHtml += renderCard(d.data[i]);
-                            }
-                            html += `
+                    if (d.data.length > 1) {
+                        let extraCardsHtml = '';
+                        for (let i = 1; i < d.data.length; i++) {
+                            extraCardsHtml += renderCard(d.data[i]);
+                        }
+                        html += `
                         <div id="extra-testimonies-container" data-total-count="${d.data.length}" style="display:none; flex-direction:column; gap:10px; margin-top:10px; max-height:0; opacity:0; transform:translateY(-8px); overflow:hidden; transition:max-height 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease, transform 0.35s ease;">
                             ${extraCardsHtml}
                         </div>
@@ -5004,28 +4986,104 @@ if (is_dir($imgDir)) {
                                 <i class="fa-solid fa-chevron-down" id="toggle-testimonies-chevron" style="transition:transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1); color:#ffffff;"></i>
                             </button>
                         </div>`;
-                        }
+                    }
 
-                        list.innerHTML = html;
-                    } else {
-                        list.innerHTML = `
-                        <div style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.16); border-radius:14px; padding:20px 16px; text-align:center;">
-                            <div style="width:40px; height:40px; border-radius:50%; background:#ffffff; display:inline-flex; align-items:center; justify-content:center; color:#1e3a8a; font-size:16px; margin-bottom:8px; box-shadow:0 2px 6px rgba(0,0,0,0.18);">
-                                <i class="fa-regular fa-comment-dots"></i>
-                            </div>
-                            <div style="font-size:13.5px; font-weight:800; color:#ffffff; margin-bottom:4px;">No Testimonies Yet</div>
-                            <p style="margin:0 0 12px; font-size:12px; color:rgba(255,255,255,0.88); line-height:1.5;">
-                                Be the first verified visitor to review this <strong style="color:${classMeta.color}; font-weight:800;">${classMeta.label}</strong> spot and share policy feedback during your trip navigation to earn <strong>+${classMeta.points} Points</strong>!
-                            </p>
-                            <div style="display:inline-flex; align-items:center; gap:6px; font-size:10.5px; font-weight:700; color:#ffffff; background:rgba(255,255,255,0.18); padding:5px 12px; border-radius:20px;">
-                                <i class="fa-solid fa-route" style="color:#ffffff;"></i> Review available in Trip Map & Visited Stops
-                            </div>
-                        </div>`;
+                    list.innerHTML = html;
+                } else {
+                    renderEmptyTestimonies(isOfflineCached);
+                }
+                return true;
+            };
+
+            const renderEmptyTestimonies = (isOffline = false) => {
+                if (badge) badge.textContent = isOffline ? 'Offline' : 'No Reviews';
+                list.innerHTML = `
+                <div style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.16); border-radius:14px; padding:20px 16px; text-align:center;">
+                    <div style="width:40px; height:40px; border-radius:50%; background:#ffffff; display:inline-flex; align-items:center; justify-content:center; color:#1e3a8a; font-size:16px; margin-bottom:8px; box-shadow:0 2px 6px rgba(0,0,0,0.18);">
+                        <i class="fa-solid ${isOffline ? 'fa-cloud-arrow-down' : 'fa-comment-dots'}" style="color:#1e3a8a;"></i>
+                    </div>
+                    <div style="font-size:13.5px; font-weight:800; color:#ffffff; margin-bottom:4px;">${isOffline ? 'Offline Reviews Mode' : 'No Testimonies Yet'}</div>
+                    <p style="margin:0 0 12px; font-size:12px; color:rgba(255,255,255,0.88); line-height:1.5;">
+                        ${isOffline ? 'Testimonies for this spot are not yet cached on this device. Connect to the internet to sync visitor reviews.' : `Be the first verified visitor to review this <strong style="color:${classMeta.color}; font-weight:800;">${classMeta.label}</strong> spot and share policy feedback during your trip navigation to earn <strong>+${classMeta.points} Points</strong>!`}
+                    </p>
+                    <div style="display:inline-flex; align-items:center; gap:6px; font-size:10.5px; font-weight:700; color:#ffffff; background:rgba(255,255,255,0.18); padding:5px 12px; border-radius:20px;">
+                        <i class="fa-solid fa-route" style="color:#ffffff;"></i> Review available in Trip Map & Visited Stops
+                    </div>
+                </div>`;
+            };
+
+            const cacheKey = 'intan_elyu_testimonies_spot_' + spotId;
+            let cachedData = null;
+            try {
+                const stored = localStorage.getItem(cacheKey);
+                if (stored) cachedData = JSON.parse(stored);
+            } catch (err) { }
+
+            // If offline, immediately render cached data if available
+            if (!navigator.onLine || window.isAppOnline === false) {
+                if (cachedData) {
+                    renderTestimoniesPayload(cachedData, true);
+                } else {
+                    renderEmptyTestimonies(true);
+                }
+                return;
+            }
+
+            // Pre-hydrate from cache while fetching live
+            if (cachedData) {
+                renderTestimoniesPayload(cachedData, false);
+            } else {
+                list.innerHTML = '<div style="font-size:12px; color:#94a3b8; text-align:center; padding:16px 10px;"><i class="fa-solid fa-spinner fa-spin" style="margin-right:6px; color:#38bdf8;"></i> Loading reviews...</div>';
+            }
+
+            try {
+                const token = localStorage.getItem('intan_elyu_token');
+                const _backendBase = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || '')).replace(/\/+$/, '');
+                const headers = { 'Accept': 'application/json' };
+                if (token) headers['Authorization'] = 'Bearer ' + token;
+
+                const controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+                const timeoutId = controller ? setTimeout(() => controller.abort(), 7000) : null;
+
+                let res = null;
+                try {
+                    res = await fetch(_backendBase + '/api/public/feedback?tourist_spot_id=' + spotId, {
+                        signal: controller ? controller.signal : undefined,
+                        headers
+                    });
+                    if (!res.ok && token) {
+                        res = await fetch(_backendBase + '/api/tourist/feedback?tourist_spot_id=' + spotId, {
+                            signal: controller ? controller.signal : undefined,
+                            headers
+                        });
+                    }
+                } finally {
+                    if (timeoutId) clearTimeout(timeoutId);
+                }
+
+                if (res && res.ok) {
+                    const text = await res.text();
+                    const d = window.safeJsonParse(text, null);
+                    if (d && d.status === 'success') {
+                        try { localStorage.setItem(cacheKey, JSON.stringify(d)); } catch (e) { }
+                        renderTestimoniesPayload(d, false);
+                        return;
                     }
                 }
+
+                // If fetch was not successful but we have cached data
+                if (cachedData) {
+                    renderTestimoniesPayload(cachedData, true);
+                } else {
+                    renderEmptyTestimonies(true);
+                }
             } catch (e) {
-                console.error("Testimonies load error:", e);
-                list.innerHTML = '<div style="font-size:12px; color:#ef4444; text-align:center; padding:12px 10px;">Failed to load reviews.</div>';
+                // Graceful fallback to cached data or offline state - NEVER display error red text
+                if (cachedData) {
+                    renderTestimoniesPayload(cachedData, true);
+                } else {
+                    renderEmptyTestimonies(true);
+                }
             }
         }
 
