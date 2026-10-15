@@ -24,7 +24,10 @@ dist-ssr
 *.sw?
 .agents/
 AGENTS.md
+.obsidian/
 graphify-out/
+.graphifyignore
+*.canvas
 
 .env
 
