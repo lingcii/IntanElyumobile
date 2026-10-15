@@ -1119,6 +1119,7 @@ if (file_exists($buildGradle)) {
     // 4. Fallback Dynamic QR Code Generator for Current Domain
     (function () {
       const qrImg = document.getElementById('portal-hero-qr');
+      if (!qrImg) return;
       const hostOrigin = (window.location.hostname.indexOf('railway.app') !== -1)
         ? 'https://app.intan-elyu.online'
         : window.location.origin;
@@ -1129,6 +1130,8 @@ if (file_exists($buildGradle)) {
       qrImg.onerror = function () {
         this.src = 'https://chart.googleapis.com/chart?cht=qr&chs=200x200&chl=' + encodeURIComponent(apkUrl) + '&chld=M|1';
       };
+    })();
+
     // 5. Offline Download Guard
     document.querySelectorAll('a[download], a.btn-hero-dl, a.btn-dock-dl').forEach(function(el) {
       el.addEventListener('click', function(e) {
