@@ -584,6 +584,51 @@ window.OfflineTripManager = {
     queueOfflineTrip: function (tripData) {
         try {
             const trips = this.getQueuedTrips();
+            const updateId = tripData.update_id ? String(tripData.update_id) : null;
+
+            // 1. If updating an already-queued offline trip (e.g. offline_1729...)
+            if (updateId && updateId.startsWith('offline_')) {
+                const existingIdx = trips.findIndex(t => t.id === updateId || t.local_id === updateId);
+                if (existingIdx !== -1) {
+                    trips[existingIdx] = {
+                        ...trips[existingIdx],
+                        ...tripData,
+                        id: updateId,
+                        local_id: updateId,
+                        is_offline_queued: true,
+                        updated_at: new Date().toISOString()
+                    };
+                    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(trips));
+                    window.dispatchEvent(new CustomEvent('offlineTripQueued', { detail: trips[existingIdx] }));
+                    return trips[existingIdx];
+                }
+            }
+
+            // 2. If editing an existing server-synced trip while offline
+            if (updateId && !updateId.startsWith('offline_')) {
+                const editTempId = 'offline_edit_' + updateId;
+                const existingEditIdx = trips.findIndex(t => t.id === editTempId || String(t.update_id) === updateId);
+                const updatedTrip = {
+                    ...tripData,
+                    id: editTempId,
+                    local_id: editTempId,
+                    update_id: updateId,
+                    is_offline_queued: true,
+                    is_offline_update: true,
+                    updated_at: new Date().toISOString()
+                };
+
+                if (existingEditIdx !== -1) {
+                    trips[existingEditIdx] = updatedTrip;
+                } else {
+                    trips.unshift(updatedTrip);
+                }
+                localStorage.setItem(this.STORAGE_KEY, JSON.stringify(trips));
+                window.dispatchEvent(new CustomEvent('offlineTripQueued', { detail: updatedTrip }));
+                return updatedTrip;
+            }
+
+            // 3. Brand new offline trip
             const tempId = 'offline_' + Date.now();
             const newTrip = {
                 ...tripData,
@@ -604,7 +649,7 @@ window.OfflineTripManager = {
 
     removeQueuedTrip: function (tempId) {
         try {
-            const trips = this.getQueuedTrips().filter(t => t.id !== tempId);
+            const trips = this.getQueuedTrips().filter(t => t.id !== tempId && t.local_id !== tempId);
             localStorage.setItem(this.STORAGE_KEY, JSON.stringify(trips));
         } catch (e) {}
     },
@@ -632,15 +677,28 @@ window.OfflineTripManager = {
                     leg_transports: trip.leg_transports || []
                 };
 
-                const res = await fetch(`${bUrl}/api/tourist/itineraries`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        'Authorization': 'Bearer ' + token
-                    },
-                    body: JSON.stringify(payload)
-                });
+                let res;
+                if (trip.is_offline_update && trip.update_id) {
+                    res = await fetch(`${bUrl}/api/tourist/itineraries/${trip.update_id}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'Authorization': 'Bearer ' + token
+                        },
+                        body: JSON.stringify(payload)
+                    });
+                } else {
+                    res = await fetch(`${bUrl}/api/tourist/itineraries`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'Authorization': 'Bearer ' + token
+                        },
+                        body: JSON.stringify(payload)
+                    });
+                }
 
                 if (res.ok) {
                     this.removeQueuedTrip(trip.id);
@@ -655,6 +713,10 @@ window.OfflineTripManager = {
             const tokenKey = token.substring(0, 10);
             localStorage.removeItem('saved_trips_' + tokenKey);
             localStorage.removeItem('dashboard_trips_' + tokenKey);
+            localStorage.removeItem('dashboard_saved_trips_' + tokenKey);
+            if (typeof window._cachedSavedTrips !== 'undefined') {
+                window._cachedSavedTrips = null;
+            }
             window.dispatchEvent(new CustomEvent('tripsSynced'));
             if (typeof window.loadSavedTrips === 'function') {
                 window.loadSavedTrips(true);

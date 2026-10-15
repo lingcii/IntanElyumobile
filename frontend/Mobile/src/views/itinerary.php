@@ -4247,6 +4247,7 @@ try {
                     route_type: activeRouteType,
                     transport_mode: effectiveTransport,
                     leg_transports: legTransports,
+                    update_id: editingId || null,
                     items: draft.map((place, idx) => ({
                         id: idx + 1,
                         tourist_spot_id: parseInt(place.id || place.tourist_spot_id || 0),
@@ -4259,11 +4260,14 @@ try {
                 // Fast offline trip queueing
                 if ((!navigator.onLine || window.isAppOnline === false) && tripPayload && window.OfflineTripManager) {
                     const queued = window.OfflineTripManager.queueOfflineTrip(tripPayload);
-                    showToast("📍 Offline Mode: Trip saved on device for auto-sync!", "info", 5000);
+                    showToast(editingId ? "📍 Offline Mode: Trip changes saved on device for auto-sync!" : "📍 Offline Mode: Trip saved on device for auto-sync!", "info", 5000);
                     sessionStorage.setItem('just_saved_trip_id', queued.local_id);
                     sessionStorage.setItem('active_trip_transport_' + queued.local_id, effectiveTransport);
                     localStorage.setItem('selected_trip_vehicle_' + queued.local_id, effectiveTransport);
                     localStorage.removeItem('intan_elyu_draft_itinerary');
+                    localStorage.removeItem('intan_elyu_pre_edit_backup_draft');
+                    sessionStorage.removeItem('intan_elyu_pre_edit_backup_draft');
+                    localStorage.removeItem('intan_elyu_draft_leg_vehicles');
                     window.resetSaveModalInputs();
                     document.getElementById('save-trip-modal').style.display = 'none';
                     const bottomNav = document.getElementById('bottom-navigation');
@@ -4354,11 +4358,14 @@ try {
                 const isNetworkErr = !navigator.onLine || (error && (error.name === 'TypeError' || String(error.message).toLowerCase().includes('network') || String(error.message).toLowerCase().includes('fetch')));
                 if (isNetworkErr && tripPayload && window.OfflineTripManager) {
                     const queued = window.OfflineTripManager.queueOfflineTrip(tripPayload);
-                    showToast("📍 Network lost. Saved offline for auto-sync!");
+                    showToast(editingId ? "📍 Network lost. Trip changes saved offline for auto-sync!" : "📍 Network lost. Saved offline for auto-sync!");
                     sessionStorage.setItem('just_saved_trip_id', queued.local_id);
                     sessionStorage.setItem('active_trip_transport_' + queued.local_id, effectiveTransport);
                     localStorage.setItem('selected_trip_vehicle_' + queued.local_id, effectiveTransport);
                     localStorage.removeItem('intan_elyu_draft_itinerary');
+                    localStorage.removeItem('intan_elyu_pre_edit_backup_draft');
+                    sessionStorage.removeItem('intan_elyu_pre_edit_backup_draft');
+                    localStorage.removeItem('intan_elyu_draft_leg_vehicles');
                     window.resetSaveModalInputs();
                     document.getElementById('save-trip-modal').style.display = 'none';
                     const bottomNav = document.getElementById('bottom-navigation');

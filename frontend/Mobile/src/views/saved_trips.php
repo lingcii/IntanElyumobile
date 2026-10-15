@@ -329,12 +329,30 @@ $backRoute = 'itinerary';
 
         function renderSavedTrips(itineraries) {
             try {
-                // Prepend queued offline trips
+                // Prepend queued offline trips and merge offline updates
                 const queuedTrips = (window.OfflineTripManager && typeof window.OfflineTripManager.getQueuedTrips === 'function')
                     ? window.OfflineTripManager.getQueuedTrips()
                     : [];
 
-                const combinedTrips = [...queuedTrips, ...(Array.isArray(itineraries) ? itineraries : [])];
+                const queuedNewTrips = queuedTrips.filter(t => !t.is_offline_update);
+                const queuedUpdates = queuedTrips.filter(t => t.is_offline_update && t.update_id);
+                const updatesMap = {};
+                queuedUpdates.forEach(u => { updatesMap[String(u.update_id)] = u; });
+
+                let serverTrips = (Array.isArray(itineraries) ? itineraries : []).map(t => {
+                    if (updatesMap[String(t.id)]) {
+                        return {
+                            ...t,
+                            ...updatesMap[String(t.id)],
+                            id: t.id,
+                            is_offline_queued: true,
+                            is_offline_update: true
+                        };
+                    }
+                    return t;
+                });
+
+                const combinedTrips = [...queuedNewTrips, ...serverTrips];
                 window._cachedSavedTrips = combinedTrips;
                 const list = document.getElementById('saved-trips-list');
 
@@ -1528,6 +1546,28 @@ $backRoute = 'itinerary';
             if (modal) modal.style.display = 'none';
 
             if (!id) return;
+
+            // Handle offline queued trips directly
+            if (String(id).startsWith('offline_')) {
+                if (window.OfflineTripManager && typeof window.OfflineTripManager.removeQueuedTrip === 'function') {
+                    window.OfflineTripManager.removeQueuedTrip(id);
+                }
+                if (typeof showToast === 'function') showToast("Offline trip removed.");
+                if (element) {
+                    element.style.transition = 'all 0.3s ease';
+                    element.style.opacity = '0';
+                    element.style.transform = 'translateY(10px) scale(0.95)';
+                    setTimeout(() => {
+                        element.remove();
+                        const list = document.getElementById('saved-trips-list');
+                        if (list && list.querySelectorAll('.trip-swipe-wrapper').length === 0) {
+                            renderSavedTrips([]);
+                        }
+                    }, 300);
+                }
+                return;
+            }
+
             const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
             if (!token) return;
 
