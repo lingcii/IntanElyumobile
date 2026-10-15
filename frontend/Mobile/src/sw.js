@@ -1,4 +1,4 @@
-const CACHE_NAME = 'Intan_Elyu_cache-v15';
+const CACHE_NAME = 'Intan_Elyu_cache-v16';
 const ASSETS = [
     './',
     './index.php',
@@ -28,6 +28,8 @@ const ASSETS = [
     './index.php?view=user_manual&ajax=1',
     './index.php?view=edit_profile&ajax=1',
     './index.php?view=reset-password&ajax=1',
+    './index.php?view=download',
+    './index.php?view=download&ajax=1',
     './assets/css/style.css',
     './assets/js/main.js',
     './assets/img/logo.png',
@@ -58,6 +60,7 @@ const ASSETS = [
     './assets/css/views/splash.css',
     './assets/css/views/user_manual.css',
     './assets/css/views/edit_profile.css',
+    './assets/css/views/download.css',
     // External CDN Libraries
     'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
     'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap',
