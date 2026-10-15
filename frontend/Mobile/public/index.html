@@ -661,16 +661,25 @@
             }
         }
 
-        function togglePasswordVisibility(fieldId, iconEl) {
+        window.togglePasswordVisibility = function (fieldId, iconEl) {
             const input = document.getElementById(fieldId);
             if (!input) return;
             if (input.type === 'password') {
                 input.type = 'text';
-                iconEl.classList.replace('fa-eye', 'fa-eye-slash');
+                if (iconEl && iconEl.classList) {
+                    iconEl.classList.remove('fa-eye');
+                    iconEl.classList.add('fa-eye-slash');
+                }
             } else {
                 input.type = 'password';
-                iconEl.classList.replace('fa-eye-slash', 'fa-eye');
+                if (iconEl && iconEl.classList) {
+                    iconEl.classList.remove('fa-eye-slash');
+                    iconEl.classList.add('fa-eye');
+                }
             }
+        };
+        function togglePasswordVisibility(fieldId, iconEl) {
+            window.togglePasswordVisibility(fieldId, iconEl);
         }
 
         function validateRegisterFormInline() {

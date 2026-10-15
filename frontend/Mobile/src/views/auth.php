@@ -982,17 +982,25 @@
         }
     };
 
-    function togglePasswordVisibility(inputId, iconElement) {
+    window.togglePasswordVisibility = function (inputId, iconElement) {
         const input = document.getElementById(inputId);
+        if (!input) return;
         if (input.type === 'password') {
             input.type = 'text';
-            iconElement.classList.remove('fa-eye');
-            iconElement.classList.add('fa-eye-slash');
+            if (iconElement) {
+                iconElement.classList.remove('fa-eye');
+                iconElement.classList.add('fa-eye-slash');
+            }
         } else {
             input.type = 'password';
-            iconElement.classList.remove('fa-eye-slash');
-            iconElement.classList.add('fa-eye');
+            if (iconElement) {
+                iconElement.classList.remove('fa-eye-slash');
+                iconElement.classList.add('fa-eye');
+            }
         }
+    };
+    function togglePasswordVisibility(inputId, iconElement) {
+        window.togglePasswordVisibility(inputId, iconElement);
     }
 
     window.handleLogin = async function (e) {

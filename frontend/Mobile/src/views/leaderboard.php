@@ -476,7 +476,7 @@ $activeTab = 'leaderboard';
             </div>`;
 
         return `
-        <div class="podium-place rank-${rank}" onclick="showUserProfile('${safeName}', '${avatarUrl}', ${pts}, ${rank}, ${activities}, '${safeLocation}', '${safeBio}', ${isMe})">
+        <div class="podium-place rank-${rank}" onclick="showUserProfile('${safeName}', '${avatarUrl}', ${pts}, '${rank}', ${activities}, '${safeLocation}', '${safeBio}', ${Boolean(isMe)})">
             <div class="podium-avatar-wrap">
                 ${medalIcon}
                 <img src="${avatarUrl}" alt="${displayName}" class="podium-avatar" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(rawName)}&background=007AFF&color=fff&rounded=true&bold=true&size=128';">
@@ -528,7 +528,7 @@ $activeTab = 'leaderboard';
         }
 
         return `
-        <div class="rank-item ${activeClass}" style="animation-delay: ${Math.max(0, delay)}s;" onclick="showUserProfile('${safeName}', '${avatarUrl}', ${pts}, ${rank}, ${activities}, '${safeLocation}', '${safeBio}', ${Boolean(isMe)})">
+        <div class="rank-item ${activeClass}" style="animation-delay: ${Math.max(0, delay)}s;" onclick="showUserProfile('${safeName}', '${avatarUrl}', ${pts}, '${rank}', ${activities}, '${safeLocation}', '${safeBio}', ${Boolean(isMe)})">
             <div style="display: flex; align-items: center; min-width: 0; flex: 1; gap: 10px;">
                 <div class="rank-number-box">#${rank}</div>
                 <img src="${avatarUrl}" alt="${displayName}" class="rank-avatar" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(rawName)}&background=007AFF&color=fff&rounded=true&bold=true&size=128';">
@@ -573,12 +573,13 @@ $activeTab = 'leaderboard';
             }
         }
 
+        const cleanRank = String(rank || '').replace(/^#/, '');
         document.getElementById('modal-avatar').src = avatar;
         document.getElementById('modal-name').innerText = name;
         document.getElementById('modal-pts').innerText = displayPts.toLocaleString();
-        document.getElementById('modal-rank-badge').innerText = rank;
+        document.getElementById('modal-rank-badge').innerText = cleanRank || '★';
         const rankNumEl = document.getElementById('modal-rank-num');
-        if (rankNumEl) rankNumEl.innerText = rank ? (String(rank).startsWith('#') ? rank : '#' + rank) : '—';
+        if (rankNumEl) rankNumEl.innerText = cleanRank ? (cleanRank !== '—' ? '#' + cleanRank : '—') : '—';
         document.getElementById('modal-activities').innerText = activities ? Number(activities).toLocaleString() : '0';
 
         // When viewing self, fetch fresh live balance to guarantee accuracy
@@ -611,9 +612,9 @@ $activeTab = 'leaderboard';
         const rankPill = document.getElementById('modal-rank-pill');
         if (rankPill) {
             if (isSelf) {
-                rankPill.innerText = (rank && rank !== '—') ? `#${rank} Ranked Explorer (You)` : `Your Explorer Profile`;
+                rankPill.innerText = (cleanRank && cleanRank !== '—') ? `#${cleanRank} Ranked Explorer (You)` : `Your Explorer Profile`;
             } else {
-                rankPill.innerText = `#${rank} Ranked Explorer`;
+                rankPill.innerText = cleanRank ? `#${cleanRank} Ranked Explorer` : 'Ranked Explorer';
             }
         }
 
