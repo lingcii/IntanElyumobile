@@ -489,6 +489,7 @@ body.keyboard-open .auth-bottom {
     height: 42px !important;
     min-height: 42px !important;
     max-height: 42px !important;
+    flex-shrink: 0 !important;
     display: flex;
     align-items: center;
     margin-bottom: 9px;
@@ -592,7 +593,7 @@ body.keyboard-open .auth-bottom {
 /* Password Visibility Toggle Eye Icon - Always fixed on the right */
 .input-group > i.password-toggle {
     position: absolute !important;
-    right: 12px !important;
+    right: 14px !important;
     left: auto !important;
     top: 50% !important;
     transform: translateY(-50%) !important;
@@ -670,14 +671,14 @@ body.keyboard-open .auth-bottom {
 }
 
 .pwd-strength-card {
-    background: #ffffff;
-    border: 1.5px solid rgba(255, 255, 255, 0.9);
-    border-radius: 16px;
-    padding: 10px 13px;
-    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08);
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+    background: #ffffff !important;
+    border: 1.5px solid #e2e8f0 !important;
+    border-radius: 16px !important;
+    padding: 10px 13px !important;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
 }
 
 .pwd-strength-header {

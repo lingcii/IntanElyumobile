@@ -270,6 +270,27 @@ $activeTab = 'leaderboard';
 
             // Prepare current logged-in user standing information (function-scoped for ranking comparisons)
             const authUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
+            if (!cachedMeData && authUser && (authUser.id || authUser.name || authUser.email)) {
+                cachedMeData = {
+                    id: authUser.id || authUser.user_id || 0,
+                    user_id: authUser.id || authUser.user_id || 0,
+                    name: authUser.name || authUser.full_name || 'You',
+                    full_name: authUser.name || authUser.full_name || 'You',
+                    email: authUser.email || '',
+                    avatar: authUser.avatar || '',
+                    home_location: authUser.home_location || authUser.municipality || 'La Union',
+                    municipality: authUser.municipality || authUser.home_location || 'La Union',
+                    points: parseInt(authUser.points || 0),
+                    total_points: parseInt(authUser.points || 0),
+                    pts: parseInt(authUser.points || 0),
+                    xp: parseInt(authUser.xp || 0),
+                    total_xp: parseInt(authUser.xp || 0),
+                    completed_activities: parseInt(authUser.completed_activities || authUser.places_visited || 0),
+                    places_visited: parseInt(authUser.completed_activities || authUser.places_visited || 0),
+                    rank: (cachedMyRank && cachedMyRank < 999) ? cachedMyRank : (rawLeadersList ? (rawLeadersList.length + 1) : 11)
+                };
+                window._cachedMeData = cachedMeData;
+            }
             const myPts = cachedMeData ? parseInt(cachedMeData.points ?? cachedMeData.pts ?? cachedMeData.total_points ?? cachedMeData.claimable_points ?? 0) : parseInt(authUser.points || 0);
             const myActivities = cachedMeData ? parseInt(cachedMeData.completed_activities ?? cachedMeData.activities ?? cachedMeData.total_activities ?? cachedMeData.places_visited ?? 0) : parseInt(authUser.completed_activities || authUser.places_visited || 0);
             const isRanked = Boolean((cachedMyRank && cachedMyRank < 999) || myPts > 0 || myActivities > 0);
@@ -373,8 +394,8 @@ $activeTab = 'leaderboard';
                 return (uId && mId && uId === mId) || (mEmail && uEmail && mEmail === uEmail);
             }));
             if (cachedMeData && !isMeAlreadyInList) {
-                const displayRank = (cachedMyRank && cachedMyRank < 999) ? cachedMyRank : (leaders.length > 0 ? (leaders.length + '+') : 1);
-                rankListHTML += generateRankItem(cachedMeData, displayRank, true);
+                const displayRank = (cachedMyRank && cachedMyRank < 999) ? cachedMyRank : (leaders.length > 0 ? (leaders.length + '+') : 11);
+                rankListHTML += generateRankItem(cachedMeData, displayRank, true, true);
             }
 
             const rankListSec = document.getElementById('rank-list-section');
@@ -469,7 +490,7 @@ $activeTab = 'leaderboard';
         </div>`;
     }
 
-    function generateRankItem(user, rank, isMe) {
+    function generateRankItem(user, rank, isMe, isSticky = false) {
         const displayName = getUserDisplayName(user, rank);
         const rawName = (user.name || user.full_name || user.real_name || 'Explorer').replace(/[^a-zA-Z\s]/g, '').trim() || 'Explorer';
         const bUrl = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || '')).replace(/\/+$/, '');
@@ -478,7 +499,10 @@ $activeTab = 'leaderboard';
             avatarUrl = bUrl ? (bUrl + '/' + avatarUrl.replace(/^\//, '')) : avatarUrl;
         }
 
-        const activeClass = isMe ? 'is-me' : '';
+        const activeClass = [
+            isMe ? 'is-me' : '',
+            isSticky ? 'sticky-you-card is-sticky-bottom' : ''
+        ].filter(Boolean).join(' ');
         const youTag = isMe ? `<span style="font-size:9px; background:linear-gradient(135deg, #38bdf8, #2563eb); color:white; padding:2px 7px; border-radius:100px; font-weight:800; margin-left:6px;">YOU</span>` : '';
         const delay = 0.15 + ((rank - 4) * 0.03);
 
