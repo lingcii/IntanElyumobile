@@ -251,54 +251,15 @@ $backRoute = 'itinerary';
                     },
                     (itineraries) => {
                         if (window._isStartingTrip) return;
-                        if (itineraries && itineraries.length > 0) {
-                            renderSavedTrips(itineraries);
-                        } else {
-                            const queuedTrips = (window.OfflineTripManager && typeof window.OfflineTripManager.getQueuedTrips === 'function')
-                                ? window.OfflineTripManager.getQueuedTrips()
-                                : [];
-                            if (queuedTrips.length > 0 || (itineraries && itineraries.length === 0)) {
-                                renderSavedTrips(itineraries || []);
-                            } else if (!window._cachedSavedTrips || window._cachedSavedTrips.length === 0) {
-                                const list = document.getElementById('saved-trips-list');
-                                if (list) {
-                                    list.innerHTML = `
-                                    <div class="empty-state-card reveal-on-scroll" style="margin-top: 30px; margin-bottom: 30px;">
-                                        <div style="width: 72px; height: 72px; border-radius: 50%; background: rgba(239, 68, 68, 0.15); display: flex; align-items: center; justify-content: center; margin-bottom: 8px; border: 1px solid rgba(239, 68, 68, 0.3);">
-                                            <i class="fa-solid fa-circle-exclamation" style="font-size: 32px; color: #ef4444;"></i>
-                                        </div>
-                                        <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: #ffffff;">Unable to Load Trips</h3>
-                                        <p style="margin: 0; font-size: 13px; color: rgba(148,163,184,0.9); line-height: 1.45; max-width: 260px;">Please check your connection and try refreshing.</p>
-                                        <button type="button" class="btn-cta-accent-10" onclick="if(typeof window.loadSavedTrips==='function') window.loadSavedTrips(true);" style="margin-top: 10px; padding: 12px 24px; border-radius: 100px; font-size: 14px; display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                                            <i class="fa-solid fa-rotate"></i> Retry
-                                        </button>
-                                    </div>
-                                `;
-                                }
-                            }
-                        }
+                        renderSavedTrips(itineraries || []);
                     },
                     forceRefresh,
                     60000 // 1 minute TTL
                 );
             } catch (fetchErr) {
-                console.error("fetchSavedTrips uncaught error:", fetchErr);
+                console.warn("fetchSavedTrips handled offline fallback:", fetchErr);
                 if (!window._cachedSavedTrips || window._cachedSavedTrips.length === 0) {
-                    const list = document.getElementById('saved-trips-list');
-                    if (list) {
-                        list.innerHTML = `
-                        <div class="empty-state-card reveal-on-scroll" style="margin-top: 30px; margin-bottom: 30px;">
-                            <div style="width: 72px; height: 72px; border-radius: 50%; background: rgba(239, 68, 68, 0.15); display: flex; align-items: center; justify-content: center; margin-bottom: 8px; border: 1px solid rgba(239, 68, 68, 0.3);">
-                                <i class="fa-solid fa-circle-exclamation" style="font-size: 32px; color: #ef4444;"></i>
-                            </div>
-                            <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: #ffffff;">Unable to Load Trips</h3>
-                            <p style="margin: 0; font-size: 13px; color: rgba(148,163,184,0.9); line-height: 1.45; max-width: 260px;">Please check your connection and try refreshing.</p>
-                            <button type="button" class="btn-cta-accent-10" onclick="if(typeof window.loadSavedTrips==='function') window.loadSavedTrips(true);" style="margin-top: 10px; padding: 12px 24px; border-radius: 100px; font-size: 14px; display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                                <i class="fa-solid fa-rotate"></i> Retry
-                            </button>
-                        </div>
-                    `;
-                    }
+                    renderSavedTrips([]);
                 }
             }
         };

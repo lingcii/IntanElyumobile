@@ -368,10 +368,13 @@ $activeTab = 'leaderboard';
             const isMeAlreadyInList = Boolean(cachedMeData && leaders.some(u => {
                 const uId = u.id || u.user_id;
                 const mId = cachedMeData.id || cachedMeData.user_id;
-                return uId && mId && uId === mId;
+                const mEmail = (cachedMeData.email || '').toLowerCase().trim();
+                const uEmail = (u.email || '').toLowerCase().trim();
+                return (uId && mId && uId === mId) || (mEmail && uEmail && mEmail === uEmail);
             }));
-            if (cachedMeData && !isMeAlreadyInList && cachedMyRank && cachedMyRank <= 999) {
-                rankListHTML += generateRankItem(cachedMeData, cachedMyRank, true);
+            if (cachedMeData && !isMeAlreadyInList) {
+                const displayRank = (cachedMyRank && cachedMyRank < 999) ? cachedMyRank : (leaders.length > 0 ? (leaders.length + '+') : 1);
+                rankListHTML += generateRankItem(cachedMeData, displayRank, true);
             }
 
             const rankListSec = document.getElementById('rank-list-section');
@@ -685,6 +688,33 @@ $activeTab = 'leaderboard';
                     window._cachedMeData = found;
                 }
                 cachedMyRank = Number(found.rank || found.position || (foundIndex + 1));
+                window._cachedMyRank = cachedMyRank;
+            }
+        }
+
+        // Resilient fallback: If current user is authenticated but outside top 10, synthesize cachedMeData from authUser
+        if (!cachedMeData && authUser && (authUser.id || authUser.name || authUser.email)) {
+            cachedMeData = {
+                id: authUser.id || authUser.user_id || 0,
+                user_id: authUser.id || authUser.user_id || 0,
+                name: authUser.name || authUser.full_name || 'You',
+                full_name: authUser.name || authUser.full_name || 'You',
+                email: authUser.email || '',
+                avatar: authUser.avatar || '',
+                home_location: authUser.home_location || authUser.municipality || 'La Union',
+                municipality: authUser.municipality || authUser.home_location || 'La Union',
+                points: parseInt(authUser.points || 0),
+                total_points: parseInt(authUser.points || 0),
+                pts: parseInt(authUser.points || 0),
+                xp: parseInt(authUser.xp || 0),
+                total_xp: parseInt(authUser.xp || 0),
+                completed_activities: parseInt(authUser.completed_activities || authUser.places_visited || 0),
+                places_visited: parseInt(authUser.completed_activities || authUser.places_visited || 0),
+                rank: (cachedMyRank && cachedMyRank < 999) ? cachedMyRank : (rawLeadersList ? (rawLeadersList.length + 1) : 11)
+            };
+            window._cachedMeData = cachedMeData;
+            if (!cachedMyRank || cachedMyRank >= 999) {
+                cachedMyRank = cachedMeData.rank;
                 window._cachedMyRank = cachedMyRank;
             }
         }

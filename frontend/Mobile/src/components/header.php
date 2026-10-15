@@ -306,15 +306,9 @@
         const footer = document.getElementById('notifications-footer');
         if (!list) return;
         if (footer) footer.style.display = 'none';
-        list.innerHTML = `
-            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 36px 16px; gap: 10px; color: #64748b;">
-                <i class="fa-solid fa-spinner fa-spin" style="font-size: 22px; color: #1e3a8a;"></i>
-                <span style="font-size: 13px; font-weight: 600; color: #64748b;">Loading notifications...</span>
-            </div>
-        `;
 
         const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('tourist_token');
-        if (!token) {
+        if (!token || token === 'offline_guest_token') {
             list.innerHTML = `
                 <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 36px 16px; gap: 10px; color: #64748b;">
                     <div style="width: 48px; height: 48px; border-radius: 50%; background: #f1f5f9; display: flex; align-items: center; justify-content: center;">
@@ -326,25 +320,71 @@
             return;
         }
 
+        const notifCacheKey = 'intan_elyu_cached_notifs_' + token.substring(0, 10);
+        let cachedNotifs = [];
         try {
-            const backendUrl = window.backendUrl || 'https://api.intan-elyu.online';
-            const res = await fetch(backendUrl + '/api/tourist/notifications', {
-                credentials: 'include',
-                headers: {
-                    'Accept': 'application/json',
-                    'Authorization': 'Bearer ' + token
-                }
-            });
-            if (!res.ok) return;
-            const data = await res.json();
-            renderNotifications(data.notifications || []);
-        } catch (e) {
+            const raw = localStorage.getItem(notifCacheKey);
+            if (raw) cachedNotifs = JSON.parse(raw);
+        } catch (e) { }
+
+        // Fast offline check: immediately render cached notifications if offline
+        if (!navigator.onLine || window.isAppOnline === false) {
+            if (Array.isArray(cachedNotifs) && cachedNotifs.length > 0) {
+                renderNotifications(cachedNotifs);
+            } else {
+                list.innerHTML = getNotifEmptyStateHtml();
+            }
+            return;
+        }
+
+        // Pre-hydrate from cache while fetching live
+        if (Array.isArray(cachedNotifs) && cachedNotifs.length > 0) {
+            renderNotifications(cachedNotifs);
+        } else {
             list.innerHTML = `
                 <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 36px 16px; gap: 10px; color: #64748b;">
-                    <i class="fa-solid fa-circle-exclamation" style="font-size: 22px; color: #ef4444;"></i>
-                    <span style="font-size: 13px; font-weight: 600; color: #64748b;">Failed to load notifications.</span>
+                    <i class="fa-solid fa-spinner fa-spin" style="font-size: 22px; color: #1e3a8a;"></i>
+                    <span style="font-size: 13px; font-weight: 600; color: #64748b;">Loading notifications...</span>
                 </div>
             `;
+        }
+
+        try {
+            const backendUrl = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
+            const controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+            const timeoutId = controller ? setTimeout(() => controller.abort(), 8000) : null;
+            try {
+                const res = await fetch(backendUrl + '/api/tourist/notifications', {
+                    signal: controller ? controller.signal : undefined,
+                    credentials: 'include',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    }
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    const notifs = data.notifications || [];
+                    try { localStorage.setItem(notifCacheKey, JSON.stringify(notifs)); } catch (e) { }
+                    renderNotifications(notifs);
+                    return;
+                }
+            } finally {
+                if (timeoutId) clearTimeout(timeoutId);
+            }
+            // If fetch did not succeed but we have cache
+            if (Array.isArray(cachedNotifs) && cachedNotifs.length > 0) {
+                renderNotifications(cachedNotifs);
+            } else {
+                list.innerHTML = getNotifEmptyStateHtml();
+            }
+        } catch (e) {
+            // Gracefully fallback to cache or empty state - never display error exclamation
+            if (Array.isArray(cachedNotifs) && cachedNotifs.length > 0) {
+                renderNotifications(cachedNotifs);
+            } else {
+                list.innerHTML = getNotifEmptyStateHtml();
+            }
         }
     }
 </script>
