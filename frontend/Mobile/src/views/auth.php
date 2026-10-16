@@ -2102,6 +2102,31 @@
             return;
         }
 
+        // Check if accessed from a private IP or unsupported host for Google OAuth
+        const hn = window.location.hostname;
+        const isPrivateIp = /^(\d{1,3}\.){3}\d{1,3}$/.test(hn) ||
+                            hn.startsWith('192.168.') ||
+                            hn.startsWith('10.') ||
+                            hn.startsWith('172.') ||
+                            window.location.protocol === 'file:' ||
+                            window.location.protocol === 'capacitor:';
+
+        // Google OAuth strictly forbids private IP addresses in redirect_uri.
+        // When accessed via USB tethering/local IP, warn the user clearly instead of letting Google show the 400 malformed error.
+        if (isPrivateIp && hn !== 'localhost' && hn !== '127.0.0.1') {
+            resetBtns();
+            const msg = 'Google Sign-In requires the official domain (https://app.intan-elyu.online). Google strictly forbids local IP addresses (192.168.x.x). Please log in with your Email & Password or use Offline Mode.';
+            if (typeof showToast === 'function') {
+                showToast(msg, 'warning', 6000);
+            }
+            if (typeof window.openAuthCancelModal === 'function') {
+                window.openAuthCancelModal(msg);
+            } else {
+                alert(msg);
+            }
+            return;
+        }
+
         // Direct Google OAuth 2.0 Authorization Redirection (Universal for Android APK, WebViews & Web)
         let redirectUri = window.location.origin + window.location.pathname;
         if (!redirectUri.endsWith('.php') && !redirectUri.endsWith('/')) {
@@ -2114,7 +2139,17 @@
         const stateStr = encodeURIComponent(JSON.stringify(stateObj));
         const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${encodeURIComponent(clientId)}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=email%20profile%20openid&prompt=select_account&state=${stateStr}`;
 
-        window.location.href = googleAuthUrl;
+        // In Capacitor native mobile platform, open in system browser to prevent Google WebView blocking
+        if (window.Capacitor && typeof window.Capacitor.isNativePlatform === 'function' && window.Capacitor.isNativePlatform()) {
+            if (window.Capacitor.Plugins && window.Capacitor.Plugins.Browser) {
+                window.Capacitor.Plugins.Browser.open({ url: googleAuthUrl });
+            } else {
+                window.open(googleAuthUrl, '_system');
+            }
+            resetBtns();
+        } else {
+            window.location.href = googleAuthUrl;
+        }
     };
 
     window.handleCredentialResponse = async function (response, onDone) {
