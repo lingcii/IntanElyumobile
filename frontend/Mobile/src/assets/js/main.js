@@ -1318,13 +1318,22 @@ window.getBackendUrl = function () {
         return url.replace(/\/+$/, '');
     }
     if (typeof window !== 'undefined' && window.location) {
-        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-            if (window.location.port === '3000') return 'http://localhost:8000';
+        const hn = window.location.hostname;
+        const isLocalHost = (hn === 'localhost' || hn === '127.0.0.1' || hn === '::1' ||
+            /^192\.168\.\d+\.\d+$/.test(hn) ||
+            /^10\.\d+\.\d+\.\d+$/.test(hn) ||
+            /^172\.(1[6-9]|2\d|3[01])\.\d+\.\d+$/.test(hn));
+
+        if (isLocalHost) {
+            if (window.location.port === '3000') {
+                return window.location.protocol + '//' + hn + ':8000';
+            }
             if (window.location.pathname.includes('/Intan-Elyu-Tourism-Management-System/')) {
                 return window.location.protocol + '//' + window.location.host + '/Intan-Elyu-Tourism-Management-System/backend/public';
             }
+            return window.location.protocol + '//' + hn + ':8000';
         }
-        if (window.location.hostname === 'app.intan-elyu.online') {
+        if (hn === 'app.intan-elyu.online') {
             return 'https://api.intan-elyu.online';
         }
         return window.location.origin.replace('app.', 'api.').replace(/\/+$/, '');
@@ -3016,12 +3025,12 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
 
             // 2. Full HTTP / HTTPS URLs — preserve intact if already an API / serve link
             if (url.indexOf('http://') === 0 || url.indexOf('https://') === 0) {
-                if (url.includes('localhost') || url.includes('127.0.0.1')) {
+                if (url.includes('localhost') || url.includes('127.0.0.1') || /192\.168\.\d+\.\d+/.test(url) || /10\.\d+\.\d+\.\d+/.test(url) || /172\.(1[6-9]|2\d|3[01])\.\d+\.\d+/.test(url)) {
                     var localMatch = url.match(/(spot_|avatar_|proof_)[a-z0-9_]+\.(?:jpg|jpeg|png|webp|gif)/i);
                     if (localMatch && localMatch[0]) {
                         url = localMatch[0];
                     } else if (backendUrl) {
-                        url = url.replace(/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/i, backendUrl);
+                        url = url.replace(/^https?:\/\/(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.(?:1[6-9]|2\d|3[01])\.\d+\.\d+)(:\d+)?/i, backendUrl);
                     }
                 } else if (url.includes('/api/serve') || url.includes('/api/image/')) {
                     // If it contains a spot/avatar/proof filename, map directly to Cloudflare R2 for fast delivery

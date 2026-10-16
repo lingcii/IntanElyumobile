@@ -254,15 +254,23 @@ if ($isAjax) {
 
     <script src="assets/js/capacitor/capacitor.js?v=<?= time() ?>"></script>
     <script>
+        function isLocalDevHost(hn) {
+            if (!hn) return false;
+            if (hn === 'localhost' || hn === '127.0.0.1' || hn === '::1') return true;
+            return /^192\.168\.\d+\.\d+$/.test(hn) ||
+                   /^10\.\d+\.\d+\.\d+$/.test(hn) ||
+                   /^172\.(1[6-9]|2\d|3[01])\.\d+\.\d+$/.test(hn);
+        }
+
         if (window.location.pathname.includes('/Intan-Elyu-Tourism-Management-System/')) {
             window.backendUrl = window.location.protocol + '//' + window.location.host + '/Intan-Elyu-Tourism-Management-System/backend/public';
-        } else if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'capacitor:' || window.location.protocol === 'file:') {
+        } else if (isLocalDevHost(window.location.hostname) || window.location.protocol === 'capacitor:' || window.location.protocol === 'file:') {
             if (window.Capacitor && typeof window.Capacitor.isNativePlatform === 'function' && window.Capacitor.isNativePlatform()) {
-                window.backendUrl = 'https://api.intan-elyu.online';
+                window.backendUrl = window.BACKEND_URL || (isLocalDevHost(window.location.hostname) ? (window.location.protocol + '//' + window.location.hostname + ':8000') : 'https://api.intan-elyu.online');
             } else if (window.location.port === '3000') {
-                window.backendUrl = 'http://localhost:8000';
+                window.backendUrl = window.location.protocol + '//' + window.location.hostname + ':8000';
             } else {
-                window.backendUrl = 'https://api.intan-elyu.online';
+                window.backendUrl = window.location.protocol + '//' + window.location.hostname + ':8000';
             }
         } else if (window.location.hostname.endsWith('intan-elyu.online')) {
             window.backendUrl = 'https://api.intan-elyu.online';

@@ -675,7 +675,7 @@ $activeTab = 'leaderboard';
         if (!data) return;
         const authUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
         const list = data.users || data.leaders || data.tourists || data.data || data.leaderboard || (Array.isArray(data) ? data : []);
-        if (Array.isArray(list) && list.length > 0) {
+        if (Array.isArray(list)) {
             rawLeadersList = list.slice(0, 10);
             window._cachedRawLeadersList = rawLeadersList;
         }
@@ -809,25 +809,27 @@ $activeTab = 'leaderboard';
 
             // In parallel, fetch live points balance if user is authenticated
             if (token) {
-                fetch(backendUrl + '/api/tourist/points/balance', {
-                    headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/json' }
-                }).then(r => r.json()).then(d => {
-                    if (d && d.status === 'success' && d.points !== undefined) {
-                        const ptsVal = parseInt(d.points);
-                        if (window.myUserData) {
-                            window.myUserData.pts = ptsVal;
-                            const subtext = document.getElementById('my-standing-subtext');
-                            if (subtext) {
-                                const currentActivities = window.myUserData.activities || (cachedMeData ? parseInt(cachedMeData.completed_activities ?? cachedMeData.activities ?? cachedMeData.places_visited ?? 0) : 0);
-                                if (currentSortMode === 'visited') {
-                                    subtext.textContent = `${currentActivities} Spots Visited • ${ptsVal.toLocaleString()} Points`;
-                                } else {
-                                    subtext.textContent = `${ptsVal.toLocaleString()} Points • ${currentActivities} Spots Visited`;
+                const balHeaders = { 'Authorization': 'Bearer ' + token, 'Accept': 'application/json' };
+                const fetchPts = (url) => fetch(url, { headers: balHeaders }).then(r => r.json());
+                fetchPts(backendUrl + '/api/tourist/points/balance')
+                    .catch(() => fetchPts('/api/tourist/points/balance'))
+                    .then(d => {
+                        if (d && d.status === 'success' && d.points !== undefined) {
+                            const ptsVal = parseInt(d.points);
+                            if (window.myUserData) {
+                                window.myUserData.pts = ptsVal;
+                                const subtext = document.getElementById('my-standing-subtext');
+                                if (subtext) {
+                                    const currentActivities = window.myUserData.activities || (cachedMeData ? parseInt(cachedMeData.completed_activities ?? cachedMeData.activities ?? cachedMeData.places_visited ?? 0) : 0);
+                                    if (currentSortMode === 'visited') {
+                                        subtext.textContent = `${currentActivities} Spots Visited • ${ptsVal.toLocaleString()} Points`;
+                                    } else {
+                                        subtext.textContent = `${ptsVal.toLocaleString()} Points • ${currentActivities} Spots Visited`;
+                                    }
                                 }
                             }
                         }
-                    }
-                }).catch(() => { });
+                    }).catch(() => { });
             }
 
             const fetchCache = window.useCache || (async (key, fetcher, renderer) => { const d = await fetcher(); if (renderer) renderer(d); return d; });
@@ -844,65 +846,36 @@ $activeTab = 'leaderboard';
                 }
             } catch (e) { }
 
-
-            // Robust multi-tier fetch with cascaded fallbacks
+            // Robust multi-tier fetch with cascaded fallbacks (direct backend + local router proxy + canonical API)
             async function fetchLeaderboardWithFallbacks() {
-                // Tier 1: Tourist authenticated endpoint
+                const candidates = [];
+                const reqHeaders = { 'Accept': 'application/json' };
+                if (token) reqHeaders['Authorization'] = 'Bearer ' + token;
+
                 if (token) {
+                    candidates.push({ url: backendUrl + '/api/tourist/leaderboard?limit=10', headers: reqHeaders });
+                    candidates.push({ url: '/api/tourist/leaderboard?limit=10', headers: reqHeaders });
+                }
+                candidates.push({ url: backendUrl + '/api/public/leaderboard?limit=10', headers: reqHeaders });
+                candidates.push({ url: '/api/public/leaderboard?limit=10', headers: reqHeaders });
+                candidates.push({ url: backendUrl + '/api/leaderboard?limit=10', headers: reqHeaders });
+                candidates.push({ url: '/api/leaderboard?limit=10', headers: reqHeaders });
+                candidates.push({ url: 'https://api.intan-elyu.online/api/public/leaderboard?limit=10', headers: reqHeaders });
+
+                const triedUrls = new Set();
+                for (const item of candidates) {
+                    if (triedUrls.has(item.url)) continue;
+                    triedUrls.add(item.url);
                     try {
-                        const res = await fetch(backendUrl + '/api/tourist/leaderboard?limit=10', {
-                            headers: { 'Accept': 'application/json', 'Authorization': 'Bearer ' + token }
-                        });
+                        const res = await fetch(item.url, { headers: item.headers });
                         if (res.ok) {
                             const json = await res.json();
                             const users = json.users || json.leaders || json.data || json.tourists || (Array.isArray(json) ? json : []);
                             if (Array.isArray(users)) return json;
                         }
-                    } catch (err1) {
-                        console.warn("Tier 1 tourist leaderboard fetch error:", err1);
+                    } catch (err) {
+                        // Continue to next fallback tier
                     }
-                }
-
-                // Tier 2: Public leaderboard endpoint on configured backend
-                try {
-                    const headers2 = { 'Accept': 'application/json' };
-                    if (token) headers2['Authorization'] = 'Bearer ' + token;
-                    const res2 = await fetch(backendUrl + '/api/public/leaderboard?limit=10', { headers: headers2 });
-                    if (res2.ok) {
-                        const json2 = await res2.json();
-                        const users2 = json2.users || json2.leaders || json2.data || json2.tourists || (Array.isArray(json2) ? json2 : []);
-                        if (Array.isArray(users2)) return json2;
-                    }
-                } catch (err2) {
-                    console.warn("Tier 2 public leaderboard fetch error:", err2);
-                }
-
-                // Tier 3: Standard public endpoint /api/leaderboard on configured backend
-                try {
-                    const headers3 = { 'Accept': 'application/json' };
-                    if (token) headers3['Authorization'] = 'Bearer ' + token;
-                    const res3 = await fetch(backendUrl + '/api/leaderboard?limit=10', { headers: headers3 });
-                    if (res3.ok) {
-                        const json3 = await res3.json();
-                        const users3 = json3.users || json3.leaders || json3.data || json3.tourists || (Array.isArray(json3) ? json3 : []);
-                        if (Array.isArray(users3)) return json3;
-                    }
-                } catch (err3) {
-                    console.warn("Tier 3 public leaderboard fetch error:", err3);
-                }
-
-                // Tier 4: Direct canonical production domain
-                try {
-                    const res4 = await fetch('https://api.intan-elyu.online/api/public/leaderboard?limit=10', {
-                        headers: { 'Accept': 'application/json' }
-                    });
-                    if (res4.ok) {
-                        const json4 = await res4.json();
-                        const users4 = json4.users || json4.leaders || json4.data || json4.tourists || (Array.isArray(json4) ? json4 : []);
-                        if (Array.isArray(users4)) return json4;
-                    }
-                } catch (err4) {
-                    console.warn("Tier 4 direct API fetch error:", err4);
                 }
 
                 throw new Error("Could not reach any leaderboard endpoint");

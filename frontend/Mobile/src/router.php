@@ -132,7 +132,19 @@ if (strpos($path, '/api/') !== 0 && strpos($path, '/storage/') !== 0 && preg_mat
     exit;
 }
 
-$backendUrl = getenv('BACKEND_URL') ?: (isset($_SERVER['HTTP_HOST']) && (strpos($_SERVER['HTTP_HOST'], 'localhost') !== false || strpos($_SERVER['HTTP_HOST'], '127.0.0.1') !== false) ? 'http://127.0.0.1:8000' : 'https://api.intan-elyu.online');
+function isLocalOrPrivateHost($host) {
+    if (empty($host)) return false;
+    $hostname = parse_url('http://' . $host, PHP_URL_HOST);
+    if (!$hostname) $hostname = explode(':', $host)[0];
+    if (in_array($hostname, ['localhost', '127.0.0.1', '::1'])) return true;
+    // Match private IP ranges: 192.168.x.x (USB tethering, Wi-Fi LAN), 10.x.x.x, 172.16-31.x.x
+    if (preg_match('/^(192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+)$/', $hostname)) {
+        return true;
+    }
+    return false;
+}
+
+$backendUrl = getenv('BACKEND_URL') ?: (isset($_SERVER['HTTP_HOST']) && isLocalOrPrivateHost($_SERVER['HTTP_HOST']) ? 'http://127.0.0.1:8000' : 'https://api.intan-elyu.online');
 $cacheDir = __DIR__ . '/assets/img/upload_image';
 
 function serveCachedImage($cachePath) {

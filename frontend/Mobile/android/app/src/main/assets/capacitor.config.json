@@ -17,6 +17,10 @@
 		"allowNavigation": [
 			"app.intan-elyu.online",
 			"*.intan-elyu.online",
+			"192.168.*.*",
+			"10.*.*.*",
+			"localhost",
+			"127.0.0.1",
 			"accounts.google.com",
 			"*.google.com",
 			"*.googleapis.com",
