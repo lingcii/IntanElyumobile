@@ -93,7 +93,7 @@ class ItineraryController extends Controller
             'order_index'      => (int) ($item->order_index ?? 0),
             'is_visited'       => $item->is_visited,
             'proof_image'      => $item->proof_image,
-            'proof_status'     => $item->proof_status ?? ($item->is_visited ? 'approved' : 'pending'),
+            'proof_status'     => $item->proof_status ?? ($item->proof_image ? ($item->is_visited ? 'approved' : 'pending') : null),
             'rejection_reason' => $item->rejection_reason,
             'visited_at'       => $item->visited_at,
             'transport_mode'   => $item->transport_mode,

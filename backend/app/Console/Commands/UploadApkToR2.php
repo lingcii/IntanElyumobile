@@ -40,6 +40,7 @@ class UploadApkToR2 extends Command
             $baseDir . '/frontend/Mobile/android/app/build/outputs/apk/release/app-release.apk',
             $baseDir . '/frontend/Mobile/public/downloads/intan-elyu.apk',
             $baseDir . '/frontend/Mobile/app-release.apk',
+            $baseDir . '/frontend/Mobile/IntanElyu-v1.4.1-release.apk',
             $baseDir . '/frontend/Mobile/IntanElyu-v1.4.0-release.apk',
             $baseDir . '/frontend/Mobile/android/app/build/outputs/apk/debug/app-debug.apk',
         ]);

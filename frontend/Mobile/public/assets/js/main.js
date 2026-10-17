@@ -445,10 +445,32 @@ window.OfflineCheckinManager = {
                 });
                 clearTimeout(timeoutId);
 
-                const data = await response.json().catch(() => ({}));
+                let data = await response.json().catch(() => ({}));
+                let isResolved = response.ok || response.status === 409 || data.already_recorded || (data.status && ['pending', 'approved', 'success'].includes(data.status));
+
+                // If itinerary item check-in 404s (e.g. temporary offline item ID) and spotId is known, fallback to destination check-in
+                if (!isResolved && response.status === 404 && item.spotId) {
+                    try {
+                        const fallbackUrl = `${baseUrl}/api/tourist/destinations/${item.spotId}/check-in`;
+                        const res2 = await fetch(fallbackUrl, {
+                            method: 'POST',
+                            headers: {
+                                'Accept': 'application/json',
+                                'Authorization': 'Bearer ' + token,
+                                'ngrok-skip-browser-warning': 'true'
+                            },
+                            body: formData
+                        });
+                        const data2 = await res2.json().catch(() => ({}));
+                        if (res2.ok || res2.status === 409 || data2.already_recorded || (data2.status && ['pending', 'approved', 'success'].includes(data2.status))) {
+                            isResolved = true;
+                            data = data2;
+                        }
+                    } catch (fbErr) {}
+                }
 
                 // Treat 200, 201, 409 (already recorded), or explicit already_recorded flag as successfully resolved
-                if (response.ok || response.status === 409 || data.already_recorded || (data.status && ['pending', 'approved', 'success'].includes(data.status))) {
+                if (isResolved) {
                     syncedCount++;
 
                     // Optimistically update cached itinerary trips so user immediately sees their photo & pending review status
@@ -654,6 +676,85 @@ window.OfflineTripManager = {
         } catch (e) {}
     },
 
+    syncSingleTrip: async function (tripId) {
+        if (!navigator.onLine) return false;
+        const trips = this.getQueuedTrips();
+        const trip = trips.find(t => t.id === tripId || t.local_id === tripId);
+        if (!trip) return false;
+
+        const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+        if (!token) return false;
+
+        const primaryUrl = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || window.BACKEND_URL || '')).replace(/\/+$/, '');
+        const baseCandidates = [];
+        if (primaryUrl && !primaryUrl.includes('localhost') && !primaryUrl.includes('127.0.0.1')) {
+            baseCandidates.push(primaryUrl);
+        }
+        baseCandidates.push('https://api.intan-elyu.online');
+        if (primaryUrl && !baseCandidates.includes(primaryUrl)) {
+            baseCandidates.push(primaryUrl);
+        }
+        baseCandidates.push('');
+
+        const payload = {
+            title: trip.title,
+            trip_date: trip.trip_date || null,
+            budget: trip.budget || null,
+            destinations: trip.destinations || [],
+            route_type: trip.route_type || 'Recommended',
+            transport_mode: trip.transport_mode || 'No Vehicle Selected',
+            leg_transports: trip.leg_transports || []
+        };
+
+        let synced = false;
+        for (const bUrl of baseCandidates) {
+            try {
+                const endpoint = (trip.is_offline_update && trip.update_id)
+                    ? `${bUrl}/api/tourist/itineraries/${trip.update_id}`
+                    : `${bUrl}/api/tourist/itineraries`;
+                const method = (trip.is_offline_update && trip.update_id) ? 'PUT' : 'POST';
+                const controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+                const timeoutId = controller ? setTimeout(() => controller.abort(), 10000) : null;
+                const res = await fetch(endpoint, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify(payload),
+                    signal: controller ? controller.signal : undefined
+                });
+                if (timeoutId) clearTimeout(timeoutId);
+                if (res.ok) {
+                    this.removeQueuedTrip(trip.id);
+                    synced = true;
+                    break;
+                }
+            } catch (e) {
+                // Try next candidate
+            }
+        }
+
+        if (synced) {
+            const tokenKey = token.substring(0, 10);
+            localStorage.removeItem('saved_trips_' + tokenKey);
+            localStorage.removeItem('dashboard_trips_' + tokenKey);
+            localStorage.removeItem('dashboard_saved_trips_' + tokenKey);
+            if (typeof window._cachedSavedTrips !== 'undefined') {
+                window._cachedSavedTrips = null;
+            }
+            window.dispatchEvent(new CustomEvent('tripsSynced'));
+            if (typeof window.fetchSavedTrips === 'function') {
+                window.fetchSavedTrips(true);
+            }
+            if (typeof window.loadSavedTrips === 'function') {
+                window.loadSavedTrips(true);
+            }
+        }
+        return synced;
+    },
+
     syncQueuedTrips: async function () {
         if (!navigator.onLine) return 0;
         const trips = this.getQueuedTrips();
@@ -662,7 +763,17 @@ window.OfflineTripManager = {
         const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
         if (!token) return 0;
 
-        const bUrl = (window.backendUrl || window.BACKEND_URL || 'https://api.intan-elyu.online').replace(/\/+$/, '');
+        const primaryUrl = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || window.BACKEND_URL || '')).replace(/\/+$/, '');
+        const baseCandidates = [];
+        if (primaryUrl && !primaryUrl.includes('localhost') && !primaryUrl.includes('127.0.0.1')) {
+            baseCandidates.push(primaryUrl);
+        }
+        baseCandidates.push('https://api.intan-elyu.online');
+        if (primaryUrl && !baseCandidates.includes(primaryUrl)) {
+            baseCandidates.push(primaryUrl);
+        }
+        baseCandidates.push('');
+
         let syncedCount = 0;
 
         for (const trip of trips) {
@@ -677,32 +788,35 @@ window.OfflineTripManager = {
                     leg_transports: trip.leg_transports || []
                 };
 
-                let res;
-                if (trip.is_offline_update && trip.update_id) {
-                    res = await fetch(`${bUrl}/api/tourist/itineraries/${trip.update_id}`, {
-                        method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Accept': 'application/json',
-                            'Authorization': 'Bearer ' + token
-                        },
-                        body: JSON.stringify(payload)
-                    });
-                } else {
-                    res = await fetch(`${bUrl}/api/tourist/itineraries`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Accept': 'application/json',
-                            'Authorization': 'Bearer ' + token
-                        },
-                        body: JSON.stringify(payload)
-                    });
-                }
-
-                if (res.ok) {
-                    this.removeQueuedTrip(trip.id);
-                    syncedCount++;
+                let tripSuccess = false;
+                for (const bUrl of baseCandidates) {
+                    try {
+                        const endpoint = (trip.is_offline_update && trip.update_id)
+                            ? `${bUrl}/api/tourist/itineraries/${trip.update_id}`
+                            : `${bUrl}/api/tourist/itineraries`;
+                        const method = (trip.is_offline_update && trip.update_id) ? 'PUT' : 'POST';
+                        const controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+                        const timeoutId = controller ? setTimeout(() => controller.abort(), 10000) : null;
+                        const res = await fetch(endpoint, {
+                            method: method,
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'Authorization': 'Bearer ' + token
+                            },
+                            body: JSON.stringify(payload),
+                            signal: controller ? controller.signal : undefined
+                        });
+                        if (timeoutId) clearTimeout(timeoutId);
+                        if (res.ok) {
+                            this.removeQueuedTrip(trip.id);
+                            syncedCount++;
+                            tripSuccess = true;
+                            break;
+                        }
+                    } catch (candErr) {
+                        // continue to next base URL candidate
+                    }
                 }
             } catch (err) {
                 console.warn('Could not sync trip:', trip.title, err);
@@ -718,6 +832,9 @@ window.OfflineTripManager = {
                 window._cachedSavedTrips = null;
             }
             window.dispatchEvent(new CustomEvent('tripsSynced'));
+            if (typeof window.fetchSavedTrips === 'function') {
+                window.fetchSavedTrips(true);
+            }
             if (typeof window.loadSavedTrips === 'function') {
                 window.loadSavedTrips(true);
             }
@@ -1313,11 +1430,23 @@ window.formatVisitorCount = function (visits, options = {}) {
 };
 
 window.getBackendUrl = function () {
+    const isNative = Boolean(
+        (typeof window !== 'undefined' && window.Capacitor && typeof window.Capacitor.isNativePlatform === 'function' && window.Capacitor.isNativePlatform()) ||
+        (typeof navigator !== 'undefined' && navigator.userAgent && navigator.userAgent.includes('IntanElyuAPK')) ||
+        (typeof window !== 'undefined' && window.location && (window.location.protocol === 'capacitor:' || window.location.protocol === 'file:'))
+    );
+
     var url = window.backendUrl || window.BACKEND_URL;
     if (url) {
+        if (isNative && (url.includes('localhost') || url.includes('127.0.0.1'))) {
+            return 'https://api.intan-elyu.online';
+        }
         return url.replace(/\/+$/, '');
     }
     if (typeof window !== 'undefined' && window.location) {
+        if (isNative) {
+            return 'https://api.intan-elyu.online';
+        }
         const hn = window.location.hostname;
         const isLocalHost = (hn === 'localhost' || hn === '127.0.0.1' || hn === '::1' ||
             /^192\.168\.\d+\.\d+$/.test(hn) ||
@@ -1331,7 +1460,7 @@ window.getBackendUrl = function () {
             if (window.location.pathname.includes('/Intan-Elyu-Tourism-Management-System/')) {
                 return window.location.protocol + '//' + window.location.host + '/Intan-Elyu-Tourism-Management-System/backend/public';
             }
-            return window.location.protocol + '//' + hn + ':8000';
+            return 'https://api.intan-elyu.online';
         }
         if (hn === 'app.intan-elyu.online') {
             return 'https://api.intan-elyu.online';

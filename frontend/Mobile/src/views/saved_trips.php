@@ -176,7 +176,22 @@ $backRoute = 'itinerary';
 
 <script>
     (function () {
-        var backendUrl = window.backendUrl || 'https://api.intan-elyu.online';
+        var backendUrl = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
+
+        window.getTouristSpotById = function (id) {
+            if (!id) return null;
+            try {
+                const rawMap = localStorage.getItem('public_map_data');
+                if (rawMap) {
+                    const parsedMap = (typeof window.safeJsonParse === 'function') ? window.safeJsonParse(rawMap, null) : JSON.parse(rawMap);
+                    const spotsArr = (parsedMap && parsedMap.data && parsedMap.data.destinations) ? parsedMap.data.destinations : (parsedMap && parsedMap.destinations ? parsedMap.destinations : []);
+                    if (Array.isArray(spotsArr)) {
+                        return spotsArr.find(s => s && (String(s.id) === String(id) || String(s.tourist_spot_id) === String(id))) || null;
+                    }
+                }
+            } catch (e) { }
+            return null;
+        };
 
         window.fetchSavedTrips = async function (forceRefresh = false) {
             const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
@@ -210,6 +225,19 @@ $backRoute = 'itinerary';
             }
 
             const cacheKey = 'saved_trips_' + token.substring(0, 10);
+
+            // Pre-hydrate from active cache or persistent offline backup for instant offline view
+            try {
+                const storedRaw = localStorage.getItem(cacheKey) || localStorage.getItem('intan_elyu_offline_saved_trips_backup');
+                if (storedRaw) {
+                    const parsed = JSON.parse(storedRaw);
+                    const itins = Array.isArray(parsed) ? parsed : (parsed.itineraries || parsed.data || null);
+                    if (Array.isArray(itins)) {
+                        renderSavedTrips(itins);
+                    }
+                }
+            } catch (e) { }
+
             const fetchCache = (typeof window.useCache === 'function') ? window.useCache : (async (key, fetcher, renderer, forceRefresh) => {
                 try {
                     const d = await fetcher();
@@ -225,9 +253,10 @@ $backRoute = 'itinerary';
                     cacheKey,
                     async () => {
                         const controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
-                        const timeoutId = controller ? setTimeout(() => controller.abort(), 12000) : null;
+                        const timeoutId = controller ? setTimeout(() => controller.abort(), 8000) : null;
                         try {
-                            const response = await fetch(backendUrl + '/api/tourist/itineraries', {
+                            const bUrl = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
+                            const response = await fetch(bUrl + '/api/tourist/itineraries', {
                                 signal: controller ? controller.signal : undefined,
                                 headers: {
                                     'Accept': 'application/json',
@@ -244,25 +273,49 @@ $backRoute = 'itinerary';
                             }
                             if (!response.ok) throw new Error("Failed to fetch saved trips: " + response.status);
                             const data = await response.json();
-                            return data.itineraries || [];
+                            const itins = data.itineraries || [];
+                            try {
+                                localStorage.setItem('intan_elyu_offline_saved_trips_backup', JSON.stringify(itins));
+                            } catch (e) { }
+                            return itins;
                         } finally {
                             if (timeoutId) clearTimeout(timeoutId);
                         }
                     },
                     (itineraries) => {
                         if (window._isStartingTrip) return;
-                        renderSavedTrips(itineraries || []);
+                        if (itineraries && Array.isArray(itineraries)) {
+                            renderSavedTrips(itineraries);
+                        } else {
+                            try {
+                                const backup = localStorage.getItem('intan_elyu_offline_saved_trips_backup');
+                                if (backup) {
+                                    renderSavedTrips(JSON.parse(backup));
+                                    return;
+                                }
+                            } catch (e) { }
+                            renderSavedTrips([]);
+                        }
                     },
                     forceRefresh,
                     60000 // 1 minute TTL
                 );
             } catch (fetchErr) {
                 console.warn("fetchSavedTrips handled offline fallback:", fetchErr);
+                try {
+                    const backup = localStorage.getItem('intan_elyu_offline_saved_trips_backup');
+                    if (backup) {
+                        renderSavedTrips(JSON.parse(backup));
+                        return;
+                    }
+                } catch (e) { }
                 if (!window._cachedSavedTrips || window._cachedSavedTrips.length === 0) {
                     renderSavedTrips([]);
                 }
             }
         };
+
+        window.loadSavedTrips = window.fetchSavedTrips;
 
         const VEHICLE_CATALOG = {
             'own_car': { name: 'Own Car', icon: 'fa-car', color: '#f59e0b' },
@@ -449,12 +502,15 @@ $backRoute = 'itinerary';
                             const firstUnvisitedIdx = sortedTripItems.findIndex(i => !(i.is_visited || i.proof_status === 'approved'));
                             sortedTripItems.forEach((item, index) => {
                                 if (!item) return;
-                                const dest = item.destination;
+                                const dest = item.destination || (typeof window.getTouristSpotById === 'function' ? window.getTouristSpotById(item.tourist_spot_id) : null);
+                                const destName = (dest && (dest.name || dest.title)) ? String(dest.name || dest.title) : 'Destination';
+                                const destEscaped = destName.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;');
                                 const isVisited = Boolean(item.is_visited || item.proof_status === 'approved');
-                                const isPending = (item.proof_status === 'pending') || Boolean(item.proof_image && !item.is_visited);
+                                const hasProof = Boolean(item.proof_image);
                                 const isRejected = (item.proof_status === 'rejected');
                                 const queuedItem = window.OfflineCheckinManager ? window.OfflineCheckinManager.getQueuedItem(item.id) : null;
                                 const isQueued = Boolean(queuedItem);
+                                const isPending = !isVisited && !isRejected && !isQueued && hasProof && (item.proof_status === 'pending' || !item.proof_status);
                                 const isNextStop = (!isVisited && !isPending && !isQueued && index === firstUnvisitedIdx);
                                 if (!isVisited && !isQueued) unvisitedCount++;
 
@@ -467,14 +523,12 @@ $backRoute = 'itinerary';
                                     }
                                     const cleanImgName = item.proof_image.split('/').pop().replace(/[?#].*$/, '');
                                     let fallbackUrl = (window.backendUrl || '').replace(/\/+$/, '') + '/api/image/proof_images/' + cleanImgName;
-                                    const destEscaped = (dest && dest.name) ? dest.name.replace(/'/g, "\\'") : 'Destination';
                                     proofImgHtml = `<img src="${pUrl}" onerror="if(this.dataset.triedFallback!=='1'){this.dataset.triedFallback='1';this.src='${fallbackUrl}';}" onclick="event.stopPropagation(); if(typeof window.viewProofPhotoModal==='function') window.viewProofPhotoModal('${pUrl}', '${destEscaped}', '${isVisited ? 'Verified Visit Proof' : 'Pending Verification'}');" alt="Proof" title="Tap to view proof photo" style="width:52px; height:52px; border-radius:10px; object-fit:cover; border:none !important; outline:none !important; box-shadow:0 4px 12px rgba(0,0,0,0.3); flex-shrink:0; cursor:pointer;">`;
                                 }
 
                                 let queuedThumbnailHtml = '';
                                 if (isQueued && queuedItem) {
                                     const qSrc = queuedItem.previewUrl || '';
-                                    const destEscaped = (dest && dest.name) ? dest.name.replace(/'/g, "\\'") : 'Destination';
                                     if (qSrc) {
                                         queuedThumbnailHtml = `<img src="${qSrc}" onclick="event.stopPropagation(); if(typeof window.viewProofPhotoModal==='function') window.viewProofPhotoModal('${qSrc}', '${destEscaped}', 'Offline Proof (Queued on Device)');" alt="Proof" title="Tap to view offline proof photo" style="width:52px; height:52px; border-radius:10px; object-fit:cover; border:2px solid #f59e0b !important; outline:none !important; box-shadow:0 4px 12px rgba(0,0,0,0.3); flex-shrink:0; cursor:pointer;">`;
                                     } else {
@@ -487,10 +541,11 @@ $backRoute = 'itinerary';
                                     ? window.getRewardPointsForClassification(sClass)
                                     : { points: (sClass === 'POTENTIAL' ? 75 : (sClass === 'EMERGE' ? 50 : 25)) };
 
-                                if (item.transport_mode) {
-                                    const legModes = parseVehicleModes(item.transport_mode);
+                                const itemMode = item.transport_mode || item.transport_type || '';
+                                if (itemMode) {
+                                    const legModes = parseVehicleModes(itemMode);
                                     let vIcon = 'fa-route';
-                                    let vName = item.transport_mode;
+                                    let vName = itemMode;
 
                                     if (legModes.length > 1) {
                                         vIcon = 'fa-route';
@@ -554,7 +609,7 @@ $backRoute = 'itinerary';
                                                             <span style="font-size:10px; color:#ef4444;">${item.rejection_reason || 'Please upload a clearer photo taken at the destination.'}</span>
                                                         </div>
                                                     </div>
-                                                    <button class="btn-primary" style="padding: 8px 14px; font-size:12px; font-weight:700; width:max-content; border-radius:100px; background: linear-gradient(135deg, #ef4444, #dc2626); border:none !important; outline:none !important; box-shadow: none; color:#fff; cursor:pointer;" onclick="window.openCheckinModal('${item.id}')">
+                                                    <button class="btn-primary" style="padding: 8px 14px; font-size:12px; font-weight:700; width:max-content; border-radius:100px; background: linear-gradient(135deg, #ef4444, #dc2626); border:none !important; outline:none !important; box-shadow: none; color:#fff; cursor:pointer;" onclick="window.openCheckinModal('${item.id}', '${destEscaped}', '${item.tourist_spot_id || (dest ? dest.id : '')}')">
                                                         <i class="fa-solid fa-camera" style="margin-right:4px;"></i> Re-upload Photo Proof
                                                     </button>
                                                 </div>` :
@@ -578,7 +633,7 @@ $backRoute = 'itinerary';
                                                             <span style="font-size:10px; color:#ffffff; opacity:0.8; display:block; margin-top:4px;">Proof submitted &bull; Awaiting approval</span>
                                                         </div>
                                                     </div>` :
-                                                `<button class="btn-primary" style="padding: 8px 14px; font-size:12px; font-weight:800; width:max-content; border-radius:100px; background: linear-gradient(135deg, #00f2fe, #0284c7); border:none !important; outline:none !important; box-shadow: none; color:#fff; cursor:pointer;" onclick="window.openCheckinModal('${item.id}')">
+                                                `<button class="btn-primary" style="padding: 8px 14px; font-size:12px; font-weight:800; width:max-content; border-radius:100px; background: linear-gradient(135deg, #00f2fe, #0284c7); border:none !important; outline:none !important; box-shadow: none; color:#fff; cursor:pointer;" onclick="window.openCheckinModal('${item.id}', '${destEscaped}', '${item.tourist_spot_id || (dest ? dest.id : '')}')">
                                                         <i class="fa-solid fa-location-arrow" style="margin-right:4px;"></i> Check In (+50 PTS)
                                                      </button>`)))
                                     }
@@ -592,35 +647,44 @@ $backRoute = 'itinerary';
                         html += `</div></div></div>`; // Close timeline, timeline-inner, and timeline-collapsible
 
                         // Action buttons
-                        html += `<div style="display:flex; gap:10px; margin-top:16px;">`;
+                        html += `<div style="display:flex; gap:8px; margin-top:16px; flex-wrap:wrap; align-items:center;">`;
 
                         // View Details button
                         html += `
-                        <button class="btn-primary" style="flex:1; background: rgba(255, 255, 255, 0.22); border: none !important; outline: none !important; color: #ffffff; padding: 14px; border-radius: 14px; font-weight: 800; font-size: 14px; cursor: pointer; transition: all 0.25s ease;" onclick="window.toggleTripDetails('${trip.id}')">
-                            <i class="fa-solid fa-chevron-down" id="chevron-${trip.id}" style="margin-right:8px; transition:transform 0.3s ease;"></i> View Details
+                        <button class="btn-primary" style="flex:1; min-width:105px; background: rgba(255, 255, 255, 0.22); border: none !important; outline: none !important; color: #ffffff; padding: 13px 14px; border-radius: 14px; font-weight: 800; font-size: 13px; cursor: pointer; transition: all 0.25s ease;" onclick="window.toggleTripDetails('${trip.id}')">
+                            <i class="fa-solid fa-chevron-down" id="chevron-${trip.id}" style="margin-right:6px; transition:transform 0.3s ease;"></i> Details
                         </button>`;
 
-                        // Start / Complete button wrapper
-                        html += `<div class="start-collapsible" id="start-wrapper-${trip.id}">`;
+                        // If trip is queued offline, show prominent "Sync Now" button
+                        if (trip.is_offline_queued) {
+                            html += `
+                            <button type="button" class="btn-primary" id="btn-sync-${trip.id}" onclick="event.stopPropagation(); window.syncSingleOfflineTrip('${trip.id}', this)" style="flex:1; min-width:115px; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border: none !important; outline: none !important; color: #ffffff; padding: 13px 14px; border-radius: 14px; font-weight: 800; font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35);">
+                                <i class="fa-solid fa-cloud-arrow-up"></i> Sync Now
+                            </button>`;
+                        }
+
+                        // Start / Complete button wrapper (always visible)
+                        html += `<div class="start-collapsible" id="start-wrapper-${trip.id}" style="flex:1.2; min-width:120px;">`;
                         if (isTripCompleted) {
                             html += `
-                            <button class="btn-primary" style="width:100%; white-space:nowrap; background: rgba(16,185,129,0.25); border: none !important; outline: none !important; color: #ffffff; padding: 14px; border-radius: 14px; font-weight: 800; font-size: 14px; cursor: default;" disabled>
+                            <button class="btn-primary" style="width:100%; white-space:nowrap; background: rgba(16,185,129,0.25); border: none !important; outline: none !important; color: #ffffff; padding: 13px 14px; border-radius: 14px; font-weight: 800; font-size: 13px; cursor: default;" disabled>
                                 <i class="fa-solid fa-circle-check" style="margin-right:6px; color:#34c759;"></i> Completed
                             </button>`;
                         } else if (unvisitedCount === 0 && trip.items && trip.items.length > 0) {
                             html += `
-                            <button class="btn-primary" id="btn-complete-trip-${trip.id}" style="width:100%; white-space:nowrap; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none !important; outline: none !important; color: #fff; padding: 14px; border-radius: 14px; font-weight: 800; font-size: 14px; box-shadow: none; cursor: pointer;" onclick="window.markTripCompleted('${trip.id}')">
+                            <button class="btn-primary" id="btn-complete-trip-${trip.id}" style="width:100%; white-space:nowrap; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none !important; outline: none !important; color: #fff; padding: 13px 14px; border-radius: 14px; font-weight: 800; font-size: 13px; box-shadow: none; cursor: pointer;" onclick="window.markTripCompleted('${trip.id}')">
                                 <i class="fa-solid fa-flag-checkered" style="margin-right:6px;"></i> Complete
                             </button>`;
                         } else {
                             html += `
-                            <button type="button" class="btn-primary" style="width:100%; white-space:nowrap; background: linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); border: none !important; outline: none !important; color: #fff; padding: 14px; border-radius: 14px; font-weight: 800; font-size: 14px; box-shadow: none; cursor: pointer;" onclick="event.stopPropagation(); window.startTrip('${trip.id}', this)">
-                                <i class="fa-solid fa-play" style="margin-right:6px;"></i> Start
+                            <button type="button" class="btn-primary" style="width:100%; white-space:nowrap; background: linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); border: none !important; outline: none !important; color: #fff; padding: 13px 14px; border-radius: 14px; font-weight: 800; font-size: 13px; box-shadow: none; cursor: pointer;" onclick="event.stopPropagation(); window.startTrip('${trip.id}', this)">
+                                <i class="fa-solid fa-play" style="margin-right:6px;"></i> Start Trip
                             </button>`;
                         }
                         html += `</div>`; // Close start-collapsible
+                        html += `</div>`; // Close action buttons flex
 
-                        html += `</div></div></div>`; // Close trip-swipe-content and trip-swipe-container
+                        html += `</div></div>`; // Close trip-swipe-content and trip-swipe-container
                     } catch (tripErr) {
                         console.error("Error rendering saved trip item:", tripErr, trip);
                     }
@@ -677,7 +741,52 @@ $backRoute = 'itinerary';
                 } else {
                     timeline.classList.remove('expanded');
                     chevron.style.transform = 'rotate(0deg)';
-                    if (startWrapper) startWrapper.classList.remove('expanded');
+                }
+            }
+        };
+
+        window.syncSingleOfflineTrip = async function (tripId, btnElement) {
+            if (!navigator.onLine || window.isAppOnline === false) {
+                if (typeof showToast === 'function') {
+                    showToast("You are currently offline. Connect to the internet to sync to cloud.", "warning", 3500);
+                }
+                return;
+            }
+
+            let origHtml = '';
+            if (btnElement) {
+                origHtml = btnElement.innerHTML;
+                btnElement.disabled = true;
+                btnElement.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="margin-right:6px;"></i> Syncing...';
+            }
+
+            try {
+                let synced = false;
+                if (window.OfflineTripManager && typeof window.OfflineTripManager.syncSingleTrip === 'function') {
+                    synced = await window.OfflineTripManager.syncSingleTrip(tripId);
+                } else if (window.OfflineTripManager && typeof window.OfflineTripManager.syncQueuedTrips === 'function') {
+                    const count = await window.OfflineTripManager.syncQueuedTrips();
+                    synced = (count > 0);
+                }
+
+                if (synced) {
+                    if (typeof showToast === 'function') {
+                        showToast("Trip successfully synced to cloud!", "success", 4000);
+                    }
+                    if (typeof window.fetchSavedTrips === 'function') {
+                        await window.fetchSavedTrips(true);
+                    }
+                } else {
+                    throw new Error("Sync returned false");
+                }
+            } catch (err) {
+                console.error("Manual trip sync failed:", err);
+                if (btnElement) {
+                    btnElement.disabled = false;
+                    btnElement.innerHTML = origHtml || '<i class="fa-solid fa-cloud-arrow-up"></i> Sync Now';
+                }
+                if (typeof showToast === 'function') {
+                    showToast("Could not sync trip. Please check your internet connection.", "error", 4000);
                 }
             }
         };
@@ -824,8 +933,14 @@ $backRoute = 'itinerary';
             }
         };
 
-        window.openCheckinModal = function (itemId) {
+        window.openCheckinModal = function (itemId, spotName = '', spotId = '') {
             document.getElementById('checkin-item-id').value = itemId;
+            window._currentCheckinSpotId = spotId || null;
+            window._currentCheckinSpotName = spotName || null;
+            if (spotName) {
+                const spotTitleEl = document.getElementById('checkin-spot-title') || document.querySelector('#checkin-modal h3');
+                if (spotTitleEl) spotTitleEl.textContent = spotName;
+            }
             document.getElementById('checkin-modal').style.display = 'flex';
         };
 
@@ -997,6 +1112,8 @@ $backRoute = 'itinerary';
         window.closeCheckinModal = function () {
             document.getElementById('checkin-modal').style.display = 'none';
             document.getElementById('checkin-item-id').value = '';
+            window._currentCheckinSpotId = null;
+            window._currentCheckinSpotName = null;
             window.removeCheckinPhoto();
 
             const btn = document.getElementById('btn-verify-gps');
@@ -1043,11 +1160,12 @@ $backRoute = 'itinerary';
                     if (window.OfflineCheckinManager) {
                         btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="margin-right:8px;"></i> Saving offline...';
                         const spotTitleEl = document.getElementById('checkin-spot-title') || document.querySelector('#checkin-modal h3');
-                        const spotName = spotTitleEl ? spotTitleEl.textContent.trim() : 'Destination';
+                        const spotName = window._currentCheckinSpotName || (spotTitleEl ? spotTitleEl.textContent.trim() : 'Destination');
 
                         await window.OfflineCheckinManager.queueOfflineCheckin({
                             type: 'itinerary',
                             itemId: itemId,
+                            spotId: window._currentCheckinSpotId || null,
                             spotName: spotName,
                             lat: lat,
                             lng: lng,
@@ -1444,32 +1562,48 @@ $backRoute = 'itinerary';
 
             const sortedTripItems = [...(trip.items || [])].sort((a, b) => (a.order_index || 0) - (b.order_index || 0));
             const spots = sortedTripItems.map(i => {
-                if (i.destination) {
-                    const mapSpot = mapSpotsMap[String(i.destination.id)] || {};
-                    const accVeh = (Array.isArray(i.destination.accessible_vehicles) && i.destination.accessible_vehicles.length > 0)
-                        ? i.destination.accessible_vehicles
-                        : (Array.isArray(mapSpot.accessible_vehicles) ? mapSpot.accessible_vehicles : (i.destination.accessible_vehicles || []));
+                let dest = i.destination;
+                if (!dest && (i.tourist_spot_id || i.destination_id)) {
+                    const spotId = i.tourist_spot_id || i.destination_id;
+                    if (typeof window.getTouristSpotById === 'function') {
+                        dest = window.getTouristSpotById(spotId);
+                    }
+                    if (!dest && mapSpotsMap[String(spotId)]) {
+                        dest = mapSpotsMap[String(spotId)];
+                    }
+                }
+                if (!dest && (i.name || i.title)) {
+                    dest = i;
+                }
 
-                    const hasVeh = (i.destination.has_available_vehicles !== undefined)
-                        ? Boolean(i.destination.has_available_vehicles)
+                if (dest) {
+                    const spotId = dest.id || i.tourist_spot_id || i.destination_id;
+                    const mapSpot = (spotId && mapSpotsMap[String(spotId)]) ? mapSpotsMap[String(spotId)] : {};
+                    const accVeh = (Array.isArray(dest.accessible_vehicles) && dest.accessible_vehicles.length > 0)
+                        ? dest.accessible_vehicles
+                        : (Array.isArray(mapSpot.accessible_vehicles) ? mapSpot.accessible_vehicles : (dest.accessible_vehicles || []));
+
+                    const hasVeh = (dest.has_available_vehicles !== undefined)
+                        ? Boolean(dest.has_available_vehicles)
                         : (mapSpot.has_available_vehicles !== undefined ? Boolean(mapSpot.has_available_vehicles) : (Array.isArray(accVeh) && accVeh.length > 0));
 
-                    const pubVeh = (Array.isArray(i.destination.public_vehicles) && i.destination.public_vehicles.length > 0)
-                        ? i.destination.public_vehicles
-                        : (Array.isArray(mapSpot.public_vehicles) ? mapSpot.public_vehicles : (i.destination.public_vehicles || []));
+                    const pubVeh = (Array.isArray(dest.public_vehicles) && dest.public_vehicles.length > 0)
+                        ? dest.public_vehicles
+                        : (Array.isArray(mapSpot.public_vehicles) ? mapSpot.public_vehicles : (dest.public_vehicles || []));
 
-                    const privVeh = (Array.isArray(i.destination.private_vehicles) && i.destination.private_vehicles.length > 0)
-                        ? i.destination.private_vehicles
-                        : (Array.isArray(mapSpot.private_vehicles) ? mapSpot.private_vehicles : (i.destination.private_vehicles || []));
+                    const privVeh = (Array.isArray(dest.private_vehicles) && dest.private_vehicles.length > 0)
+                        ? dest.private_vehicles
+                        : (Array.isArray(mapSpot.private_vehicles) ? mapSpot.private_vehicles : (dest.private_vehicles || []));
 
-                    const rawMuni = i.destination.municipality || mapSpot.municipality || '';
+                    const rawMuni = dest.municipality || mapSpot.municipality || '';
                     const muniName = (typeof rawMuni === 'string') ? rawMuni : (rawMuni?.name || '');
 
                     return {
-                        ...i.destination,
-                        lat: i.destination.latitude || mapSpot.lat,
-                        lng: i.destination.longitude || mapSpot.lng,
-                        photo_url: i.destination.image || i.destination.photo_url || mapSpot.photo_url || '',
+                        ...dest,
+                        id: spotId || dest.id,
+                        lat: dest.latitude || dest.lat || mapSpot.lat,
+                        lng: dest.longitude || dest.lng || mapSpot.lng,
+                        photo_url: dest.image || dest.photo_url || mapSpot.photo_url || '',
                         municipality: muniName,
                         accessible_vehicles: accVeh,
                         public_vehicles: pubVeh,
@@ -1560,7 +1694,7 @@ $backRoute = 'itinerary';
                     setTimeout(() => {
                         element.remove();
                         const list = document.getElementById('saved-trips-list');
-                        if (list && list.querySelectorAll('.trip-swipe-wrapper').length === 0) {
+                        if (list && list.querySelectorAll('.trip-swipe-container').length === 0) {
                             renderSavedTrips([]);
                         }
                     }, 300);
@@ -1792,10 +1926,47 @@ $backRoute = 'itinerary';
                     badge.style.display = isOffline ? 'inline-flex' : 'none';
                 }
             }
-            window.addEventListener('online', updateSavedTripsOfflineStatus);
+
+            async function handleSavedTripsReconnect() {
+                updateSavedTripsOfflineStatus();
+                try {
+                    const queuedTrips = (window.OfflineTripManager && typeof window.OfflineTripManager.getQueuedTrips === 'function')
+                        ? window.OfflineTripManager.getQueuedTrips()
+                        : [];
+                    if (queuedTrips.length > 0 && window.OfflineTripManager && typeof window.OfflineTripManager.syncQueuedTrips === 'function') {
+                        if (typeof showToast === 'function') {
+                            showToast("Connection restored. Syncing your offline trips...", "info", 3000);
+                        }
+                        const synced = await window.OfflineTripManager.syncQueuedTrips();
+                        if (synced > 0 && typeof showToast === 'function') {
+                            showToast(`${synced} offline trip(s) synced to cloud!`, "success", 4000);
+                        }
+                    }
+                } catch (e) {
+                    console.warn("Auto-sync error on reconnect:", e);
+                }
+                const currentView = (document.body ? document.body.getAttribute('data-view') : '') || (window.currentView || '');
+                if (currentView === 'saved_trips' || !currentView) {
+                    if (typeof window.fetchSavedTrips === 'function') {
+                        window.fetchSavedTrips(true);
+                    }
+                }
+            }
+
+            window.addEventListener('online', handleSavedTripsReconnect);
             window.addEventListener('offline', updateSavedTripsOfflineStatus);
-            window.addEventListener('appOnline', updateSavedTripsOfflineStatus);
+            window.addEventListener('appOnline', handleSavedTripsReconnect);
             window.addEventListener('appOffline', updateSavedTripsOfflineStatus);
+            window.addEventListener('tripsSynced', () => {
+                if (typeof window.fetchSavedTrips === 'function') {
+                    window.fetchSavedTrips(true);
+                }
+            });
+            window.addEventListener('offlineTripQueued', () => {
+                if (typeof window.fetchSavedTrips === 'function') {
+                    window.fetchSavedTrips(false);
+                }
+            });
             setTimeout(updateSavedTripsOfflineStatus, 100);
         }
 

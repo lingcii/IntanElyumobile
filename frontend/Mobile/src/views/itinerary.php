@@ -4249,11 +4249,14 @@ try {
                     leg_transports: legTransports,
                     update_id: editingId || null,
                     items: draft.map((place, idx) => ({
-                        id: idx + 1,
+                        id: 'offline_item_' + Date.now() + '_' + (idx + 1),
                         tourist_spot_id: parseInt(place.id || place.tourist_spot_id || 0),
                         destination: place,
                         transport_type: effectiveTransport,
-                        status: 'pending'
+                        transport_mode: (legTransports && legTransports[idx] && legTransports[idx].transport_mode) ? legTransports[idx].transport_mode : effectiveTransport,
+                        is_visited: false,
+                        proof_image: null,
+                        proof_status: null
                     }))
                 };
 

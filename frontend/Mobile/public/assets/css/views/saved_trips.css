@@ -173,17 +173,19 @@ body[data-view="saved_trips"] .mobile-header .header-icon i {
 }
 
 .start-collapsible {
-    max-width: 0;
-    opacity: 0;
-    overflow: hidden;
-    transition: max-width 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease, margin-left 0.4s ease;
     display: flex;
+    flex: 1.2;
+    width: auto;
+    max-width: none;
+    opacity: 1;
+    overflow: visible;
+    transition: all 0.25s ease;
 }
 
 .start-collapsible.expanded {
-    max-width: 220px;
+    max-width: none;
     opacity: 1;
-    margin-left: 12px;
+    margin-left: 0;
 }
 
 /* Timeline Destination Card Items */
@@ -329,15 +331,18 @@ body[data-view="saved_trips"] .mobile-header .header-icon i {
 }
 
 .start-collapsible {
-    max-width: 0;
-    opacity: 0;
-    overflow: hidden;
-    transition: max-width 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.3s ease;
     display: flex;
+    flex: 1.2;
+    width: auto;
+    max-width: none;
+    opacity: 1;
+    overflow: visible;
+    transition: all 0.25s ease;
 }
 
 .start-collapsible.expanded {
-    max-width: 200px;
+    max-width: none;
     opacity: 1;
+    margin-left: 0;
 }
 

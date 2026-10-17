@@ -80,7 +80,66 @@ if (
         }
         exit;
     } else {
-        header('Location: https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/apks/intan-elyu.apk?v=1.4.0');
+        // Fallback: If no local file on disk (e.g. Railway cloud container), stream directly from Cloudflare R2
+        // to bypass mobile ISP DNS resolution failures (ERR_NAME_NOT_RESOLVED / -105) on the *.r2.dev domain!
+        $remoteApkUrl = getenv('CLOUDFLARE_R2_APK_URL') ?: (rtrim(getenv('CLOUDFLARE_R2_URL') ?: 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev', '/') . '/apks/intan-elyu.apk?v=1.4.1');
+        $preferRedirect = isset($_GET['redirect']) && $_GET['redirect'] === '1';
+        $isCustomDomain = (strpos($remoteApkUrl, 'r2.dev') === false);
+
+        // If using a verified custom domain (e.g. download.intan-elyu.online) or explicitly requested redirect
+        if ($preferRedirect || $isCustomDomain) {
+            header('Location: ' . $remoteApkUrl);
+            exit;
+        }
+
+        // Stream via server so mobile clients never query pub-*.r2.dev DNS directly
+        @set_time_limit(0);
+        $ctx = stream_context_create([
+            'http' => [
+                'method' => 'GET',
+                'timeout' => 30,
+                'follow_location' => 1,
+                'header' => "User-Agent: IntanElyuStreamer/1.0\r\n"
+            ]
+        ]);
+
+        $remoteHandle = @fopen($remoteApkUrl, 'rb', false, $ctx);
+        if ($remoteHandle) {
+            while (ob_get_level()) {
+                ob_end_clean();
+            }
+            $meta = stream_get_meta_data($remoteHandle);
+            $headers = $meta['wrapper_data'] ?? [];
+            $contentLength = null;
+            foreach ($headers as $hdr) {
+                if (stripos($hdr, 'Content-Length:') === 0) {
+                    $contentLength = trim(substr($hdr, 15));
+                    break;
+                }
+            }
+
+            header('Content-Description: File Transfer');
+            header('Content-Type: application/vnd.android.package-archive');
+            header('Content-Disposition: attachment; filename="intan-elyu.apk"');
+            header('Content-Transfer-Encoding: binary');
+            header('Expires: 0');
+            header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
+            header('Pragma: public');
+            if ($contentLength) {
+                header('Content-Length: ' . $contentLength);
+            }
+            header('Accept-Ranges: bytes');
+
+            while (!feof($remoteHandle) && connection_status() === 0) {
+                echo fread($remoteHandle, 512 * 1024);
+                flush();
+            }
+            fclose($remoteHandle);
+            exit;
+        }
+
+        // Final fallback redirect if stream opening failed
+        header('Location: ' . $remoteApkUrl);
         exit;
     }
 }
@@ -262,16 +321,21 @@ if ($isAjax) {
                    /^172\.(1[6-9]|2\d|3[01])\.\d+\.\d+$/.test(hn);
         }
 
-        if (window.location.pathname.includes('/Intan-Elyu-Tourism-Management-System/')) {
+        const isNativeMobile = Boolean(
+            (window.Capacitor && typeof window.Capacitor.isNativePlatform === 'function' && window.Capacitor.isNativePlatform()) ||
+            (navigator.userAgent && navigator.userAgent.includes('IntanElyuAPK')) ||
+            window.location.protocol === 'capacitor:' ||
+            window.location.protocol === 'file:'
+        );
+
+        if (isNativeMobile) {
+            window.backendUrl = window.BACKEND_URL || 'https://api.intan-elyu.online';
+        } else if (window.location.pathname.includes('/Intan-Elyu-Tourism-Management-System/')) {
             window.backendUrl = window.location.protocol + '//' + window.location.host + '/Intan-Elyu-Tourism-Management-System/backend/public';
-        } else if (isLocalDevHost(window.location.hostname) || window.location.protocol === 'capacitor:' || window.location.protocol === 'file:') {
-            if (window.Capacitor && typeof window.Capacitor.isNativePlatform === 'function' && window.Capacitor.isNativePlatform()) {
-                window.backendUrl = window.BACKEND_URL || (isLocalDevHost(window.location.hostname) ? (window.location.protocol + '//' + window.location.hostname + ':8000') : 'https://api.intan-elyu.online');
-            } else if (window.location.port === '3000') {
-                window.backendUrl = window.location.protocol + '//' + window.location.hostname + ':8000';
-            } else {
-                window.backendUrl = window.location.protocol + '//' + window.location.hostname + ':8000';
-            }
+        } else if (window.location.port === '3000') {
+            window.backendUrl = window.location.protocol + '//' + window.location.hostname + ':8000';
+        } else if (isLocalDevHost(window.location.hostname)) {
+            window.backendUrl = window.location.protocol + '//' + window.location.hostname + ':8000';
         } else if (window.location.hostname.endsWith('intan-elyu.online')) {
             window.backendUrl = 'https://api.intan-elyu.online';
         } else {

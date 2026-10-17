@@ -675,7 +675,7 @@ $activeTab = 'leaderboard';
         if (!data) return;
         const authUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
         const list = data.users || data.leaders || data.tourists || data.data || data.leaderboard || (Array.isArray(data) ? data : []);
-        if (Array.isArray(list)) {
+        if (Array.isArray(list) && list.length > 0) {
             rawLeadersList = list.slice(0, 10);
             window._cachedRawLeadersList = rawLeadersList;
         }
@@ -746,74 +746,112 @@ $activeTab = 'leaderboard';
         renderLeaderboardUI();
     }
 
-    window.refreshLeaderboard = async function (force = true) {
-        const refreshIcon = document.getElementById('leaderboard-refresh-icon');
-        if (refreshIcon) refreshIcon.classList.add('fa-spin');
+    // Immediate hydration from real cached standings, then fetch real live data if online
+    (function hydrateAndFetchLeaderboard() {
         try {
             const token = localStorage.getItem('api_token') || localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
             const cacheKey = 'leaderboard_data_v26_' + (token ? token.substring(0, 10) : 'public');
-            localStorage.removeItem(cacheKey);
-            for (let i = localStorage.length - 1; i >= 0; i--) {
-                const k = localStorage.key(i);
-                if (k && k.startsWith('leaderboard_data_')) localStorage.removeItem(k);
+            const storedRaw = localStorage.getItem(cacheKey) || localStorage.getItem('leaderboard_data_offline_fallback');
+            if (storedRaw) {
+                const parsed = JSON.parse(storedRaw);
+                const d = parsed.data || parsed;
+                if (d) {
+                    applyLeaderboardData(d);
+                }
             }
         } catch (e) { }
-        window.leaderboardNeedsRefresh = true;
-        await window.initLeaderboardView(true);
-        if (refreshIcon) refreshIcon.classList.remove('fa-spin');
-        if (typeof showToast === 'function') {
-            showToast('Leaderboard rankings synced!');
+
+        // Render cached rankings (or empty state if not yet cached)
+        renderLeaderboardUI();
+
+        // Fetch fresh real rankings from live server
+        if (navigator.onLine && window.isAppOnline !== false) {
+            setTimeout(() => {
+                if (typeof window.refreshLeaderboard === 'function') {
+                    window.refreshLeaderboard(false);
+                }
+            }, 60);
         }
-    };
+    })();
 
     let _isFetchingLeaderboard = false;
-    let _lastLeaderboardFetchTime = 0;
 
-    window.initLeaderboardView = async function (forceRefresh = false) {
-        const podiumContainer = document.getElementById('podium-container');
-        const rankListContainer = document.getElementById('rank-list-container');
-        const refreshIcon = document.getElementById('leaderboard-refresh-icon');
-
-        // Prevent overlapping fetches and rapid re-fetch flapping
+    // Explicit manual refresh: Triggered when user taps the refresh button at the top right
+    window.refreshLeaderboard = async function (force = true) {
         if (_isFetchingLeaderboard) return;
-        const now = Date.now();
-        if (forceRefresh && (now - _lastLeaderboardFetchTime < 6000) && rawLeadersList && rawLeadersList.length > 0) {
-            return;
-        }
         _isFetchingLeaderboard = true;
-        _lastLeaderboardFetchTime = now;
 
-        if (refreshIcon && forceRefresh) refreshIcon.classList.add('fa-spin');
+        const refreshIcon = document.getElementById('leaderboard-refresh-icon');
+        if (refreshIcon) refreshIcon.classList.add('fa-spin');
 
-        if (forceRefresh && (!navigator.onLine || window.isAppOnline === false)) {
-            if (typeof showToast === 'function') {
-                showToast("Currently offline. Showing cached standings.");
+        if (!navigator.onLine || window.isAppOnline === false) {
+            if (force && typeof showToast === 'function') {
+                showToast('Currently offline. Showing cached standings.', 'info', 3000);
             }
-        }
-
-        // 1. If we already have leaders in memory or window cache, render immediately! Otherwise show loading state
-        if (rawLeadersList && rawLeadersList.length > 0) {
-            renderLeaderboardUI();
-        } else {
-            renderLeaderboardLoading();
+            if (refreshIcon) refreshIcon.classList.remove('fa-spin');
+            _isFetchingLeaderboard = false;
+            return;
         }
 
         try {
             const token = localStorage.getItem('api_token') || localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
-            var backendUrl = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
-            const cacheKey = 'leaderboard_data_v26_' + (token ? token.substring(0, 10) : 'public');
+            const reqHeaders = { 'Accept': 'application/json' };
+            if (token) reqHeaders['Authorization'] = 'Bearer ' + token;
 
-            if (forceRefresh) {
-                window.leaderboardNeedsRefresh = true;
+            // Direct Cloudflare production endpoint first (works universally on mobile APK without tethering)
+            const candidates = [
+                'https://api.intan-elyu.online/api/public/leaderboard?limit=10'
+            ];
+            if (token) {
+                candidates.unshift('https://api.intan-elyu.online/api/tourist/leaderboard?limit=10');
+            }
+            candidates.push('/api/public/leaderboard?limit=10');
+
+            let fetchedData = null;
+            for (const url of candidates) {
+                const controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+                const timeoutId = controller ? setTimeout(() => controller.abort(), 8000) : null;
+                try {
+                    const res = await fetch(url, { headers: reqHeaders, signal: controller ? controller.signal : undefined });
+                    if (timeoutId) clearTimeout(timeoutId);
+                    if (res.ok) {
+                        const json = await res.json();
+                        const users = json.users || json.leaders || json.data || json.tourists || (Array.isArray(json) ? json : []);
+                        if (Array.isArray(users) && users.length > 0) {
+                            fetchedData = json;
+                            break;
+                        }
+                    }
+                } catch (err) {
+                    if (timeoutId) clearTimeout(timeoutId);
+                }
             }
 
-            // In parallel, fetch live points balance if user is authenticated
+            if (fetchedData) {
+                applyLeaderboardData(fetchedData);
+                try {
+                    const cacheKey = 'leaderboard_data_v26_' + (token ? token.substring(0, 10) : 'public');
+                    localStorage.setItem(cacheKey, JSON.stringify(fetchedData));
+                    localStorage.setItem('leaderboard_data_offline_fallback', JSON.stringify(fetchedData));
+                } catch (e) { }
+                if (force && typeof showToast === 'function') {
+                    showToast('Leaderboard rankings synced!', 'success', 3000);
+                }
+            } else {
+                if (force && typeof showToast === 'function') {
+                    showToast('Could not reach leaderboard server. Showing cached standings.', 'info', 3500);
+                }
+            }
+
+            // Also refresh user's live points balance if authenticated
             if (token) {
-                const balHeaders = { 'Authorization': 'Bearer ' + token, 'Accept': 'application/json' };
-                const fetchPts = (url) => fetch(url, { headers: balHeaders }).then(r => r.json());
-                fetchPts(backendUrl + '/api/tourist/points/balance')
-                    .catch(() => fetchPts('/api/tourist/points/balance'))
-                    .then(d => {
+                try {
+                    const bUrl = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
+                    const ptsRes = await fetch(bUrl + '/api/tourist/points/balance', {
+                        headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/json' }
+                    });
+                    if (ptsRes.ok) {
+                        const d = await ptsRes.json();
                         if (d && d.status === 'success' && d.points !== undefined) {
                             const ptsVal = parseInt(d.points);
                             if (window.myUserData) {
@@ -829,109 +867,14 @@ $activeTab = 'leaderboard';
                                 }
                             }
                         }
-                    }).catch(() => { });
+                    }
+                } catch (e) { }
             }
 
-            const fetchCache = window.useCache || (async (key, fetcher, renderer) => { const d = await fetcher(); if (renderer) renderer(d); return d; });
-
-            // Ambient offline check: Pre-hydrate from cache if available
-            try {
-                const storedRaw = localStorage.getItem(cacheKey);
-                if (storedRaw) {
-                    const parsed = JSON.parse(storedRaw);
-                    const d = parsed.data || parsed;
-                    if (d) {
-                        applyLeaderboardData(d);
-                    }
-                }
-            } catch (e) { }
-
-            // Robust multi-tier fetch with cascaded fallbacks (direct backend + local router proxy + canonical API)
-            async function fetchLeaderboardWithFallbacks() {
-                const candidates = [];
-                const reqHeaders = { 'Accept': 'application/json' };
-                if (token) reqHeaders['Authorization'] = 'Bearer ' + token;
-
-                if (token) {
-                    candidates.push({ url: backendUrl + '/api/tourist/leaderboard?limit=10', headers: reqHeaders });
-                    candidates.push({ url: '/api/tourist/leaderboard?limit=10', headers: reqHeaders });
-                }
-                candidates.push({ url: backendUrl + '/api/public/leaderboard?limit=10', headers: reqHeaders });
-                candidates.push({ url: '/api/public/leaderboard?limit=10', headers: reqHeaders });
-                candidates.push({ url: backendUrl + '/api/leaderboard?limit=10', headers: reqHeaders });
-                candidates.push({ url: '/api/leaderboard?limit=10', headers: reqHeaders });
-                candidates.push({ url: 'https://api.intan-elyu.online/api/public/leaderboard?limit=10', headers: reqHeaders });
-
-                const triedUrls = new Set();
-                for (const item of candidates) {
-                    if (triedUrls.has(item.url)) continue;
-                    triedUrls.add(item.url);
-                    try {
-                        const res = await fetch(item.url, { headers: item.headers });
-                        if (res.ok) {
-                            const json = await res.json();
-                            const users = json.users || json.leaders || json.data || json.tourists || (Array.isArray(json) ? json : []);
-                            if (Array.isArray(users)) return json;
-                        }
-                    } catch (err) {
-                        // Continue to next fallback tier
-                    }
-                }
-
-                throw new Error("Could not reach any leaderboard endpoint");
-            }
-
-            await fetchCache(
-                cacheKey,
-                fetchLeaderboardWithFallbacks,
-                (data) => {
-                    if (!data) {
-                        if (!rawLeadersList || rawLeadersList.length === 0) {
-                            renderLeaderboardUI();
-                        }
-                        return;
-                    }
-                    applyLeaderboardData(data);
-                },
-                Boolean(forceRefresh || window.leaderboardNeedsRefresh),
-                15000 // 15 seconds TTL
-            );
-            window.leaderboardNeedsRefresh = false;
-
-            // Re-render after fetch to ensure latest data is displayed
-            if (rawLeadersList && rawLeadersList.length > 0) {
-                renderLeaderboardUI();
-            }
-
-        } catch (e) {
-            console.warn("Leaderboard fetch error:", e);
-            renderLeaderboardUI();
-            // Only show offline empty state if we genuinely have NO cached data at all
-            if (!rawLeadersList || rawLeadersList.length === 0) {
-                if (!navigator.onLine) {
-                    if (podiumContainer) {
-                        podiumContainer.innerHTML = `
-                            <div style="grid-column: 1 / -1; width: 100%; text-align: center; padding: 28px 16px;">
-                                <div style="width: 48px; height: 48px; border-radius: 50%; background: rgba(245, 158, 11, 0.12); display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; color: #f59e0b; font-size: 20px;">
-                                    <i class="fa-solid fa-cloud-slash"></i>
-                                </div>
-                                <div style="font-size: 14px; font-weight: 700; color: #1e293b; margin-bottom: 4px;">Rankings Offline</div>
-                                <div style="font-size: 12px; color: #64748b; max-width: 260px; margin: 0 auto; line-height: 1.4;">
-                                    Full provincial rankings will update automatically when reconnected.
-                                </div>
-                            </div>`;
-                    }
-                } else {
-                    if (podiumContainer) {
-                        podiumContainer.innerHTML = `
-                            <div style="grid-column: 1 / -1; width: 100%; text-align: center; padding: 28px 16px;">
-                                <div style="font-size: 14px; font-weight: 700; color: #dc2626; margin-bottom: 6px;">Rankings Temporarily Unavailable</div>
-                                <button onclick="window.refreshLeaderboard(true)" style="background: #1e3a8a; color: white; border: none; padding: 8px 18px; border-radius: 100px; font-size: 12px; font-weight: 800; cursor: pointer;">
-                                    <i class="fa-solid fa-rotate-right" style="margin-right: 5px;"></i> Try Again
-                                </button>
-                            </div>`;
-                    }
-                }
+        } catch (err) {
+            console.warn('Leaderboard refresh error:', err);
+            if (force && typeof showToast === 'function') {
+                showToast('Sync error. Retaining cached rankings.', 'warning', 3000);
             }
         } finally {
             _isFetchingLeaderboard = false;
@@ -939,43 +882,15 @@ $activeTab = 'leaderboard';
         }
     };
 
-    // Initialize immediately
-    window.initLeaderboardView();
-
-    // Ambient automatic reconnect listeners (debounced to avoid multiple rapid-fire fetches)
-    let _leaderboardReconnectTimer = null;
-    function handleLeaderboardReconnect() {
-        if (_leaderboardReconnectTimer) clearTimeout(_leaderboardReconnectTimer);
-        _leaderboardReconnectTimer = setTimeout(() => {
-            const current = (document.body ? document.body.getAttribute('data-view') : '') || (window.currentView || '');
-            if (current !== 'leaderboard') {
-                window.leaderboardNeedsRefresh = true;
-                return;
-            }
-            if (typeof window.initLeaderboardView === 'function') {
-                window.leaderboardNeedsRefresh = true;
-                window.initLeaderboardView(true);
-            }
-        }, 400);
-    }
-    window.addEventListener('online', handleLeaderboardReconnect);
-    window.addEventListener('appOnline', handleLeaderboardReconnect);
-    document.addEventListener('visibilitychange', function () {
-        if (!document.hidden && (!rawLeadersList || rawLeadersList.length === 0 || window.leaderboardNeedsRefresh)) {
-            handleLeaderboardReconnect();
+    window.initLeaderboardView = async function (forceRefresh = false) {
+        if (forceRefresh) {
+            await window.refreshLeaderboard(true);
+        } else {
+            renderLeaderboardUI();
         }
-    });
+    };
 
-    // Also listen for SPA viewLoaded event when navigating back to leaderboard
-    function handleLeaderboardViewLoaded(e) {
-        if (e && e.detail && e.detail.view === 'leaderboard') {
-            if (typeof window.initLeaderboardView === 'function') {
-                const mustForce = (!rawLeadersList || rawLeadersList.length === 0 || window.leaderboardNeedsRefresh);
-                window.initLeaderboardView(mustForce);
-            }
-        }
-    }
-    // Offline Indicator Status Management
+    // Offline status badge updater only (pure visual status, no auto-fetching)
     function updateLeaderboardOfflineStatus() {
         const badge = document.getElementById('leaderboard-offline-badge');
         const isOff = !navigator.onLine || window.isAppOnline === false;
@@ -986,6 +901,13 @@ $activeTab = 'leaderboard';
     window.addEventListener('app-connection-changed', updateLeaderboardOfflineStatus);
     setTimeout(updateLeaderboardOfflineStatus, 150);
 
+    // Re-render UI when switching back to leaderboard tab (no network fetch)
+    function handleLeaderboardViewLoaded(e) {
+        if (e && e.detail && e.detail.view === 'leaderboard') {
+            updateLeaderboardOfflineStatus();
+            renderLeaderboardUI();
+        }
+    }
     window.addEventListener('viewLoaded', handleLeaderboardViewLoaded);
     document.addEventListener('viewLoaded', handleLeaderboardViewLoaded);
 </script>

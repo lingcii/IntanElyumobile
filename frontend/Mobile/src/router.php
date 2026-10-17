@@ -76,7 +76,63 @@ if (strpos($path, 'intan-elyu.apk') !== false || strpos($path, '.apk') !== false
         }
         exit;
     } else {
-        header('Location: https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/apks/intan-elyu.apk?v=1.4.0');
+        // Fallback: If no local file on disk, stream directly from Cloudflare R2
+        // to bypass mobile ISP DNS resolution failures (ERR_NAME_NOT_RESOLVED / -105) on the *.r2.dev domain!
+        $remoteApkUrl = getenv('CLOUDFLARE_R2_APK_URL') ?: (rtrim(getenv('CLOUDFLARE_R2_URL') ?: 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev', '/') . '/apks/intan-elyu.apk?v=1.4.1');
+        $preferRedirect = isset($_GET['redirect']) && $_GET['redirect'] === '1';
+        $isCustomDomain = (strpos($remoteApkUrl, 'r2.dev') === false);
+
+        if ($preferRedirect || $isCustomDomain) {
+            header('Location: ' . $remoteApkUrl);
+            exit;
+        }
+
+        @set_time_limit(0);
+        $ctx = stream_context_create([
+            'http' => [
+                'method' => 'GET',
+                'timeout' => 30,
+                'follow_location' => 1,
+                'header' => "User-Agent: IntanElyuStreamer/1.0\r\n"
+            ]
+        ]);
+
+        $remoteHandle = @fopen($remoteApkUrl, 'rb', false, $ctx);
+        if ($remoteHandle) {
+            while (ob_get_level()) {
+                ob_end_clean();
+            }
+            $meta = stream_get_meta_data($remoteHandle);
+            $headers = $meta['wrapper_data'] ?? [];
+            $contentLength = null;
+            foreach ($headers as $hdr) {
+                if (stripos($hdr, 'Content-Length:') === 0) {
+                    $contentLength = trim(substr($hdr, 15));
+                    break;
+                }
+            }
+
+            header('Content-Description: File Transfer');
+            header('Content-Type: application/vnd.android.package-archive');
+            header('Content-Disposition: attachment; filename="intan-elyu.apk"');
+            header('Content-Transfer-Encoding: binary');
+            header('Expires: 0');
+            header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
+            header('Pragma: public');
+            if ($contentLength) {
+                header('Content-Length: ' . $contentLength);
+            }
+            header('Accept-Ranges: bytes');
+
+            while (!feof($remoteHandle) && connection_status() === 0) {
+                echo fread($remoteHandle, 512 * 1024);
+                flush();
+            }
+            fclose($remoteHandle);
+            exit;
+        }
+
+        header('Location: ' . $remoteApkUrl);
         exit;
     }
 }
