@@ -195,40 +195,59 @@ $backRoute = 'itinerary';
 
         window.fetchSavedTrips = async function (forceRefresh = false) {
             const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
-            if (!token) {
+            const isGuestOrOffline = !token || token.startsWith('offline_') || localStorage.getItem('intan_elyu_offline_mode') === 'true';
+
+            // Safety watchdog timeout: Ensure loading spinner never hangs indefinitely
+            setTimeout(() => {
+                const list = document.getElementById('saved-trips-list');
+                if (list && list.querySelector('.fa-spinner')) {
+                    let fallbackItins = [];
+                    try {
+                        const backup = localStorage.getItem('intan_elyu_offline_saved_trips_backup') || localStorage.getItem('intan_elyu_saved_trips');
+                        if (backup) {
+                            const parsed = JSON.parse(backup);
+                            fallbackItins = Array.isArray(parsed) ? parsed : (parsed.itineraries || parsed.data || []);
+                        }
+                    } catch (e) { }
+                    renderSavedTrips(fallbackItins);
+                }
+            }, 3000);
+
+            // 1. Instant pre-hydrate from local storage for zero-delay display
+            try {
+                const storedRaw = localStorage.getItem('intan_elyu_offline_saved_trips_backup') || localStorage.getItem('intan_elyu_saved_trips');
+                if (storedRaw) {
+                    const parsed = JSON.parse(storedRaw);
+                    const itins = Array.isArray(parsed) ? parsed : (parsed.itineraries || parsed.data || null);
+                    if (Array.isArray(itins) && itins.length > 0) {
+                        renderSavedTrips(itins);
+                    }
+                }
+            } catch (e) { }
+
+            if (isGuestOrOffline) {
                 const queuedTrips = (window.OfflineTripManager && typeof window.OfflineTripManager.getQueuedTrips === 'function')
                     ? window.OfflineTripManager.getQueuedTrips()
                     : [];
-                if (queuedTrips.length > 0) {
-                    renderSavedTrips([]);
-                    return;
-                }
-                const list = document.getElementById('saved-trips-list');
-                if (list) {
-                    list.innerHTML = `
-                    <div class="empty-state-card reveal-on-scroll" style="margin-top: 30px; margin-bottom: 30px;">
-                        <div class="empty-state-icon" style="background: #ffffff !important; color: #1e3a8a !important; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15) !important;">
-                            <i class="fa-solid fa-lock" style="color: #1e3a8a !important;"></i>
-                        </div>
-                        <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: #ffffff;">Please Log In</h3>
-                        <p style="margin: 0; font-size: 13.5px; color: rgba(255, 255, 255, 0.88); line-height: 1.5; max-width: 260px;">
-                            You need to be logged in to view your saved trips.
-                        </p>
-                        <button type="button" class="btn-open-map" onclick="if(typeof window.navigateTo==='function') window.navigateTo('auth');">
-                            <i class="fa-solid fa-right-to-bracket"></i> Log In
-                        </button>
-                    </div>
-                `;
-                }
-                if (typeof window.navigateTo === 'function') window.navigateTo('auth');
+                let localTrips = [];
+                try {
+                    const localRaw = localStorage.getItem('intan_elyu_saved_trips') || localStorage.getItem('intan_elyu_offline_saved_trips_backup');
+                    if (localRaw) {
+                        const parsed = JSON.parse(localRaw);
+                        localTrips = Array.isArray(parsed) ? parsed : (parsed.itineraries || parsed.data || []);
+                    }
+                } catch (e) { }
+
+                const combined = [...queuedTrips, ...localTrips];
+                renderSavedTrips(combined);
                 return;
             }
 
             const cacheKey = 'saved_trips_' + token.substring(0, 10);
 
-            // Pre-hydrate from active cache or persistent offline backup for instant offline view
+            // Pre-hydrate from active token cache
             try {
-                const storedRaw = localStorage.getItem(cacheKey) || localStorage.getItem('intan_elyu_offline_saved_trips_backup');
+                const storedRaw = localStorage.getItem(cacheKey);
                 if (storedRaw) {
                     const parsed = JSON.parse(storedRaw);
                     const itins = Array.isArray(parsed) ? parsed : (parsed.itineraries || parsed.data || null);
@@ -543,33 +562,49 @@ $backRoute = 'itinerary';
 
                                 const itemMode = item.transport_mode || item.transport_type || '';
                                 if (itemMode) {
-                                    const legModes = parseVehicleModes(itemMode);
-                                    let vIcon = 'fa-route';
-                                    let vName = itemMode;
+                                    const isDestMaint = Boolean(
+                                        (dest && (dest.is_maintenance === 1 || dest.is_maintenance === true || dest.is_maintenance === '1' || (dest.status && String(dest.status).toLowerCase().includes('maint')))) ||
+                                        itemMode === 'suspended'
+                                    );
 
-                                    if (legModes.length > 1) {
-                                        vIcon = 'fa-route';
-                                        vName = `${legModes.length} Vehicles`;
-                                    } else if (legModes.length === 1) {
-                                        const info = getVehicleInfo(legModes[0]);
-                                        vIcon = info.icon;
-                                        vName = info.name;
+                                    if (isDestMaint) {
+                                        html += `
+                                        <div style="display:flex; align-items:center; gap:8px; margin:${index === 0 ? '0 0 10px 18px' : '4px 0 10px 18px'};">
+                                            <span style="padding:3px 10px; border-radius:100px; font-size:10.5px; font-weight:700; background:#ef4444; color:#ffffff; display:inline-flex; align-items:center; gap:5px; border:none !important; outline:none !important; box-shadow:0 2px 6px rgba(239,68,68,0.3);">
+                                                <i class="fa-solid fa-ban" style="color:#ffffff; font-size:10px;"></i>
+                                                <span>Unavailable (Maintenance)</span>
+                                                <span style="color:#ffffff; font-weight:800; opacity:0.9;">&bull; ₱0.00</span>
+                                            </span>
+                                        </div>`;
+                                    } else {
+                                        const legModes = parseVehicleModes(itemMode);
+                                        let vIcon = 'fa-route';
+                                        let vName = itemMode;
+
+                                        if (legModes.length > 1) {
+                                            vIcon = 'fa-route';
+                                            vName = `${legModes.length} Vehicles`;
+                                        } else if (legModes.length === 1) {
+                                            const info = getVehicleInfo(legModes[0]);
+                                            vIcon = info.icon;
+                                            vName = info.name;
+                                        }
+
+                                        const costNum = parseFloat(item.leg_cost || 0);
+                                        const costStr = (costNum > 0) ? `&bull; ₱${costNum.toFixed(2)}` : (legModes.length === 1 && ['own_car', 'motorcycle', 'walking'].includes(legModes[0]) ? '&bull; ₱0' : '');
+                                        const distNum = parseFloat(item.leg_distance_km || 0);
+                                        const distStr = (distNum > 0) ? `&bull; ${distNum.toFixed(1)} km` : '';
+
+                                        html += `
+                                        <div style="display:flex; align-items:center; gap:8px; margin:${index === 0 ? '0 0 10px 18px' : '4px 0 10px 18px'};">
+                                            <span style="padding:3px 10px; border-radius:100px; font-size:10.5px; font-weight:700; background:rgba(255,255,255,0.16); color:#e0f2fe; display:inline-flex; align-items:center; gap:5px; border:none !important; outline:none !important;">
+                                                <i class="fa-solid ${vIcon}" style="color:#00f2fe; font-size:10px;"></i>
+                                                <span>${vName}</span>
+                                                ${costStr ? `<span style="color:#38bdf8; font-weight:800;">${costStr}</span>` : ''}
+                                                ${distStr ? `<span style="opacity:0.8; font-size:9.5px;">${distStr}</span>` : ''}
+                                            </span>
+                                        </div>`;
                                     }
-
-                                    const costNum = parseFloat(item.leg_cost || 0);
-                                    const costStr = (costNum > 0) ? `&bull; ₱${costNum.toFixed(2)}` : (legModes.length === 1 && ['own_car', 'motorcycle', 'walking'].includes(legModes[0]) ? '&bull; ₱0' : '');
-                                    const distNum = parseFloat(item.leg_distance_km || 0);
-                                    const distStr = (distNum > 0) ? `&bull; ${distNum.toFixed(1)} km` : '';
-
-                                    html += `
-                                    <div style="display:flex; align-items:center; gap:8px; margin:${index === 0 ? '0 0 10px 18px' : '4px 0 10px 18px'};">
-                                        <span style="padding:3px 10px; border-radius:100px; font-size:10.5px; font-weight:700; background:rgba(255,255,255,0.16); color:#e0f2fe; display:inline-flex; align-items:center; gap:5px; border:none !important; outline:none !important;">
-                                            <i class="fa-solid ${vIcon}" style="color:#00f2fe; font-size:10px;"></i>
-                                            <span>${vName}</span>
-                                            ${costStr ? `<span style="color:#38bdf8; font-weight:800;">${costStr}</span>` : ''}
-                                            ${distStr ? `<span style="opacity:0.8; font-size:9.5px;">${distStr}</span>` : ''}
-                                        </span>
-                                    </div>`;
                                 }
 
                                 html += `
@@ -1601,6 +1636,8 @@ $backRoute = 'itinerary';
                     return {
                         ...dest,
                         id: spotId || dest.id,
+                        is_maintenance: (dest.is_maintenance !== undefined) ? dest.is_maintenance : mapSpot.is_maintenance,
+                        status: dest.status || mapSpot.status,
                         lat: dest.latitude || dest.lat || mapSpot.lat,
                         lng: dest.longitude || dest.lng || mapSpot.lng,
                         photo_url: dest.image || dest.photo_url || mapSpot.photo_url || '',
@@ -1968,6 +2005,11 @@ $backRoute = 'itinerary';
                 }
             });
             setTimeout(updateSavedTripsOfflineStatus, 100);
+        }
+
+        // Immediately fetch and render saved trips
+        if (typeof window.fetchSavedTrips === 'function') {
+            window.fetchSavedTrips(false);
         }
 
     })();

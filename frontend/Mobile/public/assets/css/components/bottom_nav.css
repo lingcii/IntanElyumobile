@@ -68,6 +68,21 @@ html.sheet-open #bottom-navigation,
     visibility: hidden !important;
 }
 
+/* ── Blur & disable Navigation Bar when modals, notifications, or itinerary add dialog are open ── */
+body.notif-open .magic-nav,
+html.notif-open .magic-nav,
+body.itin-confirm-open .magic-nav,
+html.itin-confirm-open .magic-nav,
+body.modal-blurred .magic-nav,
+html.modal-blurred .magic-nav {
+    filter: blur(14px) brightness(0.65) !important;
+    -webkit-filter: blur(14px) brightness(0.65) !important;
+    opacity: 0.28 !important;
+    pointer-events: none !important;
+    user-select: none !important;
+    transition: filter 0.3s ease, opacity 0.3s ease, transform 0.3s ease !important;
+}
+
 
 .magic-nav-bg {
     position: absolute;

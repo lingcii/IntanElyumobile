@@ -64,8 +64,20 @@ class ProfileController extends Controller
             ->whereNotNull('itinerary_items.tourist_spot_id')
             ->distinct('itinerary_items.tourist_spot_id')
             ->count('itinerary_items.tourist_spot_id');
-        if ($placesVisited === 0 && ($user->completed_activities ?? 0) > 0) {
-            $placesVisited = min(1, (int) $user->completed_activities);
+
+        // Fallback to distinct completed itinerary spot count or completed_activities counter
+        if ($placesVisited === 0) {
+            $completedTripsSpotCount = (int) DB::table('itinerary_items')
+                ->join('itineraries', 'itinerary_items.itinerary_id', '=', 'itineraries.id')
+                ->where('itineraries.user_id', $user->id)
+                ->where('itineraries.status', 'completed')
+                ->whereNotNull('itinerary_items.tourist_spot_id')
+                ->distinct('itinerary_items.tourist_spot_id')
+                ->count('itinerary_items.tourist_spot_id');
+
+            $placesVisited = max($completedTripsSpotCount, (int) ($user->completed_activities ?? 0));
+        } else {
+            $placesVisited = max($placesVisited, (int) ($user->completed_activities ?? 0));
         }
 
         // 3. Completed Trips (Trip History) — Filter out any with 0 visited destinations

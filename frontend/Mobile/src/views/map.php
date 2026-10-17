@@ -4643,8 +4643,11 @@ if (is_dir($imgDir)) {
         };
 
         window.addToItinerary = function () {
-            if (!window.currentDestinationForRoute) return;
-            const dest = window.currentDestinationForRoute;
+            const dest = window.currentDestinationForRoute || window.selectedDestination || window.currentMarkerDestination;
+            if (!dest) {
+                if (typeof showToast === 'function') showToast('Please select a tourist spot first');
+                return;
+            }
 
             const opState = (typeof window.checkSiteOperationalState === 'function')
                 ? window.checkSiteOperationalState(dest)
@@ -4679,7 +4682,10 @@ if (is_dir($imgDir)) {
                     iconWrap.innerHTML = '<i class="fa-solid fa-check" style="font-size:32px; color:#ffffff;"></i>';
                     iconWrap.style.cssText = 'width:68px; height:68px; border-radius:50%; background:linear-gradient(135deg, #34d399 0%, #10b981 100%); border:3px solid rgba(255,255,255,0.4) !important; box-shadow:none !important; display:flex; align-items:center; justify-content:center; margin:0 auto 16px;';
                 }
-                if (btnView) btnView.style.display = '';
+                if (btnView) {
+                    btnView.style.display = 'block';
+                    btnView.innerHTML = '<i class="fa-solid fa-list"></i> View Itinerary';
+                }
 
                 // Also update the bottom sheet button state if still in view
                 const addItinBtn = document.getElementById('btn-add-itinerary');
@@ -4698,7 +4704,7 @@ if (is_dir($imgDir)) {
             } else {
                 // Show "Already in Itinerary" modal
                 const confirmName = document.getElementById('itin-add-confirm-name');
-                if (confirmName) confirmName.textContent = dest.name + ' is already in your itinerary draft.';
+                if (confirmName) confirmName.textContent = dest.name + ' is already added to your itinerary draft.';
                 const titleEl = document.querySelector('#itin-add-confirm h3');
                 const iconWrap = document.getElementById('itin-add-confirm-icon-wrap') || document.querySelector('#itin-add-confirm div > div');
                 const btnView = document.querySelector('#itin-add-confirm button[onclick*="viewItinerary"]');
@@ -4707,10 +4713,16 @@ if (is_dir($imgDir)) {
                     iconWrap.innerHTML = '<i class="fa-solid fa-bookmark" style="font-size:30px; color:#ffffff;"></i>';
                     iconWrap.style.cssText = 'width:68px; height:68px; border-radius:50%; background:linear-gradient(135deg, #fbbf24 0%, #d97706 100%); border:3px solid rgba(255,255,255,0.4) !important; box-shadow:none !important; display:flex; align-items:center; justify-content:center; margin:0 auto 16px;';
                 }
-                if (btnView) btnView.style.display = 'none';
+                if (btnView) {
+                    btnView.style.display = 'block';
+                    btnView.innerHTML = '<i class="fa-solid fa-list"></i> View Itinerary';
+                }
             }
 
             window.closeSheet();
+
+            // Blur magic navigation while modal is active
+            document.body.classList.add('itin-confirm-open');
 
             const confirmModal = document.getElementById('itin-add-confirm');
             if (confirmModal) {
@@ -4724,6 +4736,7 @@ if (is_dir($imgDir)) {
         };
 
         window.closeAddConfirm = function () {
+            document.body.classList.remove('itin-confirm-open');
             const confirmModal = document.getElementById('itin-add-confirm');
             if (confirmModal) {
                 confirmModal.style.opacity = '0';
@@ -4736,6 +4749,7 @@ if (is_dir($imgDir)) {
         };
 
         window.viewItinerary = function () {
+            document.body.classList.remove('itin-confirm-open');
             window.closeAddConfirm();
             if (typeof navigateTo === 'function') {
                 navigateTo('itinerary');

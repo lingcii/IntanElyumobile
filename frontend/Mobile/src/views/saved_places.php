@@ -74,48 +74,91 @@ if (is_dir($imgDir)) {
 
         window.addEventListener('resize', updateScrollviewState);
 
+        function getLocalSavedSpots() {
+            let savedIds = [];
+            try {
+                savedIds = JSON.parse(localStorage.getItem('intan_elyu_saved_place_ids') || '[]');
+            } catch (e) { }
+            if (!Array.isArray(savedIds) || savedIds.length === 0) return [];
+
+            let allSpots = [];
+            try {
+                const mapRaw = localStorage.getItem('public_map_data');
+                if (mapRaw) {
+                    const parsed = JSON.parse(mapRaw);
+                    allSpots = parsed.destinations || parsed.data || (Array.isArray(parsed) ? parsed : []);
+                }
+            } catch (e) { }
+
+            if (!allSpots.length) {
+                try {
+                    const cacheRaw = localStorage.getItem('intan_elyu_cached_spots_map');
+                    if (cacheRaw) allSpots = JSON.parse(cacheRaw);
+                } catch (e) { }
+            }
+
+            if (!allSpots.length && Array.isArray(window.allTouristSpots)) {
+                allSpots = window.allTouristSpots;
+            }
+
+            return allSpots.filter(spot => savedIds.some(id => String(id) === String(spot.id)));
+        }
+
         async function fetchSavedPlaces(forceRefresh = false) {
             const token = localStorage.getItem('intan_elyu_token');
-            if (!token) return;
 
-            const cacheKey = 'saved_places_' + (token ? token.substring(0, 10) : '');
+            // 1. Instant pre-hydration from local storage bookmarks
+            const localSaved = getLocalSavedSpots();
+            if (localSaved.length > 0) {
+                renderSavedPlaces(localSaved);
+            }
 
-            await window.useCache(
-                cacheKey,
-                async () => {
-                    const res = await fetch(backendUrl + '/api/tourist/dashboard', {
-                        headers: {
-                            'Accept': 'application/json',
-                            'Authorization': 'Bearer ' + token
-                        }
-                    });
-                    if (!res.ok) throw new Error("Failed to fetch saved places");
-                    const data = await res.json();
-                    return data.savedPlaces || [];
-                },
-                (spots) => {
-                    if (spots) {
-                        renderSavedPlaces((spots || []).filter(d => !d.status || d.status.toLowerCase() !== 'pending'));
-                    } else {
-                        const list = document.getElementById('saved-places-list');
-                        if (list) {
-                            if (!navigator.onLine) {
-                                list.innerHTML = `
-                                <div class="dash-empty-state" style="margin-top:24px;">
-                                    <div class="dash-empty-icon-wrap" style="background:#ffffff; color:#f59e0b;"><i class="fa-solid fa-cloud-slash"></i></div>
-                                    <div class="dash-empty-title">Saved Places Offline</div>
-                                    <div class="dash-empty-desc">Your bookmarked destinations will update automatically once reconnected.</div>
-                                </div>`;
+            if (!token || token.startsWith('offline_')) {
+                // In offline guest mode, rely on local bookmarks
+                if (localSaved.length > 0) {
+                    renderSavedPlaces(localSaved);
+                } else {
+                    renderSavedPlaces([]);
+                }
+                return;
+            }
+
+            const cacheKey = 'saved_places_' + token.substring(0, 10);
+
+            try {
+                await window.useCache(
+                    cacheKey,
+                    async () => {
+                        const res = await fetch(backendUrl + '/api/tourist/dashboard', {
+                            headers: {
+                                'Accept': 'application/json',
+                                'Authorization': 'Bearer ' + token
+                            }
+                        });
+                        if (!res.ok) throw new Error("Failed to fetch saved places");
+                        const data = await res.json();
+                        return data.savedPlaces || [];
+                    },
+                    (spots) => {
+                        if (spots && Array.isArray(spots) && spots.length > 0) {
+                            renderSavedPlaces((spots || []).filter(d => !d.status || d.status.toLowerCase() !== 'pending'));
+                        } else {
+                            const fallback = getLocalSavedSpots();
+                            if (fallback.length > 0) {
+                                renderSavedPlaces(fallback);
                             } else {
-                                list.innerHTML = '<p style="text-align:center; color:#94a3b8; margin-top:20px;">Failed to load saved places.</p>';
+                                renderSavedPlaces([]);
                             }
                         }
-                        updateScrollviewState();
-                    }
-                },
-                forceRefresh,
-                60000 // 1 minute TTL
-            );
+                    },
+                    forceRefresh,
+                    60000 // 1 minute TTL
+                );
+            } catch (err) {
+                console.warn('Network error fetching saved places, using local:', err);
+                const fallback = getLocalSavedSpots();
+                renderSavedPlaces(fallback);
+            }
         }
 
         function renderSavedPlaces(spots) {

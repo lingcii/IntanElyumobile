@@ -588,7 +588,7 @@
             }
             var offlineBtns = document.querySelectorAll('.btn-offline-guest');
             offlineBtns.forEach(function (btn) {
-                btn.style.setProperty('display', isOffline ? 'flex' : 'none', 'important');
+                btn.style.setProperty('display', 'flex', 'important');
             });
         }
         updateOfflineStatus();
@@ -639,7 +639,9 @@
         }
 
         localStorage.setItem('intan_elyu_token', 'offline_guest_token');
+        localStorage.setItem('intan_elyu_offline_mode', 'true');
         localStorage.setItem('intan_elyu_offline_guest', 'true');
+        sessionStorage.setItem('elyu_show_offline_bypass_notice', 'true');
 
         if (typeof window.notifyAppOffline === 'function') {
             window.notifyAppOffline();
@@ -2135,16 +2137,33 @@
             redirectUri += 'index.php';
         }
 
+        try {
+            sessionStorage.setItem('intan_elyu_google_oauth_pending', 'true');
+            document.cookie = "is_intan_elyu_app=1; path=/; max-age=31536000; SameSite=Lax";
+        } catch (e) { }
+
         const stateObj = { timestamp: Date.now(), returnView: 'auth' };
         const stateStr = encodeURIComponent(JSON.stringify(stateObj));
         const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${encodeURIComponent(clientId)}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=email%20profile%20openid&prompt=select_account&state=${stateStr}`;
 
         // In Capacitor native mobile platform, open in system browser to prevent Google WebView blocking
         if (window.Capacitor && typeof window.Capacitor.isNativePlatform === 'function' && window.Capacitor.isNativePlatform()) {
+            if (window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
+                window.Capacitor.Plugins.App.addListener('appUrlOpen', function (data) {
+                    if (data && data.url) {
+                        if (window.Capacitor.Plugins && window.Capacitor.Plugins.Browser) {
+                            window.Capacitor.Plugins.Browser.close().catch(function () { });
+                        }
+                        if (typeof window.initGoogleOAuthHandler === 'function') {
+                            window.initGoogleOAuthHandler(data.url);
+                        }
+                    }
+                });
+            }
             if (window.Capacitor.Plugins && window.Capacitor.Plugins.Browser) {
                 window.Capacitor.Plugins.Browser.open({ url: googleAuthUrl });
             } else {
-                window.open(googleAuthUrl, '_system');
+                window.location.href = googleAuthUrl;
             }
             resetBtns();
         } else {
@@ -2192,6 +2211,14 @@
                 window.AppStorage.setItem('auth_user', data.user);
                 window.AppStorage.setItem('intan_elyu_token', data.token);
             }
+
+            // Clear offline flags on successful cloud authentication
+            localStorage.removeItem('intan_elyu_offline_mode');
+            localStorage.removeItem('intan_elyu_offline_guest');
+            try {
+                sessionStorage.removeItem('intan_elyu_google_oauth_pending');
+                sessionStorage.removeItem('elyu_show_offline_bypass_notice');
+            } catch (e) { }
 
             showLoginSuccessModal(data.user);
         } catch (error) {

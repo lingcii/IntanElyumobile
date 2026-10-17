@@ -378,9 +378,22 @@ if (is_dir($imgDir)) {
 
     function updateDashboardOfflineStatus() {
         var pill = document.getElementById('dash-offline-pill');
-        var isOffline = !navigator.onLine || window.isAppOnline === false;
+        var token = localStorage.getItem('intan_elyu_token');
+        var isOfflineMode = localStorage.getItem('intan_elyu_offline_mode') === 'true' ||
+                            localStorage.getItem('intan_elyu_offline_guest') === 'true' ||
+                            Boolean(token && token.startsWith('offline_'));
+        var isNetworkOffline = !navigator.onLine || window.isAppOnline === false;
+        var isOffline = isNetworkOffline || isOfflineMode;
         if (pill) {
             pill.style.display = isOffline ? 'flex' : 'none';
+            var span = pill.querySelector('span');
+            if (span) {
+                if (isOfflineMode && !isNetworkOffline) {
+                    span.innerHTML = 'Offline Mode &bull; Exploring as Local Guest';
+                } else {
+                    span.innerHTML = 'Offline Mode &bull; Showing Saved Guides & Local GPS';
+                }
+            }
         }
     }
     window.addEventListener('online', updateDashboardOfflineStatus);
@@ -886,7 +899,35 @@ if (is_dir($imgDir)) {
             const initPts = parseInt(user.points !== undefined ? user.points : (user.xp || 0)) || 0;
             const ptsEl = document.getElementById('dash-stat-points');
             if (ptsEl) ptsEl.textContent = initPts.toLocaleString();
+
+            let initPlaces = parseInt(user.places_visited || user.completed_activities || 0);
+            if (!initPlaces) {
+                try {
+                    const localTrips = JSON.parse(localStorage.getItem('intan_elyu_saved_trips') || localStorage.getItem('intan_elyu_offline_saved_trips_backup') || '[]');
+                    const completed = localTrips.filter(t => t.status === 'completed' || t.is_completed);
+                    let spotSet = new Set();
+                    completed.forEach(t => (t.items || t.spots || []).forEach(s => { if (s.id || s.tourist_spot_id) spotSet.add(s.id || s.tourist_spot_id); }));
+                    if (spotSet.size > 0) initPlaces = spotSet.size;
+                    else if (completed.length > 0) initPlaces = completed.length;
+                } catch(e) {}
+            }
+            const placesEl = document.getElementById('dash-stat-places');
+            if (placesEl) placesEl.textContent = initPlaces.toLocaleString();
+
             setTxt('dash-title', 'Explorer of Elyu');
+        }
+
+        // Show offline mode notification banner & toast if login was bypassed
+        if (sessionStorage.getItem('elyu_show_offline_bypass_notice') === 'true') {
+            sessionStorage.removeItem('elyu_show_offline_bypass_notice');
+            setTimeout(() => {
+                if (typeof showToast === 'function') {
+                    showToast('Running in Offline Mode • Login bypassed for mobile', 'info', 4000);
+                }
+                if (typeof window.showOfflinePill === 'function') {
+                    window.showOfflinePill();
+                }
+            }, 600);
         }
 
         // ── Helper: Municipality Resolution ──
@@ -1270,7 +1311,24 @@ if (is_dir($imgDir)) {
             }
 
             // Stats
-            if (document.getElementById('dash-stat-places')) document.getElementById('dash-stat-places').textContent = (data.stats && data.stats.placesVisited) ? data.stats.placesVisited : 0;
+            let visitedCount = 0;
+            if (data.stats && (data.stats.placesVisited !== undefined && data.stats.placesVisited !== null)) {
+                visitedCount = parseInt(data.stats.placesVisited, 10);
+            }
+            if (visitedCount === 0 && u) {
+                visitedCount = parseInt(u.places_visited || u.completed_activities || 0, 10);
+            }
+            if (visitedCount === 0) {
+                try {
+                    const localTrips = JSON.parse(localStorage.getItem('intan_elyu_saved_trips') || localStorage.getItem('intan_elyu_offline_saved_trips_backup') || '[]');
+                    const completed = localTrips.filter(t => t.status === 'completed' || t.is_completed);
+                    let spotSet = new Set();
+                    completed.forEach(t => (t.items || t.spots || []).forEach(s => { if (s.id || s.tourist_spot_id) spotSet.add(s.id || s.tourist_spot_id); }));
+                    if (spotSet.size > 0) visitedCount = spotSet.size;
+                    else if (completed.length > 0) visitedCount = completed.length;
+                } catch(e) {}
+            }
+            if (document.getElementById('dash-stat-places')) document.getElementById('dash-stat-places').textContent = visitedCount.toLocaleString();
             if (document.getElementById('dash-stat-points')) document.getElementById('dash-stat-points').textContent = points.toLocaleString();
 
             // Populate Trending Spots (Limit to top 5, "See All" opens full list)
@@ -1698,6 +1756,46 @@ if (is_dir($imgDir)) {
             );
         }
 
+        const isOfflineGuest = Boolean((token && token.startsWith('offline_')) ||
+                                       localStorage.getItem('intan_elyu_offline_guest') === 'true' ||
+                                       localStorage.getItem('intan_elyu_offline_mode') === 'true');
+
+        if (isOfflineGuest) {
+            // Guest / Offline Mode: Populate dashboard using cached or public map data without requiring server token
+            try {
+                const mapCache = window.safeJsonParse ? window.safeJsonParse(localStorage.getItem('public_map_data'), null)?.data : null;
+                const spots = (mapCache && mapCache.destinations) || (window.allTouristSpots && window.allTouristSpots.length > 0 ? window.allTouristSpots : null);
+                if (spots && spots.length > 0) {
+                    const activeSpots = spots.filter(d => !d.status || !['pending', 'draft', 'rejected'].includes(d.status.toLowerCase()));
+                    renderDashboard({
+                        user: user,
+                        stats: { placesVisited: 0, rank: 1, unread_notifications: 0 },
+                        trending: [...activeSpots].sort((a, b) => (b.visits || 0) - (a.visits || 0)).slice(0, 5),
+                        savedPlaces: [],
+                        recommended: [...activeSpots].sort((a, b) => (parseFloat(b.rating || 0)) - (parseFloat(a.rating || 0))).slice(0, 5),
+                        timeLabel: 'Popular in La Union'
+                    });
+                } else {
+                    handleDashboardEmptyOrError();
+                }
+            } catch (e) {
+                handleDashboardEmptyOrError();
+            }
+
+            if (lat && lng) {
+                loadNearMe(lat, lng);
+                if (typeof window.fetchWeather === 'function') {
+                    window.fetchWeather(lat, lng, 'My Location', true);
+                }
+            } else {
+                loadNearMe(16.6159, 120.3209, 'San Fernando City');
+                if (typeof window.fetchWeather === 'function') {
+                    window.fetchWeather(16.6159, 120.3209, 'San Fernando, La Union', false);
+                }
+            }
+            return;
+        }
+
         try {
             await window.useCache(
                 cacheKey,
@@ -1712,9 +1810,14 @@ if (is_dir($imgDir)) {
                     });
                     if (!res.ok) {
                         if (res.status === 401) {
-                            localStorage.removeItem('intan_elyu_token');
-                            localStorage.removeItem('auth_user');
-                            window.location.href = '?view=auth';
+                            if (isOfflineGuest) {
+                                console.warn("Offline mode active; suppressing auth redirect.");
+                                throw new Error("Offline guest session");
+                            } else {
+                                localStorage.removeItem('intan_elyu_token');
+                                localStorage.removeItem('auth_user');
+                                window.location.href = '?view=auth';
+                            }
                         }
                         throw new Error("Dashboard fetch failed");
                     }

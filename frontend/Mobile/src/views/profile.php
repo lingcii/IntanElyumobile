@@ -9,6 +9,35 @@ $activeTab = 'profile';
 
 <div class="profile-container has-header has-bottom-nav animate-slide-up">
 
+    <!-- Offline Mode Locked Barrier (Displayed if accessed while in Offline / Guest Mode) -->
+    <div id="profile-offline-lock-barrier" style="display: none; text-align: center; padding: 32px 18px 40px; margin-top: 10px;">
+        <div style="width: 78px; height: 78px; border-radius: 26px; background: linear-gradient(135deg, rgba(30,58,138,0.12) 0%, rgba(0,242,254,0.2) 100%); display: flex; align-items: center; justify-content: center; margin: 0 auto 18px; box-shadow: 0 8px 24px rgba(30,58,138,0.12);">
+            <i class="fa-solid fa-user-lock" style="font-size: 34px; color: #1e3a8a;"></i>
+        </div>
+        <div style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 100px; font-size: 11px; font-weight: 800; background: #fffbeb; color: #b45309; border: 1px solid #fde68a; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">
+            <i class="fa-solid fa-cloud-slash"></i> Offline Mode Active
+        </div>
+        <h2 style="font-size: 21px; font-weight: 800; color: #0f172a; margin: 0 0 8px; letter-spacing: -0.3px;">Profile Unavailable in Offline Mode</h2>
+        <p style="font-size: 13.5px; color: #64748b; line-height: 1.55; max-width: 320px; margin: 0 auto 24px;">
+            Your personal profile, points balance, badges, and trip history require an active internet connection and cloud account. You can still explore the Interactive Map and check the Provincial Leaderboards while offline!
+        </p>
+
+        <div style="display: flex; flex-direction: column; gap: 10px; max-width: 290px; margin: 0 auto;">
+            <button type="button" onclick="navigateTo('map')" style="width: 100%; padding: 13px; border-radius: 16px; border: none; background: linear-gradient(135deg, #1e3a8a 0%, #0284c7 100%); color: #ffffff; font-size: 13.5px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 6px 18px rgba(30,58,138,0.25);">
+                <i class="fa-solid fa-map-location-dot" style="color: #00f2fe;"></i> Explore Interactive Map
+            </button>
+            <button type="button" onclick="navigateTo('leaderboard')" style="width: 100%; padding: 13px; border-radius: 16px; border: 1.5px solid #e2e8f0; background: #ffffff; color: #1e3a8a; font-size: 13.5px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                <i class="fa-solid fa-trophy" style="color: #f59e0b;"></i> View Leaderboards
+            </button>
+            <button type="button" onclick="navigateTo('auth')" style="width: 100%; padding: 11px; border-radius: 16px; border: none; background: #f1f5f9; color: #475569; font-size: 12.5px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 4px;">
+                <i class="fa-solid fa-right-to-bracket" style="color: #1e3a8a;"></i> Sign In with Account
+            </button>
+        </div>
+    </div>
+
+    <!-- Normal Profile Content Container -->
+    <div id="profile-normal-content">
+
     <!-- Offline status badge -->
     <div id="profile-offline-badge" style="display: none; background: #fffbeb; border: 1px solid #fde68a; color: #b45309; padding: 7px 12px; border-radius: 12px; font-size: 11px; font-weight: 700; margin-bottom: 14px; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.04);">
         <i class="fa-solid fa-cloud-arrow-down" style="margin-right: 5px;"></i> Browsing Offline Profile (Cached)
@@ -185,14 +214,6 @@ $activeTab = 'profile';
             <div class="settings-text">Help & Support Center</div>
             <i class="fa-solid fa-chevron-right settings-arrow"></i>
         </a>
-        <a href="#" class="settings-item" onclick="if (typeof window.checkForAppUpdate === 'function') { window.checkForAppUpdate(); } else { window.open('https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/apks/intan-elyu.apk', '_system'); } return false;">
-            <div class="settings-icon"
-                style="background: #ffffff !important; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;"><i
-                    class="fa-solid fa-cloud-arrow-down" style="color: #1e3a8a !important;"></i></div>
-            <div class="settings-text">Update App (v1.4.3)</div>
-            <span style="font-size:10px; font-weight:800; background:rgba(0,242,254,0.2); color:#00f2fe; padding:2px 8px; border-radius:100px; margin-right:4px;">Latest</span>
-            <i class="fa-solid fa-chevron-right settings-arrow"></i>
-        </a>
         <a href="#" class="settings-item" onclick="handleLogout(event); return false;">
             <div class="settings-icon logout"
                 style="background: #FF3B30 !important; box-shadow: 0 2px 8px rgba(255, 59, 48, 0.3) !important;"><i
@@ -201,6 +222,7 @@ $activeTab = 'profile';
         </a>
     </div>
 
+    </div><!-- End #profile-normal-content -->
 </div>
 
 <script>
@@ -777,11 +799,25 @@ $activeTab = 'profile';
     }
 
     // Immediately hydrate on script execution
-    hydrateProfileFromCache();
+    const _profileAuthToken = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+    const _isProfileOfflineGuest = !_profileAuthToken || 
+        _profileAuthToken === 'offline_guest_token' || 
+        _profileAuthToken.startsWith('offline_') || 
+        localStorage.getItem('intan_elyu_offline_guest') === 'true' || 
+        localStorage.getItem('intan_elyu_offline_mode') === 'true';
+
+    if (_isProfileOfflineGuest) {
+        const barrier = document.getElementById('profile-offline-lock-barrier');
+        const normal = document.getElementById('profile-normal-content');
+        if (barrier) barrier.style.display = 'block';
+        if (normal) normal.style.display = 'none';
+    } else {
+        hydrateProfileFromCache();
+    }
 
     async function fetchProfileData(force = false) {
         const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('api_token');
-        if (!token) return;
+        if (!token || token === 'offline_guest_token' || token.startsWith('offline_')) return;
 
         const cacheKey = 'profile_data_' + token.substring(0, 10);
         const shouldForce = force || Boolean(window.profileNeedsRefresh);

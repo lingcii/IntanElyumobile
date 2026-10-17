@@ -519,41 +519,54 @@ include_once __DIR__ . '/../components/testimony_modal.php';
 
                 let legTransitHtml = '';
                 if (item.transport_mode) {
-                    const legParts = String(item.transport_mode).split(/[,+]|\band\b/i).map(s => s.trim().toLowerCase().replace(/[- ]/g, '_')).filter(Boolean);
-                    let vIcon = 'fa-van-shuttle';
-                    let vName = item.transport_mode;
+                    const isSpotMaint = Boolean(
+                        (dest && (dest.is_maintenance === 1 || dest.is_maintenance === true || dest.is_maintenance === '1' || (dest.status && String(dest.status).toLowerCase().includes('maint')))) ||
+                        item.transport_mode === 'suspended'
+                    );
 
-                    if (legParts.length > 1) {
-                        vIcon = 'fa-route';
-                        vName = `${legParts.length} Vehicles`;
-                    } else if (legParts.length === 1) {
-                        const single = legParts[0];
-                        if (single === 'own_car' || single === 'car') { vIcon = 'fa-car'; vName = 'Own Car'; }
-                        else if (single === 'motorcycle') { vIcon = 'fa-motorcycle'; vName = 'Motorcycle'; }
-                        else if (single === 'tricycle' || single === 'trike') { vIcon = 'fa-motorcycle'; vName = 'Tricycle'; }
-                        else if (single === 'mpuj') { vIcon = 'fa-bus-simple'; vName = 'Modern Jeepney'; }
-                        else if (single === 'tpuj') { vIcon = 'fa-van-shuttle'; vName = 'Traditional Jeepney'; }
-                        else if (single === 'pub_aircon' || single.includes('aircon')) { vIcon = 'fa-bus'; vName = 'Aircon Bus'; }
-                        else if (single === 'pub_regular' || single === 'pub_ordinary' || single.includes('ordinary') || single.includes('regular')) { vIcon = 'fa-bus-simple'; vName = 'Ordinary Bus'; }
-                        else if (single === 'uve') { vIcon = 'fa-van-shuttle'; vName = 'UV Express'; }
-                        else if (single === 'van') { vIcon = 'fa-van-shuttle'; vName = 'Van'; }
-                        else if (single === 'taxi') { vIcon = 'fa-taxi'; vName = 'Taxi'; }
-                        else if (single === 'bus' || single === 'private_bus') { vIcon = 'fa-bus'; vName = 'Bus'; }
-                        else if (single === 'walking' || single === 'walk') { vIcon = 'fa-person-walking'; vName = 'Walk / Hike'; }
-                        else {
-                            vName = single.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                    if (isSpotMaint) {
+                        legTransitHtml = `<div style="display:flex; align-items:center; gap:6px; margin-bottom:8px; flex-wrap:wrap;">
+                        <span style="background:#ef4444; color:#ffffff; padding:2px 8px; border-radius:100px; font-size:10px; font-weight:800; display:inline-flex; align-items:center; gap:4px; box-shadow:0 2px 6px rgba(239,68,68,0.3);">
+                            <i class="fa-solid fa-ban" style="color:#ffffff; font-size:9px;"></i> Unavailable (Maintenance) &bull; ₱0.00
+                        </span>
+                    </div>`;
+                    } else {
+                        const legParts = String(item.transport_mode).split(/[,+]|\band\b/i).map(s => s.trim().toLowerCase().replace(/[- ]/g, '_')).filter(Boolean);
+                        let vIcon = 'fa-van-shuttle';
+                        let vName = item.transport_mode;
+
+                        if (legParts.length > 1) {
+                            vIcon = 'fa-route';
+                            vName = `${legParts.length} Vehicles`;
+                        } else if (legParts.length === 1) {
+                            const single = legParts[0];
+                            if (single === 'own_car' || single === 'car') { vIcon = 'fa-car'; vName = 'Own Car'; }
+                            else if (single === 'motorcycle') { vIcon = 'fa-motorcycle'; vName = 'Motorcycle'; }
+                            else if (single === 'tricycle' || single === 'trike') { vIcon = 'fa-motorcycle'; vName = 'Tricycle'; }
+                            else if (single === 'mpuj') { vIcon = 'fa-bus-simple'; vName = 'Modern Jeepney'; }
+                            else if (single === 'tpuj') { vIcon = 'fa-van-shuttle'; vName = 'Traditional Jeepney'; }
+                            else if (single === 'pub_aircon' || single.includes('aircon')) { vIcon = 'fa-bus'; vName = 'Aircon Bus'; }
+                            else if (single === 'pub_regular' || single === 'pub_ordinary' || single.includes('ordinary') || single.includes('regular')) { vIcon = 'fa-bus-simple'; vName = 'Ordinary Bus'; }
+                            else if (single === 'uve') { vIcon = 'fa-van-shuttle'; vName = 'UV Express'; }
+                            else if (single === 'van') { vIcon = 'fa-van-shuttle'; vName = 'Van'; }
+                            else if (single === 'taxi') { vIcon = 'fa-taxi'; vName = 'Taxi'; }
+                            else if (single === 'bus' || single === 'private_bus') { vIcon = 'fa-bus'; vName = 'Bus'; }
+                            else if (single === 'walking' || single === 'walk') { vIcon = 'fa-person-walking'; vName = 'Walk / Hike'; }
+                            else {
+                                vName = single.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                            }
                         }
+
+                        const cNum = parseFloat(item.leg_cost || 0);
+                        const cStr = (cNum > 0) ? `&bull; ₱${cNum.toFixed(2)}` : (legParts.length === 1 && ['own_car', 'motorcycle', 'walking'].includes(legParts[0]) ? '&bull; ₱0' : '');
+
+                        legTransitHtml = `<div style="display:flex; align-items:center; gap:6px; margin-bottom:8px; flex-wrap:wrap;">
+                        <span style="background:rgba(255,255,255,0.18); color:#e0f2fe; padding:2px 8px; border-radius:100px; font-size:10px; font-weight:700; display:inline-flex; align-items:center; gap:4px;">
+                            <i class="fa-solid ${vIcon}" style="color:#00f2fe; font-size:9px;"></i> ${vName} ${cStr}
+                        </span>
+                        ${(dest && (dest.accessible_by_private_vehicle === 0 || dest.accessible_by_private_vehicle === false || dest.accessible_by_private_vehicle === '0')) ? `<span style="background:rgba(245,158,11,0.22); color:#fef3c7; padding:2px 7px; border-radius:100px; font-size:9px; font-weight:800; display:inline-flex; align-items:center; gap:3px;"><i class="fa-solid fa-triangle-exclamation" style="color:#fbbf24;"></i> Trailhead</span>` : ''}
+                    </div>`;
                     }
-
-                    const cNum = parseFloat(item.leg_cost || 0);
-                    const cStr = (cNum > 0) ? `&bull; ₱${cNum.toFixed(2)}` : (legParts.length === 1 && ['own_car', 'motorcycle', 'walking'].includes(legParts[0]) ? '&bull; ₱0' : '');
-
-                    legTransitHtml = `<div style="display:flex; align-items:center; gap:6px; margin-bottom:8px; flex-wrap:wrap;">
-                    <span style="background:rgba(255,255,255,0.18); color:#e0f2fe; padding:2px 8px; border-radius:100px; font-size:10px; font-weight:700; display:inline-flex; align-items:center; gap:4px;">
-                        <i class="fa-solid ${vIcon}" style="color:#00f2fe; font-size:9px;"></i> ${vName} ${cStr}
-                    </span>
-                    ${(dest && (dest.accessible_by_private_vehicle === 0 || dest.accessible_by_private_vehicle === false || dest.accessible_by_private_vehicle === '0')) ? `<span style="background:rgba(245,158,11,0.22); color:#fef3c7; padding:2px 7px; border-radius:100px; font-size:9px; font-weight:800; display:inline-flex; align-items:center; gap:3px;"><i class="fa-solid fa-triangle-exclamation" style="color:#fbbf24;"></i> Trailhead</span>` : ''}
-                </div>`;
                 }
 
                 conveyorHtml += `

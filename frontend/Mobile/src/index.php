@@ -147,11 +147,26 @@ if (
 // Extract view name safely - from $_GET['view'] or URI path (e.g. /download)
 // Detect if running inside the native Android APK vs regular web browser (Brave, Chrome, Safari, etc.)
 $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? '';
-$isApk = (strpos($userAgent, 'IntanElyuAPK') !== false) ||
+$serverHost = $_SERVER['HTTP_HOST'] ?? '';
+$isLocalDev = (strpos($serverHost, 'localhost') !== false) ||
+    (strpos($serverHost, '127.0.0.1') !== false) ||
+    (strpos($serverHost, '::1') !== false) ||
+    preg_match('/^(192\.168|10\.|172\.(1[6-9]|2\d|3[01]))\./', $serverHost);
+
+$isApk = $isLocalDev ||
+    (strpos($userAgent, 'IntanElyuAPK') !== false) ||
     (strpos($userAgent, 'Capacitor') !== false) ||
     isset($_GET['app']) ||
     isset($_COOKIE['is_intan_elyu_app']) ||
+    isset($_GET['token']) ||
+    isset($_GET['code']) ||
+    isset($_GET['access_token']) ||
     (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strpos($_SERVER['HTTP_X_REQUESTED_WITH'], 'com.intan.elyu') !== false);
+
+// If app is detected or passed as param, set the cookie so future navigations stay in app mode
+if ($isApk && !isset($_COOKIE['is_intan_elyu_app']) && !headers_sent()) {
+    @setcookie('is_intan_elyu_app', '1', time() + 31536000, '/');
+}
 
 // WEB BROWSER PROTECTION:
 // If accessed via a normal web browser (like Brave, Chrome, Safari, Edge) and NOT inside the Android APK:
@@ -216,6 +231,31 @@ if ($isAjax) {
 <html lang="en">
 
 <head>
+    <!-- Immediate Google OAuth Token Interceptor & Splash Suppressor -->
+    <script>
+        (function () {
+            var h = window.location.hash || '';
+            var s = window.location.search || '';
+            var hasOAuthParam = (h.indexOf('access_token=') !== -1 || h.indexOf('id_token=') !== -1 || s.indexOf('access_token=') !== -1 || s.indexOf('id_token=') !== -1);
+            var isOAuthPending = false;
+            try {
+                isOAuthPending = (window.sessionStorage && sessionStorage.getItem('intan_elyu_google_oauth_pending') === 'true');
+            } catch(e) {}
+
+            if (hasOAuthParam || isOAuthPending) {
+                window._isProcessingGoogleOAuth = true;
+                window._googleOAuthHash = h;
+                window._googleOAuthSearch = s;
+                try {
+                    document.cookie = "is_intan_elyu_app=1; path=/; max-age=31536000; SameSite=Lax";
+                } catch(e) {}
+                var st = document.createElement('style');
+                st.id = 'oauth-splash-blocker';
+                st.textContent = '#splash-main, .splash-container, .wave-wrapper, .splash-tagline, .loading-dots, .splash-offline-pill { display: none !important; opacity: 0 !important; visibility: hidden !important; pointer-events: none !important; }';
+                (document.head || document.documentElement).appendChild(st);
+            }
+        })();
+    </script>
     <!-- Early Console Error Shield for DevTools / Web-Vitals Extensions -->
     <script>
         (function () {

@@ -270,33 +270,38 @@ $activeTab = 'leaderboard';
 
             // Prepare current logged-in user standing information (function-scoped for ranking comparisons)
             const authUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
+            const myRealId = Number(authUser.id || authUser.user_id || 0);
+            const myRealEmail = String(authUser.email || '').trim().toLowerCase();
+
             if (!cachedMeData && authUser && (authUser.id || authUser.name || authUser.email)) {
+                const userPts = parseInt(authUser.points || authUser.xp || 0);
+                const userActs = parseInt(authUser.completed_activities || authUser.places_visited || 0);
                 cachedMeData = {
-                    id: authUser.id || authUser.user_id || 0,
-                    user_id: authUser.id || authUser.user_id || 0,
+                    id: myRealId,
+                    user_id: myRealId,
                     name: authUser.name || authUser.full_name || 'You',
                     full_name: authUser.name || authUser.full_name || 'You',
                     email: authUser.email || '',
                     avatar: authUser.avatar || '',
                     home_location: authUser.home_location || authUser.municipality || 'La Union',
                     municipality: authUser.municipality || authUser.home_location || 'La Union',
-                    points: parseInt(authUser.points || 0),
-                    total_points: parseInt(authUser.points || 0),
-                    pts: parseInt(authUser.points || 0),
+                    points: userPts,
+                    total_points: userPts,
+                    pts: userPts,
                     xp: parseInt(authUser.xp || 0),
                     total_xp: parseInt(authUser.xp || 0),
-                    completed_activities: parseInt(authUser.completed_activities || authUser.places_visited || 0),
-                    places_visited: parseInt(authUser.completed_activities || authUser.places_visited || 0),
-                    rank: (cachedMyRank && cachedMyRank < 999) ? cachedMyRank : (rawLeadersList ? (rawLeadersList.length + 1) : 11)
+                    completed_activities: userActs,
+                    places_visited: userActs,
+                    rank: (cachedMyRank && cachedMyRank < 999) ? cachedMyRank : ((userPts > 0 || userActs > 0) ? (rawLeadersList ? (rawLeadersList.length + 1) : 11) : null)
                 };
                 window._cachedMeData = cachedMeData;
             }
             const myPts = cachedMeData ? parseInt(cachedMeData.points ?? cachedMeData.pts ?? cachedMeData.total_points ?? cachedMeData.claimable_points ?? 0) : parseInt(authUser.points || 0);
             const myActivities = cachedMeData ? parseInt(cachedMeData.completed_activities ?? cachedMeData.activities ?? cachedMeData.total_activities ?? cachedMeData.places_visited ?? 0) : parseInt(authUser.completed_activities || authUser.places_visited || 0);
-            const isRanked = Boolean((cachedMyRank && cachedMyRank < 999) || myPts > 0 || myActivities > 0);
-            const myRankNum = (cachedMyRank && cachedMyRank < 999) ? cachedMyRank : (isRanked ? (rawLeadersList.length > 0 ? (rawLeadersList.length + '+') : '★') : '—');
+            const hasEarnedRank = Boolean((cachedMyRank && cachedMyRank < 999) || myPts > 0 || myActivities > 0);
+            const myRankNum = (cachedMyRank && cachedMyRank < 999) ? cachedMyRank : (hasEarnedRank ? (rawLeadersList.length > 0 ? (rawLeadersList.length + '+') : '★') : '—');
             const myRawName = String((cachedMeData && (cachedMeData.name || cachedMeData.full_name)) || (authUser && (authUser.name || authUser.full_name)) || 'Explorer').trim() || 'Explorer';
-            const myDisplayName = (!isRanked && myPts === 0) ? `${myRawName} (Unranked)` : myRawName;
+            const myDisplayName = (!hasEarnedRank) ? `${myRawName} (Unranked)` : myRawName;
             const myAvatar = cachedMeData && cachedMeData.avatar ? cachedMeData.avatar : (authUser.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(myRawName)}&background=007AFF&color=fff&rounded=true&bold=true&size=128`);
 
             window.myUserData = {
@@ -323,7 +328,7 @@ $activeTab = 'leaderboard';
                 if (rankCircle) {
                     if (cachedMyRank && cachedMyRank < 999) {
                         rankCircle.textContent = '#' + cachedMyRank;
-                    } else if (isRanked && myRankNum !== '—') {
+                    } else if (hasEarnedRank && myRankNum !== '—') {
                         rankCircle.textContent = String(myRankNum).startsWith('#') ? myRankNum : '#' + myRankNum;
                     } else {
                         rankCircle.textContent = '—';
@@ -343,7 +348,7 @@ $activeTab = 'leaderboard';
                             subtext.textContent = `${myPts.toLocaleString()} Points • ${myActivities} Spots Visited`;
                         }
                     } else {
-                        subtext.textContent = 'Check in at spots or play games to rank!';
+                        subtext.textContent = 'Check in at spots or play games to earn Points and rank!';
                     }
                 }
             }
@@ -380,20 +385,20 @@ $activeTab = 'leaderboard';
             if (leaders.length > 3) {
                 for (let i = 3; i < leaders.length; i++) {
                     const user = leaders[i];
-                    const isMe = Boolean(cachedMeData && ((user.id && user.id === cachedMeData.id) || (user.user_id && user.user_id === (cachedMeData.user_id || cachedMeData.id))));
+                    const isMe = Boolean(
+                        (myRealId > 0 && (Number(user.id) === myRealId || Number(user.user_id) === myRealId)) ||
+                        (myRealEmail && myRealEmail.includes('@') && String(user.email || '').trim().toLowerCase() === myRealEmail)
+                    );
                     rankListHTML += generateRankItem(user, i + 1, isMe);
                 }
             }
 
-            // Append current user if they are outside the loaded list
-            const isMeAlreadyInList = Boolean(cachedMeData && leaders.some(u => {
-                const uId = u.id || u.user_id;
-                const mId = cachedMeData.id || cachedMeData.user_id;
-                const mEmail = (cachedMeData.email || '').toLowerCase().trim();
-                const uEmail = (u.email || '').toLowerCase().trim();
-                return (uId && mId && uId === mId) || (mEmail && uEmail && mEmail === uEmail);
-            }));
-            if (cachedMeData && !isMeAlreadyInList) {
+            // Append current user ONLY if they have earned points/activity and are outside the top 10
+            const isMeAlreadyInList = Boolean(
+                (myRealId > 0 && leaders.some(u => Number(u.id || u.user_id) === myRealId)) ||
+                (myRealEmail && myRealEmail.includes('@') && leaders.some(u => String(u.email || '').trim().toLowerCase() === myRealEmail))
+            );
+            if (cachedMeData && !isMeAlreadyInList && hasEarnedRank) {
                 const displayRank = (cachedMyRank && cachedMyRank < 999) ? cachedMyRank : (leaders.length > 0 ? (leaders.length + '+') : 11);
                 rankListHTML += generateRankItem(cachedMeData, displayRank, true, true);
             }
@@ -691,56 +696,67 @@ $activeTab = 'leaderboard';
             window._cachedMyRank = cachedMyRank;
         }
 
-        // Resilient self-matching: match by ID, email, or name
+        // Safe self-matching: strictly match by valid positive ID or real email (never generic name)
         const myId = Number(authUser.id || authUser.user_id || 0);
         const myEmail = String(authUser.email || '').trim().toLowerCase();
         const myName = String(authUser.name || authUser.full_name || '').trim().toLowerCase();
+        const isGenericName = ['tourist', 'explorer', 'guest', 'guest explorer', 'you'].includes(myName);
 
+        let userFoundInLeaders = false;
         if (rawLeadersList && rawLeadersList.length > 0) {
             const foundIndex = rawLeadersList.findIndex((u, idx) => {
                 const uId = Number(u.id || u.user_id || 0);
                 const uEmail = String(u.email || '').trim().toLowerCase();
                 const uName = String(u.name || u.full_name || u.real_name || '').trim().toLowerCase();
-                if (myId && uId && myId === uId) return true;
-                if (myEmail && uEmail && myEmail === uEmail) return true;
-                if (myName && uName && myName === uName) return true;
+                if (myId > 0 && uId > 0 && myId === uId) return true;
+                if (myEmail && myEmail.includes('@') && uEmail && myEmail === uEmail) return true;
+                if (!isGenericName && myName && uName && myName === uName && myName.length > 3) return true;
                 return false;
             });
             if (foundIndex !== -1) {
+                userFoundInLeaders = true;
                 const found = rawLeadersList[foundIndex];
-                if (!cachedMeData) {
-                    cachedMeData = found;
-                    window._cachedMeData = found;
-                }
+                cachedMeData = found;
+                window._cachedMeData = found;
                 cachedMyRank = Number(found.rank || found.position || (foundIndex + 1));
                 window._cachedMyRank = cachedMyRank;
+            } else {
+                if (!data.me && (!data.my_rank || data.my_rank >= 999)) {
+                    cachedMeData = null;
+                    cachedMyRank = null;
+                    window._cachedMyRank = null;
+                }
             }
         }
 
         // Resilient fallback: If current user is authenticated but outside top 10, synthesize cachedMeData from authUser
         if (!cachedMeData && authUser && (authUser.id || authUser.name || authUser.email)) {
+            const myUserPts = parseInt(authUser.points || authUser.xp || 0);
+            const myUserActs = parseInt(authUser.completed_activities || authUser.places_visited || 0);
+            const hasActivity = (myUserPts > 0 || myUserActs > 0);
+
             cachedMeData = {
-                id: authUser.id || authUser.user_id || 0,
-                user_id: authUser.id || authUser.user_id || 0,
+                id: myId,
+                user_id: myId,
                 name: authUser.name || authUser.full_name || 'You',
                 full_name: authUser.name || authUser.full_name || 'You',
                 email: authUser.email || '',
                 avatar: authUser.avatar || '',
                 home_location: authUser.home_location || authUser.municipality || 'La Union',
                 municipality: authUser.municipality || authUser.home_location || 'La Union',
-                points: parseInt(authUser.points || 0),
-                total_points: parseInt(authUser.points || 0),
-                pts: parseInt(authUser.points || 0),
+                points: myUserPts,
+                total_points: myUserPts,
+                pts: myUserPts,
                 xp: parseInt(authUser.xp || 0),
                 total_xp: parseInt(authUser.xp || 0),
-                completed_activities: parseInt(authUser.completed_activities || authUser.places_visited || 0),
-                places_visited: parseInt(authUser.completed_activities || authUser.places_visited || 0),
-                rank: (cachedMyRank && cachedMyRank < 999) ? cachedMyRank : (rawLeadersList ? (rawLeadersList.length + 1) : 11)
+                completed_activities: myUserActs,
+                places_visited: myUserActs,
+                rank: (cachedMyRank && cachedMyRank < 999) ? cachedMyRank : (hasActivity ? 11 : null)
             };
             window._cachedMeData = cachedMeData;
-            if (!cachedMyRank || cachedMyRank >= 999) {
-                cachedMyRank = cachedMeData.rank;
-                window._cachedMyRank = cachedMyRank;
+            if (cachedMyRank && cachedMyRank >= 999) {
+                cachedMyRank = null;
+                window._cachedMyRank = null;
             }
         }
         renderLeaderboardUI();

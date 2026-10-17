@@ -261,6 +261,7 @@
         if (!dropdown) return;
         const isOpen = dropdown.style.opacity === '1';
         if (isOpen) {
+            document.body.classList.remove('notif-open');
             dropdown.style.opacity = '0';
             dropdown.style.pointerEvents = 'none';
             dropdown.style.transform = 'scale(0.4) translate(35px, -35px)';
@@ -274,6 +275,7 @@
                 }, 300);
             }
         } else {
+            document.body.classList.add('notif-open');
             if (backdrop) {
                 backdrop.style.display = 'block';
                 void backdrop.offsetHeight; // trigger reflow for smooth animation
@@ -625,6 +627,7 @@
 
         _currentPushNotifTargetUrl = actionUrl;
 
+        document.body.classList.add('notif-open');
         modal.style.display = 'flex';
         requestAnimationFrame(() => {
             modal.classList.add('active');
@@ -632,6 +635,7 @@
     };
 
     window.closePushNotificationModal = function() {
+        document.body.classList.remove('notif-open');
         const modal = document.getElementById('push-notification-modal');
         if (!modal) return;
         modal.classList.remove('active');
@@ -642,6 +646,7 @@
     };
 
     window.handlePushNotificationAction = function() {
+        document.body.classList.remove('notif-open');
         closePushNotificationModal();
     };
 

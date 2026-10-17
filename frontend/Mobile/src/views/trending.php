@@ -330,7 +330,32 @@ if (is_dir($imgDir)) {
         }
 
         function applyFilters() {
-            const sourceList = (currentMode === 'trending') ? (trendingSpots || []) : (allDestinations || []);
+            let sourceList = [];
+            if (currentMode === 'trending') {
+                sourceList = (trendingSpots && trendingSpots.length > 0) ? [...trendingSpots] : [];
+                // If API trending spots is empty or has few items, augment from all destinations with ratings >= 3.0 or top rated
+                if (sourceList.length < 6 && allDestinations && allDestinations.length > 0) {
+                    const highRated = allDestinations.filter(d => {
+                        const r = parseFloat(d.rating || d.reviews_avg_rating || 0);
+                        return r >= 3.0 || (parseInt(d.visits) || 0) > 0;
+                    }).sort((a, b) => {
+                        const rDiff = (parseFloat(b.rating || b.reviews_avg_rating || 0)) - (parseFloat(a.rating || a.reviews_avg_rating || 0));
+                        if (Math.abs(rDiff) > 0.01) return rDiff;
+                        return (parseInt(b.visits) || 0) - (parseInt(a.visits) || 0);
+                    });
+                    highRated.forEach(spot => {
+                        if (!sourceList.some(existing => String(existing.id) === String(spot.id))) {
+                            sourceList.push(spot);
+                        }
+                    });
+                }
+                // If still empty, fall back to top destinations
+                if (!sourceList.length && allDestinations && allDestinations.length > 0) {
+                    sourceList = [...allDestinations].slice(0, 10);
+                }
+            } else {
+                sourceList = allDestinations || [];
+            }
 
             if (!sourceList || !sourceList.length) {
                 if (currentMode === 'trending') {
@@ -417,9 +442,11 @@ if (is_dir($imgDir)) {
                     (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL');
 
                 const visits = parseInt(dest.visits) || 0;
-                const visitorText = window.formatVisitorCount ? window.formatVisitorCount(visits) : (visits < 100 ? 'Popular spot' : `${visits.toLocaleString()} visits`);
                 const muni = dest.municipality || dest.location || 'La Union';
-                const rating = (dest.rating !== undefined && dest.rating !== null && !isNaN(parseFloat(dest.rating))) ? parseFloat(dest.rating).toFixed(1) : (dest.reviews_avg_rating ? parseFloat(dest.reviews_avg_rating).toFixed(1) : '0.0');
+                const numRating = (dest.rating !== undefined && dest.rating !== null && !isNaN(parseFloat(dest.rating)))
+                    ? parseFloat(dest.rating)
+                    : (dest.reviews_avg_rating ? parseFloat(dest.reviews_avg_rating) : (dest.rating_star ? parseFloat(dest.rating_star) : 0));
+                const displayRating = (numRating > 0 ? numRating.toFixed(1) : '3.0');
                 const fee = (dest.entrance_fee && parseFloat(dest.entrance_fee) > 0) ? `₱${parseFloat(dest.entrance_fee).toFixed(0)}` : 'Free';
                 const cat = dest.category || 'Spot';
 
@@ -427,13 +454,15 @@ if (is_dir($imgDir)) {
                     ? `<div class="fire-icon"><i class="fa-solid fa-fire"></i></div>`
                     : `<div class="fire-icon" style="color:#2563eb; box-shadow:0 2px 8px rgba(37,99,235,0.25);"><i class="fa-solid fa-compass"></i></div>`;
 
-                const metaBottomHtml = currentMode === 'trending'
-                    ? `<div class="meta"><i class="fa-solid fa-users" style="font-size:9px;"></i>${visitorText}</div>`
-                    : `<div class="card-bottom-tags">
-                            <span class="card-cat-pill">${cat}</span>
-                            <span class="card-rating"><i class="fa-solid fa-star" style="font-size:8px;"></i> ${rating}</span>
-                            <span class="card-fee">${fee}</span>
-                       </div>`;
+                const metaBottomHtml = `
+                    <div class="card-bottom-tags" style="display:flex; align-items:center; gap:5px; flex-wrap:wrap; margin-top:5px;">
+                        <span class="card-rating" style="background:rgba(245,158,11,0.22); color:#fbbf24; border:1px solid rgba(245,158,11,0.4); padding:2px 7px; border-radius:100px; font-size:10px; font-weight:800; display:inline-flex; align-items:center; gap:3px;">
+                            <i class="fa-solid fa-star" style="font-size:9px; color:#f59e0b;"></i> ${displayRating} ${muni}
+                        </span>
+                        ${currentMode === 'trending'
+                            ? `<span style="font-size:9.5px; color:#fed7aa; font-weight:800; margin-left:auto; display:inline-flex; align-items:center; gap:3px;"><i class="fa-solid fa-fire" style="color:#f97316; font-size:9px;"></i> Trending</span>`
+                            : `<span class="card-cat-pill">${cat}</span><span class="card-fee">${fee}</span>`}
+                    </div>`;
 
                 html += `
                 <div class="trending-card" style="animation-delay:${Math.min(i * 0.04, 0.35)}s" onclick="window.viewTrendingDest(${dest.id}, '${dest.name.replace(/'/g, "\\'")}', '${encodeURIComponent(JSON.stringify(dest))}')">

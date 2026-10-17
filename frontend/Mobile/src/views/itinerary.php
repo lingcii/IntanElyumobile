@@ -1607,11 +1607,12 @@ try {
 
         window.isSpotUnderMaintenance = function (spot) {
             if (!spot) return false;
+            const target = spot.destination || spot;
             try {
-                const spotId = String(spot.id || spot.tourist_spot_id || '');
-                if (spotId && spot.is_maintenance === undefined) {
+                const spotId = String(target.id || target.tourist_spot_id || spot.id || spot.tourist_spot_id || '');
+                if (spotId && target.is_maintenance === undefined && spot.is_maintenance === undefined) {
                     if (window._cachedMapSpots && window._cachedMapSpots[spotId]) {
-                        spot.is_maintenance = window._cachedMapSpots[spotId].is_maintenance;
+                        target.is_maintenance = window._cachedMapSpots[spotId].is_maintenance;
                     } else {
                         const rawMap = localStorage.getItem('public_map_data');
                         if (rawMap) {
@@ -1619,17 +1620,23 @@ try {
                             const list = parsed?.destinations || parsed?.data?.destinations || [];
                             const mapSpot = list.find(s => String(s?.id) === spotId);
                             if (mapSpot && mapSpot.is_maintenance !== undefined) {
-                                spot.is_maintenance = mapSpot.is_maintenance;
+                                target.is_maintenance = mapSpot.is_maintenance;
                             }
                         }
                     }
                 }
             } catch (e) { }
             return Boolean(
+                target.is_maintenance === 1 ||
+                target.is_maintenance === true ||
+                target.is_maintenance === '1' ||
                 spot.is_maintenance === 1 ||
                 spot.is_maintenance === true ||
                 spot.is_maintenance === '1' ||
-                (spot.status && String(spot.status).toLowerCase().includes('maint'))
+                (target.status && String(target.status).toLowerCase().includes('maint')) ||
+                (target.operating_status && String(target.operating_status).toLowerCase().includes('maint')) ||
+                (spot.status && String(spot.status).toLowerCase().includes('maint')) ||
+                (spot.operating_status && String(spot.operating_status).toLowerCase().includes('maint'))
             );
         };
 
@@ -1671,14 +1678,14 @@ try {
                 }
             }
 
-            const isSiteUnderMaintenance = window.isSpotUnderMaintenance(toSpot);
+            const isSiteUnderMaintenance = Boolean(window.isSpotUnderMaintenance(toSpot) || (fromSpot && window.isSpotUnderMaintenance(fromSpot)));
             if (isSiteUnderMaintenance) {
                 return {
                     mode: 'suspended',
                     transport_mode: 'suspended',
                     transport_modes: [],
                     name: 'Unavailable',
-                    icon: '',
+                    icon: 'fa-ban',
                     cost: 0,
                     leg_cost: 0,
                     distance_km: distKm,
@@ -1841,17 +1848,19 @@ try {
 
             const isNonDrivable = Boolean(toSpot && (toSpot.accessible_by_private_vehicle === 0 || toSpot.accessible_by_private_vehicle === false || toSpot.accessible_by_private_vehicle === '0'));
             const isSiteUnderMaintenance = Boolean(
-                (toSpot && (toSpot.is_maintenance === 1 || toSpot.is_maintenance === true || toSpot.is_maintenance === '1')) ||
+                window.isSpotUnderMaintenance(toSpot) ||
+                (fromSpot && window.isSpotUnderMaintenance(fromSpot)) ||
                 (typeof window.getLegTransportInfo === 'function' && window.getLegTransportInfo(legIdx).is_maintenance)
             );
             window.currentLegIsSiteUnderMaintenance = isSiteUnderMaintenance;
 
-            // If the destination site is under maintenance, DO NOT show the Choose Leg Transport opensheet modal!
+            // If any destination on this leg is under maintenance, DO NOT show the Choose Leg Transport opensheet modal!
             if (isSiteUnderMaintenance) {
                 const modal = document.getElementById('leg-transport-modal');
                 if (modal) modal.style.display = 'none';
                 if (typeof showToast === 'function') {
-                    showToast(`${toName || 'This site'} is currently under maintenance or temporarily closed. Vehicle transit is restricted.`);
+                    const maintName = window.isSpotUnderMaintenance(toSpot) ? toName : (fromSpot ? fromName : 'This destination');
+                    showToast(`${maintName || 'This site'} is currently under maintenance or temporarily closed. Transport options are disabled.`);
                 }
                 return;
             }
@@ -2213,11 +2222,18 @@ try {
                 ? window.getEffectiveDraft()
                 : JSON.parse(localStorage.getItem('intan_elyu_draft_itinerary') || '[]');
             const toSpot = draft[legIdx];
-            const isSiteUnderMaintenance = Boolean(toSpot && (toSpot.is_maintenance === 1 || toSpot.is_maintenance === true || toSpot.is_maintenance === '1'));
+            const fromSpot = (legIdx === 0) ? null : draft[legIdx - 1];
+            const isSiteUnderMaintenance = Boolean(
+                window.isSpotUnderMaintenance(toSpot) ||
+                (fromSpot && window.isSpotUnderMaintenance(fromSpot)) ||
+                (typeof window.getLegTransportInfo === 'function' && window.getLegTransportInfo(legIdx).is_maintenance)
+            );
             if (isSiteUnderMaintenance) {
                 if (typeof showToast === 'function') {
-                    showToast('Transit cannot be configured while the destination is under maintenance.');
+                    showToast('Transit cannot be configured while this destination is under maintenance.');
                 }
+                const modal = document.getElementById('leg-transport-modal');
+                if (modal) modal.style.display = 'none';
                 return;
             }
 
@@ -2340,8 +2356,8 @@ try {
                 let transportMarkup = '';
                 if (isMaintenance) {
                     transportMarkup = `
-                        <span style="display:inline-flex; align-items:center; background:#ef4444; color:#ffffff; font-size:11px; font-weight:800; padding:4px 10px; border-radius:100px; border:none !important; outline:none !important;">
-                            Unavailable
+                        <span style="display:inline-flex; align-items:center; gap:5px; background:#ef4444; color:#ffffff; font-size:11px; font-weight:800; padding:4px 10px; border-radius:100px; border:none !important; outline:none !important;">
+                            <i class="fa-solid fa-ban" style="font-size:10px;"></i> Unavailable
                         </span>
                     `;
                 } else {
@@ -2954,7 +2970,7 @@ try {
 
                 const startDistText = startEta ? `${startEta.distanceText} &bull; ~${startEta.durationText}` : 'Start Leg';
                 const fareBadge = leg0Info.is_maintenance
-                    ? ''
+                    ? `<span class="leg-fare-tag" style="color:#ffffff; background:rgba(0,0,0,0.25); font-weight:800;">₱0.00</span>`
                     : ((leg0Info.cost > 0)
                         ? `<span class="leg-fare-tag">₱${leg0Info.cost.toFixed(2)}</span>`
                         : `<span class="leg-fare-tag" style="color:#059669; background:rgba(16,185,129,0.1);">₱0</span>`);
@@ -2964,13 +2980,13 @@ try {
                 const leg0NameStyle = leg0Info.is_maintenance ? 'color:#ffffff; font-weight:800;' : '';
                 const leg0DestName = (draft[0] && draft[0].name) ? draft[0].name.replace(/'/g, "\\'") : 'Destination';
                 const leg0ClickAction = leg0Info.is_maintenance
-                    ? `if(typeof showToast==='function') showToast('${leg0DestName} is currently under maintenance or temporarily closed. Vehicle transit is restricted.');`
+                    ? `if(typeof showToast==='function') showToast('${leg0DestName} is currently under maintenance or temporarily closed. Transport options are disabled.');`
                     : `window.openLegTransportModal(0)`;
-                const leg0LeadingIcon = (leg0Info.is_maintenance || !leg0Info.icon)
-                    ? ''
-                    : `<i class="fa-solid ${leg0Info.icon}" style="color:${leg0IconColor}; font-size:11px; flex-shrink:0;"></i>`;
+                const leg0LeadingIcon = leg0Info.is_maintenance
+                    ? `<i class="fa-solid fa-ban" style="color:#ffffff; font-size:11px; flex-shrink:0;"></i>`
+                    : (leg0Info.icon ? `<i class="fa-solid ${leg0Info.icon}" style="color:${leg0IconColor}; font-size:11px; flex-shrink:0;"></i>` : '');
                 const leg0TrailingIcon = leg0Info.is_maintenance
-                    ? ''
+                    ? `<span style="font-size:9.5px; opacity:0.85; margin-left:2px; font-weight:700;">(Maintenance)</span>`
                     : `<i class="fa-solid fa-chevron-right leg-action-edit" style="flex-shrink:0;"></i>`;
 
                 startingLegHtml = `
@@ -3020,7 +3036,7 @@ try {
                     let nextStopBadge = '';
                     let nextStopEtaHtml = '';
 
-                    const isMaint = Boolean(place.is_maintenance === 1 || place.is_maintenance === true || place.is_maintenance === '1');
+                    const isMaint = (typeof window.isSpotUnderMaintenance === 'function') ? window.isSpotUnderMaintenance(place) : Boolean(place.is_maintenance === 1 || place.is_maintenance === true || place.is_maintenance === '1');
 
                     if (isNextStop) {
                         nextStopBadge = `<span class="badge-next-stop" style="border:none !important; outline:none !important; box-shadow:none !important;"><i class="fa-solid fa-location-dot"></i> NEXT STOP</span>`;
@@ -3060,7 +3076,7 @@ try {
 
                         const legDistText = legEta ? `${legEta.distanceText} &bull; ~${legEta.durationText}` : 'Leg Route';
                         const fareBadge = legInfo.is_maintenance
-                            ? ''
+                            ? `<span class="leg-fare-tag" style="color:#ffffff; background:rgba(0,0,0,0.25); font-weight:800;">₱0.00</span>`
                             : ((legInfo.cost > 0)
                                 ? `<span class="leg-fare-tag">₱${legInfo.cost.toFixed(2)}</span>`
                                 : `<span class="leg-fare-tag" style="color:#059669; background:rgba(16,185,129,0.1);">₱0</span>`);
@@ -3070,13 +3086,13 @@ try {
                         const legNameStyle = legInfo.is_maintenance ? 'color:#ffffff; font-weight:800;' : '';
                         const legDestName = (place && place.name) ? place.name.replace(/'/g, "\\'") : 'Destination';
                         const legClickAction = legInfo.is_maintenance
-                            ? `if(typeof showToast==='function') showToast('${legDestName} is currently under maintenance or temporarily closed. Vehicle transit is restricted.');`
+                            ? `if(typeof showToast==='function') showToast('${legDestName} is currently under maintenance or temporarily closed. Transport options are disabled.');`
                             : `window.openLegTransportModal(${index})`;
-                        const legLeadingIcon = (legInfo.is_maintenance || !legInfo.icon)
-                            ? ''
-                            : `<i class="fa-solid ${legInfo.icon}" style="color:${legIconColor}; font-size:11px; flex-shrink:0;"></i>`;
+                        const legLeadingIcon = legInfo.is_maintenance
+                            ? `<i class="fa-solid fa-ban" style="color:#ffffff; font-size:11px; flex-shrink:0;"></i>`
+                            : (legInfo.icon ? `<i class="fa-solid ${legInfo.icon}" style="color:${legIconColor}; font-size:11px; flex-shrink:0;"></i>` : '');
                         const legTrailingIcon = legInfo.is_maintenance
-                            ? ''
+                            ? `<span style="font-size:9.5px; opacity:0.85; margin-left:2px; font-weight:700;">(Maintenance)</span>`
                             : `<i class="fa-solid fa-chevron-right leg-action-edit" style="flex-shrink:0;"></i>`;
 
                         html += `
@@ -3139,7 +3155,7 @@ try {
                             ${nextStopEtaHtml}
                             ${(() => {
                             const isNonDrivable = (place.accessible_by_private_vehicle === 0 || place.accessible_by_private_vehicle === false || place.accessible_by_private_vehicle === '0');
-                            const isMaint = Boolean(place.is_maintenance === 1 || place.is_maintenance === true || place.is_maintenance === '1');
+                            const isMaint = (typeof window.isSpotUnderMaintenance === 'function') ? window.isSpotUnderMaintenance(place) : Boolean(place.is_maintenance === 1 || place.is_maintenance === true || place.is_maintenance === '1');
                             const acc = Array.isArray(place.accessible_vehicles) ? place.accessible_vehicles : [];
                             if (isMaint) {
                                 return `<div style="display:flex; gap:5px; flex-wrap:wrap; margin-top:8px;">
@@ -3429,7 +3445,7 @@ try {
             const draft = JSON.parse(localStorage.getItem('intan_elyu_draft_itinerary') || '[]');
             if (draft.length > 0) {
                 const nextPlace = draft[0];
-                const isMaint = Boolean(nextPlace.is_maintenance === 1 || nextPlace.is_maintenance === true || nextPlace.is_maintenance === '1');
+                const isMaint = (typeof window.isSpotUnderMaintenance === 'function') ? window.isSpotUnderMaintenance(nextPlace) : Boolean(nextPlace.is_maintenance === 1 || nextPlace.is_maintenance === true || nextPlace.is_maintenance === '1');
                 const nextEtaEl = document.getElementById('itinerary-next-eta');
                 if (nextEtaEl) {
                     if (isMaint) {

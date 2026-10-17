@@ -1,7 +1,23 @@
 <!-- Splash Screen View -->
 <script>
+    // Check if returning from Google OAuth or running in dev/app mode
+    const isOAuthCallback = Boolean(
+        window._isProcessingGoogleOAuth || 
+        (window.location.hash && (window.location.hash.includes('access_token=') || window.location.hash.includes('id_token='))) ||
+        (window.location.search && (window.location.search.includes('access_token=') || window.location.search.includes('id_token='))) ||
+        (window.sessionStorage && sessionStorage.getItem('intan_elyu_google_oauth_pending') === 'true')
+    );
+
+    function isDevHost(hn) {
+        if (!hn) return false;
+        if (hn === 'localhost' || hn === '127.0.0.1' || hn === '::1') return true;
+        return /^192\.168\.\d+\.\d+$/.test(hn) || /^10\.\d+\.\d+\.\d+$/.test(hn) || /^172\.(1[6-9]|2\d|3[01])\.\d+\.\d+$/.test(hn);
+    }
+
+    const hasAppCookie = Boolean(document.cookie && document.cookie.includes('is_intan_elyu_app=1'));
+
     // Browser Guard: Web browsers must not access the mobile splash screen. Redirect to the official download portal.
-    if (!window.Capacitor && !navigator.userAgent.includes('IntanElyuAPK') && !window.location.search.includes('app=')) {
+    if (!isOAuthCallback && !isDevHost(window.location.hostname) && !hasAppCookie && !window.Capacitor && !navigator.userAgent.includes('IntanElyuAPK') && !window.location.search.includes('app=')) {
         window.location.replace('index.php?view=download');
     }
 </script>
@@ -67,8 +83,25 @@
 </div>
 
 <script>
-    // Immediate Offline Status Check
     (function () {
+        // Immediate check: If Google OAuth return is detected, hide splash and abort immediately!
+        const isOAuth = Boolean(
+            window._isProcessingGoogleOAuth || 
+            (window.location.hash && (window.location.hash.includes('access_token=') || window.location.hash.includes('id_token='))) ||
+            (window.location.search && (window.location.search.includes('access_token=') || window.location.search.includes('id_token='))) ||
+            (window.sessionStorage && sessionStorage.getItem('intan_elyu_google_oauth_pending') === 'true')
+        );
+
+        if (isOAuth) {
+            const sp = document.getElementById('splash-main');
+            if (sp) {
+                sp.style.display = 'none';
+                try { sp.remove(); } catch(e) {}
+            }
+            return;
+        }
+
+        // Immediate Offline Status Check
         const isOffline = !navigator.onLine || window.isAppOnline === false;
         const pill = document.getElementById('splash-offline-pill');
         if (isOffline && pill) {
@@ -76,82 +109,55 @@
         }
         window.addEventListener('offline', () => { if (pill) pill.style.display = 'inline-flex'; });
         window.addEventListener('online', () => { if (pill) pill.style.display = 'none'; });
-    })();
 
-    // Simulate loading and check authentication
-    setTimeout(() => {
-        const rawHash = window.location.hash || '';
-        const rawSearch = window.location.search || '';
-        if (window._isProcessingGoogleOAuth || rawHash.includes('access_token=') || rawHash.includes('id_token=') || rawSearch.includes('access_token=') || rawSearch.includes('id_token=')) {
-            // OAuth redirect in progress, let main.js handle it
-            return;
-        }
+        // Simulate loading and check authentication
+        setTimeout(() => {
+            const rawHash = window.location.hash || '';
+            const rawSearch = window.location.search || '';
+            if (window._isProcessingGoogleOAuth || rawHash.includes('access_token=') || rawHash.includes('id_token=') || rawSearch.includes('access_token=') || rawSearch.includes('id_token=')) {
+                // OAuth redirect in progress, let main.js handle it
+                return;
+            }
 
         const splashMain = document.getElementById('splash-main');
         const token = localStorage.getItem('intan_elyu_token');
         const cachedUser = localStorage.getItem('auth_user');
         const isOffline = !navigator.onLine || window.isAppOnline === false;
 
-        // In Offline Mode: if a token exists OR a saved user profile exists, launch dashboard directly
-        if (token || (cachedUser && isOffline)) {
-            if (!token) {
-                localStorage.setItem('intan_elyu_token', 'offline_session_token');
+        // Personal Mobile Device Flow: Always bypass login straight to the homepage (Dashboard)!
+        // If logged in with a real cloud account, keep the session.
+        // If not logged in, auto-initialize an Offline Guest profile and trigger the offline mode notification.
+        if (!token) {
+            localStorage.setItem('intan_elyu_token', 'offline_guest_token');
+            localStorage.setItem('intan_elyu_offline_mode', 'true');
+            localStorage.setItem('intan_elyu_offline_guest', 'true');
+            if (!cachedUser) {
+                const defaultGuest = {
+                    id: 'offline_guest',
+                    user_id: 'offline_guest',
+                    name: 'Guest Explorer',
+                    full_name: 'Guest Explorer',
+                    role: 'tourist',
+                    tourist_number: 'OFFLINE',
+                    points: 0,
+                    xp: 0,
+                    completed_activities: 0,
+                    home_location: 'La Union',
+                    is_offline_guest: true
+                };
+                localStorage.setItem('auth_user', JSON.stringify(defaultGuest));
             }
-            // Going to dashboard: normal fade out
-            if (splashMain) splashMain.classList.add('exit');
-            setTimeout(() => {
-                navigateTo('dashboard');
-            }, 450); // Wait for the fade out animation
-        } else {
-            // Going to auth: animate wave upwards to connect with login screen
-            if (splashMain) {
-                // Dynamically calculate the perfect translateY destination based on auth page layout
-                const vh = window.innerHeight;
-                const authTopHeight = Math.min(Math.max(vh * 0.38, 250), 330);
-                const destCenter = (authTopHeight / 2) - 32; // Exact center of 140px logo in auth-top
-
-                // Determine current position of the splash logo
-                const logoContainer = splashMain.querySelector('.splash-logo-container');
-                if (logoContainer) {
-                    const rect = logoContainer.getBoundingClientRect();
-                    const currentCenter = rect.top + (rect.height / 2);
-
-                    // The exact pixel difference needed
-                    const translateY = destCenter - currentCenter;
-
-                    // Ensure logo stays above everything during animation
-                    logoContainer.style.setProperty('z-index', '99999', 'important');
-                    logoContainer.style.setProperty('position', 'relative', 'important');
-
-                    // Override CSS with exact inline style (never shrink scale)
-                    logoContainer.style.setProperty('transform', `translateY(${translateY}px)`, 'important');
-                    logoContainer.style.setProperty('transition', 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)', 'important');
-
-                    // Freeze the float animation exactly where it is so it doesn't drift during transition
-                    const wrapper = splashMain.querySelector('.splash-logo');
-                    if (wrapper) {
-                        wrapper.style.setProperty('animation', 'none', 'important');
-                        wrapper.style.setProperty('z-index', '99999', 'important');
-                        wrapper.style.setProperty('position', 'relative', 'important');
-                    }
-
-                    // Also elevate the stagger wrapper
-                    const staggerWrapper = splashMain.querySelector('.stagger-1');
-                    if (staggerWrapper) {
-                        staggerWrapper.style.setProperty('z-index', '99999', 'important');
-                    }
-                }
-
-                const waveWrapper = document.getElementById('splash-wave-wrapper');
-                if (waveWrapper) {
-                    waveWrapper.style.setProperty('height', `${vh - authTopHeight}px`, 'important');
-                }
-
-                splashMain.classList.add('transition-to-auth');
-            }
-            setTimeout(() => {
-                navigateTo('auth', true, false);
-            }, 600); // Wait for wave transition
+            // Trigger offline mode notification banner & toast on the dashboard
+            sessionStorage.setItem('elyu_show_offline_bypass_notice', 'true');
+        } else if (token.startsWith('offline_') || localStorage.getItem('intan_elyu_offline_mode') === 'true' || localStorage.getItem('intan_elyu_offline_guest') === 'true') {
+            sessionStorage.setItem('elyu_show_offline_bypass_notice', 'true');
         }
-    }, 2500);
+
+        // Always bypass straight to dashboard with smooth fade out
+        if (splashMain) splashMain.classList.add('exit');
+        setTimeout(() => {
+            navigateTo('dashboard');
+        }, 450);
+    }, 2200);
+})();
 </script>

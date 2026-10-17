@@ -1569,12 +1569,45 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
         }
     }
 
-    // Global Auth Enforcement: Ensure user is logged in
-    const publicViews = ['splash', 'auth', 'download', 'about', 'terms', 'reset-password', 'user_manual'];
-    const authToken = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
-    if (!publicViews.includes(targetView) && !authToken) {
-        targetView = 'auth';
-        extraParams.forEach((_, key) => extraParams.delete(key));
+    // Mobile Guest / Offline Auto-Bypass:
+    // If not authenticated, automatically initialize an offline guest session rather than blocking with login!
+    let authToken = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+    if (!authToken && targetView !== 'auth' && targetView !== 'download') {
+        authToken = 'offline_guest_token';
+        localStorage.setItem('intan_elyu_token', authToken);
+        localStorage.setItem('intan_elyu_offline_mode', 'true');
+        localStorage.setItem('intan_elyu_offline_guest', 'true');
+        if (!localStorage.getItem('auth_user')) {
+            localStorage.setItem('auth_user', JSON.stringify({
+                id: 'offline_guest',
+                user_id: 'offline_guest',
+                name: 'Guest Explorer',
+                full_name: 'Guest Explorer',
+                role: 'tourist',
+                tourist_number: 'OFFLINE',
+                points: 0,
+                xp: 0,
+                completed_activities: 0,
+                home_location: 'La Union',
+                is_offline_guest: true
+            }));
+        }
+    }
+
+    // OFFLINE MODE PERMISSION RULES:
+    // In Offline Mode, tourists CAN access: Dashboard, Map, Itinerary, and Leaderboards.
+    // Tourists CANNOT access: Profile / Edit Profile (requires an authenticated cloud account).
+    const isOfflineUser = !authToken || 
+        authToken === 'offline_guest_token' || 
+        authToken.startsWith('offline_') || 
+        localStorage.getItem('intan_elyu_offline_guest') === 'true' || 
+        localStorage.getItem('intan_elyu_offline_mode') === 'true';
+
+    if (isOfflineUser && (targetView === 'profile' || targetView === 'edit_profile')) {
+        if (typeof showToast === 'function') {
+            showToast('Profile is unavailable in Offline Mode. Please sign in to access your profile.', 'warning', 4500);
+        }
+        return;
     }
 
     // If we're already on this view with no extra params and it's not a back-button event, do nothing
@@ -2125,9 +2158,20 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
      */
     window._isProcessingGoogleOAuth = false;
 
-    window.initGoogleOAuthHandler = function () {
-        const rawHash = window.location.hash || '';
-        const rawSearch = window.location.search || '';
+    window.initGoogleOAuthHandler = function (customUrl) {
+        let rawHash = window._googleOAuthHash || window.location.hash || '';
+        let rawSearch = window._googleOAuthSearch || window.location.search || '';
+
+        if (customUrl) {
+            try {
+                const parsed = new URL(customUrl);
+                rawHash = parsed.hash || rawHash;
+                rawSearch = parsed.search || rawSearch;
+            } catch (e) {
+                if (customUrl.includes('#')) rawHash = '#' + customUrl.split('#')[1];
+                if (customUrl.includes('?')) rawSearch = '?' + customUrl.split('?')[1];
+            }
+        }
 
         // 1. Check for direct token handoff (?token=...&user=...) from mobile browser to APK
         const searchParams = new URLSearchParams(rawSearch.startsWith('?') ? rawSearch.substring(1) : rawSearch);
@@ -2145,6 +2189,14 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
             }
             if (window.AppStorage) window.AppStorage.setItem('intan_elyu_token', directToken);
 
+            // Clear offline flags on real authenticated login
+            localStorage.removeItem('intan_elyu_offline_mode');
+            localStorage.removeItem('intan_elyu_offline_guest');
+            try {
+                sessionStorage.removeItem('intan_elyu_google_oauth_pending');
+                sessionStorage.removeItem('elyu_show_offline_bypass_notice');
+            } catch (e) { }
+
             if (window.history && window.history.replaceState) {
                 window.history.replaceState({}, document.title, window.location.pathname + '?view=dashboard');
             }
@@ -2161,8 +2213,15 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
             return;
         }
 
-        if (window._isProcessingGoogleOAuth) return;
+        if (window._isProcessingGoogleOAuth && !customUrl) return;
         window._isProcessingGoogleOAuth = true;
+
+        // Immediately hide and suppress splash screen elements if still in DOM
+        const splashMain = document.getElementById('splash-main');
+        if (splashMain) {
+            splashMain.style.display = 'none';
+            try { splashMain.remove(); } catch (e) { }
+        }
 
         const rawParams = rawHash.startsWith('#') ? rawHash.substring(1) : (rawSearch.startsWith('?') ? rawSearch.substring(1) : (rawHash || rawSearch));
         const params = new URLSearchParams(rawParams);
@@ -2174,6 +2233,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
 
         if (hasError) {
             window._isProcessingGoogleOAuth = false;
+            try { sessionStorage.removeItem('intan_elyu_google_oauth_pending'); } catch (e) { }
             const errorDesc = params.get('error_description') || params.get('error') || 'Google sign-in was cancelled.';
             console.warn('Google OAuth returned error:', errorDesc);
             if (typeof showToast === 'function') showToast(errorDesc, 'error');
@@ -2186,6 +2246,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
 
         if (!accessToken && !idToken) {
             window._isProcessingGoogleOAuth = false;
+            try { sessionStorage.removeItem('intan_elyu_google_oauth_pending'); } catch (e) { }
             return;
         }
 
@@ -2195,7 +2256,15 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
             if (!overlay) {
                 overlay = document.createElement('div');
                 overlay.id = 'global-oauth-overlay';
-                document.body ? document.body.appendChild(overlay) : document.addEventListener('DOMContentLoaded', () => document.body.appendChild(overlay));
+                if (document.body) {
+                    document.body.appendChild(overlay);
+                } else {
+                    document.addEventListener('DOMContentLoaded', () => {
+                        if (!document.getElementById('global-oauth-overlay') && document.body) {
+                            document.body.appendChild(overlay);
+                        }
+                    });
+                }
             }
             overlay.innerHTML = `
             <div class="oauth-modal-content" style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; border: none !important; outline: none !important; box-shadow: 0 15px 35px rgba(10, 25, 60, 0.4), 0 0 25px rgba(63, 125, 183, 0.25) !important;">
@@ -2267,6 +2336,18 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                     window.AppStorage.setItem('intan_elyu_token', data.token);
                 }
 
+                // Clear offline flags on real authenticated login
+                localStorage.removeItem('intan_elyu_offline_mode');
+                localStorage.removeItem('intan_elyu_offline_guest');
+                try {
+                    sessionStorage.removeItem('intan_elyu_google_oauth_pending');
+                    sessionStorage.removeItem('elyu_show_offline_bypass_notice');
+                } catch (e) { }
+
+                if (window.history && window.history.replaceState) {
+                    window.history.replaceState({}, document.title, window.location.pathname + '?view=dashboard');
+                }
+
                 const currentOverlay = document.getElementById('global-oauth-overlay');
                 if (currentOverlay) {
                     currentOverlay.innerHTML = `
@@ -2288,12 +2369,16 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                         setTimeout(() => ov.remove(), 300);
                     }
                     window._isProcessingGoogleOAuth = false;
+                    if (typeof showToast === 'function') {
+                        showToast(`Welcome back, ${data.user?.name || 'Explorer'}!`, 'success');
+                    }
                     navigateTo('dashboard', true, true);
-                }, 1200);
+                }, 1000);
             })
             .catch(err => {
                 console.error('Google OAuth Handshake Error:', err);
                 window._isProcessingGoogleOAuth = false;
+                try { sessionStorage.removeItem('intan_elyu_google_oauth_pending'); } catch (e) { }
                 const ov = document.getElementById('global-oauth-overlay');
                 if (ov) ov.remove();
                 if (typeof showToast === 'function') showToast(err.message || 'Google sign-in failed.', 'error');
