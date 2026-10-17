@@ -939,7 +939,7 @@
             }
             const offlineBtns = document.querySelectorAll('.btn-offline-guest');
             offlineBtns.forEach(btn => {
-                btn.style.setProperty('display', isOffline ? 'flex' : 'none', 'important');
+                btn.style.setProperty('display', 'flex', 'important');
             });
             const banner = document.getElementById('online-alert');
             if (banner) {

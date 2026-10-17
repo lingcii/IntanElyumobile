@@ -85,7 +85,7 @@ $backRoute = 'dashboard';
                 <div class="settings-icon-box blue"><i class="fa-solid fa-cloud-arrow-down"></i></div>
                 <div>
                     <div class="settings-title">Check for App Updates</div>
-                    <div class="settings-subtitle">v1.4.3 (Build 9) &bull; Tap to update</div>
+                    <div class="settings-subtitle">v0.0.0 (Dev Build 1) &bull; Tap to update</div>
                 </div>
             </div>
             <span style="font-size: 10px; font-weight: 800; background: rgba(56,189,248,0.2); color: #38bdf8; padding: 3px 10px; border-radius: 100px; margin-right: 6px;">Check</span>

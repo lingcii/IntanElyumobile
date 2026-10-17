@@ -3578,7 +3578,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
     window.checkForAppUpdate = function () {
         const apkUrl = 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/apks/intan-elyu.apk';
         if (typeof showToast === 'function') {
-            showToast('Downloading latest Intan Elyu update (v1.4.3)...');
+            showToast('Downloading latest Intan Elyu update (v0.0.0 dev)...');
         }
         setTimeout(() => {
             window.open(apkUrl, '_system');

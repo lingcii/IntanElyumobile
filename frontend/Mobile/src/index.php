@@ -82,7 +82,7 @@ if (
     } else {
         // Fallback: If no local file on disk (e.g. Railway cloud container), stream directly from Cloudflare R2
         // to bypass mobile ISP DNS resolution failures (ERR_NAME_NOT_RESOLVED / -105) on the *.r2.dev domain!
-        $remoteApkUrl = getenv('CLOUDFLARE_R2_APK_URL') ?: (rtrim(getenv('CLOUDFLARE_R2_URL') ?: 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev', '/') . '/apks/intan-elyu.apk?v=1.4.2');
+        $remoteApkUrl = getenv('CLOUDFLARE_R2_APK_URL') ?: (rtrim(getenv('CLOUDFLARE_R2_URL') ?: 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev', '/') . '/apks/intan-elyu.apk?v=0.0.0');
         $preferRedirect = isset($_GET['redirect']) && $_GET['redirect'] === '1';
         $isCustomDomain = (strpos($remoteApkUrl, 'r2.dev') === false);
 
