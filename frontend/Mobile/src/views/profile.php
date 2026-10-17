@@ -185,6 +185,14 @@ $activeTab = 'profile';
             <div class="settings-text">Help & Support Center</div>
             <i class="fa-solid fa-chevron-right settings-arrow"></i>
         </a>
+        <a href="#" class="settings-item" onclick="if (typeof window.checkForAppUpdate === 'function') { window.checkForAppUpdate(); } else { window.open('https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/apks/intan-elyu.apk', '_system'); } return false;">
+            <div class="settings-icon"
+                style="background: #ffffff !important; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;"><i
+                    class="fa-solid fa-cloud-arrow-down" style="color: #1e3a8a !important;"></i></div>
+            <div class="settings-text">Update App (v1.4.3)</div>
+            <span style="font-size:10px; font-weight:800; background:rgba(0,242,254,0.2); color:#00f2fe; padding:2px 8px; border-radius:100px; margin-right:4px;">Latest</span>
+            <i class="fa-solid fa-chevron-right settings-arrow"></i>
+        </a>
         <a href="#" class="settings-item" onclick="handleLogout(event); return false;">
             <div class="settings-icon logout"
                 style="background: #FF3B30 !important; box-shadow: 0 2px 8px rgba(255, 59, 48, 0.3) !important;"><i
@@ -199,6 +207,14 @@ $activeTab = 'profile';
     var backendUrl = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
 
     // ── Dedicated Helper Rendering Functions ──
+    window.ensureProfileModalOnBody = function (modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal && modal.parentElement !== document.body) {
+            document.body.appendChild(modal);
+        }
+        return modal;
+    };
+
     window.renderProfileUserMeta = function (u) {
         const elMeta = document.getElementById('profile-meta');
         if (!elMeta || !u) return;
@@ -995,7 +1011,7 @@ $activeTab = 'profile';
         }
         if (!voucher) return;
 
-        const modal = document.getElementById('reward-details-modal');
+        const modal = window.ensureProfileModalOnBody('reward-details-modal');
         if (!modal) return;
 
         const badge = document.getElementById('reward-modal-badge');
@@ -1067,7 +1083,7 @@ $activeTab = 'profile';
     };
 
     window.openFullHistoryModal = function () {
-        const modal = document.getElementById('full-history-modal');
+        const modal = window.ensureProfileModalOnBody('full-history-modal');
         const container = document.getElementById('full-history-list');
         if (!modal || !container) return;
 
@@ -1123,7 +1139,7 @@ $activeTab = 'profile';
     };
 
     window.openFullVouchersModal = function (initialTab = 'all') {
-        const modal = document.getElementById('full-vouchers-modal');
+        const modal = window.ensureProfileModalOnBody('full-vouchers-modal');
         if (!modal) return;
         window._currentVouchersTab = initialTab || 'all';
         window.switchFullVouchersTab(window._currentVouchersTab);
@@ -1328,7 +1344,7 @@ $activeTab = 'profile';
 
     // ── All Deals & Rewards Modal Handlers (Stays on Profile Page) ──
     window.openFullDealsModal = function () {
-        const modal = document.getElementById('full-deals-modal');
+        const modal = window.ensureProfileModalOnBody('full-deals-modal');
         if (!modal) return;
 
         const pts = window._userPointsBalance || 0;
@@ -1445,7 +1461,7 @@ $activeTab = 'profile';
         if (!resolvedCode) return;
 
         currentActiveQrCode = resolvedCode;
-        const modal = document.getElementById('active-voucher-qr-modal');
+        const modal = window.ensureProfileModalOnBody('active-voucher-qr-modal');
         if (!modal) return;
 
         const titleEl = document.getElementById('active-qr-modal-title');
@@ -1696,7 +1712,7 @@ $activeTab = 'profile';
         let trip = trips.find(t => String(t.id) === String(tripId));
         if (!trip && trips.length > 0) trip = trips[0];
 
-        const modal = document.getElementById('trip-details-modal');
+        const modal = window.ensureProfileModalOnBody('trip-details-modal');
         if (trip) {
             window.renderTripDetailModalContent(trip);
             if (modal) modal.style.display = 'flex';
@@ -1787,6 +1803,13 @@ $activeTab = 'profile';
     window.addEventListener('app-connection-changed', updateProfileOfflineStatus);
     setTimeout(updateProfileOfflineStatus, 150);
 
+    // Immediately port all modals to document.body so they stay above bottom-navigation and blur out the nav bar behind backdrop
+    setTimeout(() => {
+        ['full-history-modal', 'full-vouchers-modal', 'full-deals-modal', 'active-voucher-qr-modal', 'trip-details-modal', 'reward-details-modal'].forEach(id => {
+            if (window.ensureProfileModalOnBody) window.ensureProfileModalOnBody(id);
+        });
+    }, 50);
+
     hydrateProfileFromCache();
     fetchProfileData();
     fetchPointsAndVouchers(true);
@@ -1794,7 +1817,7 @@ $activeTab = 'profile';
 
 <!-- Full Trip History Modal -->
 <div id="full-history-modal" onclick="if(event.target===this)window.closeFullHistoryModal()"
-    style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.85); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:999999; justify-content:center; align-items:center; padding:20px;">
+    style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.85); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:9999999 !important; justify-content:center; align-items:center; padding:20px;">
     <div
         style="background:#ffffff !important; border:none !important; outline:none !important; border-radius:24px; width:100%; max-width:400px; max-height:82vh; display:flex; flex-direction:column; box-shadow:none !important; overflow:hidden; text-align:left; padding:0;">
         <!-- Trip History Header Banner -->
@@ -1822,7 +1845,7 @@ $activeTab = 'profile';
 
 <!-- Full Vouchers & History Modal (Tabbed) -->
 <div id="full-vouchers-modal" onclick="if(event.target===this)window.closeFullVouchersModal()"
-    style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.85); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:999999; justify-content:center; align-items:center; padding:20px;">
+    style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.85); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:9999999 !important; justify-content:center; align-items:center; padding:20px;">
     <div
         style="background:#ffffff !important; border:none !important; outline:none !important; border-radius:24px; width:100%; max-width:400px; max-height:84vh; display:flex; flex-direction:column; box-shadow:none !important; overflow:hidden; text-align:left; padding:0;">
         <!-- Vouchers Header Banner -->
@@ -1842,16 +1865,16 @@ $activeTab = 'profile';
         <!-- Segmented Tab Switcher (All vs Active vs History) -->
         <div style="display:flex; background:#f1f5f9; padding:4px; margin:12px 16px 4px; border-radius:12px; gap:4px; flex-shrink:0;">
             <button type="button" id="modal-tab-all-vouchers" onclick="window.switchFullVouchersTab('all')"
-                style="flex:1; padding:8px 6px; border-radius:9px; border:none; background:#1e3a8a; color:#ffffff; font-size:11.5px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:5px; transition:all 0.2s ease;">
-                <i class="fa-solid fa-layer-group"></i> All (<span id="modal-tab-all-count">0</span>)
+                style="flex:1; min-width:0; padding:8px 4px; border-radius:9px; border:none; background:#1e3a8a; color:#ffffff; font-size:11px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:4px; white-space:nowrap; transition:all 0.2s ease;">
+                <i class="fa-solid fa-layer-group" style="font-size:10px;"></i> All (<span id="modal-tab-all-count">0</span>)
             </button>
             <button type="button" id="modal-tab-active-vouchers" onclick="window.switchFullVouchersTab('active')"
-                style="flex:1; padding:8px 6px; border-radius:9px; border:none; background:transparent; color:#64748b; font-size:11.5px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:5px; transition:all 0.2s ease;">
-                <i class="fa-solid fa-ticket"></i> Active (<span id="modal-tab-active-count">0</span>)
+                style="flex:1; min-width:0; padding:8px 4px; border-radius:9px; border:none; background:transparent; color:#64748b; font-size:11px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:4px; white-space:nowrap; transition:all 0.2s ease;">
+                <i class="fa-solid fa-ticket" style="font-size:10px;"></i> Active (<span id="modal-tab-active-count">0</span>)
             </button>
             <button type="button" id="modal-tab-history-vouchers" onclick="window.switchFullVouchersTab('history')"
-                style="flex:1; padding:8px 6px; border-radius:9px; border:none; background:transparent; color:#64748b; font-size:11.5px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:5px; transition:all 0.2s ease;">
-                <i class="fa-solid fa-clock-rotate-left"></i> History (<span id="modal-tab-history-count">0</span>)
+                style="flex:1; min-width:0; padding:8px 4px; border-radius:9px; border:none; background:transparent; color:#64748b; font-size:11px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:4px; white-space:nowrap; transition:all 0.2s ease;">
+                <i class="fa-solid fa-clock-rotate-left" style="font-size:10px;"></i> History (<span id="modal-tab-history-count">0</span>)
             </button>
         </div>
 
@@ -1865,7 +1888,7 @@ $activeTab = 'profile';
 
 <!-- Full Deals & Rewards Modal (Preserves Profile View and User Account) -->
 <div id="full-deals-modal" onclick="if(event.target===this)window.closeFullDealsModal()"
-    style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.85); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:999999; justify-content:center; align-items:center; padding:20px;">
+    style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.85); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:9999999 !important; justify-content:center; align-items:center; padding:20px;">
     <div
         style="background:#ffffff !important; border:none !important; outline:none !important; border-radius:24px; width:100%; max-width:420px; max-height:86vh; display:flex; flex-direction:column; box-shadow:0 20px 50px rgba(0,0,0,0.3) !important; overflow:hidden; text-align:left; padding:0;">
         <!-- Header Banner -->
@@ -1920,7 +1943,7 @@ $activeTab = 'profile';
 
 <!-- Dedicated Active Voucher QR Pass Modal -->
 <div id="active-voucher-qr-modal" onclick="if(event.target===this)window.closeActiveVoucherQrModal()"
-    style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.85); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:2000002; justify-content:center; align-items:center; padding:20px;">
+    style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.85); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:9999999 !important; justify-content:center; align-items:center; padding:20px;">
     <div
         style="background:#ffffff !important; border:none !important; outline:none !important; border-radius:24px; width:100%; max-width:390px; max-height:88vh; display:flex; flex-direction:column; box-shadow:0 20px 50px rgba(0,0,0,0.3) !important; overflow:hidden; text-align:center; padding:0;">
         <!-- Header Banner (Royal Blue) -->
@@ -2004,7 +2027,7 @@ $activeTab = 'profile';
 
 <!-- Completed Trip Details Modal -->
 <div id="trip-details-modal" onclick="if(event.target===this)window.closeTripDetailsModal()"
-    style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.85); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:2000000; justify-content:center; align-items:center; padding:20px;">
+    style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.85); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:9999999 !important; justify-content:center; align-items:center; padding:20px;">
     <div
         style="background:#ffffff !important; border:none !important; outline:none !important; border-radius:24px; width:100%; max-width:400px; max-height:82vh; display:flex; flex-direction:column; box-shadow:none !important; overflow:hidden; text-align:left; padding:0;">
         <!-- Header Banner -->
@@ -2059,7 +2082,7 @@ $activeTab = 'profile';
 
 <!-- Reward Details Modal -->
 <div id="reward-details-modal" onclick="if(event.target===this)window.closeRewardDetailsModal()"
-    style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(10,25,60,0.65); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:2000000; justify-content:center; align-items:center; padding:20px; opacity:0; transition:opacity 0.25s ease;">
+    style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(10,25,60,0.65); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:9999999 !important; justify-content:center; align-items:center; padding:20px; opacity:0; transition:opacity 0.25s ease;">
     <div
         style="background:#ffffff !important; border:none !important; outline:none !important; border-radius:24px; width:100%; max-width:350px; max-height:86vh; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 16px 40px rgba(10,25,60,0.45); text-align:center; transform:scale(0.88); transition:transform 0.25s cubic-bezier(0.16,1,0.3,1); position:relative; padding:0;">
         <!-- Header Banner (Royal Blue) -->

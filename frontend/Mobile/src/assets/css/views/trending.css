@@ -326,14 +326,14 @@ body[data-view="trending"] .mobile-header .header-icon i {
     position: relative;
     border-radius: 18px;
     overflow: hidden;
-    background: #f8fafc;
+    background: #0f172a !important;
     border: none !important;
     outline: none !important;
     cursor: pointer;
     aspect-ratio: 1 / 1;
     animation: trendFadeUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
     transition: transform 0.25s ease, box-shadow 0.25s ease;
-    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08);
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.16);
 }
 
 .trending-card:active {
@@ -346,6 +346,8 @@ body[data-view="trending"] .mobile-header .header-icon i {
     height: 100%;
     object-fit: cover;
     display: block;
+    color: transparent !important;
+    font-size: 0 !important;
     transition: transform 0.4s ease;
 }
 

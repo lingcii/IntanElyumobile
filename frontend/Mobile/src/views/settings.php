@@ -80,14 +80,16 @@ $backRoute = 'dashboard';
             <i class="fa-solid fa-rotate" style="color: rgba(255,255,255,0.3); font-size: 12px;"></i>
         </div>
 
-        <div class="settings-row">
+        <div class="settings-row clickable" onclick="if (typeof window.checkForAppUpdate === 'function') { window.checkForAppUpdate(); } else { window.open('https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/apks/intan-elyu.apk', '_system'); }">
             <div class="settings-label-group">
-                <div class="settings-icon-box gray"><i class="fa-solid fa-circle-info"></i></div>
+                <div class="settings-icon-box blue"><i class="fa-solid fa-cloud-arrow-down"></i></div>
                 <div>
-                    <div class="settings-title">Intan Elyu App Version</div>
-                    <div class="settings-subtitle">v0.0.0 (Latest)</div>
+                    <div class="settings-title">Check for App Updates</div>
+                    <div class="settings-subtitle">v1.4.3 (Build 9) &bull; Tap to update</div>
                 </div>
             </div>
+            <span style="font-size: 10px; font-weight: 800; background: rgba(56,189,248,0.2); color: #38bdf8; padding: 3px 10px; border-radius: 100px; margin-right: 6px;">Check</span>
+            <i class="fa-solid fa-chevron-right" style="color: rgba(255,255,255,0.3); font-size: 12px;"></i>
         </div>
 
         <div class="settings-row clickable" onclick="confirmSignOut()">

@@ -55,6 +55,14 @@ public class MainActivity extends BridgeActivity {
                 settings.setAllowFileAccessFromFileURLs(true);
                 settings.setAllowUniversalAccessFromFileURLs(true);
 
+                // Add native JavascriptInterface for clean and instant application exit
+                webView.addJavascriptInterface(new Object() {
+                    @android.webkit.JavascriptInterface
+                    public void exitApp() {
+                        runOnUiThread(() -> finishAffinity());
+                    }
+                }, "IntanElyuNative");
+
                 String ua = settings.getUserAgentString();
                 if (ua != null) {
                     ua = ua.replace("; wv", "").replace("Version/4.0 ", "");
@@ -268,11 +276,13 @@ public class MainActivity extends BridgeActivity {
         }
     }
 
+    private long lastBackPressTime = 0;
+
     @Override
     public void onBackPressed() {
         try {
             if (this.bridge != null && this.bridge.getWebView() != null) {
-                WebView webView = this.bridge.getWebView();
+                final WebView webView = this.bridge.getWebView();
                 String currentUrl = webView.getUrl();
                 if (currentUrl != null && (currentUrl.contains("accounts.google.com") || currentUrl.contains("google.com"))) {
                     if (webView.canGoBack()) {
@@ -283,11 +293,47 @@ public class MainActivity extends BridgeActivity {
                         return;
                     }
                 }
+
+                // Delegate to JavaScript's universal back handler (handles modals, sheets, and view navigation)
+                webView.evaluateJavascript(
+                    "(function() {" +
+                    "  try {" +
+                    "    if (typeof window.handleAppBack === 'function') {" +
+                    "      return window.handleAppBack() ? 'HANDLED' : 'EXIT';" +
+                    "    } else if (typeof window.navigateBack === 'function') {" +
+                    "      window.navigateBack();" +
+                    "      return 'HANDLED';" +
+                    "    }" +
+                    "  } catch(e) {}" +
+                    "  return 'EXIT';" +
+                    "})()",
+                    value -> {
+                        String res = value != null ? value.replace("\"", "").trim() : "EXIT";
+                        if ("EXIT".equalsIgnoreCase(res)) {
+                            long now = System.currentTimeMillis();
+                            if (now - lastBackPressTime < 2000) {
+                                finishAffinity();
+                            } else {
+                                lastBackPressTime = now;
+                                android.widget.Toast.makeText(MainActivity.this, "Press back again to exit", android.widget.Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    }
+                );
+                return;
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        super.onBackPressed();
+
+        // Native double-back fallback
+        long now = System.currentTimeMillis();
+        if (now - lastBackPressTime < 2000) {
+            finishAffinity();
+        } else {
+            lastBackPressTime = now;
+            android.widget.Toast.makeText(this, "Press back again to exit", android.widget.Toast.LENGTH_SHORT).show();
+        }
     }
 
     /**

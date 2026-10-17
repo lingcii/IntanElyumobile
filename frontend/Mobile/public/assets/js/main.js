@@ -1808,8 +1808,17 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                     mainContent.classList.remove('view-transitioning');
                 }
 
-                // Update URL
+                // Update URL & Track View Navigation History
                 if (addToHistory) {
+                    if (state.currentView && state.currentView !== targetView && state.currentView !== 'splash') {
+                        window._navHistory = window._navHistory || [];
+                        if (window._navHistory[window._navHistory.length - 1] !== state.currentView) {
+                            window._navHistory.push(state.currentView);
+                            if (window._navHistory.length > 30) {
+                                window._navHistory.shift();
+                            }
+                        }
+                    }
                     const url = new URL(window.location);
                     url.searchParams.set('view', targetView);
                     extraParams.forEach((val, key) => {
@@ -1853,41 +1862,261 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
     }
     window.navigateTo = navigateTo;
 
-    window.navigateBack = function (fallbackRoute = 'dashboard') {
+    /**
+     * Universal App Exit Confirmation Modal
+     * Displays a clean, premium dialog: "Are you sure you want to exit?" with Yes and No buttons.
+     */
+    window.ensureAppExitModal = function () {
+        let modal = document.getElementById('app-exit-confirm-modal');
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'app-exit-confirm-modal';
+            modal.style.cssText = 'display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(10,25,60,0.72); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); z-index:9999999; align-items:center; justify-content:center; padding:20px; box-sizing:border-box;';
+            modal.onclick = function (e) {
+                if (e.target === modal) window.closeAppExitModal();
+            };
+            modal.innerHTML = `
+                <div style="background:#ffffff; border-radius:24px; width:100%; max-width:330px; padding:26px 22px 22px; text-align:center; box-shadow:0 20px 50px rgba(0,0,0,0.3); position:relative; animation:popInAppModal 0.22s cubic-bezier(0.16,1,0.3,1) forwards;">
+                    <div style="width:58px; height:58px; border-radius:50%; background:#fee2e2; color:#ef4444; display:flex; align-items:center; justify-content:center; font-size:24px; margin:0 auto 16px; box-shadow:0 4px 14px rgba(239,68,68,0.2);">
+                        <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                    </div>
+                    <h3 style="margin:0 0 8px 0; font-size:18px; font-weight:800; color:#0f172a; line-height:1.3; letter-spacing:-0.2px;">
+                        Are you sure you want to exit?
+                    </h3>
+                    <p style="margin:0 0 22px 0; font-size:13px; color:#64748b; line-height:1.45;">
+                        You will exit the Intan Elyu application.
+                    </p>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                        <button type="button" id="app-exit-btn-no" onclick="window.closeAppExitModal()"
+                            style="padding:13px 16px; border-radius:14px; background:#f1f5f9; border:1.5px solid #e2e8f0; color:#475569; font-size:14px; font-weight:800; cursor:pointer; transition:transform 0.15s ease;"
+                            onpointerdown="this.style.transform='scale(0.96)'" onpointerup="this.style.transform='scale(1)'">
+                            No
+                        </button>
+                        <button type="button" id="app-exit-btn-yes" onclick="window.confirmExecuteAppExit()"
+                            style="padding:13px 16px; border-radius:14px; background:linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border:none; color:#ffffff; font-size:14px; font-weight:800; cursor:pointer; box-shadow:0 4px 14px rgba(220,38,38,0.35); transition:transform 0.15s ease;"
+                            onpointerdown="this.style.transform='scale(0.96)'" onpointerup="this.style.transform='scale(1)'">
+                            Yes
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            if (!document.getElementById('app-exit-modal-styles')) {
+                const style = document.createElement('style');
+                style.id = 'app-exit-modal-styles';
+                style.textContent = `
+                    @keyframes popInAppModal {
+                        0% { opacity: 0; transform: scale(0.92); }
+                        100% { opacity: 1; transform: scale(1); }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+        }
+        return modal;
+    };
+
+    window.showAppExitModal = function () {
+        const modal = window.ensureAppExitModal();
+        if (modal) {
+            modal.style.display = 'flex';
+        }
+    };
+
+    window.closeAppExitModal = function () {
+        const modal = document.getElementById('app-exit-confirm-modal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    };
+
+    window.confirmExecuteAppExit = function () {
+        window.closeAppExitModal();
+        try {
+            if (window.IntanElyuNative && typeof window.IntanElyuNative.exitApp === 'function') {
+                window.IntanElyuNative.exitApp();
+                return;
+            }
+        } catch (e) {}
+
+        try {
+            if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App && typeof window.Capacitor.Plugins.App.exitApp === 'function') {
+                window.Capacitor.Plugins.App.exitApp();
+                return;
+            }
+        } catch (e) {}
+
+        try {
+            if (navigator && navigator.app && typeof navigator.app.exitApp === 'function') {
+                navigator.app.exitApp();
+                return;
+            }
+        } catch (e) {}
+
+        try {
+            window.close();
+        } catch (e) {}
+    };
+
+    /**
+     * Universal Mobile Back Button & Navigation Handler
+     * Handles hardware back button, Android gesture swipe, header back button, and popstate.
+     * Closes open modals/drawers first; if none, navigates to previous view or natural parent;
+     * if on root dashboard, prompts the user with an exit confirmation modal (Yes/No).
+     * @returns {boolean} True if back action was handled, false if app should exit.
+     */
+    window.handleAppBack = function (explicitFallback) {
+        // 0. If App Exit Modal is currently open, dismiss it
+        const exitModal = document.getElementById('app-exit-confirm-modal');
+        if (exitModal && exitModal.style.display !== 'none' && window.getComputedStyle(exitModal).display !== 'none') {
+            window.closeAppExitModal();
+            return true;
+        }
+
+        // 1. Check Sidebar & Notifications in header
+        const sidebar = document.getElementById('sidebar-menu');
+        if (sidebar && (sidebar.style.left === '0px' || window.getComputedStyle(sidebar).left === '0px')) {
+            if (typeof toggleSidebar === 'function') toggleSidebar();
+            return true;
+        }
+
+        const notifDropdown = document.getElementById('notifications-dropdown');
+        if (notifDropdown && (notifDropdown.style.opacity === '1' || window.getComputedStyle(notifDropdown).opacity === '1')) {
+            if (typeof toggleNotifications === 'function') toggleNotifications();
+            return true;
+        }
+
+        // 2. Check Map Sheets & Overlays
+        const destSheet = document.getElementById('destination-sheet');
+        if (destSheet && destSheet.classList.contains('open')) {
+            if (typeof window.closeSheet === 'function') window.closeSheet();
+            else destSheet.classList.remove('open');
+            return true;
+        }
+
+        const nearbySheet = document.getElementById('nearby-sites-sheet');
+        if (nearbySheet && nearbySheet.classList.contains('open')) {
+            if (typeof window.closeNearbySitesSheet === 'function') window.closeNearbySitesSheet();
+            else nearbySheet.classList.remove('open');
+            return true;
+        }
+
+        // 3. Check Known Modals by ID
+        const knownModalClosers = [
+            { id: 'spot-vehicles-modal', fn: window.closeSpotVehiclesModal },
+            { id: 'itin-add-confirm', fn: window.closeAddConfirm },
+            { id: 'leg-transport-modal', fn: window.closeLegTransportModal },
+            { id: 'transit-summary-opensheet', fn: window.closeTransitSummaryOpensheet },
+            { id: 'travel-mode-starter-modal', fn: window.closeTravelModeStarterModal },
+            { id: 'save-trip-modal', fn: window.closeSaveModal },
+            { id: 'checkin-modal', fn: window.closeCheckinModal },
+            { id: 'checkin-image-picker-modal', fn: window.closeCheckinImagePickerModal },
+            { id: 'complete-trip-modal', fn: window.closeCompleteTripModal },
+            { id: 'delete-trip-modal', fn: window.closeDeleteTripModal },
+            { id: 'trip-completion-review-modal', fn: window.closeTripCompletionReviewModal },
+            { id: 'user-profile-modal', fn: window.closeUserProfile },
+            { id: 'full-deals-modal', fn: window.closeFullDealsModal },
+            { id: 'full-history-modal', fn: window.closeFullHistoryModal },
+            { id: 'full-vouchers-modal', fn: window.closeFullVouchersModal },
+            { id: 'reward-details-modal', fn: window.closeRewardDetailsModal },
+            { id: 'active-voucher-qr-modal', fn: window.closeActiveVoucherQrModal },
+            { id: 'trip-details-modal', fn: window.closeTripDetailsModal },
+            { id: 'voucher-modal', fn: window.closeVoucherModal },
+            { id: 'logout-confirm-modal', fn: window.closeLogoutModal },
+            { id: 'push-notification-modal', fn: window.closePushNotificationModal }
+        ];
+
+        for (const item of knownModalClosers) {
+            const el = document.getElementById(item.id);
+            if (el) {
+                const style = window.getComputedStyle(el);
+                if (style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0') {
+                    if (typeof item.fn === 'function') {
+                        item.fn();
+                    } else {
+                        el.style.display = 'none';
+                        el.classList.remove('active', 'open', 'show');
+                    }
+                    return true;
+                }
+            }
+        }
+
+        // 4. Check Generic Open Modals & Dialogs (ignoring #app-exit-confirm-modal)
         const openModals = Array.from(document.querySelectorAll(
-            '#full-deals-modal, #full-history-modal, #trip-details-modal, #full-vouchers-modal, #reward-details-modal, #active-voucher-qr-modal, #voucher-modal, #testimony-modal, .modal'
+            '.modal, .profile-modal-overlay, .modal-backdrop, .dialog-overlay, [role="dialog"], #change-password-modal, #two-factor-modal, #game-confirm-modal, #game-success-modal, #game-alert-modal'
         )).filter(el => {
+            if (el.id === 'app-exit-confirm-modal') return false;
             const style = window.getComputedStyle(el);
             return style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0';
         });
 
         if (openModals.length > 0) {
-            const modalToClose = openModals[openModals.length - 1];
-            if (typeof window.closeFullDealsModal === 'function' && modalToClose.id === 'full-deals-modal') {
-                window.closeFullDealsModal();
-            } else if (typeof window.closeTripDetailsModal === 'function' && modalToClose.id === 'trip-details-modal') {
-                window.closeTripDetailsModal();
-            } else if (typeof window.closeFullHistoryModal === 'function' && modalToClose.id === 'full-history-modal') {
-                window.closeFullHistoryModal();
-            } else if (typeof window.closeFullVouchersModal === 'function' && modalToClose.id === 'full-vouchers-modal') {
-                window.closeFullVouchersModal();
-            } else if (typeof window.closeRewardDetailsModal === 'function' && modalToClose.id === 'reward-details-modal') {
-                window.closeRewardDetailsModal();
-            } else if (typeof window.closeActiveVoucherQrModal === 'function' && modalToClose.id === 'active-voucher-qr-modal') {
-                window.closeActiveVoucherQrModal();
-            } else if (typeof window.closeVoucherModal === 'function' && modalToClose.id === 'voucher-modal') {
-                window.closeVoucherModal();
-            } else {
-                modalToClose.style.display = 'none';
-            }
-            return;
+            const topModal = openModals[openModals.length - 1];
+            topModal.style.display = 'none';
+            topModal.classList.remove('active', 'open', 'show');
+            return true;
         }
 
-        if (window.history.state && window.history.state.view && window.history.length > 1) {
-            window.history.back();
-        } else {
-            navigateTo(fallbackRoute);
+        // 5. Navigate back to previous view or explicit fallback
+        const currentView = (state && state.currentView) || new URLSearchParams(window.location.search).get('view') || 'dashboard';
+
+        // Explicit fallback provided by header back button (e.g. $backRoute)
+        if (explicitFallback && explicitFallback !== currentView) {
+            navigateTo(explicitFallback, false);
+            return true;
         }
+
+        // Navigation history stack check
+        window._navHistory = window._navHistory || [];
+        while (window._navHistory.length > 0) {
+            const prevView = window._navHistory.pop();
+            if (prevView && prevView !== currentView && prevView !== 'splash') {
+                navigateTo(prevView, false);
+                return true;
+            }
+        }
+
+        // View hierarchy parent fallback
+        const parentMap = {
+            'trip_map': 'saved_trips',
+            'saved_trips': 'itinerary',
+            'saved_places': 'dashboard',
+            'trending': 'dashboard',
+            'settings': 'dashboard',
+            'user_manual': 'settings',
+            'help': 'dashboard',
+            'about': 'dashboard',
+            'terms': 'dashboard',
+            'edit_profile': 'profile',
+            'discount': 'profile',
+            'puzzles': 'dashboard',
+            'explore': 'dashboard',
+            'map': 'dashboard',
+            'itinerary': 'dashboard',
+            'leaderboard': 'dashboard',
+            'profile': 'dashboard',
+            'reset-password': 'auth'
+        };
+
+        if (parentMap[currentView] && parentMap[currentView] !== currentView) {
+            navigateTo(parentMap[currentView], false);
+            return true;
+        }
+
+        if (currentView !== 'dashboard' && currentView !== 'auth' && currentView !== 'splash') {
+            navigateTo('dashboard', false);
+            return true;
+        }
+
+        // 6. User is on Root Screen ('dashboard' or 'auth') -> Prompt with Exit Confirmation Modal
+        window.showAppExitModal();
+        return true;
+    };
+
+    window.navigateBack = function (fallbackRoute = 'dashboard') {
+        return window.handleAppBack(fallbackRoute);
     };
 
     /**
@@ -2114,49 +2343,22 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
         if (typeof initCurrentView === 'function') initCurrentView();
     });
 
-    // Handle Browser Back Button & Android System Back
+    // Handle Browser Back Button & Android System Back via Universal Handler
     window.addEventListener('popstate', (e) => {
-        // 1. Check if any active modal or sheet is currently open
-        const openModals = Array.from(document.querySelectorAll(
-            '#full-history-modal, #trip-details-modal, #full-vouchers-modal, #reward-details-modal, #active-voucher-qr-modal, #voucher-modal, #testimony-modal, .modal'
-        )).filter(el => {
-            const style = window.getComputedStyle(el);
-            return style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0';
-        });
-
-        if (openModals.length > 0) {
-            const modalToClose = openModals[openModals.length - 1];
-            if (typeof window.closeTripDetailsModal === 'function' && modalToClose.id === 'trip-details-modal') {
-                window.closeTripDetailsModal();
-            } else if (typeof window.closeFullHistoryModal === 'function' && modalToClose.id === 'full-history-modal') {
-                window.closeFullHistoryModal();
-            } else if (typeof window.closeFullVouchersModal === 'function' && modalToClose.id === 'full-vouchers-modal') {
-                window.closeFullVouchersModal();
-            } else if (typeof window.closeRewardDetailsModal === 'function' && modalToClose.id === 'reward-details-modal') {
-                window.closeRewardDetailsModal();
-            } else if (typeof window.closeActiveVoucherQrModal === 'function' && modalToClose.id === 'active-voucher-qr-modal') {
-                window.closeActiveVoucherQrModal();
-            } else if (typeof window.closeVoucherModal === 'function' && modalToClose.id === 'voucher-modal') {
-                window.closeVoucherModal();
-            } else {
-                modalToClose.style.display = 'none';
-            }
-            window.history.pushState({ view: state.currentView }, '', window.location.href);
-            return;
+        if (typeof window.handleAppBack === 'function') {
+            window.handleAppBack();
         }
-
-        const targetView = (e.state && e.state.view) || new URLSearchParams(window.location.search).get('view') || 'splash';
-        if (targetView === state.currentView) {
-            return;
-        }
-        navigateTo(targetView, false);
     });
 
     // Hook into Capacitor Android hardware back button
     if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App && typeof window.Capacitor.Plugins.App.addListener === 'function') {
         try {
             window.Capacitor.Plugins.App.addListener('backButton', () => {
-                window.navigateBack('dashboard');
+                if (typeof window.handleAppBack === 'function') {
+                    window.handleAppBack();
+                } else if (typeof window.navigateBack === 'function') {
+                    window.navigateBack('dashboard');
+                }
             });
         } catch(e) {}
     }
@@ -3286,6 +3488,16 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
             }
         }
         imgEl.src = defaultNoImage;
+    };
+
+    window.checkForAppUpdate = function () {
+        const apkUrl = 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/apks/intan-elyu.apk';
+        if (typeof showToast === 'function') {
+            showToast('Downloading latest Intan Elyu update (v1.4.3)...');
+        }
+        setTimeout(() => {
+            window.open(apkUrl, '_system');
+        }, 350);
     };
 
     /**

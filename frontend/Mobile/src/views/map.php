@@ -634,30 +634,6 @@ if (is_dir($imgDir)) {
                         style="font-size:11px; font-weight:800; padding:3px 10px; border-radius:100px; background:rgba(255,255,255,0.2); color:#ffffff;">--</span>
                 </div>
 
-                <!-- Private Vehicle Access -->
-                <div
-                    style="margin-bottom:8px; background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.18); border-radius:12px; padding:9px 12px;">
-                    <div
-                        style="font-size:11px; font-weight:800; color:#00f2fe; margin-bottom:5px; display:flex; align-items:center; gap:5px;">
-                        <i class="fa-solid fa-car" style="font-size:10px; color:#00f2fe;"></i> Private Vehicle
-                    </div>
-                    <div id="sheet-private-vehicles-list" style="display:flex; flex-wrap:wrap; gap:6px;">
-                        <!-- Injected via JS -->
-                    </div>
-                </div>
-
-                <!-- Public Vehicle Access -->
-                <div
-                    style="margin-bottom:12px; background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.18); border-radius:12px; padding:9px 12px;">
-                    <div
-                        style="font-size:11px; font-weight:800; color:#fed7aa; margin-bottom:5px; display:flex; align-items:center; gap:5px;">
-                        <i class="fa-solid fa-bus" style="font-size:10px; color:#fb923c;"></i> Public Vehicle
-                    </div>
-                    <div id="sheet-public-vehicles-list" style="display:flex; flex-wrap:wrap; gap:6px;">
-                        <!-- Injected via JS -->
-                    </div>
-                </div>
-
                 <!-- Vehicles Action Button (White button with royal blue text) -->
                 <button id="sheet-btn-view-vehicles" type="button" onclick="window.openSpotVehiclesModal()"
                     style="width:100%; border:none !important; outline:none !important; border-radius:14px; padding:12px 14px; font-size:13px; font-weight:800; display:flex; align-items:center; justify-content:center; gap:8px; transition:all 0.2s ease; background:#ffffff !important; color:#1e3a8a !important; box-shadow:0 4px 14px rgba(0,0,0,0.15); cursor:pointer;">
@@ -4053,29 +4029,7 @@ if (is_dir($imgDir)) {
                     vehCountBadge.style.color = '#ffffff';
                 }
 
-                if (privVehList) {
-                    if (privVehicles.length > 0) {
-                        privVehList.innerHTML = privVehicles.map(v => `
-                            <span style="display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:700; background:rgba(0, 242, 254, 0.18); color:#ffffff; border:1px solid rgba(0, 242, 254, 0.35); padding:4px 9px; border-radius:8px;">
-                                <i class="fa-solid ${getVehIcon(v)}" style="font-size:10px; color:#00f2fe;"></i> ${v}
-                            </span>
-                        `).join('');
-                    } else {
-                        privVehList.innerHTML = '<span style="font-size:11.5px; font-weight:700; color:rgba(255,255,255,0.6); font-style:italic;">None</span>';
-                    }
-                }
 
-                if (pubVehList) {
-                    if (pubVehicles.length > 0) {
-                        pubVehList.innerHTML = pubVehicles.map(v => `
-                            <span style="display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:700; background:rgba(251, 146, 60, 0.2); color:#ffffff; border:1px solid rgba(251, 146, 60, 0.35); padding:4px 9px; border-radius:8px;">
-                                <i class="fa-solid ${getVehIcon(v)}" style="font-size:10px; color:#fed7aa;"></i> ${v}
-                            </span>
-                        `).join('');
-                    } else {
-                        pubVehList.innerHTML = '<span style="font-size:11.5px; font-weight:700; color:rgba(255,255,255,0.6); font-style:italic;">None</span>';
-                    }
-                }
 
                 if (btnViewVehicles) {
                     btnViewVehicles.disabled = false;
@@ -5002,10 +4956,7 @@ if (is_dir($imgDir)) {
                     <div style="width:40px; height:40px; border-radius:50%; background:#ffffff; display:inline-flex; align-items:center; justify-content:center; color:#1e3a8a; font-size:16px; margin-bottom:8px; box-shadow:0 2px 6px rgba(0,0,0,0.18);">
                         <i class="fa-solid ${isOffline ? 'fa-cloud-arrow-down' : 'fa-comment-dots'}" style="color:#1e3a8a;"></i>
                     </div>
-                    <div style="font-size:13.5px; font-weight:800; color:#ffffff; margin-bottom:4px;">${isOffline ? 'Offline Reviews Mode' : 'No Testimonies Yet'}</div>
-                    <p style="margin:0 0 12px; font-size:12px; color:rgba(255,255,255,0.88); line-height:1.5;">
-                        ${isOffline ? 'Testimonies for this spot are not yet cached on this device. Connect to the internet to sync visitor reviews.' : `Be the first verified visitor to review this <strong style="color:${classMeta.color}; font-weight:800;">${classMeta.label}</strong> spot and share policy feedback during your trip navigation to earn <strong>+${classMeta.points} Points</strong>!`}
-                    </p>
+                    <div style="font-size:13.5px; font-weight:800; color:#ffffff; margin-bottom:12px;">${isOffline ? 'Offline Reviews Mode' : 'No Testimonies Yet'}</div>
                     <div style="display:inline-flex; align-items:center; gap:6px; font-size:10.5px; font-weight:700; color:#ffffff; background:rgba(255,255,255,0.18); padding:5px 12px; border-radius:20px;">
                         <i class="fa-solid fa-route" style="color:#ffffff;"></i> Review available in Trip Map & Visited Stops
                     </div>

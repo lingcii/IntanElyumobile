@@ -26,7 +26,7 @@ if (!$localApk) {
 $apkSizeStr = $localApk && file_exists($localApk) ? '~' . round(filesize($localApk) / (1024 * 1024), 1) . ' MB' : '~226 MB';
 
 $buildGradle = dirname(__DIR__, 2) . '/android/app/build.gradle';
-$appVersion = 'v1.4.1';
+$appVersion = 'v1.4.2';
 if (file_exists($buildGradle)) {
   $gradleContent = file_get_contents($buildGradle);
   if (preg_match('/versionName\s+["\']([^"\']+)["\']/', $gradleContent, $matches)) {
