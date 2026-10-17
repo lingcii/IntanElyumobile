@@ -65,29 +65,6 @@ try {
             </button>
         </div>
 
-        <!-- Step 1 Primary Travel Mode Card -->
-        <div id="draft-travel-mode-bar" onclick="window.openTravelModeStarterModal()"
-            style="display:flex; align-items:center; justify-content:space-between; background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; color:#ffffff; padding:11px 16px; border-radius:16px; margin-bottom:14px; cursor:pointer; border:none !important; outline:none !important; box-shadow:none !important; transition:all 0.2s ease;">
-            <div style="display:flex; align-items:center; gap:10px; min-width:0; flex:1;">
-                <div id="draft-travel-mode-icon"
-                    style="width:34px; height:34px; border-radius:10px; background:#ffffff !important; display:flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.15);">
-                    <i class="fa-solid fa-car" style="color:#1e3a8a !important;"></i>
-                </div>
-                <div style="min-width:0; flex:1;">
-                    <div
-                        style="font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:rgba(255,255,255,0.8);">
-                        Trip Transportation</div>
-                    <div id="draft-travel-mode-label"
-                        style="font-size:13.5px; font-weight:800; color:#ffffff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                        Own Car</div>
-                </div>
-            </div>
-            <span
-                style="font-size:11px; font-weight:800; background:rgba(255,255,255,0.22); color:#ffffff; padding:4px 10px; border-radius:100px; display:inline-flex; align-items:center; gap:4px; flex-shrink:0;">
-                <i class="fa-solid fa-sliders" style="font-size:10px;"></i> Change
-            </span>
-        </div>
-
         <!-- Map Visualization Container -->
         <div id="draft-map-wrapper" style="display:none; margin-top:0; margin-bottom:14px;">
             <!-- Route Type Container with Smooth Sliding Pill -->
@@ -145,15 +122,11 @@ try {
             <i class="fa-solid fa-route" style="color: #1e3a8a !important;"></i>
         </div>
         <h3>No plans yet</h3>
-        <p>Start your itinerary by selecting which vehicle you will use for transportation, then add your stops!</p>
+        <p>Explore La Union tourist spots and plan your personalized itinerary.</p>
         <div style="display:flex; flex-direction:column; gap:10px; width:100%; max-width:280px; margin:14px auto 0;">
-            <button class="btn-primary" onclick="window.openTravelModeStarterModal()"
-                style="width:100%; padding:14px 18px; border-radius:18px; font-weight:800; font-size:14px; border:none !important; outline:none !important; background:#ffffff !important; color:#1e3a8a !important; box-shadow:0 4px 14px rgba(0, 0, 0, 0.15) !important; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:8px;">
-                <i class="fa-solid fa-car-side" style="color:#1e3a8a !important;"></i> Select Vehicle
-            </button>
             <button class="btn-open-map" onclick="navigateTo('map')"
                 style="width:100%; margin:0; justify-content:center;">
-                <i class="fa-solid fa-location-dot"></i> Browse Map
+                <i class="fa-solid fa-location-dot"></i> Browse Map & Add Stops
             </button>
         </div>
     </div>
@@ -2940,16 +2913,6 @@ try {
                 window.updateDraftTravelModeBar();
             }
 
-            // Step 1: If tourist has items in draft but hasn't picked a vehicle yet, prompt once
-            if (rawDraft.length > 0 && !localStorage.getItem('intan_elyu_draft_trip_transport') && !sessionStorage.getItem('editing_itinerary_id') && !sessionStorage.getItem('intan_elyu_starter_prompted')) {
-                sessionStorage.setItem('intan_elyu_starter_prompted', 'true');
-                setTimeout(() => {
-                    if (typeof window.openTravelModeStarterModal === 'function') {
-                        window.openTravelModeStarterModal();
-                    }
-                }, 400);
-            }
-
             // Sync active class on route toggle buttons
             const recBtn = document.getElementById('btn-route-rec');
             const altBtn = document.getElementById('btn-route-alt');
@@ -3014,15 +2977,12 @@ try {
             <div class="stops-swap-divider starting-leg-divider">
                 <div class="stops-swap-line"></div>
                 <div class="stops-leg-wrapper" style="display:flex; align-items:center; gap:8px; z-index:3;">
-                    <div class="${leg0ChipClass}" style="display:none !important;" onclick="${leg0ClickAction}" title="${leg0Info.is_maintenance ? 'Destination is under maintenance. Transport options are disabled.' : 'Selected: ' + (leg0Info.full_names || leg0Info.name)}">
+                    <div class="${leg0ChipClass}" onclick="${leg0ClickAction}" title="${leg0Info.is_maintenance ? 'Destination is under maintenance. Transport options are disabled.' : 'Selected: ' + (leg0Info.full_names || leg0Info.name)}">
                         ${leg0LeadingIcon}
                         <span class="leg-chip-name" style="${leg0NameStyle}">${leg0Info.name}</span>
                         ${fareBadge}
                         ${leg0Info.is_maintenance ? '' : `<span class="leg-dist-text">&bull; ${startDistText}</span>`}
                         ${leg0TrailingIcon}
-                    </div>
-                    <div class="starting-leg-icon-pill" title="Start of Itinerary Route">
-                        <i class="fa-solid fa-arrow-down"></i>
                     </div>
                 </div>
             </div>`;
@@ -3123,7 +3083,7 @@ try {
                         <div class="stops-swap-divider">
                             <div class="stops-swap-line"></div>
                             <div class="stops-leg-wrapper" style="display:flex; align-items:center; gap:8px; z-index:3;">
-                                <div class="${legChipClass}" style="display:none !important;" onclick="${legClickAction}" title="${legInfo.is_maintenance ? 'Destination is under maintenance. Transport options are disabled.' : 'Selected: ' + (legInfo.full_names || legInfo.name)}">
+                                <div class="${legChipClass}" onclick="${legClickAction}" title="${legInfo.is_maintenance ? 'Destination is under maintenance. Transport options are disabled.' : 'Selected: ' + (legInfo.full_names || legInfo.name)}">
                                     ${legLeadingIcon}
                                     <span class="leg-chip-name" style="${legNameStyle}">${legInfo.name}</span>
                                     ${fareBadge}
