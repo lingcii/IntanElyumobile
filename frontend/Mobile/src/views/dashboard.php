@@ -3001,68 +3001,158 @@ if (is_dir($imgDir)) {
         const element = window._pendingDeleteTripContainer;
         const btn = document.getElementById('btn-confirm-delete-trip');
         const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
-        if (!id || !token) {
+        if (!id) {
             window.closeDeleteTripModal();
             return;
         }
 
-        if (btn) {
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Deleting...';
-            btn.disabled = true;
+        const pruneTripFromLocalCaches = (tripId) => {
+            if (!tripId) return;
+            const targetStr = String(tripId).trim();
+
+            const filterOut = (list) => {
+                if (!Array.isArray(list)) return [];
+                return list.filter(t => {
+                    if (!t) return false;
+                    const idStr = String(t.id || '');
+                    const tripIdStr = String(t.trip_id || '');
+                    const localIdStr = String(t.local_id || '');
+                    const updateIdStr = String(t.update_id || '');
+                    if (idStr === targetStr || tripIdStr === targetStr || localIdStr === targetStr || updateIdStr === targetStr) return false;
+                    if (idStr === 'offline_edit_' + targetStr || tripIdStr === 'offline_edit_' + targetStr) return false;
+                    if (targetStr.startsWith('offline_edit_')) {
+                        const raw = targetStr.replace('offline_edit_', '');
+                        if (idStr === raw || tripIdStr === raw || localIdStr === raw || updateIdStr === raw) return false;
+                    }
+                    return true;
+                });
+            };
+
+            ['intan_elyu_offline_saved_trips', 'intan_elyu_offline_saved_trips_backup', 'intan_elyu_saved_trips'].forEach(k => {
+                try {
+                    const raw = localStorage.getItem(k);
+                    if (raw) {
+                        const parsed = JSON.parse(raw);
+                        if (Array.isArray(parsed)) {
+                            localStorage.setItem(k, JSON.stringify(filterOut(parsed)));
+                        } else if (parsed && Array.isArray(parsed.itineraries)) {
+                            parsed.itineraries = filterOut(parsed.itineraries);
+                            localStorage.setItem(k, JSON.stringify(parsed));
+                        } else if (parsed && Array.isArray(parsed.data)) {
+                            parsed.data = filterOut(parsed.data);
+                            localStorage.setItem(k, JSON.stringify(parsed));
+                        }
+                    }
+                } catch (e) { }
+            });
+
+            if (window.OfflineTripManager && typeof window.OfflineTripManager.removeQueuedTrip === 'function') {
+                try { window.OfflineTripManager.removeQueuedTrip(tripId); } catch(e) {}
+            }
+
+            try {
+                for (let i = localStorage.length - 1; i >= 0; i--) {
+                    const k = localStorage.key(i);
+                    if (k && (k.startsWith('saved_trips_') || k.startsWith('dashboard_trips_') || k.startsWith('dashboard_saved_trips_'))) {
+                        try {
+                            const raw = localStorage.getItem(k);
+                            if (raw) {
+                                const parsed = JSON.parse(raw);
+                                if (parsed && Array.isArray(parsed.data)) {
+                                    parsed.data = filterOut(parsed.data);
+                                    localStorage.setItem(k, JSON.stringify(parsed));
+                                } else if (Array.isArray(parsed)) {
+                                    localStorage.setItem(k, JSON.stringify(filterOut(parsed)));
+                                } else if (parsed && Array.isArray(parsed.itineraries)) {
+                                    parsed.itineraries = filterOut(parsed.itineraries);
+                                    localStorage.setItem(k, JSON.stringify(parsed));
+                                }
+                            }
+                        } catch (e) {
+                            localStorage.removeItem(k);
+                        }
+                    }
+                }
+            } catch(e) {}
+
+            if (Array.isArray(window._cachedSavedTrips)) {
+                window._cachedSavedTrips = filterOut(window._cachedSavedTrips);
+            }
+        };
+
+        const isGuestOrOffline = !token || 
+            token === 'guest_token' || 
+            token === 'offline_guest_token' || 
+            token.startsWith('guest_') || 
+            token.startsWith('offline_') || 
+            String(id).startsWith('offline_') ||
+            !navigator.onLine || 
+            window.isAppOnline === false;
+
+        pruneTripFromLocalCaches(id);
+
+        if (element) {
+            element.style.transition = 'all 0.3s ease';
+            element.style.opacity = '0';
+            element.style.transform = 'scale(0.9)';
+            setTimeout(() => {
+                element.remove();
+                const tripsContainer = document.getElementById('saved-trips-container');
+                if (tripsContainer && (!tripsContainer.querySelectorAll('.trip-swipe-container') || tripsContainer.querySelectorAll('.trip-swipe-container').length === 0)) {
+                    tripsContainer.innerHTML = `
+                        <div class="dash-empty-state">
+                            <div class="dash-empty-icon-wrap" style="background: #ffffff !important; color: #1e3a8a !important; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15) !important;">
+                                <i class="fa-solid fa-route" style="color: #1e3a8a !important;"></i>
+                            </div>
+                            <div class="dash-empty-title">No Saved Trips Yet</div>
+                            <div class="dash-empty-desc">Create custom itineraries and explore recommended routes for your La Union adventure.</div>
+                            <button type="button" onclick="navigateTo('itinerary')" class="dash-empty-btn">
+                                <i class="fa-solid fa-plus"></i> Plan a Trip
+                            </button>
+                        </div>
+                    `;
+                }
+            }, 300);
+        }
+
+        window.closeDeleteTripModal();
+
+        if (isGuestOrOffline) {
+            if (typeof showToast === 'function') showToast("Trip deleted from device.");
+            window.dispatchEvent(new CustomEvent('tripsSynced'));
+            window.dispatchEvent(new CustomEvent('tripDeleted', { detail: { id: id } }));
+            return;
         }
 
         try {
-            const res = await fetch(getDashBackendUrl() + '/api/tourist/itineraries/' + id, {
+            const bUrl = (typeof window.getDashBackendUrl === 'function' ? window.getDashBackendUrl() : (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online'))).replace(/\/+$/, '');
+            const res = await fetch(bUrl + '/api/tourist/itineraries/' + id, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': 'Bearer ' + token,
-                    'Accept': 'application/json'
+                    'Accept': 'application/json',
+                    'ngrok-skip-browser-warning': 'true'
                 }
             });
 
-            // Clear local cached saved trips in both views
-            const tokenKey = token.substring(0, 10);
-            localStorage.removeItem('saved_trips_' + tokenKey);
-            localStorage.removeItem('dashboard_trips_' + tokenKey);
-            localStorage.removeItem('dashboard_saved_trips_' + tokenKey);
+            pruneTripFromLocalCaches(id);
 
             if (res.ok || res.status === 404) {
-                if (element) {
-                    element.style.transition = 'all 0.3s ease';
-                    element.style.opacity = '0';
-                    element.style.transform = 'scale(0.9)';
-                    setTimeout(() => {
-                        element.remove();
-                        const tripsContainer = document.getElementById('saved-trips-container');
-                        if (tripsContainer && (!tripsContainer.querySelectorAll('.trip-swipe-container') || tripsContainer.querySelectorAll('.trip-swipe-container').length === 0)) {
-                            tripsContainer.innerHTML = `
-                                <div class="dash-empty-state">
-                                    <div class="dash-empty-icon-wrap" style="background: #ffffff !important; color: #1e3a8a !important; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15) !important;">
-                                        <i class="fa-solid fa-route" style="color: #1e3a8a !important;"></i>
-                                    </div>
-                                    <div class="dash-empty-title">No Saved Trips Yet</div>
-                                    <div class="dash-empty-desc">Create custom itineraries and explore recommended routes for your La Union adventure.</div>
-                                    <button type="button" onclick="navigateTo('itinerary')" class="dash-empty-btn">
-                                        <i class="fa-solid fa-plus"></i> Plan a Trip
-                                    </button>
-                                </div>
-                            `;
-                        }
-                    }, 300);
-                }
                 if (typeof showToast === 'function') showToast("Trip deleted successfully.");
+            } else if (res.status === 403) {
+                if (typeof showToast === 'function') showToast("Unauthorized to delete this trip.", "error");
             } else {
-                if (typeof showToast === 'function') showToast("Failed to delete trip.");
+                if (typeof showToast === 'function') showToast("Trip deleted locally.");
             }
+
+            window.dispatchEvent(new CustomEvent('tripsSynced'));
+            window.dispatchEvent(new CustomEvent('tripDeleted', { detail: { id: id } }));
         } catch (e) {
             console.error('Error deleting itinerary', e);
-            if (typeof showToast === 'function') showToast("Error deleting trip.");
-        } finally {
-            if (btn) {
-                btn.innerHTML = 'Delete';
-                btn.disabled = false;
-            }
-            window.closeDeleteTripModal();
+            pruneTripFromLocalCaches(id);
+            if (typeof showToast === 'function') showToast("Trip removed from device (offline).");
+            window.dispatchEvent(new CustomEvent('tripsSynced'));
+            window.dispatchEvent(new CustomEvent('tripDeleted', { detail: { id: id } }));
         }
     };
 

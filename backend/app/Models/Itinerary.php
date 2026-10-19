@@ -20,6 +20,7 @@ class Itinerary extends Model
     ];
 
     protected $casts = [
+        'user_id'    => 'integer',
         'trip_date'  => 'date',
         'budget'     => 'decimal:2',
         'total_cost' => 'decimal:2',

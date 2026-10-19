@@ -581,7 +581,7 @@ class ItineraryController extends Controller
             ], 200);
         }
 
-        if ($itinerary->user_id !== $user->id && $user->role === 'tourist') {
+        if ((int) $itinerary->user_id !== (int) $user->id && !in_array($user->role, ['admin', 'super_admin'])) {
             return response()->json(['message' => 'Unauthorized to delete this trip.'], 403);
         }
 

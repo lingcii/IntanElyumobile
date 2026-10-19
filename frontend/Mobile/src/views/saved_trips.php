@@ -493,7 +493,7 @@ $backRoute = 'itinerary';
                         html += `
                     <div class="trip-swipe-container" data-trip-id="${trip.id}" data-trip-title="${safeTitle}" style="position:relative; overflow:hidden; border-radius:24px; -webkit-mask-image:-webkit-radial-gradient(white, black); mask-image:radial-gradient(white, black); isolation:isolate; contain:paint; margin-bottom:20px; touch-action:pan-y;">
                         <!-- Red Delete Action Button (Slides smoothly in tandem from right wall) -->
-                        <div class="trip-swipe-bg" onclick="event.stopPropagation(); window.confirmDeleteSavedTrip('${trip.id}', this.closest('.trip-swipe-container'), '${safeTitle}');" ontouchend="event.stopPropagation(); window.confirmDeleteSavedTrip('${trip.id}', this.closest('.trip-swipe-container'), '${safeTitle}');" style="position:absolute; top:0; right:0; bottom:0; width:95px; background:linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border-radius:0 24px 24px 0; display:flex; align-items:center; justify-content:center; color:#ffffff; font-size:13px; font-weight:800; gap:6px; z-index:1; cursor:pointer; opacity:0; pointer-events:none; transform:translateX(95px); transition:transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease; touch-action:manipulation;">
+                        <div class="trip-swipe-bg" onclick="event.stopPropagation(); window.confirmDeleteSavedTrip('${trip.id}', this.closest('.trip-swipe-container'), '${safeTitle}');" style="position:absolute; top:0; right:0; bottom:0; width:95px; background:linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border-radius:0 24px 24px 0; display:flex; align-items:center; justify-content:center; color:#ffffff; font-size:13px; font-weight:800; gap:6px; z-index:1; cursor:pointer; opacity:0; pointer-events:none; transform:translateX(95px); transition:transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease; touch-action:manipulation;">
                             <i class="fa-solid fa-trash-can"></i> Delete
                         </div>
                         
@@ -1725,12 +1725,29 @@ $backRoute = 'itinerary';
 
             // Comprehensive local trip pruner so deleted trip never resurrects from offline cache
             const pruneTripFromLocalCaches = (tripId) => {
+                if (!tripId) return;
+                const targetStr = String(tripId).trim();
+
                 const filterOut = (list) => {
                     if (!Array.isArray(list)) return [];
-                    return list.filter(t => t && String(t.id) !== String(tripId) && String(t.trip_id || '') !== String(tripId));
+                    return list.filter(t => {
+                        if (!t) return false;
+                        const idStr = String(t.id || '');
+                        const tripIdStr = String(t.trip_id || '');
+                        const localIdStr = String(t.local_id || '');
+                        const updateIdStr = String(t.update_id || '');
+                        if (idStr === targetStr || tripIdStr === targetStr || localIdStr === targetStr || updateIdStr === targetStr) return false;
+                        if (idStr === 'offline_edit_' + targetStr || tripIdStr === 'offline_edit_' + targetStr) return false;
+                        if (targetStr.startsWith('offline_edit_')) {
+                            const raw = targetStr.replace('offline_edit_', '');
+                            if (idStr === raw || tripIdStr === raw || localIdStr === raw || updateIdStr === raw) return false;
+                        }
+                        return true;
+                    });
                 };
 
-                ['intan_elyu_offline_saved_trips_backup', 'intan_elyu_saved_trips'].forEach(k => {
+                // 1. Prune all fixed known offline and backup storage keys
+                ['intan_elyu_offline_saved_trips', 'intan_elyu_offline_saved_trips_backup', 'intan_elyu_saved_trips'].forEach(k => {
                     try {
                         const raw = localStorage.getItem(k);
                         if (raw) {
@@ -1740,26 +1757,59 @@ $backRoute = 'itinerary';
                             } else if (parsed && Array.isArray(parsed.itineraries)) {
                                 parsed.itineraries = filterOut(parsed.itineraries);
                                 localStorage.setItem(k, JSON.stringify(parsed));
+                            } else if (parsed && Array.isArray(parsed.data)) {
+                                parsed.data = filterOut(parsed.data);
+                                localStorage.setItem(k, JSON.stringify(parsed));
                             }
                         }
                     } catch (e) { }
                 });
 
+                // 2. Prune through OfflineTripManager
                 if (window.OfflineTripManager && typeof window.OfflineTripManager.removeQueuedTrip === 'function') {
                     try { window.OfflineTripManager.removeQueuedTrip(tripId); } catch(e) {}
                 }
 
-                const tok = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
-                if (tok && tok.length > 5) {
-                    const tokenKey = tok.substring(0, 10);
-                    localStorage.removeItem('saved_trips_' + tokenKey);
-                    localStorage.removeItem('dashboard_trips_' + tokenKey);
-                    localStorage.removeItem('dashboard_saved_trips_' + tokenKey);
+                // 3. Scan and purge from ALL dynamic localStorage cache keys (saved_trips_*, dashboard_trips_*, dashboard_saved_trips_*)
+                try {
+                    for (let i = localStorage.length - 1; i >= 0; i--) {
+                        const k = localStorage.key(i);
+                        if (k && (k.startsWith('saved_trips_') || k.startsWith('dashboard_trips_') || k.startsWith('dashboard_saved_trips_'))) {
+                            try {
+                                const raw = localStorage.getItem(k);
+                                if (raw) {
+                                    const parsed = JSON.parse(raw);
+                                    if (parsed && Array.isArray(parsed.data)) {
+                                        parsed.data = filterOut(parsed.data);
+                                        localStorage.setItem(k, JSON.stringify(parsed));
+                                    } else if (Array.isArray(parsed)) {
+                                        localStorage.setItem(k, JSON.stringify(filterOut(parsed)));
+                                    } else if (parsed && Array.isArray(parsed.itineraries)) {
+                                        parsed.itineraries = filterOut(parsed.itineraries);
+                                        localStorage.setItem(k, JSON.stringify(parsed));
+                                    }
+                                }
+                            } catch (e) {
+                                localStorage.removeItem(k);
+                            }
+                        }
+                    }
+                } catch(e) {}
+
+                // 4. Update in-memory cached saved trips so subsequent renders don't bring it back
+                if (Array.isArray(window._cachedSavedTrips)) {
+                    window._cachedSavedTrips = filterOut(window._cachedSavedTrips);
                 }
             };
 
             const animateAndRemoveCard = (el) => {
-                if (!el) return;
+                if (!el) {
+                    const remaining = document.querySelectorAll('.trip-swipe-container');
+                    if (!remaining || remaining.length === 0) {
+                        renderSavedTrips([]);
+                    }
+                    return;
+                }
                 el.style.transition = 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)';
                 el.style.opacity = '0';
                 el.style.transform = 'scale(0.85) translateX(-100px)';
@@ -1773,7 +1823,7 @@ $backRoute = 'itinerary';
                         el.remove();
                         const remaining = document.querySelectorAll('.trip-swipe-container');
                         if (!remaining || remaining.length === 0) {
-                            window.fetchSavedTrips(true);
+                            renderSavedTrips([]);
                         }
                     }, 250);
                 }, 50);
@@ -1792,48 +1842,48 @@ $backRoute = 'itinerary';
             if (isGuestOrOffline) {
                 pruneTripFromLocalCaches(id);
                 if (typeof showToast === 'function') showToast("Trip deleted from device.");
-                if (element) {
-                    animateAndRemoveCard(element);
-                } else {
-                    window.fetchSavedTrips(true);
-                }
+                animateAndRemoveCard(element);
+                window.dispatchEvent(new CustomEvent('tripsSynced'));
+                window.dispatchEvent(new CustomEvent('tripDeleted', { detail: { id: id } }));
                 window._pendingDeleteTripId = null;
                 window._pendingDeleteTripContainer = null;
                 return;
             }
 
             try {
-                // Prune local caches immediately
+                // Prune local caches immediately so UI is optimistic and instantaneous
                 pruneTripFromLocalCaches(id);
+                animateAndRemoveCard(element);
 
-                const res = await fetch(backendUrl + '/api/tourist/itineraries/' + id, {
+                const bUrl = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
+                const res = await fetch(bUrl + '/api/tourist/itineraries/' + id, {
                     method: 'DELETE',
                     headers: {
                         'Authorization': 'Bearer ' + token,
-                        'Accept': 'application/json'
+                        'Accept': 'application/json',
+                        'ngrok-skip-browser-warning': 'true'
                     }
                 });
 
+                // Extra safety: re-prune in case any concurrent fetch refreshed cache
+                pruneTripFromLocalCaches(id);
+
                 if (res.ok || res.status === 404) {
                     if (typeof showToast === 'function') showToast("Trip deleted successfully.");
+                } else if (res.status === 403) {
+                    if (typeof showToast === 'function') showToast("Unauthorized to delete this trip.", "error");
                 } else {
                     if (typeof showToast === 'function') showToast("Trip deleted locally.");
                 }
 
-                if (element) {
-                    animateAndRemoveCard(element);
-                } else {
-                    window.fetchSavedTrips(true);
-                }
+                window.dispatchEvent(new CustomEvent('tripsSynced'));
+                window.dispatchEvent(new CustomEvent('tripDeleted', { detail: { id: id } }));
             } catch (e) {
                 console.warn('Network error during trip deletion; pruned locally:', e);
                 pruneTripFromLocalCaches(id);
                 if (typeof showToast === 'function') showToast("Trip removed from device (offline).");
-                if (element) {
-                    animateAndRemoveCard(element);
-                } else {
-                    window.fetchSavedTrips(true);
-                }
+                window.dispatchEvent(new CustomEvent('tripsSynced'));
+                window.dispatchEvent(new CustomEvent('tripDeleted', { detail: { id: id } }));
             } finally {
                 window._pendingDeleteTripId = null;
                 window._pendingDeleteTripContainer = null;

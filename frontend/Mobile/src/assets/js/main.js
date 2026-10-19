@@ -671,7 +671,29 @@ window.OfflineTripManager = {
 
     removeQueuedTrip: function (tempId) {
         try {
-            const trips = this.getQueuedTrips().filter(t => t.id !== tempId && t.local_id !== tempId);
+            if (!tempId) return;
+            const targetStr = String(tempId).trim();
+            const trips = this.getQueuedTrips().filter(t => {
+                if (!t) return false;
+                const idStr = String(t.id || '');
+                const localIdStr = String(t.local_id || '');
+                const updateIdStr = String(t.update_id || '');
+                const tripIdStr = String(t.trip_id || '');
+
+                if (idStr === targetStr || localIdStr === targetStr || updateIdStr === targetStr || tripIdStr === targetStr) {
+                    return false;
+                }
+                if (idStr === 'offline_edit_' + targetStr || localIdStr === 'offline_edit_' + targetStr) {
+                    return false;
+                }
+                if (targetStr.startsWith('offline_edit_')) {
+                    const rawId = targetStr.replace('offline_edit_', '');
+                    if (idStr === rawId || updateIdStr === rawId || localIdStr === rawId) {
+                        return false;
+                    }
+                }
+                return true;
+            });
             localStorage.setItem(this.STORAGE_KEY, JSON.stringify(trips));
         } catch (e) {}
     },
