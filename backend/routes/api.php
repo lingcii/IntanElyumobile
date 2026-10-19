@@ -1055,6 +1055,7 @@ foreach (['lupto', 'pitco', 'picto', 'municipal'] as $rolePrefix) {
 //  PUBLIC routes (no auth required) — for mobile app unauthenticated features
 // ─────────────────────────────────────────────────────────────────────────────
 Route::prefix('public')->group(function () {
+    Route::get('/dashboard', [TouristDashboardController::class, 'index']);
     Route::get('/map', [MapController::class, 'publicMapData']);
     Route::get('/test', function () {
         return response()->json(['message' => 'test']);

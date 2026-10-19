@@ -394,6 +394,17 @@ if (is_dir($imgDir)) {
 <script>
     window.AVAILABLE_MUNI_IMAGES = <?= json_encode($municipalityImages) ?>;
 
+    function getDashBackendUrl() {
+        if (typeof window.getBackendUrl === 'function') {
+            const u = window.getBackendUrl();
+            if (u) return u.replace(/\/+$/, '');
+        }
+        if (window.backendUrl) return window.backendUrl.replace(/\/+$/, '');
+        if (window.BACKEND_URL) return window.BACKEND_URL.replace(/\/+$/, '');
+        return 'https://api.intan-elyu.online';
+    }
+    window.getDashBackendUrl = getDashBackendUrl;
+
     function updateDashboardOfflineStatus() {
         var pill = document.getElementById('dash-offline-pill');
         var isOffline = !navigator.onLine || window.isAppOnline === false;
@@ -760,8 +771,42 @@ if (is_dir($imgDir)) {
     };
 
     window.fetchAllTouristSpots = async function () {
-        const backendUrl = window.backendUrl || 'https://api.intan-elyu.online';
+        const backendUrl = getDashBackendUrl();
         const cacheKey = 'public_map_data';
+
+        // Instant synchronous render from cache if available (0ms delay)
+        let initialSpots = (window.allTouristSpots && window.allTouristSpots.length > 0) ? window.allTouristSpots : null;
+        if (!initialSpots) {
+            try {
+                const mapCache = window.safeJsonParse ? window.safeJsonParse(localStorage.getItem('public_map_data'), null)?.data : null;
+                initialSpots = (mapCache && mapCache.destinations) || null;
+            } catch(e) {}
+        }
+        if (!initialSpots) {
+            try {
+                const fallbackRaw = localStorage.getItem('intan_elyu_cached_spots_map');
+                if (fallbackRaw) {
+                    const parsed = JSON.parse(fallbackRaw)?.data;
+                    if (parsed && (parsed.destinations || parsed.spots)) {
+                        initialSpots = parsed.destinations || parsed.spots;
+                    }
+                }
+            } catch(e) {}
+        }
+        if (initialSpots && initialSpots.length > 0) {
+            window.allTouristSpots = initialSpots
+                .filter(d => !d.status || !['pending', 'draft', 'rejected'].includes(d.status.toLowerCase()))
+                .sort((a, b) => (b.id || 0) - (a.id || 0));
+            const activeCat = window.currentDashCategory || 'All';
+            let filtered = window.allTouristSpots;
+            if (activeCat !== 'All' && typeof window.matchesCategory === 'function') {
+                filtered = window.allTouristSpots.filter(d => window.matchesCategory(d.category, d.name, d.municipality || d.location, activeCat));
+            }
+            if (typeof window.renderAllTouristSpots === 'function') {
+                window.renderAllTouristSpots(filtered, activeCat);
+            }
+        }
+
         try {
             await window.useCache(
                 cacheKey,
@@ -792,7 +837,11 @@ if (is_dir($imgDir)) {
                         if (activeCat !== 'All' && typeof window.matchesCategory === 'function') {
                             filtered = window.allTouristSpots.filter(d => window.matchesCategory(d.category, d.name, d.municipality || d.location, activeCat));
                         }
-                        window.renderAllTouristSpots(filtered, activeCat);
+                        if (typeof window.renderAllTouristSpots === 'function') {
+                            window.renderAllTouristSpots(filtered, activeCat);
+                        }
+                    } else if (typeof handleDashboardEmptyOrError === 'function') {
+                        handleDashboardEmptyOrError();
                     }
                 },
                 false,
@@ -800,6 +849,9 @@ if (is_dir($imgDir)) {
             );
         } catch (e) {
             console.warn('fetchAllTouristSpots handled:', e);
+            if ((!initialSpots || initialSpots.length === 0) && typeof handleDashboardEmptyOrError === 'function') {
+                handleDashboardEmptyOrError();
+            }
         }
     };
 
@@ -888,12 +940,270 @@ if (is_dir($imgDir)) {
         }
     };
 
+    // ─────────────────────────────────────────────────────────────────────────────
+    //  Weather API Integration
+    // ─────────────────────────────────────────────────────────────────────────────
+    window.currentWeatherLocation = { lat: 16.6159, lng: 120.3209, name: 'San Fernando, La Union', isCurrentLoc: false };
+
+    window.renderWeatherIconHtml = function (iconEmoji, faIcon) {
+        if (faIcon) {
+            let color = '#fbbf24';
+            if (faIcon.includes('sun')) color = '#fbbf24';
+            else if (faIcon.includes('moon')) color = '#a78bfa';
+            else if (faIcon.includes('rain') || faIcon.includes('shower')) color = '#38bdf8';
+            else if (faIcon.includes('bolt')) color = '#f59e0b';
+            else if (faIcon.includes('cloud')) color = '#94a3b8';
+            else if (faIcon.includes('smog')) color = '#cbd5e1';
+
+            return `<i class="fa-solid ${faIcon}" style="color:${color}; filter:drop-shadow(0 0 10px ${color}80);"></i>`;
+        }
+        return iconEmoji || '⛅';
+    };
+
+    window.updateWeatherModal = function (data) {
+        if (!data) return;
+        const modalLoc = document.getElementById('modal-weather-loc');
+        const modalTemp = document.getElementById('modal-temp');
+        const modalCondition = document.getElementById('modal-condition');
+        const modalFeels = document.getElementById('modal-feels');
+        const modalIcon = document.getElementById('modal-icon');
+        const forecastContainer = document.getElementById('weather-forecast-container');
+
+        if (modalLoc) modalLoc.textContent = data.location;
+        if (modalTemp) modalTemp.textContent = `${data.temperature}°C`;
+        if (modalCondition) modalCondition.textContent = data.condition;
+        if (modalFeels) modalFeels.textContent = `Feels like ${data.feels_like}°C · Humidity ${data.humidity}% · Wind ${data.wind_speed}km/h`;
+        if (modalIcon) modalIcon.innerHTML = window.renderWeatherIconHtml(data.icon, data.fa_icon);
+
+        if (forecastContainer && data.forecast && data.forecast.length > 0) {
+            forecastContainer.innerHTML = data.forecast.map(item => `
+                <div style="background:rgba(0,0,0,0.12); border:none; border-radius:16px; padding:12px 16px; display:flex; align-items:center; justify-content:space-between;">
+                    <div style="display:flex; align-items:center; gap:14px;">
+                        <span style="font-size:26px; width:32px; text-align:center; display:inline-block;">${window.renderWeatherIconHtml(item.icon, item.fa_icon)}</span>
+                        <div>
+                            <div style="font-size:14px; font-weight:800; color:#fff;">${item.day}</div>
+                            <div style="font-size:11px; color:rgba(255,255,255,0.9);">${item.condition}</div>
+                        </div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div style="font-size:14px; font-weight:800; color:#fff;">${item.temp_max}° <span style="font-size:12px; color:rgba(255,255,255,0.8); font-weight:500;">/ ${item.temp_min}°C</span></div>
+                        <div style="font-size:10px; color:#ffffff; font-weight:700; margin-top:2px;"><i class="fa-solid fa-droplet" style="font-size:9px; color:#38bdf8;"></i> ${item.rain_prob}% rain</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+    };
+
+    window.fetchWeather = async function (lat = 16.6159, lng = 120.3209, locationName = 'San Fernando, La Union', isCurrentLoc = false) {
+        window.currentWeatherLocation = { lat, lng, name: locationName, isCurrentLoc };
+        const tempEl = document.getElementById('weather-temp');
+        const descEl = document.getElementById('weather-desc');
+        const locEl = document.getElementById('weather-loc');
+        const humidityEl = document.getElementById('weather-humidity');
+        const windEl = document.getElementById('weather-wind');
+        const uvEl = document.getElementById('weather-uv');
+        const iconEl = document.getElementById('weather-icon');
+
+        // Pre-hydrate from cache immediately so "Loading Weather..." disappears in 0ms
+        try {
+            const rawW = localStorage.getItem('intan_elyu_cached_weather');
+            if (rawW) {
+                const cw = (window.safeJsonParse ? window.safeJsonParse(rawW, null) : JSON.parse(rawW))?.data;
+                if (cw) {
+                    if (tempEl) tempEl.textContent = `${cw.temperature}°C`;
+                    if (descEl) descEl.textContent = cw.condition;
+                    if (locEl) locEl.innerHTML = `<i class="fa-solid fa-location-dot" style="color:#38bdf8; margin-right:4px;"></i> ${cw.location || locationName}`;
+                    if (humidityEl) humidityEl.textContent = `${cw.humidity}%`;
+                    if (windEl) windEl.textContent = `${cw.wind_speed} km/h`;
+                    if (uvEl) uvEl.textContent = cw.uv_index;
+                    if (iconEl) iconEl.innerHTML = window.renderWeatherIconHtml(cw.icon, cw.fa_icon);
+                    window.updateWeatherModal(cw);
+                }
+            }
+        } catch(e) {}
+
+        const isOffline = !navigator.onLine || window.isAppOnline === false;
+        if (isOffline) {
+            if (tempEl && tempEl.textContent.includes('Loading')) {
+                tempEl.textContent = '29°C';
+                if (descEl) descEl.textContent = 'Partly Cloudy';
+                if (locEl) locEl.innerHTML = `<i class="fa-solid fa-location-dot" style="color:#38bdf8; margin-right:4px;"></i> ${locationName}`;
+                if (humidityEl) humidityEl.textContent = '72%';
+                if (windEl) windEl.textContent = '14 km/h';
+                if (uvEl) uvEl.textContent = '6';
+                if (iconEl) iconEl.innerHTML = window.renderWeatherIconHtml('⛅', 'fa-cloud-sun');
+            }
+            return;
+        }
+
+        try {
+            const apiBase = getDashBackendUrl();
+            const isCurrentParam = isCurrentLoc ? '&is_current_location=1' : '';
+            const url = `${apiBase}/api/public/weather?lat=${lat}&lng=${lng}&location=${encodeURIComponent(locationName)}${isCurrentParam}`;
+
+            const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+            if (!res.ok) throw new Error('Weather request failed with status ' + res.status);
+            const data = await res.json();
+
+            try { localStorage.setItem('intan_elyu_cached_weather', JSON.stringify({ data, timestamp: Date.now() })); } catch(e) {}
+
+            if (tempEl) tempEl.textContent = `${data.temperature}°C`;
+            if (descEl) descEl.textContent = data.condition;
+            if (locEl) locEl.innerHTML = `<i class="fa-solid fa-location-dot" style="color:#38bdf8; margin-right:4px;"></i> ${data.location}`;
+            if (humidityEl) humidityEl.textContent = `${data.humidity}%`;
+            if (windEl) windEl.textContent = `${data.wind_speed} km/h`;
+            if (uvEl) uvEl.textContent = data.uv_index;
+            if (iconEl) iconEl.innerHTML = window.renderWeatherIconHtml(data.icon, data.fa_icon);
+
+            window.updateWeatherModal(data);
+        } catch (e) {
+            console.warn('Weather fetch error, checking cache or fallback:', e);
+            let cachedW = null;
+            try {
+                const rawW = localStorage.getItem('intan_elyu_cached_weather');
+                if (rawW) cachedW = (window.safeJsonParse ? window.safeJsonParse(rawW, null) : JSON.parse(rawW))?.data;
+            } catch(err) {}
+
+            if (cachedW) {
+                if (tempEl) tempEl.textContent = `${cachedW.temperature}°C`;
+                if (descEl) descEl.textContent = cachedW.condition;
+                if (locEl) locEl.innerHTML = `<i class="fa-solid fa-location-dot" style="color:#38bdf8; margin-right:4px;"></i> ${cachedW.location || locationName}`;
+                if (humidityEl) humidityEl.textContent = `${cachedW.humidity}%`;
+                if (windEl) windEl.textContent = `${cachedW.wind_speed} km/h`;
+                if (uvEl) uvEl.textContent = cachedW.uv_index;
+                if (iconEl) iconEl.innerHTML = window.renderWeatherIconHtml(cachedW.icon, cachedW.fa_icon);
+            } else {
+                if (tempEl) tempEl.textContent = '29°C';
+                if (descEl) descEl.textContent = 'Partly Cloudy';
+                if (locEl) locEl.innerHTML = `<i class="fa-solid fa-location-dot" style="color:#38bdf8; margin-right:4px;"></i> ${locationName}`;
+                if (humidityEl) humidityEl.textContent = '72%';
+                if (windEl) windEl.textContent = '14 km/h';
+                if (uvEl) uvEl.textContent = '6';
+                if (iconEl) iconEl.innerHTML = window.renderWeatherIconHtml('⛅', 'fa-cloud-sun');
+            }
+        }
+    };
+
+    window.locateMeForWeather = function () {
+        const locEl = document.getElementById('weather-loc');
+        const descEl = document.getElementById('weather-desc');
+        if (locEl) locEl.innerHTML = `<i class="fa-solid fa-location-dot fa-spin" style="color:#38bdf8; margin-right:4px;"></i> Detecting location...`;
+        if (descEl) descEl.textContent = 'Acquiring location...';
+
+        const fallbackToLocal = () => {
+            try {
+                const manual = localStorage.getItem('intan_elyu_manual_loc');
+                if (manual) {
+                    const parsed = JSON.parse(manual);
+                    if (parsed && parsed.lat && parsed.lng) {
+                        window.fetchWeather(parsed.lat, parsed.lng, parsed.name || 'La Union', false);
+                        if (typeof window.loadNearMe === 'function') window.loadNearMe(parsed.lat, parsed.lng, parsed.name);
+                        return;
+                    }
+                }
+            } catch (e) { }
+            window.fetchWeather(16.6159, 120.3209, 'San Fernando, La Union', false);
+            if (typeof window.loadNearMe === 'function') window.loadNearMe(16.6159, 120.3209, 'San Fernando City');
+        };
+
+        if (typeof window.requestPreciseLocation === 'function') {
+            window.requestPreciseLocation(true).then(loc => {
+                if (loc && loc.lat && loc.lng) {
+                    window.userCurrentCoords = { lat: loc.lat, lng: loc.lng };
+                    window.currentGPSLat = loc.lat;
+                    window.currentGPSLng = loc.lng;
+                    window.currentGPSSource = 'gps';
+                    window.fetchWeather(loc.lat, loc.lng, 'My Location 📍', true);
+                    if (typeof loadNearMe === 'function') loadNearMe(loc.lat, loc.lng);
+                } else {
+                    fallbackToLocal();
+                }
+            }).catch(() => {
+                fallbackToLocal();
+            });
+        } else if ("geolocation" in navigator) {
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    const lat = pos.coords.latitude;
+                    const lng = pos.coords.longitude;
+                    window.userCurrentCoords = { lat, lng };
+                    window.currentGPSLat = lat;
+                    window.currentGPSLng = lng;
+                    window.currentGPSSource = 'gps';
+                    window.fetchWeather(lat, lng, 'My Location 📍', true);
+                    if (typeof loadNearMe === 'function') loadNearMe(lat, lng);
+                },
+                (err) => {
+                    console.warn('GPS location failed/denied, using local fallback:', err);
+                    fallbackToLocal();
+                },
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+            );
+        } else {
+            fallbackToLocal();
+        }
+    };
+
+    window.openWeatherModal = function () {
+        const modal = document.getElementById('weather-modal');
+        if (modal) modal.style.display = 'flex';
+    };
+
+    window.closeWeatherModal = function () {
+        const modal = document.getElementById('weather-modal');
+        if (modal) modal.style.display = 'none';
+    };
+
+    window.changeWeatherLocation = function (valStr) {
+        if (valStr === 'GPS_CURRENT') {
+            window.locateMeForWeather();
+            return;
+        }
+        const parts = valStr.split(',');
+        if (parts.length >= 3) {
+            const lat = parseFloat(parts[0]);
+            const lng = parseFloat(parts[1]);
+            const name = parts[2];
+            window.fetchWeather(lat, lng, name + ', La Union', false);
+            if (typeof window.loadNearMe === 'function') {
+                window.loadNearMe(lat, lng, name);
+            }
+        }
+    };
+
+    // Live continuous GPS sync listener for real-time Near Me distances (debounced to eliminate twitching)
+    window._gpsDebounceTimer = window._gpsDebounceTimer || null;
+    document.addEventListener('gpsUpdated', function (e) {
+        if (e.detail && e.detail.lat && e.detail.lng) {
+            const liveLat = parseFloat(e.detail.lat);
+            const liveLng = parseFloat(e.detail.lng);
+            if (!isNaN(liveLat) && !isNaN(liveLng) && liveLat !== 0 && liveLng !== 0) {
+                window.userCurrentCoords = { lat: liveLat, lng: liveLng };
+                window.currentGPSLat = liveLat;
+                window.currentGPSLng = liveLng;
+                if (typeof window.loadNearMe === 'function') {
+                    clearTimeout(window._gpsDebounceTimer);
+                    window._gpsDebounceTimer = setTimeout(() => {
+                        window.loadNearMe(liveLat, liveLng);
+                    }, 1500);
+                }
+            }
+        }
+    });
+
+    // Auto locate & fetch weather on startup
+    setTimeout(() => {
+        if (typeof window.fetchWeather === 'function') {
+            window.locateMeForWeather();
+        }
+    }, 100);
+
     async function dashboardInit(forceRefresh = false) {
         const setTxt = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
         const setHtml = (id, html) => { const el = document.getElementById(id); if (el) el.innerHTML = html; };
         const setSrc = (id, src) => { const el = document.getElementById(id); if (el) el.src = src; };
 
-        var backendUrl = window.backendUrl || 'https://api.intan-elyu.online';
+        var backendUrl = getDashBackendUrl();
         const token = localStorage.getItem('intan_elyu_token');
         const user = window.safeJsonParse ? window.safeJsonParse(localStorage.getItem('auth_user'), {}) : {};
         const isGuest = !token || 
@@ -1282,6 +1592,38 @@ if (is_dir($imgDir)) {
                         <div class="dash-empty-icon-wrap"><i class="fa-solid fa-compass"></i></div>
                         <div class="dash-empty-title">No Recommendations</div>
                         <div class="dash-empty-desc">Explore more tourist spots to receive customized recommendations.</div>
+                    </div>`;
+                }
+            }
+
+            const tripsEl = document.getElementById('saved-trips-container');
+            if (tripsEl && tripsEl.querySelector('.dash-loading-state')) {
+                tripsEl.innerHTML = `
+                <div class="dash-empty-state">
+                    <div class="dash-empty-icon-wrap" style="background: #ffffff !important; color: #1e3a8a !important; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15) !important;">
+                        <i class="fa-solid fa-route" style="color: #1e3a8a !important;"></i>
+                    </div>
+                    <div class="dash-empty-title">No Saved Trips Yet</div>
+                    <div class="dash-empty-desc">Create custom itineraries and explore recommended routes for your La Union adventure.</div>
+                    <button type="button" onclick="navigateTo('itinerary')" class="dash-empty-btn">
+                        <i class="fa-solid fa-plus"></i> Plan a Trip
+                    </button>
+                </div>`;
+            }
+
+            const allSpotsEl = document.getElementById('all-spots-container');
+            if (allSpotsEl && allSpotsEl.querySelector('.dash-loading-state')) {
+                if (window.allTouristSpots && window.allTouristSpots.length > 0) {
+                    if (typeof window.renderAllTouristSpots === 'function') {
+                        window.renderAllTouristSpots(window.allTouristSpots);
+                    }
+                } else {
+                    allSpotsEl.innerHTML = `
+                    <div class="dash-empty-state" style="margin-top: 6px !important;">
+                        <div class="dash-empty-icon-wrap"><i class="fa-solid fa-compass"></i></div>
+                        <div class="dash-empty-title">Tourist Sites</div>
+                        <div class="dash-empty-desc">Explore destinations across La Union on the interactive map.</div>
+                        <button type="button" onclick="navigateTo('map')" class="dash-empty-btn"><i class="fa-solid fa-map-location-dot"></i> Open Map</button>
                     </div>`;
                 }
             }
@@ -1869,21 +2211,61 @@ if (is_dir($imgDir)) {
             token.startsWith('guest_') || 
             token.startsWith('offline_') || 
             localStorage.getItem('intan_elyu_guest') === 'true' ||
-            localStorage.getItem('intan_elyu_offline_guest') === 'true';
+            localStorage.getItem('intan_elyu_offline_guest') === 'true' ||
+            Boolean(user && (user.is_guest || user.is_offline_guest));
 
         if (isGuest) {
+            // Instantly clear trips loading state for guest
+            const guestTripsEl = document.getElementById('saved-trips-container');
+            if (guestTripsEl) {
+                guestTripsEl.innerHTML = `
+                    <div class="dash-empty-state">
+                        <div class="dash-empty-icon-wrap" style="background: #ffffff !important; color: #1e3a8a !important; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15) !important;">
+                            <i class="fa-solid fa-route" style="color: #1e3a8a !important;"></i>
+                        </div>
+                        <div class="dash-empty-title">No Saved Trips Yet</div>
+                        <div class="dash-empty-desc">Create custom itineraries and explore recommended routes for your La Union adventure.</div>
+                        <button type="button" onclick="navigateTo('itinerary')" class="dash-empty-btn">
+                            <i class="fa-solid fa-plus"></i> Plan a Trip
+                        </button>
+                    </div>
+                `;
+            }
+
+            // Instantly clear saved places loading state for guest
+            const guestSavedEl = document.getElementById('saved-places-container');
+            if (guestSavedEl) {
+                guestSavedEl.classList.add('is-empty');
+                guestSavedEl.innerHTML = `
+                    <div class="dash-empty-state">
+                        <div class="dash-empty-icon-wrap">
+                            <i class="fa-solid fa-map-location-dot"></i>
+                        </div>
+                        <div class="dash-empty-title">No Saved Places Yet</div>
+                        <div class="dash-empty-desc">Discover destinations on the map and tap the heart icon to save your favorite spots.</div>
+                        <button type="button" onclick="navigateTo('map')" class="dash-empty-btn">
+                            <i class="fa-solid fa-location-arrow"></i> Open Map
+                        </button>
+                    </div>
+                `;
+            }
+
             // Guest Mode: Populate dashboard using public map data without requiring private bearer token
             const renderGuestDashboard = (spots) => {
                 if (spots && spots.length > 0) {
                     const activeSpots = spots.filter(d => !d.status || !['pending', 'draft', 'rejected'].includes(d.status.toLowerCase()));
+                    window.allTouristSpots = activeSpots;
                     renderDashboard({
-                        user: user,
-                        stats: { placesVisited: 0, rank: 1, unread_notifications: 0 },
+                        user: { ...user, is_guest: true, name: 'Guest' },
+                        stats: { placesVisited: 0, rank: null, unread_notifications: 0 },
                         trending: [...activeSpots].sort((a, b) => (b.visits || 0) - (a.visits || 0)).slice(0, 5),
                         savedPlaces: [],
                         recommended: [...activeSpots].sort((a, b) => (parseFloat(b.rating || 0)) - (parseFloat(a.rating || 0))).slice(0, 5),
                         timeLabel: 'Popular in La Union'
                     });
+                    if (typeof window.renderAllTouristSpots === 'function') {
+                        window.renderAllTouristSpots(activeSpots);
+                    }
                 } else {
                     handleDashboardEmptyOrError();
                 }
@@ -1896,26 +2278,45 @@ if (is_dir($imgDir)) {
                     spots = (mapCache && mapCache.destinations) || null;
                 } catch(e) {}
             }
+            if (!spots) {
+                try {
+                    const fallbackRaw = localStorage.getItem('intan_elyu_cached_spots_map');
+                    if (fallbackRaw) {
+                        const parsed = JSON.parse(fallbackRaw)?.data;
+                        if (parsed && (parsed.destinations || parsed.spots)) {
+                            spots = parsed.destinations || parsed.spots;
+                        }
+                    }
+                } catch(e) {}
+            }
 
             if (spots && spots.length > 0) {
                 renderGuestDashboard(spots);
-            } else if (!isOffline) {
-                // Online Guest: Fetch public spots dynamically from API
-                const bUrl = (window.backendUrl || window.BACKEND_URL || 'https://api.intan-elyu.online').replace(/\/+$/, '');
-                fetch(`${bUrl}/api/public/map`, { headers: { 'Accept': 'application/json' } })
-                    .then(r => r.ok ? r.json() : null)
-                    .then(d => {
-                        const fetchedSpots = d ? (d.destinations || d.spots || d.data || []) : [];
-                        if (fetchedSpots.length > 0) {
-                            window.allTouristSpots = fetchedSpots;
-                            try { localStorage.setItem('public_map_data', JSON.stringify({ data: { destinations: fetchedSpots }, timestamp: Date.now() })); } catch(e) {}
-                            renderGuestDashboard(fetchedSpots);
-                        } else {
-                            handleDashboardEmptyOrError();
-                        }
-                    })
-                    .catch(() => handleDashboardEmptyOrError());
-            } else {
+            }
+
+            if (!isOffline) {
+                const bUrl = getDashBackendUrl();
+                // 1. Fetch public dashboard from backend
+                fetch(`${bUrl}/api/public/dashboard${(lat && lng) ? '?lat=' + lat + '&lng=' + lng : ''}`, { 
+                    headers: { 'Accept': 'application/json' } 
+                })
+                .then(r => r.ok ? r.json() : null)
+                .then(d => {
+                    if (d && (d.trending || d.recommended)) {
+                        renderDashboard(d);
+                    }
+                    if (typeof window.fetchAllTouristSpots === 'function') {
+                        window.fetchAllTouristSpots();
+                    }
+                })
+                .catch(() => {
+                    if (typeof window.fetchAllTouristSpots === 'function') {
+                        window.fetchAllTouristSpots();
+                    } else if (!spots || spots.length === 0) {
+                        handleDashboardEmptyOrError();
+                    }
+                });
+            } else if (!spots || spots.length === 0) {
                 handleDashboardEmptyOrError();
             }
 
@@ -2082,7 +2483,7 @@ if (is_dir($imgDir)) {
 
     window.toggleFavorite = function (destId, element) {
         const token = localStorage.getItem('intan_elyu_token');
-        var backendUrl = window.backendUrl || 'https://api.intan-elyu.online';
+        var backendUrl = getDashBackendUrl();
 
         const card = element.closest('.fav-card');
         const isSavedContainer = card && (card.closest('#saved-places-container') !== null);
@@ -2593,7 +2994,7 @@ if (is_dir($imgDir)) {
         }
 
         try {
-            const res = await fetch(window.backendUrl + '/api/tourist/itineraries/' + id, {
+            const res = await fetch(getDashBackendUrl() + '/api/tourist/itineraries/' + id, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': 'Bearer ' + token,
@@ -2646,251 +3047,6 @@ if (is_dir($imgDir)) {
             window.closeDeleteTripModal();
         }
     };
-
-    // ─────────────────────────────────────────────────────────────────────────────
-    //  Weather API Integration
-    // ─────────────────────────────────────────────────────────────────────────────
-    window.currentWeatherLocation = { lat: 16.6159, lng: 120.3209, name: 'San Fernando, La Union', isCurrentLoc: false };
-
-    window.fetchWeather = async function (lat = 16.6159, lng = 120.3209, locationName = 'San Fernando, La Union', isCurrentLoc = false) {
-        window.currentWeatherLocation = { lat, lng, name: locationName, isCurrentLoc };
-        const tempEl = document.getElementById('weather-temp');
-        const descEl = document.getElementById('weather-desc');
-        const locEl = document.getElementById('weather-loc');
-        const humidityEl = document.getElementById('weather-humidity');
-        const windEl = document.getElementById('weather-wind');
-        const uvEl = document.getElementById('weather-uv');
-        const iconEl = document.getElementById('weather-icon');
-
-        try {
-            const apiBase = window.backendUrl || '';
-            const isCurrentParam = isCurrentLoc ? '&is_current_location=1' : '';
-            const url = `${apiBase}/api/public/weather?lat=${lat}&lng=${lng}&location=${encodeURIComponent(locationName)}${isCurrentParam}`;
-            
-            // Fast offline render
-            if (!navigator.onLine) {
-                try {
-                    const rawW = localStorage.getItem('intan_elyu_cached_weather');
-                    if (rawW) {
-                        const cw = JSON.parse(rawW)?.data;
-                        if (cw) {
-                            if (tempEl) tempEl.textContent = `${cw.temperature}°C`;
-                            if (descEl) descEl.textContent = cw.condition;
-                            if (locEl) locEl.innerHTML = `<i class="fa-solid fa-location-dot" style="color:#38bdf8; margin-right:4px;"></i> ${cw.location}`;
-                            if (humidityEl) humidityEl.textContent = `${cw.humidity}%`;
-                            if (windEl) windEl.textContent = `${cw.wind_speed} km/h`;
-                            if (uvEl) uvEl.textContent = cw.uv_index;
-                            if (iconEl) iconEl.innerHTML = window.renderWeatherIconHtml(cw.icon, cw.fa_icon);
-                            window.updateWeatherModal(cw);
-                            return;
-                        }
-                    }
-                } catch(e) {}
-            }
-
-            const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
-            if (!res.ok) throw new Error('Weather request failed with status ' + res.status);
-            const data = await res.json();
-
-            try { localStorage.setItem('intan_elyu_cached_weather', JSON.stringify({ data, timestamp: Date.now() })); } catch(e) {}
-
-            if (tempEl) tempEl.textContent = `${data.temperature}°C`;
-            if (descEl) descEl.textContent = data.condition;
-            if (locEl) locEl.innerHTML = `<i class="fa-solid fa-location-dot" style="color:#38bdf8; margin-right:4px;"></i> ${data.location}`;
-            if (humidityEl) humidityEl.textContent = `${data.humidity}%`;
-            if (windEl) windEl.textContent = `${data.wind_speed} km/h`;
-            if (uvEl) uvEl.textContent = data.uv_index;
-            if (iconEl) iconEl.innerHTML = window.renderWeatherIconHtml(data.icon, data.fa_icon);
-
-            window.updateWeatherModal(data);
-        } catch (e) {
-            console.warn('Weather fetch error, checking cache or fallback:', e);
-            let cachedW = null;
-            try {
-                const rawW = localStorage.getItem('intan_elyu_cached_weather');
-                if (rawW) cachedW = JSON.parse(rawW)?.data;
-            } catch(err) {}
-
-            if (cachedW) {
-                if (tempEl) tempEl.textContent = `${cachedW.temperature}°C`;
-                if (descEl) descEl.textContent = cachedW.condition;
-                if (locEl) locEl.innerHTML = `<i class="fa-solid fa-location-dot" style="color:#38bdf8; margin-right:4px;"></i> ${cachedW.location}`;
-                if (humidityEl) humidityEl.textContent = `${cachedW.humidity}%`;
-                if (windEl) windEl.textContent = `${cachedW.wind_speed} km/h`;
-                if (uvEl) uvEl.textContent = cachedW.uv_index;
-                if (iconEl) iconEl.innerHTML = window.renderWeatherIconHtml(cachedW.icon, cachedW.fa_icon);
-            } else {
-                if (tempEl) tempEl.textContent = '29°C';
-                if (descEl) descEl.textContent = 'Partly Cloudy';
-                if (humidityEl) humidityEl.textContent = '72%';
-                if (windEl) windEl.textContent = '14 km/h';
-                if (uvEl) uvEl.textContent = '6';
-            }
-        }
-    };
-
-    window.renderWeatherIconHtml = function (iconEmoji, faIcon) {
-        if (faIcon) {
-            let color = '#fbbf24';
-            if (faIcon.includes('sun')) color = '#fbbf24';
-            else if (faIcon.includes('moon')) color = '#a78bfa';
-            else if (faIcon.includes('rain') || faIcon.includes('shower')) color = '#38bdf8';
-            else if (faIcon.includes('bolt')) color = '#f59e0b';
-            else if (faIcon.includes('cloud')) color = '#94a3b8';
-            else if (faIcon.includes('smog')) color = '#cbd5e1';
-
-            return `<i class="fa-solid ${faIcon}" style="color:${color}; filter:drop-shadow(0 0 10px ${color}80);"></i>`;
-        }
-        return iconEmoji || '⛅';
-    };
-
-    window.locateMeForWeather = function () {
-        const locEl = document.getElementById('weather-loc');
-        const descEl = document.getElementById('weather-desc');
-        if (locEl) locEl.innerHTML = `<i class="fa-solid fa-location-dot fa-spin" style="color:#38bdf8; margin-right:4px;"></i> Detecting location...`;
-        if (descEl) descEl.textContent = 'Acquiring location...';
-
-        const fallbackToLocal = () => {
-            try {
-                const manual = localStorage.getItem('intan_elyu_manual_loc');
-                if (manual) {
-                    const parsed = JSON.parse(manual);
-                    if (parsed && parsed.lat && parsed.lng) {
-                        window.fetchWeather(parsed.lat, parsed.lng, parsed.name || 'La Union', false);
-                        if (typeof window.loadNearMe === 'function') window.loadNearMe(parsed.lat, parsed.lng, parsed.name);
-                        return;
-                    }
-                }
-            } catch (e) { }
-            window.fetchWeather(16.6159, 120.3209, 'San Fernando, La Union', false);
-            if (typeof window.loadNearMe === 'function') window.loadNearMe(16.6159, 120.3209, 'San Fernando City');
-        };
-
-        if (typeof window.requestPreciseLocation === 'function') {
-            window.requestPreciseLocation(true).then(loc => {
-                if (loc && loc.lat && loc.lng) {
-                    window.userCurrentCoords = { lat: loc.lat, lng: loc.lng };
-                    window.currentGPSLat = loc.lat;
-                    window.currentGPSLng = loc.lng;
-                    window.currentGPSSource = 'gps';
-                    window.fetchWeather(loc.lat, loc.lng, 'My Location 📍', true);
-                    if (typeof loadNearMe === 'function') loadNearMe(loc.lat, loc.lng);
-                } else {
-                    fallbackToLocal();
-                }
-            }).catch(() => {
-                fallbackToLocal();
-            });
-        } else if ("geolocation" in navigator) {
-            navigator.geolocation.getCurrentPosition(
-                (pos) => {
-                    const lat = pos.coords.latitude;
-                    const lng = pos.coords.longitude;
-                    window.userCurrentCoords = { lat, lng };
-                    window.currentGPSLat = lat;
-                    window.currentGPSLng = lng;
-                    window.currentGPSSource = 'gps';
-                    window.fetchWeather(lat, lng, 'My Location 📍', true);
-                    if (typeof loadNearMe === 'function') loadNearMe(lat, lng);
-                },
-                (err) => {
-                    console.warn('GPS location failed/denied, using local fallback:', err);
-                    fallbackToLocal();
-                },
-                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-            );
-        } else {
-            fallbackToLocal();
-        }
-    };
-
-    // Live continuous GPS sync listener for real-time Near Me distances (debounced to eliminate twitching)
-    window._gpsDebounceTimer = window._gpsDebounceTimer || null;
-    document.addEventListener('gpsUpdated', function (e) {
-        if (e.detail && e.detail.lat && e.detail.lng) {
-            const liveLat = parseFloat(e.detail.lat);
-            const liveLng = parseFloat(e.detail.lng);
-            if (!isNaN(liveLat) && !isNaN(liveLng) && liveLat !== 0 && liveLng !== 0) {
-                window.userCurrentCoords = { lat: liveLat, lng: liveLng };
-                window.currentGPSLat = liveLat;
-                window.currentGPSLng = liveLng;
-                if (typeof window.loadNearMe === 'function') {
-                    clearTimeout(window._gpsDebounceTimer);
-                    window._gpsDebounceTimer = setTimeout(() => {
-                        window.loadNearMe(liveLat, liveLng);
-                    }, 1500);
-                }
-            }
-        }
-    });
-
-    window.updateWeatherModal = function (data) {
-        const modalLoc = document.getElementById('modal-weather-loc');
-        const modalTemp = document.getElementById('modal-temp');
-        const modalCondition = document.getElementById('modal-condition');
-        const modalFeels = document.getElementById('modal-feels');
-        const modalIcon = document.getElementById('modal-icon');
-        const forecastContainer = document.getElementById('weather-forecast-container');
-        const muniSelect = document.getElementById('weather-muni-select');
-
-        if (modalLoc) modalLoc.textContent = data.location;
-        if (modalTemp) modalTemp.textContent = `${data.temperature}°C`;
-        if (modalCondition) modalCondition.textContent = data.condition;
-        if (modalFeels) modalFeels.textContent = `Feels like ${data.feels_like}°C · Humidity ${data.humidity}% · Wind ${data.wind_speed}km/h`;
-        if (modalIcon) modalIcon.innerHTML = window.renderWeatherIconHtml(data.icon, data.fa_icon);
-
-        if (forecastContainer && data.forecast && data.forecast.length > 0) {
-            forecastContainer.innerHTML = data.forecast.map(item => `
-                <div style="background:rgba(0,0,0,0.12); border:none; border-radius:16px; padding:12px 16px; display:flex; align-items:center; justify-content:space-between;">
-                    <div style="display:flex; align-items:center; gap:14px;">
-                        <span style="font-size:26px; width:32px; text-align:center; display:inline-block;">${window.renderWeatherIconHtml(item.icon, item.fa_icon)}</span>
-                        <div>
-                            <div style="font-size:14px; font-weight:800; color:#fff;">${item.day}</div>
-                            <div style="font-size:11px; color:rgba(255,255,255,0.9);">${item.condition}</div>
-                        </div>
-                    </div>
-                    <div style="text-align:right;">
-                        <div style="font-size:14px; font-weight:800; color:#fff;">${item.temp_max}° <span style="font-size:12px; color:rgba(255,255,255,0.8); font-weight:500;">/ ${item.temp_min}°C</span></div>
-                        <div style="font-size:10px; color:#ffffff; font-weight:700; margin-top:2px;"><i class="fa-solid fa-droplet" style="font-size:9px; color:#38bdf8;"></i> ${item.rain_prob}% rain</div>
-                    </div>
-                </div>
-            `).join('');
-        }
-    };
-
-    window.openWeatherModal = function () {
-        const modal = document.getElementById('weather-modal');
-        if (modal) modal.style.display = 'flex';
-    };
-
-    window.closeWeatherModal = function () {
-        const modal = document.getElementById('weather-modal');
-        if (modal) modal.style.display = 'none';
-    };
-
-    window.changeWeatherLocation = function (valStr) {
-        if (valStr === 'GPS_CURRENT') {
-            window.locateMeForWeather();
-            return;
-        }
-        const parts = valStr.split(',');
-        if (parts.length >= 3) {
-            const lat = parseFloat(parts[0]);
-            const lng = parseFloat(parts[1]);
-            const name = parts[2];
-            window.fetchWeather(lat, lng, name + ', La Union', false);
-            if (typeof window.loadNearMe === 'function') {
-                window.loadNearMe(lat, lng, name);
-            }
-        }
-    };
-
-    // Auto locate & fetch weather on startup
-    setTimeout(() => {
-        if (typeof window.fetchWeather === 'function') {
-            window.locateMeForWeather();
-        }
-    }, 100);
 
     // =========================================================================
     // ONBOARDING MODAL CONTROLLER (Complete Profile)
@@ -2956,7 +3112,7 @@ if (is_dir($imgDir)) {
 
         if (token) {
             try {
-                const res = await fetch((window.backendUrl || window.location.origin) + '/api/tourist/profile', {
+                const res = await fetch(getDashBackendUrl() + '/api/tourist/profile', {
                     method: 'POST',
                     headers: { 'Accept': 'application/json', 'Authorization': 'Bearer ' + token },
                     body: formData
