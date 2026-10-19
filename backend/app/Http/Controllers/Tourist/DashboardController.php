@@ -41,7 +41,7 @@ class DashboardController extends Controller
             return TouristSpot::activeForTourists()
                 ->orderByDesc('visits')
                 ->limit($trendingLimit)
-                ->get(['id', 'name', 'category', 'photo_url', 'latitude', 'longitude', 'visits', 'rating', 'description', 'entrance_fee', 'adult_fee', 'kids_fee', 'pwd_fee', 'senior_citizen_fee', 'entrance_fee_types', 'environmental_fee', 'fee_types', 'classification_status', 'municipality_id', 'status', 'maximum_capacity'])
+                ->get(['id', 'name', 'category', 'photo_url', 'latitude', 'longitude', 'visits', 'rating', 'description', 'entrance_fee', 'adult_fee', 'kids_fee', 'pwd_fee', 'senior_citizen_fee', 'entrance_fee_types', 'environmental_fee', 'fee_types', 'classification_status', 'municipality_id', 'status'])
                 ->map(fn($s) => $this->formatSpot($s))
                 ->toArray();
         });
@@ -255,7 +255,7 @@ class DashboardController extends Controller
             'fee_types'    => $spot->fee_types ?? [],
             'classification_status' => $spot->classification_status,
             'status'       => $spot->status ?? 'approved',
-            'maximum_capacity' => $spot->maximum_capacity ? (int) $spot->maximum_capacity : null,
+            'maximum_capacity' => (isset($spot->maximum_capacity) && $spot->maximum_capacity) ? (int) $spot->maximum_capacity : null,
             'municipality_id' => $spot->municipality_id,
             'municipality' => $muniName,
             'location'     => $muniName,
