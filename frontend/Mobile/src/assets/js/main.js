@@ -1588,7 +1588,6 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
     }
 
     // Mobile Guest Session Initialization:
-    // If not authenticated, ensure an exploratory Guest session is available without forcing login!
     let authToken = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
     const isNetworkOffline = !navigator.onLine || window.isAppOnline === false;
 
@@ -1598,22 +1597,28 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
             localStorage.setItem('intan_elyu_token', authToken);
             localStorage.setItem('intan_elyu_offline_mode', 'true');
             localStorage.setItem('intan_elyu_offline_guest', 'true');
-        } else {
+        } else if (localStorage.getItem('intan_elyu_guest') === 'true') {
+            // User explicitly tapped "Continue as Guest" on Auth screen
             authToken = 'guest_token';
             localStorage.setItem('intan_elyu_token', authToken);
-            localStorage.setItem('intan_elyu_guest', 'true');
-            localStorage.removeItem('intan_elyu_offline_mode');
-            localStorage.removeItem('intan_elyu_offline_guest');
-            sessionStorage.removeItem('elyu_show_offline_bypass_notice');
+        } else {
+            // Online and unauthenticated: do NOT auto-create a guest session!
+            // Direct to Auth screen where the user can sign in or tap "Continue as Guest"
+            targetView = 'auth';
+            if (addToHistory) {
+                try {
+                    window.history.replaceState({ view: 'auth' }, '', 'index.php?view=auth');
+                } catch (e) { }
+            }
         }
-        if (!localStorage.getItem('auth_user')) {
+        if (!localStorage.getItem('auth_user') && (isNetworkOffline || localStorage.getItem('intan_elyu_guest') === 'true')) {
             localStorage.setItem('auth_user', JSON.stringify({
                 id: isNetworkOffline ? 'offline_guest' : 'guest',
                 user_id: isNetworkOffline ? 'offline_guest' : 'guest',
-                name: 'Guest Explorer',
+                name: 'Guest',
                 full_name: 'Guest Explorer',
                 role: 'tourist',
-                tourist_number: isNetworkOffline ? 'OFFLINE' : 'GUEST',
+                tourist_number: '',
                 points: 0,
                 xp: 0,
                 completed_activities: 0,
@@ -1905,6 +1910,16 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
 
                 // Dispatch viewLoaded event for view auto-refresh and lifecycle handlers
                 window.dispatchEvent(new CustomEvent('viewLoaded', { detail: { view: targetView } }));
+
+                if (targetView === 'profile' && typeof window.updateProfileAccessBarrier === 'function') {
+                    window.updateProfileAccessBarrier();
+                }
+                if (targetView === 'dashboard' && typeof window.updateDashboardProfileHeader === 'function') {
+                    const _curTok = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+                    const _isG = !_curTok || _curTok === 'guest_token' || _curTok === 'offline_guest_token' || _curTok.indexOf('guest_') === 0 || _curTok.indexOf('offline_') === 0 || localStorage.getItem('intan_elyu_guest') === 'true' || localStorage.getItem('intan_elyu_offline_guest') === 'true';
+                    const _curU = window.safeJsonParse ? window.safeJsonParse(localStorage.getItem('auth_user'), {}) : {};
+                    window.updateDashboardProfileHeader(_isG, _curU);
+                }
 
                 // Post-render scroll resets on next animation frames and timeouts to guarantee top placement
                 resetAppScrollTop();

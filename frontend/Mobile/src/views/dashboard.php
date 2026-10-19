@@ -37,6 +37,21 @@ if (is_dir($imgDir)) {
         <span>Offline Mode &bull; Showing Saved Guides & Local GPS</span>
     </div>
 
+    <!-- Dynamic Guard Style for Instant Guest Profile Header Sanitization -->
+    <style id="dash-guest-guard-style"></style>
+    <script>
+        (function() {
+            try {
+                var t = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+                var isG = !t || t === 'guest_token' || t === 'offline_guest_token' || t.indexOf('guest_') === 0 || t.indexOf('offline_') === 0 || localStorage.getItem('intan_elyu_guest') === 'true' || localStorage.getItem('intan_elyu_offline_guest') === 'true';
+                var st = document.getElementById('dash-guest-guard-style');
+                if (st && isG) {
+                    st.textContent = '#dash-explorer-id, #dash-title-row, #dash-stats-row { display: none !important; } #dash-guest-subtitle { display: flex !important; }';
+                }
+            } catch(e) {}
+        })();
+    </script>
+
     <!-- Profile Card with embedded Stats -->
     <div class="profile-header stagger-1" onclick="navigateTo('profile')"
         style="background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline: none !important; box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important;">
@@ -53,18 +68,21 @@ if (is_dir($imgDir)) {
                                 style="color:#fbbf24; font-size:18px; margin-left:4px;"></i></h2>
                         <span id="dash-explorer-id">ID: #--</span>
                     </div>
-                    <div style="display:flex; align-items:center; gap:8px; margin-top:6px; flex-wrap:wrap;">
+                    <div id="dash-title-row" style="display:flex; align-items:center; gap:8px; margin-top:6px; flex-wrap:wrap;">
                         <span class="profile-title" id="dash-title"><i class="fa-solid fa-compass"
                                 style="color:#ffffff; font-size:11px;"></i> Explorer of Elyu</span>
                         <span id="dash-status-badge"><i class="fa-solid fa-circle"
                                 style="font-size:6px; margin-right:4px; color:#ffffff;"></i> Active Tourist</span>
+                    </div>
+                    <div id="dash-guest-subtitle" style="display:none; align-items:center; gap:6px; margin-top:6px; font-size:12px; color:#93c5fd; font-weight:700;">
+                        <i class="fa-solid fa-user-clock"></i> Guest Explorer &bull; Tap to sign in
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- 3 Stat Cards inside Profile Card (Sleek & Visible, No Outlines) -->
-        <div class="stats-row" style="margin-bottom:0; display:grid; grid-template-columns:repeat(3, 1fr); gap:8px;">
+        <div class="stats-row" id="dash-stats-row" style="margin-bottom:0; display:grid; grid-template-columns:repeat(3, 1fr); gap:8px;">
             <div class="stat-card" onclick="event.stopPropagation(); navigateTo('itinerary');"
                 style="background: linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.14) 100%) !important; border: none !important; outline: none !important; border-radius: 16px; padding: 10px 6px; text-align: center; cursor: pointer; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 4px 14px rgba(10, 25, 60, 0.2) !important; transition: transform 0.2s ease;">
                 <div class="stat-icon" style="font-size:18px; margin-bottom:3px;"><i
@@ -878,11 +896,61 @@ if (is_dir($imgDir)) {
         var backendUrl = window.backendUrl || 'https://api.intan-elyu.online';
         const token = localStorage.getItem('intan_elyu_token');
         const user = window.safeJsonParse ? window.safeJsonParse(localStorage.getItem('auth_user'), {}) : {};
+        const isGuest = !token || 
+            token === 'guest_token' || 
+            token === 'offline_guest_token' || 
+            token.indexOf('guest_') === 0 || 
+            token.indexOf('offline_') === 0 || 
+            localStorage.getItem('intan_elyu_guest') === 'true' ||
+            localStorage.getItem('intan_elyu_offline_guest') === 'true' ||
+            Boolean(user && (user.is_guest || user.is_offline_guest));
 
-        // Instant render from cache
-        if (user && user.name) {
-            setHtml('dash-name', 'Hi, ' + user.name.split(' ')[0] + '! <i class="fa-solid fa-hand" style="color:#fbbf24; font-size:18px; margin-left:4px;"></i>');
-            setSrc('dash-avatar', user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=007AFF&color=fff&rounded=true&bold=true&size=128`);
+        function updateDashboardProfileHeader(isG, u) {
+            const idEl = document.getElementById('dash-explorer-id');
+            const titleEl = document.getElementById('dash-title');
+            const badgeEl = document.getElementById('dash-status-badge');
+            const titleRow = document.getElementById('dash-title-row');
+            const statsRow = document.getElementById('dash-stats-row');
+            const guestSub = document.getElementById('dash-guest-subtitle');
+            const guardStyle = document.getElementById('dash-guest-guard-style');
+
+            if (isG) {
+                if (guardStyle) guardStyle.textContent = '#dash-explorer-id, #dash-title-row, #dash-stats-row { display: none !important; } #dash-guest-subtitle { display: flex !important; }';
+                if (idEl) idEl.style.setProperty('display', 'none', 'important');
+                if (titleEl) titleEl.style.setProperty('display', 'none', 'important');
+                if (badgeEl) badgeEl.style.setProperty('display', 'none', 'important');
+                if (titleRow) titleRow.style.setProperty('display', 'none', 'important');
+                if (statsRow) statsRow.style.setProperty('display', 'none', 'important');
+                if (guestSub) guestSub.style.setProperty('display', 'flex', 'important');
+
+                setHtml('dash-name', 'Hi, Guest! <i class="fa-solid fa-hand" style="color:#fbbf24; font-size:18px; margin-left:4px;"></i>');
+                setSrc('dash-avatar', 'https://ui-avatars.com/api/?name=Guest&background=1e3a8a&color=fff&rounded=true&bold=true&size=128');
+            } else {
+                if (guardStyle) guardStyle.textContent = '';
+                if (idEl) idEl.style.display = 'inline-block';
+                if (titleEl) titleEl.style.display = 'inline-flex';
+                if (badgeEl) badgeEl.style.display = 'inline-flex';
+                if (titleRow) titleRow.style.display = 'flex';
+                if (statsRow) statsRow.style.display = 'grid';
+                if (guestSub) guestSub.style.display = 'none';
+
+                const firstName = (u && u.name ? u.name : 'Explorer').split(' ')[0];
+                setHtml('dash-name', 'Hi, ' + firstName + '! <i class="fa-solid fa-hand" style="color:#fbbf24; font-size:18px; margin-left:4px;"></i>');
+                setTxt('dash-title', 'Explorer of Elyu');
+                if (u && u.avatar) {
+                    setSrc('dash-avatar', u.avatar);
+                } else if (u && u.name) {
+                    setSrc('dash-avatar', `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name)}&background=007AFF&color=fff&rounded=true&bold=true&size=128`);
+                }
+            }
+        }
+        window.updateDashboardProfileHeader = updateDashboardProfileHeader;
+
+        // Apply instant profile header state
+        updateDashboardProfileHeader(isGuest, user);
+
+        // Instant render stats from cache only if NOT guest
+        if (!isGuest && user && user.name) {
             const initTouristNum = user.tourist_number || user.tourist_id || (user.role === 'tourist' ? 1 : '');
             if (initTouristNum) {
                 setTxt('dash-explorer-id', 'ID: #' + initTouristNum);
@@ -910,14 +978,10 @@ if (is_dir($imgDir)) {
                 const initRank = user.my_rank || user.rank || (window._cachedMyRank !== undefined ? window._cachedMyRank : null);
                 if (initRank && initRank < 999) {
                     rankEl.textContent = '#' + initRank;
-                } else if (user.is_guest || user.is_offline_guest) {
-                    rankEl.textContent = '—';
                 } else if (initRank) {
                     rankEl.textContent = '#' + initRank;
                 }
             }
-
-            setTxt('dash-title', 'Explorer of Elyu');
         }
 
         // Show offline mode notification banner & toast ONLY if really offline
@@ -1278,88 +1342,98 @@ if (is_dir($imgDir)) {
             }
 
             const u = data.user || {};
+            const isGuestSession = !token || 
+                token === 'guest_token' || 
+                token === 'offline_guest_token' || 
+                token.indexOf('guest_') === 0 || 
+                token.indexOf('offline_') === 0 || 
+                localStorage.getItem('intan_elyu_guest') === 'true' || 
+                localStorage.getItem('intan_elyu_offline_guest') === 'true' || 
+                Boolean(u && (u.is_guest || u.is_offline_guest));
 
-            const points = parseInt(u.points !== undefined ? u.points : (u.xp || 0)) || 0;
-
-            // Profile header
-            const firstName = (u.name || 'Explorer').split(' ')[0];
-            setHtml('dash-name', 'Hi, ' + firstName + '! <i class="fa-solid fa-hand" style="color:#fbbf24; font-size:18px; margin-left:4px;"></i>');
-            setTxt('dash-title', 'Explorer of Elyu');
-
-            const touristNum = u.tourist_number || u.tourist_id || (u.role === 'tourist' ? 1 : (u.id || u.user_id || ''));
-            if (touristNum) {
-                setTxt('dash-explorer-id', 'ID: #' + touristNum);
-                try {
-                    const storedUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
-                    storedUser.tourist_number = touristNum;
-                    storedUser.tourist_id = touristNum;
-                    localStorage.setItem('auth_user', JSON.stringify(storedUser));
-                } catch (e) { }
+            if (typeof updateDashboardProfileHeader === 'function') {
+                updateDashboardProfileHeader(isGuestSession, u);
             }
 
-            if (u.avatar) {
-                let avatarUrl = u.avatar;
-                if (avatarUrl.includes('localhost:3000') || avatarUrl.includes('127.0.0.1:3000')) {
-                    avatarUrl = avatarUrl.replace(/http:\/\/(localhost|127\.0\.0\.1):3000/, window.backendUrl || 'http://localhost:8000');
-                }
-                if (!avatarUrl.startsWith('http') && !avatarUrl.startsWith('data:') && !avatarUrl.startsWith('blob:')) {
-                    let b = (window.backendUrl || '').replace(/\/+$/, '');
-                    avatarUrl = b + '/' + avatarUrl.replace(/^\//, '');
-                }
+            if (!isGuestSession) {
+                // Profile header
+                const firstName = (u.name || 'Explorer').split(' ')[0];
+                setHtml('dash-name', 'Hi, ' + firstName + '! <i class="fa-solid fa-hand" style="color:#fbbf24; font-size:18px; margin-left:4px;"></i>');
+                setTxt('dash-title', 'Explorer of Elyu');
 
-                const dashAvatarEl = document.getElementById('dash-avatar');
-                if (dashAvatarEl) {
-                    let fallbackAvatar = (window.backendUrl || '').replace(/\/+$/, '') + '/api/image/' + u.avatar.replace(/^\//, '');
-                    dashAvatarEl.onerror = function () {
-                        if (this.src !== fallbackAvatar) {
-                            this.src = fallbackAvatar;
-                        } else {
-                            this.onerror = null;
-                            this.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name || 'Tourist')}&background=007AFF&color=fff&rounded=true&bold=true&size=128`;
-                        }
-                    };
-                    dashAvatarEl.src = avatarUrl;
-                }
-            } else {
-                setSrc('dash-avatar', `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name || 'Tourist')}&background=007AFF&color=fff&rounded=true&bold=true&size=128`);
-            }
-
-            // Stats
-            let visitedCount = 0;
-            if (data.stats && (data.stats.placesVisited !== undefined && data.stats.placesVisited !== null)) {
-                visitedCount = parseInt(data.stats.placesVisited, 10);
-            }
-            if (visitedCount === 0 && u) {
-                visitedCount = parseInt(u.places_visited || u.completed_activities || 0, 10);
-            }
-            if (visitedCount === 0) {
-                try {
-                    const localTrips = JSON.parse(localStorage.getItem('intan_elyu_saved_trips') || localStorage.getItem('intan_elyu_offline_saved_trips_backup') || '[]');
-                    const completed = localTrips.filter(t => t.status === 'completed' || t.is_completed);
-                    let spotSet = new Set();
-                    completed.forEach(t => (t.items || t.spots || []).forEach(s => { if (s.id || s.tourist_spot_id) spotSet.add(s.id || s.tourist_spot_id); }));
-                    if (spotSet.size > 0) visitedCount = spotSet.size;
-                    else if (completed.length > 0) visitedCount = completed.length;
-                } catch(e) {}
-            }
-            if (document.getElementById('dash-stat-places')) document.getElementById('dash-stat-places').textContent = visitedCount.toLocaleString();
-            if (document.getElementById('dash-stat-points')) document.getElementById('dash-stat-points').textContent = points.toLocaleString();
-
-            const rVal = (data && (data.myRank || data.my_rank || (data.stats && (data.stats.rank || data.stats.myRank))));
-            const rankEl = document.getElementById('dash-stat-rank');
-            if (rankEl) {
-                if (rVal && rVal < 999) {
-                    rankEl.textContent = '#' + rVal;
+                const touristNum = u.tourist_number || u.tourist_id || (u.role === 'tourist' ? 1 : (u.id || u.user_id || ''));
+                if (touristNum) {
+                    setTxt('dash-explorer-id', 'ID: #' + touristNum);
                     try {
-                        localStorage.setItem('my_rank', rVal);
-                        const authU = JSON.parse(localStorage.getItem('auth_user') || '{}');
-                        authU.my_rank = rVal;
-                        localStorage.setItem('auth_user', JSON.stringify(authU));
+                        const storedUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
+                        storedUser.tourist_number = touristNum;
+                        storedUser.tourist_id = touristNum;
+                        localStorage.setItem('auth_user', JSON.stringify(storedUser));
                     } catch (e) { }
-                } else if (u && (u.is_guest || u.is_offline_guest)) {
-                    rankEl.textContent = '—';
-                } else if (rVal) {
-                    rankEl.textContent = '#' + rVal;
+                }
+
+                if (u.avatar) {
+                    let avatarUrl = u.avatar;
+                    if (avatarUrl.includes('localhost:3000') || avatarUrl.includes('127.0.0.1:3000')) {
+                        avatarUrl = avatarUrl.replace(/http:\/\/(localhost|127\.0\.0\.1):3000/, window.backendUrl || 'http://localhost:8000');
+                    }
+                    if (!avatarUrl.startsWith('http') && !avatarUrl.startsWith('data:') && !avatarUrl.startsWith('blob:')) {
+                        let b = (window.backendUrl || '').replace(/\/+$/, '');
+                        avatarUrl = b + '/' + avatarUrl.replace(/^\//, '');
+                    }
+
+                    const dashAvatarEl = document.getElementById('dash-avatar');
+                    if (dashAvatarEl) {
+                        let fallbackAvatar = (window.backendUrl || '').replace(/\/+$/, '') + '/api/image/' + u.avatar.replace(/^\//, '');
+                        dashAvatarEl.onerror = function () {
+                            if (this.src !== fallbackAvatar) {
+                                this.src = fallbackAvatar;
+                            } else {
+                                this.onerror = null;
+                                this.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name || 'Tourist')}&background=007AFF&color=fff&rounded=true&bold=true&size=128`;
+                            }
+                        };
+                        dashAvatarEl.src = avatarUrl;
+                    }
+                } else {
+                    setSrc('dash-avatar', `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name || 'Tourist')}&background=007AFF&color=fff&rounded=true&bold=true&size=128`);
+                }
+
+                // Stats
+                let visitedCount = 0;
+                if (data.stats && (data.stats.placesVisited !== undefined && data.stats.placesVisited !== null)) {
+                    visitedCount = parseInt(data.stats.placesVisited, 10);
+                }
+                if (visitedCount === 0 && u) {
+                    visitedCount = parseInt(u.places_visited || u.completed_activities || 0, 10);
+                }
+                if (visitedCount === 0) {
+                    try {
+                        const localTrips = JSON.parse(localStorage.getItem('intan_elyu_saved_trips') || localStorage.getItem('intan_elyu_offline_saved_trips_backup') || '[]');
+                        const completed = localTrips.filter(t => t.status === 'completed' || t.is_completed);
+                        let spotSet = new Set();
+                        completed.forEach(t => (t.items || t.spots || []).forEach(s => { if (s.id || s.tourist_spot_id) spotSet.add(s.id || s.tourist_spot_id); }));
+                        if (spotSet.size > 0) visitedCount = spotSet.size;
+                        else if (completed.length > 0) visitedCount = completed.length;
+                    } catch(e) {}
+                }
+                if (document.getElementById('dash-stat-places')) document.getElementById('dash-stat-places').textContent = visitedCount.toLocaleString();
+                if (document.getElementById('dash-stat-points')) document.getElementById('dash-stat-points').textContent = points.toLocaleString();
+
+                const rVal = (data && (data.myRank || data.my_rank || (data.stats && (data.stats.rank || data.stats.myRank))));
+                const rankEl = document.getElementById('dash-stat-rank');
+                if (rankEl) {
+                    if (rVal && rVal < 999) {
+                        rankEl.textContent = '#' + rVal;
+                        try {
+                            localStorage.setItem('my_rank', rVal);
+                            const authU = JSON.parse(localStorage.getItem('auth_user') || '{}');
+                            authU.my_rank = rVal;
+                            localStorage.setItem('auth_user', JSON.stringify(authU));
+                        } catch (e) { }
+                    } else if (rVal) {
+                        rankEl.textContent = '#' + rVal;
+                    }
                 }
             }
 
@@ -1873,9 +1947,10 @@ if (is_dir($imgDir)) {
                     });
                     if (!res.ok) {
                         if (res.status === 401) {
-                            if (isOfflineGuest) {
-                                console.warn("Offline mode active; suppressing auth redirect.");
-                                throw new Error("Offline guest session");
+                            const isGuestToken = isOfflineGuest || !token || token === 'guest_token' || token === 'offline_guest_token' || token.indexOf('guest_') === 0 || token.indexOf('offline_') === 0 || localStorage.getItem('intan_elyu_guest') === 'true' || localStorage.getItem('intan_elyu_offline_guest') === 'true';
+                            if (isGuestToken) {
+                                console.warn("Guest mode active; suppressing auth redirect.");
+                                throw new Error("Guest session");
                             } else {
                                 localStorage.removeItem('intan_elyu_token');
                                 localStorage.removeItem('auth_user');

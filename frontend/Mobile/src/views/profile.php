@@ -9,6 +9,21 @@ $activeTab = 'profile';
 
 <div class="profile-container has-header has-bottom-nav animate-slide-up">
 
+    <!-- Dynamic Guard Style for Instant Guest Profile Barrier Enforcement -->
+    <style id="profile-guest-guard-style"></style>
+    <script>
+        (function() {
+            try {
+                var t = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+                var isG = !t || t === 'guest_token' || t === 'offline_guest_token' || t.indexOf('guest_') === 0 || t.indexOf('offline_') === 0 || localStorage.getItem('intan_elyu_guest') === 'true' || localStorage.getItem('intan_elyu_offline_guest') === 'true';
+                var st = document.getElementById('profile-guest-guard-style');
+                if (st && isG) {
+                    st.textContent = '#profile-offline-lock-barrier { display: block !important; } #profile-normal-content { display: none !important; }';
+                }
+            } catch(e) {}
+        })();
+    </script>
+
     <!-- Offline Mode Locked Barrier (Displayed if accessed while in Offline / Guest Mode) -->
     <div id="profile-offline-lock-barrier" style="display: none; text-align: center; padding: 32px 18px 40px; margin-top: 10px;">
         <div style="width: 78px; height: 78px; border-radius: 26px; background: linear-gradient(135deg, rgba(30,58,138,0.12) 0%, rgba(0,242,254,0.2) 100%); display: flex; align-items: center; justify-content: center; margin: 0 auto 18px; box-shadow: 0 8px 24px rgba(30,58,138,0.12);">
@@ -733,6 +748,18 @@ $activeTab = 'profile';
     // ── Instant Synchronous Cache Hydration (0ms, Zero Flicker, Zero Latency) ──
     function hydrateProfileFromCache() {
         const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('api_token');
+        const isGuest = !token || 
+            token === 'guest_token' || 
+            token === 'offline_guest_token' || 
+            token.indexOf('guest_') === 0 || 
+            token.indexOf('offline_') === 0 || 
+            localStorage.getItem('intan_elyu_guest') === 'true' ||
+            localStorage.getItem('intan_elyu_offline_guest') === 'true';
+
+        if (isGuest) {
+            if (typeof updateProfileAccessBarrier === 'function') updateProfileAccessBarrier();
+            return;
+        }
 
         // 1. Hydrate user basic info & points from auth_user
         try {
@@ -814,8 +841,8 @@ $activeTab = 'profile';
         const isGuest = !token || 
             token === 'guest_token' || 
             token === 'offline_guest_token' || 
-            token.startsWith('guest_') || 
-            token.startsWith('offline_') || 
+            token.indexOf('guest_') === 0 || 
+            token.indexOf('offline_') === 0 || 
             localStorage.getItem('intan_elyu_guest') === 'true' ||
             localStorage.getItem('intan_elyu_offline_guest') === 'true';
 
@@ -826,10 +853,12 @@ $activeTab = 'profile';
         const pillText = document.getElementById('profile-barrier-pill-text');
         const title = document.getElementById('profile-barrier-title');
         const desc = document.getElementById('profile-barrier-desc');
+        const guardStyle = document.getElementById('profile-guest-guard-style');
 
         if (isGuest) {
-            if (barrier) barrier.style.display = 'block';
-            if (normal) normal.style.display = 'none';
+            if (guardStyle) guardStyle.textContent = '#profile-offline-lock-barrier { display: block !important; } #profile-normal-content { display: none !important; }';
+            if (barrier) barrier.style.setProperty('display', 'block', 'important');
+            if (normal) normal.style.setProperty('display', 'none', 'important');
 
             if (isOffline) {
                 // Offline Guest
@@ -856,12 +885,14 @@ $activeTab = 'profile';
             }
         } else {
             // Logged-in Tourist
+            if (guardStyle) guardStyle.textContent = '';
             if (barrier) barrier.style.display = 'none';
             if (normal) normal.style.display = 'block';
             hydrateProfileFromCache();
             if (!isOffline) fetchProfileData();
         }
     }
+    window.updateProfileAccessBarrier = updateProfileAccessBarrier;
 
     updateProfileAccessBarrier();
     window.addEventListener('online', updateProfileAccessBarrier);
@@ -871,7 +902,7 @@ $activeTab = 'profile';
 
     async function fetchProfileData(force = false) {
         const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('api_token');
-        if (!token || token === 'guest_token' || token === 'offline_guest_token' || token.startsWith('offline_') || token.startsWith('guest_')) return;
+        if (!token || token === 'guest_token' || token === 'offline_guest_token' || token.indexOf('offline_') === 0 || token.indexOf('guest_') === 0 || localStorage.getItem('intan_elyu_guest') === 'true') return;
 
         const cacheKey = 'profile_data_' + token.substring(0, 10);
         const shouldForce = force || Boolean(window.profileNeedsRefresh);
@@ -901,7 +932,7 @@ $activeTab = 'profile';
 
     async function fetchPointsAndVouchers(force = false) {
         const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('api_token');
-        if (!token) return;
+        if (!token || token === 'guest_token' || token === 'offline_guest_token' || token.indexOf('offline_') === 0 || token.indexOf('guest_') === 0 || localStorage.getItem('intan_elyu_guest') === 'true') return;
 
         const ptsCacheKey = 'points_balance_' + token.substring(0, 10);
         const shouldForce = force || Boolean(window.profileNeedsRefresh);
@@ -1880,9 +1911,14 @@ $activeTab = 'profile';
     // Real-time re-hydration when returning to Profile view
     window.addEventListener('viewLoaded', function (e) {
         if (e && e.detail && e.detail.view === 'profile') {
-            hydrateProfileFromCache();
-            fetchProfileData(true);
-            fetchPointsAndVouchers(true);
+            if (typeof updateProfileAccessBarrier === 'function') updateProfileAccessBarrier();
+            const _tok = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+            const _isGuest = !_tok || _tok === 'guest_token' || _tok === 'offline_guest_token' || _tok.indexOf('guest_') === 0 || _tok.indexOf('offline_') === 0 || localStorage.getItem('intan_elyu_guest') === 'true' || localStorage.getItem('intan_elyu_offline_guest') === 'true';
+            if (!_isGuest) {
+                hydrateProfileFromCache();
+                fetchProfileData(true);
+                fetchPointsAndVouchers(true);
+            }
         }
     });
 
@@ -1904,9 +1940,14 @@ $activeTab = 'profile';
         });
     }, 50);
 
-    hydrateProfileFromCache();
-    fetchProfileData();
-    fetchPointsAndVouchers(true);
+    if (typeof updateProfileAccessBarrier === 'function') updateProfileAccessBarrier();
+    const _initTok = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+    const _initGuest = !_initTok || _initTok === 'guest_token' || _initTok === 'offline_guest_token' || _initTok.indexOf('guest_') === 0 || _initTok.indexOf('offline_') === 0 || localStorage.getItem('intan_elyu_guest') === 'true' || localStorage.getItem('intan_elyu_offline_guest') === 'true';
+    if (!_initGuest) {
+        hydrateProfileFromCache();
+        fetchProfileData();
+        fetchPointsAndVouchers(true);
+    }
 </script>
 
 <!-- Full Trip History Modal -->
