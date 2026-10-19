@@ -2232,7 +2232,6 @@
 
         try {
             sessionStorage.setItem('intan_elyu_google_oauth_pending', 'true');
-            document.cookie = "is_intan_elyu_app=1; path=/; max-age=31536000; SameSite=Lax";
         } catch (e) { }
 
         const stateObj = { timestamp: Date.now(), returnView: 'auth', fromApp: isNative };

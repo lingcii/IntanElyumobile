@@ -157,16 +157,7 @@ $isApk = $isLocalDev ||
     (strpos($userAgent, 'IntanElyuAPK') !== false) ||
     (strpos($userAgent, 'Capacitor') !== false) ||
     isset($_GET['app']) ||
-    isset($_COOKIE['is_intan_elyu_app']) ||
-    isset($_GET['token']) ||
-    isset($_GET['code']) ||
-    isset($_GET['access_token']) ||
     (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strpos($_SERVER['HTTP_X_REQUESTED_WITH'], 'com.intan.elyu') !== false);
-
-// If app is detected or passed as param, set the cookie so future navigations stay in app mode
-if ($isApk && !isset($_COOKIE['is_intan_elyu_app']) && !headers_sent()) {
-    @setcookie('is_intan_elyu_app', '1', time() + 31536000, '/');
-}
 
 // WEB BROWSER PROTECTION:
 // If accessed via a normal web browser (like Brave, Chrome, Safari, Edge) and NOT inside the Android APK:
@@ -204,8 +195,9 @@ if (!$isApk) {
     if (isOAuth) {
         var isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
         var targetPayload = h || s;
-        var appUrl = "intanelyu://google-auth" + targetPayload;
-        var intentUrl = "intent://google-auth" + targetPayload + "#Intent;scheme=intanelyu;package=com.intan.elyu;end";
+        var cleanParams = targetPayload.replace(/^[#?]/, '');
+        var appUrl = "intanelyu://google-auth?" + cleanParams;
+        var intentUrl = "intent://google-auth?" + cleanParams + "#Intent;scheme=intanelyu;package=com.intan.elyu;end";
 
         var btn = document.getElementById("open-app-btn");
         if (btn) {
@@ -224,11 +216,11 @@ if (!$isApk) {
                 window.location.href = appUrl;
             }
             setTimeout(function() {
-                window.location.href = appUrl;
-            }, 600);
+                window.location.href = (/Android/i.test(navigator.userAgent)) ? intentUrl : appUrl;
+            }, 500);
         } else {
             // Desktop browser testing fallback
-            window.location.replace("index.php?view=auth&app=true" + targetPayload);
+            window.location.replace("index.php?view=auth&app=true&" + cleanParams);
         }
     } else {
         window.location.replace("index.php?view=download");
@@ -288,12 +280,41 @@ if ($isAjax) {
 <html lang="en">
 
 <head>
-    <!-- Immediate Google OAuth Token Interceptor & Splash Suppressor -->
+    <!-- Immediate Google OAuth Token Interceptor & Native App Handoff -->
     <script>
         (function () {
             var h = window.location.hash || '';
             var s = window.location.search || '';
-            var hasOAuthParam = (h.indexOf('access_token=') !== -1 || h.indexOf('id_token=') !== -1 || s.indexOf('access_token=') !== -1 || s.indexOf('id_token=') !== -1);
+            var payload = h || s;
+            var hasOAuthParam = (payload.indexOf('access_token=') !== -1 || payload.indexOf('id_token=') !== -1 || payload.indexOf('error=') !== -1);
+            
+            var isInsideNativeApk = Boolean(
+                (window.Capacitor && typeof window.Capacitor.isNativePlatform === 'function' && window.Capacitor.isNativePlatform()) ||
+                (navigator.userAgent && navigator.userAgent.indexOf('IntanElyuAPK') !== -1)
+            );
+
+            // If this is Chrome Custom Tabs / external browser returning with OAuth token:
+            if (!isInsideNativeApk && hasOAuthParam) {
+                var cleanParams = payload.replace(/^[#?]/, '');
+                var appUrl = "intanelyu://google-auth?" + cleanParams;
+                var intentUrl = "intent://google-auth?" + cleanParams + "#Intent;scheme=intanelyu;package=com.intan.elyu;end";
+                
+                try {
+                    if (/Android/i.test(navigator.userAgent)) {
+                        window.location.replace(intentUrl);
+                    } else {
+                        window.location.replace(appUrl);
+                    }
+                } catch(e) {
+                    window.location.href = appUrl;
+                }
+                
+                document.documentElement.innerHTML = '<head><meta name="viewport" content="width=device-width,initial-scale=1"><title>Returning to Intan Elyu...</title><style>*{box-sizing:border-box}body{margin:0;padding:24px;min-height:100vh;background:linear-gradient(135deg,#0b1a3d 0%,#1e3a8a 100%);display:flex;align-items:center;justify-content:center;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:#fff;text-align:center}.card{background:rgba(255,255,255,0.08);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.18);border-radius:24px;padding:36px 24px;max-width:340px;width:100%;box-shadow:0 20px 40px rgba(0,0,0,0.4)}.spinner{width:44px;height:44px;border:4px solid rgba(255,255,255,0.2);border-top-color:#38bdf8;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 20px}@keyframes spin{to{transform:rotate(360deg)}}h2{font-size:20px;margin:0 0 8px;font-weight:700}p{font-size:14px;color:rgba(255,255,255,0.8);margin:0 0 24px}.btn{display:inline-flex;align-items:center;justify-content:center;background:#fff;color:#1e3a8a;font-weight:800;font-size:15px;padding:14px 28px;border-radius:100px;text-decoration:none;box-shadow:0 8px 24px rgba(0,0,0,0.3)}</style></head><body><div class="card"><div class="spinner"></div><h2>Returning to App...</h2><p>Authentication complete! Returning to the Intan Elyu app.</p><a href="' + (/Android/i.test(navigator.userAgent) ? intentUrl : appUrl) + '" class="btn">Open Intan Elyu App</a></div></body>';
+                
+                setTimeout(function() { window.location.href = (/Android/i.test(navigator.userAgent) ? intentUrl : appUrl); }, 400);
+                return;
+            }
+
             var isOAuthPending = false;
             try {
                 isOAuthPending = (window.sessionStorage && sessionStorage.getItem('intan_elyu_google_oauth_pending') === 'true');
@@ -303,12 +324,9 @@ if ($isAjax) {
                 window._isProcessingGoogleOAuth = true;
                 window._googleOAuthHash = h;
                 window._googleOAuthSearch = s;
-                try {
-                    document.cookie = "is_intan_elyu_app=1; path=/; max-age=31536000; SameSite=Lax";
-                } catch(e) {}
                 var st = document.createElement('style');
                 st.id = 'oauth-splash-blocker';
-                st.textContent = '#splash-main, .splash-container, .wave-wrapper, .splash-tagline, .loading-dots, .splash-offline-pill { display: none !important; opacity: 0 !important; visibility: hidden !important; pointer-events: none !important; }';
+                st.textContent = '#splash-main, #global-cloud-container, .splash-container, .wave-wrapper, .splash-tagline, .loading-dots, .splash-offline-pill { display: none !important; opacity: 0 !important; visibility: hidden !important; pointer-events: none !important; }';
                 (document.head || document.documentElement).appendChild(st);
             }
         })();

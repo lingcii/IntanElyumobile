@@ -259,18 +259,19 @@ public class MainActivity extends BridgeActivity {
                     final String safeUri = uriStr.replace("'", "\\'");
                     
                     webView.post(() -> {
-                        webView.loadUrl(targetUrl);
                         webView.evaluateJavascript(
-                            "setTimeout(function() {" +
-                            "  try {" +
-                            "    if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Browser) {" +
-                            "      window.Capacitor.Plugins.Browser.close().catch(function(){});" +
-                            "    }" +
-                            "    if (typeof window.initGoogleOAuthHandler === 'function') {" +
-                            "      window.initGoogleOAuthHandler('" + safeUri + "');" +
-                            "    }" +
-                            "  } catch(e) {}" +
-                            "}, 150);",
+                            "try {" +
+                            "  if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Browser) {" +
+                            "    window.Capacitor.Plugins.Browser.close().catch(function(){});" +
+                            "  }" +
+                            "  if (typeof window.initGoogleOAuthHandler === 'function') {" +
+                            "    window.initGoogleOAuthHandler('" + safeUri + "');" +
+                            "  } else {" +
+                            "    window.location.href = '" + targetUrl + "';" +
+                            "  }" +
+                            "} catch(e) {" +
+                            "  window.location.href = '" + targetUrl + "';" +
+                            "}",
                             null
                         );
                     });
@@ -278,21 +279,24 @@ public class MainActivity extends BridgeActivity {
                     final String targetUrl = uriStr;
                     final String safeUri = uriStr.replace("'", "\\'");
                     webView.post(() -> {
-                        webView.loadUrl(targetUrl);
                         if (safeUri.contains("access_token=") || safeUri.contains("id_token=")) {
                             webView.evaluateJavascript(
-                                "setTimeout(function() {" +
-                                "  try {" +
-                                "    if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Browser) {" +
-                                "      window.Capacitor.Plugins.Browser.close().catch(function(){});" +
-                                "    }" +
-                                "    if (typeof window.initGoogleOAuthHandler === 'function') {" +
-                                "      window.initGoogleOAuthHandler('" + safeUri + "');" +
-                                "    }" +
-                                "  } catch(e) {}" +
-                                "}, 150);",
+                                "try {" +
+                                "  if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Browser) {" +
+                                "    window.Capacitor.Plugins.Browser.close().catch(function(){});" +
+                                "  }" +
+                                "  if (typeof window.initGoogleOAuthHandler === 'function') {" +
+                                "    window.initGoogleOAuthHandler('" + safeUri + "');" +
+                                "  } else {" +
+                                "    window.location.href = '" + targetUrl + "';" +
+                                "  }" +
+                                "} catch(e) {" +
+                                "  window.location.href = '" + targetUrl + "';" +
+                                "}",
                                 null
                             );
+                        } else {
+                            webView.loadUrl(targetUrl);
                         }
                     });
                 }

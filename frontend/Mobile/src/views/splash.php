@@ -14,10 +14,8 @@
         return /^192\.168\.\d+\.\d+$/.test(hn) || /^10\.\d+\.\d+\.\d+$/.test(hn) || /^172\.(1[6-9]|2\d|3[01])\.\d+\.\d+$/.test(hn);
     }
 
-    const hasAppCookie = Boolean(document.cookie && document.cookie.includes('is_intan_elyu_app=1'));
-
     // Browser Guard: Web browsers must not access the mobile splash screen. Redirect to the official download portal.
-    if (!isOAuthCallback && !isDevHost(window.location.hostname) && !hasAppCookie && !window.Capacitor && !navigator.userAgent.includes('IntanElyuAPK') && !window.location.search.includes('app=')) {
+    if (!isOAuthCallback && !isDevHost(window.location.hostname) && !window.Capacitor && !navigator.userAgent.includes('IntanElyuAPK') && !window.location.search.includes('app=')) {
         window.location.replace('index.php?view=download');
     }
 </script>
