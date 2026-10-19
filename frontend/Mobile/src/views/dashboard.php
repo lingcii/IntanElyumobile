@@ -905,6 +905,18 @@ if (is_dir($imgDir)) {
             const placesEl = document.getElementById('dash-stat-places');
             if (placesEl) placesEl.textContent = initPlaces.toLocaleString();
 
+            const rankEl = document.getElementById('dash-stat-rank');
+            if (rankEl) {
+                const initRank = user.my_rank || user.rank || (window._cachedMyRank !== undefined ? window._cachedMyRank : null);
+                if (initRank && initRank < 999) {
+                    rankEl.textContent = '#' + initRank;
+                } else if (user.is_guest || user.is_offline_guest) {
+                    rankEl.textContent = '—';
+                } else if (initRank) {
+                    rankEl.textContent = '#' + initRank;
+                }
+            }
+
             setTxt('dash-title', 'Explorer of Elyu');
         }
 
@@ -987,10 +999,18 @@ if (is_dir($imgDir)) {
         function renderRank(rankData) {
             const el = document.getElementById('dash-stat-rank');
             if (!el) return;
-            if (rankData && (rankData.myRank || rankData.rank || rankData.my_rank)) {
-                el.textContent = '#' + (rankData.myRank || rankData.rank || rankData.my_rank);
+            const r = rankData ? (rankData.myRank || rankData.rank || rankData.my_rank || (rankData.stats && (rankData.stats.rank || rankData.stats.myRank))) : null;
+            if (r) {
+                el.textContent = '#' + r;
+                try {
+                    localStorage.setItem('my_rank', r);
+                    const authU = JSON.parse(localStorage.getItem('auth_user') || '{}');
+                    authU.my_rank = r;
+                    localStorage.setItem('auth_user', JSON.stringify(authU));
+                } catch (e) { }
             } else {
-                el.textContent = 'Unranked';
+                const u = window.safeJsonParse ? window.safeJsonParse(localStorage.getItem('auth_user'), {}) : {};
+                el.textContent = (u && (u.is_guest || u.is_offline_guest)) ? '—' : 'Unranked';
             }
         }
 
@@ -1324,6 +1344,24 @@ if (is_dir($imgDir)) {
             }
             if (document.getElementById('dash-stat-places')) document.getElementById('dash-stat-places').textContent = visitedCount.toLocaleString();
             if (document.getElementById('dash-stat-points')) document.getElementById('dash-stat-points').textContent = points.toLocaleString();
+
+            const rVal = (data && (data.myRank || data.my_rank || (data.stats && (data.stats.rank || data.stats.myRank))));
+            const rankEl = document.getElementById('dash-stat-rank');
+            if (rankEl) {
+                if (rVal && rVal < 999) {
+                    rankEl.textContent = '#' + rVal;
+                    try {
+                        localStorage.setItem('my_rank', rVal);
+                        const authU = JSON.parse(localStorage.getItem('auth_user') || '{}');
+                        authU.my_rank = rVal;
+                        localStorage.setItem('auth_user', JSON.stringify(authU));
+                    } catch (e) { }
+                } else if (u && (u.is_guest || u.is_offline_guest)) {
+                    rankEl.textContent = '—';
+                } else if (rVal) {
+                    rankEl.textContent = '#' + rVal;
+                }
+            }
 
             // Populate Trending Spots (Limit to top 5, "See All" opens full list)
             const trendingContainer = document.getElementById('trending-container');

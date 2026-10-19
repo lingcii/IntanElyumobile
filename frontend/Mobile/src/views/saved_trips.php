@@ -501,9 +501,14 @@ $backRoute = 'itinerary';
                         <div class="trip-swipe-content" style="position:relative; z-index:2; background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border: none !important; outline: none !important; border-radius: 24px; padding: 22px; transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-radius 0.25s ease; box-shadow: 0 10px 28px rgba(10, 25, 60, 0.28);">
                             <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 6px;">
                                 <h3 style="margin: 0; font-size: 20px; font-weight: 800; color: #ffffff; letter-spacing: -0.3px; flex: 1; min-width: 0; word-break: break-word;">${trip.title}</h3>
-                                <button type="button" class="btn-edit-saved-trip" onclick="event.stopPropagation(); window.editSavedTrip('${trip.id}')" ontouchstart="event.stopPropagation();" onpointerdown="event.stopPropagation();" onmousedown="event.stopPropagation();" onmouseover="this.style.background='rgba(255,255,255,0.28)'" onmouseout="this.style.background='rgba(255,255,255,0.18)'" style="background: rgba(255,255,255,0.18); border: none !important; outline: none !important; border-radius: 12px; padding: 6px 14px; color: #ffffff; font-size: 12px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0; transition: all 0.2s ease; box-shadow: none !important; position: relative; z-index: 10; pointer-events: auto; touch-action: manipulation;">
-                                    <i class="fa-solid fa-pen-to-square"></i> Edit
-                                </button>
+                                <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
+                                    <button type="button" class="btn-edit-saved-trip" onclick="event.stopPropagation(); window.editSavedTrip('${trip.id}')" ontouchstart="event.stopPropagation();" onpointerdown="event.stopPropagation();" onmousedown="event.stopPropagation();" onmouseover="this.style.background='rgba(255,255,255,0.28)'" onmouseout="this.style.background='rgba(255,255,255,0.18)'" style="background: rgba(255,255,255,0.18); border: none !important; outline: none !important; border-radius: 12px; padding: 6px 12px; color: #ffffff; font-size: 12px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; flex-shrink: 0; transition: all 0.2s ease; box-shadow: none !important; position: relative; z-index: 10; pointer-events: auto; touch-action: manipulation;">
+                                        <i class="fa-solid fa-pen-to-square"></i> Edit
+                                    </button>
+                                    <button type="button" class="btn-delete-saved-trip" onclick="event.stopPropagation(); window.confirmDeleteSavedTrip('${trip.id}', this.closest('.trip-swipe-container'), '${safeTitle}')" ontouchstart="event.stopPropagation();" onpointerdown="event.stopPropagation();" onmousedown="event.stopPropagation();" style="background: rgba(239, 68, 68, 0.28); border: 1px solid rgba(239, 68, 68, 0.45) !important; outline: none !important; border-radius: 12px; padding: 6px 12px; color: #fca5a5; font-size: 12px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; flex-shrink: 0; transition: all 0.2s ease; position: relative; z-index: 10; pointer-events: auto; touch-action: manipulation;" onmouseover="this.style.background='rgba(239, 68, 68, 0.5)'; this.style.color='#ffffff';" onmouseout="this.style.background='rgba(239, 68, 68, 0.28)'; this.style.color='#fca5a5';">
+                                        <i class="fa-solid fa-trash-can"></i> Delete
+                                    </button>
+                                </div>
                             </div>
                             <div style="font-size: 12.5px; color: #ffffff; opacity: 0.95; margin: 0 0 16px 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                                 <span style="display:inline-flex; align-items:center; gap:5px; font-weight:700;"><i class="fa-regular fa-calendar" style="color: #ffffff;"></i>${trip.trip_date ? new Date(trip.trip_date).toLocaleDateString() : 'No date set'}</span> 
@@ -1718,31 +1723,74 @@ $backRoute = 'itinerary';
 
             if (!id) return;
 
-            // Handle offline queued trips directly
-            if (String(id).startsWith('offline_')) {
+            // Comprehensive local trip pruner so deleted trip never resurrects from offline cache
+            const pruneTripFromLocalCaches = (tripId) => {
+                const filterOut = (list) => {
+                    if (!Array.isArray(list)) return [];
+                    return list.filter(t => t && String(t.id) !== String(tripId) && String(t.trip_id || '') !== String(tripId));
+                };
+
+                ['intan_elyu_offline_saved_trips_backup', 'intan_elyu_saved_trips'].forEach(k => {
+                    try {
+                        const raw = localStorage.getItem(k);
+                        if (raw) {
+                            const parsed = JSON.parse(raw);
+                            if (Array.isArray(parsed)) {
+                                localStorage.setItem(k, JSON.stringify(filterOut(parsed)));
+                            } else if (parsed && Array.isArray(parsed.itineraries)) {
+                                parsed.itineraries = filterOut(parsed.itineraries);
+                                localStorage.setItem(k, JSON.stringify(parsed));
+                            }
+                        }
+                    } catch (e) { }
+                });
+
                 if (window.OfflineTripManager && typeof window.OfflineTripManager.removeQueuedTrip === 'function') {
-                    window.OfflineTripManager.removeQueuedTrip(id);
+                    try { window.OfflineTripManager.removeQueuedTrip(tripId); } catch(e) {}
                 }
-                if (typeof showToast === 'function') showToast("Offline trip removed.");
+
+                const tok = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+                if (tok && tok.length > 5) {
+                    const tokenKey = tok.substring(0, 10);
+                    localStorage.removeItem('saved_trips_' + tokenKey);
+                    localStorage.removeItem('dashboard_trips_' + tokenKey);
+                    localStorage.removeItem('dashboard_saved_trips_' + tokenKey);
+                }
+            };
+
+            const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+            const isGuestOrOffline = !token || 
+                token === 'guest_token' || 
+                token === 'offline_guest_token' || 
+                token.startsWith('guest_') || 
+                token.startsWith('offline_') || 
+                String(id).startsWith('offline_') ||
+                !navigator.onLine || 
+                window.isAppOnline === false;
+
+            if (isGuestOrOffline) {
+                pruneTripFromLocalCaches(id);
+                if (typeof showToast === 'function') showToast("Trip deleted from device.");
                 if (element) {
-                    element.style.transition = 'all 0.3s ease';
+                    element.style.transition = 'all 0.35s cubic-bezier(0.16, 1, 0.3, 1)';
                     element.style.opacity = '0';
-                    element.style.transform = 'translateY(10px) scale(0.95)';
+                    element.style.transform = 'scale(0.85) translateY(-12px)';
                     setTimeout(() => {
                         element.remove();
-                        const list = document.getElementById('saved-trips-list');
-                        if (list && list.querySelectorAll('.trip-swipe-container').length === 0) {
-                            renderSavedTrips([]);
-                        }
-                    }, 300);
+                        window.fetchSavedTrips(true);
+                    }, 350);
+                } else {
+                    window.fetchSavedTrips(true);
                 }
+                window._pendingDeleteTripId = null;
+                window._pendingDeleteTripContainer = null;
                 return;
             }
 
-            const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
-            if (!token) return;
-
             try {
+                // Prune local caches immediately
+                pruneTripFromLocalCaches(id);
+
                 const res = await fetch(backendUrl + '/api/tourist/itineraries/' + id, {
                     method: 'DELETE',
                     headers: {
@@ -1752,33 +1800,30 @@ $backRoute = 'itinerary';
                 });
 
                 if (res.ok || res.status === 404) {
-                    const tokenKey = token.substring(0, 10);
-                    localStorage.removeItem('saved_trips_' + tokenKey);
-                    localStorage.removeItem('dashboard_trips_' + tokenKey);
-                    localStorage.removeItem('dashboard_saved_trips_' + tokenKey);
-
                     if (typeof showToast === 'function') showToast("Trip deleted successfully.");
-                    if (element) {
-                        element.style.transition = 'all 0.35s cubic-bezier(0.16, 1, 0.3, 1)';
-                        element.style.opacity = '0';
-                        element.style.transform = 'scale(0.85) translateY(-12px)';
-                        setTimeout(() => {
-                            element.remove();
-                            window.fetchSavedTrips(true);
-                        }, 350);
-                    } else {
-                        window.fetchSavedTrips(true);
-                    }
                 } else {
-                    if (typeof showToast === 'function') showToast("Failed to delete trip.");
-                    if (element) {
-                        const content = element.querySelector('.trip-swipe-content');
-                        if (content) { content.style.transform = 'translateX(0px)'; content.style.borderRadius = '24px'; }
-                    }
+                    if (typeof showToast === 'function') showToast("Trip deleted locally.");
+                }
+
+                if (element) {
+                    element.style.transition = 'all 0.35s cubic-bezier(0.16, 1, 0.3, 1)';
+                    element.style.opacity = '0';
+                    element.style.transform = 'scale(0.85) translateY(-12px)';
+                    setTimeout(() => {
+                        element.remove();
+                        window.fetchSavedTrips(true);
+                    }, 350);
+                } else {
+                    window.fetchSavedTrips(true);
                 }
             } catch (e) {
-                console.error('Delete trip error:', e);
-                if (typeof showToast === 'function') showToast("Network error.");
+                console.warn('Network error during trip deletion; pruned locally:', e);
+                pruneTripFromLocalCaches(id);
+                if (typeof showToast === 'function') showToast("Trip removed from device (offline).");
+                if (element) {
+                    element.remove();
+                }
+                window.fetchSavedTrips(true);
             } finally {
                 window._pendingDeleteTripId = null;
                 window._pendingDeleteTripContainer = null;

@@ -230,6 +230,15 @@ $activeTab = 'profile';
 
     // ── Dedicated Helper Rendering Functions ──
     window.ensureProfileModalOnBody = function (modalId) {
+        const matches = document.querySelectorAll('#' + modalId);
+        if (matches.length > 1) {
+            matches.forEach((el, idx) => {
+                // If it is an old duplicate on document.body, remove it so only the latest is kept
+                if (el.parentElement === document.body && idx < matches.length - 1) {
+                    try { el.remove(); } catch(e) {}
+                }
+            });
+        }
         const modal = document.getElementById(modalId);
         if (modal && modal.parentElement !== document.body) {
             document.body.appendChild(modal);
@@ -898,7 +907,6 @@ $activeTab = 'profile';
         const shouldForce = force || Boolean(window.profileNeedsRefresh);
         if (shouldForce) {
             window.profileNeedsRefresh = false;
-            try { localStorage.removeItem(ptsCacheKey); } catch (e) { }
         }
 
         await window.useCache(
@@ -1153,14 +1161,14 @@ $activeTab = 'profile';
     };
 
     window.closeRewardDetailsModal = function () {
-        const modal = document.getElementById('reward-details-modal');
-        if (!modal) return;
-        modal.style.opacity = '0';
-        const card = modal.querySelector('div');
-        if (card) card.style.transform = 'scale(0.88)';
-        setTimeout(() => {
-            modal.style.display = 'none';
-        }, 220);
+        document.querySelectorAll('#reward-details-modal').forEach(modal => {
+            modal.style.opacity = '0';
+            const card = modal.querySelector('div');
+            if (card) card.style.transform = 'scale(0.88)';
+            setTimeout(() => {
+                modal.style.display = 'none';
+            }, 220);
+        });
     };
 
     window.openFullHistoryModal = function () {
@@ -1215,8 +1223,9 @@ $activeTab = 'profile';
     };
 
     window.closeFullHistoryModal = function () {
-        const modal = document.getElementById('full-history-modal');
-        if (modal) modal.style.display = 'none';
+        document.querySelectorAll('#full-history-modal').forEach(modal => {
+            modal.style.display = 'none';
+        });
     };
 
     window.openFullVouchersModal = function (initialTab = 'all') {
@@ -1228,8 +1237,9 @@ $activeTab = 'profile';
     };
 
     window.closeFullVouchersModal = function () {
-        const modal = document.getElementById('full-vouchers-modal');
-        if (modal) modal.style.display = 'none';
+        document.querySelectorAll('#full-vouchers-modal').forEach(modal => {
+            modal.style.display = 'none';
+        });
     };
 
     window.switchFullVouchersTab = function (tab) {
@@ -1442,8 +1452,9 @@ $activeTab = 'profile';
     };
 
     window.closeFullDealsModal = function () {
-        const modal = document.getElementById('full-deals-modal');
-        if (modal) modal.style.display = 'none';
+        document.querySelectorAll('#full-deals-modal').forEach(modal => {
+            modal.style.display = 'none';
+        });
     };
 
     window.handleDealsModalSearch = function (query) {
@@ -1676,8 +1687,9 @@ $activeTab = 'profile';
     window.closeActiveVoucherQrModal = function () {
         stopActiveQrSync();
         window._isVoucherCodeUnmasked = false;
-        const modal = document.getElementById('active-voucher-qr-modal');
-        if (modal) modal.style.display = 'none';
+        document.querySelectorAll('#active-voucher-qr-modal').forEach(modal => {
+            modal.style.display = 'none';
+        });
     };
 
     window.copyCurrentActiveQrCode = function () {
@@ -1823,8 +1835,9 @@ $activeTab = 'profile';
     };
 
     window.closeTripDetailsModal = function () {
-        const modal = document.getElementById('trip-details-modal');
-        if (modal) modal.style.display = 'none';
+        document.querySelectorAll('#trip-details-modal').forEach(modal => {
+            modal.style.display = 'none';
+        });
     };
 
 
@@ -1908,10 +1921,10 @@ $activeTab = 'profile';
                 style="margin:0; color:#ffffff; font-size:18px; font-weight:800; display:flex; align-items:center; gap:9px; letter-spacing:-0.2px;">
                 <i class="fa-solid fa-clock-rotate-left" style="color:#00f2fe; font-size:17px;"></i> Trip History
             </h3>
-            <button onclick="window.closeFullHistoryModal()"
-                style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:14px; box-shadow:none !important; transition:transform 0.15s ease;"
-                onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">
-                <i class="fa-solid fa-xmark" style="color:#1e3a8a !important;"></i>
+            <button type="button" onclick="window.closeFullHistoryModal()"
+                style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:15px; box-shadow:0 2px 8px rgba(0,0,0,0.2) !important; position:relative; z-index:100; pointer-events:auto !important; touch-action:manipulation;"
+                aria-label="Close Trip History Modal">
+                <i class="fa-solid fa-xmark" style="color:#1e3a8a !important; pointer-events:none;"></i>
             </button>
         </div>
 
@@ -1936,10 +1949,10 @@ $activeTab = 'profile';
                 style="margin:0; color:#ffffff; font-size:18px; font-weight:800; display:flex; align-items:center; gap:9px; letter-spacing:-0.2px;">
                 <i class="fa-solid fa-ticket" style="color:#00f2fe; font-size:17px;"></i> My Vouchers
             </h3>
-            <button onclick="window.closeFullVouchersModal()"
-                style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:14px; box-shadow:none !important; transition:transform 0.15s ease;"
-                onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">
-                <i class="fa-solid fa-xmark" style="color:#1e3a8a !important;"></i>
+            <button type="button" onclick="window.closeFullVouchersModal()"
+                style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:15px; box-shadow:0 2px 8px rgba(0,0,0,0.2) !important; position:relative; z-index:100; pointer-events:auto !important; touch-action:manipulation;"
+                aria-label="Close Vouchers Modal">
+                <i class="fa-solid fa-xmark" style="color:#1e3a8a !important; pointer-events:none;"></i>
             </button>
         </div>
 
@@ -1979,10 +1992,10 @@ $activeTab = 'profile';
                 <i class="fa-solid fa-gift" style="color:#00f2fe; font-size:18px;"></i>
                 <h3 style="margin:0; color:#ffffff; font-size:17.5px; font-weight:800; letter-spacing:-0.2px;">All Deals & Rewards</h3>
             </div>
-            <button onclick="window.closeFullDealsModal()"
-                style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:14px; transition:transform 0.15s ease;"
-                onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">
-                <i class="fa-solid fa-xmark" style="color:#1e3a8a !important;"></i>
+            <button type="button" onclick="window.closeFullDealsModal()"
+                style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:15px; box-shadow:0 2px 8px rgba(0,0,0,0.2) !important; position:relative; z-index:100; pointer-events:auto !important; touch-action:manipulation;"
+                aria-label="Close Deals Modal">
+                <i class="fa-solid fa-xmark" style="color:#1e3a8a !important; pointer-events:none;"></i>
             </button>
         </div>
 
@@ -2035,10 +2048,10 @@ $activeTab = 'profile';
                 <h3 style="margin:0; color:#ffffff; font-size:17px; font-weight:800; letter-spacing:-0.2px;">Voucher QR
                     Pass</h3>
             </div>
-            <button onclick="window.closeActiveVoucherQrModal()"
-                style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:14px; transition:transform 0.15s ease;"
-                onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">
-                <i class="fa-solid fa-xmark" style="color:#1e3a8a !important;"></i>
+            <button type="button" onclick="window.closeActiveVoucherQrModal()"
+                style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:15px; box-shadow:0 2px 8px rgba(0,0,0,0.2) !important; position:relative; z-index:100; pointer-events:auto !important; touch-action:manipulation;"
+                aria-label="Close Voucher QR Pass Modal">
+                <i class="fa-solid fa-xmark" style="color:#1e3a8a !important; pointer-events:none;"></i>
             </button>
         </div>
 
@@ -2128,10 +2141,10 @@ $activeTab = 'profile';
                         Details</h3>
                 </div>
             </div>
-            <button onclick="window.closeTripDetailsModal()"
-                style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:14px; box-shadow:none !important; transition:transform 0.15s ease;"
-                onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">
-                <i class="fa-solid fa-xmark" style="color:#1e3a8a !important;"></i>
+            <button type="button" onclick="window.closeTripDetailsModal()"
+                style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:15px; box-shadow:0 2px 8px rgba(0,0,0,0.2) !important; position:relative; z-index:100; pointer-events:auto !important; touch-action:manipulation;"
+                aria-label="Close Trip Details Modal">
+                <i class="fa-solid fa-xmark" style="color:#1e3a8a !important; pointer-events:none;"></i>
             </button>
         </div>
 
@@ -2177,8 +2190,9 @@ $activeTab = 'profile';
                     style="font-size:9.5px; font-weight:800; color:#1e3a8a !important; background:#eff6ff !important; padding:2px 7px; border-radius:6px; margin-top:3px; display:inline-block; text-transform:uppercase;">PROMO</span>
             </div>
             <button type="button" onclick="window.closeRewardDetailsModal()"
-                style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:13px; box-shadow:0 2px 8px rgba(0,0,0,0.18);">
-                <i class="fa-solid fa-xmark" style="color:#1e3a8a !important;"></i>
+                style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:15px; box-shadow:0 2px 8px rgba(0,0,0,0.2) !important; position:relative; z-index:100; pointer-events:auto !important; touch-action:manipulation;"
+                aria-label="Close Reward Details Modal">
+                <i class="fa-solid fa-xmark" style="color:#1e3a8a !important; pointer-events:none;"></i>
             </button>
         </div>
 
