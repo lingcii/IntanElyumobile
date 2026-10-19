@@ -2308,8 +2308,14 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
             return;
         }
 
-        if (window._isProcessingGoogleOAuth && !customUrl) return;
+        if (window._googleOAuthActiveProcessing && !customUrl) return;
+        window._googleOAuthActiveProcessing = true;
         window._isProcessingGoogleOAuth = true;
+
+        // Auto-close Capacitor Browser if returning from OAuth
+        if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Browser && typeof window.Capacitor.Plugins.Browser.close === 'function') {
+            window.Capacitor.Plugins.Browser.close().catch(function () {});
+        }
 
         // Immediately hide and suppress splash screen elements if still in DOM
         const splashMain = document.getElementById('splash-main');
@@ -2526,6 +2532,27 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
 
     // Check for Google OAuth token immediately on script execution
     window.initGoogleOAuthHandler();
+
+    // Listen to hash changes in case WebView or browser updates hash in place
+    window.addEventListener('hashchange', function () {
+        if (window.location.hash && (window.location.hash.includes('access_token=') || window.location.hash.includes('id_token='))) {
+            window.initGoogleOAuthHandler();
+        }
+    });
+
+    // Listen to Capacitor App url open events
+    if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
+        window.Capacitor.Plugins.App.addListener('appUrlOpen', function (data) {
+            if (data && data.url) {
+                if (window.Capacitor.Plugins.Browser && typeof window.Capacitor.Plugins.Browser.close === 'function') {
+                    window.Capacitor.Plugins.Browser.close().catch(function () {});
+                }
+                if (typeof window.initGoogleOAuthHandler === 'function') {
+                    window.initGoogleOAuthHandler(data.url);
+                }
+            }
+        });
+    }
 
     document.addEventListener('DOMContentLoaded', () => {
         // Check again once DOM is ready if not already handled

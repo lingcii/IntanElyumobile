@@ -56,8 +56,26 @@ $gdriveMirrorUrl = getenv('APK_GDRIVE_MIRROR_URL') ?: '';
   <script>
     (function() {
       var h = window.location.hash || '';
-      if (h && (h.includes('access_token=') || h.includes('id_token=') || h.includes('error='))) {
-        window.location.replace('index.php?view=auth&app=true' + h);
+      var s = window.location.search || '';
+      var targetPayload = h || s;
+      if (targetPayload && (targetPayload.includes('access_token=') || targetPayload.includes('id_token=') || targetPayload.includes('error='))) {
+        var isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+        if (isMobile) {
+          var appUrl = "intanelyu://google-auth" + targetPayload;
+          var intentUrl = "intent://google-auth" + targetPayload + "#Intent;scheme=intanelyu;package=com.intan.elyu;end";
+          try {
+            if (/Android/i.test(navigator.userAgent)) {
+              window.location.replace(intentUrl);
+            } else {
+              window.location.replace(appUrl);
+            }
+          } catch(e) {
+            window.location.href = appUrl;
+          }
+          setTimeout(function() { window.location.href = appUrl; }, 600);
+        } else {
+          window.location.replace('index.php?view=auth&app=true' + targetPayload);
+        }
       }
     })();
   </script>

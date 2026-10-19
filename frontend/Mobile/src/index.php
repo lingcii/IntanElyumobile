@@ -177,16 +177,64 @@ if (!$isApk) {
     $reqView = $_GET['view'] ?? '';
     // If not on the download view, check client-side hash for Google OAuth callback first
     if ($reqView !== 'download') {
-        echo '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Intan Elyu</title><script>
-        (function() {
-            var h = window.location.hash || "";
-            if (h && (h.includes("access_token=") || h.includes("id_token=") || h.includes("error="))) {
-                window.location.replace("index.php?view=auth&app=true" + h);
-            } else {
-                window.location.replace("index.php?view=download");
+        echo '<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Connecting to Intan Elyu...</title>
+<style>
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 20px; background: linear-gradient(135deg, #0b1a3d 0%, #1e3a8a 100%); color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; text-align: center; }
+    .card { background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 24px; padding: 36px 24px; width: 100%; max-width: 360px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4); }
+    .spinner { width: 44px; height: 44px; border: 4px solid rgba(255, 255, 255, 0.2); border-top-color: #38bdf8; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 20px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    h2 { font-size: 20px; font-weight: 700; margin: 0 0 10px; color: #ffffff; }
+    p { font-size: 14px; color: rgba(255, 255, 255, 0.8); margin: 0 0 24px; line-height: 1.5; }
+    .btn-app { display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: #ffffff; color: #1e3a8a; font-weight: 700; font-size: 15px; padding: 14px 28px; border-radius: 100px; text-decoration: none; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25); }
+</style>
+</head><body>
+<div class="card" id="redir-card">
+    <div class="spinner"></div>
+    <h2 id="redir-title">Connecting to Intan Elyu...</h2>
+    <p id="redir-desc">Completing Google Sign-In and returning to the mobile app.</p>
+    <a id="open-app-btn" href="#" class="btn-app" style="display:none;">Open App Now</a>
+</div>
+<script>
+(function() {
+    var h = window.location.hash || "";
+    var s = window.location.search || "";
+    var isOAuth = (h.indexOf("access_token=") !== -1 || h.indexOf("id_token=") !== -1 || h.indexOf("error=") !== -1 || s.indexOf("access_token=") !== -1 || s.indexOf("id_token=") !== -1);
+    
+    if (isOAuth) {
+        var isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+        var targetPayload = h || s;
+        var appUrl = "intanelyu://google-auth" + targetPayload;
+        var intentUrl = "intent://google-auth" + targetPayload + "#Intent;scheme=intanelyu;package=com.intan.elyu;end";
+
+        var btn = document.getElementById("open-app-btn");
+        if (btn) {
+            btn.href = (/Android/i.test(navigator.userAgent)) ? intentUrl : appUrl;
+            btn.style.display = "inline-flex";
+        }
+
+        if (isMobile) {
+            try {
+                if (/Android/i.test(navigator.userAgent)) {
+                    window.location.replace(intentUrl);
+                } else {
+                    window.location.replace(appUrl);
+                }
+            } catch(e) {
+                window.location.href = appUrl;
             }
-        })();
-        </script><noscript><meta http-equiv="refresh" content="0;url=index.php?view=download"></noscript></head><body></body></html>';
+            setTimeout(function() {
+                window.location.href = appUrl;
+            }, 600);
+        } else {
+            // Desktop browser testing fallback
+            window.location.replace("index.php?view=auth&app=true" + targetPayload);
+        }
+    } else {
+        window.location.replace("index.php?view=download");
+    }
+})();
+</script><noscript><meta http-equiv="refresh" content="0;url=index.php?view=download"></noscript></body></html>';
         exit;
     }
 }

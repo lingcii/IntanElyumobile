@@ -256,10 +256,45 @@ public class MainActivity extends BridgeActivity {
                         queryOrPath = uriStr.substring(uriStr.indexOf("#"));
                     }
                     final String targetUrl = "https://app.intan-elyu.online/index.php" + queryOrPath;
-                    webView.post(() -> webView.loadUrl(targetUrl));
+                    final String safeUri = uriStr.replace("'", "\\'");
+                    
+                    webView.post(() -> {
+                        webView.loadUrl(targetUrl);
+                        webView.evaluateJavascript(
+                            "setTimeout(function() {" +
+                            "  try {" +
+                            "    if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Browser) {" +
+                            "      window.Capacitor.Plugins.Browser.close().catch(function(){});" +
+                            "    }" +
+                            "    if (typeof window.initGoogleOAuthHandler === 'function') {" +
+                            "      window.initGoogleOAuthHandler('" + safeUri + "');" +
+                            "    }" +
+                            "  } catch(e) {}" +
+                            "}, 150);",
+                            null
+                        );
+                    });
                 } else if (uriStr.contains("app.intan-elyu.online")) {
                     final String targetUrl = uriStr;
-                    webView.post(() -> webView.loadUrl(targetUrl));
+                    final String safeUri = uriStr.replace("'", "\\'");
+                    webView.post(() -> {
+                        webView.loadUrl(targetUrl);
+                        if (safeUri.contains("access_token=") || safeUri.contains("id_token=")) {
+                            webView.evaluateJavascript(
+                                "setTimeout(function() {" +
+                                "  try {" +
+                                "    if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Browser) {" +
+                                "      window.Capacitor.Plugins.Browser.close().catch(function(){});" +
+                                "    }" +
+                                "    if (typeof window.initGoogleOAuthHandler === 'function') {" +
+                                "      window.initGoogleOAuthHandler('" + safeUri + "');" +
+                                "    }" +
+                                "  } catch(e) {}" +
+                                "}, 150);",
+                                null
+                            );
+                        }
+                    });
                 }
             }
         } catch (Exception e) {
