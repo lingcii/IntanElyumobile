@@ -115,6 +115,15 @@ public class MainActivity extends BridgeActivity {
                             return true;
                         }
 
+                        // Open Google OAuth URLs in external system browser to prevent WebView Error 403: disallowed_useragent
+                        if (url.contains("accounts.google.com") || url.contains("google.com/o/oauth2")) {
+                            try {
+                                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                                startActivity(browserIntent);
+                                return true;
+                            } catch (Exception ignored) {}
+                        }
+
                         return false;
                     }
 

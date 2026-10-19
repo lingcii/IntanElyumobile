@@ -157,11 +157,13 @@ class LoginController extends Controller
                 'google_id'         => $google_id,
             ]);
 
-            // Send welcome confirmation email
+            // Send welcome confirmation email via Resend HTTPS API (Port 443 — non-blocking)
             try {
-                \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\TouristWelcomeMail($user));
-            } catch (\Exception $e) {
-                \Illuminate\Support\Facades\Log::warning('TouristWelcomeMail failed for Google user #' . $user->id . ': ' . $e->getMessage());
+                $welcomeMail = new \App\Mail\TouristWelcomeMail($user);
+                $renderedHtml = $welcomeMail->render();
+                \App\Services\ResendMailService::send($user->email, "Welcome to Intan Elyu, {$user->name}!", $renderedHtml);
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('TouristWelcomeMail notice for Google user #' . $user->id . ': ' . $e->getMessage());
             }
 
             // Create Welcome in-app notification in notifications table

@@ -175,9 +175,18 @@ if ($isApk && !isset($_COOKIE['is_intan_elyu_app']) && !headers_sent()) {
 // and redirected immediately to https://app.intan-elyu.online/?view=download!
 if (!$isApk) {
     $reqView = $_GET['view'] ?? '';
-    // If not on the download view, redirect immediately to ?view=download
+    // If not on the download view, check client-side hash for Google OAuth callback first
     if ($reqView !== 'download') {
-        header('Location: index.php?view=download');
+        echo '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Intan Elyu</title><script>
+        (function() {
+            var h = window.location.hash || "";
+            if (h && (h.includes("access_token=") || h.includes("id_token=") || h.includes("error="))) {
+                window.location.replace("index.php?view=auth&app=true" + h);
+            } else {
+                window.location.replace("index.php?view=download");
+            }
+        })();
+        </script><noscript><meta http-equiv="refresh" content="0;url=index.php?view=download"></noscript></head><body></body></html>';
         exit;
     }
 }

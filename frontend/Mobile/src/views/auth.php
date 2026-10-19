@@ -2183,41 +2183,28 @@
         }
 
         // Direct Google OAuth 2.0 Authorization Redirection (Universal for Android APK, WebViews & Web)
-        let redirectUri = window.location.origin + window.location.pathname;
-        if (!redirectUri.endsWith('.php') && !redirectUri.endsWith('/')) {
-            redirectUri += '/index.php';
-        } else if (redirectUri.endsWith('/')) {
-            redirectUri += 'index.php';
-        }
+        // Must match registered authorized redirect URI in Google Cloud Console
+        const redirectUri = 'https://app.intan-elyu.online/index.php';
+
+        const isNative = Boolean(
+            (window.Capacitor && typeof window.Capacitor.isNativePlatform === 'function' && window.Capacitor.isNativePlatform()) ||
+            (navigator.userAgent && navigator.userAgent.includes('IntanElyuAPK'))
+        );
 
         try {
             sessionStorage.setItem('intan_elyu_google_oauth_pending', 'true');
             document.cookie = "is_intan_elyu_app=1; path=/; max-age=31536000; SameSite=Lax";
         } catch (e) { }
 
-        const stateObj = { timestamp: Date.now(), returnView: 'auth' };
+        const stateObj = { timestamp: Date.now(), returnView: 'auth', fromApp: isNative };
         const stateStr = encodeURIComponent(JSON.stringify(stateObj));
         const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${encodeURIComponent(clientId)}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=email%20profile%20openid&prompt=select_account&state=${stateStr}`;
 
-        // In Capacitor native mobile platform, open in system browser to prevent Google WebView blocking
-        if (window.Capacitor && typeof window.Capacitor.isNativePlatform === 'function' && window.Capacitor.isNativePlatform()) {
-            if (window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
-                window.Capacitor.Plugins.App.addListener('appUrlOpen', function (data) {
-                    if (data && data.url) {
-                        if (window.Capacitor.Plugins && window.Capacitor.Plugins.Browser) {
-                            window.Capacitor.Plugins.Browser.close().catch(function () { });
-                        }
-                        if (typeof window.initGoogleOAuthHandler === 'function') {
-                            window.initGoogleOAuthHandler(data.url);
-                        }
-                    }
-                });
-            }
-            if (window.Capacitor.Plugins && window.Capacitor.Plugins.Browser) {
-                window.Capacitor.Plugins.Browser.open({ url: googleAuthUrl });
-            } else {
+        // In Capacitor native mobile platform, open in system browser to prevent Google WebView blocking (Error 403: disallowed_useragent)
+        if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Browser) {
+            window.Capacitor.Plugins.Browser.open({ url: googleAuthUrl }).catch(function () {
                 window.location.href = googleAuthUrl;
-            }
+            });
             resetBtns();
         } else {
             window.location.href = googleAuthUrl;

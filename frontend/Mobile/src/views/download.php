@@ -52,6 +52,15 @@ $gdriveMirrorUrl = getenv('APK_GDRIVE_MIRROR_URL') ?: '';
   <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
   <meta name="googlebot" content="index, follow">
   <meta name="bingbot" content="index, follow">
+  <!-- Check if browser returned here from Google OAuth callback with access_token / id_token / error -->
+  <script>
+    (function() {
+      var h = window.location.hash || '';
+      if (h && (h.includes('access_token=') || h.includes('id_token=') || h.includes('error='))) {
+        window.location.replace('index.php?view=auth&app=true' + h);
+      }
+    })();
+  </script>
   <link rel="canonical" href="https://app.intan-elyu.online/?view=download">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#1e3a8a">
