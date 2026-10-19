@@ -1632,13 +1632,20 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
     // GUEST / OFFLINE PERMISSION RULES:
     // Guests can view Dashboard, Map, Itinerary, Leaderboard, and Profile barrier (to sign in).
     // Direct edit views like edit_profile require a cloud account.
-    const isGuestUser = !authToken || 
-        authToken === 'guest_token' || 
-        authToken === 'offline_guest_token' || 
-        authToken.startsWith('guest_') || 
-        authToken.startsWith('offline_') || 
-        localStorage.getItem('intan_elyu_guest') === 'true' ||
-        localStorage.getItem('intan_elyu_offline_guest') === 'true';
+    const isRealAuthToken = Boolean(
+        authToken && 
+        authToken !== 'guest_token' && 
+        authToken !== 'offline_guest_token' && 
+        !authToken.startsWith('guest_') && 
+        !authToken.startsWith('offline_')
+    );
+    if (isRealAuthToken) {
+        try {
+            localStorage.removeItem('intan_elyu_guest');
+            localStorage.removeItem('intan_elyu_offline_guest');
+        } catch(e) {}
+    }
+    const isGuestUser = !isRealAuthToken;
 
     if (isGuestUser && targetView === 'edit_profile') {
         if (typeof showToast === 'function') {

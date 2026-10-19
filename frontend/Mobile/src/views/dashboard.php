@@ -43,7 +43,14 @@ if (is_dir($imgDir)) {
         (function() {
             try {
                 var t = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
-                var isG = !t || t === 'guest_token' || t === 'offline_guest_token' || t.indexOf('guest_') === 0 || t.indexOf('offline_') === 0 || localStorage.getItem('intan_elyu_guest') === 'true' || localStorage.getItem('intan_elyu_offline_guest') === 'true';
+                var isReal = Boolean(t && t !== 'guest_token' && t !== 'offline_guest_token' && t.indexOf('guest_') !== 0 && t.indexOf('offline_') !== 0);
+                if (isReal) {
+                    try {
+                        localStorage.removeItem('intan_elyu_guest');
+                        localStorage.removeItem('intan_elyu_offline_guest');
+                    } catch(err) {}
+                }
+                var isG = !isReal;
                 var st = document.getElementById('dash-guest-guard-style');
                 if (st && isG) {
                     st.textContent = '#dash-explorer-id, #dash-title-row, #dash-stats-row { display: none !important; } #dash-guest-subtitle { display: flex !important; }';
@@ -1019,6 +1026,16 @@ if (is_dir($imgDir)) {
                     if (iconEl) iconEl.innerHTML = window.renderWeatherIconHtml(cw.icon, cw.fa_icon);
                     window.updateWeatherModal(cw);
                 }
+            } else {
+                if (tempEl && (tempEl.textContent.includes('Loading') || tempEl.querySelector('.fa-spinner'))) {
+                    tempEl.textContent = '29°C';
+                    if (descEl) descEl.textContent = 'Partly Cloudy';
+                    if (locEl) locEl.innerHTML = `<i class="fa-solid fa-location-dot" style="color:#38bdf8; margin-right:4px;"></i> ${locationName || 'San Fernando, La Union'}`;
+                    if (humidityEl) humidityEl.textContent = '72%';
+                    if (windEl) windEl.textContent = '14 km/h';
+                    if (uvEl) uvEl.textContent = '6';
+                    if (iconEl) iconEl.innerHTML = window.renderWeatherIconHtml('⛅', 'fa-cloud-sun');
+                }
             }
         } catch(e) {}
 
@@ -1206,14 +1223,14 @@ if (is_dir($imgDir)) {
         var backendUrl = getDashBackendUrl();
         const token = localStorage.getItem('intan_elyu_token');
         const user = window.safeJsonParse ? window.safeJsonParse(localStorage.getItem('auth_user'), {}) : {};
-        const isGuest = !token || 
-            token === 'guest_token' || 
-            token === 'offline_guest_token' || 
-            token.indexOf('guest_') === 0 || 
-            token.indexOf('offline_') === 0 || 
-            localStorage.getItem('intan_elyu_guest') === 'true' ||
-            localStorage.getItem('intan_elyu_offline_guest') === 'true' ||
-            Boolean(user && (user.is_guest || user.is_offline_guest));
+        const isRealUser = Boolean(token && token !== 'guest_token' && token !== 'offline_guest_token' && token.indexOf('guest_') !== 0 && token.indexOf('offline_') !== 0 && user && user.id && user.id !== 'guest');
+        if (isRealUser) {
+            try {
+                localStorage.removeItem('intan_elyu_guest');
+                localStorage.removeItem('intan_elyu_offline_guest');
+            } catch(e) {}
+        }
+        const isGuest = !isRealUser;
 
         function updateDashboardProfileHeader(isG, u) {
             const idEl = document.getElementById('dash-explorer-id');
@@ -1689,9 +1706,7 @@ if (is_dir($imgDir)) {
                 token === 'offline_guest_token' || 
                 token.indexOf('guest_') === 0 || 
                 token.indexOf('offline_') === 0 || 
-                localStorage.getItem('intan_elyu_guest') === 'true' || 
-                localStorage.getItem('intan_elyu_offline_guest') === 'true' || 
-                Boolean(u && (u.is_guest || u.is_offline_guest));
+                Boolean(u && (u.is_guest || u.is_offline_guest || u.id === 'guest'));
 
             if (typeof updateDashboardProfileHeader === 'function') {
                 updateDashboardProfileHeader(isGuestSession, u);
@@ -2205,14 +2220,14 @@ if (is_dir($imgDir)) {
         }
 
         const isOffline = !navigator.onLine || window.isAppOnline === false;
-        const isGuest = !token || 
-            token === 'guest_token' || 
-            token === 'offline_guest_token' || 
-            token.startsWith('guest_') || 
-            token.startsWith('offline_') || 
-            localStorage.getItem('intan_elyu_guest') === 'true' ||
-            localStorage.getItem('intan_elyu_offline_guest') === 'true' ||
-            Boolean(user && (user.is_guest || user.is_offline_guest));
+        const isRealUserSession = Boolean(token && token !== 'guest_token' && token !== 'offline_guest_token' && !token.startsWith('guest_') && !token.startsWith('offline_') && user && user.id && user.id !== 'guest');
+        if (isRealUserSession) {
+            try {
+                localStorage.removeItem('intan_elyu_guest');
+                localStorage.removeItem('intan_elyu_offline_guest');
+            } catch(e) {}
+        }
+        const isGuest = !isRealUserSession;
 
         if (isGuest) {
             // Instantly clear trips loading state for guest
@@ -2296,26 +2311,28 @@ if (is_dir($imgDir)) {
 
             if (!isOffline) {
                 const bUrl = getDashBackendUrl();
-                // 1. Fetch public dashboard from backend
-                fetch(`${bUrl}/api/public/dashboard${(lat && lng) ? '?lat=' + lat + '&lng=' + lng : ''}`, { 
-                    headers: { 'Accept': 'application/json' } 
-                })
-                .then(r => r.ok ? r.json() : null)
-                .then(d => {
-                    if (d && (d.trending || d.recommended)) {
-                        renderDashboard(d);
-                    }
-                    if (typeof window.fetchAllTouristSpots === 'function') {
-                        window.fetchAllTouristSpots();
-                    }
-                })
-                .catch(() => {
-                    if (typeof window.fetchAllTouristSpots === 'function') {
-                        window.fetchAllTouristSpots();
-                    } else if (!spots || spots.length === 0) {
-                        handleDashboardEmptyOrError();
-                    }
-                });
+                fetch(`${bUrl}/api/public/map`, { headers: { 'Accept': 'application/json' } })
+                    .then(r => r.ok ? r.json() : null)
+                    .then(d => {
+                        const fetchedSpots = d ? (d.destinations || d.spots || d.data || []) : [];
+                        if (fetchedSpots.length > 0) {
+                            window.allTouristSpots = fetchedSpots;
+                            try { localStorage.setItem('public_map_data', JSON.stringify({ data: { destinations: fetchedSpots }, timestamp: Date.now() })); } catch(e) {}
+                            renderGuestDashboard(fetchedSpots);
+                        } else if (!spots || spots.length === 0) {
+                            handleDashboardEmptyOrError();
+                        }
+                        if (typeof window.fetchAllTouristSpots === 'function') {
+                            window.fetchAllTouristSpots();
+                        }
+                    })
+                    .catch(() => {
+                        if (typeof window.fetchAllTouristSpots === 'function') {
+                            window.fetchAllTouristSpots();
+                        } else if (!spots || spots.length === 0) {
+                            handleDashboardEmptyOrError();
+                        }
+                    });
             } else if (!spots || spots.length === 0) {
                 handleDashboardEmptyOrError();
             }

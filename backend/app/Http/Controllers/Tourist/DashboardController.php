@@ -21,6 +21,19 @@ class DashboardController extends Controller
     {
         $user = $request->user();
 
+        // XP & Level calculations
+        $xp         = (int) ($user->xp ?? $user->points ?? 0);
+        $level      = (int) floor(max(0, $xp) / 1000) + 1;
+        $xpPerLevel = 1000;
+
+        // Keep database level column in sync
+        if ((int)($user->level ?? 1) !== $level) {
+            try {
+                $user->level = $level;
+                $user->save();
+            } catch (\Throwable $e) {}
+        }
+
         // Trending: top spots by visits (default 5, configurable via ?limit=)
         // Technique 2: Server-Side Caching — 2 minute TTL for trending spots
         $trendingLimit = min((int) $request->query('limit', 5), 50);
@@ -33,22 +46,32 @@ class DashboardController extends Controller
                 ->toArray();
         });
 
-        // Recommendations: Near Me feature or top rated
+        // Saved/Favorite places
+        $favoriteIds = collect();
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('favorites')) {
+                $favoriteIds = Favorite::where('user_id', $user->id)->pluck('tourist_spot_id');
+            }
+        } catch (\Throwable $e) {
+            $favoriteIds = collect();
+        }
+
+        $savedPlaces = collect();
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('tourist_spots') && $favoriteIds->isNotEmpty()) {
+                $savedPlaces = TouristSpot::whereIn('id', $favoriteIds)
+                    ->activeForTourists()
+                    ->get(['id', 'name', 'category', 'photo_url', 'latitude', 'longitude', 'visits', 'rating', 'description', 'entrance_fee', 'adult_fee', 'kids_fee', 'pwd_fee', 'senior_citizen_fee', 'entrance_fee_types', 'environmental_fee', 'fee_types', 'classification_status', 'municipality_id', 'status'])
+                    ->map(fn($s) => $this->formatSpot($s));
+            }
+        } catch (\Throwable $e) {
+            $savedPlaces = collect();
+        }
+
+        // Recommendations: Near Me feature
         $lat = $request->query('lat');
         $lng = $request->query('lng');
         $timeLabel = '📍 Near Me';
-
-        // Favorite spots (only for authenticated users)
-        $favoriteIds = collect();
-        if ($user) {
-            try {
-                if (\Illuminate\Support\Facades\Schema::hasTable('favorites')) {
-                    $favoriteIds = Favorite::where('user_id', $user->id)->pluck('tourist_spot_id');
-                }
-            } catch (\Throwable $e) {
-                $favoriteIds = collect();
-            }
-        }
 
         $recommended = collect();
         try {
@@ -71,65 +94,6 @@ class DashboardController extends Controller
             }
         } catch (\Throwable $e) {
             $recommended = collect();
-        }
-
-        // If unauthenticated / Guest user, return guest structure immediately
-        if (!$user) {
-            return response()->json([
-                'user' => [
-                    'id'             => null,
-                    'tourist_number' => null,
-                    'tourist_id'     => null,
-                    'name'           => 'Guest',
-                    'email'          => null,
-                    'xp'             => 0,
-                    'level'          => 1,
-                    'points'         => 0,
-                    'avatar'         => null,
-                    'age'            => null,
-                    'gender'         => null,
-                    'is_guest'       => true,
-                ],
-                'stats' => [
-                    'placesVisited'        => 0,
-                    'rank'                 => null,
-                    'unread_notifications' => 0,
-                ],
-                'trending'     => $trending,
-                'savedPlaces'  => [],
-                'recommended'  => $recommended,
-                'timeLabel'    => $timeLabel,
-                'announcements'=> [],
-                'myRank'       => null,
-                'my_rank'      => null,
-                'is_guest'     => true,
-            ]);
-        }
-
-        // XP & Level calculations for authenticated tourists
-        $xp         = (int) ($user->xp ?? $user->points ?? 0);
-        $level      = (int) floor(max(0, $xp) / 1000) + 1;
-        $xpPerLevel = 1000;
-
-        // Keep database level column in sync
-        if ((int)($user->level ?? 1) !== $level) {
-            try {
-                $user->level = $level;
-                $user->save();
-            } catch (\Throwable $e) {}
-        }
-
-        // Saved/Favorite places
-        $savedPlaces = collect();
-        try {
-            if (\Illuminate\Support\Facades\Schema::hasTable('tourist_spots') && $favoriteIds->isNotEmpty()) {
-                $savedPlaces = TouristSpot::whereIn('id', $favoriteIds)
-                    ->activeForTourists()
-                    ->get(['id', 'name', 'category', 'photo_url', 'latitude', 'longitude', 'visits', 'rating', 'description', 'entrance_fee', 'adult_fee', 'kids_fee', 'pwd_fee', 'senior_citizen_fee', 'entrance_fee_types', 'environmental_fee', 'fee_types', 'classification_status', 'municipality_id', 'status'])
-                    ->map(fn($s) => $this->formatSpot($s));
-            }
-        } catch (\Throwable $e) {
-            $savedPlaces = collect();
         }
 
         // Stats — Calculate true distinct places visited from itinerary items

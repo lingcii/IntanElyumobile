@@ -1137,6 +1137,9 @@
                 localStorage.removeItem('intan_elyu_cached_vouchers');
             } catch (e) { }
 
+            localStorage.removeItem('intan_elyu_guest');
+            localStorage.removeItem('intan_elyu_offline_guest');
+            localStorage.removeItem('intan_elyu_offline_mode');
             localStorage.setItem('auth_user', JSON.stringify(data.user));
             localStorage.setItem('intan_elyu_token', data.token);
 
