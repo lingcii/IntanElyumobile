@@ -119,45 +119,70 @@
                 return;
             }
 
-        const splashMain = document.getElementById('splash-main');
-        const token = localStorage.getItem('intan_elyu_token');
-        const cachedUser = localStorage.getItem('auth_user');
-        const isOffline = !navigator.onLine || window.isAppOnline === false;
+            const splashMain = document.getElementById('splash-main');
+            const token = localStorage.getItem('intan_elyu_token');
+            const cachedUser = localStorage.getItem('auth_user');
+            const isOffline = !navigator.onLine || window.isAppOnline === false;
 
-        // Personal Mobile Device Flow: Always bypass login straight to the homepage (Dashboard)!
-        // If logged in with a real cloud account, keep the session.
-        // If not logged in, auto-initialize an Offline Guest profile and trigger the offline mode notification.
-        if (!token) {
-            localStorage.setItem('intan_elyu_token', 'offline_guest_token');
-            localStorage.setItem('intan_elyu_offline_mode', 'true');
-            localStorage.setItem('intan_elyu_offline_guest', 'true');
-            if (!cachedUser) {
-                const defaultGuest = {
-                    id: 'offline_guest',
-                    user_id: 'offline_guest',
-                    name: 'Guest Explorer',
-                    full_name: 'Guest Explorer',
-                    role: 'tourist',
-                    tourist_number: 'OFFLINE',
-                    points: 0,
-                    xp: 0,
-                    completed_activities: 0,
-                    home_location: 'La Union',
-                    is_offline_guest: true
-                };
-                localStorage.setItem('auth_user', JSON.stringify(defaultGuest));
+            if (isOffline) {
+                // Device has NO internet connection:
+                localStorage.setItem('intan_elyu_offline_mode', 'true');
+                if (!token) {
+                    localStorage.setItem('intan_elyu_token', 'offline_guest_token');
+                    localStorage.setItem('intan_elyu_offline_guest', 'true');
+                    if (!cachedUser) {
+                        const defaultGuest = {
+                            id: 'offline_guest',
+                            user_id: 'offline_guest',
+                            name: 'Guest Explorer',
+                            full_name: 'Guest Explorer',
+                            role: 'tourist',
+                            tourist_number: 'OFFLINE',
+                            points: 0,
+                            xp: 0,
+                            completed_activities: 0,
+                            home_location: 'La Union',
+                            is_offline_guest: true
+                        };
+                        localStorage.setItem('auth_user', JSON.stringify(defaultGuest));
+                    }
+                }
+                sessionStorage.setItem('elyu_show_offline_bypass_notice', 'true');
+            } else {
+                // Device is ONLINE (Wi-Fi or Mobile Data connected):
+                // Clean up any stale offline flags
+                localStorage.removeItem('intan_elyu_offline_mode');
+                localStorage.removeItem('intan_elyu_offline_guest');
+                sessionStorage.removeItem('elyu_show_offline_bypass_notice');
+
+                if (!token || token === 'offline_guest_token') {
+                    // Mobile Guest Session (Online Guest)
+                    localStorage.setItem('intan_elyu_token', 'guest_token');
+                    localStorage.setItem('intan_elyu_guest', 'true');
+                    if (!cachedUser || cachedUser.is_offline_guest) {
+                        const defaultGuest = {
+                            id: 'guest',
+                            user_id: 'guest',
+                            name: 'Guest Explorer',
+                            full_name: 'Guest Explorer',
+                            role: 'tourist',
+                            tourist_number: 'GUEST',
+                            points: 0,
+                            xp: 0,
+                            completed_activities: 0,
+                            home_location: 'La Union',
+                            is_guest: true
+                        };
+                        localStorage.setItem('auth_user', JSON.stringify(defaultGuest));
+                    }
+                }
             }
-            // Trigger offline mode notification banner & toast on the dashboard
-            sessionStorage.setItem('elyu_show_offline_bypass_notice', 'true');
-        } else if (token.startsWith('offline_') || localStorage.getItem('intan_elyu_offline_mode') === 'true' || localStorage.getItem('intan_elyu_offline_guest') === 'true') {
-            sessionStorage.setItem('elyu_show_offline_bypass_notice', 'true');
-        }
 
-        // Always bypass straight to dashboard with smooth fade out
-        if (splashMain) splashMain.classList.add('exit');
-        setTimeout(() => {
-            navigateTo('dashboard');
-        }, 450);
-    }, 2200);
-})();
+            // Smooth transition straight to dashboard
+            if (splashMain) splashMain.classList.add('exit');
+            setTimeout(() => {
+                navigateTo('dashboard');
+            }, 450);
+        }, 2200);
+    })();
 </script>

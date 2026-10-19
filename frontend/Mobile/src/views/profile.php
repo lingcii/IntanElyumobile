@@ -14,23 +14,23 @@ $activeTab = 'profile';
         <div style="width: 78px; height: 78px; border-radius: 26px; background: linear-gradient(135deg, rgba(30,58,138,0.12) 0%, rgba(0,242,254,0.2) 100%); display: flex; align-items: center; justify-content: center; margin: 0 auto 18px; box-shadow: 0 8px 24px rgba(30,58,138,0.12);">
             <i class="fa-solid fa-user-lock" style="font-size: 34px; color: #1e3a8a;"></i>
         </div>
-        <div style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 100px; font-size: 11px; font-weight: 800; background: #fffbeb; color: #b45309; border: 1px solid #fde68a; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">
-            <i class="fa-solid fa-cloud-slash"></i> Offline Mode Active
+        <div id="profile-barrier-pill" style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 100px; font-size: 11px; font-weight: 800; background: rgba(2, 132, 199, 0.1); color: #0284c7; border: 1px solid rgba(2, 132, 199, 0.25); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">
+            <i id="profile-barrier-pill-icon" class="fa-solid fa-user-clock"></i> <span id="profile-barrier-pill-text">Guest Mode</span>
         </div>
-        <h2 style="font-size: 21px; font-weight: 800; color: #0f172a; margin: 0 0 8px; letter-spacing: -0.3px;">Profile Unavailable in Offline Mode</h2>
-        <p style="font-size: 13.5px; color: #64748b; line-height: 1.55; max-width: 320px; margin: 0 auto 24px;">
-            Your personal profile, points balance, badges, and trip history require an active internet connection and cloud account. You can still explore the Interactive Map and check the Provincial Leaderboards while offline!
+        <h2 id="profile-barrier-title" style="font-size: 21px; font-weight: 800; color: #0f172a; margin: 0 0 8px; letter-spacing: -0.3px;">Sign in to Access Your Profile</h2>
+        <p id="profile-barrier-desc" style="font-size: 13.5px; color: #64748b; line-height: 1.55; max-width: 320px; margin: 0 auto 24px;">
+            Create a free account or sign in to track your points, earn achievement badges, save custom itineraries, and redeem exclusive provincial discounts!
         </p>
 
         <div style="display: flex; flex-direction: column; gap: 10px; max-width: 290px; margin: 0 auto;">
-            <button type="button" onclick="navigateTo('map')" style="width: 100%; padding: 13px; border-radius: 16px; border: none; background: linear-gradient(135deg, #1e3a8a 0%, #0284c7 100%); color: #ffffff; font-size: 13.5px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 6px 18px rgba(30,58,138,0.25);">
-                <i class="fa-solid fa-map-location-dot" style="color: #00f2fe;"></i> Explore Interactive Map
+            <button type="button" id="profile-barrier-auth-btn" onclick="navigateTo('auth')" style="width: 100%; padding: 13px; border-radius: 16px; border: none; background: linear-gradient(135deg, #1e3a8a 0%, #0284c7 100%); color: #ffffff; font-size: 13.5px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 6px 18px rgba(30,58,138,0.25);">
+                <i class="fa-solid fa-right-to-bracket" style="color: #00f2fe;"></i> Sign In / Create Account
             </button>
-            <button type="button" onclick="navigateTo('leaderboard')" style="width: 100%; padding: 13px; border-radius: 16px; border: 1.5px solid #e2e8f0; background: #ffffff; color: #1e3a8a; font-size: 13.5px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
+            <button type="button" onclick="navigateTo('map')" style="width: 100%; padding: 13px; border-radius: 16px; border: 1.5px solid #e2e8f0; background: #ffffff; color: #1e3a8a; font-size: 13.5px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                <i class="fa-solid fa-map-location-dot" style="color: #0284c7;"></i> Explore Interactive Map
+            </button>
+            <button type="button" onclick="navigateTo('leaderboard')" style="width: 100%; padding: 11px; border-radius: 16px; border: none; background: #f1f5f9; color: #475569; font-size: 12.5px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
                 <i class="fa-solid fa-trophy" style="color: #f59e0b;"></i> View Leaderboards
-            </button>
-            <button type="button" onclick="navigateTo('auth')" style="width: 100%; padding: 11px; border-radius: 16px; border: none; background: #f1f5f9; color: #475569; font-size: 12.5px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 4px;">
-                <i class="fa-solid fa-right-to-bracket" style="color: #1e3a8a;"></i> Sign In with Account
             </button>
         </div>
     </div>
@@ -799,25 +799,70 @@ $activeTab = 'profile';
     }
 
     // Immediately hydrate on script execution
-    const _profileAuthToken = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
-    const _isProfileOfflineGuest = !_profileAuthToken || 
-        _profileAuthToken === 'offline_guest_token' || 
-        _profileAuthToken.startsWith('offline_') || 
-        localStorage.getItem('intan_elyu_offline_guest') === 'true' || 
-        localStorage.getItem('intan_elyu_offline_mode') === 'true';
+    function updateProfileAccessBarrier() {
+        const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+        const isOffline = !navigator.onLine || window.isAppOnline === false;
+        const isGuest = !token || 
+            token === 'guest_token' || 
+            token === 'offline_guest_token' || 
+            token.startsWith('guest_') || 
+            token.startsWith('offline_') || 
+            localStorage.getItem('intan_elyu_guest') === 'true' ||
+            localStorage.getItem('intan_elyu_offline_guest') === 'true';
 
-    if (_isProfileOfflineGuest) {
         const barrier = document.getElementById('profile-offline-lock-barrier');
         const normal = document.getElementById('profile-normal-content');
-        if (barrier) barrier.style.display = 'block';
-        if (normal) normal.style.display = 'none';
-    } else {
-        hydrateProfileFromCache();
+        const pill = document.getElementById('profile-barrier-pill');
+        const pillIcon = document.getElementById('profile-barrier-pill-icon');
+        const pillText = document.getElementById('profile-barrier-pill-text');
+        const title = document.getElementById('profile-barrier-title');
+        const desc = document.getElementById('profile-barrier-desc');
+
+        if (isGuest) {
+            if (barrier) barrier.style.display = 'block';
+            if (normal) normal.style.display = 'none';
+
+            if (isOffline) {
+                // Offline Guest
+                if (pill) {
+                    pill.style.background = '#fffbeb';
+                    pill.style.color = '#b45309';
+                    pill.style.borderColor = '#fde68a';
+                }
+                if (pillIcon) pillIcon.className = 'fa-solid fa-cloud-slash';
+                if (pillText) pillText.textContent = 'Offline Mode Active';
+                if (title) title.textContent = 'Profile Unavailable in Offline Mode';
+                if (desc) desc.textContent = 'An active internet connection is required to sign in and view your personal profile, rewards, and trip history. You can still explore saved maps and leaderboards offline!';
+            } else {
+                // Online Guest (Connected to Wi-Fi)
+                if (pill) {
+                    pill.style.background = 'rgba(2, 132, 199, 0.1)';
+                    pill.style.color = '#0284c7';
+                    pill.style.borderColor = 'rgba(2, 132, 199, 0.25)';
+                }
+                if (pillIcon) pillIcon.className = 'fa-solid fa-user-clock';
+                if (pillText) pillText.textContent = 'Guest Mode';
+                if (title) title.textContent = 'Sign in to Access Your Profile';
+                if (desc) desc.textContent = 'Create a free account or sign in to track your points, earn achievement badges, save custom itineraries, and redeem exclusive provincial discounts!';
+            }
+        } else {
+            // Logged-in Tourist
+            if (barrier) barrier.style.display = 'none';
+            if (normal) normal.style.display = 'block';
+            hydrateProfileFromCache();
+            if (!isOffline) fetchProfileData();
+        }
     }
+
+    updateProfileAccessBarrier();
+    window.addEventListener('online', updateProfileAccessBarrier);
+    window.addEventListener('offline', updateProfileAccessBarrier);
+    window.addEventListener('appOnline', updateProfileAccessBarrier);
+    window.addEventListener('appOffline', updateProfileAccessBarrier);
 
     async function fetchProfileData(force = false) {
         const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('api_token');
-        if (!token || token === 'offline_guest_token' || token.startsWith('offline_')) return;
+        if (!token || token === 'guest_token' || token === 'offline_guest_token' || token.startsWith('offline_') || token.startsWith('guest_')) return;
 
         const cacheKey = 'profile_data_' + token.substring(0, 10);
         const shouldForce = force || Boolean(window.profileNeedsRefresh);

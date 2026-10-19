@@ -1175,9 +1175,13 @@ window.OfflineProfileManager = {
     let wasOffline = (typeof navigator.onLine === 'boolean') ? !navigator.onLine : false;
     let hidePillTimeout = null;
     let offlineDebounceTimeout = null;
-    let lastOnlineSyncTime = 0;
-
     window.isAppOnline = (typeof navigator.onLine === 'boolean') ? navigator.onLine : true;
+    if (window.isAppOnline) {
+        try {
+            localStorage.removeItem('intan_elyu_offline_mode');
+            sessionStorage.removeItem('elyu_show_offline_bypass_notice');
+        } catch(e) {}
+    }
 
     function showOfflinePill() {
         const pill = document.getElementById('elyu-offline-pill');
@@ -1319,9 +1323,23 @@ window.OfflineProfileManager = {
 
         const now = Date.now();
         if (now - lastOnlineSyncTime < 8000 && window.isAppOnline) return;
-        lastOnlineSyncTime = now;
-
         window.isAppOnline = true;
+        try {
+            localStorage.removeItem('intan_elyu_offline_mode');
+            sessionStorage.removeItem('elyu_show_offline_bypass_notice');
+        } catch(e) {}
+
+        // Hide any view-level offline pills immediately when online
+        const pillsToHide = [
+            'elyu-offline-pill', 'dash-offline-pill', 'trending-offline-pill',
+            'trip-offline-badge', 'saved-trips-offline-badge', 'saved-places-offline-badge',
+            'puzzles-offline-badge', 'auth-offline-badge', 'profile-offline-badge',
+            'discount-offline-badge', 'edit-profile-offline-badge'
+        ];
+        pillsToHide.forEach(id => {
+            const el = document.getElementById(id);
+            if (el && id !== 'elyu-offline-pill') el.style.display = 'none';
+        });
 
         if (wasOffline) {
             wasOffline = false;
@@ -1569,44 +1587,59 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
         }
     }
 
-    // Mobile Guest / Offline Auto-Bypass:
-    // If not authenticated, automatically initialize an offline guest session rather than blocking with login!
+    // Mobile Guest Session Initialization:
+    // If not authenticated, ensure an exploratory Guest session is available without forcing login!
     let authToken = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+    const isNetworkOffline = !navigator.onLine || window.isAppOnline === false;
+
     if (!authToken && targetView !== 'auth' && targetView !== 'download') {
-        authToken = 'offline_guest_token';
-        localStorage.setItem('intan_elyu_token', authToken);
-        localStorage.setItem('intan_elyu_offline_mode', 'true');
-        localStorage.setItem('intan_elyu_offline_guest', 'true');
+        if (isNetworkOffline) {
+            authToken = 'offline_guest_token';
+            localStorage.setItem('intan_elyu_token', authToken);
+            localStorage.setItem('intan_elyu_offline_mode', 'true');
+            localStorage.setItem('intan_elyu_offline_guest', 'true');
+        } else {
+            authToken = 'guest_token';
+            localStorage.setItem('intan_elyu_token', authToken);
+            localStorage.setItem('intan_elyu_guest', 'true');
+            localStorage.removeItem('intan_elyu_offline_mode');
+            localStorage.removeItem('intan_elyu_offline_guest');
+            sessionStorage.removeItem('elyu_show_offline_bypass_notice');
+        }
         if (!localStorage.getItem('auth_user')) {
             localStorage.setItem('auth_user', JSON.stringify({
-                id: 'offline_guest',
-                user_id: 'offline_guest',
+                id: isNetworkOffline ? 'offline_guest' : 'guest',
+                user_id: isNetworkOffline ? 'offline_guest' : 'guest',
                 name: 'Guest Explorer',
                 full_name: 'Guest Explorer',
                 role: 'tourist',
-                tourist_number: 'OFFLINE',
+                tourist_number: isNetworkOffline ? 'OFFLINE' : 'GUEST',
                 points: 0,
                 xp: 0,
                 completed_activities: 0,
                 home_location: 'La Union',
-                is_offline_guest: true
+                is_guest: true,
+                is_offline_guest: isNetworkOffline
             }));
         }
     }
 
-    // OFFLINE MODE PERMISSION RULES:
-    // In Offline Mode, tourists CAN access: Dashboard, Map, Itinerary, and Leaderboards.
-    // Tourists CANNOT access: Profile / Edit Profile (requires an authenticated cloud account).
-    const isOfflineUser = !authToken || 
+    // GUEST / OFFLINE PERMISSION RULES:
+    // Guests can view Dashboard, Map, Itinerary, Leaderboard, and Profile barrier (to sign in).
+    // Direct edit views like edit_profile require a cloud account.
+    const isGuestUser = !authToken || 
+        authToken === 'guest_token' || 
         authToken === 'offline_guest_token' || 
+        authToken.startsWith('guest_') || 
         authToken.startsWith('offline_') || 
-        localStorage.getItem('intan_elyu_offline_guest') === 'true' || 
-        localStorage.getItem('intan_elyu_offline_mode') === 'true';
+        localStorage.getItem('intan_elyu_guest') === 'true' ||
+        localStorage.getItem('intan_elyu_offline_guest') === 'true';
 
-    if (isOfflineUser && (targetView === 'profile' || targetView === 'edit_profile')) {
+    if (isGuestUser && targetView === 'edit_profile') {
         if (typeof showToast === 'function') {
-            showToast('Profile is unavailable in Offline Mode. Please sign in to access your profile.', 'warning', 4500);
+            showToast('Please sign in to customize and edit your profile.', 'info', 4500);
         }
+        navigateTo('auth');
         return;
     }
 
@@ -2765,12 +2798,16 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                     k.startsWith('intan_cache_') ||
                     k === 'intan_elyu_token' ||
                     k === 'Intan_Elyu_Token' ||
-                    k === 'auth_user'
+                    k === 'auth_user' ||
+                    k === 'intan_elyu_guest' ||
+                    k === 'intan_elyu_offline_guest' ||
+                    k === 'intan_elyu_offline_mode'
                 ) {
                     keysToRemove.push(k);
                 }
             }
             keysToRemove.forEach(k => localStorage.removeItem(k));
+            sessionStorage.removeItem('elyu_show_offline_bypass_notice');
         } catch (e) {
             localStorage.removeItem('intan_elyu_token');
             localStorage.removeItem('Intan_Elyu_Token');

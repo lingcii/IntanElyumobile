@@ -378,21 +378,12 @@ if (is_dir($imgDir)) {
 
     function updateDashboardOfflineStatus() {
         var pill = document.getElementById('dash-offline-pill');
-        var token = localStorage.getItem('intan_elyu_token');
-        var isOfflineMode = localStorage.getItem('intan_elyu_offline_mode') === 'true' ||
-                            localStorage.getItem('intan_elyu_offline_guest') === 'true' ||
-                            Boolean(token && token.startsWith('offline_'));
-        var isNetworkOffline = !navigator.onLine || window.isAppOnline === false;
-        var isOffline = isNetworkOffline || isOfflineMode;
+        var isOffline = !navigator.onLine || window.isAppOnline === false;
         if (pill) {
             pill.style.display = isOffline ? 'flex' : 'none';
             var span = pill.querySelector('span');
             if (span) {
-                if (isOfflineMode && !isNetworkOffline) {
-                    span.innerHTML = 'Offline Mode &bull; Exploring as Local Guest';
-                } else {
-                    span.innerHTML = 'Offline Mode &bull; Showing Saved Guides & Local GPS';
-                }
+                span.innerHTML = 'Offline Mode &bull; Showing Saved Guides & Local GPS';
             }
         }
     }
@@ -917,17 +908,20 @@ if (is_dir($imgDir)) {
             setTxt('dash-title', 'Explorer of Elyu');
         }
 
-        // Show offline mode notification banner & toast if login was bypassed
+        // Show offline mode notification banner & toast ONLY if really offline
         if (sessionStorage.getItem('elyu_show_offline_bypass_notice') === 'true') {
             sessionStorage.removeItem('elyu_show_offline_bypass_notice');
-            setTimeout(() => {
-                if (typeof showToast === 'function') {
-                    showToast('Running in Offline Mode • Login bypassed for mobile', 'info', 4000);
-                }
-                if (typeof window.showOfflinePill === 'function') {
-                    window.showOfflinePill();
-                }
-            }, 600);
+            const isReallyOffline = !navigator.onLine || window.isAppOnline === false;
+            if (isReallyOffline) {
+                setTimeout(() => {
+                    if (typeof showToast === 'function') {
+                        showToast('Running in Offline Mode • Showing saved guides', 'info', 4000);
+                    }
+                    if (typeof window.showOfflinePill === 'function') {
+                        window.showOfflinePill();
+                    }
+                }, 600);
+            }
         }
 
         // ── Helper: Municipality Resolution ──
@@ -1756,15 +1750,18 @@ if (is_dir($imgDir)) {
             );
         }
 
-        const isOfflineGuest = Boolean((token && token.startsWith('offline_')) ||
-                                       localStorage.getItem('intan_elyu_offline_guest') === 'true' ||
-                                       localStorage.getItem('intan_elyu_offline_mode') === 'true');
+        const isOffline = !navigator.onLine || window.isAppOnline === false;
+        const isGuest = !token || 
+            token === 'guest_token' || 
+            token === 'offline_guest_token' || 
+            token.startsWith('guest_') || 
+            token.startsWith('offline_') || 
+            localStorage.getItem('intan_elyu_guest') === 'true' ||
+            localStorage.getItem('intan_elyu_offline_guest') === 'true';
 
-        if (isOfflineGuest) {
-            // Guest / Offline Mode: Populate dashboard using cached or public map data without requiring server token
-            try {
-                const mapCache = window.safeJsonParse ? window.safeJsonParse(localStorage.getItem('public_map_data'), null)?.data : null;
-                const spots = (mapCache && mapCache.destinations) || (window.allTouristSpots && window.allTouristSpots.length > 0 ? window.allTouristSpots : null);
+        if (isGuest) {
+            // Guest Mode: Populate dashboard using public map data without requiring private bearer token
+            const renderGuestDashboard = (spots) => {
                 if (spots && spots.length > 0) {
                     const activeSpots = spots.filter(d => !d.status || !['pending', 'draft', 'rejected'].includes(d.status.toLowerCase()));
                     renderDashboard({
@@ -1778,7 +1775,35 @@ if (is_dir($imgDir)) {
                 } else {
                     handleDashboardEmptyOrError();
                 }
-            } catch (e) {
+            };
+
+            let spots = (window.allTouristSpots && window.allTouristSpots.length > 0) ? window.allTouristSpots : null;
+            if (!spots) {
+                try {
+                    const mapCache = window.safeJsonParse ? window.safeJsonParse(localStorage.getItem('public_map_data'), null)?.data : null;
+                    spots = (mapCache && mapCache.destinations) || null;
+                } catch(e) {}
+            }
+
+            if (spots && spots.length > 0) {
+                renderGuestDashboard(spots);
+            } else if (!isOffline) {
+                // Online Guest: Fetch public spots dynamically from API
+                const bUrl = (window.backendUrl || window.BACKEND_URL || 'https://api.intan-elyu.online').replace(/\/+$/, '');
+                fetch(`${bUrl}/api/public/map`, { headers: { 'Accept': 'application/json' } })
+                    .then(r => r.ok ? r.json() : null)
+                    .then(d => {
+                        const fetchedSpots = d ? (d.destinations || d.spots || d.data || []) : [];
+                        if (fetchedSpots.length > 0) {
+                            window.allTouristSpots = fetchedSpots;
+                            try { localStorage.setItem('public_map_data', JSON.stringify({ data: { destinations: fetchedSpots }, timestamp: Date.now() })); } catch(e) {}
+                            renderGuestDashboard(fetchedSpots);
+                        } else {
+                            handleDashboardEmptyOrError();
+                        }
+                    })
+                    .catch(() => handleDashboardEmptyOrError());
+            } else {
                 handleDashboardEmptyOrError();
             }
 

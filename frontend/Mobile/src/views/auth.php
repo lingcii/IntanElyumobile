@@ -118,7 +118,7 @@
                     </button>
                     <button type="button" id="btn-offline-mode" class="btn-offline-guest" onclick="window.enterOfflineMode(event)">
                         <i class="fa-solid fa-compass" style="color: #38bdf8; font-size: 13.5px;"></i>
-                        <span>Explore in Offline Mode</span>
+                        <span>Continue as Guest</span>
                     </button>
                     <p class="auth-switch-prompt">
                         Don't have an account? <a href="#" onclick="toggleAuthMode(true); return false;"
@@ -222,7 +222,7 @@
                     </button>
                     <button type="button" class="btn-offline-guest" onclick="window.enterOfflineMode(event)">
                         <i class="fa-solid fa-compass" style="color: #38bdf8; font-size: 13.5px;"></i>
-                        <span>Explore in Offline Mode</span>
+                        <span>Continue as Guest</span>
                     </button>
                     <p class="auth-switch-prompt">
                         Already have an account? <a href="#" onclick="toggleAuthMode(false); return false;"
@@ -581,6 +581,10 @@
             } else {
                 document.body.classList.remove('is-offline');
                 document.body.removeAttribute('data-offline');
+                try {
+                    localStorage.removeItem('intan_elyu_offline_mode');
+                    sessionStorage.removeItem('elyu_show_offline_bypass_notice');
+                } catch(e) {}
             }
             var badge = document.getElementById('auth-offline-badge');
             if (badge) {
@@ -589,6 +593,15 @@
             var offlineBtns = document.querySelectorAll('.btn-offline-guest');
             offlineBtns.forEach(function (btn) {
                 btn.style.setProperty('display', 'flex', 'important');
+                var span = btn.querySelector('span');
+                var icon = btn.querySelector('i');
+                if (isOffline) {
+                    if (span) span.textContent = 'Explore in Offline Mode';
+                    if (icon) icon.className = 'fa-solid fa-cloud-slash';
+                } else {
+                    if (span) span.textContent = 'Continue as Guest';
+                    if (icon) icon.className = 'fa-solid fa-compass';
+                }
             });
         }
         updateOfflineStatus();
@@ -617,37 +630,73 @@
         if (e && e.preventDefault) e.preventDefault();
         window.closeOfflineAuthModal();
 
-        let cached = null;
-        try {
-            cached = JSON.parse(localStorage.getItem('auth_user') || 'null');
-        } catch (err) {}
+        var isOffline = !navigator.onLine || window.isAppOnline === false;
+        if (isOffline) {
+            // Truly Offline: Activate Offline Mode
+            let cached = null;
+            try {
+                cached = JSON.parse(localStorage.getItem('auth_user') || 'null');
+            } catch (err) {}
 
-        if (!cached || !cached.name) {
-            cached = {
-                id: 'offline_guest',
-                user_id: 'offline_guest',
-                name: 'Offline Explorer',
-                full_name: 'Offline Explorer',
-                role: 'tourist',
-                points: 0,
-                xp: 0,
-                completed_activities: 0,
-                home_location: 'La Union',
-                is_offline_guest: true
-            };
-            localStorage.setItem('auth_user', JSON.stringify(cached));
-        }
+            if (!cached || !cached.name) {
+                cached = {
+                    id: 'offline_guest',
+                    user_id: 'offline_guest',
+                    name: 'Offline Explorer',
+                    full_name: 'Offline Explorer',
+                    role: 'tourist',
+                    points: 0,
+                    xp: 0,
+                    completed_activities: 0,
+                    home_location: 'La Union',
+                    is_offline_guest: true
+                };
+                localStorage.setItem('auth_user', JSON.stringify(cached));
+            }
 
-        localStorage.setItem('intan_elyu_token', 'offline_guest_token');
-        localStorage.setItem('intan_elyu_offline_mode', 'true');
-        localStorage.setItem('intan_elyu_offline_guest', 'true');
-        sessionStorage.setItem('elyu_show_offline_bypass_notice', 'true');
+            localStorage.setItem('intan_elyu_token', 'offline_guest_token');
+            localStorage.setItem('intan_elyu_offline_mode', 'true');
+            localStorage.setItem('intan_elyu_offline_guest', 'true');
+            sessionStorage.setItem('elyu_show_offline_bypass_notice', 'true');
 
-        if (typeof window.notifyAppOffline === 'function') {
-            window.notifyAppOffline();
-        }
-        if (typeof showToast === 'function') {
-            showToast('Entered Offline Mode! Showing saved guides & maps.');
+            if (typeof window.notifyAppOffline === 'function') {
+                window.notifyAppOffline();
+            }
+            if (typeof showToast === 'function') {
+                showToast('Entered Offline Mode! Showing saved guides & maps.');
+            }
+        } else {
+            // Truly Online: Continue as Guest (Do NOT force offline mode!)
+            localStorage.setItem('intan_elyu_token', 'guest_token');
+            localStorage.setItem('intan_elyu_guest', 'true');
+            localStorage.removeItem('intan_elyu_offline_mode');
+            localStorage.removeItem('intan_elyu_offline_guest');
+            sessionStorage.removeItem('elyu_show_offline_bypass_notice');
+
+            let cached = null;
+            try {
+                cached = JSON.parse(localStorage.getItem('auth_user') || 'null');
+            } catch (err) {}
+
+            if (!cached || !cached.name || cached.is_offline_guest) {
+                cached = {
+                    id: 'guest',
+                    user_id: 'guest',
+                    name: 'Guest Explorer',
+                    full_name: 'Guest Explorer',
+                    role: 'tourist',
+                    points: 0,
+                    xp: 0,
+                    completed_activities: 0,
+                    home_location: 'La Union',
+                    is_guest: true
+                };
+                localStorage.setItem('auth_user', JSON.stringify(cached));
+            }
+
+            if (typeof showToast === 'function') {
+                showToast('Continuing as Guest Explorer. Welcome!', 'info', 3000);
+            }
         }
 
         if (typeof navigateTo === 'function') {
@@ -656,6 +705,7 @@
             window.location.href = 'index.php?view=dashboard';
         }
     };
+    window.handleGuestOrOfflineClick = window.enterOfflineMode;
 
     window.openAuthCancelModal = function (msg) {
         const modal = document.getElementById('auth-cancel-modal');

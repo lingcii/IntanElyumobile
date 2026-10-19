@@ -113,7 +113,7 @@ if (is_dir($imgDir)) {
                 renderSavedPlaces(localSaved);
             }
 
-            if (!token || token.startsWith('offline_')) {
+            if (!token || token === 'guest_token' || token.startsWith('guest_') || token.startsWith('offline_') || localStorage.getItem('intan_elyu_guest') === 'true') {
                 // In offline guest mode, rely on local bookmarks
                 if (localSaved.length > 0) {
                     renderSavedPlaces(localSaved);

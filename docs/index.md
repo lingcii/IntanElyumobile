@@ -13,6 +13,7 @@ This documentation uses Obsidian & Foam `[[wikilinks]]` so you can visualize rel
 - [[gamezone-and-rewards]] — Mini-game logic, daily reward caps, anti-exploit protections, and point redemption.
 - [[mobile-pwa-architecture]] — Capacitor Android runtime, service workers, asset caching, and client-side storage.
 - [[api-and-database]] — Laravel RESTful API endpoints, token authentication, and MySQL relational schemas.
+- [[mobile-erd-crows-foot]] — Complete Crow's Foot Notation ERD for the mobile tourist client and offline sync.
 - [[mobile-network-and-auth-troubleshooting]] — Assessment of USB tethering, Google OAuth 400 errors, CORS, and leaderboard fallbacks.
 
 ---

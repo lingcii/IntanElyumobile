@@ -194,12 +194,26 @@
             const user = window.safeJsonParse ? window.safeJsonParse(localStorage.getItem('auth_user'), {}) : (JSON.parse(localStorage.getItem('auth_user') || '{}'));
             const avatarEl = document.getElementById('sidebar-avatar');
             const nameEl = document.getElementById('sidebar-user-name');
+            const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+            const isGuest = !token || token === 'guest_token' || token === 'offline_guest_token' || token.startsWith('guest_') || token.startsWith('offline_');
             if (user) {
                 const fullName = (user.first_name || user.name || '').trim();
                 const firstName = fullName ? fullName.split(/\s+/)[0] : 'Explorer';
                 if (nameEl && firstName) nameEl.textContent = firstName;
                 if (avatarEl && firstName) {
                     avatarEl.src = user.avatar ? (window.getFullImageUrl ? window.getFullImageUrl(user.avatar) : user.avatar) : `https://ui-avatars.com/api/?name=${encodeURIComponent(firstName)}&background=007AFF&color=fff&rounded=true&bold=true&size=128`;
+                }
+            }
+            const logoutBtn = document.getElementById('sidebar-logout-btn');
+            if (logoutBtn) {
+                if (isGuest) {
+                    logoutBtn.innerHTML = '<i class="fa-solid fa-right-to-bracket" style="color: #ffffff !important; font-size: 14px;"></i> Sign In / Register';
+                    logoutBtn.style.setProperty('background', 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)', 'important');
+                    logoutBtn.onclick = function() { toggleSidebar(); navigateTo('auth'); return false; };
+                } else {
+                    logoutBtn.innerHTML = '<i class="fa-solid fa-right-from-bracket" style="color: #ffffff !important; font-size: 14px;"></i> Log Out';
+                    logoutBtn.style.setProperty('background', 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)', 'important');
+                    logoutBtn.onclick = function() { logoutUser(); return false; };
                 }
             }
         } catch (e) {}
@@ -310,7 +324,7 @@
         if (footer) footer.style.display = 'none';
 
         const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('tourist_token');
-        if (!token || token === 'offline_guest_token') {
+        if (!token || token === 'offline_guest_token' || token === 'guest_token' || token.startsWith('guest_') || token.startsWith('offline_')) {
             list.innerHTML = `
                 <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 36px 16px; gap: 10px; color: #64748b;">
                     <div style="width: 48px; height: 48px; border-radius: 50%; background: #f1f5f9; display: flex; align-items: center; justify-content: center;">

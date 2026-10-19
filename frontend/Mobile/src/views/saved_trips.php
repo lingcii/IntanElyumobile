@@ -195,7 +195,7 @@ $backRoute = 'itinerary';
 
         window.fetchSavedTrips = async function (forceRefresh = false) {
             const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
-            const isGuestOrOffline = !token || token.startsWith('offline_') || localStorage.getItem('intan_elyu_offline_mode') === 'true';
+            const isGuestOrOffline = !token || token === 'guest_token' || token.startsWith('guest_') || token.startsWith('offline_') || localStorage.getItem('intan_elyu_guest') === 'true' || localStorage.getItem('intan_elyu_offline_mode') === 'true';
 
             // Safety watchdog timeout: Ensure loading spinner never hangs indefinitely
             setTimeout(() => {
