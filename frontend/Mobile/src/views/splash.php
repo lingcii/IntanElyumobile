@@ -159,17 +159,26 @@
                 localStorage.removeItem('intan_elyu_offline_guest');
                 sessionStorage.removeItem('elyu_show_offline_bypass_notice');
 
-                if (token && token !== 'offline_guest_token') {
-                    // Valid existing session (either logged-in cloud account or deliberate guest)
+                const isRealTourist = Boolean(
+                    token && 
+                    token !== 'guest_token' && 
+                    token !== 'offline_guest_token' && 
+                    !token.startsWith('guest_') && 
+                    !token.startsWith('offline_')
+                );
+
+                if (isRealTourist) {
+                    // Valid real logged-in tourist account
                     if (splashMain) splashMain.classList.add('exit');
                     setTimeout(() => {
                         navigateTo('dashboard');
                     }, 450);
                 } else {
-                    // Not logged in -> Direct straight to Auth (Login / Register) view!
+                    // Auth page is always the first one to show when opening the app!
                     localStorage.removeItem('intan_elyu_token');
                     localStorage.removeItem('intan_elyu_guest');
-                    localStorage.removeItem('auth_user');
+                    localStorage.removeItem('intan_elyu_offline_guest');
+                    try { sessionStorage.removeItem('intan_elyu_guest_session_active'); } catch(e) {}
                     if (splashMain) splashMain.classList.add('exit');
                     setTimeout(() => {
                         navigateTo('auth');

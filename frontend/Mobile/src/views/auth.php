@@ -567,6 +567,7 @@
 </div>
 
 <script>
+(function initAuthScope() {
     var backendUrl = window.backendUrl || 'https://api.intan-elyu.online';
 
     // =========================================================================
@@ -908,28 +909,32 @@
         }, 2800);
     };
 
-    const wrapper = document.getElementById('forms-wrapper');
-    const titleEl = document.getElementById('auth-title');
-    const tabLogin = document.getElementById('tab-login');
-    const tabRegister = document.getElementById('tab-register');
-    const tabsContainer = document.getElementById('auth-tabs');
-
     function updateTitleWithTransition(newText) {
-        if (titleEl.textContent === newText) return;
+        const titleEl = document.getElementById('auth-title');
+        if (!titleEl || titleEl.textContent === newText) return;
         titleEl.classList.add('text-fade-out');
         setTimeout(() => {
             titleEl.textContent = newText;
             titleEl.classList.remove('text-fade-out');
-        }, 200); // Wait for the 0.2s fade out transition
+        }, 200);
     }
 
     function positionTabGlider(isRegister, animate = true) {
         const glider = document.getElementById('tab-gooey-glider');
+        const tabLogin = document.getElementById('tab-login');
+        const tabRegister = document.getElementById('tab-register');
+        const tabsContainer = document.getElementById('auth-tabs');
         const targetTab = isRegister ? tabRegister : tabLogin;
         if (!glider || !targetTab || !tabsContainer) return;
 
         const targetRect = targetTab.getBoundingClientRect();
         const containerRect = tabsContainer.getBoundingClientRect();
+
+        if (targetRect.width === 0 || containerRect.width === 0) {
+            requestAnimationFrame(() => positionTabGlider(isRegister, false));
+            return;
+        }
+
         const targetLeft = targetRect.left - containerRect.left + (targetRect.width - 32) / 2;
 
         if (!animate) {
@@ -949,20 +954,18 @@
         }
         glider.style.left = `${targetLeft}px`;
     }
-
-    // Initialize glider position on load & handle resize
-    setTimeout(() => { positionTabGlider(false, false); }, 80);
-    window.addEventListener('resize', () => {
-        const isReg = wrapper && wrapper.classList.contains('show-register');
-        positionTabGlider(isReg, false);
-    });
+    window.positionTabGlider = positionTabGlider;
 
     function toggleAuthMode(isRegister) {
-        tabsContainer.style.display = 'flex';
-        wrapper.classList.remove('show-forgot', 'show-otp');
-        positionTabGlider(isRegister, true);
-
+        const wrapper = document.getElementById('forms-wrapper');
+        const tabLogin = document.getElementById('tab-login');
+        const tabRegister = document.getElementById('tab-register');
+        const tabsContainer = document.getElementById('auth-tabs');
         const authContainer = document.querySelector('.auth-container');
+
+        if (tabsContainer) tabsContainer.style.display = 'flex';
+        if (wrapper) wrapper.classList.remove('show-forgot', 'show-otp');
+
         if (authContainer) {
             if (isRegister) {
                 authContainer.classList.add('mode-register');
@@ -972,29 +975,64 @@
         }
 
         if (isRegister) {
-            wrapper.classList.add('show-register');
-            tabLogin.classList.remove('active');
-            tabRegister.classList.add('active');
+            if (wrapper) wrapper.classList.add('show-register');
+            if (tabLogin) tabLogin.classList.remove('active');
+            if (tabRegister) tabRegister.classList.add('active');
             updateTitleWithTransition('Start your Journey');
         } else {
-            wrapper.classList.remove('show-register');
-            tabRegister.classList.remove('active');
-            tabLogin.classList.add('active');
+            if (wrapper) wrapper.classList.remove('show-register');
+            if (tabRegister) tabRegister.classList.remove('active');
+            if (tabLogin) tabLogin.classList.add('active');
             updateTitleWithTransition('Welcome to Elyu');
         }
+
+        positionTabGlider(isRegister, true);
     }
     window.toggleAuthMode = toggleAuthMode;
+
+    window.initAuthView = function () {
+        const searchParams = new URLSearchParams(window.location.search);
+        const isRegisterMode = searchParams.get('mode') === 'register' || 
+                               searchParams.get('tab') === 'register' || 
+                               window._authStartMode === 'register';
+        const isFromSidebar = searchParams.get('from_sidebar') === '1' || 
+                              window._authFromSidebar === true;
+
+        // Dismiss any lingering sidebar overlay so it cannot block touch events
+        const sbo = document.getElementById('sidebar-overlay');
+        if (sbo) {
+            sbo.style.display = 'none';
+            sbo.style.opacity = '0';
+            sbo.style.pointerEvents = 'none';
+        }
+
+        toggleAuthMode(Boolean(isRegisterMode));
+
+        // Ensure "Continue as Guest" / "Explore in Offline Mode" button is always visible
+        document.querySelectorAll('.btn-offline-guest').forEach(btn => {
+            btn.style.setProperty('display', 'flex', 'important');
+        });
+
+        setTimeout(() => { positionTabGlider(Boolean(isRegisterMode), false); }, 50);
+        setTimeout(() => { positionTabGlider(Boolean(isRegisterMode), false); }, 180);
+    };
+
+    window.addEventListener('resize', () => {
+        const wrapper = document.getElementById('forms-wrapper');
+        const isReg = wrapper && wrapper.classList.contains('show-register');
+        positionTabGlider(Boolean(isReg), false);
+    });
 
     window.showForgotPassword = function (e) {
         if (e) e.preventDefault();
 
-        // Hide tabs
-        if (tabsContainer) tabsContainer.style.display = 'none';
-
+        const tabsContainer = document.getElementById('auth-tabs');
+        const wrapper = document.getElementById('forms-wrapper');
         const authContainer = document.querySelector('.auth-container');
+
+        if (tabsContainer) tabsContainer.style.display = 'none';
         if (authContainer) authContainer.classList.remove('mode-register');
 
-        // Reset forgot form steps
         const formState = document.getElementById('fp-form-state');
         const codeState = document.getElementById('fp-code-state');
         const pwdState = document.getElementById('fp-password-state');
@@ -1015,23 +1053,24 @@
             wrapper.classList.remove('show-register');
             wrapper.classList.add('show-forgot');
         }
-        if (typeof updateTitleWithTransition === 'function') {
-            updateTitleWithTransition('Account Recovery');
-        }
+        updateTitleWithTransition('Account Recovery');
     };
 
     window.hideForgotPassword = function (e) {
         if (e) e.preventDefault();
-        // Restore tabs
-        if (tabsContainer) tabsContainer.style.display = 'flex';
+        const tabsContainer = document.getElementById('auth-tabs');
+        const wrapper = document.getElementById('forms-wrapper');
         const authContainer = document.querySelector('.auth-container');
+        const tabLogin = document.getElementById('tab-login');
+        const tabRegister = document.getElementById('tab-register');
+
+        if (tabsContainer) tabsContainer.style.display = 'flex';
         if (authContainer) authContainer.classList.remove('mode-register');
         if (wrapper) wrapper.classList.remove('show-forgot', 'show-register');
         if (tabRegister) tabRegister.classList.remove('active');
         if (tabLogin) tabLogin.classList.add('active');
-        if (typeof updateTitleWithTransition === 'function') {
-            updateTitleWithTransition('Welcome to Elyu');
-        }
+        updateTitleWithTransition('Welcome to Elyu');
+        positionTabGlider(false, false);
     };
 
     window.togglePasswordVisibility = function (inputId, iconElement) {
@@ -1721,7 +1760,7 @@
         }
     };
 
-    let fpTimerInterval = null;
+    var fpTimerInterval = null;
 
     function startFpResendTimer() {
         const resendBtn = document.getElementById('fp-resend-btn');
@@ -2361,4 +2400,9 @@
             }
         });
     })();
+
+    if (typeof window.initAuthView === 'function') {
+        window.initAuthView();
+    }
+})();
 </script>

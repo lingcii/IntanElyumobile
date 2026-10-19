@@ -1587,6 +1587,18 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
         }
     }
 
+    // Parse targetView params for Auth mode & source
+    if (targetView === 'auth') {
+        if (extraParams.get('mode') === 'register' || extraParams.get('tab') === 'register') {
+            window._authStartMode = 'register';
+        } else if (extraParams.has('mode') || extraParams.has('tab')) {
+            window._authStartMode = extraParams.get('mode') || extraParams.get('tab');
+        }
+        if (extraParams.get('from_sidebar') === '1') {
+            window._authFromSidebar = true;
+        }
+    }
+
     // Mobile Guest Session Initialization:
     let authToken = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
     const isNetworkOffline = !navigator.onLine || window.isAppOnline === false;
@@ -1824,6 +1836,20 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
 
         const updateContent = () => {
             try {
+                // Immediately dismiss and remove any lingering sidebar menu or overlay
+                const lingeringOverlay = document.getElementById('sidebar-overlay');
+                if (lingeringOverlay) {
+                    lingeringOverlay.style.display = 'none';
+                    lingeringOverlay.style.opacity = '0';
+                    lingeringOverlay.style.pointerEvents = 'none';
+                    try { lingeringOverlay.remove(); } catch (e) { }
+                }
+                const lingeringSidebar = document.getElementById('sidebar-menu');
+                if (lingeringSidebar) {
+                    lingeringSidebar.style.left = '-280px';
+                    try { lingeringSidebar.remove(); } catch (e) { }
+                }
+
                 // ── Teardown previous view resources to prevent mobile lag & leaks ──
                 ['full-history-modal', 'full-vouchers-modal', 'full-deals-modal', 'active-voucher-qr-modal', 'trip-details-modal', 'reward-details-modal', 'delete-trip-modal'].forEach(id => {
                     document.querySelectorAll('#' + id).forEach(m => {
@@ -1920,6 +1946,9 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
 
                 if (targetView === 'profile' && typeof window.updateProfileAccessBarrier === 'function') {
                     window.updateProfileAccessBarrier();
+                }
+                if (targetView === 'auth' && typeof window.initAuthView === 'function') {
+                    window.initAuthView();
                 }
                 if (targetView === 'dashboard' && typeof window.updateDashboardProfileHeader === 'function') {
                     const _curTok = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');

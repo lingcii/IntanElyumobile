@@ -54,7 +54,7 @@
     </div>
 </div>
 
-<div id="sidebar-overlay" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.45); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); z-index: 100002 !important; transition: opacity 0.3s ease;" onclick="toggleSidebar()"></div>
+<div id="sidebar-overlay" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.45); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); z-index: 100002 !important; transition: opacity 0.3s ease; pointer-events: none;" onclick="toggleSidebar()"></div>
 <div id="sidebar-menu" style="position: fixed; top: 0; left: -280px; width: 260px; bottom: 0; background: #ffffff; z-index: 100003 !important; transition: left 0.32s cubic-bezier(0.16, 1, 0.3, 1); display: flex; flex-direction: column; box-shadow: 10px 0 35px rgba(0,0,0,0.12); border: none !important; border-right: none !important; outline: none !important; overflow: hidden;">
     
     <!-- User Profile Header Banner -->
@@ -207,9 +207,13 @@
             const logoutBtn = document.getElementById('sidebar-logout-btn');
             if (logoutBtn) {
                 if (isGuest) {
-                    logoutBtn.innerHTML = '<i class="fa-solid fa-right-to-bracket" style="color: #ffffff !important; font-size: 14px;"></i> Sign In / Register';
+                    logoutBtn.innerHTML = '<i class="fa-solid fa-user-plus" style="color: #ffffff !important; font-size: 14px;"></i> Register / Sign In';
                     logoutBtn.style.setProperty('background', 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)', 'important');
-                    logoutBtn.onclick = function() { toggleSidebar(); navigateTo('auth'); return false; };
+                    logoutBtn.onclick = function() { 
+                        closeSidebarInstantly(); 
+                        navigateTo('auth&mode=register&from_sidebar=1'); 
+                        return false; 
+                    };
                 } else {
                     logoutBtn.innerHTML = '<i class="fa-solid fa-right-from-bracket" style="color: #ffffff !important; font-size: 14px;"></i> Log Out';
                     logoutBtn.style.setProperty('background', 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)', 'important');
@@ -218,6 +222,20 @@
             }
         } catch (e) {}
     }
+
+    function closeSidebarInstantly() {
+        const sidebar = document.getElementById('sidebar-menu');
+        const overlay = document.getElementById('sidebar-overlay');
+        const bottomNav = document.getElementById('bottom-navigation');
+        if (sidebar) sidebar.style.left = '-280px';
+        if (overlay) {
+            overlay.style.display = 'none';
+            overlay.style.opacity = '0';
+            overlay.style.pointerEvents = 'none';
+        }
+        if (bottomNav) bottomNav.classList.remove('nav-hidden');
+    }
+    window.closeSidebarInstantly = closeSidebarInstantly;
 
     function toggleSidebar() {
         const sidebar = document.getElementById('sidebar-menu');
@@ -230,12 +248,14 @@
                 sidebar.style.left = '0px';
                 overlay.style.display = 'block';
                 overlay.style.opacity = '1';
+                overlay.style.pointerEvents = 'auto';
                 if (bottomNav) bottomNav.classList.add('nav-hidden');
             } else {
                 sidebar.style.left = '-280px';
                 overlay.style.opacity = '0';
+                overlay.style.pointerEvents = 'none';
                 if (bottomNav) bottomNav.classList.remove('nav-hidden');
-                setTimeout(() => { overlay.style.display = 'none'; }, 300);
+                setTimeout(() => { overlay.style.display = 'none'; }, 250);
             }
         }
     }
