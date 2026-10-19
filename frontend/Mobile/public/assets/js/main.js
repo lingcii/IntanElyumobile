@@ -2828,9 +2828,13 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
         if (window._cachedHistoryVouchers) window._cachedHistoryVouchers = [];
 
         setTimeout(() => {
-            // Hard reset the URL to clear Capacitor saved state and show splash
-            window.location.replace('index.php?view=splash');
-        }, 500);
+            // Direct cleanly to Auth (Sign In / Register) screen
+            if (typeof window.navigateTo === 'function') {
+                window.navigateTo('auth', true, false);
+            } else {
+                window.location.replace('index.php?view=auth');
+            }
+        }, 300);
     };
 
     /**

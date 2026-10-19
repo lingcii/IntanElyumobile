@@ -148,6 +148,10 @@
                     }
                 }
                 sessionStorage.setItem('elyu_show_offline_bypass_notice', 'true');
+                if (splashMain) splashMain.classList.add('exit');
+                setTimeout(() => {
+                    navigateTo('dashboard');
+                }, 450);
             } else {
                 // Device is ONLINE (Wi-Fi or Mobile Data connected):
                 // Clean up any stale offline flags
@@ -155,34 +159,23 @@
                 localStorage.removeItem('intan_elyu_offline_guest');
                 sessionStorage.removeItem('elyu_show_offline_bypass_notice');
 
-                if (!token || token === 'offline_guest_token') {
-                    // Mobile Guest Session (Online Guest)
-                    localStorage.setItem('intan_elyu_token', 'guest_token');
-                    localStorage.setItem('intan_elyu_guest', 'true');
-                    if (!cachedUser || cachedUser.is_offline_guest) {
-                        const defaultGuest = {
-                            id: 'guest',
-                            user_id: 'guest',
-                            name: 'Guest Explorer',
-                            full_name: 'Guest Explorer',
-                            role: 'tourist',
-                            tourist_number: 'GUEST',
-                            points: 0,
-                            xp: 0,
-                            completed_activities: 0,
-                            home_location: 'La Union',
-                            is_guest: true
-                        };
-                        localStorage.setItem('auth_user', JSON.stringify(defaultGuest));
-                    }
+                if (token && token !== 'offline_guest_token') {
+                    // Valid existing session (either logged-in cloud account or deliberate guest)
+                    if (splashMain) splashMain.classList.add('exit');
+                    setTimeout(() => {
+                        navigateTo('dashboard');
+                    }, 450);
+                } else {
+                    // Not logged in -> Direct straight to Auth (Login / Register) view!
+                    localStorage.removeItem('intan_elyu_token');
+                    localStorage.removeItem('intan_elyu_guest');
+                    localStorage.removeItem('auth_user');
+                    if (splashMain) splashMain.classList.add('exit');
+                    setTimeout(() => {
+                        navigateTo('auth');
+                    }, 450);
                 }
             }
-
-            // Smooth transition straight to dashboard
-            if (splashMain) splashMain.classList.add('exit');
-            setTimeout(() => {
-                navigateTo('dashboard');
-            }, 450);
         }, 2200);
     })();
 </script>
