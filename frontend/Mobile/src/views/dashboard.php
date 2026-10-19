@@ -1230,7 +1230,7 @@ if (is_dir($imgDir)) {
                 localStorage.removeItem('intan_elyu_offline_guest');
             } catch(e) {}
         }
-        const isGuest = !isRealUser;
+        let isGuest = !isRealUser;
 
         function updateDashboardProfileHeader(isG, u) {
             const idEl = document.getElementById('dash-explorer-id');
@@ -1774,6 +1774,7 @@ if (is_dir($imgDir)) {
                         else if (completed.length > 0) visitedCount = completed.length;
                     } catch(e) {}
                 }
+                const points = parseInt((u && (u.points !== undefined ? u.points : u.xp)) || (data && data.stats && (data.stats.points !== undefined ? data.stats.points : data.stats.xp)) || 0, 10);
                 if (document.getElementById('dash-stat-places')) document.getElementById('dash-stat-places').textContent = visitedCount.toLocaleString();
                 if (document.getElementById('dash-stat-points')) document.getElementById('dash-stat-points').textContent = points.toLocaleString();
 
@@ -2227,7 +2228,7 @@ if (is_dir($imgDir)) {
                 localStorage.removeItem('intan_elyu_offline_guest');
             } catch(e) {}
         }
-        const isGuest = !isRealUserSession;
+        isGuest = !isRealUserSession;
 
         if (isGuest) {
             // Instantly clear trips loading state for guest
