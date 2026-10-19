@@ -112,11 +112,20 @@ function renderMobileApp(Request $request)
     return response()->json(['status' => 'online', 'system' => 'Intan-Elyu Tourism API']);
 }
 
-// Serve Mobile Web App on Root & App routes
-Route::get('/', function (Request $request) {
+// Serve Mobile Web App on Root, Index & App routes
+Route::any('/', function (Request $request) {
     return renderMobileApp($request);
 });
 
-Route::get('/app', function (Request $request) {
+Route::any('/index.php', function (Request $request) {
+    return renderMobileApp($request);
+});
+
+Route::any('/app', function (Request $request) {
+    return renderMobileApp($request);
+});
+
+Route::any('/download', function (Request $request) {
+    $request->merge(['view' => 'download']);
     return renderMobileApp($request);
 });
