@@ -2296,91 +2296,166 @@ if (is_dir($imgDir)) {
             const content = container.querySelector('.trip-swipe-content');
             const bg = container.querySelector('.trip-swipe-bg');
             if (!content) return;
-            let startX = 0, currentX = 0, isSwiping = false, moved = false;
+            let startX = 0, startY = 0, currentX = 0, currentY = 0;
+            let isSwiping = false, isHorizontalSwipe = false, isGestureDetermined = false, isOpen = false;
 
-            const handleStart = (clientX) => {
+            container.style.touchAction = 'pan-y';
+            content.style.touchAction = 'pan-y';
+
+            const openSwipe = () => {
+                isOpen = true;
+                content.style.transition = 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)';
+                content.style.transform = 'translateX(-85px)';
+                if (bg) {
+                    bg.style.transition = 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease';
+                    bg.style.width = '85px';
+                    bg.style.opacity = '1';
+                    bg.style.pointerEvents = 'auto';
+                    bg.style.transform = 'translateX(0px)';
+                    bg.style.zIndex = '10';
+                }
+            };
+
+            const closeSwipe = () => {
+                isOpen = false;
+                content.style.transition = 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)';
+                content.style.transform = 'translateX(0px)';
+                if (bg) {
+                    bg.style.transition = 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease';
+                    bg.style.width = '85px';
+                    bg.style.opacity = '0';
+                    bg.style.pointerEvents = 'none';
+                    bg.style.transform = 'translateX(85px)';
+                    bg.style.zIndex = '1';
+                }
+            };
+
+            const handleStart = (clientX, clientY, target) => {
+                if (target && target.closest('button, a, input, select, textarea, .stat-card')) return;
+                if (target && target.closest('.trip-swipe-bg')) return;
                 startX = clientX;
+                startY = clientY;
                 currentX = startX;
+                currentY = startY;
                 isSwiping = true;
-                moved = false;
+                isHorizontalSwipe = false;
+                isGestureDetermined = false;
                 content.style.transition = 'none';
                 if (bg) bg.style.transition = 'none';
             };
 
-            const handleMove = (clientX) => {
+            const handleMove = (clientX, clientY) => {
                 if (!isSwiping) return;
                 currentX = clientX;
-                let diff = startX - currentX;
-                if (Math.abs(diff) > 5) moved = true;
-                if (diff > 0) {
-                    const translate = Math.min(diff, 85);
-                    content.style.transform = `translateX(-${translate}px)`;
-                    content.style.borderRadius = '20px';
+                currentY = clientY;
+                const diffX = startX - currentX;
+                const diffY = startY - currentY;
+
+                if (!isGestureDetermined) {
+                    if (Math.abs(diffX) > 7 || Math.abs(diffY) > 7) {
+                        isGestureDetermined = true;
+                        if (Math.abs(diffX) > Math.abs(diffY)) {
+                            isHorizontalSwipe = true;
+                        } else {
+                            isHorizontalSwipe = false;
+                            isSwiping = false;
+                            return;
+                        }
+                    } else {
+                        return;
+                    }
+                }
+
+                if (!isHorizontalSwipe) return;
+
+                const baseOffset = isOpen ? 85 : 0;
+                const effectiveDiff = diffX + baseOffset;
+
+                if (effectiveDiff > 0) {
+                    const cardWidth = container.offsetWidth || 320;
+                    const dragAmount = Math.min(effectiveDiff, cardWidth * 0.85);
+                    content.style.transform = `translateX(-${dragAmount}px)`;
                     if (bg) {
                         bg.style.opacity = '1';
                         bg.style.pointerEvents = 'auto';
-                        bg.style.transform = `translateX(${85 - translate}px)`;
+                        bg.style.zIndex = '10';
+                        if (dragAmount > 85) {
+                            bg.style.width = `${dragAmount}px`;
+                            bg.style.transform = 'translateX(0px)';
+                        } else {
+                            bg.style.width = '85px';
+                            bg.style.transform = `translateX(${85 - dragAmount}px)`;
+                        }
                     }
-                } else if (diff < -5) {
+                } else {
                     content.style.transform = 'translateX(0px)';
-                    content.style.borderRadius = '20px';
                     if (bg) {
+                        bg.style.width = '85px';
                         bg.style.opacity = '0';
                         bg.style.pointerEvents = 'none';
                         bg.style.transform = 'translateX(85px)';
+                        bg.style.zIndex = '1';
                     }
                 }
             };
 
             const handleEnd = () => {
                 if (!isSwiping) return;
-                content.style.transition = 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)';
-                if (bg) bg.style.transition = 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease';
-                const diff = startX - currentX;
+                isSwiping = false;
+                const diffX = startX - currentX;
+                const baseOffset = isOpen ? 85 : 0;
+                const effectiveDiff = diffX + baseOffset;
                 const tripId = container.dataset.tripId;
                 const tripTitle = container.dataset.tripTitle || '';
-                if (diff > 75 && moved) {
-                    // Full swipe across -> Reveal red button & trigger confirmation modal
-                    content.style.transform = 'translateX(-85px)';
-                    content.style.borderRadius = '20px';
+
+                if (effectiveDiff > 120) {
+                    content.style.transition = 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)';
+                    content.style.transform = 'translateX(-90px)';
                     if (bg) {
+                        bg.style.transition = 'transform 0.25s ease, opacity 0.2s ease';
+                        bg.style.width = '90px';
                         bg.style.opacity = '1';
                         bg.style.pointerEvents = 'auto';
                         bg.style.transform = 'translateX(0px)';
+                        bg.style.zIndex = '10';
                     }
+                    isOpen = true;
                     window.confirmDeleteSavedTrip(tripId, container, tripTitle);
-                } else if (diff > 30 && moved) {
-                    // Partial swipe -> Reveal red delete button for tap
-                    content.style.transform = 'translateX(-85px)';
-                    content.style.borderRadius = '20px';
-                    if (bg) {
-                        bg.style.opacity = '1';
-                        bg.style.pointerEvents = 'auto';
-                        bg.style.transform = 'translateX(0px)';
-                    }
+                } else if (effectiveDiff > 30) {
+                    openSwipe();
                 } else {
-                    // Tap or small drag -> Snap closed
-                    content.style.transform = 'translateX(0px)';
-                    content.style.borderRadius = '20px';
-                    content.style.borderRightColor = '';
-                    if (bg) {
-                        bg.style.opacity = '0';
-                        bg.style.pointerEvents = 'none';
-                        bg.style.transform = 'translateX(85px)';
-                    }
+                    closeSwipe();
                 }
+
                 startX = 0;
+                startY = 0;
                 currentX = 0;
-                isSwiping = false;
-                moved = false;
+                currentY = 0;
+                isHorizontalSwipe = false;
+                isGestureDetermined = false;
             };
 
-            content.addEventListener('touchstart', (e) => handleStart(e.touches[0].clientX), { passive: true });
-            content.addEventListener('touchmove', (e) => handleMove(e.touches[0].clientX), { passive: true });
-            content.addEventListener('touchend', handleEnd, { passive: true });
+            const handleCancel = () => {
+                if (!isSwiping) return;
+                isSwiping = false;
+                if (isOpen) openSwipe(); else closeSwipe();
+            };
 
-            content.addEventListener('mousedown', (e) => handleStart(e.clientX));
-            window.addEventListener('mousemove', (e) => { if (isSwiping) handleMove(e.clientX); });
+            content.addEventListener('touchstart', (e) => {
+                if (e.touches && e.touches.length === 1) {
+                    handleStart(e.touches[0].clientX, e.touches[0].clientY, e.target);
+                }
+            }, { passive: true });
+            content.addEventListener('touchmove', (e) => {
+                if (e.touches && e.touches.length === 1) {
+                    handleMove(e.touches[0].clientX, e.touches[0].clientY);
+                }
+            }, { passive: true });
+            content.addEventListener('touchend', handleEnd, { passive: true });
+            content.addEventListener('touchcancel', handleCancel, { passive: true });
+
+            content.addEventListener('mousedown', (e) => handleStart(e.clientX, e.clientY, e.target));
+            window.addEventListener('mousemove', (e) => { if (isSwiping) handleMove(e.clientX, e.clientY); });
             window.addEventListener('mouseup', () => { if (isSwiping) handleEnd(); });
         });
     };
@@ -2845,32 +2920,6 @@ if (is_dir($imgDir)) {
         }
     }, 200);
 </script>
-
-<!-- Delete Trip Confirmation Modal -->
-<div id="delete-trip-modal"
-    style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.75); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:999999; justify-content:center; align-items:center;">
-    <div
-        style="background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%); border: none; outline:none; border-radius:24px; padding:28px 24px; width:90%; max-width:360px; box-shadow: 0 12px 30px rgba(10, 25, 60, 0.4); text-align:center;">
-        <i class="fa-solid fa-trash-can" style="font-size:32px; color:#ffffff; margin-bottom:10px; display:block;"></i>
-        <h3 style="margin:0 0 8px; color:#ffffff; font-size:20px; font-weight:800;">Delete Saved Trip?</h3>
-        <p id="delete-trip-title-text"
-            style="font-size:13px; color:rgba(255, 255, 255, 0.95); margin-bottom:22px; line-height:1.5;">Are you sure
-            you want to delete this trip? All saved itinerary items will be removed.</p>
-
-        <div style="display:flex; gap:10px;">
-            <button type="button"
-                style="flex:1; padding:13px; border-radius:14px; border:none; outline:none; background:rgba(255,255,255,0.22); color:#ffffff; font-size:13px; font-weight:700; cursor:pointer;"
-                onclick="window.closeDeleteTripModal()">
-                Cancel
-            </button>
-            <button type="button" id="btn-confirm-delete-trip"
-                style="flex:1; padding:13px; font-size:14px; font-weight:800; background:#ef4444; border:none; outline:none; color:#ffffff; border-radius:14px; box-shadow:none; cursor:pointer;"
-                onclick="window.executeConfirmDeleteTrip()">
-                Delete
-            </button>
-        </div>
-    </div>
-</div>
 
 <!-- Complete Profile Modal -->
 <div id="onboard-profile-modal"

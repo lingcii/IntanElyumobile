@@ -1813,6 +1813,13 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
         const updateContent = () => {
             try {
                 // ── Teardown previous view resources to prevent mobile lag & leaks ──
+                ['full-history-modal', 'full-vouchers-modal', 'full-deals-modal', 'active-voucher-qr-modal', 'trip-details-modal', 'reward-details-modal', 'delete-trip-modal'].forEach(id => {
+                    document.querySelectorAll('#' + id).forEach(m => {
+                        if (m.parentElement === document.body) {
+                            try { m.remove(); } catch (e) { }
+                        }
+                    });
+                });
                 if (window._savedTripsInterval) {
                     clearInterval(window._savedTripsInterval);
                     window._savedTripsInterval = null;
