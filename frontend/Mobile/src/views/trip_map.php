@@ -447,15 +447,15 @@ include_once __DIR__ . '/../components/testimony_modal.php';
 
                 let proofThumbnailStrip = '';
                 if (proofImages.length > 0) {
+                    const activeBackend = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
                     proofThumbnailStrip = `<div style="display:inline-flex; align-items:center; gap:4px; flex-shrink:0;">
                         ${proofImages.slice(0, 3).map((imgUrl, pIdx) => {
                             let pUrl = imgUrl;
                             if (!pUrl.startsWith('http') && !pUrl.startsWith('data:') && !pUrl.startsWith('blob:')) {
-                                let b = backendUrl;
-                                pUrl = b + '/' + pUrl.replace(/^\//, '');
+                                pUrl = activeBackend + '/' + pUrl.replace(/^\//, '');
                             }
                             const cleanImgName = pUrl.split('/').pop().replace(/[?#].*$/, '');
-                            let fallbackUrl = backendUrl + '/api/image/proof_images/' + cleanImgName;
+                            let fallbackUrl = activeBackend + '/api/image/proof_images/' + cleanImgName;
                             return `<img src="${pUrl}" onerror="if(this.dataset.triedFallback!=='1'){this.dataset.triedFallback='1';this.src='${fallbackUrl}';}" onclick="event.stopPropagation(); if(typeof window.viewProofPhotoModal==='function') window.viewProofPhotoModal(${jsonUrlsAttr}, '${destEscaped}', '${isVisited ? 'Verified Visit Proof' : 'Uploaded Proof'}');" alt="Proof" title="Tap to view proof photo" style="width:30px; height:30px; border-radius:7px; object-fit:cover; border:1px solid rgba(255,255,255,0.3); flex-shrink:0; cursor:pointer;">`;
                         }).join('')}
                         ${proofImages.length > 3 ? `<span onclick="event.stopPropagation(); if(typeof window.viewProofPhotoModal==='function') window.viewProofPhotoModal(${jsonUrlsAttr}, '${destEscaped}', '${isVisited ? 'Verified Visit Proof' : 'Uploaded Proof'}');" style="background:rgba(0,0,0,0.7); color:#fff; font-size:8px; font-weight:800; padding:2px 4px; border-radius:4px; cursor:pointer;">+${proofImages.length - 3}</span>` : ''}
@@ -1342,6 +1342,92 @@ include_once __DIR__ . '/../components/testimony_modal.php';
             window.renderProofThumbnailsGrid();
         };
 
+        window.applyPhotoProofUpdateLocally = function (itemId, proofUrls, proofStatus = 'pending') {
+            if (!itemId) return;
+            const targetIdStr = String(itemId);
+            const urls = Array.isArray(proofUrls) ? proofUrls : (proofUrls ? [proofUrls] : []);
+            if (urls.length === 0) return;
+
+            if (window.currentTrip && Array.isArray(window.currentTrip.items)) {
+                window.currentTrip.items = window.currentTrip.items.map(it => {
+                    if (!it) return it;
+                    const itIdStr = String(it.id || '');
+                    if (itIdStr === targetIdStr || (targetIdStr && itIdStr && targetIdStr.includes(itIdStr))) {
+                        return {
+                            ...it,
+                            proof_image: urls[0],
+                            proof_images: urls,
+                            proof_status: proofStatus,
+                            rejection_reason: null
+                        };
+                    }
+                    return it;
+                });
+                window.currentTripItems = window.currentTrip.items;
+                const activeIndex = window.currentTripItems.findIndex(i => !i.is_visited && i.proof_status !== 'approved');
+                if (typeof renderConveyorCards === 'function') {
+                    renderConveyorCards(window.currentTripItems, activeIndex >= 0 ? activeIndex : 0);
+                }
+            }
+
+            // Sync with local storage
+            ['intan_elyu_saved_trips', 'intan_elyu_offline_saved_trips_backup', 'intan_elyu_offline_saved_trips'].forEach(k => {
+                try {
+                    const raw = localStorage.getItem(k);
+                    if (raw) {
+                        const parsed = JSON.parse(raw);
+                        const updateList = (list) => {
+                            if (!Array.isArray(list)) return list;
+                            return list.map(trip => {
+                                if (!trip || !Array.isArray(trip.items)) return trip;
+                                return {
+                                    ...trip,
+                                    items: trip.items.map(it => {
+                                        if (String(it.id) === targetIdStr) {
+                                            return { ...it, proof_image: urls[0], proof_images: urls, proof_status: proofStatus, rejection_reason: null };
+                                        }
+                                        return it;
+                                    })
+                                };
+                            });
+                        };
+                        if (Array.isArray(parsed)) {
+                            localStorage.setItem(k, JSON.stringify(updateList(parsed)));
+                        } else if (parsed && Array.isArray(parsed.itineraries)) {
+                            parsed.itineraries = updateList(parsed.itineraries);
+                            localStorage.setItem(k, JSON.stringify(parsed));
+                        }
+                    }
+                } catch (e) { }
+            });
+        };
+
+        window.applyLocationCheckinLocally = function (itemId) {
+            if (!itemId) return;
+            const targetIdStr = String(itemId);
+            const nowIso = new Date().toISOString();
+
+            if (window.currentTrip && Array.isArray(window.currentTrip.items)) {
+                window.currentTrip.items = window.currentTrip.items.map(it => {
+                    if (!it) return it;
+                    const itIdStr = String(it.id || '');
+                    if (itIdStr === targetIdStr || (targetIdStr && itIdStr && targetIdStr.includes(itIdStr))) {
+                        return {
+                            ...it,
+                            is_location_verified: true,
+                            visited_at: it.visited_at || nowIso
+                        };
+                    }
+                    return it;
+                });
+                window.currentTripItems = window.currentTrip.items;
+                const activeIndex = window.currentTripItems.findIndex(i => !i.is_visited && i.proof_status !== 'approved');
+                if (typeof renderConveyorCards === 'function') {
+                    renderConveyorCards(window.currentTripItems, activeIndex >= 0 ? activeIndex : 0);
+                }
+            }
+        };
+
         window.submitProofPhotos = async function () {
             const itemId = window._currentProofItemId;
             if (!itemId) return;
@@ -1353,37 +1439,70 @@ include_once __DIR__ . '/../components/testimony_modal.php';
 
             const btn = document.getElementById('btn-submit-proof-photos');
             if (btn) {
-                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="margin-right:6px;"></i> Uploading Photos...';
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="margin-right:6px;"></i> Submitting...';
                 btn.disabled = true;
             }
 
-            const formData = new FormData();
-            window.selectedProofPhotos.forEach((item, idx) => {
-                formData.append('images[]', item.file, item.file.name || `proof_${Date.now()}_${idx}.jpg`);
-            });
-            formData.append('image', window.selectedProofPhotos[0].file);
+            const previewUrls = window.selectedProofPhotos.map(p => p.dataUrl).filter(Boolean);
+            const firstFile = window.selectedProofPhotos[0].file;
+            const spotName = window._currentProofSpotName || 'Destination';
+
+            // Optimistically update memory and DOM right now!
+            window.applyPhotoProofUpdateLocally(itemId, previewUrls, 'pending');
 
             const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+            const isOfflineItem = !itemId || 
+                String(itemId).startsWith('offline_') || 
+                !navigator.onLine || 
+                window.isAppOnline === false ||
+                !token ||
+                token === 'guest_token' ||
+                token.startsWith('guest_') ||
+                token.startsWith('offline_');
 
-            const fallbackOffline = async (reason) => {
+            if (isOfflineItem) {
                 if (window.OfflineCheckinManager) {
-                    const spotName = window._currentProofSpotName || 'Destination';
                     await window.OfflineCheckinManager.queueOfflineCheckin({
                         type: 'itinerary',
                         itemId: itemId,
                         spotName: spotName,
                         lat: window.myLat || 16.6159,
                         lng: window.myLng || 120.3209,
-                        image: window.selectedProofPhotos[0].file,
+                        image: firstFile,
+                        capturedAt: new Date().toISOString()
+                    });
+                }
+                window.closeProofUploadModal();
+                if (typeof showToast === 'function') {
+                    showToast('📍 Photo proof saved on device! Auto-syncs when online.', 'success');
+                }
+                if (window.confetti) {
+                    try { window.confetti({ particleCount: 70, spread: 60, origin: { y: 0.7 } }); } catch (e) { }
+                }
+                return;
+            }
+
+            const formData = new FormData();
+            window.selectedProofPhotos.forEach((item, idx) => {
+                formData.append('images[]', item.file, item.file.name || `proof_${Date.now()}_${idx}.jpg`);
+            });
+            formData.append('image', firstFile);
+
+            const fallbackOffline = async (reason) => {
+                if (window.OfflineCheckinManager) {
+                    await window.OfflineCheckinManager.queueOfflineCheckin({
+                        type: 'itinerary',
+                        itemId: itemId,
+                        spotName: spotName,
+                        lat: window.myLat || 16.6159,
+                        lng: window.myLng || 120.3209,
+                        image: firstFile,
                         capturedAt: new Date().toISOString()
                     });
                     window.closeProofUploadModal();
                     if (typeof showToast === 'function') {
                         showToast('📍 Saved Offline! Photo proof saved on device. Auto-syncs when online.', 'success');
                     }
-                    setTimeout(() => {
-                        if (typeof loadTripData === 'function') loadTripData();
-                    }, 300);
                 } else {
                     if (typeof showToast === 'function') showToast(reason || 'Upload failed. Please try again.');
                     if (btn) {
@@ -1394,10 +1513,11 @@ include_once __DIR__ . '/../components/testimony_modal.php';
             };
 
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 18000);
+            const timeoutId = setTimeout(() => controller.abort(), 20000);
 
             try {
-                const response = await fetch(backendUrl + '/api/tourist/itineraries/items/' + itemId + '/proof', {
+                const activeBackend = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
+                const response = await fetch(activeBackend + '/api/tourist/itineraries/items/' + itemId + '/proof', {
                     method: 'POST',
                     headers: {
                         'Accept': 'application/json',
@@ -1412,24 +1532,18 @@ include_once __DIR__ . '/../components/testimony_modal.php';
 
                 if (response.ok && data.success) {
                     window.closeProofUploadModal();
+                    const permanentUrls = data.proof_images || (data.proof_image ? [data.proof_image] : previewUrls);
+                    window.applyPhotoProofUpdateLocally(itemId, permanentUrls, data.proof_status || 'pending');
+
                     if (typeof showToast === 'function') {
                         showToast(data.message || 'Photo proof submitted! Pending review before completion.', 'success');
                     }
                     if (window.confetti) {
-                        window.confetti({ particleCount: 80, spread: 60, origin: { y: 0.7 } });
+                        try { window.confetti({ particleCount: 80, spread: 60, origin: { y: 0.7 } }); } catch (e) { }
                     }
-                    const tokenKey = token ? token.substring(0, 10) : '';
-                    localStorage.removeItem('saved_trips_' + tokenKey);
-                    localStorage.removeItem('dashboard_trips_' + tokenKey);
-                    setTimeout(() => {
-                        if (typeof loadTripData === 'function') loadTripData();
-                    }, 300);
                 } else {
-                    if (typeof showToast === 'function') showToast(data.message || 'Failed to upload photo proof.');
-                    if (btn) {
-                        btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up" style="margin-right:6px;"></i> Submit Photo Proof';
-                        btn.disabled = false;
-                    }
+                    console.warn('Server proof upload error:', data);
+                    await fallbackOffline(data.message || 'Server upload failed; saved offline.');
                 }
             } catch (err) {
                 clearTimeout(timeoutId);
@@ -1448,18 +1562,53 @@ include_once __DIR__ . '/../components/testimony_modal.php';
             }
 
             const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+            const isOfflineItem = !itemId || 
+                String(itemId).startsWith('offline_') || 
+                !navigator.onLine || 
+                window.isAppOnline === false ||
+                !token ||
+                token === 'guest_token' ||
+                token.startsWith('guest_') ||
+                token.startsWith('offline_');
 
             const doSubmitCheckin = async (lat, lng) => {
+                window.applyLocationCheckinLocally(itemId);
+
+                if (isOfflineItem) {
+                    if (window.OfflineCheckinManager) {
+                        await window.OfflineCheckinManager.queueOfflineCheckin({
+                            type: 'itinerary',
+                            itemId: itemId,
+                            spotName: spotName || 'Destination',
+                            lat: lat,
+                            lng: lng,
+                            capturedAt: new Date().toISOString()
+                        });
+                    }
+                    if (typeof showToast === 'function') {
+                        showToast(`📍 Checked in offline at ${spotName}! Auto-syncs when online.`, 'success');
+                    }
+                    if (window.confetti) {
+                        try { window.confetti({ particleCount: 70, spread: 60, origin: { y: 0.7 } }); } catch (e) { }
+                    }
+                    if (btnEl) {
+                        btnEl.innerHTML = originalHtml;
+                        btnEl.disabled = false;
+                    }
+                    return;
+                }
+
                 const formData = new FormData();
                 formData.append('lat', lat);
                 formData.append('lng', lng);
                 formData.append('captured_at', new Date().toISOString());
 
                 const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 9000);
+                const timeoutId = setTimeout(() => controller.abort(), 12000);
 
                 try {
-                    const response = await fetch(backendUrl + '/api/tourist/itineraries/items/' + itemId + '/checkin', {
+                    const activeBackend = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
+                    const response = await fetch(activeBackend + '/api/tourist/itineraries/items/' + itemId + '/checkin', {
                         method: 'POST',
                         headers: {
                             'Accept': 'application/json',
@@ -1473,26 +1622,21 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                     const data = await response.json();
 
                     if (response.ok && (data.success || data.is_location_verified)) {
+                        window.applyLocationCheckinLocally(itemId);
                         if (typeof showToast === 'function') {
                             showToast(data.message || `📍 Location verified at ${spotName}! Photo proof is required to earn +50 Points.`, 'success');
                         }
                         if (window.confetti) {
-                            window.confetti({ particleCount: 70, spread: 60, origin: { y: 0.7 } });
+                            try { window.confetti({ particleCount: 70, spread: 60, origin: { y: 0.7 } }); } catch (e) { }
                         }
-                        const tokenKey = token ? token.substring(0, 10) : '';
-                        localStorage.removeItem('saved_trips_' + tokenKey);
-                        localStorage.removeItem('dashboard_trips_' + tokenKey);
-                        setTimeout(() => {
-                            if (typeof loadTripData === 'function') loadTripData();
-                        }, 300);
                     } else {
                         if (typeof showToast === 'function') {
                             showToast(data.message || 'Check-in failed. Please ensure you are at the destination.', 'error');
                         }
-                        if (btnEl) {
-                            btnEl.innerHTML = originalHtml;
-                            btnEl.disabled = false;
-                        }
+                    }
+                    if (btnEl) {
+                        btnEl.innerHTML = originalHtml;
+                        btnEl.disabled = false;
                     }
                 } catch (err) {
                     clearTimeout(timeoutId);
@@ -1509,15 +1653,12 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                         if (typeof showToast === 'function') {
                             showToast('📍 Saved Offline! Check-in queued on device. Auto-syncs when online.', 'info');
                         }
-                        setTimeout(() => {
-                            if (typeof loadTripData === 'function') loadTripData();
-                        }, 300);
                     } else {
                         if (typeof showToast === 'function') showToast('Network error during check-in.');
-                        if (btnEl) {
-                            btnEl.innerHTML = originalHtml;
-                            btnEl.disabled = false;
-                        }
+                    }
+                    if (btnEl) {
+                        btnEl.innerHTML = originalHtml;
+                        btnEl.disabled = false;
                     }
                 }
             };

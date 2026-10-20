@@ -475,9 +475,14 @@ $backRoute = 'itinerary';
                         <div class="trip-swipe-content" style="position:relative; z-index:2; background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border: none !important; outline: none !important; border-radius: 24px; padding: 22px; transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-radius 0.25s ease; box-shadow: 0 10px 28px rgba(10, 25, 60, 0.28);">
                             <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 6px;">
                                 <h3 style="margin: 0; font-size: 20px; font-weight: 800; color: #ffffff; letter-spacing: -0.3px; flex: 1; min-width: 0; word-break: break-word;">${trip.title}</h3>
-                                <button type="button" class="btn-edit-saved-trip" onclick="event.stopPropagation(); window.editSavedTrip('${trip.id}')" ontouchstart="event.stopPropagation();" onpointerdown="event.stopPropagation();" onmousedown="event.stopPropagation();" onmouseover="this.style.background='rgba(255,255,255,0.28)'" onmouseout="this.style.background='rgba(255,255,255,0.18)'" style="background: rgba(255,255,255,0.18); border: none !important; outline: none !important; border-radius: 12px; padding: 6px 14px; color: #ffffff; font-size: 12px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0; transition: all 0.2s ease; box-shadow: none !important; position: relative; z-index: 10; pointer-events: auto; touch-action: manipulation;">
-                                    <i class="fa-solid fa-pen-to-square"></i> Edit
-                                </button>
+                                <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+                                    <button type="button" class="btn-edit-saved-trip" onclick="event.stopPropagation(); window.editSavedTrip('${trip.id}')" ontouchstart="event.stopPropagation();" onpointerdown="event.stopPropagation();" onmousedown="event.stopPropagation();" onmouseover="this.style.background='rgba(255,255,255,0.28)'" onmouseout="this.style.background='rgba(255,255,255,0.18)'" style="background: rgba(255,255,255,0.18); border: none !important; outline: none !important; border-radius: 12px; padding: 6px 14px; color: #ffffff; font-size: 12px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s ease; box-shadow: none !important; position: relative; z-index: 10; pointer-events: auto; touch-action: manipulation;">
+                                        <i class="fa-solid fa-pen-to-square"></i> Edit
+                                    </button>
+                                    <button type="button" class="btn-delete-saved-trip" onclick="event.stopPropagation(); window.confirmDeleteSavedTrip('${trip.id}', this.closest('.trip-swipe-container'), '${safeTitle}');" ontouchstart="event.stopPropagation();" onpointerdown="event.stopPropagation();" onmousedown="event.stopPropagation();" onmouseover="this.style.background='rgba(239,68,68,0.45)'" onmouseout="this.style.background='rgba(239,68,68,0.25)'" style="background: rgba(239,68,68,0.25); border: 1px solid rgba(255,255,255,0.22) !important; outline: none !important; border-radius: 12px; padding: 6px 12px; color: #ffffff; font-size: 12px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; transition: all 0.2s ease; box-shadow: none !important; position: relative; z-index: 10; pointer-events: auto; touch-action: manipulation;">
+                                        <i class="fa-solid fa-trash-can" style="color: #fca5a5;"></i> Delete
+                                    </button>
+                                </div>
                             </div>
                             <div style="font-size: 12.5px; color: #ffffff; opacity: 0.95; margin: 0 0 16px 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                                 <span style="display:inline-flex; align-items:center; gap:5px; font-weight:700;"><i class="fa-regular fa-calendar" style="color: #ffffff;"></i>${trip.trip_date ? new Date(trip.trip_date).toLocaleDateString() : 'No date set'}</span> 
@@ -530,12 +535,12 @@ $backRoute = 'itinerary';
                                     const jsonUrlsAttr = JSON.stringify(proofImages).replace(/"/g, '&quot;');
                                     const thumbs = proofImages.map((pUrl, pIdx) => {
                                         let displayUrl = pUrl;
+                                        const activeBackend = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
                                         if (!displayUrl.startsWith('http') && !displayUrl.startsWith('data:') && !displayUrl.startsWith('blob:')) {
-                                            let b = (window.backendUrl || '').replace(/\/+$/, '');
-                                            displayUrl = b + '/' + displayUrl.replace(/^\//, '');
+                                            displayUrl = activeBackend + '/' + displayUrl.replace(/^\//, '');
                                         }
                                         const cleanImgName = pUrl.split('/').pop().replace(/[?#].*$/, '');
-                                        let fallbackUrl = (window.backendUrl || '').replace(/\/+$/, '') + '/api/image/proof_images/' + cleanImgName;
+                                        let fallbackUrl = activeBackend + '/api/image/proof_images/' + cleanImgName;
                                         return `
                                             <div style="position:relative; flex-shrink:0;">
                                                 <img src="${displayUrl}" 
@@ -715,7 +720,6 @@ $backRoute = 'itinerary';
                                                     </button>
                                                 </div>`)))))
                                         }
-                                    }
                                     </div>
                                 </div>`;
                             });
@@ -1252,6 +1256,143 @@ $backRoute = 'itinerary';
             window.renderProofThumbnailsGrid();
         };
 
+        window.applyPhotoProofUpdateLocally = function (itemId, proofUrls, proofStatus = 'pending') {
+            if (!itemId) return;
+            const targetIdStr = String(itemId);
+            const urls = Array.isArray(proofUrls) ? proofUrls : (proofUrls ? [proofUrls] : []);
+            if (urls.length === 0) return;
+
+            const updateItemInTrips = (tripsList) => {
+                if (!Array.isArray(tripsList)) return tripsList;
+                return tripsList.map(trip => {
+                    if (!trip || !Array.isArray(trip.items)) return trip;
+                    const updatedItems = trip.items.map(it => {
+                        if (!it) return it;
+                        const itIdStr = String(it.id || '');
+                        if (itIdStr === targetIdStr || (targetIdStr && itIdStr && targetIdStr.includes(itIdStr))) {
+                            return {
+                                ...it,
+                                proof_image: urls[0],
+                                proof_images: urls,
+                                proof_status: proofStatus,
+                                rejection_reason: null
+                            };
+                        }
+                        return it;
+                    });
+                    return {
+                        ...trip,
+                        items: updatedItems
+                    };
+                });
+            };
+
+            // 1. Update in-memory cached saved trips and re-render cards immediately
+            if (Array.isArray(window._cachedSavedTrips)) {
+                window._cachedSavedTrips = updateItemInTrips(window._cachedSavedTrips);
+                if (typeof renderSavedTrips === 'function') {
+                    renderSavedTrips(window._cachedSavedTrips);
+                }
+            }
+
+            // 2. Update all local persistent storage backups
+            ['intan_elyu_offline_saved_trips_backup', 'intan_elyu_offline_saved_trips', 'intan_elyu_saved_trips'].forEach(k => {
+                try {
+                    const raw = localStorage.getItem(k);
+                    if (raw) {
+                        const parsed = JSON.parse(raw);
+                        if (Array.isArray(parsed)) {
+                            localStorage.setItem(k, JSON.stringify(updateItemInTrips(parsed)));
+                        } else if (parsed && Array.isArray(parsed.itineraries)) {
+                            parsed.itineraries = updateItemInTrips(parsed.itineraries);
+                            localStorage.setItem(k, JSON.stringify(parsed));
+                        } else if (parsed && Array.isArray(parsed.data)) {
+                            parsed.data = updateItemInTrips(parsed.data);
+                            localStorage.setItem(k, JSON.stringify(parsed));
+                        }
+                    }
+                } catch (e) { }
+            });
+
+            // 3. Update all dynamic token-scoped storage keys
+            try {
+                for (let i = 0; i < localStorage.length; i++) {
+                    const k = localStorage.key(i);
+                    if (k && (k.startsWith('saved_trips_') || k.startsWith('dashboard_trips_') || k.startsWith('dashboard_saved_trips_'))) {
+                        try {
+                            const raw = localStorage.getItem(k);
+                            if (raw) {
+                                const parsed = JSON.parse(raw);
+                                if (Array.isArray(parsed)) {
+                                    localStorage.setItem(k, JSON.stringify(updateItemInTrips(parsed)));
+                                } else if (parsed && Array.isArray(parsed.itineraries)) {
+                                    parsed.itineraries = updateItemInTrips(parsed.itineraries);
+                                    localStorage.setItem(k, JSON.stringify(parsed));
+                                } else if (parsed && Array.isArray(parsed.data)) {
+                                    parsed.data = updateItemInTrips(parsed.data);
+                                    localStorage.setItem(k, JSON.stringify(parsed));
+                                }
+                            }
+                        } catch (e) { }
+                    }
+                }
+            } catch (e) { }
+        };
+
+        window.applyLocationCheckinLocally = function (itemId) {
+            if (!itemId) return;
+            const targetIdStr = String(itemId);
+            const nowIso = new Date().toISOString();
+
+            const updateItemInTrips = (tripsList) => {
+                if (!Array.isArray(tripsList)) return tripsList;
+                return tripsList.map(trip => {
+                    if (!trip || !Array.isArray(trip.items)) return trip;
+                    const updatedItems = trip.items.map(it => {
+                        if (!it) return it;
+                        const itIdStr = String(it.id || '');
+                        if (itIdStr === targetIdStr || (targetIdStr && itIdStr && targetIdStr.includes(itIdStr))) {
+                            return {
+                                ...it,
+                                is_location_verified: true,
+                                visited_at: it.visited_at || nowIso
+                            };
+                        }
+                        return it;
+                    });
+                    return {
+                        ...trip,
+                        items: updatedItems
+                    };
+                });
+            };
+
+            if (Array.isArray(window._cachedSavedTrips)) {
+                window._cachedSavedTrips = updateItemInTrips(window._cachedSavedTrips);
+                if (typeof renderSavedTrips === 'function') {
+                    renderSavedTrips(window._cachedSavedTrips);
+                }
+            }
+
+            ['intan_elyu_offline_saved_trips_backup', 'intan_elyu_offline_saved_trips', 'intan_elyu_saved_trips'].forEach(k => {
+                try {
+                    const raw = localStorage.getItem(k);
+                    if (raw) {
+                        const parsed = JSON.parse(raw);
+                        if (Array.isArray(parsed)) {
+                            localStorage.setItem(k, JSON.stringify(updateItemInTrips(parsed)));
+                        } else if (parsed && Array.isArray(parsed.itineraries)) {
+                            parsed.itineraries = updateItemInTrips(parsed.itineraries);
+                            localStorage.setItem(k, JSON.stringify(parsed));
+                        } else if (parsed && Array.isArray(parsed.data)) {
+                            parsed.data = updateItemInTrips(parsed.data);
+                            localStorage.setItem(k, JSON.stringify(parsed));
+                        }
+                    }
+                } catch (e) { }
+            });
+        };
+
         window.submitProofPhotos = async function () {
             const itemId = window._currentProofItemId;
             if (!itemId) return;
@@ -1263,38 +1404,80 @@ $backRoute = 'itinerary';
 
             const btn = document.getElementById('btn-submit-proof-photos');
             if (btn) {
-                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="margin-right:6px;"></i> Uploading Photos...';
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="margin-right:6px;"></i> Submitting...';
                 btn.disabled = true;
             }
 
-            const formData = new FormData();
-            window.selectedProofPhotos.forEach((item, idx) => {
-                formData.append('images[]', item.file, item.file.name || `proof_${Date.now()}_${idx}.jpg`);
-            });
-            // Also append single 'image' fallback
-            formData.append('image', window.selectedProofPhotos[0].file);
+            // Extract preview data URLs for zero-latency instant optimistic display
+            const previewUrls = window.selectedProofPhotos.map(p => p.dataUrl).filter(Boolean);
+            const firstFile = window.selectedProofPhotos[0].file;
+            const spotName = window._currentProofSpotName || 'Destination';
+
+            // Optimistically update memory and DOM right now!
+            window.applyPhotoProofUpdateLocally(itemId, previewUrls, 'pending');
 
             const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+            const isOfflineItem = !itemId || 
+                String(itemId).startsWith('offline_') || 
+                !navigator.onLine || 
+                window.isAppOnline === false ||
+                !token ||
+                token === 'guest_token' ||
+                token.startsWith('guest_') ||
+                token.startsWith('offline_');
 
-            const fallbackOffline = async (reason) => {
+            // If item is created offline or app is offline, store in OfflineCheckinManager and finish instantly!
+            if (isOfflineItem) {
                 if (window.OfflineCheckinManager) {
-                    const spotName = window._currentProofSpotName || 'Destination';
                     await window.OfflineCheckinManager.queueOfflineCheckin({
                         type: 'itinerary',
                         itemId: itemId,
                         spotName: spotName,
                         lat: window.myLat || 16.6159,
                         lng: window.myLng || 120.3209,
-                        image: window.selectedProofPhotos[0].file,
+                        image: firstFile,
+                        capturedAt: new Date().toISOString()
+                    });
+                }
+                window.closeProofUploadModal();
+                if (typeof showToast === 'function') {
+                    showToast('📍 Photo proof saved on device! Auto-syncs when online.', 'success');
+                }
+                if (window.confetti) {
+                    try { window.confetti({ particleCount: 70, spread: 60, origin: { y: 0.7 } }); } catch (e) { }
+                }
+                // Re-render once more with queued status
+                if (Array.isArray(window._cachedSavedTrips) && typeof renderSavedTrips === 'function') {
+                    renderSavedTrips(window._cachedSavedTrips);
+                }
+                return;
+            }
+
+            // Online upload
+            const formData = new FormData();
+            window.selectedProofPhotos.forEach((item, idx) => {
+                formData.append('images[]', item.file, item.file.name || `proof_${Date.now()}_${idx}.jpg`);
+            });
+            formData.append('image', firstFile);
+
+            const fallbackOffline = async (reason) => {
+                if (window.OfflineCheckinManager) {
+                    await window.OfflineCheckinManager.queueOfflineCheckin({
+                        type: 'itinerary',
+                        itemId: itemId,
+                        spotName: spotName,
+                        lat: window.myLat || 16.6159,
+                        lng: window.myLng || 120.3209,
+                        image: firstFile,
                         capturedAt: new Date().toISOString()
                     });
                     window.closeProofUploadModal();
                     if (typeof showToast === 'function') {
                         showToast('📍 Saved Offline! Photo proof saved on device. Auto-syncs when online.', 'success');
                     }
-                    setTimeout(() => {
-                        if (typeof window.fetchSavedTrips === 'function') window.fetchSavedTrips(false);
-                    }, 300);
+                    if (Array.isArray(window._cachedSavedTrips) && typeof renderSavedTrips === 'function') {
+                        renderSavedTrips(window._cachedSavedTrips);
+                    }
                 } else {
                     if (typeof showToast === 'function') showToast(reason || 'Upload failed. Please try again.');
                     if (btn) {
@@ -1305,10 +1488,11 @@ $backRoute = 'itinerary';
             };
 
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 18000);
+            const timeoutId = setTimeout(() => controller.abort(), 20000);
 
             try {
-                const response = await fetch(backendUrl + '/api/tourist/itineraries/items/' + itemId + '/proof', {
+                const activeBackend = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
+                const response = await fetch(activeBackend + '/api/tourist/itineraries/items/' + itemId + '/proof', {
                     method: 'POST',
                     headers: {
                         'Accept': 'application/json',
@@ -1323,24 +1507,19 @@ $backRoute = 'itinerary';
 
                 if (response.ok && data.success) {
                     window.closeProofUploadModal();
+                    // Replace preview URLs with permanent server URLs from response
+                    const permanentUrls = data.proof_images || (data.proof_image ? [data.proof_image] : previewUrls);
+                    window.applyPhotoProofUpdateLocally(itemId, permanentUrls, data.proof_status || 'pending');
+
                     if (typeof showToast === 'function') {
-                        showToast(data.message || 'Photo proof submitted! Pending review before completion.', 'success');
+                        showToast(data.message || 'Photo proof submitted! Awaiting for approval.', 'success');
                     }
                     if (window.confetti) {
-                        window.confetti({ particleCount: 80, spread: 60, origin: { y: 0.7 } });
+                        try { window.confetti({ particleCount: 80, spread: 60, origin: { y: 0.7 } }); } catch (e) { }
                     }
-                    const tokenKey = token ? token.substring(0, 10) : '';
-                    localStorage.removeItem('saved_trips_' + tokenKey);
-                    localStorage.removeItem('dashboard_trips_' + tokenKey);
-                    setTimeout(() => {
-                        if (typeof window.fetchSavedTrips === 'function') window.fetchSavedTrips(true);
-                    }, 400);
                 } else {
-                    if (typeof showToast === 'function') showToast(data.message || 'Failed to upload photo proof.');
-                    if (btn) {
-                        btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up" style="margin-right:6px;"></i> Submit Photo Proof';
-                        btn.disabled = false;
-                    }
+                    console.warn('Server proof upload failed:', data);
+                    await fallbackOffline(data.message || 'Server upload failed; saved offline.');
                 }
             } catch (err) {
                 clearTimeout(timeoutId);
@@ -1359,18 +1538,54 @@ $backRoute = 'itinerary';
             }
 
             const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+            const isOfflineItem = !itemId || 
+                String(itemId).startsWith('offline_') || 
+                !navigator.onLine || 
+                window.isAppOnline === false ||
+                !token ||
+                token === 'guest_token' ||
+                token.startsWith('guest_') ||
+                token.startsWith('offline_');
 
             const doSubmitCheckin = async (lat, lng) => {
+                // Optimistically update location check-in state locally
+                window.applyLocationCheckinLocally(itemId);
+
+                if (isOfflineItem) {
+                    if (window.OfflineCheckinManager) {
+                        await window.OfflineCheckinManager.queueOfflineCheckin({
+                            type: 'itinerary',
+                            itemId: itemId,
+                            spotName: spotName || 'Destination',
+                            lat: lat,
+                            lng: lng,
+                            capturedAt: new Date().toISOString()
+                        });
+                    }
+                    if (typeof showToast === 'function') {
+                        showToast(`📍 Checked in offline at ${spotName}! Auto-syncs when online.`, 'success');
+                    }
+                    if (window.confetti) {
+                        try { window.confetti({ particleCount: 70, spread: 60, origin: { y: 0.7 } }); } catch (e) { }
+                    }
+                    if (btnEl) {
+                        btnEl.innerHTML = originalHtml;
+                        btnEl.disabled = false;
+                    }
+                    return;
+                }
+
                 const formData = new FormData();
                 formData.append('lat', lat);
                 formData.append('lng', lng);
                 formData.append('captured_at', new Date().toISOString());
 
                 const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 9000);
+                const timeoutId = setTimeout(() => controller.abort(), 12000);
 
                 try {
-                    const response = await fetch(backendUrl + '/api/tourist/itineraries/items/' + itemId + '/checkin', {
+                    const activeBackend = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
+                    const response = await fetch(activeBackend + '/api/tourist/itineraries/items/' + itemId + '/checkin', {
                         method: 'POST',
                         headers: {
                             'Accept': 'application/json',
@@ -1384,18 +1599,13 @@ $backRoute = 'itinerary';
                     const data = await response.json();
 
                     if (response.ok && (data.success || data.is_location_verified)) {
+                        window.applyLocationCheckinLocally(itemId);
                         if (typeof showToast === 'function') {
-                            showToast(data.message || `📍 Location verified at ${spotName}! Photo proof is required to earn +50 Points.`, 'success');
+                            showToast(data.message || `📍 Location verified at ${spotName}! Photo proof is required to earn points.`, 'success');
                         }
                         if (window.confetti) {
-                            window.confetti({ particleCount: 70, spread: 60, origin: { y: 0.7 } });
+                            try { window.confetti({ particleCount: 70, spread: 60, origin: { y: 0.7 } }); } catch (e) { }
                         }
-                        const tokenKey = token ? token.substring(0, 10) : '';
-                        localStorage.removeItem('saved_trips_' + tokenKey);
-                        localStorage.removeItem('dashboard_trips_' + tokenKey);
-                        setTimeout(() => {
-                            if (typeof window.fetchSavedTrips === 'function') window.fetchSavedTrips(true);
-                        }, 400);
                     } else {
                         if (typeof showToast === 'function') {
                             showToast(data.message || 'Check-in failed. Please ensure you are at the destination.', 'error');
@@ -1420,15 +1630,12 @@ $backRoute = 'itinerary';
                         if (typeof showToast === 'function') {
                             showToast(`📍 Checked in offline at ${spotName}! Auto-syncs when online.`, 'success');
                         }
-                        setTimeout(() => {
-                            if (typeof window.fetchSavedTrips === 'function') window.fetchSavedTrips(false);
-                        }, 300);
                     } else {
                         if (typeof showToast === 'function') showToast('Network error during check-in. Please try again.');
-                        if (btnEl) {
-                            btnEl.innerHTML = originalHtml;
-                            btnEl.disabled = false;
-                        }
+                    }
+                    if (btnEl) {
+                        btnEl.innerHTML = originalHtml;
+                        btnEl.disabled = false;
                     }
                 }
             };
@@ -2003,7 +2210,6 @@ $backRoute = 'itinerary';
                 pruneTripFromLocalCaches(id);
                 if (typeof showToast === 'function') showToast("Trip deleted from device.");
                 animateAndRemoveCard(element);
-                window.dispatchEvent(new CustomEvent('tripsSynced'));
                 window.dispatchEvent(new CustomEvent('tripDeleted', { detail: { id: id } }));
                 window._pendingDeleteTripId = null;
                 window._pendingDeleteTripContainer = null;
@@ -2036,13 +2242,11 @@ $backRoute = 'itinerary';
                     if (typeof showToast === 'function') showToast("Trip deleted locally.");
                 }
 
-                window.dispatchEvent(new CustomEvent('tripsSynced'));
                 window.dispatchEvent(new CustomEvent('tripDeleted', { detail: { id: id } }));
             } catch (e) {
                 console.warn('Network error during trip deletion; pruned locally:', e);
                 pruneTripFromLocalCaches(id);
                 if (typeof showToast === 'function') showToast("Trip removed from device (offline).");
-                window.dispatchEvent(new CustomEvent('tripsSynced'));
                 window.dispatchEvent(new CustomEvent('tripDeleted', { detail: { id: id } }));
             } finally {
                 window._pendingDeleteTripId = null;
@@ -2356,6 +2560,26 @@ $backRoute = 'itinerary';
             window.addEventListener('offlineTripQueued', () => {
                 if (typeof window.fetchSavedTrips === 'function') {
                     window.fetchSavedTrips(false);
+                }
+            });
+            window.addEventListener('tripDeleted', (e) => {
+                const deletedId = e?.detail?.id;
+                if (!deletedId) return;
+                const dStr = String(deletedId);
+                if (Array.isArray(window._cachedSavedTrips)) {
+                    window._cachedSavedTrips = window._cachedSavedTrips.filter(t => {
+                        if (!t) return false;
+                        const idStr = String(t.id || '');
+                        const tripIdStr = String(t.trip_id || '');
+                        const localIdStr = String(t.local_id || '');
+                        return idStr !== dStr && tripIdStr !== dStr && localIdStr !== dStr;
+                    });
+                }
+                const cards = document.querySelectorAll(`.trip-swipe-container[data-trip-id="${deletedId}"]`);
+                cards.forEach(c => c.remove());
+                const allCards = document.querySelectorAll('.trip-swipe-container');
+                if (allCards.length === 0) {
+                    if (typeof renderSavedTrips === 'function') renderSavedTrips([]);
                 }
             });
             setTimeout(updateSavedTripsOfflineStatus, 100);

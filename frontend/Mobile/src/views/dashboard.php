@@ -3132,7 +3132,6 @@ if (is_dir($imgDir)) {
 
         if (isGuestOrOffline) {
             if (typeof showToast === 'function') showToast("Trip deleted from device.");
-            window.dispatchEvent(new CustomEvent('tripsSynced'));
             window.dispatchEvent(new CustomEvent('tripDeleted', { detail: { id: id } }));
             return;
         }
@@ -3158,13 +3157,11 @@ if (is_dir($imgDir)) {
                 if (typeof showToast === 'function') showToast("Trip deleted locally.");
             }
 
-            window.dispatchEvent(new CustomEvent('tripsSynced'));
             window.dispatchEvent(new CustomEvent('tripDeleted', { detail: { id: id } }));
         } catch (e) {
             console.error('Error deleting itinerary', e);
             pruneTripFromLocalCaches(id);
             if (typeof showToast === 'function') showToast("Trip removed from device (offline).");
-            window.dispatchEvent(new CustomEvent('tripsSynced'));
             window.dispatchEvent(new CustomEvent('tripDeleted', { detail: { id: id } }));
         }
     };
