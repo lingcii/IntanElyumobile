@@ -1586,9 +1586,9 @@ include __DIR__ . '/../components/header.php';
 
         function updatePuzzlesOfflineStatus() {
             var badge = document.getElementById('puzzles-offline-badge');
-            var isOffline = !navigator.onLine || window.isAppOnline === false;
+            var isOffline = typeof navigator.onLine === 'boolean' ? !navigator.onLine : false;
             if (badge) {
-                badge.style.display = isOffline ? 'inline-flex' : 'none';
+                badge.style.setProperty('display', isOffline ? 'inline-flex' : 'none', 'important');
             }
         }
         window.addEventListener('online', updatePuzzlesOfflineStatus);

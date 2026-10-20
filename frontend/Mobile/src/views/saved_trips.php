@@ -2298,9 +2298,9 @@ $backRoute = 'itinerary';
 
             function updateSavedTripsOfflineStatus() {
                 var badge = document.getElementById('saved-trips-offline-badge');
-                var isOffline = !navigator.onLine || window.isAppOnline === false;
+                var isOffline = typeof navigator.onLine === 'boolean' ? !navigator.onLine : false;
                 if (badge) {
-                    badge.style.display = isOffline ? 'inline-flex' : 'none';
+                    badge.style.setProperty('display', isOffline ? 'inline-flex' : 'none', 'important');
                 }
             }
 

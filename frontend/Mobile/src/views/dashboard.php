@@ -414,11 +414,11 @@ if (is_dir($imgDir)) {
 
     function updateDashboardOfflineStatus() {
         var pill = document.getElementById('dash-offline-pill');
-        var isOffline = !navigator.onLine || window.isAppOnline === false;
+        var isOffline = typeof navigator.onLine === 'boolean' ? !navigator.onLine : false;
         if (pill) {
-            pill.style.display = isOffline ? 'flex' : 'none';
+            pill.style.setProperty('display', isOffline ? 'flex' : 'none', 'important');
             var span = pill.querySelector('span');
-            if (span) {
+            if (span && isOffline) {
                 span.innerHTML = 'Offline Mode &bull; Showing Saved Guides & Local GPS';
             }
         }

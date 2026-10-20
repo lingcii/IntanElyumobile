@@ -237,9 +237,9 @@ $email = $_GET['email'] ?? '';
 
         function updateResetOfflineStatus() {
             var offlineBadge = document.getElementById('reset-offline-badge');
-            var isOffline = !navigator.onLine || window.isAppOnline === false;
+            var isOffline = typeof navigator.onLine === 'boolean' ? !navigator.onLine : false;
             if (offlineBadge) {
-                offlineBadge.style.display = isOffline ? 'inline-flex' : 'none';
+                offlineBadge.style.setProperty('display', isOffline ? 'inline-flex' : 'none', 'important');
             }
         }
         window.addEventListener('online', updateResetOfflineStatus);

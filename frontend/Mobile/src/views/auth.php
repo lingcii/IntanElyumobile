@@ -575,7 +575,7 @@
     // =========================================================================
     (function initAuthOfflineStatus() {
         function updateOfflineStatus() {
-            var isOffline = !navigator.onLine || window.isAppOnline === false || window.isOfflineAppMode === true;
+            var isOffline = typeof navigator.onLine === 'boolean' ? !navigator.onLine : false;
             if (isOffline) {
                 document.body.classList.add('is-offline');
                 document.body.setAttribute('data-offline', 'true');

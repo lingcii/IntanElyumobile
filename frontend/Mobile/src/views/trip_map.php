@@ -1574,8 +1574,13 @@ include_once __DIR__ . '/../components/testimony_modal.php';
             }
         };
 
-        // Automatically refresh route and pins when offline check-ins finish syncing
+        // Automatically refresh route and pins when offline check-ins or trips finish syncing
         window.addEventListener('checkins-synced', () => {
+            if (typeof loadTripData === 'function') {
+                loadTripData();
+            }
+        });
+        window.addEventListener('tripsSynced', () => {
             if (typeof loadTripData === 'function') {
                 loadTripData();
             }
@@ -1651,9 +1656,9 @@ include_once __DIR__ . '/../components/testimony_modal.php';
 
         function updateTripOfflineStatus() {
             var pill = document.getElementById('trip-offline-badge');
-            var isOffline = !navigator.onLine || window.isAppOnline === false;
+            var isOffline = typeof navigator.onLine === 'boolean' ? !navigator.onLine : false;
             if (pill) {
-                pill.style.display = isOffline ? 'inline-flex' : 'none';
+                pill.style.setProperty('display', isOffline ? 'inline-flex' : 'none', 'important');
             }
         }
         window.addEventListener('online', updateTripOfflineStatus);

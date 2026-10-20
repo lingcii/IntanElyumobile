@@ -1197,6 +1197,7 @@ window.OfflineProfileManager = {
     let wasOffline = (typeof navigator.onLine === 'boolean') ? !navigator.onLine : false;
     let hidePillTimeout = null;
     let offlineDebounceTimeout = null;
+    let lastOnlineSyncTime = 0;
     window.isAppOnline = (typeof navigator.onLine === 'boolean') ? navigator.onLine : true;
     if (window.isAppOnline) {
         try {
@@ -1337,31 +1338,56 @@ window.OfflineProfileManager = {
         }
     };
 
+    function enforceAllOfflineBadgesHidden() {
+        if (typeof navigator.onLine === 'boolean' && !navigator.onLine) return;
+        window.isAppOnline = true;
+        if (document.body) {
+            document.body.classList.remove('is-offline');
+            document.body.removeAttribute('data-offline');
+        }
+        try {
+            localStorage.removeItem('intan_elyu_offline_mode');
+            sessionStorage.removeItem('elyu_show_offline_bypass_notice');
+        } catch(e) {}
+
+        const pillsToHide = [
+            'dash-offline-pill', 'trending-offline-pill',
+            'trip-offline-badge', 'saved-trips-offline-badge', 'saved-places-offline-badge',
+            'puzzles-offline-badge', 'auth-offline-badge', 'profile-offline-badge',
+            'discount-offline-badge', 'edit-profile-offline-badge', 'leaderboard-offline-badge',
+            'reset-offline-badge'
+        ];
+        pillsToHide.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.style.setProperty('display', 'none', 'important');
+        });
+
+        document.querySelectorAll('.btn-offline-guest').forEach(btn => {
+            const span = btn.querySelector('span');
+            const icon = btn.querySelector('i');
+            if (span && span.textContent && span.textContent.includes('Offline')) {
+                span.textContent = 'Continue as Guest';
+            }
+            if (icon && icon.classList.contains('fa-cloud-slash')) {
+                icon.className = 'fa-solid fa-compass';
+            }
+        });
+    }
+    window.enforceAllOfflineBadgesHidden = enforceAllOfflineBadgesHidden;
+
     window.notifyAppOnline = function () {
         if (offlineDebounceTimeout) {
             clearTimeout(offlineDebounceTimeout);
             offlineDebounceTimeout = null;
         }
 
-        const now = Date.now();
-        if (now - lastOnlineSyncTime < 8000 && window.isAppOnline) return;
         window.isAppOnline = true;
-        try {
-            localStorage.removeItem('intan_elyu_offline_mode');
-            sessionStorage.removeItem('elyu_show_offline_bypass_notice');
-        } catch(e) {}
+        enforceAllOfflineBadgesHidden();
+        [150, 450, 1000, 2200].forEach(d => setTimeout(enforceAllOfflineBadgesHidden, d));
 
-        // Hide any view-level offline pills immediately when online
-        const pillsToHide = [
-            'elyu-offline-pill', 'dash-offline-pill', 'trending-offline-pill',
-            'trip-offline-badge', 'saved-trips-offline-badge', 'saved-places-offline-badge',
-            'puzzles-offline-badge', 'auth-offline-badge', 'profile-offline-badge',
-            'discount-offline-badge', 'edit-profile-offline-badge'
-        ];
-        pillsToHide.forEach(id => {
-            const el = document.getElementById(id);
-            if (el && id !== 'elyu-offline-pill') el.style.display = 'none';
-        });
+        const now = Date.now();
+        if (now - lastOnlineSyncTime < 4000) return;
+        lastOnlineSyncTime = now;
 
         if (wasOffline) {
             wasOffline = false;
@@ -1370,7 +1396,7 @@ window.OfflineProfileManager = {
             const pill = document.getElementById('elyu-offline-pill');
             if (pill) {
                 pill.classList.add('hidden');
-                pill.style.display = 'none';
+                pill.style.setProperty('display', 'none', 'important');
             }
         }
 
@@ -1395,6 +1421,13 @@ window.OfflineProfileManager = {
             } catch(e) {}
         }, 2200);
     };
+
+    // Periodic watchdog to guarantee no offline text stays stuck when Wi-Fi is on
+    setInterval(() => {
+        if (typeof navigator.onLine === 'boolean' && navigator.onLine) {
+            enforceAllOfflineBadgesHidden();
+        }
+    }, 3000);
 
     // 1. Standard browser network events (fired by OS / WebView)
     window.addEventListener('online', () => {
