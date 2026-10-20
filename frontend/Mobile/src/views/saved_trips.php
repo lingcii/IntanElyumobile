@@ -1946,6 +1946,20 @@ $backRoute = 'itinerary';
                 if (Array.isArray(window._cachedSavedTrips)) {
                     window._cachedSavedTrips = filterOut(window._cachedSavedTrips);
                 }
+
+                // 5. Clean up active editing session if this exact trip was open for editing
+                try {
+                    const currentEditingId = sessionStorage.getItem('editing_itinerary_id');
+                    if (currentEditingId && (String(currentEditingId) === targetStr || targetStr.includes(String(currentEditingId)))) {
+                        sessionStorage.removeItem('editing_itinerary_id');
+                        sessionStorage.removeItem('editing_trip_title');
+                        sessionStorage.removeItem('editing_trip_date');
+                        sessionStorage.removeItem('editing_trip_budget');
+                        sessionStorage.removeItem('editing_trip_transport');
+                        sessionStorage.removeItem('editing_transport_initialized');
+                        localStorage.removeItem('intan_elyu_draft_leg_vehicles');
+                    }
+                } catch (e) { }
             };
 
             const animateAndRemoveCard = (el) => {

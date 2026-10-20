@@ -34,19 +34,19 @@ class ProfileController extends Controller
             }
 
             try {
-                // Fallback: live CTE with denormalized column (Technique 3 + 5)
+                // Fallback: live CTE aligned with LeaderboardController ordering and status check
                 $rankData = DB::selectOne("
                     WITH ranked AS (
                         SELECT
                             u.id AS user_id,
                             ROW_NUMBER() OVER (
                                 ORDER BY
-                                    COALESCE(u.xp, 0) DESC,
+                                    COALESCE(u.points, u.xp, 0) DESC,
                                     COALESCE(u.completed_activities, 0) DESC,
-                                    u.created_at ASC
+                                    u.id ASC
                             ) AS `rank`
                         FROM users u
-                        WHERE u.role = 'tourist' AND u.status = 'active'
+                        WHERE u.role = 'tourist' AND (u.status = 'active' OR u.status IS NULL)
                     )
                     SELECT `rank` FROM ranked WHERE user_id = ?
                 ", [$user->id]);
@@ -162,15 +162,16 @@ class ProfileController extends Controller
             $completedQuestIds = [];
         }
 
-        $visitedCount = 0;
+        $visitedCount = max($placesVisited, (int) ($user->completed_activities ?? 0));
         try {
             if (Schema::hasTable('itinerary_items') && Schema::hasTable('itineraries')) {
-                $visitedCount = (int) \App\Models\ItineraryItem::whereHas('itinerary', function($q) use ($user) {
+                $rawItinVisited = (int) \App\Models\ItineraryItem::whereHas('itinerary', function($q) use ($user) {
                     $q->where('user_id', $user->id);
                 })->where('is_visited', true)->count();
+                $visitedCount = max($visitedCount, $rawItinVisited);
             }
         } catch (\Throwable $e) {
-            $visitedCount = 0;
+            // Keep $placesVisited fallback
         }
 
         $completedTripsCount = is_array($completedTrips) ? count($completedTrips) : 0;
@@ -318,7 +319,15 @@ class ProfileController extends Controller
         }
 
         if ($request->exists('email') && $request->filled('email')) {
-            $user->email = strtolower(trim($request->input('email')));
+            $newEmail = strtolower(trim($request->input('email')));
+            $existing = \App\Models\User::where('email', $newEmail)->where('id', '!=', $user->id)->first();
+            if ($existing) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'The email address is already in use by another account.'
+                ], 422);
+            }
+            $user->email = $newEmail;
         }
 
         if ($request->exists('phone') && Schema::hasColumn('users', 'phone')) {

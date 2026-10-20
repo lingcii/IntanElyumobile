@@ -147,6 +147,26 @@ $activeTab = 'profile';
         <div id="trip-history-list"></div>
     </div>
 
+    <!-- Badges & Achievements Section -->
+    <div class="stagger-3"
+        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; margin-left: 4px;">
+        <h3
+            style="font-size: 16px; font-weight: 800; color: #0f172a !important; margin: 0; display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-award" style="color: #1e3a8a;"></i> Badges & Achievements
+        </h3>
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <span id="profile-badge-count-label"
+                style="font-size: 11px; font-weight: 800; background: #eff6ff; color: #1e3a8a; padding: 3px 10px; border-radius: 100px; border: none !important; outline: none !important;">0 / 0 Unlocked</span>
+            <button type="button" onclick="if(typeof window.openAllBadgesModal === 'function') window.openAllBadgesModal(window._cachedMasterBadges)"
+                style="background: #f1f5f9; border: none !important; outline: none !important; color: #1e3a8a; font-size: 11px; font-weight: 800; cursor: pointer; padding: 4px 12px; border-radius: 100px; display: flex; align-items: center; gap: 4px; transition: all 0.2s ease;">
+                View All <i class="fa-solid fa-chevron-right" style="font-size: 9px; color: #1e3a8a;"></i>
+            </button>
+        </div>
+    </div>
+    <div id="profile-badges-container" class="stagger-3" style="margin-bottom: 24px;">
+        <div id="profile-badges-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;"></div>
+    </div>
+
     <!-- Points & Rewards Card (Styled like Notification Modal: Blue Banner Header, White Body) -->
     <div class="stagger-3"
         style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 22px; overflow: hidden; margin-bottom: 24px; box-shadow: 0 8px 24px rgba(10, 25, 60, 0.08);">
@@ -241,7 +261,22 @@ $activeTab = 'profile';
 </div>
 
 <script>
-    var backendUrl = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
+    function getProfileAuthToken() {
+        return localStorage.getItem('api_token') || localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token') || '';
+    }
+    function getProfileBackendUrl() {
+        return (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
+    }
+    var backendUrl = getProfileBackendUrl();
+
+    window.openBadgeModalByIndex = function (idx) {
+        const badges = window._cachedMasterBadges || [];
+        const b = badges[idx];
+        if (!b) return;
+        if (typeof window.openBadgeModal === 'function') {
+            window.openBadgeModal(b.name, b.description, b.is_unlocked, b.category, b.icon);
+        }
+    };
 
     // ── Dedicated Helper Rendering Functions ──
     window.ensureProfileModalOnBody = function (modalId) {
@@ -351,12 +386,17 @@ $activeTab = 'profile';
         const points = parseInt(u.points !== undefined ? u.points : (u.xp || 0)) || 0;
 
         if (elPoints) elPoints.textContent = points.toLocaleString();
-        if (elPlaces) elPlaces.textContent = data.places_visited || 0;
-        if (elRank && data.my_rank) elRank.textContent = '#' + data.my_rank;
+        if (elPlaces) elPlaces.textContent = (data.places_visited !== undefined ? data.places_visited : (u.places_visited || u.completed_activities || 0));
+        if (elRank) elRank.textContent = (data.my_rank && data.my_rank < 999) ? '#' + data.my_rank : (u.my_rank ? '#' + u.my_rank : '—');
         if (elName && u.name) elName.textContent = u.name;
         if (elEmail && u.email) elEmail.textContent = u.email;
-        if (elImg && u.avatar) {
-            elImg.src = window.getFullImageUrl ? window.getFullImageUrl(u.avatar) : u.avatar;
+        if (elImg) {
+            if (u.avatar && u.avatar !== 'null' && u.avatar !== 'undefined' && String(u.avatar).trim().length > 0) {
+                elImg.src = window.getFullImageUrl ? window.getFullImageUrl(u.avatar) : u.avatar;
+            } else {
+                const fbName = encodeURIComponent(u.name || 'Explorer');
+                elImg.src = `https://ui-avatars.com/api/?name=${fbName}&background=1e3a8a&color=fff&rounded=true&bold=true&size=128`;
+            }
         }
 
         if (u && u.id) {
@@ -382,10 +422,9 @@ $activeTab = 'profile';
         if (badgesGrid && badges.length) {
             const lockedFirst = [...badges].sort((a, b) => (a.is_unlocked ? 1 : 0) - (b.is_unlocked ? 1 : 0));
             const featuredLocked = lockedFirst.slice(0, 3);
-            badgesGrid.innerHTML = featuredLocked.map(b => {
-                const safeName = (b.name || '').replace(/'/g, "\\'");
-                const safeDesc = (b.description || 'Complete activities in La Union to unlock this badge.').replace(/'/g, "\\'");
-                const clickAction = `onclick="openBadgeModal('${safeName}', '${safeDesc}', ${b.is_unlocked ? 'true' : 'false'}, '${b.category || 'Badge'}', '${b.icon || '🏅'}')"`;
+            badgesGrid.innerHTML = featuredLocked.map((b, fIdx) => {
+                const bIdx = badges.indexOf(b);
+                const clickAction = `onclick="window.openBadgeModalByIndex(${bIdx >= 0 ? bIdx : fIdx})"`;
 
                 const badgeIcons = {
                     'Beach Chiller': '<i class="fa-solid fa-umbrella-beach"></i>',
@@ -406,17 +445,17 @@ $activeTab = 'profile';
 
                 if (b.is_unlocked) {
                     return `
-                    <div ${clickAction} style="background: rgba(251,191,36,0.08); border: 1px solid rgba(251,191,36,0.3); border-radius: 16px; padding: 12px 8px; text-align: center; cursor: pointer; transition: transform 0.2s;" title="${b.description}">
-                        <div style="font-size: 22px; margin-bottom: 4px; color: #fbbf24;">${displayIcon}</div>
-                        <div style="font-size: 11px; font-weight: 800; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${b.name}</div>
-                        <div style="font-size: 9px; color: #fbbf24; margin-top: 2px; font-weight: 700;"><i class="fa-solid fa-circle-check" style="font-size:8.5px; margin-right:2px;"></i> Unlocked</div>
+                    <div ${clickAction} style="background: rgba(251,191,36,0.12); border: 1.5px solid rgba(251,191,36,0.35); border-radius: 16px; padding: 12px 8px; text-align: center; cursor: pointer; transition: transform 0.2s; box-shadow: 0 4px 12px rgba(251,191,36,0.08);" title="${b.description || ''}">
+                        <div style="font-size: 22px; margin-bottom: 4px; color: #d97706;">${displayIcon}</div>
+                        <div style="font-size: 11px; font-weight: 800; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${b.name}</div>
+                        <div style="font-size: 9.5px; color: #15803d; margin-top: 3px; font-weight: 800;"><i class="fa-solid fa-circle-check" style="font-size:8.5px; margin-right:2px;"></i> Unlocked</div>
                     </div>`;
                 } else {
                     return `
-                    <div ${clickAction} style="background: rgba(255,255,255,0.02); border: 1px dashed rgba(255,255,255,0.1); border-radius: 16px; padding: 12px 8px; text-align: center; opacity: 0.7; cursor: pointer; transition: transform 0.2s;" title="${b.description}">
-                        <div style="font-size: 20px; margin-bottom: 4px; color: rgba(255,255,255,0.4);"><i class="fa-solid fa-lock"></i></div>
-                        <div style="font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.7); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${b.name}</div>
-                        <div style="font-size: 9px; color: #f87171; margin-top: 2px; font-weight: 700;"><i class="fa-solid fa-lock" style="font-size:8.5px; margin-right:2px;"></i> Locked</div>
+                    <div ${clickAction} style="background: #f8fafc; border: 1.5px dashed #cbd5e1; border-radius: 16px; padding: 12px 8px; text-align: center; cursor: pointer; transition: transform 0.2s;" title="${b.description || ''}">
+                        <div style="font-size: 20px; margin-bottom: 4px; color: #94a3b8;"><i class="fa-solid fa-lock"></i></div>
+                        <div style="font-size: 11px; font-weight: 700; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${b.name}</div>
+                        <div style="font-size: 9.5px; color: #ef4444; margin-top: 3px; font-weight: 800;"><i class="fa-solid fa-lock" style="font-size:8.5px; margin-right:2px;"></i> Locked</div>
                     </div>`;
                 }
             }).join('');
@@ -671,7 +710,7 @@ $activeTab = 'profile';
                     const u = JSON.parse(localStorage.getItem('auth_user') || '{}');
                     if (u && (u.id || u.user_id)) return String(u.id || u.user_id);
                 } catch(e) {}
-                const tok = localStorage.getItem('intan_elyu_token');
+                const tok = getProfileAuthToken();
                 return (tok && tok.length > 10) ? 'tok_' + tok.substring(0, 12) : 'guest';
             })();
             const arr = JSON.parse(localStorage.getItem('intan_elyu_claimed_vouchers_' + uid) || '[]');
@@ -989,7 +1028,7 @@ $activeTab = 'profile';
     }
 
     window.redeemAdminVoucher = async function (voucherId, cost, title) {
-        const token = localStorage.getItem('intan_elyu_token');
+        const token = getProfileAuthToken();
         if (!token) return;
 
         const currentPts = window._userPointsBalance || 0;
@@ -1008,7 +1047,8 @@ $activeTab = 'profile';
         }
 
         try {
-            const response = await fetch(backendUrl + '/api/tourist/points/redeem-voucher', {
+            const bUrl = getProfileBackendUrl();
+            const response = await fetch(bUrl + '/api/tourist/points/redeem-voucher', {
                 method: 'POST',
                 headers: {
                     'Accept': 'application/json',
@@ -1032,7 +1072,7 @@ $activeTab = 'profile';
                             const u = JSON.parse(localStorage.getItem('auth_user') || '{}');
                             if (u && (u.id || u.user_id)) return String(u.id || u.user_id);
                         } catch(e) {}
-                        const tok = localStorage.getItem('intan_elyu_token');
+                        const tok = getProfileAuthToken();
                         return (tok && tok.length > 10) ? 'tok_' + tok.substring(0, 12) : 'guest';
                     })();
                     const storageKey = 'intan_elyu_claimed_vouchers_' + uid;
@@ -1061,7 +1101,7 @@ $activeTab = 'profile';
     };
 
     window.redeemReward = async function (type, cost) {
-        const token = localStorage.getItem('intan_elyu_token');
+        const token = getProfileAuthToken();
         if (!token) return;
 
         const currentPts = window._userPointsBalance || 0;
@@ -1742,7 +1782,7 @@ $activeTab = 'profile';
         const check = async () => {
             if (!navigator.onLine) return; // Ambient check: pause polling while offline
             try {
-                const baseUrl = (window.backendUrl || 'https://api.intan-elyu.online').replace(/\/+$/, '');
+                const baseUrl = getProfileBackendUrl();
                 const res = await fetch(`${baseUrl}/api/public/redemptions/${encodeURIComponent(code)}/status`, {
                     headers: { 'Accept': 'application/json', 'ngrok-skip-browser-warning': 'true' }
                 });
@@ -1843,9 +1883,10 @@ $activeTab = 'profile';
             return;
         }
 
-        const token = localStorage.getItem('intan_elyu_token');
-        if (tripId && token && typeof backendUrl !== 'undefined') {
-            fetch(`${backendUrl}/api/tourist/itineraries/${tripId}`, {
+        const token = getProfileAuthToken();
+        const bUrl = getProfileBackendUrl();
+        if (tripId && token && bUrl) {
+            fetch(`${bUrl}/api/tourist/itineraries/${tripId}`, {
                 headers: { 'Accept': 'application/json', 'Authorization': 'Bearer ' + token }
             })
                 .then(r => r.json())
@@ -1910,14 +1951,23 @@ $activeTab = 'profile';
 
     // Real-time re-hydration when returning to Profile view
     window.addEventListener('viewLoaded', function (e) {
-        if (e && e.detail && e.detail.view === 'profile') {
-            if (typeof updateProfileAccessBarrier === 'function') updateProfileAccessBarrier();
-            const _tok = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
-            const _isGuest = !_tok || _tok === 'guest_token' || _tok === 'offline_guest_token' || _tok.indexOf('guest_') === 0 || _tok.indexOf('offline_') === 0 || localStorage.getItem('intan_elyu_guest') === 'true' || localStorage.getItem('intan_elyu_offline_guest') === 'true';
-            if (!_isGuest) {
-                hydrateProfileFromCache();
-                fetchProfileData(true);
-                fetchPointsAndVouchers(true);
+        if (e && e.detail) {
+            if (e.detail.view === 'profile') {
+                if (typeof updateProfileAccessBarrier === 'function') updateProfileAccessBarrier();
+                const _tok = getProfileAuthToken();
+                const _isGuest = !_tok || _tok === 'guest_token' || _tok === 'offline_guest_token' || _tok.indexOf('guest_') === 0 || _tok.indexOf('offline_') === 0 || localStorage.getItem('intan_elyu_guest') === 'true' || localStorage.getItem('intan_elyu_offline_guest') === 'true';
+                if (!_isGuest) {
+                    hydrateProfileFromCache();
+                    fetchProfileData(true);
+                    fetchPointsAndVouchers(true);
+                }
+            } else {
+                // When navigating away from profile, close open modals and stop polling
+                ['full-history-modal', 'full-vouchers-modal', 'full-deals-modal', 'active-voucher-qr-modal', 'trip-details-modal', 'reward-details-modal'].forEach(id => {
+                    const m = document.getElementById(id);
+                    if (m) m.style.display = 'none';
+                });
+                if (typeof stopActiveQrSync === 'function') stopActiveQrSync();
             }
         }
     });
@@ -1943,7 +1993,7 @@ $activeTab = 'profile';
     }, 50);
 
     if (typeof updateProfileAccessBarrier === 'function') updateProfileAccessBarrier();
-    const _initTok = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+    const _initTok = getProfileAuthToken();
     const _initGuest = !_initTok || _initTok === 'guest_token' || _initTok === 'offline_guest_token' || _initTok.indexOf('guest_') === 0 || _initTok.indexOf('offline_') === 0 || localStorage.getItem('intan_elyu_guest') === 'true' || localStorage.getItem('intan_elyu_offline_guest') === 'true';
     if (!_initGuest) {
         hydrateProfileFromCache();

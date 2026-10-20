@@ -883,12 +883,14 @@ if (is_dir($imgDir)) {
         window.currentDestinationForRoute = null;
         window.mapMarkers = [];
 
+        const getAppBackendUrl = () => (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
+
         window.initMap = async function () {
             const mapEl = document.getElementById('tourist-map');
             if (!mapEl) return;
 
             // Fetch data immediately (Cache + SWR in parallel with MapLibre initialization)
-            const _backendBase = window.backendUrl || '';
+            const _backendBase = getAppBackendUrl();
             const mapCacheKey = 'public_map_data';
             let cachedMapData = null;
             try {
@@ -951,7 +953,7 @@ if (is_dir($imgDir)) {
                 }
             })();
 
-            const regionDataPromise = fetch('assets/la_union_municipalities.json').then(r => r.json()).catch(e => console.error("Region fetch error:", e));
+            const muniGeoJsonPromise = fetch('assets/la_union_municipalities.json').then(r => r.json()).catch(e => { console.warn("Municipalities GeoJSON fetch error:", e); return null; });
 
             // Fetch fare rates and vehicle data with SWR localStorage caching (eliminates Railway hits)
             const FARES_CACHE_KEY = 'public_fare_data';
@@ -1107,7 +1109,7 @@ if (is_dir($imgDir)) {
                     if (data && data.destinations) {
                         window.allMapLocations = (data.destinations || []).filter(d => !d.status || d.status.toLowerCase() !== 'pending');
                         setupFilters();
-                        renderMarkers(window.allMapLocations);
+                        window.renderMarkers(window.allMapLocations);
 
                         setTimeout(() => {
                             const filterCat = localStorage.getItem('intan_elyu_filter_category');
@@ -1139,7 +1141,7 @@ if (is_dir($imgDir)) {
                                         if (pLat && pLng && !isNaN(parseFloat(pLat)) && !isNaN(parseFloat(pLng))) {
                                             window.openSheet(place);
                                             setTimeout(() => {
-                                                const routeBtn = document.getElementById('btn-show-route');
+                                                const routeBtn = document.getElementById('sheet-btn-view-vehicles') || document.getElementById('btn-show-route');
                                                 if (routeBtn) routeBtn.click();
                                             }, 800);
                                         }
@@ -1167,51 +1169,9 @@ if (is_dir($imgDir)) {
                     console.error("Map data processing error:", error);
                 }
 
-                try {
-                    // Wait for the parallel region data fetch
-                    const regionData = await regionDataPromise;
-                    if (regionData && regionData[0] && regionData[0].geojson) {
-                        const geojson = regionData[0].geojson;
-
-                        const worldBox = [[180, 90], [-180, 90], [-180, -90], [180, -90], [180, 90]];
-                        let coordinates = [];
-                        if (geojson.type === 'Polygon') {
-                            coordinates = [worldBox, ...geojson.coordinates];
-                        } else if (geojson.type === 'MultiPolygon') {
-                            let holes = [];
-                            geojson.coordinates.forEach(polygon => { holes.push(polygon[0]); });
-                            coordinates = [worldBox, ...holes];
-                        }
-
-                        if (coordinates.length > 0) {
-                            window.mapInstance.addSource('mask', {
-                                'type': 'geojson',
-                                'data': { "type": "Feature", "geometry": { "type": "Polygon", "coordinates": coordinates } }
-                            });
-                            /* 
-                            window.mapInstance.addLayer({
-                                'id': 'mask-layer',
-                                'type': 'fill',
-                                'source': 'mask',
-                                'paint': { 'fill-color': '#F2F2F7', 'fill-opacity': 1 }
-                            });
-                            */
-                        }
-
-                        let bounds = new maplibregl.LngLatBounds();
-                        if (geojson.type === 'Polygon') {
-                            geojson.coordinates[0].forEach(coord => bounds.extend(coord));
-                        } else if (geojson.type === 'MultiPolygon') {
-                            geojson.coordinates.forEach(poly => poly[0].forEach(coord => bounds.extend(coord)));
-                        }
-                        // window.mapInstance.setMaxBounds(bounds);
-                    }
-                } catch (e) { console.error("Failed to slice region:", e); }
-
                 // ── TOURIST ZONES ────────────────────────────────────────────────
                 try {
-                    const muniGeoJsonPromise = fetch('assets/la_union_municipalities.json').then(r => r.json()).catch(() => null);
-                    const muniApiPromise = fetch((window.backendUrl || '') + '/api/public/municipalities', {
+                    const muniApiPromise = fetch(getAppBackendUrl() + '/api/public/municipalities', {
                         headers: { 'Accept': 'application/json' }
                     }).then(r => r.json()).catch(() => null);
 
@@ -1639,7 +1599,7 @@ if (is_dir($imgDir)) {
             window.clearAmenityMarkers();
             window.currentAmenitySpotId = spotIdentifier;
 
-            const _backendBase = window.backendUrl || '';
+            const _backendBase = getAppBackendUrl();
 
             try {
                 // Proximity query: radius 800m & up to 35 closest amenities in this site
@@ -2545,6 +2505,10 @@ if (is_dir($imgDir)) {
             window._mapGpsHandler = function (e) {
                 const lat = e.detail && e.detail.lat;
                 const lng = e.detail && e.detail.lng;
+                if (lat && lng) {
+                    window.myLat = lat;
+                    window.myLng = lng;
+                }
                 const isRealGps = e.detail && (e.detail.source === 'gps' || window.currentGPSSource === 'gps');
                 const mapContainer = window.mapInstance ? window.mapInstance.getContainer() : null;
                 if (window.mapInstance && lat && lng) {
@@ -2733,8 +2697,7 @@ if (is_dir($imgDir)) {
                 let spots = window.allMapLocations || [];
                 if (spots.length === 0) {
                     try {
-                        const backendUrl = window.backendUrl || 'https://api.intan-elyu.online';
-                        const res = await fetch(backendUrl + '/api/public/map');
+                        const res = await fetch(getAppBackendUrl() + '/api/public/map');
                         if (res.ok) {
                             const d = await res.json();
                             spots = d.destinations || [];
@@ -2810,8 +2773,10 @@ if (is_dir($imgDir)) {
                     return;
                 }
 
+                window._nearbySpotsLookup = window._nearbySpotsLookup || {};
                 let html = '';
                 filtered.forEach((spot, idx) => {
+                    window._nearbySpotsLookup[spot.id] = spot;
                     const img = window.getDestImage ? window.getDestImage(spot, 300) : (spot.image || 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=300');
                     const rating = (spot.rating !== undefined && spot.rating !== null && !isNaN(parseFloat(spot.rating))) ? parseFloat(spot.rating).toFixed(1) : '0.0';
 
@@ -2824,11 +2789,10 @@ if (is_dir($imgDir)) {
                         distBadge = `${spot.distanceKm.toFixed(1)} km away`;
                     }
 
-                    const safeSpotStr = encodeURIComponent(JSON.stringify(spot));
                     const delay = (idx * 0.04).toFixed(2);
 
                     html += `
-                    <div class="nearby-site-card" style="animation: nearbyCardSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) ${delay}s forwards; opacity: 0; background:rgba(255,255,255,0.14); border:none !important; outline:none !important; border-radius:18px; padding:10px 12px; display:flex; align-items:center; gap:12px;" onclick="window.selectNearbySite('${safeSpotStr}')">
+                    <div class="nearby-site-card" style="animation: nearbyCardSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) ${delay}s forwards; opacity: 0; background:rgba(255,255,255,0.14); border:none !important; outline:none !important; border-radius:18px; padding:10px 12px; display:flex; align-items:center; gap:12px;" onclick="window.selectNearbySite('${spot.id}')">
                         <img src="${img}" alt="${spot.name}" loading="lazy" decoding="async" style="width:64px; height:64px; border-radius:12px; object-fit:cover; flex-shrink:0; transition: transform 0.3s ease;" onerror="this.onerror=null; this.src='assets/img/no_image.svg';">
                         <div style="flex:1; min-width:0;">
                             <div style="display:flex; align-items:center; justify-content:space-between; gap:6px; margin-bottom:3px;">
@@ -2857,9 +2821,17 @@ if (is_dir($imgDir)) {
                 container.innerHTML = html;
             };
 
-            window.selectNearbySite = function (encodedSpot) {
+            window.selectNearbySite = function (param) {
                 try {
-                    const spot = JSON.parse(decodeURIComponent(encodedSpot));
+                    let spot = null;
+                    if (window._nearbySpotsLookup && window._nearbySpotsLookup[param]) {
+                        spot = window._nearbySpotsLookup[param];
+                    } else if (typeof param === 'string' && (param.startsWith('{') || param.startsWith('%'))) {
+                        spot = JSON.parse(decodeURIComponent(param));
+                    } else if (window.allMapLocations) {
+                        spot = window.allMapLocations.find(s => String(s.id) === String(param));
+                    }
+                    if (!spot) return;
                     window.closeNearbySitesSheet();
                     const sLat = parseFloat(spot.lat || spot.latitude);
                     const sLng = parseFloat(spot.lng || spot.longitude);
@@ -2927,15 +2899,21 @@ if (is_dir($imgDir)) {
                 }
 
                 try {
-                    // Real-time Marine wave & swell API for San Juan / La Union coast (16.6667, 120.3333)
-                    const marinePromise = fetch('https://marine-api.open-meteo.com/v1/marine?latitude=16.6667&longitude=120.3333&current=wave_height,wave_period,swell_wave_height&timezone=Asia%2FManila')
+                    // Real-time Marine wave & swell API with 4s timeout (16.6667, 120.3333)
+                    const marineCtrl = new AbortController();
+                    const marineTimeout = setTimeout(() => marineCtrl.abort(), 4000);
+                    const marinePromise = fetch('https://marine-api.open-meteo.com/v1/marine?latitude=16.6667&longitude=120.3333&current=wave_height,wave_period,swell_wave_height&timezone=Asia%2FManila', { signal: marineCtrl.signal })
                         .then(r => r.ok ? r.json() : null)
-                        .catch(() => null);
+                        .catch(() => null)
+                        .finally(() => clearTimeout(marineTimeout));
 
-                    // Real-time Weather & exact Sunset/Sunrise for San Juan / La Union
-                    const weatherPromise = fetch('https://api.open-meteo.com/v1/forecast?latitude=16.6667&longitude=120.3333&current=temperature_2m,weather_code,wind_speed_10m&daily=sunset,sunrise&timezone=Asia%2FManila')
+                    // Real-time Weather & exact Sunset/Sunrise with 4s timeout
+                    const weatherCtrl = new AbortController();
+                    const weatherTimeout = setTimeout(() => weatherCtrl.abort(), 4000);
+                    const weatherPromise = fetch('https://api.open-meteo.com/v1/forecast?latitude=16.6667&longitude=120.3333&current=temperature_2m,weather_code,wind_speed_10m&daily=sunset,sunrise&timezone=Asia%2FManila', { signal: weatherCtrl.signal })
                         .then(r => r.ok ? r.json() : null)
-                        .catch(() => null);
+                        .catch(() => null)
+                        .finally(() => clearTimeout(weatherTimeout));
 
                     const [marineData, weatherData] = await Promise.all([marinePromise, weatherPromise]);
 
@@ -3487,8 +3465,7 @@ if (is_dir($imgDir)) {
             }
 
             // 4. Background network request
-            const _backendUrl = window.backendUrl || 'https://api.intan-elyu.online';
-            fetch(_backendUrl + '/api/tourist/destinations/' + destId + '/favorite', {
+            fetch(getAppBackendUrl() + '/api/tourist/destinations/' + destId + '/favorite', {
                 method: 'POST',
                 credentials: 'include',
                 headers: {
@@ -3785,7 +3762,7 @@ if (is_dir($imgDir)) {
 
             const token = localStorage.getItem('intan_elyu_token');
             if (token && !window.savedPlaceIdsFetched) {
-                fetch((window.backendUrl || '') + '/api/tourist/dashboard', {
+                fetch(getAppBackendUrl() + '/api/tourist/dashboard', {
                     headers: { 'Accept': 'application/json', 'Authorization': 'Bearer ' + token }
                 }).then(r => r.ok ? r.text() : null).then(txt => {
                     const d = txt ? window.safeJsonParse(txt, null) : null;
@@ -4247,40 +4224,6 @@ if (is_dir($imgDir)) {
             }
         };
 
-        window.showAddConfirm = function (destName) {
-            const overlay = document.getElementById('itin-add-confirm');
-            const nameEl = document.getElementById('itin-add-confirm-name');
-            const inner = overlay.querySelector('div > div');
-            if (nameEl) nameEl.textContent = destName;
-            overlay.style.pointerEvents = 'all';
-            overlay.style.opacity = '1';
-            inner.style.transform = 'scale(1)';
-        };
-
-        window.closeAddConfirm = function () {
-            const overlay = document.getElementById('itin-add-confirm');
-            const inner = overlay.querySelector('div > div');
-            inner.style.transform = 'scale(0.85)';
-            overlay.style.opacity = '0';
-            overlay.style.pointerEvents = 'none';
-            // Reset modal to default "Added to Itinerary!" state
-            const titleEl = overlay.querySelector('h3');
-            const iconWrap = overlay.querySelector('div > div');
-            const btnView = overlay.querySelector('button[onclick*="viewItinerary"]');
-            if (titleEl) titleEl.textContent = 'Added to Itinerary!';
-            if (iconWrap) {
-                iconWrap.innerHTML = '<i class="fa-solid fa-check" style="font-size:30px; color:#34c759;"></i>';
-                iconWrap.style.borderColor = 'rgba(52,199,89,0.25)';
-                iconWrap.style.background = 'rgba(52,199,89,0.12)';
-            }
-            if (btnView) btnView.style.display = '';
-        };
-
-        window.viewItinerary = function () {
-            window.closeAddConfirm();
-            window.location.hash = '#itinerary';
-        };
-
         window.openSpotVehiclesModal = function () {
             const modal = document.getElementById('spot-vehicles-modal');
             if (!modal) return;
@@ -4526,8 +4469,10 @@ if (is_dir($imgDir)) {
                 if (warningDiv) { warningDiv.style.display = 'block'; warningDiv.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Heavy traffic expected at this hour'; }
             } else if (warningDiv) { warningDiv.style.display = 'none'; }
 
-            document.getElementById('route-distance').textContent = distanceKm.toFixed(1) + ' km';
-            document.getElementById('route-time').textContent = Math.round(durationMin) + ' mins';
+            const distEl = document.getElementById('route-distance');
+            if (distEl) distEl.textContent = distanceKm.toFixed(1) + ' km';
+            const timeEl = document.getElementById('route-time');
+            if (timeEl) timeEl.textContent = Math.round(durationMin) + ' mins';
 
             // Rebuild transport options
             const destData = window.currentDestinationForRoute || {};
@@ -4610,7 +4555,8 @@ if (is_dir($imgDir)) {
                 faresHtml += createCard('Own Car', 'fa-car', '#34d399', 'Personal / own vehicle (No fare required)', 0, 'Anytime', false);
                 faresHtml += createCard('Motorcycle', 'fa-motorcycle', '#a855f7', 'Personal / own motorbike (No fare required)', 0, 'Anytime', false);
             }
-            document.getElementById('fare-list').innerHTML = faresHtml;
+            const fareList = document.getElementById('fare-list');
+            if (fareList) fareList.innerHTML = faresHtml;
             setupVehicleSelection();
         };
 
@@ -4744,6 +4690,18 @@ if (is_dir($imgDir)) {
                 const card = confirmModal.querySelector('div');
                 if (card) {
                     card.style.transform = 'scale(0.85)';
+                }
+                const titleEl = confirmModal.querySelector('h3');
+                const iconWrap = document.getElementById('itin-add-confirm-icon-wrap') || confirmModal.querySelector('div > div');
+                const btnView = confirmModal.querySelector('button[onclick*="viewItinerary"]');
+                if (titleEl) titleEl.textContent = 'Added to Itinerary!';
+                if (iconWrap) {
+                    iconWrap.innerHTML = '<i class="fa-solid fa-check" style="font-size:32px; color:#ffffff;"></i>';
+                    iconWrap.style.cssText = 'width:68px; height:68px; border-radius:50%; background:linear-gradient(135deg, #34d399 0%, #10b981 100%); border:3px solid rgba(255,255,255,0.4) !important; box-shadow:none !important; display:flex; align-items:center; justify-content:center; margin:0 auto 16px;';
+                }
+                if (btnView) {
+                    btnView.style.display = 'block';
+                    btnView.innerHTML = '<i class="fa-solid fa-list"></i> View Itinerary';
                 }
             }
         };
@@ -5003,7 +4961,7 @@ if (is_dir($imgDir)) {
 
             try {
                 const token = localStorage.getItem('intan_elyu_token');
-                const _backendBase = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || '')).replace(/\/+$/, '');
+                const _backendBase = getAppBackendUrl();
                 const headers = { 'Accept': 'application/json' };
                 if (token) headers['Authorization'] = 'Bearer ' + token;
 
@@ -5130,9 +5088,7 @@ if (is_dir($imgDir)) {
                 return;
             }
 
-            const _backendUrl = (window.backendUrl && window.backendUrl.trim() !== '')
-                ? window.backendUrl
-                : (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : 'https://api.intan-elyu.online');
+            const _backendUrl = getAppBackendUrl();
 
             const headers = {
                 'Accept': 'application/json',
@@ -5235,7 +5191,7 @@ if (is_dir($imgDir)) {
         async function checkForNewSpots() {
             if (!window.mapInstance || document.visibilityState !== 'visible' || document.body.getAttribute('data-view') !== 'map') return;
             try {
-                const res = await fetch((window.backendUrl || '') + '/api/public/map', {
+                const res = await fetch(getAppBackendUrl() + '/api/public/map', {
                     headers: { 'Accept': 'application/json' }
                 });
                 const text = await res.text();

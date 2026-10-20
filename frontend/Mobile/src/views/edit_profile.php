@@ -717,16 +717,6 @@ $backRoute = 'profile';
         // ─────────────────────────────────────────────────────────────
         window.saveProfile = async function (event) {
             event.preventDefault();
-            if (!navigator.onLine) {
-                if (typeof showToast === 'function') {
-                    showToast("Saving profile updates requires an active internet connection.");
-                }
-                return;
-            }
-            const btn = document.getElementById('btn-save');
-            const originalContent = btn.innerHTML;
-            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> <span>Saving...</span>';
-            btn.disabled = true;
 
             const name = document.getElementById('profile-name')?.value || '';
             const email = document.getElementById('profile-email')?.value || '';
@@ -742,18 +732,6 @@ $backRoute = 'profile';
             const travelPreferences = activeChips.join(', ');
 
             const avatarFile = window.selectedAvatarBlob || (document.getElementById('avatar-input') ? document.getElementById('avatar-input').files[0] : null);
-
-            const formData = new FormData();
-            formData.append('name', name);
-            formData.append('email', email);
-            formData.append('phone', phone);
-            formData.append('home_location', homeLocation);
-            formData.append('age', age);
-            formData.append('gender', gender);
-            formData.append('bio', bio);
-            formData.append('travel_preferences', travelPreferences);
-
-            if (avatarFile) formData.append('avatar', avatarFile);
 
             // Fast offline profile update
             if (!navigator.onLine || window.isAppOnline === false) {
@@ -789,9 +767,29 @@ $backRoute = 'profile';
                 return;
             }
 
+            const btn = document.getElementById('btn-save');
+            const originalContent = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> <span>Saving...</span>';
+                btn.disabled = true;
+            }
+
+            const formData = new FormData();
+            formData.append('name', name);
+            formData.append('email', email);
+            formData.append('phone', phone);
+            formData.append('home_location', homeLocation);
+            formData.append('age', age);
+            formData.append('gender', gender);
+            formData.append('bio', bio);
+            formData.append('travel_preferences', travelPreferences);
+
+            if (avatarFile) formData.append('avatar', avatarFile);
+
             try {
-                const token = localStorage.getItem('intan_elyu_token');
-                const res = await fetch((window.backendUrl || '') + '/api/tourist/profile', {
+                const token = localStorage.getItem('api_token') || localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+                const bUrl = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
+                const res = await fetch(bUrl + '/api/tourist/profile', {
                     method: 'POST',
                     headers: {
                         'Accept': 'application/json',

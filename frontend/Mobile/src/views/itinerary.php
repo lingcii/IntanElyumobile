@@ -845,7 +845,13 @@ try {
 </div>
 <script>
     (function () {
-        var backendUrl = window.backendUrl || 'https://api.intan-elyu.online';
+        if (typeof window.setTxt !== 'function') {
+            window.setTxt = function (id, val) {
+                const el = document.getElementById(id);
+                if (el) el.textContent = val;
+            };
+        }
+        var backendUrl = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
 
         // Synchronize GPS state immediately or resolve via high-accuracy hardware GPS
         window.myLat = window.myLat || window.currentGPSLat || null;
@@ -3534,11 +3540,12 @@ try {
             const donutEl = document.getElementById('modal-budget-donut');
             const pctEl = document.getElementById('modal-donut-pct');
             const startPct = _currentDonutPct;
-            const startTime = performance.now();
+            const startTime = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
             const duration = 650; // ms
 
             function step(now) {
-                const elapsed = now - startTime;
+                const currentTime = now || ((typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now());
+                const elapsed = currentTime - startTime;
                 const progress = Math.min(elapsed / duration, 1);
                 // Ease-out cubic
                 const ease = 1 - Math.pow(1 - progress, 3);
@@ -4072,6 +4079,7 @@ try {
                 const modalTitleEl = document.getElementById('save-trip-modal-title');
                 const submitBtn = document.getElementById('btn-submit-trip');
 
+                let targetDateStr = '';
                 if (editingId) {
                     if (modalTitleEl) {
                         modalTitleEl.innerHTML = '<i class="fa-solid fa-pen-to-square" style="color:#38bdf8; font-size:18px;"></i> Edit Your Trip';
@@ -4088,17 +4096,30 @@ try {
                     if (titleInput && savedTitle !== null && savedTitle !== undefined) {
                         titleInput.value = savedTitle;
                     }
+
+                    targetDateStr = savedDate ? savedDate.split(/[T ]/)[0] : '';
                     const dateInput = document.getElementById('trip-date');
                     if (dateInput) {
-                        dateInput.value = savedDate || '';
+                        dateInput.value = targetDateStr;
                         const display = document.getElementById('custom-date-display') || document.getElementById('trip-date-display');
                         if (display) {
-                            const formatted = savedDate ? new Date(savedDate + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }) : 'Select trip date';
+                            let formatted = 'Select trip date';
+                            if (targetDateStr) {
+                                const parts = targetDateStr.split('-');
+                                if (parts.length === 3) {
+                                    const dObj = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+                                    if (!isNaN(dObj.getTime())) {
+                                        formatted = dObj.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+                                    }
+                                }
+                            }
                             if ('value' in display) display.value = formatted;
                             display.textContent = formatted;
+                            display.style.color = targetDateStr ? '#ffffff' : 'rgba(255,255,255,0.85)';
+                            display.style.fontWeight = targetDateStr ? '700' : '600';
                         }
                         const clearLink = document.getElementById('calendar-clear-link');
-                        if (clearLink) clearLink.style.display = savedDate ? 'inline' : 'none';
+                        if (clearLink) clearLink.style.display = targetDateStr ? 'inline' : 'none';
                     }
                     const budgetInput = document.getElementById('trip-budget');
                     if (budgetInput) {
@@ -4116,30 +4137,43 @@ try {
                     if (submitBtn) {
                         submitBtn.textContent = 'Save Trip';
                     }
+                    const dateInput = document.getElementById('trip-date');
+                    if (dateInput && dateInput.value) {
+                        targetDateStr = dateInput.value.split(/[T ]/)[0];
+                    }
                 }
 
+                // Sync custom dark-glass calendar with target date or current month
+                const today = new Date();
+                let calYear = today.getFullYear();
+                let calMonth = today.getMonth();
+                if (targetDateStr) {
+                    const parts = targetDateStr.split('-');
+                    if (parts.length === 3) {
+                        const y = parseInt(parts[0], 10);
+                        const m = parseInt(parts[1], 10);
+                        if (!isNaN(y) && !isNaN(m) && m >= 1 && m <= 12) {
+                            calYear = y;
+                            calMonth = m - 1;
+                        }
+                    }
+                }
+                if (window.calendarState) {
+                    window.calendarState.currentYear = calYear;
+                    window.calendarState.currentMonth = calMonth;
+                    window.calendarState.selectedDateStr = targetDateStr;
+                }
+                if (typeof window.renderCalendarGrid === 'function') {
+                    window.renderCalendarGrid();
+                }
 
                 // Calculate Point-to-Point transit budget and populate summary card
                 if (typeof window.calculateModalBudget === 'function') {
                     window.calculateModalBudget();
                 }
 
-                // Initialize calendar to current month
-                const today = new Date();
-                if (window.calendarState) {
-                    window.calendarState.currentYear = today.getFullYear();
-                    window.calendarState.currentMonth = today.getMonth();
-                }
-                if (typeof window.renderCalendarGrid === 'function') {
-                    window.renderCalendarGrid();
-                }
-
                 const modal = document.getElementById('save-trip-modal');
                 if (modal) modal.style.display = 'flex';
-
-                if (typeof window.calculateModalBudget === 'function') {
-                    window.calculateModalBudget();
-                }
 
                 // Hide bottom nav while modal is open
                 const bottomNav = document.getElementById('bottom-navigation');
@@ -4199,7 +4233,8 @@ try {
                     return;
                 }
 
-                const url = editingId ? `${backendUrl}/api/tourist/itineraries/${editingId}` : `${backendUrl}/api/tourist/itineraries`;
+                const bUrl = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
+                const url = editingId ? `${bUrl}/api/tourist/itineraries/${editingId}` : `${bUrl}/api/tourist/itineraries`;
                 const method = editingId ? 'PUT' : 'POST';
 
                 const legTransports = draft.map((place, idx) => {
@@ -4239,13 +4274,20 @@ try {
                 // Fast offline trip queueing
                 if ((!navigator.onLine || window.isAppOnline === false) && tripPayload && window.OfflineTripManager) {
                     const queued = window.OfflineTripManager.queueOfflineTrip(tripPayload);
+                    const queuedId = queued ? (queued.local_id || queued.id) : ('offline_' + Date.now());
                     showToast(editingId ? "📍 Offline Mode: Trip changes saved on device for auto-sync!" : "📍 Offline Mode: Trip saved on device for auto-sync!", "info", 5000);
-                    sessionStorage.setItem('just_saved_trip_id', queued.local_id);
-                    sessionStorage.setItem('active_trip_transport_' + queued.local_id, effectiveTransport);
-                    localStorage.setItem('selected_trip_vehicle_' + queued.local_id, effectiveTransport);
+                    sessionStorage.setItem('just_saved_trip_id', queuedId);
+                    sessionStorage.setItem('active_trip_transport_' + queuedId, effectiveTransport);
+                    localStorage.setItem('selected_trip_vehicle_' + queuedId, effectiveTransport);
                     localStorage.removeItem('intan_elyu_draft_itinerary');
                     localStorage.removeItem('intan_elyu_pre_edit_backup_draft');
                     sessionStorage.removeItem('intan_elyu_pre_edit_backup_draft');
+                    sessionStorage.removeItem('editing_itinerary_id');
+                    sessionStorage.removeItem('editing_trip_title');
+                    sessionStorage.removeItem('editing_trip_date');
+                    sessionStorage.removeItem('editing_trip_budget');
+                    sessionStorage.removeItem('editing_trip_transport');
+                    sessionStorage.removeItem('editing_transport_initialized');
                     localStorage.removeItem('intan_elyu_draft_leg_vehicles');
                     window.resetSaveModalInputs();
                     document.getElementById('save-trip-modal').style.display = 'none';
@@ -4321,6 +4363,12 @@ try {
                     }
                     localStorage.removeItem('intan_elyu_pre_edit_backup_draft');
                     sessionStorage.removeItem('intan_elyu_pre_edit_backup_draft');
+                    sessionStorage.removeItem('editing_itinerary_id');
+                    sessionStorage.removeItem('editing_trip_title');
+                    sessionStorage.removeItem('editing_trip_date');
+                    sessionStorage.removeItem('editing_trip_budget');
+                    sessionStorage.removeItem('editing_trip_transport');
+                    sessionStorage.removeItem('editing_transport_initialized');
                     localStorage.removeItem('intan_elyu_draft_leg_vehicles');
 
                     window.resetSaveModalInputs();
@@ -4337,13 +4385,20 @@ try {
                 const isNetworkErr = !navigator.onLine || (error && (error.name === 'TypeError' || String(error.message).toLowerCase().includes('network') || String(error.message).toLowerCase().includes('fetch')));
                 if (isNetworkErr && tripPayload && window.OfflineTripManager) {
                     const queued = window.OfflineTripManager.queueOfflineTrip(tripPayload);
+                    const queuedId = queued ? (queued.local_id || queued.id) : ('offline_' + Date.now());
                     showToast(editingId ? "📍 Network lost. Trip changes saved offline for auto-sync!" : "📍 Network lost. Saved offline for auto-sync!");
-                    sessionStorage.setItem('just_saved_trip_id', queued.local_id);
-                    sessionStorage.setItem('active_trip_transport_' + queued.local_id, effectiveTransport);
-                    localStorage.setItem('selected_trip_vehicle_' + queued.local_id, effectiveTransport);
+                    sessionStorage.setItem('just_saved_trip_id', queuedId);
+                    sessionStorage.setItem('active_trip_transport_' + queuedId, effectiveTransport);
+                    localStorage.setItem('selected_trip_vehicle_' + queuedId, effectiveTransport);
                     localStorage.removeItem('intan_elyu_draft_itinerary');
                     localStorage.removeItem('intan_elyu_pre_edit_backup_draft');
                     sessionStorage.removeItem('intan_elyu_pre_edit_backup_draft');
+                    sessionStorage.removeItem('editing_itinerary_id');
+                    sessionStorage.removeItem('editing_trip_title');
+                    sessionStorage.removeItem('editing_trip_date');
+                    sessionStorage.removeItem('editing_trip_budget');
+                    sessionStorage.removeItem('editing_trip_transport');
+                    sessionStorage.removeItem('editing_transport_initialized');
                     localStorage.removeItem('intan_elyu_draft_leg_vehicles');
                     window.resetSaveModalInputs();
                     document.getElementById('save-trip-modal').style.display = 'none';

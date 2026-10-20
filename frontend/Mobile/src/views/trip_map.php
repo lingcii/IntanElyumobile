@@ -121,7 +121,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
 
 <script>
     (function () {
-        var backendUrl = window.backendUrl || 'https://api.intan-elyu.online';
+        var backendUrl = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
         var tripMap;
 
         window.myLat = window.myLat || window.currentGPSLat || null;
@@ -451,11 +451,11 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                         ${proofImages.slice(0, 3).map((imgUrl, pIdx) => {
                             let pUrl = imgUrl;
                             if (!pUrl.startsWith('http') && !pUrl.startsWith('data:') && !pUrl.startsWith('blob:')) {
-                                let b = (window.backendUrl || '').replace(/\/+$/, '');
+                                let b = backendUrl;
                                 pUrl = b + '/' + pUrl.replace(/^\//, '');
                             }
                             const cleanImgName = pUrl.split('/').pop().replace(/[?#].*$/, '');
-                            let fallbackUrl = (window.backendUrl || '').replace(/\/+$/, '') + '/api/image/proof_images/' + cleanImgName;
+                            let fallbackUrl = backendUrl + '/api/image/proof_images/' + cleanImgName;
                             return `<img src="${pUrl}" onerror="if(this.dataset.triedFallback!=='1'){this.dataset.triedFallback='1';this.src='${fallbackUrl}';}" onclick="event.stopPropagation(); if(typeof window.viewProofPhotoModal==='function') window.viewProofPhotoModal(${jsonUrlsAttr}, '${destEscaped}', '${isVisited ? 'Verified Visit Proof' : 'Uploaded Proof'}');" alt="Proof" title="Tap to view proof photo" style="width:30px; height:30px; border-radius:7px; object-fit:cover; border:1px solid rgba(255,255,255,0.3); flex-shrink:0; cursor:pointer;">`;
                         }).join('')}
                         ${proofImages.length > 3 ? `<span onclick="event.stopPropagation(); if(typeof window.viewProofPhotoModal==='function') window.viewProofPhotoModal(${jsonUrlsAttr}, '${destEscaped}', '${isVisited ? 'Verified Visit Proof' : 'Uploaded Proof'}');" style="background:rgba(0,0,0,0.7); color:#fff; font-size:8px; font-weight:800; padding:2px 4px; border-radius:4px; cursor:pointer;">+${proofImages.length - 3}</span>` : ''}

@@ -12,7 +12,7 @@ class LeaderboardController extends Controller
      * Common Ranked CTE ensuring clean deduplication, municipality fallback,
      * comprehensive points & activity aggregation, and correct ordering.
      */
-    private function rankedCte(): string
+    private function rankedCte(string $orderSql = 'total_points DESC, total_xp DESC, completed_activities DESC, user_id ASC'): string
     {
         return "
             WITH user_summary AS (
@@ -41,19 +41,14 @@ class LeaderboardController extends Controller
                     COALESCE(u.created_at, NOW())                     AS points_since
                 FROM users u
                 LEFT JOIN municipalities m ON u.municipality_id = m.id
-                WHERE u.role = 'tourist'
+                WHERE u.role = 'tourist' AND (u.status = 'active' OR u.status IS NULL)
                 GROUP BY u.id, u.name, u.email, u.avatar, u.home_location, m.name, u.bio, u.is_leaderboard_private, u.last_activity, u.xp, u.points, u.completed_activities, u.created_at
             ),
             ranked AS (
                 SELECT
                     us.*,
                     ROW_NUMBER() OVER (
-                        ORDER BY
-                            us.total_xp             DESC,
-                            us.total_points         DESC,
-                            us.completed_activities DESC,
-                            us.points_since         ASC,
-                            us.user_id              ASC
+                        ORDER BY {$orderSql}
                     ) AS `rank`
                 FROM user_summary us
             )
@@ -68,7 +63,7 @@ class LeaderboardController extends Controller
     public function index(Request $request): JsonResponse
     {
         $search = trim($request->get('search', ''));
-        $rawSort = strtolower(trim($request->get('sort', 'xp')));
+        $rawSort = strtolower(trim($request->get('sort', 'points')));
 
         $myRank = null;
         $me = null;
@@ -86,24 +81,24 @@ class LeaderboardController extends Controller
         $limit = min(max((int) $request->get('limit', 10), 1), $maxLimit);
         $offset = max((int) $request->get('offset', 0), 0);
 
-        // Normalize sorting parameter names (Prioritize XP, Points & Activities)
+        // Normalize sorting parameter names (Prioritize Points, Visited & XP)
         $orderSql = match ($rawSort) {
-            'xp_asc' => 'total_xp ASC, completed_activities ASC, user_id ASC',
-            'xp', 'top_xp', 'xp_desc' => 'total_xp DESC, completed_activities DESC, user_id ASC',
-            'points', 'top_points', 'points_desc', 'highest_points' => 'total_points DESC, total_xp DESC, user_id ASC',
-            'points_asc', 'lowest_points' => 'total_points ASC, total_xp ASC, user_id ASC',
-            'most_activities', 'activities', 'activities_desc', 'completed_activities', 'visited', 'most_visited', 'places_visited', 'visited_desc' => 'completed_activities DESC, places_visited DESC, total_xp DESC, user_id ASC',
-            'least_activities', 'activities_asc' => 'completed_activities ASC, total_xp ASC, user_id ASC',
+            'xp_asc' => 'total_xp ASC, total_points ASC, completed_activities ASC, user_id ASC',
+            'xp', 'top_xp', 'xp_desc' => 'total_xp DESC, total_points DESC, completed_activities DESC, user_id ASC',
+            'points', 'top_points', 'points_desc', 'highest_points' => 'total_points DESC, total_xp DESC, completed_activities DESC, user_id ASC',
+            'points_asc', 'lowest_points' => 'total_points ASC, total_xp ASC, completed_activities ASC, user_id ASC',
+            'most_activities', 'activities', 'activities_desc', 'completed_activities', 'visited', 'most_visited', 'places_visited', 'visited_desc' => 'completed_activities DESC, places_visited DESC, total_points DESC, total_xp DESC, user_id ASC',
+            'least_activities', 'activities_asc' => 'completed_activities ASC, total_points ASC, total_xp ASC, user_id ASC',
             'name_asc', 'name' => 'full_name ASC, user_id ASC',
             'name_desc' => 'full_name DESC, user_id ASC',
             'recent', 'newest', 'latest' => 'points_since DESC, user_id ASC',
-            default => '`rank` ASC, total_xp DESC, completed_activities DESC',
+            default => 'total_points DESC, total_xp DESC, completed_activities DESC, user_id ASC',
         };
 
         if ($user) {
             try {
                 $myRankRow = DB::selectOne(
-                    $this->rankedCte() . "SELECT * FROM ranked WHERE user_id = ?",
+                    $this->rankedCte($orderSql) . "SELECT * FROM ranked WHERE user_id = ?",
                     [$user->id]
                 );
                 if ($myRankRow) {
@@ -172,13 +167,13 @@ class LeaderboardController extends Controller
         }
 
         $totalResult = DB::selectOne(
-            $this->rankedCte() . "SELECT COUNT(*) as cnt FROM ranked {$whereClause}",
+            $this->rankedCte($orderSql) . "SELECT COUNT(*) as cnt FROM ranked {$whereClause}",
             $params
         );
         $total = $totalResult ? $totalResult->cnt : 0;
 
         $rows = DB::select(
-            $this->rankedCte() . "SELECT * FROM ranked {$whereClause} ORDER BY {$orderSql} LIMIT {$limit} OFFSET {$offset}",
+            $this->rankedCte($orderSql) . "SELECT * FROM ranked {$whereClause} ORDER BY `rank` ASC LIMIT {$limit} OFFSET {$offset}",
             $params
         );
 
@@ -223,7 +218,7 @@ class LeaderboardController extends Controller
                 'municipality_name' => $muniVal,
                 'location' => $muniVal,
                 'bio' => $r->bio ?? null,
-                'is_leaderboard_private' => false,
+                'is_leaderboard_private' => (bool) ($r->is_leaderboard_private ?? false),
                 'last_activity_date' => $r->last_activity_date ?? null,
                 'total_xp' => $xpVal,
                 'xp' => $xpVal,
