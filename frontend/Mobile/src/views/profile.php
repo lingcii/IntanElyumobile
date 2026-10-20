@@ -34,7 +34,7 @@ $activeTab = 'profile';
         </div>
         <h2 id="profile-barrier-title" style="font-size: 21px; font-weight: 800; color: #0f172a; margin: 0 0 8px; letter-spacing: -0.3px;">Sign in to Access Your Profile</h2>
         <p id="profile-barrier-desc" style="font-size: 13.5px; color: #64748b; line-height: 1.55; max-width: 320px; margin: 0 auto 24px;">
-            Create a free account or sign in to track your points, earn achievement badges, save custom itineraries, and redeem exclusive provincial discounts!
+            Create a free account or sign in to track your points, save custom itineraries, and redeem exclusive provincial discounts!
         </p>
 
         <div style="display: flex; flex-direction: column; gap: 10px; max-width: 290px; margin: 0 auto;">
@@ -147,25 +147,7 @@ $activeTab = 'profile';
         <div id="trip-history-list"></div>
     </div>
 
-    <!-- Badges & Achievements Section -->
-    <div class="stagger-3"
-        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; margin-left: 4px;">
-        <h3
-            style="font-size: 16px; font-weight: 800; color: #0f172a !important; margin: 0; display: flex; align-items: center; gap: 8px;">
-            <i class="fa-solid fa-award" style="color: #1e3a8a;"></i> Badges & Achievements
-        </h3>
-        <div style="display: flex; align-items: center; gap: 8px;">
-            <span id="profile-badge-count-label"
-                style="font-size: 11px; font-weight: 800; background: #eff6ff; color: #1e3a8a; padding: 3px 10px; border-radius: 100px; border: none !important; outline: none !important;">0 / 0 Unlocked</span>
-            <button type="button" onclick="if(typeof window.openAllBadgesModal === 'function') window.openAllBadgesModal(window._cachedMasterBadges)"
-                style="background: #f1f5f9; border: none !important; outline: none !important; color: #1e3a8a; font-size: 11px; font-weight: 800; cursor: pointer; padding: 4px 12px; border-radius: 100px; display: flex; align-items: center; gap: 4px; transition: all 0.2s ease;">
-                View All <i class="fa-solid fa-chevron-right" style="font-size: 9px; color: #1e3a8a;"></i>
-            </button>
-        </div>
-    </div>
-    <div id="profile-badges-container" class="stagger-3" style="margin-bottom: 24px;">
-        <div id="profile-badges-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;"></div>
-    </div>
+
 
     <!-- Points & Rewards Card (Styled like Notification Modal: Blue Banner Header, White Body) -->
     <div class="stagger-3"
@@ -269,14 +251,7 @@ $activeTab = 'profile';
     }
     var backendUrl = getProfileBackendUrl();
 
-    window.openBadgeModalByIndex = function (idx) {
-        const badges = window._cachedMasterBadges || [];
-        const b = badges[idx];
-        if (!b) return;
-        if (typeof window.openBadgeModal === 'function') {
-            window.openBadgeModal(b.name, b.description, b.is_unlocked, b.category, b.icon);
-        }
-    };
+    window.openBadgeModalByIndex = function () {};
 
     // ── Dedicated Helper Rendering Functions ──
     window.ensureProfileModalOnBody = function (modalId) {
@@ -409,57 +384,7 @@ $activeTab = 'profile';
             } catch (e) { }
         }
 
-        // Render Badges (Unlocked & Locked)
-        const badges = data.badges || [];
-        window._cachedMasterBadges = badges;
-        const badgesGrid = document.getElementById('profile-badges-grid');
-        const badgeLabel = document.getElementById('profile-badge-count-label');
 
-        if (badgeLabel) {
-            badgeLabel.textContent = `${data.unlocked_badge_count || 0} / ${data.total_badge_count || badges.length} Unlocked`;
-        }
-
-        if (badgesGrid && badges.length) {
-            const lockedFirst = [...badges].sort((a, b) => (a.is_unlocked ? 1 : 0) - (b.is_unlocked ? 1 : 0));
-            const featuredLocked = lockedFirst.slice(0, 3);
-            badgesGrid.innerHTML = featuredLocked.map((b, fIdx) => {
-                const bIdx = badges.indexOf(b);
-                const clickAction = `onclick="window.openBadgeModalByIndex(${bIdx >= 0 ? bIdx : fIdx})"`;
-
-                const badgeIcons = {
-                    'Beach Chiller': '<i class="fa-solid fa-umbrella-beach"></i>',
-                    'City Express': '<i class="fa-solid fa-city"></i>',
-                    'Sunset Chaser': '<i class="fa-solid fa-sun"></i>',
-                    'Foodie Explorer': '<i class="fa-solid fa-utensils"></i>',
-                    'Adrenaline Chaser': '<i class="fa-solid fa-person-hiking"></i>',
-                    'Heritage Guardian': '<i class="fa-solid fa-landmark"></i>',
-                    'Nature Seeker': '<i class="fa-solid fa-water"></i>',
-                    'Wave Rider': '<i class="fa-solid fa-water-ladder"></i>',
-                    'First Step': '<i class="fa-solid fa-star"></i>',
-                    'Globe Trotter': '<i class="fa-solid fa-globe"></i>',
-                    'Master Voyager': '<i class="fa-solid fa-crown"></i>',
-                    'Pioneer Explorer': '<i class="fa-solid fa-flag"></i>',
-                    'Local Voice': '<i class="fa-solid fa-comments"></i>',
-                };
-                const displayIcon = badgeIcons[b.name] || (b.is_unlocked ? '<i class="fa-solid fa-award"></i>' : '<i class="fa-solid fa-lock"></i>');
-
-                if (b.is_unlocked) {
-                    return `
-                    <div ${clickAction} style="background: rgba(251,191,36,0.12); border: 1.5px solid rgba(251,191,36,0.35); border-radius: 16px; padding: 12px 8px; text-align: center; cursor: pointer; transition: transform 0.2s; box-shadow: 0 4px 12px rgba(251,191,36,0.08);" title="${b.description || ''}">
-                        <div style="font-size: 22px; margin-bottom: 4px; color: #d97706;">${displayIcon}</div>
-                        <div style="font-size: 11px; font-weight: 800; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${b.name}</div>
-                        <div style="font-size: 9.5px; color: #15803d; margin-top: 3px; font-weight: 800;"><i class="fa-solid fa-circle-check" style="font-size:8.5px; margin-right:2px;"></i> Unlocked</div>
-                    </div>`;
-                } else {
-                    return `
-                    <div ${clickAction} style="background: #f8fafc; border: 1.5px dashed #cbd5e1; border-radius: 16px; padding: 12px 8px; text-align: center; cursor: pointer; transition: transform 0.2s;" title="${b.description || ''}">
-                        <div style="font-size: 20px; margin-bottom: 4px; color: #94a3b8;"><i class="fa-solid fa-lock"></i></div>
-                        <div style="font-size: 11px; font-weight: 700; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${b.name}</div>
-                        <div style="font-size: 9.5px; color: #ef4444; margin-top: 3px; font-weight: 800;"><i class="fa-solid fa-lock" style="font-size:8.5px; margin-right:2px;"></i> Locked</div>
-                    </div>`;
-                }
-            }).join('');
-        }
 
         window.renderProfileUserMeta(u);
         window.renderProfileBio(u.bio);
@@ -920,7 +845,7 @@ $activeTab = 'profile';
                 if (pillIcon) pillIcon.className = 'fa-solid fa-user-clock';
                 if (pillText) pillText.textContent = 'Guest Mode';
                 if (title) title.textContent = 'Sign in to Access Your Profile';
-                if (desc) desc.textContent = 'Create a free account or sign in to track your points, earn achievement badges, save custom itineraries, and redeem exclusive provincial discounts!';
+                if (desc) desc.textContent = 'Create a free account or sign in to track your points, save custom itineraries, and redeem exclusive provincial discounts!';
             }
         } else {
             // Logged-in Tourist
