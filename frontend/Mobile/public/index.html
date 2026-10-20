@@ -916,22 +916,44 @@
             showToast('Offline Mode Active: Welcome, Explorer!', 'success', 3500);
         }
 
+        let isAutoReconnecting = false;
+        async function attemptAutoReconnect() {
+            if (isAutoReconnecting) return;
+            isAutoReconnecting = true;
+            try {
+                const res = await fetch("https://api.intan-elyu.online/api/public/map?ping=" + Date.now(), {
+                    method: 'HEAD',
+                    cache: 'no-store'
+                }).catch(() => null);
+
+                if ((res && (res.ok || res.status < 500)) || navigator.onLine) {
+                    showToast("⚡ Connection restored! Loading live app...", "success", 2000);
+                    setTimeout(() => {
+                        window.location.href = "https://app.intan-elyu.online/?app=true";
+                    }, 400);
+                    return;
+                }
+            } catch(e) {}
+            isAutoReconnecting = false;
+        }
+
         function attemptReconnect() {
             if (navigator.onLine) {
-                window.location.href = "https://app.intan-elyu.online/?app=true";
+                attemptAutoReconnect();
             } else {
                 showToast("Device is currently offline. Please connect to Wi-Fi or Mobile Data.", "warning");
             }
         }
 
         function updateOfflineStatus() {
-            const isOffline = !navigator.onLine || window.isAppOnline === false || window.location.protocol === 'file:';
+            const isOffline = typeof navigator.onLine === 'boolean' ? !navigator.onLine : false;
             if (isOffline) {
                 document.body.classList.add('is-offline');
                 document.body.setAttribute('data-offline', 'true');
             } else {
                 document.body.classList.remove('is-offline');
                 document.body.removeAttribute('data-offline');
+                attemptAutoReconnect();
             }
             const badge = document.getElementById('auth-offline-badge');
             if (badge) {
@@ -943,12 +965,20 @@
             });
             const banner = document.getElementById('online-alert');
             if (banner) {
-                banner.style.setProperty('display', (!isOffline && window.location.protocol === 'file:') ? 'flex' : 'none', 'important');
+                banner.style.setProperty('display', !isOffline ? 'flex' : 'none', 'important');
             }
         }
 
-        window.addEventListener('online', updateOfflineStatus);
+        window.addEventListener('online', () => {
+            updateOfflineStatus();
+            attemptAutoReconnect();
+        });
         window.addEventListener('offline', updateOfflineStatus);
+        setInterval(() => {
+            if (typeof navigator.onLine === 'boolean' && navigator.onLine) {
+                updateOfflineStatus();
+            }
+        }, 3000);
 
         document.addEventListener('DOMContentLoaded', () => {
             updateOfflineStatus();

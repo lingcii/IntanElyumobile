@@ -1656,7 +1656,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
 
         function updateTripOfflineStatus() {
             var pill = document.getElementById('trip-offline-badge');
-            var isOffline = typeof navigator.onLine === 'boolean' ? !navigator.onLine : false;
+            var isOffline = window.isAppOnline === false || (typeof navigator.onLine === 'boolean' ? !navigator.onLine : false);
             if (pill) {
                 pill.style.setProperty('display', isOffline ? 'inline-flex' : 'none', 'important');
             }

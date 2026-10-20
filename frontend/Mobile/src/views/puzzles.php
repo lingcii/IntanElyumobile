@@ -1586,7 +1586,7 @@ include __DIR__ . '/../components/header.php';
 
         function updatePuzzlesOfflineStatus() {
             var badge = document.getElementById('puzzles-offline-badge');
-            var isOffline = typeof navigator.onLine === 'boolean' ? !navigator.onLine : false;
+            var isOffline = window.isAppOnline === false || (typeof navigator.onLine === 'boolean' ? !navigator.onLine : false);
             if (badge) {
                 badge.style.setProperty('display', isOffline ? 'inline-flex' : 'none', 'important');
             }

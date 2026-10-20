@@ -414,7 +414,7 @@ if (is_dir($imgDir)) {
 
     function updateDashboardOfflineStatus() {
         var pill = document.getElementById('dash-offline-pill');
-        var isOffline = typeof navigator.onLine === 'boolean' ? !navigator.onLine : false;
+        var isOffline = window.isAppOnline === false || (typeof navigator.onLine === 'boolean' ? !navigator.onLine : false);
         if (pill) {
             pill.style.setProperty('display', isOffline ? 'flex' : 'none', 'important');
             var span = pill.querySelector('span');

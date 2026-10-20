@@ -573,9 +573,8 @@
     // =========================================================================
     // Universal Offline Mode Engine for Auth View
     // =========================================================================
-    (function initAuthOfflineStatus() {
         function updateOfflineStatus() {
-            var isOffline = typeof navigator.onLine === 'boolean' ? !navigator.onLine : false;
+            var isOffline = window.isAppOnline === false || (typeof navigator.onLine === 'boolean' ? !navigator.onLine : false);
             if (isOffline) {
                 document.body.classList.add('is-offline');
                 document.body.setAttribute('data-offline', 'true');
@@ -584,6 +583,7 @@
                 document.body.removeAttribute('data-offline');
                 try {
                     localStorage.removeItem('intan_elyu_offline_mode');
+                    localStorage.removeItem('intan_elyu_offline_guest');
                     sessionStorage.removeItem('elyu_show_offline_bypass_notice');
                 } catch(e) {}
             }
@@ -655,6 +655,10 @@
                 localStorage.setItem('auth_user', JSON.stringify(cached));
             }
 
+            const prevTok = localStorage.getItem('intan_elyu_token');
+            if (prevTok && !prevTok.startsWith('offline_') && !prevTok.startsWith('guest_')) {
+                localStorage.setItem('intan_elyu_real_token_backup', prevTok);
+            }
             localStorage.setItem('intan_elyu_token', 'offline_guest_token');
             localStorage.setItem('intan_elyu_offline_mode', 'true');
             localStorage.setItem('intan_elyu_offline_guest', 'true');
@@ -1118,6 +1122,10 @@
                 (cachedUser.email && cachedUser.email.toLowerCase() === email.toLowerCase()) ||
                 (rememberedEmail && rememberedEmail.toLowerCase() === email.toLowerCase())
             )) {
+                const prevTok = localStorage.getItem('intan_elyu_token');
+                if (prevTok && !prevTok.startsWith('offline_') && !prevTok.startsWith('guest_')) {
+                    localStorage.setItem('intan_elyu_real_token_backup', prevTok);
+                }
                 localStorage.setItem('intan_elyu_token', 'offline_session_token');
                 localStorage.setItem('intan_elyu_offline_mode', 'true');
                 if (remember) {
@@ -1180,7 +1188,9 @@
             localStorage.removeItem('intan_elyu_offline_guest');
             localStorage.removeItem('intan_elyu_offline_mode');
             localStorage.setItem('auth_user', JSON.stringify(data.user));
+            localStorage.setItem('auth_user_backup', JSON.stringify(data.user));
             localStorage.setItem('intan_elyu_token', data.token);
+            localStorage.setItem('intan_elyu_real_token_backup', data.token);
 
             showLoginSuccessModal(data.user);
         } catch (error) {

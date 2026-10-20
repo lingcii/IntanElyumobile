@@ -898,7 +898,7 @@ $backRoute = 'profile';
 
         function updateEditProfileOfflineStatus() {
             var badge = document.getElementById('edit-profile-offline-badge');
-            var isOffline = typeof navigator.onLine === 'boolean' ? !navigator.onLine : false;
+            var isOffline = window.isAppOnline === false || (typeof navigator.onLine === 'boolean' ? !navigator.onLine : false);
             if (badge) {
                 badge.style.setProperty('display', isOffline ? 'inline-flex' : 'none', 'important');
             }

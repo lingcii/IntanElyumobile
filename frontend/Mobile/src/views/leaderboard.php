@@ -909,11 +909,13 @@ $activeTab = 'leaderboard';
     // Offline status badge updater only (pure visual status, no auto-fetching)
     function updateLeaderboardOfflineStatus() {
         const badge = document.getElementById('leaderboard-offline-badge');
-        const isOff = typeof navigator.onLine === 'boolean' ? !navigator.onLine : false;
+        const isOff = window.isAppOnline === false || (typeof navigator.onLine === 'boolean' ? !navigator.onLine : false);
         if (badge) badge.style.setProperty('display', isOff ? 'block' : 'none', 'important');
     }
     window.addEventListener('online', updateLeaderboardOfflineStatus);
     window.addEventListener('offline', updateLeaderboardOfflineStatus);
+    window.addEventListener('appOnline', updateLeaderboardOfflineStatus);
+    window.addEventListener('appOffline', updateLeaderboardOfflineStatus);
     window.addEventListener('app-connection-changed', updateLeaderboardOfflineStatus);
     setTimeout(updateLeaderboardOfflineStatus, 150);
 

@@ -2058,11 +2058,13 @@ fetchUserPointsAndRedemptions();
 // Offline Indicator Status Management
 function updateDiscountOfflineStatus() {
     const badge = document.getElementById('discount-offline-badge');
-    const isOff = typeof navigator.onLine === 'boolean' ? !navigator.onLine : false;
+    const isOff = window.isAppOnline === false || (typeof navigator.onLine === 'boolean' ? !navigator.onLine : false);
     if (badge) badge.style.setProperty('display', isOff ? 'block' : 'none', 'important');
 }
 window.addEventListener('online', updateDiscountOfflineStatus);
 window.addEventListener('offline', updateDiscountOfflineStatus);
+window.addEventListener('appOnline', updateDiscountOfflineStatus);
+window.addEventListener('appOffline', updateDiscountOfflineStatus);
 window.addEventListener('app-connection-changed', updateDiscountOfflineStatus);
 setTimeout(updateDiscountOfflineStatus, 150);
 

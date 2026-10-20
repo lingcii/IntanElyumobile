@@ -1925,11 +1925,13 @@ $activeTab = 'profile';
     // Offline Indicator Status Management
     function updateProfileOfflineStatus() {
         const badge = document.getElementById('profile-offline-badge');
-        const isOff = typeof navigator.onLine === 'boolean' ? !navigator.onLine : false;
+        const isOff = window.isAppOnline === false || (typeof navigator.onLine === 'boolean' ? !navigator.onLine : false);
         if (badge) badge.style.setProperty('display', isOff ? 'block' : 'none', 'important');
     }
     window.addEventListener('online', updateProfileOfflineStatus);
     window.addEventListener('offline', updateProfileOfflineStatus);
+    window.addEventListener('appOnline', updateProfileOfflineStatus);
+    window.addEventListener('appOffline', updateProfileOfflineStatus);
     window.addEventListener('app-connection-changed', updateProfileOfflineStatus);
     setTimeout(updateProfileOfflineStatus, 150);
 

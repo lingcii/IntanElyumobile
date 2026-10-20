@@ -1339,7 +1339,7 @@ window.OfflineProfileManager = {
     };
 
     function enforceAllOfflineBadgesHidden() {
-        if (typeof navigator.onLine === 'boolean' && !navigator.onLine) return;
+        if (typeof navigator.onLine === 'boolean' && !navigator.onLine && window.isAppOnline === false) return;
         window.isAppOnline = true;
         if (document.body) {
             document.body.classList.remove('is-offline');
@@ -1347,11 +1347,27 @@ window.OfflineProfileManager = {
         }
         try {
             localStorage.removeItem('intan_elyu_offline_mode');
+            localStorage.removeItem('intan_elyu_offline_guest');
             sessionStorage.removeItem('elyu_show_offline_bypass_notice');
+
+            const curToken = localStorage.getItem('intan_elyu_token');
+            const realBackup = localStorage.getItem('intan_elyu_real_token_backup');
+            if (curToken === 'offline_guest_token' || (curToken && curToken.startsWith('offline_'))) {
+                if (realBackup && realBackup !== 'guest_token' && !realBackup.startsWith('offline_') && !realBackup.startsWith('guest_')) {
+                    localStorage.setItem('intan_elyu_token', realBackup);
+                    const realUserBackup = localStorage.getItem('auth_user_backup');
+                    if (realUserBackup) {
+                        try { localStorage.setItem('auth_user', realUserBackup); } catch (e) { }
+                    }
+                } else if (curToken === 'offline_guest_token') {
+                    localStorage.setItem('intan_elyu_token', 'guest_token');
+                    localStorage.setItem('intan_elyu_guest', 'true');
+                }
+            }
         } catch(e) {}
 
         const pillsToHide = [
-            'dash-offline-pill', 'trending-offline-pill',
+            'elyu-offline-pill', 'dash-offline-pill', 'trending-offline-pill',
             'trip-offline-badge', 'saved-trips-offline-badge', 'saved-places-offline-badge',
             'puzzles-offline-badge', 'auth-offline-badge', 'profile-offline-badge',
             'discount-offline-badge', 'edit-profile-offline-badge', 'leaderboard-offline-badge',
@@ -1359,7 +1375,10 @@ window.OfflineProfileManager = {
         ];
         pillsToHide.forEach(id => {
             const el = document.getElementById(id);
-            if (el) el.style.setProperty('display', 'none', 'important');
+            if (el) {
+                el.style.setProperty('display', 'none', 'important');
+                el.classList.add('hidden');
+            }
         });
 
         document.querySelectorAll('.btn-offline-guest').forEach(btn => {
@@ -1383,10 +1402,10 @@ window.OfflineProfileManager = {
 
         window.isAppOnline = true;
         enforceAllOfflineBadgesHidden();
-        [150, 450, 1000, 2200].forEach(d => setTimeout(enforceAllOfflineBadgesHidden, d));
+        [80, 250, 600, 1200, 2500].forEach(d => setTimeout(enforceAllOfflineBadgesHidden, d));
 
         const now = Date.now();
-        if (now - lastOnlineSyncTime < 4000) return;
+        if (now - lastOnlineSyncTime < 2000) return;
         lastOnlineSyncTime = now;
 
         if (wasOffline) {
@@ -1422,19 +1441,85 @@ window.OfflineProfileManager = {
         }, 2200);
     };
 
+    let isProbing = false;
+    let lastProbeTime = 0;
+    async function probeBackendReachability(force = false) {
+        const now = Date.now();
+        if (isProbing || (!force && now - lastProbeTime < 2000)) return;
+        isProbing = true;
+        lastProbeTime = now;
+
+        try {
+            const bUrl = (window.backendUrl || window.BACKEND_URL || 'https://api.intan-elyu.online').replace(/\/+$/, '');
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), 2600);
+
+            let ok = false;
+            try {
+                const res = await fetch(`${bUrl}/api/public/map?probe=${now}`, {
+                    method: 'HEAD',
+                    cache: 'no-store',
+                    headers: { 'Accept': 'application/json' },
+                    signal: controller.signal
+                });
+                if (res && (res.ok || (res.status >= 200 && res.status < 500))) {
+                    ok = true;
+                }
+            } catch (eMap) {
+                try {
+                    const res2 = await fetch(`${bUrl}/favicon.ico?probe=${now}`, {
+                        method: 'HEAD',
+                        cache: 'no-store',
+                        signal: controller.signal
+                    });
+                    if (res2 && (res2.ok || (res2.status >= 200 && res2.status < 500))) {
+                        ok = true;
+                    }
+                } catch (eFav) { }
+            }
+            clearTimeout(timer);
+
+            if (ok) {
+                if (window.isAppOnline === false || wasOffline) {
+                    window.notifyAppOnline();
+                } else {
+                    enforceAllOfflineBadgesHidden();
+                }
+            }
+        } catch (e) {
+        } finally {
+            isProbing = false;
+        }
+    }
+    window.probeBackendReachability = probeBackendReachability;
+
     // Periodic watchdog to guarantee no offline text stays stuck when Wi-Fi is on
     setInterval(() => {
         if (typeof navigator.onLine === 'boolean' && navigator.onLine) {
             enforceAllOfflineBadgesHidden();
+            if (window.isAppOnline === false) {
+                probeBackendReachability(true);
+            }
+        } else if (window.isAppOnline === false) {
+            probeBackendReachability(false);
         }
-    }, 3000);
+    }, 2500);
 
     // 1. Standard browser network events (fired by OS / WebView)
     window.addEventListener('online', () => {
         window.notifyAppOnline();
+        probeBackendReachability(true);
     });
     window.addEventListener('offline', () => {
         window.notifyAppOffline();
+    });
+    window.addEventListener('focus', () => {
+        probeBackendReachability(true);
+    });
+    document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) {
+            probeBackendReachability(true);
+        }
     });
 
     // 2. Capacitor Native Plugins integration (Network & App)
@@ -1444,6 +1529,7 @@ window.OfflineProfileManager = {
                 window.Capacitor.Plugins.Network.addListener('networkStatusChange', (status) => {
                     if (status && status.connected) {
                         window.notifyAppOnline();
+                        probeBackendReachability(true);
                     } else if (status && status.connected === false) {
                         window.notifyAppOffline();
                     }
@@ -1453,8 +1539,11 @@ window.OfflineProfileManager = {
         if (window.Capacitor.Plugins.App && typeof window.Capacitor.Plugins.App.addListener === 'function') {
             try {
                 window.Capacitor.Plugins.App.addListener('appStateChange', (state) => {
-                    if (state && state.isActive && wasOffline) {
-                        window.notifyAppOnline();
+                    if (state && state.isActive) {
+                        probeBackendReachability(true);
+                        if (wasOffline) {
+                            window.notifyAppOnline();
+                        }
                     }
                 });
             } catch(e) {}
