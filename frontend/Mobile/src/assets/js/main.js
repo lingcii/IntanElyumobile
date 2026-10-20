@@ -4119,167 +4119,48 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
         }
     };
 
-    // ── Global Badge Detail Modal Handler ─────────────────────────────────────────
-    window.openBadgeModal = function (name, description, isUnlocked, category, icon) {
-        const existing = document.getElementById('badge-details-modal');
-        if (existing) existing.remove();
-
-        const isQuest = category === 'Quest';
-        const borderGlow = isUnlocked
-            ? 'border: 1.5px solid rgba(251, 191, 36, 0.5); box-shadow: 0 0 35px rgba(251, 191, 36, 0.25);'
-            : 'border: 1.5px solid rgba(255, 255, 255, 0.15); box-shadow: 0 0 35px rgba(0, 0, 0, 0.5);';
-
-        const statusBadge = isUnlocked
-            ? `<span style="background:rgba(52,211,153,0.15); border:1px solid rgba(52,211,153,0.3); color:#34d399; font-size:11px; font-weight:800; padding:4px 12px; border-radius:100px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-check-circle"></i> UNLOCKED BADGE</span>`
-            : `<span style="background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.3); color:#f87171; font-size:11px; font-weight:800; padding:4px 12px; border-radius:100px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-lock"></i> LOCKED BADGE</span>`;
-
-        const iconStyle = isUnlocked
-            ? 'background:rgba(251,191,36,0.15); color:#fbbf24; border:1px solid rgba(251,191,36,0.4);'
-            : 'background:rgba(255,255,255,0.04); color:rgba(255,255,255,0.3); border:1px dashed rgba(255,255,255,0.15); filter:grayscale(1);';
-
-        const actionButton = !isUnlocked
-            ? `<button onclick="window.closeBadgeModal(); if(typeof navigateTo === 'function') navigateTo('map');" style="width:100%; margin-top:16px; padding:12px; border-radius:100px; border:none; background:linear-gradient(135deg,#10b981,#059669); color:#fff; font-weight:800; font-size:13px; cursor:pointer;"><i class="fa-solid fa-map-location-dot" style="margin-right:6px;"></i>Explore Destinations</button>`
-            : `<button onclick="window.closeBadgeModal()" style="width:100%; margin-top:16px; padding:12px; border-radius:100px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.06); color:#e2e8f0; font-weight:700; font-size:13px; cursor:pointer;">Close</button>`;
-
-        const safeDesc = (description || 'Complete activities in La Union to unlock this badge.').replace(/'/g, "&apos;").replace(/"/g, "&quot;");
-
-        const modalHtml = `
-    <div id="badge-details-modal" onclick="if(event.target === this) window.closeBadgeModal();" style="position:fixed; inset:0; z-index:99999; background:rgba(6,11,25,0.85); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); display:flex; align-items:center; justify-content:center; padding:20px; opacity:0; transition:opacity 0.3s ease;">
-        <div style="position:relative; background:linear-gradient(145deg, rgba(30, 41, 59, 0.96) 0%, rgba(15, 23, 42, 0.99) 100%); ${borderGlow} border-radius:24px; padding:26px 22px; width:100%; max-width:360px; text-align:center; transform:scale(0.92) translateY(12px); transition:transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);">
-            <button onclick="window.closeBadgeModal()" style="position:absolute; top:14px; right:14px; background:rgba(255,255,255,0.08); border:none; color:rgba(255,255,255,0.7); width:30px; height:30px; border-radius:50%; font-size:14px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.2s ease;" title="Close">✕</button>
-            <div style="width:68px; height:68px; border-radius:50%; ${iconStyle} display:flex; align-items:center; justify-content:center; margin:0 auto 16px auto; font-size:32px;">
-                ${isUnlocked ? '<i class="fa-solid fa-award"></i>' : '<i class="fa-solid fa-lock"></i>'}
-            </div>
-            <div style="margin-bottom:8px;">${statusBadge}</div>
-            <h3 style="margin:10px 0 4px; color:#fff; font-size:19px; font-weight:900;">${name}</h3>
-            <div style="font-size:11px; color:rgba(148,163,184,0.7); text-transform:uppercase; font-weight:800; letter-spacing:0.5px; margin-bottom:12px;">${category || 'Badge'}</div>
-            <p style="font-size:12.5px; color:rgba(255,255,255,0.8); margin:0 0 4px; line-height:1.5; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); padding:12px; border-radius:14px;">
-                ${safeDesc}
-            </p>
-            ${actionButton}
-        </div>
-    </div>`;
-
-        document.body.insertAdjacentHTML('beforeend', modalHtml);
-
-        requestAnimationFrame(() => {
-            const modal = document.getElementById('badge-details-modal');
-            if (modal) {
-                modal.style.opacity = '1';
-                const card = modal.querySelector('div > div');
-                if (card) card.style.transform = 'scale(1) translateY(0)';
-            }
-        });
-    };
-
+    // ── Badges Removed: Safe No-Op Handlers & Residual DOM Purge ────────────────
+    window.openBadgeModal = function () {};
     window.closeBadgeModal = function () {
-        const modal = document.getElementById('badge-details-modal');
-        if (modal) {
-            modal.style.opacity = '0';
-            setTimeout(() => modal.remove(), 300);
-        }
+        const m1 = document.getElementById('badge-details-modal');
+        if (m1) m1.remove();
+        const m2 = document.getElementById('all-badges-modal');
+        if (m2) m2.remove();
     };
-
-    // ── View All Badges Modal Sheet ───────────────────────────────────────────────
-    window.openAllBadgesModal = function (badgesData) {
-        const existing = document.getElementById('all-badges-modal');
-        if (existing) existing.remove();
-
-        const badges = badgesData || window._cachedMasterBadges || [];
-
-        const unlocked = badges.filter(b => b.is_unlocked);
-        const locked = badges.filter(b => !b.is_unlocked);
-
-        const renderBadgeItem = (b) => {
-            const safeName = (b.name || '').replace(/'/g, "\\'");
-            const safeDesc = (b.description || '').replace(/'/g, "\\'");
-            const clickFn = `onclick="window.openBadgeModal('${safeName}', '${safeDesc}', ${b.is_unlocked ? 'true' : 'false'}, '${b.category || 'Badge'}', '${b.icon || '🏅'}')"`;
-
-            const badgeIcons = {
-                'Beach Chiller': '<i class="fa-solid fa-umbrella-beach"></i>',
-                'City Express': '<i class="fa-solid fa-city"></i>',
-                'Sunset Chaser': '<i class="fa-solid fa-sun"></i>',
-                'Foodie Explorer': '<i class="fa-solid fa-utensils"></i>',
-                'Adrenaline Chaser': '<i class="fa-solid fa-person-hiking"></i>',
-                'Heritage Guardian': '<i class="fa-solid fa-landmark"></i>',
-                'Nature Seeker': '<i class="fa-solid fa-water"></i>',
-                'Wave Rider': '<i class="fa-solid fa-water-ladder"></i>',
-                'First Step': '<i class="fa-solid fa-star"></i>',
-                'Globe Trotter': '<i class="fa-solid fa-globe"></i>',
-                'Master Voyager': '<i class="fa-solid fa-crown"></i>',
-                'Pioneer Explorer': '<i class="fa-solid fa-flag"></i>',
-                'Local Voice': '<i class="fa-solid fa-comments"></i>',
-            };
-            const displayIcon = badgeIcons[b.name] || (b.is_unlocked ? '<i class="fa-solid fa-award"></i>' : '<i class="fa-solid fa-lock"></i>');
-
-            if (b.is_unlocked) {
-                return `
-            <div ${clickFn} style="background: rgba(251,191,36,0.08); border: 1px solid rgba(251,191,36,0.3); border-radius: 18px; padding: 14px 10px; text-align: center; cursor: pointer; transition: transform 0.2s;">
-                <div style="font-size: 24px; margin-bottom: 6px; color: #fbbf24;">${displayIcon}</div>
-                <div style="font-size: 11.5px; font-weight: 800; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${b.name}</div>
-                <div style="font-size: 9px; color: #fbbf24; margin-top: 2px; font-weight: 700;">✓ Unlocked</div>
-            </div>`;
-            } else {
-                return `
-            <div ${clickFn} style="background: rgba(255,255,255,0.02); border: 1px dashed rgba(255,255,255,0.12); border-radius: 18px; padding: 14px 10px; text-align: center; opacity: 0.55; filter: grayscale(1); cursor: pointer; transition: transform 0.2s;">
-                <div style="font-size: 22px; margin-bottom: 6px; color: rgba(255,255,255,0.4);"><i class="fa-solid fa-lock"></i></div>
-                <div style="font-size: 11.5px; font-weight: 700; color: rgba(255,255,255,0.6); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${b.name}</div>
-                <div style="font-size: 9px; color: rgba(255,255,255,0.4); margin-top: 2px;">Locked</div>
-            </div>`;
-            }
-        };
-
-        const modalHtml = `
-    <div id="all-badges-modal" style="position:fixed; inset:0; z-index:99998; background:rgba(6,11,25,0.85); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); display:flex; align-items:flex-end; justify-content:center; opacity:0; transition:opacity 0.3s ease;">
-        <div style="background:linear-gradient(145deg, rgba(30, 41, 59, 0.98) 0%, rgba(15, 23, 42, 0.99) 100%); border-top:1.5px solid rgba(251,191,36,0.4); border-radius:28px 28px 0 0; padding:24px 20px 36px; width:100%; max-width:480px; max-height:85vh; overflow-y:auto; transform:translateY(100%); transition:transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);">
-            <div style="width:40px; height:4px; background:rgba(255,255,255,0.2); border-radius:2px; margin:0 auto 16px auto;"></div>
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;">
-                <div>
-                    <h3 style="margin:0; font-size:18px; font-weight:900; color:#fff; display:flex; align-items:center; gap:8px;"><i class="fa-solid fa-award" style="color:#fbbf24;"></i> All Explorer Badges</h3>
-                    <p style="margin:2px 0 0; font-size:11px; color:rgba(255,255,255,0.5);">${unlocked.length} / ${badges.length} Unlocked Badges</p>
-                </div>
-                <button onclick="window.closeAllBadgesModal()" style="background:rgba(255,255,255,0.08); border:none; color:rgba(255,255,255,0.7); width:32px; height:32px; border-radius:50%; font-size:14px; cursor:pointer;">✕</button>
-            </div>
-
-            ${unlocked.length > 0 ? `
-                <div style="margin-bottom:20px;">
-                    <div style="font-size:11px; font-weight:800; color:#fbbf24; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:10px;"><i class="fa-solid fa-trophy" style="margin-right:6px;"></i> Unlocked Badges (${unlocked.length})</div>
-                    <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:10px;">
-                        ${unlocked.map(renderBadgeItem).join('')}
-                    </div>
-                </div>
-            ` : ''}
-
-            <div>
-                <div style="font-size:11px; font-weight:800; color:rgba(255,255,255,0.45); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:10px;"><i class="fa-solid fa-lock" style="margin-right:6px;"></i> Locked Badges (${locked.length})</div>
-                <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:10px;">
-                    ${locked.map(renderBadgeItem).join('')}
-                </div>
-            </div>
-        </div>
-    </div>`;
-
-        document.body.insertAdjacentHTML('beforeend', modalHtml);
-
-        requestAnimationFrame(() => {
-            const modal = document.getElementById('all-badges-modal');
-            if (modal) {
-                modal.style.opacity = '1';
-                const sheet = modal.querySelector('div > div');
-                if (sheet) sheet.style.transform = 'translateY(0)';
-            }
-        });
-    };
-
+    window.openAllBadgesModal = function () {};
     window.closeAllBadgesModal = function () {
-        const modal = document.getElementById('all-badges-modal');
-        if (modal) {
-            modal.style.opacity = '0';
-            const sheet = modal.querySelector('div > div');
-            if (sheet) sheet.style.transform = 'translateY(100%)';
-            setTimeout(() => modal.remove(), 350);
-        }
+        const m2 = document.getElementById('all-badges-modal');
+        if (m2) m2.remove();
     };
+
+    // Emergency purge for stale cached DOM elements from ServiceWorker or web cache
+    window.purgeResidualBadges = function () {
+        try {
+            const el1 = document.getElementById('profile-badges-container');
+            if (el1) el1.remove();
+            const el2 = document.getElementById('profile-badges-grid');
+            if (el2) el2.remove();
+            const el3 = document.getElementById('profile-badge-count-label');
+            if (el3) el3.remove();
+            const m1 = document.getElementById('badge-details-modal');
+            if (m1) m1.remove();
+            const m2 = document.getElementById('all-badges-modal');
+            if (m2) m2.remove();
+            document.querySelectorAll('h3').forEach(h3 => {
+                if (h3 && h3.textContent && h3.textContent.includes('Badges & Achievements')) {
+                    const row = h3.closest('.stagger-3') || h3.parentElement;
+                    if (row) row.remove();
+                }
+            });
+        } catch (e) {}
+    };
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', window.purgeResidualBadges);
+    } else {
+        window.purgeResidualBadges();
+    }
+    [100, 300, 600, 1000, 2000].forEach(delay => setTimeout(window.purgeResidualBadges, delay));
 
     // ── Offline Low-Signal Check-in Auto-Sync Queue Handler ─────────────────────
     window.processOfflineCheckinQueue = async function () {

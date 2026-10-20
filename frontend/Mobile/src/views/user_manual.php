@@ -399,7 +399,7 @@ $backRoute = 'settings';
             <div class="manual-section-icon blue"><i class="fa-solid fa-user-circle"></i></div>
             <div>
                 <h2 class="manual-section-title">Step 10 &mdash; My Profile</h2>
-                <p class="manual-section-sub">Profile details, trip history, badges, and session management</p>
+                <p class="manual-section-sub">Profile details, trip history, rewards, and session management</p>
             </div>
         </div>
         <div class="step-card">
@@ -413,9 +413,9 @@ $backRoute = 'settings';
         <div class="step-card">
             <div class="step-num">2</div>
             <div class="step-content">
-                <div class="step-title">Review Visits &amp; Badges</div>
+                <div class="step-title">Review Visits &amp; Points</div>
                 <div class="step-desc">Track completed destination visits, check-in history, earned Points milestones,
-                    and unlocked badges.</div>
+                    and redeemed reward vouchers.</div>
             </div>
         </div>
         <div class="step-card">
