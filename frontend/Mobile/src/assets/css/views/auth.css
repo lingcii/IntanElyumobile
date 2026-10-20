@@ -454,6 +454,45 @@ body.keyboard-open .auth-bottom {
     pointer-events: none;
 }
 
+/* Explicit interactive states ensuring touches and clicks always register */
+.forms-wrapper:not(.show-register):not(.show-forgot):not(.show-otp) .login-form {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+}
+
+.forms-wrapper.show-register .register-form {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+}
+
+.forms-wrapper.show-forgot .forgot-form {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+}
+
+.forms-wrapper.show-otp .otp-form {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+}
+
+.auth-tab,
+.form-panel button,
+.form-panel input,
+.form-panel a,
+.form-panel label,
+.form-panel .password-toggle,
+.form-panel .btn-circle-submit,
+.form-panel .btn-google,
+.form-panel .btn-offline-guest,
+.btn-circle-submit,
+.btn-google,
+.btn-offline-guest {
+    pointer-events: auto !important;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation !important;
+    cursor: pointer;
+}
+
 /* 6-Digit OTP Individual Number Boxes */
 .otp-boxes-container {
     display: flex;
@@ -1577,11 +1616,20 @@ body[data-offline="true"] .btn-offline-guest {
     width: 100%;
     height: 100%;
     z-index: 999999;
-    display: flex;
+    display: none;
     align-items: center;
     justify-content: center;
     padding: 20px;
     box-sizing: border-box;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+}
+
+.auth-offline-modal.active {
+    display: flex !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
 }
 
 .auth-offline-backdrop {

@@ -1995,10 +1995,14 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                 }
 
                 // ── Teardown previous view resources to prevent mobile lag & leaks ──
-                ['full-history-modal', 'full-vouchers-modal', 'full-deals-modal', 'active-voucher-qr-modal', 'trip-details-modal', 'reward-details-modal', 'delete-trip-modal'].forEach(id => {
+                ['full-history-modal', 'full-vouchers-modal', 'full-deals-modal', 'active-voucher-qr-modal', 'trip-details-modal', 'reward-details-modal', 'delete-trip-modal', 'elyu-proof-viewer-modal', 'global-oauth-overlay', 'offline-auth-modal', 'login-success-modal', 'auth-cancel-modal', 'privacy-policy-modal'].forEach(id => {
                     document.querySelectorAll('#' + id).forEach(m => {
                         if (m.parentElement === document.body) {
                             try { m.remove(); } catch (e) { }
+                        } else {
+                            m.style.display = 'none';
+                            m.style.pointerEvents = 'none';
+                            m.classList.remove('active');
                         }
                     });
                 });

@@ -610,7 +610,6 @@
         window.addEventListener('offline', updateOfflineStatus);
         window.addEventListener('appOnline', updateOfflineStatus);
         window.addEventListener('appOffline', updateOfflineStatus);
-    })();
 
     window.showOfflineAuthModal = function (email) {
         const modal = document.getElementById('offline-auth-modal');
@@ -620,11 +619,17 @@
             desc.innerHTML = `An active internet connection is required to log in with <strong>${email}</strong>. Please connect to Wi-Fi or mobile data, or explore saved guides in Offline Mode.`;
         }
         modal.style.display = 'flex';
+        modal.classList.add('active');
+        modal.style.pointerEvents = 'auto';
     };
 
     window.closeOfflineAuthModal = function () {
         const modal = document.getElementById('offline-auth-modal');
-        if (modal) modal.style.display = 'none';
+        if (modal) {
+            modal.classList.remove('active');
+            modal.style.display = 'none';
+            modal.style.pointerEvents = 'none';
+        }
     };
 
     window.enterOfflineMode = function (e) {
@@ -1002,19 +1007,32 @@
         const isFromSidebar = searchParams.get('from_sidebar') === '1' || 
                               window._authFromSidebar === true;
 
-        // Dismiss any lingering sidebar overlay so it cannot block touch events
-        const sbo = document.getElementById('sidebar-overlay');
-        if (sbo) {
-            sbo.style.display = 'none';
-            sbo.style.opacity = '0';
-            sbo.style.pointerEvents = 'none';
-        }
+        // Dismiss all lingering overlays and backdrops so they can NEVER block touch events
+        ['sidebar-overlay', 'global-oauth-overlay', 'offline-auth-modal', 'login-success-modal', 'auth-cancel-modal', 'privacy-policy-modal'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                if (id === 'sidebar-overlay') {
+                    el.style.display = 'none';
+                    el.style.opacity = '0';
+                    el.style.pointerEvents = 'none';
+                    try { el.remove(); } catch (e) { }
+                } else if (id === 'global-oauth-overlay') {
+                    el.style.display = 'none';
+                    try { el.remove(); } catch (e) { }
+                } else {
+                    el.classList.remove('active');
+                    el.style.display = 'none';
+                    el.style.pointerEvents = 'none';
+                }
+            }
+        });
 
         toggleAuthMode(Boolean(isRegisterMode));
 
-        // Ensure "Continue as Guest" / "Explore in Offline Mode" button is always visible
+        // Ensure "Continue as Guest" / "Explore in Offline Mode" button is always visible and clickable
         document.querySelectorAll('.btn-offline-guest').forEach(btn => {
             btn.style.setProperty('display', 'flex', 'important');
+            btn.style.setProperty('pointer-events', 'auto', 'important');
         });
 
         setTimeout(() => { positionTabGlider(Boolean(isRegisterMode), false); }, 50);
@@ -2360,18 +2378,7 @@
         }
     })();
 
-    // Lock scroll on login page to ensure completely fixed layout
-    (function preventLoginScroll() {
-        document.addEventListener('touchmove', function (e) {
-            const wrapper = document.getElementById('forms-wrapper');
-            if (wrapper && !wrapper.classList.contains('show-register') && !wrapper.classList.contains('show-forgot') && !wrapper.classList.contains('show-otp')) {
-                // On login page - prevent bounce/scrolling
-                if (!e.target.closest('.privacy-modal-card')) {
-                    e.preventDefault();
-                }
-            }
-        }, { passive: false });
-    })();
+
 
     // Password Strength Focus Helpers
     window.onPasswordFocus = function () {
