@@ -23,101 +23,75 @@ $backRoute = 'itinerary';
     </div>
 </div>
 
-<!-- Check-in Verification Modal (GPS and Photo Proof) -->
-<div id="checkin-modal"
-    style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.75); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); z-index:99999; justify-content:center; align-items:center;">
+<!-- Dedicated Multi-Photo Proof Upload Modal -->
+<div id="proof-upload-modal"
+    style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.78); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); z-index:99999; justify-content:center; align-items:center; padding:16px; box-sizing:border-box;">
     <div
-        style="background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border:none; outline:none; border-radius:24px; padding:28px 24px; width:90%; max-width:380px; box-shadow:0 16px 40px rgba(10, 25, 60, 0.45); text-align:center;">
-        <i class="fa-solid fa-camera" style="font-size:32px; color:#ffffff; margin-bottom:10px; display:block;"></i>
-        <h3 style="margin:0 0 8px; color:#ffffff; font-size:20px; font-weight:800;">Submit Visit Proof</h3>
-        <p style="font-size:13px; color:#ffffff; opacity:0.95; margin-bottom:20px; line-height:1.5;">Take a selfie or
-            capture a photo at this destination. Your submission will be submitted for review and approval before
-            earning <strong style="color:#ffffff; font-weight:800;">+50 Points</strong>.</p>
-
-        <input type="hidden" id="checkin-item-id">
-
-        <!-- Step 1: Photo Proof -->
-        <div style="margin-bottom: 16px; text-align: left;">
-            <label
-                style="font-size:11px; font-weight:800; color:#ffffff; margin-bottom:6px; display:block; text-transform:uppercase; letter-spacing:0.5px;">Step
-                1: Photo Proof (Required)</label>
-            <input type="file" id="checkin-proof-image" accept="image/*" style="display:none;"
-                onchange="window.handlePhotoSelected(this)">
-            <button type="button" onclick="window.openCheckinImagePickerModal()" id="btn-select-photo"
-                style="width:100%; padding:14px; background:rgba(255,255,255,0.15); border:none; outline:none; border-radius:14px; color:#ffffff; font-weight:800; font-size:13px; display:flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition:all 0.2s ease;">
-                <i class="fa-solid fa-camera" style="font-size:16px; color:#ffffff;"></i> <span
-                    id="photo-status-text">Take or Choose Photo</span>
-            </button>
-
-            <!-- Picture Preview Container (Displays actual picture preview instead of filename string) -->
-            <div id="checkin-photo-preview-container"
-                style="display:none; margin-top:12px; position:relative; border-radius:16px; overflow:hidden; border:none; outline:none; background:rgba(15,23,42,0.8); box-shadow:none;">
-                <img id="checkin-photo-preview-img" src="" alt="Proof Preview"
-                    style="width:100%; max-height:180px; object-fit:cover; display:block; border:none; outline:none;">
-                <div style="position:absolute; top:8px; right:8px; display:flex; gap:6px;">
-                    <button type="button" onclick="window.openCheckinImagePickerModal()" title="Change Picture"
-                        style="background:rgba(15,23,42,0.85); color:#00f2fe; border:none; outline:none; border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; cursor:pointer; backdrop-filter:blur(6px);">
-                        <i class="fa-solid fa-arrows-rotate" style="font-size:13px;"></i>
-                    </button>
-                    <button type="button" onclick="window.removeCheckinPhoto()" title="Remove Picture"
-                        style="background:rgba(239,68,68,0.85); color:#ffffff; border:none; outline:none; border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; cursor:pointer; backdrop-filter:blur(6px);">
-                        <i class="fa-solid fa-xmark" style="font-size:14px;"></i>
-                    </button>
-                </div>
-                <div
-                    style="padding:6px 10px; background:rgba(15,23,42,0.9); font-size:10px; font-weight:700; color:#00f2fe; text-transform:uppercase; text-align:center; border:none; outline:none;">
-                    <i class="fa-solid fa-circle-check" style="margin-right:4px; color:#34c759;"></i> Picture Proof
-                    Attached
-                </div>
+        style="background:linear-gradient(135deg, rgba(30, 58, 138, 0.98) 0%, rgba(63, 125, 183, 0.96) 60%, rgba(2, 132, 199, 0.96) 100%); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border:none; outline:none; border-radius:26px; padding:24px 20px; width:100%; max-width:420px; box-shadow:0 20px 50px rgba(0,0,0,0.5); text-align:center; max-height:90vh; overflow-y:auto; box-sizing:border-box;">
+        
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <div style="text-align:left;">
+                <h3 id="proof-spot-title" style="margin:0; color:#ffffff; font-size:18px; font-weight:800; display:flex; align-items:center; gap:8px;">
+                    <i class="fa-solid fa-camera" style="color:#00f2fe; font-size:17px;"></i> Upload Photo Proof
+                </h3>
+                <span id="proof-spot-subtitle" style="font-size:11px; color:#e0f2fe; opacity:0.9; display:block; margin-top:2px;">Select up to 5 photos</span>
             </div>
-        </div>
-
-        <!-- Step 2: Location Verification -->
-        <div style="margin-bottom: 12px; text-align: left;">
-            <label
-                style="font-size:11px; font-weight:800; color:#ffffff; margin-bottom:6px; display:block; text-transform:uppercase; letter-spacing:0.5px;">Step
-                2: Location Check-in</label>
-            <button class="btn-primary" id="btn-verify-gps"
-                style="width:100%; padding:14px; font-size:14px; font-weight:800; background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border:none; outline:none; color:#ffffff; border-radius:14px; box-shadow:none; cursor:pointer;"
-                onclick="verifyGpsCheckIn()">
-                <i class="fa-solid fa-location-crosshairs" style="margin-right:8px;"></i> Verify Location & Submit
+            <button type="button" onclick="window.closeProofUploadModal()"
+                style="background:rgba(255,255,255,0.18); border:none; outline:none; color:#ffffff; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer;">
+                <i class="fa-solid fa-xmark" style="font-size:14px;"></i>
             </button>
         </div>
 
-        <button
-            style="width:100%; padding:12px; border-radius:14px; border:none; outline:none; background:rgba(255,255,255,0.15); color:#ffffff; font-size:13px; font-weight:700; cursor:pointer;"
-            onclick="closeCheckinModal()">Cancel</button>
-    </div>
-</div>
+        <p style="font-size:12px; color:#ffffff; opacity:0.92; margin:0 0 16px 0; text-align:left; line-height:1.45;">
+            Take or select selfies and photos at this destination. All photos will be displayed and reviewed by tourism staff before <strong style="color:#ffffff; font-weight:800;">+50 Points</strong> are awarded.
+        </p>
 
-<!-- Check-in Image Picker Choice Modal -->
-<div id="checkin-image-picker-modal" onclick="if(event.target===this) window.closeCheckinImagePickerModal()"
-    style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; width:100vw; height:100vh; background:rgba(0,0,0,0.8); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); z-index:999999; align-items:flex-end; justify-content:center; padding:0; margin:0; box-sizing:border-box;">
-    <div
-        style="background:linear-gradient(135deg, rgba(30, 58, 138, 0.98) 0%, rgba(63, 125, 183, 0.96) 60%, rgba(2, 132, 199, 0.96) 100%); border:none; outline:none; border-radius:28px 28px 0 0; width:100%; max-width:500px; padding:26px 22px; box-shadow:none; animation:slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1); box-sizing:border-box;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-            <h3
-                style="margin:0; font-size:17px; font-weight:800; color:#ffffff; display:flex; align-items:center; gap:10px;">
-                <i class="fa-solid fa-camera" style="color:#00f2fe; font-size:18px;"></i> Attach Proof Photo
-            </h3>
-            <button type="button" onclick="window.closeCheckinImagePickerModal()"
-                style="background:rgba(255,255,255,0.15); border:none; outline:none; color:#ffffff; width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer;">
-                <i class="fa-solid fa-xmark" style="font-size:15px;"></i>
+        <input type="hidden" id="proof-upload-item-id">
+        <input type="file" id="proof-upload-input" accept="image/*" multiple style="display:none;" onchange="window.handleProofPhotosSelected(this)">
+
+        <!-- Add Photo Action Buttons -->
+        <div style="display:flex; gap:10px; margin-bottom:14px;">
+            <button type="button" onclick="window.addProofPhotoFromSource('camera')"
+                style="flex:1; padding:12px 10px; background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); border:none; outline:none; border-radius:14px; color:#ffffff; font-weight:800; font-size:12.5px; display:flex; align-items:center; justify-content:center; gap:6px; cursor:pointer; box-shadow:none;">
+                <i class="fa-solid fa-camera" style="font-size:15px;"></i> Take Photo
+            </button>
+            <button type="button" onclick="window.addProofPhotoFromSource('gallery')"
+                style="flex:1; padding:12px 10px; background:rgba(255,255,255,0.18); border:none; outline:none; border-radius:14px; color:#ffffff; font-weight:800; font-size:12.5px; display:flex; align-items:center; justify-content:center; gap:6px; cursor:pointer;">
+                <i class="fa-solid fa-images" style="color:#00f2fe; font-size:15px;"></i> Add from Gallery
             </button>
         </div>
-        <div style="display:flex; flex-direction:column; gap:12px;">
-            <button type="button" onclick="window.selectCheckinImageSource('camera')"
-                style="width:100%; padding:15px; background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); border:none; outline:none; border-radius:18px; color:#ffffff; font-size:14px; font-weight:800; display:flex; align-items:center; justify-content:center; gap:10px; cursor:pointer; box-shadow:none;">
-                <i class="fa-solid fa-camera" style="font-size:17px;"></i> Take Photo with Camera
+
+        <!-- Selected Photos Area -->
+        <div style="margin-bottom:16px; text-align:left;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                <label style="font-size:11px; font-weight:800; color:#ffffff; text-transform:uppercase; letter-spacing:0.5px;">
+                    Selected Photos
+                </label>
+                <span id="proof-count-badge" style="font-size:11px; font-weight:700; color:#00f2fe;">0 / 5 photos</span>
+            </div>
+
+            <!-- Empty State Prompt -->
+            <div id="proof-empty-prompt" onclick="window.addProofPhotoFromSource('gallery')"
+                style="border:2px dashed rgba(255,255,255,0.35); border-radius:16px; padding:24px 16px; text-align:center; cursor:pointer; background:rgba(15,23,42,0.35); transition:all 0.2s ease;">
+                <i class="fa-solid fa-cloud-arrow-up" style="font-size:26px; color:#00f2fe; margin-bottom:6px; display:block;"></i>
+                <p style="margin:0; font-size:12.5px; font-weight:800; color:#ffffff;">Tap to select photos</p>
+                <p style="margin:4px 0 0 0; font-size:11px; color:rgba(255,255,255,0.75);">You can choose multiple photos</p>
+            </div>
+
+            <!-- Thumbnails Grid -->
+            <div id="proof-thumbnails-grid" style="display:none; grid-template-columns:repeat(3, 1fr); gap:10px;"></div>
+        </div>
+
+        <!-- Submit & Cancel Buttons -->
+        <div style="display:flex; flex-direction:column; gap:8px;">
+            <button type="button" id="btn-submit-proof-photos" class="btn-primary"
+                style="width:100%; padding:14px; font-size:14px; font-weight:800; background:linear-gradient(135deg, #10b981 0%, #059669 100%); border:none; outline:none; color:#ffffff; border-radius:14px; cursor:pointer;"
+                onclick="window.submitProofPhotos()">
+                <i class="fa-solid fa-cloud-arrow-up" style="margin-right:6px;"></i> Submit Photo Proof
             </button>
-            <button type="button" onclick="window.selectCheckinImageSource('gallery')"
-                style="width:100%; padding:15px; background:rgba(255,255,255,0.15); border:none; outline:none; border-radius:18px; color:#ffffff; font-size:14px; font-weight:800; display:flex; align-items:center; justify-content:center; gap:10px; cursor:pointer;">
-                <i class="fa-solid fa-images" style="font-size:17px; color:#00f2fe;"></i> Choose from Photo Gallery
-            </button>
-            <button type="button" onclick="window.closeCheckinImagePickerModal()"
-                style="width:100%; padding:12px; background:transparent; border:none; outline:none; color:#ffffff; opacity:0.85; font-size:13px; font-weight:700; cursor:pointer; margin-top:4px;">
-                Cancel
-            </button>
+            <button type="button"
+                style="width:100%; padding:11px; border-radius:14px; border:none; outline:none; background:rgba(255,255,255,0.15); color:#ffffff; font-size:12.5px; font-weight:700; cursor:pointer;"
+                onclick="window.closeProofUploadModal()">Cancel</button>
         </div>
     </div>
 </div>
@@ -524,34 +498,72 @@ $backRoute = 'itinerary';
                                 const dest = item.destination || (typeof window.getTouristSpotById === 'function' ? window.getTouristSpotById(item.tourist_spot_id) : null);
                                 const destName = (dest && (dest.name || dest.title)) ? String(dest.name || dest.title) : 'Destination';
                                 const destEscaped = destName.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;');
-                                const isVisited = Boolean(item.is_visited || item.proof_status === 'approved');
-                                const hasProof = Boolean(item.proof_image);
-                                const isRejected = (item.proof_status === 'rejected');
+                                
+                                // Resolve all proof images into an array
+                                let proofImages = [];
+                                if (Array.isArray(item.proof_images) && item.proof_images.length > 0) {
+                                    proofImages = item.proof_images;
+                                } else if (item.proof_image) {
+                                    try {
+                                        const parsed = JSON.parse(item.proof_image);
+                                        if (Array.isArray(parsed)) proofImages = parsed;
+                                        else proofImages = [item.proof_image];
+                                    } catch (e) {
+                                        proofImages = [item.proof_image];
+                                    }
+                                }
+
+                                const hasProof = (proofImages.length > 0);
+                                const isLocVerified = Boolean(item.visited_at || item.is_location_verified);
+                                const proofStatus = item.proof_status || (hasProof ? (item.is_visited ? 'approved' : 'pending') : null);
+                                const isApproved = Boolean(item.is_visited || proofStatus === 'approved');
+                                const isRejected = (proofStatus === 'rejected');
                                 const queuedItem = window.OfflineCheckinManager ? window.OfflineCheckinManager.getQueuedItem(item.id) : null;
                                 const isQueued = Boolean(queuedItem);
-                                const isPending = !isVisited && !isRejected && !isQueued && hasProof && (item.proof_status === 'pending' || !item.proof_status);
-                                const isNextStop = (!isVisited && !isPending && !isQueued && index === firstUnvisitedIdx);
-                                if (!isVisited && !isQueued) unvisitedCount++;
+                                const isPendingProof = !isApproved && !isRejected && !isQueued && hasProof && (proofStatus === 'pending');
+                                const isNextStop = (!isApproved && !isPendingProof && !isQueued && index === firstUnvisitedIdx);
+                                if (!isApproved && !isQueued) unvisitedCount++;
 
-                                let proofImgHtml = '';
-                                if (item.proof_image) {
-                                    let pUrl = item.proof_image;
-                                    if (!pUrl.startsWith('http') && !pUrl.startsWith('data:') && !pUrl.startsWith('blob:')) {
-                                        let b = (window.backendUrl || '').replace(/\/+$/, '');
-                                        pUrl = b + '/' + pUrl.replace(/^\//, '');
-                                    }
-                                    const cleanImgName = item.proof_image.split('/').pop().replace(/[?#].*$/, '');
-                                    let fallbackUrl = (window.backendUrl || '').replace(/\/+$/, '') + '/api/image/proof_images/' + cleanImgName;
-                                    proofImgHtml = `<img src="${pUrl}" onerror="if(this.dataset.triedFallback!=='1'){this.dataset.triedFallback='1';this.src='${fallbackUrl}';}" onclick="event.stopPropagation(); if(typeof window.viewProofPhotoModal==='function') window.viewProofPhotoModal('${pUrl}', '${destEscaped}', '${isVisited ? 'Verified Visit Proof' : 'Pending Verification'}');" alt="Proof" title="Tap to view proof photo" style="width:52px; height:52px; border-radius:10px; object-fit:cover; border:none !important; outline:none !important; box-shadow:0 4px 12px rgba(0,0,0,0.3); flex-shrink:0; cursor:pointer;">`;
+                                // Build multi-photo gallery strip
+                                let photosStripHtml = '';
+                                if (proofImages.length > 0) {
+                                    const jsonUrlsAttr = JSON.stringify(proofImages).replace(/"/g, '&quot;');
+                                    const thumbs = proofImages.map((pUrl, pIdx) => {
+                                        let displayUrl = pUrl;
+                                        if (!displayUrl.startsWith('http') && !displayUrl.startsWith('data:') && !displayUrl.startsWith('blob:')) {
+                                            let b = (window.backendUrl || '').replace(/\/+$/, '');
+                                            displayUrl = b + '/' + displayUrl.replace(/^\//, '');
+                                        }
+                                        const cleanImgName = pUrl.split('/').pop().replace(/[?#].*$/, '');
+                                        let fallbackUrl = (window.backendUrl || '').replace(/\/+$/, '') + '/api/image/proof_images/' + cleanImgName;
+                                        return `
+                                            <div style="position:relative; flex-shrink:0;">
+                                                <img src="${displayUrl}" 
+                                                    onerror="if(this.dataset.triedFallback!=='1'){this.dataset.triedFallback='1';this.src='${fallbackUrl}';}" 
+                                                    onclick="event.stopPropagation(); window.viewProofPhotoModal(${jsonUrlsAttr}, '${destEscaped}', 'Photo Proof (${pIdx + 1} of ${proofImages.length})', ${pIdx});" 
+                                                    alt="Proof Photo ${pIdx + 1}" 
+                                                    title="Tap to view proof photo" 
+                                                    style="width:52px; height:52px; border-radius:12px; object-fit:cover; border:1.5px solid rgba(255,255,255,0.25); box-shadow:0 4px 12px rgba(0,0,0,0.3); cursor:pointer; display:block;">
+                                                ${proofImages.length > 1 ? `<span style="position:absolute; bottom:2px; right:2px; background:rgba(0,0,0,0.7); color:#fff; font-size:8px; font-weight:800; padding:1px 4px; border-radius:4px;">${pIdx + 1}</span>` : ''}
+                                            </div>
+                                        `;
+                                    }).join('');
+
+                                    photosStripHtml = `
+                                        <div style="display:flex; align-items:center; gap:8px; overflow-x:auto; padding:4px 0; max-width:100%; -webkit-overflow-scrolling:touch;">
+                                            ${thumbs}
+                                            ${proofImages.length > 1 ? `<span style="font-size:10px; color:#00f2fe; font-weight:700; white-space:nowrap; margin-left:2px;">${proofImages.length} photos</span>` : ''}
+                                        </div>
+                                    `;
                                 }
 
                                 let queuedThumbnailHtml = '';
                                 if (isQueued && queuedItem) {
                                     const qSrc = queuedItem.previewUrl || '';
                                     if (qSrc) {
-                                        queuedThumbnailHtml = `<img src="${qSrc}" onclick="event.stopPropagation(); if(typeof window.viewProofPhotoModal==='function') window.viewProofPhotoModal('${qSrc}', '${destEscaped}', 'Offline Proof (Queued on Device)');" alt="Proof" title="Tap to view offline proof photo" style="width:52px; height:52px; border-radius:10px; object-fit:cover; border:2px solid #f59e0b !important; outline:none !important; box-shadow:0 4px 12px rgba(0,0,0,0.3); flex-shrink:0; cursor:pointer;">`;
+                                        queuedThumbnailHtml = `<img src="${qSrc}" onclick="event.stopPropagation(); if(typeof window.viewProofPhotoModal==='function') window.viewProofPhotoModal('${qSrc}', '${destEscaped}', 'Offline Proof (Queued on Device)');" alt="Proof" title="Tap to view offline proof photo" style="width:52px; height:52px; border-radius:12px; object-fit:cover; border:2px solid #f59e0b !important; outline:none !important; box-shadow:0 4px 12px rgba(0,0,0,0.3); flex-shrink:0; cursor:pointer;">`;
                                     } else {
-                                        queuedThumbnailHtml = `<div style="width:52px; height:52px; border-radius:10px; background:rgba(245,158,11,0.2); border:1.5px dashed #f59e0b; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#fbbf24; flex-shrink:0;"><i class="fa-solid fa-camera" style="font-size:16px;"></i><span style="font-size:8px; font-weight:800; margin-top:2px;">OFFLINE</span></div>`;
+                                        queuedThumbnailHtml = `<div style="width:52px; height:52px; border-radius:12px; background:rgba(245,158,11,0.2); border:1.5px dashed #f59e0b; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#fbbf24; flex-shrink:0;"><i class="fa-solid fa-camera" style="font-size:16px;"></i><span style="font-size:8px; font-weight:800; margin-top:2px;">OFFLINE</span></div>`;
                                     }
                                 }
 
@@ -608,7 +620,7 @@ $backRoute = 'itinerary';
                                 }
 
                                 html += `
-                                <div class="timeline-item ${isVisited ? 'completed' : (isPending ? 'pending' : (isNextStop ? 'is-next-stop' : ''))}" style="margin-bottom: 12px;">
+                                <div class="timeline-item ${isApproved ? 'completed' : (isPendingProof ? 'pending' : (isNextStop ? 'is-next-stop' : ''))}" style="margin-bottom: 12px;">
                                     <div class="timeline-dot"></div>
                                     <div class="timeline-content" style="padding:14px; background: rgba(255,255,255,0.12); border: none !important; outline: none !important; border-radius: 16px; display:flex; flex-direction:column; gap:8px;">
                                         <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
@@ -618,59 +630,91 @@ $backRoute = 'itinerary';
                                         </div>
                                         ${(dest && (dest.accessible_by_private_vehicle === 0 || dest.accessible_by_private_vehicle === false)) ? `<div style="background:rgba(239, 68, 68, 0.15); border:none !important; outline:none !important; border-radius:10px; padding:8px 12px; display:flex; gap:8px; align-items:flex-start; margin-top:4px;"><i class="fa-solid fa-triangle-exclamation" style="color:#ef4444; font-size:13px; margin-top:2px;"></i><div><h5 style="margin:0 0 2px 0; font-size:11px; font-weight:800; color:#ef4444; text-transform:uppercase;">Inaccessible by Private Car</h5><p style="margin:0; font-size:10px; color:#ffffff; opacity:0.9; line-height:1.3;">Prepare to hike or use specialized local transport.</p></div></div>` : ''}
 
-                                        ${isVisited ?
-                                        `<div style="display:flex; align-items:center; justify-space-between; gap:10px; margin-top:4px;">
-                                                <div style="display:flex; align-items:center; gap:10px;">
-                                                    ${proofImgHtml}
-                                                    <div>
-                                                        <span style="color:#34c759; font-size:12px; font-weight:800; display:block;">
-                                                            <i class="fa-solid fa-circle-check" style="margin-right:4px;"></i> Visited & Verified
-                                                        </span>
-                                                        <span style="font-size:10px; color:#ffffff; opacity:0.8;">Approved by Tourism Office</span>
-                                                    </div>
-                                                </div>
+                                        ${isApproved ?
+                                        `<div style="display:flex; flex-direction:column; gap:8px; margin-top:4px;">
+                                            <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+                                                <span style="color:#34c759; font-size:12px; font-weight:800; display:inline-flex; align-items:center; gap:5px; background:rgba(52,199,89,0.18); padding:4px 10px; border-radius:100px;">
+                                                    <i class="fa-solid fa-circle-check"></i> Visit Verified &bull; +50 Points Awarded
+                                                </span>
                                                 <button type="button" data-spot-id="${item.tourist_spot_id || (dest ? dest.id : '')}" data-spot-classification="${sClass}" onclick="event.stopPropagation(); window.openWriteTestimonyModal('${item.tourist_spot_id || (dest ? dest.id : '')}', this)" style="background:rgba(255,255,255,0.16); border:none !important; outline:none !important; color:#ffffff; font-size:11px; font-weight:800; padding:6px 14px; border-radius:100px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; box-shadow:none; flex-shrink:0;">
                                                     ${(window.userReviewedSpotIds && window.userReviewedSpotIds.has(Number(item.tourist_spot_id || (dest ? dest.id : '')))) ? '<i class="fa-solid fa-check" style="font-size:10px; margin-right:4px;"></i> Reviewed' : `<i class="fa-solid fa-pen" style="font-size:10px;"></i> Review (+${sMeta.points} PTS)`}
                                                 </button>
-                                            </div>` :
+                                            </div>
+                                            ${photosStripHtml}
+                                        </div>` :
                                         (isRejected ?
-                                            `<div style="display:flex; flex-direction:column; gap:6px; margin-top:4px;">
-                                                    <div style="display:flex; align-items:center; gap:10px;">
-                                                        ${proofImgHtml}
-                                                        <div>
-                                                            <span style="color:#ef4444; font-size:12px; font-weight:800; display:block;">
-                                                                <i class="fa-solid fa-circle-xmark" style="margin-right:4px;"></i> Proof Rejected
-                                                            </span>
-                                                            <span style="font-size:10px; color:#ef4444;">${item.rejection_reason || 'Please upload a clearer photo taken at the destination.'}</span>
-                                                        </div>
+                                            `<div style="display:flex; flex-direction:column; gap:8px; margin-top:4px;">
+                                                <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+                                                    <div>
+                                                        <span style="color:#ef4444; font-size:12px; font-weight:800; display:inline-flex; align-items:center; gap:5px;">
+                                                            <i class="fa-solid fa-circle-xmark"></i> Photo Proof Rejected
+                                                        </span>
+                                                        <span style="font-size:10px; color:#fca5a5; display:block; margin-top:2px;">${item.rejection_reason || 'Please upload a clearer photo taken at this destination.'}</span>
                                                     </div>
-                                                    <button class="btn-primary" style="padding: 8px 14px; font-size:12px; font-weight:700; width:max-content; border-radius:100px; background: linear-gradient(135deg, #ef4444, #dc2626); border:none !important; outline:none !important; box-shadow: none; color:#fff; cursor:pointer;" onclick="window.openCheckinModal('${item.id}', '${destEscaped}', '${item.tourist_spot_id || (dest ? dest.id : '')}')">
-                                                        <i class="fa-solid fa-camera" style="margin-right:4px;"></i> Re-upload Photo Proof
+                                                    <button type="button" class="btn-primary" style="padding:7px 14px; font-size:11.5px; font-weight:800; border-radius:100px; background:linear-gradient(135deg, #ef4444, #dc2626); border:none !important; outline:none !important; color:#fff; cursor:pointer;" onclick="event.stopPropagation(); window.openProofUploadModal('${item.id}', '${destEscaped}')">
+                                                        <i class="fa-solid fa-camera" style="margin-right:4px;"></i> Re-upload Proof
                                                     </button>
-                                                </div>` :
+                                                </div>
+                                                ${photosStripHtml}
+                                            </div>` :
                                             (isQueued ?
                                                 `<div style="display:flex; align-items:center; gap:10px; margin-top:4px;">
-                                                        ${queuedThumbnailHtml}
+                                                    ${queuedThumbnailHtml}
+                                                    <div>
+                                                        <span style="background:rgba(245,158,11,0.25); border:none !important; outline:none !important; color:#fbbf24; font-size:11px; font-weight:800; padding:3px 10px; border-radius:100px; display:inline-flex; align-items:center; gap:4px;">
+                                                            <i class="fa-solid fa-clock-rotate-left"></i> Queued for Sync (Offline)
+                                                        </span>
+                                                        <span style="font-size:10px; color:#ffffff; opacity:0.85; display:block; margin-top:4px;"><i class="fa-solid fa-camera" style="color:#fbbf24; margin-right:4px;"></i>Saved on device &bull; Auto-syncs when online</span>
+                                                    </div>
+                                                </div>` :
+                                            (isLocVerified && isPendingProof ?
+                                                `<div style="display:flex; flex-direction:column; gap:8px; margin-top:4px;">
+                                                    <div>
+                                                        <span style="background:rgba(255,149,0,0.22); border:none !important; outline:none !important; color:#ff9f0a; font-size:11.5px; font-weight:800; padding:3px 10px; border-radius:100px; display:inline-flex; align-items:center; gap:5px;">
+                                                            <i class="fa-solid fa-hourglass-half"></i> Awaiting Admin Approval
+                                                        </span>
+                                                        <span style="font-size:10px; color:#ffffff; opacity:0.8; display:block; margin-top:4px;">
+                                                            <i class="fa-solid fa-circle-check" style="color:#34c759; margin-right:3px;"></i> Location Verified &bull; Photos submitted
+                                                        </span>
+                                                    </div>
+                                                    ${photosStripHtml}
+                                                </div>` :
+                                            (!isLocVerified && (isPendingProof || hasProof) ?
+                                                `<div style="display:flex; flex-direction:column; gap:8px; margin-top:4px;">
+                                                    <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
                                                         <div>
-                                                            <span style="background:rgba(245,158,11,0.25); border:none !important; outline:none !important; color:#fbbf24; font-size:11px; font-weight:800; padding:3px 10px; border-radius:100px; display:inline-flex; align-items:center; gap:4px;">
-                                                                <i class="fa-solid fa-clock-rotate-left"></i> Queued for Sync (Offline)
+                                                            <span style="background:rgba(245,158,11,0.22); border:none !important; outline:none !important; color:#fbbf24; font-size:11px; font-weight:800; padding:3px 10px; border-radius:100px; display:inline-flex; align-items:center; gap:5px;">
+                                                                <i class="fa-solid fa-camera"></i> Photo Ready &bull; ⚠️ GPS Check-in Required
                                                             </span>
-                                                            <span style="font-size:10px; color:#ffffff; opacity:0.85; display:block; margin-top:4px;"><i class="fa-solid fa-camera" style="color:#fbbf24; margin-right:4px;"></i>Photo proof saved on device &bull; Auto-syncs when online</span>
+                                                            <span style="font-size:10px; color:#ffffff; opacity:0.8; display:block; margin-top:4px;">Please check in on-site to verify location</span>
                                                         </div>
-                                                    </div>` :
-                                            (isPending ?
-                                                `<div style="display:flex; align-items:center; gap:10px; margin-top:4px;">
-                                                        ${proofImgHtml}
-                                                        <div>
-                                                            <span style="background:rgba(255,149,0,0.2); border:none !important; outline:none !important; color:#FF9500; font-size:11px; font-weight:800; padding:3px 10px; border-radius:100px; display:inline-flex; align-items:center; gap:4px;">
-                                                                <i class="fa-solid fa-clock"></i> Pending Review
-                                                            </span>
-                                                            <span style="font-size:10px; color:#ffffff; opacity:0.8; display:block; margin-top:4px;">Proof submitted &bull; Awaiting approval</span>
-                                                        </div>
-                                                    </div>` :
-                                                `<button class="btn-primary" style="padding: 8px 14px; font-size:12px; font-weight:800; width:max-content; border-radius:100px; background: linear-gradient(135deg, #00f2fe, #0284c7); border:none !important; outline:none !important; box-shadow: none; color:#fff; cursor:pointer;" onclick="window.openCheckinModal('${item.id}', '${destEscaped}', '${item.tourist_spot_id || (dest ? dest.id : '')}')">
-                                                        <i class="fa-solid fa-location-arrow" style="margin-right:4px;"></i> Check In (+50 PTS)
-                                                     </button>`)))
+                                                        <button type="button" class="btn-primary" style="padding:7px 14px; font-size:11.5px; font-weight:800; border-radius:100px; background:linear-gradient(135deg, #00f2fe, #0284c7); border:none !important; outline:none !important; color:#fff; cursor:pointer;" onclick="event.stopPropagation(); window.executeLocationCheckIn('${item.id}', '${destEscaped}', ${dest?.latitude || 'null'}, ${dest?.longitude || 'null'}, this)">
+                                                            <i class="fa-solid fa-location-crosshairs" style="margin-right:4px;"></i> Check In
+                                                        </button>
+                                                    </div>
+                                                    ${photosStripHtml}
+                                                </div>` :
+                                            (isLocVerified && !hasProof ?
+                                                `<div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:4px; flex-wrap:wrap;">
+                                                    <div>
+                                                        <span style="background:rgba(52,199,89,0.18); border:none !important; outline:none !important; color:#34c759; font-size:11px; font-weight:800; padding:3px 10px; border-radius:100px; display:inline-flex; align-items:center; gap:5px;">
+                                                            <i class="fa-solid fa-circle-check"></i> Checked In &bull; ⚠️ Photo Proof Required
+                                                        </span>
+                                                        <span style="font-size:10px; color:#ffffff; opacity:0.8; display:block; margin-top:4px;">Take or upload photos to complete check-in</span>
+                                                    </div>
+                                                    <button type="button" class="btn-primary" style="padding:7px 14px; font-size:11.5px; font-weight:800; border-radius:100px; background:linear-gradient(135deg, #00f2fe, #0284c7); border:none !important; outline:none !important; color:#fff; cursor:pointer;" onclick="event.stopPropagation(); window.openProofUploadModal('${item.id}', '${destEscaped}')">
+                                                        <i class="fa-solid fa-camera" style="margin-right:4px;"></i> Upload Proof
+                                                    </button>
+                                                </div>` :
+                                                `<div style="display:flex; align-items:center; gap:8px; margin-top:6px; flex-wrap:wrap;">
+                                                    <button type="button" class="btn-primary" style="padding:8px 14px; font-size:11.5px; font-weight:800; border-radius:100px; background:linear-gradient(135deg, #00f2fe, #0284c7); border:none !important; outline:none !important; color:#fff; cursor:pointer; display:inline-flex; align-items:center; gap:5px;" onclick="event.stopPropagation(); window.executeLocationCheckIn('${item.id}', '${destEscaped}', ${dest?.latitude || 'null'}, ${dest?.longitude || 'null'}, this)">
+                                                        <i class="fa-solid fa-location-crosshairs"></i> Check In
+                                                    </button>
+                                                    <button type="button" class="btn-primary" style="padding:8px 14px; font-size:11.5px; font-weight:800; border-radius:100px; background:rgba(255,255,255,0.18); border:none !important; outline:none !important; color:#fff; cursor:pointer; display:inline-flex; align-items:center; gap:5px;" onclick="event.stopPropagation(); window.openProofUploadModal('${item.id}', '${destEscaped}')">
+                                                        <i class="fa-solid fa-camera"></i> Upload Proof
+                                                    </button>
+                                                </div>`)))))
+                                        }
                                     }
                                     </div>
                                 </div>`;
@@ -968,28 +1012,47 @@ $backRoute = 'itinerary';
             }
         };
 
-        window.openCheckinModal = function (itemId, spotName = '', spotId = '') {
-            document.getElementById('checkin-item-id').value = itemId;
-            window._currentCheckinSpotId = spotId || null;
-            window._currentCheckinSpotName = spotName || null;
-            if (spotName) {
-                const spotTitleEl = document.getElementById('checkin-spot-title') || document.querySelector('#checkin-modal h3');
-                if (spotTitleEl) spotTitleEl.textContent = spotName;
+        // --- MULTI-PHOTO PROOF & INDEPENDENT LOCATION CHECK-IN HANDLERS ---
+        window.selectedProofPhotos = [];
+        window._currentProofItemId = null;
+        window._currentProofSpotName = null;
+
+        window.openProofUploadModal = function (itemId, spotName = '') {
+            window._currentProofItemId = itemId;
+            window._currentProofSpotName = spotName;
+            window.selectedProofPhotos = [];
+
+            const titleEl = document.getElementById('proof-spot-title');
+            if (titleEl) {
+                titleEl.innerHTML = `<i class="fa-solid fa-camera" style="color:#00f2fe; font-size:17px;"></i> ${spotName || 'Upload Photo Proof'}`;
             }
-            document.getElementById('checkin-modal').style.display = 'flex';
-        };
 
-        window.selectedCheckinImageFile = null;
+            const input = document.getElementById('proof-upload-input');
+            if (input) input.value = '';
 
-        window.openCheckinImagePickerModal = function () {
-            const modal = document.getElementById('checkin-image-picker-modal');
+            window.renderProofThumbnailsGrid();
+
+            const modal = document.getElementById('proof-upload-modal');
             if (modal) modal.style.display = 'flex';
         };
 
-        window.closeCheckinImagePickerModal = function () {
-            const modal = document.getElementById('checkin-image-picker-modal');
+        window.closeProofUploadModal = function () {
+            const modal = document.getElementById('proof-upload-modal');
             if (modal) modal.style.display = 'none';
+            window.selectedProofPhotos = [];
+            window._currentProofItemId = null;
+            window._currentProofSpotName = null;
+
+            const btn = document.getElementById('btn-submit-proof-photos');
+            if (btn) {
+                btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up" style="margin-right:6px;"></i> Submit Photo Proof';
+                btn.disabled = false;
+            }
         };
+
+        // Alias for backwards compatibility
+        window.openCheckinModal = window.openProofUploadModal;
+        window.closeCheckinModal = window.closeProofUploadModal;
 
         window.compressImageFile = async function (fileOrBlob, maxDimension = 1280, quality = 0.8) {
             return new Promise((resolve) => {
@@ -1037,9 +1100,76 @@ $backRoute = 'itinerary';
             });
         };
 
-        window.selectCheckinImageSource = async function (mode) {
-            window.closeCheckinImagePickerModal();
-            const input = document.getElementById('checkin-proof-image');
+        window.renderProofThumbnailsGrid = function () {
+            const emptyPrompt = document.getElementById('proof-empty-prompt');
+            const grid = document.getElementById('proof-thumbnails-grid');
+            const countBadge = document.getElementById('proof-count-badge');
+            const submitBtn = document.getElementById('btn-submit-proof-photos');
+
+            const total = window.selectedProofPhotos.length;
+            if (countBadge) {
+                countBadge.textContent = `${total} / 5 photos`;
+            }
+
+            if (submitBtn) {
+                submitBtn.innerHTML = `<i class="fa-solid fa-cloud-arrow-up" style="margin-right:6px;"></i> Submit Photo Proof ${total > 0 ? `(${total})` : ''}`;
+            }
+
+            if (total === 0) {
+                if (emptyPrompt) emptyPrompt.style.display = 'block';
+                if (grid) {
+                    grid.style.display = 'none';
+                    grid.innerHTML = '';
+                }
+                return;
+            }
+
+            if (emptyPrompt) emptyPrompt.style.display = 'none';
+            if (grid) {
+                grid.style.display = 'grid';
+                let html = '';
+
+                window.selectedProofPhotos.forEach((item, index) => {
+                    html += `
+                        <div style="position:relative; aspect-ratio:1/1; border-radius:14px; overflow:hidden; background:#000; box-shadow:0 4px 12px rgba(0,0,0,0.3); border:1.5px solid rgba(255,255,255,0.2);">
+                            <img src="${item.dataUrl}" alt="Photo ${index + 1}" style="width:100%; height:100%; object-fit:cover; display:block;">
+                            <span style="position:absolute; bottom:4px; left:4px; background:rgba(0,0,0,0.7); color:#fff; font-size:9px; font-weight:800; padding:2px 6px; border-radius:6px;">
+                                ${index + 1}
+                            </span>
+                            <button type="button" onclick="event.stopPropagation(); window.removeProofPhotoAtIndex(${index})" title="Remove Photo"
+                                style="position:absolute; top:4px; right:4px; width:26px; height:26px; border-radius:50%; background:rgba(239,68,68,0.9); color:#fff; border:none; outline:none; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.4);">
+                                <i class="fa-solid fa-xmark" style="font-size:12px;"></i>
+                            </button>
+                        </div>
+                    `;
+                });
+
+                if (total < 5) {
+                    html += `
+                        <div onclick="window.addProofPhotoFromSource('gallery')"
+                            style="aspect-ratio:1/1; border:2px dashed rgba(255,255,255,0.4); border-radius:14px; display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer; background:rgba(255,255,255,0.08); transition:background 0.2s ease;">
+                            <i class="fa-solid fa-plus" style="font-size:20px; color:#00f2fe; margin-bottom:4px;"></i>
+                            <span style="font-size:10px; font-weight:700; color:#ffffff;">Add Photo</span>
+                        </div>
+                    `;
+                }
+
+                grid.innerHTML = html;
+            }
+        };
+
+        window.removeProofPhotoAtIndex = function (index) {
+            if (index >= 0 && index < window.selectedProofPhotos.length) {
+                window.selectedProofPhotos.splice(index, 1);
+                window.renderProofThumbnailsGrid();
+            }
+        };
+
+        window.addProofPhotoFromSource = async function (source) {
+            if (window.selectedProofPhotos.length >= 5) {
+                if (typeof showToast === 'function') showToast('Maximum 5 photos allowed.');
+                return;
+            }
 
             const isCapacitorNative = Boolean(
                 window.Capacitor &&
@@ -1058,7 +1188,7 @@ $backRoute = 'itinerary';
                         height: 1280,
                         allowEditing: false,
                         resultType: 'dataUrl',
-                        source: mode === 'camera' ? 'CAMERA' : 'PHOTOS'
+                        source: source === 'camera' ? 'CAMERA' : 'PHOTOS'
                     });
 
                     if (image && image.dataUrl) {
@@ -1066,236 +1196,254 @@ $backRoute = 'itinerary';
                         const blob = await res.blob();
                         const rawFile = new File([blob], 'proof_' + Date.now() + '.jpg', { type: blob.type || 'image/jpeg' });
                         const compressed = await window.compressImageFile(rawFile, 1280, 0.8);
-                        window.selectedCheckinImageFile = compressed;
-                        window.updateCheckinPhotoPreview(image.dataUrl);
+                        window.selectedProofPhotos.push({
+                            file: compressed,
+                            dataUrl: image.dataUrl
+                        });
+                        window.renderProofThumbnailsGrid();
                     }
                 } catch (err) {
                     console.warn('Capacitor Camera cancel or error:', err);
                 }
             } else {
+                const input = document.getElementById('proof-upload-input');
                 if (!input) return;
-                if (mode === 'camera') {
+
+                if (source === 'camera') {
                     input.setAttribute('capture', 'environment');
+                    input.removeAttribute('multiple');
                 } else {
                     input.removeAttribute('capture');
+                    input.setAttribute('multiple', 'multiple');
                 }
                 input.click();
             }
         };
 
-        window.handlePhotoSelected = async function (input) {
-            if (input.files && input.files[0]) {
-                const rawFile = input.files[0];
+        window.handleProofPhotosSelected = async function (input) {
+            if (!input.files || input.files.length === 0) return;
+
+            const remainingSlots = 5 - window.selectedProofPhotos.length;
+            if (remainingSlots <= 0) {
+                if (typeof showToast === 'function') showToast('Maximum 5 photos allowed.');
+                return;
+            }
+
+            const filesToProcess = Array.from(input.files).slice(0, remainingSlots);
+
+            for (const file of filesToProcess) {
                 try {
-                    const compressed = await window.compressImageFile(rawFile, 1280, 0.8);
-                    window.selectedCheckinImageFile = compressed;
-                    const reader = new FileReader();
-                    reader.onload = function (e) {
-                        window.updateCheckinPhotoPreview(e.target.result);
-                    };
-                    reader.readAsDataURL(compressed);
-                } catch (err) {
-                    window.selectedCheckinImageFile = rawFile;
-                    const reader = new FileReader();
-                    reader.onload = function (e) {
-                        window.updateCheckinPhotoPreview(e.target.result);
-                    };
-                    reader.readAsDataURL(rawFile);
+                    const compressed = await window.compressImageFile(file, 1280, 0.8);
+                    const dataUrl = await new Promise((res) => {
+                        const r = new FileReader();
+                        r.onload = (e) => res(e.target.result);
+                        r.readAsDataURL(compressed);
+                    });
+                    window.selectedProofPhotos.push({
+                        file: compressed,
+                        dataUrl: dataUrl
+                    });
+                } catch (e) {
+                    console.warn('Failed to process file:', e);
                 }
             }
+
+            input.value = '';
+            window.renderProofThumbnailsGrid();
         };
 
-        window.updateCheckinPhotoPreview = function (dataUrl) {
-            const previewContainer = document.getElementById('checkin-photo-preview-container');
-            const previewImg = document.getElementById('checkin-photo-preview-img');
-            const btnText = document.getElementById('photo-status-text');
-            const btn = document.getElementById('btn-select-photo');
+        window.submitProofPhotos = async function () {
+            const itemId = window._currentProofItemId;
+            if (!itemId) return;
 
-            if (previewContainer && previewImg) {
-                previewImg.src = dataUrl;
-                previewContainer.style.display = 'block';
+            if (window.selectedProofPhotos.length === 0) {
+                if (typeof showToast === 'function') showToast('Please select or capture at least one photo proof.');
+                return;
             }
 
-            if (btnText) btnText.textContent = 'Change Photo 📸';
+            const btn = document.getElementById('btn-submit-proof-photos');
             if (btn) {
-                btn.style.background = 'rgba(52, 199, 89, 0.15)';
-                btn.style.borderColor = 'rgba(52, 199, 89, 0.5)';
-                btn.style.color = '#34c759';
-            }
-        };
-
-        window.removeCheckinPhoto = function () {
-            window.selectedCheckinImageFile = null;
-            const imgInput = document.getElementById('checkin-proof-image');
-            if (imgInput) imgInput.value = '';
-
-            const previewContainer = document.getElementById('checkin-photo-preview-container');
-            const previewImg = document.getElementById('checkin-photo-preview-img');
-            if (previewContainer) previewContainer.style.display = 'none';
-            if (previewImg) previewImg.src = '';
-
-            const photoBtn = document.getElementById('btn-select-photo');
-            const photoText = document.getElementById('photo-status-text');
-            if (photoText) photoText.textContent = 'Take or Choose Photo';
-            if (photoBtn) {
-                photoBtn.style.background = 'rgba(56,189,248,0.1)';
-                photoBtn.style.borderColor = 'rgba(56,189,248,0.4)';
-                photoBtn.style.color = '#38bdf8';
-            }
-        };
-
-        window.closeCheckinModal = function () {
-            document.getElementById('checkin-modal').style.display = 'none';
-            document.getElementById('checkin-item-id').value = '';
-            window._currentCheckinSpotId = null;
-            window._currentCheckinSpotName = null;
-            window.removeCheckinPhoto();
-
-            const btn = document.getElementById('btn-verify-gps');
-            if (btn) { btn.innerHTML = '<i class="fa-solid fa-location-crosshairs" style="margin-right:8px;"></i> Verify Location & Submit'; btn.disabled = false; }
-        };
-
-        window.verifyGpsCheckIn = function () {
-            const imageFile = window.selectedCheckinImageFile || (document.getElementById('checkin-proof-image') ? document.getElementById('checkin-proof-image').files[0] : null);
-            if (!imageFile) {
-                if (typeof showToast === 'function') showToast('Please select or capture a photo proof first.');
-                return;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="margin-right:6px;"></i> Uploading Photos...';
+                btn.disabled = true;
             }
 
-            if (!navigator.geolocation) {
-                if (typeof showToast === 'function') showToast('Geolocation is not supported by your device.');
-                return;
-            }
+            const formData = new FormData();
+            window.selectedProofPhotos.forEach((item, idx) => {
+                formData.append('images[]', item.file, item.file.name || `proof_${Date.now()}_${idx}.jpg`);
+            });
+            // Also append single 'image' fallback
+            formData.append('image', window.selectedProofPhotos[0].file);
 
-            const btn = document.getElementById('btn-verify-gps');
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="margin-right:8px;"></i> Getting your location...';
-            btn.disabled = true;
+            const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
 
-            const options = {
-                enableHighAccuracy: true,
-                timeout: 15000,
-                maximumAge: 0
-            };
-
-            const doSubmitCheckin = async (lat, lng) => {
-                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="margin-right:8px;"></i> Verifying...';
-                const itemId = document.getElementById('checkin-item-id').value;
-                if (!itemId) return;
-
-                let fileToUpload = imageFile;
-                if (fileToUpload && (fileToUpload.size > 1024 * 1024 || !fileToUpload.type)) {
-                    try {
-                        fileToUpload = await window.compressImageFile(fileToUpload, 1280, 0.8);
-                    } catch (e) {
-                        console.warn('Saved trips check-in compression failed:', e);
+            const fallbackOffline = async (reason) => {
+                if (window.OfflineCheckinManager) {
+                    const spotName = window._currentProofSpotName || 'Destination';
+                    await window.OfflineCheckinManager.queueOfflineCheckin({
+                        type: 'itinerary',
+                        itemId: itemId,
+                        spotName: spotName,
+                        lat: window.myLat || 16.6159,
+                        lng: window.myLng || 120.3209,
+                        image: window.selectedProofPhotos[0].file,
+                        capturedAt: new Date().toISOString()
+                    });
+                    window.closeProofUploadModal();
+                    if (typeof showToast === 'function') {
+                        showToast('📍 Saved Offline! Photo proof saved on device. Auto-syncs when online.', 'success');
                     }
-                }
-
-                const fallbackToOffline = async (reason) => {
-                    if (window.OfflineCheckinManager) {
-                        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="margin-right:8px;"></i> Saving offline...';
-                        const spotTitleEl = document.getElementById('checkin-spot-title') || document.querySelector('#checkin-modal h3');
-                        const spotName = window._currentCheckinSpotName || (spotTitleEl ? spotTitleEl.textContent.trim() : 'Destination');
-
-                        await window.OfflineCheckinManager.queueOfflineCheckin({
-                            type: 'itinerary',
-                            itemId: itemId,
-                            spotId: window._currentCheckinSpotId || null,
-                            spotName: spotName,
-                            lat: lat,
-                            lng: lng,
-                            accuracy: window.lastGpsAccuracy || null,
-                            image: fileToUpload,
-                            capturedAt: new Date().toISOString()
-                        });
-
-                        window.closeCheckinModal();
-                        if (typeof showToast === 'function') {
-                            showToast('📍 Saved Offline! Check-in & photo proof saved on device. Auto-syncs when online.');
-                        }
-
-                        setTimeout(() => {
-                            if (typeof window.fetchSavedTrips === 'function') {
-                                window.fetchSavedTrips(false);
-                            }
-                        }, 300);
-                    } else {
-                        if (typeof showToast === 'function') showToast(reason || 'Network error. Please try again.');
-                        btn.innerHTML = '<i class="fa-solid fa-location-crosshairs" style="margin-right:8px;"></i> Verify Location & Photo';
+                    setTimeout(() => {
+                        if (typeof window.fetchSavedTrips === 'function') window.fetchSavedTrips(false);
+                    }, 300);
+                } else {
+                    if (typeof showToast === 'function') showToast(reason || 'Upload failed. Please try again.');
+                    if (btn) {
+                        btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up" style="margin-right:6px;"></i> Submit Photo Proof';
                         btn.disabled = false;
                     }
-                };
+                }
+            };
 
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 18000);
 
+            try {
+                const response = await fetch(backendUrl + '/api/tourist/itineraries/items/' + itemId + '/proof', {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Authorization': 'Bearer ' + token,
+                        'ngrok-skip-browser-warning': 'true'
+                    },
+                    body: formData,
+                    signal: controller.signal
+                });
+                clearTimeout(timeoutId);
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    window.closeProofUploadModal();
+                    if (typeof showToast === 'function') {
+                        showToast(data.message || 'Photo proof submitted! Pending review before completion.', 'success');
+                    }
+                    if (window.confetti) {
+                        window.confetti({ particleCount: 80, spread: 60, origin: { y: 0.7 } });
+                    }
+                    const tokenKey = token ? token.substring(0, 10) : '';
+                    localStorage.removeItem('saved_trips_' + tokenKey);
+                    localStorage.removeItem('dashboard_trips_' + tokenKey);
+                    setTimeout(() => {
+                        if (typeof window.fetchSavedTrips === 'function') window.fetchSavedTrips(true);
+                    }, 400);
+                } else {
+                    if (typeof showToast === 'function') showToast(data.message || 'Failed to upload photo proof.');
+                    if (btn) {
+                        btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up" style="margin-right:6px;"></i> Submit Photo Proof';
+                        btn.disabled = false;
+                    }
+                }
+            } catch (err) {
+                clearTimeout(timeoutId);
+                console.warn('Network timeout or error during proof upload, falling back offline:', err);
+                await fallbackOffline('Network timeout during upload.');
+            }
+        };
+
+        window.executeLocationCheckIn = function (itemId, spotName = '', spotLat = null, spotLng = null, btnEl = null) {
+            if (!itemId) return;
+
+            const originalHtml = btnEl ? btnEl.innerHTML : '';
+            if (btnEl) {
+                btnEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Checking in...';
+                btnEl.disabled = true;
+            }
+
+            const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+
+            const doSubmitCheckin = async (lat, lng) => {
                 const formData = new FormData();
                 formData.append('lat', lat);
                 formData.append('lng', lng);
-                formData.append('image', fileToUpload);
                 formData.append('captured_at', new Date().toISOString());
 
                 const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 8000);
+                const timeoutId = setTimeout(() => controller.abort(), 9000);
 
                 try {
-                    const response = await fetch(backendUrl + '/api/tourist/itineraries/items/' + itemId + '/visit', {
+                    const response = await fetch(backendUrl + '/api/tourist/itineraries/items/' + itemId + '/checkin', {
                         method: 'POST',
                         headers: {
                             'Accept': 'application/json',
-                            'ngrok-skip-browser-warning': 'true',
-                            'Authorization': 'Bearer ' + (localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('intan_elyu_token'))
+                            'Authorization': 'Bearer ' + token,
+                            'ngrok-skip-browser-warning': 'true'
                         },
                         body: formData,
                         signal: controller.signal
                     });
                     clearTimeout(timeoutId);
-
                     const data = await response.json();
-                    if (response.ok && (data.success || data.status === 'pending' || data.status === 'approved' || data.status === 'success' || data.already_recorded)) {
-                        window.closeCheckinModal();
-                        if (typeof showToast === 'function') showToast(data.message || 'Photo proof submitted! Pending verification before completion.');
 
-                        const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
-                        if (token) {
-                            localStorage.removeItem('saved_trips_' + token.substring(0, 10));
-                            localStorage.removeItem('dashboard_trips_' + token.substring(0, 10));
+                    if (response.ok && (data.success || data.is_location_verified)) {
+                        if (typeof showToast === 'function') {
+                            showToast(data.message || `📍 Location verified at ${spotName}! Photo proof is required to earn +50 Points.`, 'success');
                         }
-
                         if (window.confetti) {
-                            window.confetti({ particleCount: 80, spread: 60, origin: { y: 0.7 } });
+                            window.confetti({ particleCount: 70, spread: 60, origin: { y: 0.7 } });
                         }
+                        const tokenKey = token ? token.substring(0, 10) : '';
+                        localStorage.removeItem('saved_trips_' + tokenKey);
+                        localStorage.removeItem('dashboard_trips_' + tokenKey);
                         setTimeout(() => {
-                            if (typeof window.fetchSavedTrips === 'function') {
-                                window.fetchSavedTrips(true);
-                            } else {
-                                window.location.reload();
-                            }
+                            if (typeof window.fetchSavedTrips === 'function') window.fetchSavedTrips(true);
                         }, 400);
                     } else {
-                        if (typeof showToast === 'function') showToast(data.message || 'Check-in failed. Please ensure you are at the spot.');
-                        btn.innerHTML = '<i class="fa-solid fa-location-crosshairs" style="margin-right:8px;"></i> Verify Location & Photo';
-                        btn.disabled = false;
+                        if (typeof showToast === 'function') {
+                            showToast(data.message || 'Check-in failed. Please ensure you are at the destination.', 'error');
+                        }
+                        if (btnEl) {
+                            btnEl.innerHTML = originalHtml;
+                            btnEl.disabled = false;
+                        }
                     }
-                } catch (error) {
+                } catch (err) {
                     clearTimeout(timeoutId);
-                    console.warn('Network error or 8s timeout during check-in, falling back to offline queue:', error);
-                    await fallbackToOffline('Low signal / network timeout.');
+                    console.warn('Location check-in error, queuing offline:', err);
+                    if (window.OfflineCheckinManager) {
+                        await window.OfflineCheckinManager.queueOfflineCheckin({
+                            type: 'itinerary',
+                            itemId: itemId,
+                            spotName: spotName || 'Destination',
+                            lat: lat,
+                            lng: lng,
+                            capturedAt: new Date().toISOString()
+                        });
+                        if (typeof showToast === 'function') {
+                            showToast(`📍 Checked in offline at ${spotName}! Auto-syncs when online.`, 'success');
+                        }
+                        setTimeout(() => {
+                            if (typeof window.fetchSavedTrips === 'function') window.fetchSavedTrips(false);
+                        }, 300);
+                    } else {
+                        if (typeof showToast === 'function') showToast('Network error during check-in. Please try again.');
+                        if (btnEl) {
+                            btnEl.innerHTML = originalHtml;
+                            btnEl.disabled = false;
+                        }
+                    }
                 }
             };
 
+            const options = { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 };
+
             if (typeof window.requestPreciseLocation === 'function') {
                 window.requestPreciseLocation(true).then(loc => {
-                    if (loc && loc.lat && loc.lng) {
-                        doSubmitCheckin(loc.lat, loc.lng);
-                    } else {
-                        throw new Error("No coordinates");
-                    }
+                    if (loc && loc.lat && loc.lng) doSubmitCheckin(loc.lat, loc.lng);
+                    else throw new Error("No coords");
                 }).catch(() => {
                     navigator.geolocation.getCurrentPosition(
-                        (position) => {
-                            doSubmitCheckin(position.coords.latitude, position.coords.longitude);
-                        },
-                        (error) => {
-                            console.warn('GPS error, using fallback location:', error);
+                        pos => doSubmitCheckin(pos.coords.latitude, pos.coords.longitude),
+                        err => {
+                            console.warn('GPS error, using fallback location:', err);
                             if (typeof showToast === 'function') showToast('GPS timeout. Using approximate location...');
                             doSubmitCheckin(window.myLat || 16.6159, window.myLng || 120.3209);
                         },
@@ -1304,11 +1452,9 @@ $backRoute = 'itinerary';
                 });
             } else {
                 navigator.geolocation.getCurrentPosition(
-                    (position) => {
-                        doSubmitCheckin(position.coords.latitude, position.coords.longitude);
-                    },
-                    (error) => {
-                        console.warn('GPS error, using fallback location:', error);
+                    pos => doSubmitCheckin(pos.coords.latitude, pos.coords.longitude),
+                    err => {
+                        console.warn('GPS error, using fallback location:', err);
                         if (typeof showToast === 'function') showToast('GPS timeout. Using approximate location...');
                         doSubmitCheckin(window.myLat || 16.6159, window.myLng || 120.3209);
                     },

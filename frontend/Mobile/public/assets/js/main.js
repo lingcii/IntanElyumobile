@@ -3781,40 +3781,114 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
     };
 
     /**
-     * Global Lightbox Proof Photo Viewer Modal
+     * Global Lightbox Proof Photo Viewer Modal (Supports single photo or multiple photos gallery)
      */
-    window.viewProofPhotoModal = function (url, title = 'Visit Proof', subtitle = '') {
-        if (!url) return;
-        const existing = document.getElementById('elyu-proof-viewer-modal');
+    window.viewProofPhotoModal = function (urlOrUrls, title = 'Visit Proof', subtitle = '', initialIndex = 0) {
+        if (!urlOrUrls) return;
+        var urls = [];
+        if (Array.isArray(urlOrUrls)) {
+            urls = urlOrUrls.filter(Boolean);
+        } else if (typeof urlOrUrls === 'string') {
+            try {
+                var parsed = JSON.parse(urlOrUrls);
+                if (Array.isArray(parsed)) urls = parsed.filter(Boolean);
+                else urls = [urlOrUrls];
+            } catch (e) {
+                urls = [urlOrUrls];
+            }
+        }
+        if (!urls.length) return;
+
+        var currentIndex = Math.max(0, Math.min(initialIndex || 0, urls.length - 1));
+        var existing = document.getElementById('elyu-proof-viewer-modal');
         if (existing) existing.remove();
 
-        const modal = document.createElement('div');
+        var modal = document.createElement('div');
         modal.id = 'elyu-proof-viewer-modal';
-        modal.style.cssText = 'display:flex; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.85); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:999999; flex-direction:column; align-items:center; justify-content:center; padding:20px; box-sizing:border-box;';
-        modal.onclick = (e) => {
+        modal.style.cssText = 'display:flex; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.88); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:999999; flex-direction:column; align-items:center; justify-content:center; padding:16px; box-sizing:border-box;';
+        modal.onclick = function (e) {
             if (e.target === modal || e.target.closest('.close-viewer-btn')) {
                 modal.remove();
             }
         };
 
-        modal.innerHTML = `
-            <div style="position:relative; width:100%; max-width:440px; background:linear-gradient(135deg, rgba(30, 58, 138, 0.96), rgba(15, 23, 42, 0.98)); border-radius:24px; padding:20px; box-shadow:0 20px 50px rgba(0,0,0,0.6); display:flex; flex-direction:column; gap:14px; border:1px solid rgba(255,255,255,0.12);" onclick="event.stopPropagation();">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <div>
-                        <h3 style="margin:0; font-size:16px; font-weight:800; color:#ffffff; display:flex; align-items:center; gap:8px;">
-                            <i class="fa-solid fa-camera" style="color:#00f2fe; font-size:15px;"></i> ${title}
-                        </h3>
-                        ${subtitle ? `<span style="font-size:11px; color:#cbd5e1; font-weight:600; display:block; margin-top:2px;">${subtitle}</span>` : ''}
-                    </div>
-                    <button type="button" class="close-viewer-btn" onclick="document.getElementById('elyu-proof-viewer-modal')?.remove();" style="width:34px; height:34px; border-radius:50%; background:rgba(255,255,255,0.15); border:none; outline:none; color:#ffffff; display:flex; align-items:center; justify-content:center; cursor:pointer;">
-                        <i class="fa-solid fa-xmark"></i>
+        function renderContent() {
+            var total = urls.length;
+            var currentUrl = urls[currentIndex];
+            var counterText = total > 1 ? `<span style="font-size:11px; font-weight:800; background:rgba(0,242,254,0.2); color:#00f2fe; padding:2px 8px; border-radius:100px;">${currentIndex + 1} / ${total}</span>` : '';
+
+            var navControls = '';
+            if (total > 1) {
+                navControls = `
+                    <button type="button" class="proof-nav-btn prev" style="position:absolute; left:10px; top:50%; transform:translateY(-50%); width:36px; height:36px; border-radius:50%; background:rgba(15,23,42,0.75); color:#fff; border:1px solid rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; cursor:pointer; z-index:10; backdrop-filter:blur(8px);">
+                        <i class="fa-solid fa-chevron-left"></i>
                     </button>
+                    <button type="button" class="proof-nav-btn next" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); width:36px; height:36px; border-radius:50%; background:rgba(15,23,42,0.75); color:#fff; border:1px solid rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; cursor:pointer; z-index:10; backdrop-filter:blur(8px);">
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+                `;
+            }
+
+            var thumbStrip = '';
+            if (total > 1) {
+                var thumbsHtml = urls.map(function (u, idx) {
+                    var isSelected = (idx === currentIndex);
+                    return `<img src="${u}" data-idx="${idx}" class="proof-thumb-item" style="width:40px; height:40px; border-radius:8px; object-fit:cover; border:${isSelected ? '2px solid #00f2fe' : '1px solid rgba(255,255,255,0.2)'}; opacity:${isSelected ? '1' : '0.6'}; cursor:pointer; flex-shrink:0;">`;
+                }).join('');
+                thumbStrip = `<div style="display:flex; gap:8px; overflow-x:auto; padding:6px 0; justify-content:center; max-width:100%;">${thumbsHtml}</div>`;
+            }
+
+            modal.innerHTML = `
+                <div style="position:relative; width:100%; max-width:440px; background:linear-gradient(135deg, rgba(30, 58, 138, 0.96), rgba(15, 23, 42, 0.98)); border-radius:24px; padding:20px; box-shadow:0 20px 50px rgba(0,0,0,0.6); display:flex; flex-direction:column; gap:14px; border:1px solid rgba(255,255,255,0.12);" onclick="event.stopPropagation();">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <h3 style="margin:0; font-size:16px; font-weight:800; color:#ffffff; display:flex; align-items:center; gap:8px;">
+                                <i class="fa-solid fa-camera" style="color:#00f2fe; font-size:15px;"></i> ${title} ${counterText}
+                            </h3>
+                            ${subtitle ? `<span style="font-size:11px; color:#cbd5e1; font-weight:600; display:block; margin-top:2px;">${subtitle}</span>` : ''}
+                        </div>
+                        <button type="button" class="close-viewer-btn" onclick="document.getElementById('elyu-proof-viewer-modal')?.remove();" style="width:34px; height:34px; border-radius:50%; background:rgba(255,255,255,0.15); border:none; outline:none; color:#ffffff; display:flex; align-items:center; justify-content:center; cursor:pointer;">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                    <div style="position:relative; width:100%; max-height:60vh; min-height:220px; border-radius:16px; overflow:hidden; background:#000; display:flex; align-items:center; justify-content:center;">
+                        <img src="${currentUrl}" alt="Visit Proof" style="width:100%; height:auto; max-height:60vh; object-fit:contain; display:block;">
+                        ${navControls}
+                    </div>
+                    ${thumbStrip}
                 </div>
-                <div style="width:100%; max-height:65vh; border-radius:16px; overflow:hidden; background:#000; display:flex; align-items:center; justify-content:center;">
-                    <img src="${url}" alt="Visit Proof" style="width:100%; height:auto; max-height:65vh; object-fit:contain; display:block;">
-                </div>
-            </div>
-        `;
+            `;
+
+            var prevBtn = modal.querySelector('.proof-nav-btn.prev');
+            var nextBtn = modal.querySelector('.proof-nav-btn.next');
+            if (prevBtn) {
+                prevBtn.onclick = function (ev) {
+                    ev.stopPropagation();
+                    currentIndex = (currentIndex - 1 + total) % total;
+                    renderContent();
+                };
+            }
+            if (nextBtn) {
+                nextBtn.onclick = function (ev) {
+                    ev.stopPropagation();
+                    currentIndex = (currentIndex + 1) % total;
+                    renderContent();
+                };
+            }
+
+            modal.querySelectorAll('.proof-thumb-item').forEach(function (thumb) {
+                thumb.onclick = function (ev) {
+                    ev.stopPropagation();
+                    var targetIdx = parseInt(thumb.getAttribute('data-idx'), 10);
+                    if (!isNaN(targetIdx) && targetIdx !== currentIndex) {
+                        currentIndex = targetIdx;
+                        renderContent();
+                    }
+                };
+            });
+        }
+
+        renderContent();
         document.body.appendChild(modal);
     };
 

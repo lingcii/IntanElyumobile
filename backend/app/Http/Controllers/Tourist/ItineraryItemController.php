@@ -4,9 +4,11 @@ namespace App\Http\Controllers\Tourist;
 
 use App\Http\Controllers\Controller;
 use App\Models\ItineraryItem;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 
 class ItineraryItemController extends Controller
 {
@@ -18,32 +20,257 @@ class ItineraryItemController extends Controller
     private const MAX_DISTANCE_METERS = 300;
 
     /**
-     * PATCH /api/tourist/itineraries/items/{id}/visit
-     * Awards XP only if the user's GPS position is within MAX_DISTANCE_METERS
-     * of the tourist spot's coordinates.
+     * Helper to store multiple proof photos, compressing to WebP and uploading to R2 / local.
+     *
+     * @param array<\Illuminate\Http\UploadedFile> $files
+     * @return array<int, string>
+     */
+    private function storeProofFiles(array $files): array
+    {
+        $urls = [];
+        $r2PublicUrl = rtrim(env('CLOUDFLARE_R2_URL', 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev'), '/');
+
+        foreach ($files as $file) {
+            if (!$file || !$file->isValid()) {
+                continue;
+            }
+
+            try {
+                // 1. Always save compressed WebP copy to local folder
+                $localPath = \App\Helpers\ImageCompressor::compressAndStore($file, 'proof_images', 'public', 'proof_', 1200, 80);
+
+                // 2. Also upload compressed WebP copy to Cloudflare R2 Bucket
+                try {
+                    $r2Path = \App\Helpers\ImageCompressor::compressAndStore($file, 'proof_images', 'r2', 'proof_', 1200, 80);
+                    $urls[] = $r2PublicUrl . '/' . ltrim($r2Path, '/');
+                } catch (\Throwable $r2Exception) {
+                    Log::warning("R2 disk store failed for proof, using local fallback: " . $r2Exception->getMessage());
+                    $urls[] = 'storage/' . $localPath;
+                }
+            } catch (\Throwable $imgErr) {
+                Log::error("Failed to store proof image: " . $imgErr->getMessage());
+            }
+        }
+
+        return $urls;
+    }
+
+    /**
+     * POST /api/tourist/itineraries/items/{id}/checkin
+     * Independent Location Check-In process.
+     * Verifies tourist is physically within 300m of the tourist spot.
+     * Marks location as verified (visited_at) without requiring photos.
+     */
+    public function checkinLocation(Request $request, int $id): JsonResponse
+    {
+        try {
+            $request->validate([
+                'lat'         => 'required|numeric|between:-90,90',
+                'lng'         => 'required|numeric|between:-180,180',
+                'accuracy'    => 'nullable|numeric',
+                'altitude'    => 'nullable|numeric',
+                'speed'       => 'nullable|numeric',
+                'captured_at' => 'nullable|string',
+            ]);
+
+            $user = $request->user();
+
+            $item = ItineraryItem::whereHas('itinerary', fn($q) => $q->where('user_id', $user->id))
+                ->with('destination:id,name,latitude,longitude,classification_status')
+                ->find($id);
+
+            if (!$item) {
+                return response()->json(['message' => 'Itinerary item not found or unauthorized.'], 404);
+            }
+
+            $spot = $item->destination;
+            if (!$spot || !$spot->latitude || !$spot->longitude) {
+                return response()->json(['message' => 'This destination has no GPS coordinates set.'], 422);
+            }
+
+            $capturedAt = null;
+            if ($request->filled('captured_at')) {
+                try {
+                    $parsed = Carbon::parse($request->captured_at);
+                    if ($parsed->lte(now()->addMinutes(10)) && $parsed->gte(now()->subHours(48))) {
+                        $capturedAt = $parsed;
+                    }
+                } catch (\Throwable $e) { }
+            }
+
+            $effectiveTime = $capturedAt ?? now();
+
+            // Anti-Spoofing: Accuracy Check
+            if ($request->has('accuracy') && $request->accuracy > 200) {
+                return response()->json([
+                    'message' => 'GPS accuracy is too low (> ' . round($request->accuracy) . 'm). Please move outside for a clearer signal.'
+                ], 403);
+            }
+
+            // Anti-Spoofing: Teleportation Check (Max 200 km/h) against last GPS ping
+            if (isset($user->last_gps_ping_at, $user->last_gps_lat, $user->last_gps_lng)) {
+                $lastPing = Carbon::parse($user->last_gps_ping_at);
+                $timeDiff = abs($effectiveTime->diffInSeconds($lastPing));
+
+                if ($timeDiff > 0 && $timeDiff < 86400) {
+                    $distFromLast = $this->haversine(
+                         (float) $request->lat,
+                         (float) $request->lng,
+                         (float) $user->last_gps_lat,
+                         (float) $user->last_gps_lng
+                    );
+
+                    $speedKmh = ($distFromLast / $timeDiff) * 3.6;
+
+                    if ($speedKmh > 200) {
+                        return response()->json([
+                            'message' => 'Suspicious location jump detected. Teleportation is not permitted! 🚫'
+                        ], 403);
+                    }
+                }
+            }
+
+            // Haversine distance
+            $distanceMeters = $this->haversine(
+                (float) $request->lat,
+                (float) $request->lng,
+                (float) $spot->latitude,
+                (float) $spot->longitude
+            );
+
+            if ($distanceMeters > self::MAX_DISTANCE_METERS) {
+                return response()->json([
+                    'message'  => "You're too far from {$spot->name}. Get within " . self::MAX_DISTANCE_METERS . "m to check in! 📍",
+                    'distance' => round($distanceMeters) . 'm away',
+                    'required' => self::MAX_DISTANCE_METERS . 'm',
+                ], 403);
+            }
+
+            // Record location verification
+            $item->update([
+                'visited_at' => $effectiveTime,
+            ]);
+
+            try {
+                $shouldUpdatePing = !$user->last_gps_ping_at || ($effectiveTime->gte(Carbon::parse($user->last_gps_ping_at)));
+                if ($shouldUpdatePing) {
+                    $user->update([
+                        'last_gps_lat'     => $request->lat,
+                        'last_gps_lng'     => $request->lng,
+                        'last_gps_ping_at' => $effectiveTime,
+                    ]);
+                }
+            } catch (\Throwable $e) {
+                Log::warning("Could not update user GPS ping: " . $e->getMessage());
+            }
+
+            return response()->json([
+                'success'              => true,
+                'is_location_verified' => true,
+                'visited_at'           => $effectiveTime->toIso8601String(),
+                'distance'             => round($distanceMeters) . 'm',
+                'message'              => "Location verified at {$spot->name}! 📍 Photo proof is required to earn points.",
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $ve) {
+            return response()->json([
+                'message' => 'Validation error: ' . implode(' ', \Illuminate\Support\Arr::flatten($ve->errors())),
+                'errors'  => $ve->errors(),
+            ], 422);
+        } catch (\Throwable $ex) {
+            Log::error("Check-in error on item {$id}: " . $ex->getMessage());
+            return response()->json([
+                'message' => 'Unable to verify location: ' . $ex->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * POST /api/tourist/itineraries/items/{id}/proof
+     * Independent Photo Proof Upload process.
+     * Supports multiple photo selection (up to 5 photos).
+     * Sets proof_status to 'pending' without requiring immediate GPS check-in.
+     */
+    public function uploadProof(Request $request, int $id): JsonResponse
+    {
+        try {
+            $user = $request->user();
+
+            $item = ItineraryItem::whereHas('itinerary', fn($q) => $q->where('user_id', $user->id))
+                ->with('destination:id,name')
+                ->find($id);
+
+            if (!$item) {
+                return response()->json(['message' => 'Itinerary item not found or unauthorized.'], 404);
+            }
+
+            // Gather all uploaded files (supports 'images[]', 'images', or single 'image')
+            $files = [];
+            if ($request->hasFile('images')) {
+                $uploaded = $request->file('images');
+                $files = is_array($uploaded) ? $uploaded : [$uploaded];
+            } elseif ($request->hasFile('image')) {
+                $files = [$request->file('image')];
+            }
+
+            if (empty($files)) {
+                return response()->json([
+                    'message' => 'Please select at least one photo proof to upload.',
+                    'errors'  => ['images' => ['No photos were uploaded.']]
+                ], 422);
+            }
+
+            // Limit to max 5 photos
+            $files = array_slice($files, 0, 5);
+
+            $storedUrls = $this->storeProofFiles($files);
+
+            if (empty($storedUrls)) {
+                return response()->json([
+                    'message' => 'Could not process uploaded photos. Please try different photos.',
+                ], 422);
+            }
+
+            // Store JSON array of image URLs
+            $jsonImages = json_encode($storedUrls);
+
+            $item->update([
+                'proof_image'      => $jsonImages,
+                'proof_status'     => 'pending',
+                'rejection_reason' => null,
+            ]);
+
+            return response()->json([
+                'success'      => true,
+                'proof_status' => 'pending',
+                'proof_image'  => $storedUrls[0],
+                'proof_images' => $storedUrls,
+                'message'      => 'Photo proof submitted! Awaiting review before completion.',
+            ]);
+        } catch (\Throwable $ex) {
+            Log::error("Proof upload error on item {$id}: " . $ex->getMessage());
+            return response()->json([
+                'message' => 'Failed to upload photo proof: ' . $ex->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * PATCH/POST /api/tourist/itineraries/items/{id}/visit
+     * Combined GPS check-in and multi-photo proof upload.
      */
     public function visit(Request $request, int $id): JsonResponse
     {
         try {
-            // Check PHP ini upload error first to provide friendly feedback
-            if (isset($_FILES['image']) && !empty($_FILES['image']['name'])) {
-                $uploadErr = $_FILES['image']['error'] ?? UPLOAD_ERR_OK;
-                if ($uploadErr === UPLOAD_ERR_INI_SIZE || $uploadErr === UPLOAD_ERR_FORM_SIZE) {
-                    return response()->json([
-                        'message' => 'The selected photo is too large for the server. Please select or capture a lighter photo.',
-                        'errors'  => ['image' => ['The photo exceeds the server upload limit.']]
-                    ], 422);
-                }
-            }
-
             $request->validate([
-                'lat' => 'required|numeric|between:-90,90',
-                'lng' => 'required|numeric|between:-180,180',
-                'accuracy' => 'nullable|numeric',
-                'altitude' => 'nullable|numeric',
-                'speed' => 'nullable|numeric',
+                'lat'         => 'required|numeric|between:-90,90',
+                'lng'         => 'required|numeric|between:-180,180',
+                'accuracy'    => 'nullable|numeric',
+                'altitude'    => 'nullable|numeric',
+                'speed'       => 'nullable|numeric',
                 'captured_at' => 'nullable|string',
-                'image' => 'nullable|file|max:20480',
+                'image'       => 'nullable|file|max:20480',
+                'images'      => 'nullable|array',
+                'images.*'    => 'file|max:20480',
             ]);
 
             $user = $request->user();
@@ -59,10 +286,10 @@ class ItineraryItemController extends Controller
             // Graceful idempotency for retried offline syncs
             if ($item->is_visited || in_array($item->proof_status, ['pending', 'approved'])) {
                 return response()->json([
-                    'success' => true,
+                    'success'          => true,
                     'already_recorded' => true,
-                    'status' => $item->proof_status ?? ($item->is_visited ? 'approved' : 'pending'),
-                    'message' => 'Check-in proof already recorded for this destination.',
+                    'status'           => $item->proof_status ?? ($item->is_visited ? 'approved' : 'pending'),
+                    'message'          => 'Check-in proof already recorded for this destination.',
                 ], 200);
             }
 
@@ -72,11 +299,10 @@ class ItineraryItemController extends Controller
                 return response()->json(['message' => 'This destination has no GPS coordinates set.'], 422);
             }
 
-            // Parse optional captured_at timestamp from offline cached submission
             $capturedAt = null;
             if ($request->filled('captured_at')) {
                 try {
-                    $parsed = \Carbon\Carbon::parse($request->captured_at);
+                    $parsed = Carbon::parse($request->captured_at);
                     if ($parsed->lte(now()->addMinutes(10)) && $parsed->gte(now()->subHours(48))) {
                         $capturedAt = $parsed;
                     }
@@ -94,7 +320,7 @@ class ItineraryItemController extends Controller
 
             // Anti-Spoofing: Teleportation Check (Max 200 km/h) against last GPS ping
             if (isset($user->last_gps_ping_at, $user->last_gps_lat, $user->last_gps_lng)) {
-                $lastPing = \Carbon\Carbon::parse($user->last_gps_ping_at);
+                $lastPing = Carbon::parse($user->last_gps_ping_at);
                 $timeDiff = abs($effectiveTime->diffInSeconds($lastPing));
                 
                 if ($timeDiff > 0 && $timeDiff < 86400) {
@@ -133,39 +359,31 @@ class ItineraryItemController extends Controller
 
             $itemData = [
                 'is_visited'   => false,
-                'proof_status' => 'pending',
+                'visited_at'   => $effectiveTime,
             ];
 
-            if ($capturedAt) {
-                $itemData['visited_at'] = $capturedAt;
+            // Collect files
+            $files = [];
+            if ($request->hasFile('images')) {
+                $uploaded = $request->file('images');
+                $files = is_array($uploaded) ? $uploaded : [$uploaded];
+            } elseif ($request->hasFile('image')) {
+                $files = [$request->file('image')];
             }
 
-            if ($request->hasFile('image')) {
-                try {
-                    $file = $request->file('image');
-
-                    // 1. Always save a compressed WebP copy to local folder: backend/storage/app/public/proof_images/
-                    $localPath = \App\Helpers\ImageCompressor::compressAndStore($file, 'proof_images', 'public', 'proof_', 1200, 80);
-
-                    // 2. Also upload compressed WebP copy to Cloudflare R2 Bucket
-                    $disk = 'r2';
-                    try {
-                        $r2Path = \App\Helpers\ImageCompressor::compressAndStore($file, 'proof_images', 'r2', 'proof_', 1200, 80);
-                        $r2PublicUrl = rtrim(env('CLOUDFLARE_R2_URL', 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev'), '/');
-                        $itemData['proof_image'] = $r2PublicUrl . '/' . ltrim($r2Path, '/');
-                    } catch (\Throwable $r2Exception) {
-                        \Illuminate\Support\Facades\Log::warning("R2 disk store failed, using local disk fallback: " . $r2Exception->getMessage());
-                        $itemData['proof_image'] = 'storage/' . $localPath;
-                    }
-                } catch (\Throwable $imgErr) {
-                    \Illuminate\Support\Facades\Log::error("Failed to store proof image: " . $imgErr->getMessage());
+            if (!empty($files)) {
+                $files = array_slice($files, 0, 5);
+                $storedUrls = $this->storeProofFiles($files);
+                if (!empty($storedUrls)) {
+                    $itemData['proof_image']  = json_encode($storedUrls);
+                    $itemData['proof_status'] = 'pending';
                 }
             }
 
             $item->update($itemData);
 
             try {
-                $shouldUpdatePing = !$user->last_gps_ping_at || ($effectiveTime->gte(\Carbon\Carbon::parse($user->last_gps_ping_at)));
+                $shouldUpdatePing = !$user->last_gps_ping_at || ($effectiveTime->gte(Carbon::parse($user->last_gps_ping_at)));
                 if ($shouldUpdatePing) {
                     $user->update([
                         'last_gps_lat'     => $request->lat,
@@ -174,23 +392,26 @@ class ItineraryItemController extends Controller
                     ]);
                 }
             } catch (\Throwable $e) {
-                \Illuminate\Support\Facades\Log::warning("Could not update user GPS ping: " . $e->getMessage());
+                Log::warning("Could not update user GPS ping: " . $e->getMessage());
             }
 
             return response()->json([
-                'success'     => true,
-                'status'      => 'pending',
-                'message'     => "Photo proof submitted! Pending verification before completion.",
-                'proof_image' => $itemData['proof_image'] ?? null,
-                'distance'    => round($distanceMeters) . 'm',
+                'success'              => true,
+                'status'               => $itemData['proof_status'] ?? 'verified',
+                'is_location_verified' => true,
+                'visited_at'           => $effectiveTime->toIso8601String(),
+                'message'              => !empty($itemData['proof_image']) ? "Photo proof submitted! Pending verification before completion." : "GPS Check-in verified! Photo proof required to earn points.",
+                'proof_image'          => $item->proof_image,
+                'proof_images'         => $item->proof_images,
+                'distance'             => round($distanceMeters) . 'm',
             ]);
         } catch (\Illuminate\Validation\ValidationException $ve) {
             return response()->json([
                 'message' => 'Validation error: ' . implode(' ', \Illuminate\Support\Arr::flatten($ve->errors())),
-                'errors' => $ve->errors(),
+                'errors'  => $ve->errors(),
             ], 422);
         } catch (\Throwable $ex) {
-            \Illuminate\Support\Facades\Log::error("Check-in error on item {$id}: " . $ex->getMessage() . "\n" . $ex->getTraceAsString());
+            Log::error("Check-in error on item {$id}: " . $ex->getMessage() . "\n" . $ex->getTraceAsString());
             return response()->json([
                 'message' => 'Unable to complete check-in: ' . $ex->getMessage(),
             ], 500);

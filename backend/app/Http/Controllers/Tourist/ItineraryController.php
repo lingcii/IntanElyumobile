@@ -89,13 +89,15 @@ class ItineraryController extends Controller
         }
 
         return [
-            'id'               => $item->id,
-            'order_index'      => (int) ($item->order_index ?? 0),
-            'is_visited'       => $item->is_visited,
-            'proof_image'      => $item->proof_image,
-            'proof_status'     => $item->proof_status ?? ($item->proof_image ? ($item->is_visited ? 'approved' : 'pending') : null),
-            'rejection_reason' => $item->rejection_reason,
-            'visited_at'       => $item->visited_at,
+            'id'                   => $item->id,
+            'order_index'          => (int) ($item->order_index ?? 0),
+            'is_visited'           => (bool) $item->is_visited,
+            'is_location_verified' => (bool) ($item->visited_at !== null),
+            'proof_image'          => $item->proof_image,
+            'proof_images'         => $item->proof_images ?? [],
+            'proof_status'         => $item->proof_status ?? ($item->proof_image ? ($item->is_visited ? 'approved' : 'pending') : null),
+            'rejection_reason'     => $item->rejection_reason,
+            'visited_at'           => $item->visited_at,
             'transport_mode'   => $item->transport_mode,
             'leg_cost'         => (float) ($item->leg_cost ?? 0),
             'leg_distance_km'  => $item->leg_distance_km !== null ? (float) $item->leg_distance_km : null,

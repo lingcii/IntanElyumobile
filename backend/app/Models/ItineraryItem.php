@@ -32,6 +32,61 @@ class ItineraryItem extends Model
         'leg_distance_km' => 'decimal:2',
     ];
 
+    protected $appends = [
+        'proof_images',
+        'is_location_verified',
+    ];
+
+    /**
+     * Get the primary proof image URL string.
+     * Backwards-compatible with consumers expecting a single string URL.
+     */
+    public function getProofImageAttribute($value): ?string
+    {
+        if (empty($value)) {
+            return null;
+        }
+
+        if (is_string($value) && str_starts_with(trim($value), '[') && str_ends_with(trim($value), ']')) {
+            $decoded = json_decode($value, true);
+            if (is_array($decoded) && count($decoded) > 0) {
+                return $decoded[0];
+            }
+        }
+
+        return $value;
+    }
+
+    /**
+     * Get all proof image URLs as an array.
+     *
+     * @return array<int, string>
+     */
+    public function getProofImagesAttribute(): array
+    {
+        $raw = $this->attributes['proof_image'] ?? null;
+        if (empty($raw)) {
+            return [];
+        }
+
+        if (is_string($raw) && str_starts_with(trim($raw), '[') && str_ends_with(trim($raw), ']')) {
+            $decoded = json_decode($raw, true);
+            if (is_array($decoded)) {
+                return array_values(array_filter($decoded));
+            }
+        }
+
+        return [$raw];
+    }
+
+    /**
+     * Check whether GPS location has been verified.
+     */
+    public function getIsLocationVerifiedAttribute(): bool
+    {
+        return $this->visited_at !== null;
+    }
+
     protected static function booted(): void
     {
         static::updated(function (ItineraryItem $item) {

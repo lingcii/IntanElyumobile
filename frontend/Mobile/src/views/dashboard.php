@@ -1427,30 +1427,52 @@ if (is_dir($imgDir)) {
                             const isQueued = Boolean(queuedItem);
 
                             let proofImgHtml = '';
-                            if (item.proof_image) {
-                                let pUrl = item.proof_image;
+                            let proofImages = [];
+                            if (Array.isArray(item.proof_images) && item.proof_images.length > 0) {
+                                proofImages = item.proof_images;
+                            } else if (item.proof_image) {
+                                try {
+                                    const parsed = JSON.parse(item.proof_image);
+                                    if (Array.isArray(parsed)) proofImages = parsed;
+                                    else proofImages = [item.proof_image];
+                                } catch (e) {
+                                    proofImages = [item.proof_image];
+                                }
+                            }
+                            if (proofImages.length > 0) {
+                                let pUrl = proofImages[0];
                                 if (!pUrl.startsWith('http') && !pUrl.startsWith('data:') && !pUrl.startsWith('blob:')) {
                                     let b = (window.backendUrl || '').replace(/\/+$/, '');
                                     pUrl = b + '/' + pUrl.replace(/^\//, '');
                                 }
-                                const cleanImgName = item.proof_image.split('/').pop().replace(/[?#].*$/, '');
+                                const cleanImgName = pUrl.split('/').pop().replace(/[?#].*$/, '');
                                 let fallbackUrl = (window.backendUrl || '').replace(/\/+$/, '') + '/api/image/proof_images/' + cleanImgName;
                                 const destEscaped = destName.replace(/'/g, "\\'");
-                                proofImgHtml = `<img src="${pUrl}" onerror="if(this.dataset.triedFallback!=='1'){this.dataset.triedFallback='1';this.src='${fallbackUrl}';}" onclick="event.stopPropagation(); if(typeof window.viewProofPhotoModal==='function') window.viewProofPhotoModal('${pUrl}', '${destEscaped}', '${item.is_visited ? 'Verified Visit Proof' : 'Pending Verification'}');" alt="Proof" title="Tap to view proof photo" style="width:28px; height:28px; border-radius:8px; object-fit:cover; border:1px solid ${item.is_visited ? 'rgba(52,199,89,0.5)' : (item.proof_status === 'rejected' ? 'rgba(239,68,68,0.5)' : 'rgba(255,149,0,0.5)')}; flex-shrink:0; cursor:pointer;">`;
+                                const jsonUrlsAttr = JSON.stringify(proofImages).replace(/"/g, '&quot;');
+                                proofImgHtml = `<div style="position:relative; flex-shrink:0;">
+                                    <img src="${pUrl}" onerror="if(this.dataset.triedFallback!=='1'){this.dataset.triedFallback='1';this.src='${fallbackUrl}';}" onclick="event.stopPropagation(); if(typeof window.viewProofPhotoModal==='function') window.viewProofPhotoModal(${jsonUrlsAttr}, '${destEscaped}', '${item.is_visited ? 'Verified Visit Proof' : 'Pending Verification'}');" alt="Proof" title="Tap to view proof photo" style="width:28px; height:28px; border-radius:8px; object-fit:cover; border:1px solid ${item.is_visited ? 'rgba(52,199,89,0.5)' : (item.proof_status === 'rejected' ? 'rgba(239,68,68,0.5)' : 'rgba(255,149,0,0.5)')}; flex-shrink:0; cursor:pointer;">
+                                    ${proofImages.length > 1 ? `<span style="position:absolute; bottom:0; right:0; background:rgba(0,0,0,0.75); color:#fff; font-size:6.5px; font-weight:800; padding:0 2px; border-radius:2px;">+${proofImages.length - 1}</span>` : ''}
+                                </div>`;
                             } else if (isQueued && queuedItem && queuedItem.previewUrl) {
                                 const destEscaped = destName.replace(/'/g, "\\'");
                                 proofImgHtml = `<img src="${queuedItem.previewUrl}" onclick="event.stopPropagation(); if(typeof window.viewProofPhotoModal==='function') window.viewProofPhotoModal('${queuedItem.previewUrl}', '${destEscaped}', 'Offline Proof (Queued on Device)');" alt="Proof" title="Tap to view offline proof photo" style="width:28px; height:28px; border-radius:8px; object-fit:cover; border:1.5px solid #f59e0b; flex-shrink:0; cursor:pointer;">`;
                             }
 
                             let proofBadge = '';
+                            const isLocVerified = Boolean(item.is_location_verified || item.visited_at);
+                            const hasProof = Boolean(proofImages.length > 0);
                             if (isQueued) {
                                 proofBadge = `<span style="font-size:10px; font-weight:800; color:#fbbf24; background:rgba(245,158,11,0.18); border:1px solid rgba(245,158,11,0.35); padding:2px 8px; border-radius:100px; margin-left:auto; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-cloud-arrow-up"></i> Queued</span>`;
                             } else if (item.is_visited || item.proof_status === 'approved') {
                                 proofBadge = `<span style="font-size:10px; font-weight:800; color:#34c759; background:rgba(52,199,89,0.15); border:1px solid rgba(52,199,89,0.3); padding:2px 8px; border-radius:100px; margin-left:auto; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-circle-check"></i> Verified</span>`;
                             } else if (item.proof_status === 'rejected') {
                                 proofBadge = `<span style="font-size:10px; font-weight:800; color:#ef4444; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.3); padding:2px 8px; border-radius:100px; margin-left:auto; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-circle-xmark"></i> Rejected</span>`;
-                            } else if (item.proof_status === 'pending' || item.proof_image) {
+                            } else if (isLocVerified && hasProof) {
                                 proofBadge = `<span style="font-size:10px; font-weight:800; color:#FF9500; background:rgba(255,149,0,0.15); border:1px solid rgba(255,149,0,0.3); padding:2px 8px; border-radius:100px; margin-left:auto; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-clock"></i> Pending</span>`;
+                            } else if (isLocVerified && !hasProof) {
+                                proofBadge = `<span style="font-size:10px; font-weight:800; color:#38bdf8; background:rgba(56,189,248,0.15); border:1px solid rgba(56,189,248,0.3); padding:2px 8px; border-radius:100px; margin-left:auto; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-location-dot"></i> Checked In</span>`;
+                            } else if (!isLocVerified && hasProof) {
+                                proofBadge = `<span style="font-size:10px; font-weight:800; color:#a78bfa; background:rgba(167,139,250,0.15); border:1px solid rgba(167,139,250,0.3); padding:2px 8px; border-radius:100px; margin-left:auto; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-camera"></i> Photo Ready</span>`;
                             }
 
                             destinationsHtml += `
