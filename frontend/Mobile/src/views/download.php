@@ -951,8 +951,8 @@ $gdriveMirrorUrl = getenv('APK_GDRIVE_MIRROR_URL') ?: '';
 
         <div class="step-card">
           <div class="step-number-ring">3</div>
-          <h4>Level Up & Badges</h4>
-          <p>Rise from <em>Novice Explorer</em> to <em>Elyu Master</em>, unlocking badges and leaderboard ranks.</p>
+          <h4>Level Up & Rankings</h4>
+          <p>Rise from <em>Novice Explorer</em> to <em>Elyu Master</em>, climbing the community leaderboard ranks.</p>
         </div>
 
         <div class="step-card">
