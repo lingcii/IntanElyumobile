@@ -14,7 +14,7 @@
     width: 100% !important;
     height: 0 !important;
     overflow: visible !important;
-    z-index: 99999 !important;
+    z-index: 9500 !important;
     pointer-events: none !important;
     margin: 0 !important;
     padding: 0 !important;
@@ -30,7 +30,7 @@
     width: calc(100% - clamp(16px, 4vw, 32px)) !important;
     max-width: 448px !important;
     height: 66px !important;
-    z-index: 99999 !important;
+    z-index: 9500 !important;
     pointer-events: auto !important;
     transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.32s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.4s ease !important;
 }
@@ -66,6 +66,21 @@ html.sheet-open #bottom-navigation,
     pointer-events: none !important;
     transform: translateY(140px) !important;
     visibility: hidden !important;
+}
+
+/* ── Blur & disable Navigation Bar when modals, notifications, or itinerary add dialog are open ── */
+body.notif-open .magic-nav,
+html.notif-open .magic-nav,
+body.itin-confirm-open .magic-nav,
+html.itin-confirm-open .magic-nav,
+body.modal-blurred .magic-nav,
+html.modal-blurred .magic-nav {
+    filter: blur(14px) brightness(0.65) !important;
+    -webkit-filter: blur(14px) brightness(0.65) !important;
+    opacity: 0.28 !important;
+    pointer-events: none !important;
+    user-select: none !important;
+    transition: filter 0.3s ease, opacity 0.3s ease, transform 0.3s ease !important;
 }
 
 

@@ -7,28 +7,27 @@ android {
         applicationId "com.intan.elyu"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 6
-        versionName "1.4.0"
+        versionCode 1
+        versionName "0.0.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        aaptOptions {
+        androidResources {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
-             // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~:!*.apk'
         }
     }
     signingConfigs {
         release {
             storeFile file('intan-elyu-key.jks')
-            storePassword 'IntanElyu2026!'
-            keyAlias 'intanelyu'
-            keyPassword 'IntanElyu2026!'
+            storePassword System.getenv("INTAN_KEYSTORE_PASSWORD") ?: System.getenv("KEYSTORE_PASSWORD") ?: 'IntanElyu2026!'
+            keyAlias System.getenv("INTAN_KEY_ALIAS") ?: System.getenv("KEY_ALIAS") ?: 'intanelyu'
+            keyPassword System.getenv("INTAN_KEY_PASSWORD") ?: System.getenv("KEY_PASSWORD") ?: 'IntanElyu2026!'
         }
     }
     buildTypes {
         release {
             signingConfig signingConfigs.release
             minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
     compileOptions {
@@ -77,10 +76,22 @@ def syncApkToWeb(String buildType) {
             into targetDir
             rename { 'intan-elyu.apk' }
         }
+        def srcDownloads = file("${projectDir}/../../src/downloads")
+        srcDownloads.mkdirs()
+        copy {
+            from srcApk
+            into srcDownloads
+            rename { 'intan-elyu.apk' }
+        }
         copy {
             from srcApk
             into file("${projectDir}/../..")
             rename { "app-${buildType}.apk" }
+        }
+        copy {
+            from srcApk
+            into file("${projectDir}/../..")
+            rename { "IntanElyu-v${android.defaultConfig.versionName}-${buildType}.apk" }
         }
         println "[Intan Elyu] Synchronized fresh ${buildType} APK (${srcApk.length()} bytes) to public/downloads/intan-elyu.apk"
     }

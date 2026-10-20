@@ -634,30 +634,6 @@ if (is_dir($imgDir)) {
                         style="font-size:11px; font-weight:800; padding:3px 10px; border-radius:100px; background:rgba(255,255,255,0.2); color:#ffffff;">--</span>
                 </div>
 
-                <!-- Private Vehicle Access -->
-                <div
-                    style="margin-bottom:8px; background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.18); border-radius:12px; padding:9px 12px;">
-                    <div
-                        style="font-size:11px; font-weight:800; color:#00f2fe; margin-bottom:5px; display:flex; align-items:center; gap:5px;">
-                        <i class="fa-solid fa-car" style="font-size:10px; color:#00f2fe;"></i> Private Vehicle
-                    </div>
-                    <div id="sheet-private-vehicles-list" style="display:flex; flex-wrap:wrap; gap:6px;">
-                        <!-- Injected via JS -->
-                    </div>
-                </div>
-
-                <!-- Public Vehicle Access -->
-                <div
-                    style="margin-bottom:12px; background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.18); border-radius:12px; padding:9px 12px;">
-                    <div
-                        style="font-size:11px; font-weight:800; color:#fed7aa; margin-bottom:5px; display:flex; align-items:center; gap:5px;">
-                        <i class="fa-solid fa-bus" style="font-size:10px; color:#fb923c;"></i> Public Vehicle
-                    </div>
-                    <div id="sheet-public-vehicles-list" style="display:flex; flex-wrap:wrap; gap:6px;">
-                        <!-- Injected via JS -->
-                    </div>
-                </div>
-
                 <!-- Vehicles Action Button (White button with royal blue text) -->
                 <button id="sheet-btn-view-vehicles" type="button" onclick="window.openSpotVehiclesModal()"
                     style="width:100%; border:none !important; outline:none !important; border-radius:14px; padding:12px 14px; font-size:13px; font-weight:800; display:flex; align-items:center; justify-content:center; gap:8px; transition:all 0.2s ease; background:#ffffff !important; color:#1e3a8a !important; box-shadow:0 4px 14px rgba(0,0,0,0.15); cursor:pointer;">
@@ -907,12 +883,14 @@ if (is_dir($imgDir)) {
         window.currentDestinationForRoute = null;
         window.mapMarkers = [];
 
+        const getAppBackendUrl = () => (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
+
         window.initMap = async function () {
             const mapEl = document.getElementById('tourist-map');
             if (!mapEl) return;
 
             // Fetch data immediately (Cache + SWR in parallel with MapLibre initialization)
-            const _backendBase = window.backendUrl || '';
+            const _backendBase = getAppBackendUrl();
             const mapCacheKey = 'public_map_data';
             let cachedMapData = null;
             try {
@@ -975,7 +953,7 @@ if (is_dir($imgDir)) {
                 }
             })();
 
-            const regionDataPromise = fetch('assets/la_union_municipalities.json').then(r => r.json()).catch(e => console.error("Region fetch error:", e));
+            const muniGeoJsonPromise = fetch('assets/la_union_municipalities.json').then(r => r.json()).catch(e => { console.warn("Municipalities GeoJSON fetch error:", e); return null; });
 
             // Fetch fare rates and vehicle data with SWR localStorage caching (eliminates Railway hits)
             const FARES_CACHE_KEY = 'public_fare_data';
@@ -1131,7 +1109,7 @@ if (is_dir($imgDir)) {
                     if (data && data.destinations) {
                         window.allMapLocations = (data.destinations || []).filter(d => !d.status || d.status.toLowerCase() !== 'pending');
                         setupFilters();
-                        renderMarkers(window.allMapLocations);
+                        window.renderMarkers(window.allMapLocations);
 
                         setTimeout(() => {
                             const filterCat = localStorage.getItem('intan_elyu_filter_category');
@@ -1163,7 +1141,7 @@ if (is_dir($imgDir)) {
                                         if (pLat && pLng && !isNaN(parseFloat(pLat)) && !isNaN(parseFloat(pLng))) {
                                             window.openSheet(place);
                                             setTimeout(() => {
-                                                const routeBtn = document.getElementById('btn-show-route');
+                                                const routeBtn = document.getElementById('sheet-btn-view-vehicles') || document.getElementById('btn-show-route');
                                                 if (routeBtn) routeBtn.click();
                                             }, 800);
                                         }
@@ -1191,51 +1169,9 @@ if (is_dir($imgDir)) {
                     console.error("Map data processing error:", error);
                 }
 
-                try {
-                    // Wait for the parallel region data fetch
-                    const regionData = await regionDataPromise;
-                    if (regionData && regionData[0] && regionData[0].geojson) {
-                        const geojson = regionData[0].geojson;
-
-                        const worldBox = [[180, 90], [-180, 90], [-180, -90], [180, -90], [180, 90]];
-                        let coordinates = [];
-                        if (geojson.type === 'Polygon') {
-                            coordinates = [worldBox, ...geojson.coordinates];
-                        } else if (geojson.type === 'MultiPolygon') {
-                            let holes = [];
-                            geojson.coordinates.forEach(polygon => { holes.push(polygon[0]); });
-                            coordinates = [worldBox, ...holes];
-                        }
-
-                        if (coordinates.length > 0) {
-                            window.mapInstance.addSource('mask', {
-                                'type': 'geojson',
-                                'data': { "type": "Feature", "geometry": { "type": "Polygon", "coordinates": coordinates } }
-                            });
-                            /* 
-                            window.mapInstance.addLayer({
-                                'id': 'mask-layer',
-                                'type': 'fill',
-                                'source': 'mask',
-                                'paint': { 'fill-color': '#F2F2F7', 'fill-opacity': 1 }
-                            });
-                            */
-                        }
-
-                        let bounds = new maplibregl.LngLatBounds();
-                        if (geojson.type === 'Polygon') {
-                            geojson.coordinates[0].forEach(coord => bounds.extend(coord));
-                        } else if (geojson.type === 'MultiPolygon') {
-                            geojson.coordinates.forEach(poly => poly[0].forEach(coord => bounds.extend(coord)));
-                        }
-                        // window.mapInstance.setMaxBounds(bounds);
-                    }
-                } catch (e) { console.error("Failed to slice region:", e); }
-
                 // ── TOURIST ZONES ────────────────────────────────────────────────
                 try {
-                    const muniGeoJsonPromise = fetch('assets/la_union_municipalities.json').then(r => r.json()).catch(() => null);
-                    const muniApiPromise = fetch((window.backendUrl || '') + '/api/public/municipalities', {
+                    const muniApiPromise = fetch(getAppBackendUrl() + '/api/public/municipalities', {
                         headers: { 'Accept': 'application/json' }
                     }).then(r => r.json()).catch(() => null);
 
@@ -1663,7 +1599,7 @@ if (is_dir($imgDir)) {
             window.clearAmenityMarkers();
             window.currentAmenitySpotId = spotIdentifier;
 
-            const _backendBase = window.backendUrl || '';
+            const _backendBase = getAppBackendUrl();
 
             try {
                 // Proximity query: radius 800m & up to 35 closest amenities in this site
@@ -2569,6 +2505,10 @@ if (is_dir($imgDir)) {
             window._mapGpsHandler = function (e) {
                 const lat = e.detail && e.detail.lat;
                 const lng = e.detail && e.detail.lng;
+                if (lat && lng) {
+                    window.myLat = lat;
+                    window.myLng = lng;
+                }
                 const isRealGps = e.detail && (e.detail.source === 'gps' || window.currentGPSSource === 'gps');
                 const mapContainer = window.mapInstance ? window.mapInstance.getContainer() : null;
                 if (window.mapInstance && lat && lng) {
@@ -2757,8 +2697,7 @@ if (is_dir($imgDir)) {
                 let spots = window.allMapLocations || [];
                 if (spots.length === 0) {
                     try {
-                        const backendUrl = window.backendUrl || 'https://api.intan-elyu.online';
-                        const res = await fetch(backendUrl + '/api/public/map');
+                        const res = await fetch(getAppBackendUrl() + '/api/public/map');
                         if (res.ok) {
                             const d = await res.json();
                             spots = d.destinations || [];
@@ -2834,8 +2773,10 @@ if (is_dir($imgDir)) {
                     return;
                 }
 
+                window._nearbySpotsLookup = window._nearbySpotsLookup || {};
                 let html = '';
                 filtered.forEach((spot, idx) => {
+                    window._nearbySpotsLookup[spot.id] = spot;
                     const img = window.getDestImage ? window.getDestImage(spot, 300) : (spot.image || 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=300');
                     const rating = (spot.rating !== undefined && spot.rating !== null && !isNaN(parseFloat(spot.rating))) ? parseFloat(spot.rating).toFixed(1) : '0.0';
 
@@ -2848,11 +2789,10 @@ if (is_dir($imgDir)) {
                         distBadge = `${spot.distanceKm.toFixed(1)} km away`;
                     }
 
-                    const safeSpotStr = encodeURIComponent(JSON.stringify(spot));
                     const delay = (idx * 0.04).toFixed(2);
 
                     html += `
-                    <div class="nearby-site-card" style="animation: nearbyCardSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) ${delay}s forwards; opacity: 0; background:rgba(255,255,255,0.14); border:none !important; outline:none !important; border-radius:18px; padding:10px 12px; display:flex; align-items:center; gap:12px;" onclick="window.selectNearbySite('${safeSpotStr}')">
+                    <div class="nearby-site-card" style="animation: nearbyCardSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) ${delay}s forwards; opacity: 0; background:rgba(255,255,255,0.14); border:none !important; outline:none !important; border-radius:18px; padding:10px 12px; display:flex; align-items:center; gap:12px;" onclick="window.selectNearbySite('${spot.id}')">
                         <img src="${img}" alt="${spot.name}" loading="lazy" decoding="async" style="width:64px; height:64px; border-radius:12px; object-fit:cover; flex-shrink:0; transition: transform 0.3s ease;" onerror="this.onerror=null; this.src='assets/img/no_image.svg';">
                         <div style="flex:1; min-width:0;">
                             <div style="display:flex; align-items:center; justify-content:space-between; gap:6px; margin-bottom:3px;">
@@ -2881,9 +2821,17 @@ if (is_dir($imgDir)) {
                 container.innerHTML = html;
             };
 
-            window.selectNearbySite = function (encodedSpot) {
+            window.selectNearbySite = function (param) {
                 try {
-                    const spot = JSON.parse(decodeURIComponent(encodedSpot));
+                    let spot = null;
+                    if (window._nearbySpotsLookup && window._nearbySpotsLookup[param]) {
+                        spot = window._nearbySpotsLookup[param];
+                    } else if (typeof param === 'string' && (param.startsWith('{') || param.startsWith('%'))) {
+                        spot = JSON.parse(decodeURIComponent(param));
+                    } else if (window.allMapLocations) {
+                        spot = window.allMapLocations.find(s => String(s.id) === String(param));
+                    }
+                    if (!spot) return;
                     window.closeNearbySitesSheet();
                     const sLat = parseFloat(spot.lat || spot.latitude);
                     const sLng = parseFloat(spot.lng || spot.longitude);
@@ -2951,15 +2899,21 @@ if (is_dir($imgDir)) {
                 }
 
                 try {
-                    // Real-time Marine wave & swell API for San Juan / La Union coast (16.6667, 120.3333)
-                    const marinePromise = fetch('https://marine-api.open-meteo.com/v1/marine?latitude=16.6667&longitude=120.3333&current=wave_height,wave_period,swell_wave_height&timezone=Asia%2FManila')
+                    // Real-time Marine wave & swell API with 4s timeout (16.6667, 120.3333)
+                    const marineCtrl = new AbortController();
+                    const marineTimeout = setTimeout(() => marineCtrl.abort(), 4000);
+                    const marinePromise = fetch('https://marine-api.open-meteo.com/v1/marine?latitude=16.6667&longitude=120.3333&current=wave_height,wave_period,swell_wave_height&timezone=Asia%2FManila', { signal: marineCtrl.signal })
                         .then(r => r.ok ? r.json() : null)
-                        .catch(() => null);
+                        .catch(() => null)
+                        .finally(() => clearTimeout(marineTimeout));
 
-                    // Real-time Weather & exact Sunset/Sunrise for San Juan / La Union
-                    const weatherPromise = fetch('https://api.open-meteo.com/v1/forecast?latitude=16.6667&longitude=120.3333&current=temperature_2m,weather_code,wind_speed_10m&daily=sunset,sunrise&timezone=Asia%2FManila')
+                    // Real-time Weather & exact Sunset/Sunrise with 4s timeout
+                    const weatherCtrl = new AbortController();
+                    const weatherTimeout = setTimeout(() => weatherCtrl.abort(), 4000);
+                    const weatherPromise = fetch('https://api.open-meteo.com/v1/forecast?latitude=16.6667&longitude=120.3333&current=temperature_2m,weather_code,wind_speed_10m&daily=sunset,sunrise&timezone=Asia%2FManila', { signal: weatherCtrl.signal })
                         .then(r => r.ok ? r.json() : null)
-                        .catch(() => null);
+                        .catch(() => null)
+                        .finally(() => clearTimeout(weatherTimeout));
 
                     const [marineData, weatherData] = await Promise.all([marinePromise, weatherPromise]);
 
@@ -3511,8 +3465,7 @@ if (is_dir($imgDir)) {
             }
 
             // 4. Background network request
-            const _backendUrl = window.backendUrl || 'https://api.intan-elyu.online';
-            fetch(_backendUrl + '/api/tourist/destinations/' + destId + '/favorite', {
+            fetch(getAppBackendUrl() + '/api/tourist/destinations/' + destId + '/favorite', {
                 method: 'POST',
                 credentials: 'include',
                 headers: {
@@ -3809,7 +3762,7 @@ if (is_dir($imgDir)) {
 
             const token = localStorage.getItem('intan_elyu_token');
             if (token && !window.savedPlaceIdsFetched) {
-                fetch((window.backendUrl || '') + '/api/tourist/dashboard', {
+                fetch(getAppBackendUrl() + '/api/tourist/dashboard', {
                     headers: { 'Accept': 'application/json', 'Authorization': 'Bearer ' + token }
                 }).then(r => r.ok ? r.text() : null).then(txt => {
                     const d = txt ? window.safeJsonParse(txt, null) : null;
@@ -4053,29 +4006,7 @@ if (is_dir($imgDir)) {
                     vehCountBadge.style.color = '#ffffff';
                 }
 
-                if (privVehList) {
-                    if (privVehicles.length > 0) {
-                        privVehList.innerHTML = privVehicles.map(v => `
-                            <span style="display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:700; background:rgba(0, 242, 254, 0.18); color:#ffffff; border:1px solid rgba(0, 242, 254, 0.35); padding:4px 9px; border-radius:8px;">
-                                <i class="fa-solid ${getVehIcon(v)}" style="font-size:10px; color:#00f2fe;"></i> ${v}
-                            </span>
-                        `).join('');
-                    } else {
-                        privVehList.innerHTML = '<span style="font-size:11.5px; font-weight:700; color:rgba(255,255,255,0.6); font-style:italic;">None</span>';
-                    }
-                }
 
-                if (pubVehList) {
-                    if (pubVehicles.length > 0) {
-                        pubVehList.innerHTML = pubVehicles.map(v => `
-                            <span style="display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:700; background:rgba(251, 146, 60, 0.2); color:#ffffff; border:1px solid rgba(251, 146, 60, 0.35); padding:4px 9px; border-radius:8px;">
-                                <i class="fa-solid ${getVehIcon(v)}" style="font-size:10px; color:#fed7aa;"></i> ${v}
-                            </span>
-                        `).join('');
-                    } else {
-                        pubVehList.innerHTML = '<span style="font-size:11.5px; font-weight:700; color:rgba(255,255,255,0.6); font-style:italic;">None</span>';
-                    }
-                }
 
                 if (btnViewVehicles) {
                     btnViewVehicles.disabled = false;
@@ -4153,6 +4084,23 @@ if (is_dir($imgDir)) {
                     const startLng = pos.coords.longitude;
                     const destLat = parseFloat(locationData.lat || locationData.latitude);
                     const destLng = parseFloat(locationData.lng || locationData.longitude);
+
+                    function getLocalHaversineKm(lat1, lon1, lat2, lon2) {
+                        const R = 6371;
+                        const dLat = (lat2 - lat1) * Math.PI / 180;
+                        const dLon = (lon2 - lon1) * Math.PI / 180;
+                        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                            Math.sin(dLon / 2) * Math.sin(dLon / 2);
+                        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+                    }
+
+                    if (!navigator.onLine || window.isAppOnline === false) {
+                        const directDist = getLocalHaversineKm(startLat, startLng, destLat, destLng);
+                        if (distanceEl) distanceEl.textContent = directDist.toFixed(1) + ' km (direct)';
+                        return;
+                    }
+
                     try {
                         const res = await fetch(`https://router.project-osrm.org/route/v1/driving/${startLng},${startLat};${destLng},${destLat}?overview=false`);
                         const text = await res.text();
@@ -4161,10 +4109,12 @@ if (is_dir($imgDir)) {
                             const distanceKm = routeData.routes[0].distance / 1000;
                             if (distanceEl) distanceEl.textContent = distanceKm.toFixed(1) + ' km';
                         } else {
-                            if (distanceEl) distanceEl.textContent = 'Unknown';
+                            const directDist = getLocalHaversineKm(startLat, startLng, destLat, destLng);
+                            if (distanceEl) distanceEl.textContent = directDist.toFixed(1) + ' km (direct)';
                         }
                     } catch (e) {
-                        if (distanceEl) distanceEl.textContent = 'Unknown';
+                        const directDist = getLocalHaversineKm(startLat, startLng, destLat, destLng);
+                        if (distanceEl) distanceEl.textContent = directDist.toFixed(1) + ' km (direct)';
                     }
                 }).catch(() => {
                     if (distanceEl) distanceEl.textContent = 'Location needed';
@@ -4272,40 +4222,6 @@ if (is_dir($imgDir)) {
                 if (placeSheet.closeSheet) placeSheet.closeSheet();
                 else placeSheet.classList.remove('active');
             }
-        };
-
-        window.showAddConfirm = function (destName) {
-            const overlay = document.getElementById('itin-add-confirm');
-            const nameEl = document.getElementById('itin-add-confirm-name');
-            const inner = overlay.querySelector('div > div');
-            if (nameEl) nameEl.textContent = destName;
-            overlay.style.pointerEvents = 'all';
-            overlay.style.opacity = '1';
-            inner.style.transform = 'scale(1)';
-        };
-
-        window.closeAddConfirm = function () {
-            const overlay = document.getElementById('itin-add-confirm');
-            const inner = overlay.querySelector('div > div');
-            inner.style.transform = 'scale(0.85)';
-            overlay.style.opacity = '0';
-            overlay.style.pointerEvents = 'none';
-            // Reset modal to default "Added to Itinerary!" state
-            const titleEl = overlay.querySelector('h3');
-            const iconWrap = overlay.querySelector('div > div');
-            const btnView = overlay.querySelector('button[onclick*="viewItinerary"]');
-            if (titleEl) titleEl.textContent = 'Added to Itinerary!';
-            if (iconWrap) {
-                iconWrap.innerHTML = '<i class="fa-solid fa-check" style="font-size:30px; color:#34c759;"></i>';
-                iconWrap.style.borderColor = 'rgba(52,199,89,0.25)';
-                iconWrap.style.background = 'rgba(52,199,89,0.12)';
-            }
-            if (btnView) btnView.style.display = '';
-        };
-
-        window.viewItinerary = function () {
-            window.closeAddConfirm();
-            window.location.hash = '#itinerary';
         };
 
         window.openSpotVehiclesModal = function () {
@@ -4553,8 +4469,10 @@ if (is_dir($imgDir)) {
                 if (warningDiv) { warningDiv.style.display = 'block'; warningDiv.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Heavy traffic expected at this hour'; }
             } else if (warningDiv) { warningDiv.style.display = 'none'; }
 
-            document.getElementById('route-distance').textContent = distanceKm.toFixed(1) + ' km';
-            document.getElementById('route-time').textContent = Math.round(durationMin) + ' mins';
+            const distEl = document.getElementById('route-distance');
+            if (distEl) distEl.textContent = distanceKm.toFixed(1) + ' km';
+            const timeEl = document.getElementById('route-time');
+            if (timeEl) timeEl.textContent = Math.round(durationMin) + ' mins';
 
             // Rebuild transport options
             const destData = window.currentDestinationForRoute || {};
@@ -4637,7 +4555,8 @@ if (is_dir($imgDir)) {
                 faresHtml += createCard('Own Car', 'fa-car', '#34d399', 'Personal / own vehicle (No fare required)', 0, 'Anytime', false);
                 faresHtml += createCard('Motorcycle', 'fa-motorcycle', '#a855f7', 'Personal / own motorbike (No fare required)', 0, 'Anytime', false);
             }
-            document.getElementById('fare-list').innerHTML = faresHtml;
+            const fareList = document.getElementById('fare-list');
+            if (fareList) fareList.innerHTML = faresHtml;
             setupVehicleSelection();
         };
 
@@ -4670,8 +4589,11 @@ if (is_dir($imgDir)) {
         };
 
         window.addToItinerary = function () {
-            if (!window.currentDestinationForRoute) return;
-            const dest = window.currentDestinationForRoute;
+            const dest = window.currentDestinationForRoute || window.selectedDestination || window.currentMarkerDestination;
+            if (!dest) {
+                if (typeof showToast === 'function') showToast('Please select a tourist spot first');
+                return;
+            }
 
             const opState = (typeof window.checkSiteOperationalState === 'function')
                 ? window.checkSiteOperationalState(dest)
@@ -4706,7 +4628,10 @@ if (is_dir($imgDir)) {
                     iconWrap.innerHTML = '<i class="fa-solid fa-check" style="font-size:32px; color:#ffffff;"></i>';
                     iconWrap.style.cssText = 'width:68px; height:68px; border-radius:50%; background:linear-gradient(135deg, #34d399 0%, #10b981 100%); border:3px solid rgba(255,255,255,0.4) !important; box-shadow:none !important; display:flex; align-items:center; justify-content:center; margin:0 auto 16px;';
                 }
-                if (btnView) btnView.style.display = '';
+                if (btnView) {
+                    btnView.style.display = 'block';
+                    btnView.innerHTML = '<i class="fa-solid fa-list"></i> View Itinerary';
+                }
 
                 // Also update the bottom sheet button state if still in view
                 const addItinBtn = document.getElementById('btn-add-itinerary');
@@ -4725,7 +4650,7 @@ if (is_dir($imgDir)) {
             } else {
                 // Show "Already in Itinerary" modal
                 const confirmName = document.getElementById('itin-add-confirm-name');
-                if (confirmName) confirmName.textContent = dest.name + ' is already in your itinerary draft.';
+                if (confirmName) confirmName.textContent = dest.name + ' is already added to your itinerary draft.';
                 const titleEl = document.querySelector('#itin-add-confirm h3');
                 const iconWrap = document.getElementById('itin-add-confirm-icon-wrap') || document.querySelector('#itin-add-confirm div > div');
                 const btnView = document.querySelector('#itin-add-confirm button[onclick*="viewItinerary"]');
@@ -4734,10 +4659,16 @@ if (is_dir($imgDir)) {
                     iconWrap.innerHTML = '<i class="fa-solid fa-bookmark" style="font-size:30px; color:#ffffff;"></i>';
                     iconWrap.style.cssText = 'width:68px; height:68px; border-radius:50%; background:linear-gradient(135deg, #fbbf24 0%, #d97706 100%); border:3px solid rgba(255,255,255,0.4) !important; box-shadow:none !important; display:flex; align-items:center; justify-content:center; margin:0 auto 16px;';
                 }
-                if (btnView) btnView.style.display = 'none';
+                if (btnView) {
+                    btnView.style.display = 'block';
+                    btnView.innerHTML = '<i class="fa-solid fa-list"></i> View Itinerary';
+                }
             }
 
             window.closeSheet();
+
+            // Blur magic navigation while modal is active
+            document.body.classList.add('itin-confirm-open');
 
             const confirmModal = document.getElementById('itin-add-confirm');
             if (confirmModal) {
@@ -4751,6 +4682,7 @@ if (is_dir($imgDir)) {
         };
 
         window.closeAddConfirm = function () {
+            document.body.classList.remove('itin-confirm-open');
             const confirmModal = document.getElementById('itin-add-confirm');
             if (confirmModal) {
                 confirmModal.style.opacity = '0';
@@ -4759,10 +4691,23 @@ if (is_dir($imgDir)) {
                 if (card) {
                     card.style.transform = 'scale(0.85)';
                 }
+                const titleEl = confirmModal.querySelector('h3');
+                const iconWrap = document.getElementById('itin-add-confirm-icon-wrap') || confirmModal.querySelector('div > div');
+                const btnView = confirmModal.querySelector('button[onclick*="viewItinerary"]');
+                if (titleEl) titleEl.textContent = 'Added to Itinerary!';
+                if (iconWrap) {
+                    iconWrap.innerHTML = '<i class="fa-solid fa-check" style="font-size:32px; color:#ffffff;"></i>';
+                    iconWrap.style.cssText = 'width:68px; height:68px; border-radius:50%; background:linear-gradient(135deg, #34d399 0%, #10b981 100%); border:3px solid rgba(255,255,255,0.4) !important; box-shadow:none !important; display:flex; align-items:center; justify-content:center; margin:0 auto 16px;';
+                }
+                if (btnView) {
+                    btnView.style.display = 'block';
+                    btnView.innerHTML = '<i class="fa-solid fa-list"></i> View Itinerary';
+                }
             }
         };
 
         window.viewItinerary = function () {
+            document.body.classList.remove('itin-confirm-open');
             window.closeAddConfirm();
             if (typeof navigateTo === 'function') {
                 navigateTo('itinerary');
@@ -4780,19 +4725,13 @@ if (is_dir($imgDir)) {
 
 
 
-        // --- Site Testimonies & Policy Recommendations ---
+        // --- Site Testimonies & Policy Recommendations (Offline Resilient) ---
         async function fetchTestimonies(spotId, locData) {
             const list = document.getElementById('testimonies-list-container');
             const summary = document.getElementById('testimonies-summary-metrics');
             const badge = document.getElementById('sheet-testimonies-badge');
             if (!list) return;
 
-            list.innerHTML = '<div style="font-size:12px; color:#94a3b8; text-align:center; padding:16px 10px;"><i class="fa-solid fa-spinner fa-spin" style="margin-right:6px; color:#38bdf8;"></i> Loading reviews...</div>';
-
-            const token = localStorage.getItem('intan_elyu_token');
-            const _backendBase = window.backendUrl || '';
-
-            // Initial classification resolution from passed or cached location data
             const curLocation = locData || window.currentSelectedLocationData || {};
             let spotClassStatus = curLocation.classification_status || '';
 
@@ -4813,137 +4752,125 @@ if (is_dir($imgDir)) {
 
             let classMeta = resolveClassification(spotClassStatus);
 
-            try {
-                const headers = { 'Accept': 'application/json' };
-                if (token) headers['Authorization'] = 'Bearer ' + token;
+            const renderTestimoniesPayload = (d, isOfflineCached = false) => {
+                if (!d || d.status !== 'success') return false;
+                const totalReviews = (d.summary && d.summary.total_reviews) ? parseInt(d.summary.total_reviews) : (d.data ? d.data.length : 0);
 
-                let res = await fetch(_backendBase + '/api/public/feedback?tourist_spot_id=' + spotId, { headers });
-                if (!res.ok && token) {
-                    res = await fetch(_backendBase + '/api/tourist/feedback?tourist_spot_id=' + spotId, { headers });
+                if (d.summary && (d.summary.classification_name || d.summary.classification_status)) {
+                    spotClassStatus = d.summary.classification_name || d.summary.classification_status;
+                    classMeta = resolveClassification(spotClassStatus);
                 }
-                const text = await res.text();
-                const d = window.safeJsonParse(text, null);
-                if (d && d.status === 'success') {
-                    const totalReviews = (d.summary && d.summary.total_reviews) ? parseInt(d.summary.total_reviews) : (d.data ? d.data.length : 0);
+                if (d.summary && d.summary.reward_points) {
+                    classMeta.points = parseInt(d.summary.reward_points) || classMeta.points;
+                }
 
-                    // Update classification metadata from backend summary if present
-                    if (d.summary && (d.summary.classification_name || d.summary.classification_status)) {
-                        spotClassStatus = d.summary.classification_name || d.summary.classification_status;
-                        classMeta = resolveClassification(spotClassStatus);
+                if (badge) {
+                    if (totalReviews > 0) {
+                        badge.textContent = `${totalReviews} Review${totalReviews > 1 ? 's' : ''}${isOfflineCached ? ' (Offline)' : ''}`;
+                    } else {
+                        badge.textContent = isOfflineCached ? 'Offline (No Reviews)' : 'No Reviews';
                     }
-                    if (d.summary && d.summary.reward_points) {
-                        classMeta.points = parseInt(d.summary.reward_points) || classMeta.points;
-                    }
+                }
 
-                    if (badge) {
-                        if (totalReviews > 0) {
-                            badge.textContent = `${totalReviews} Review${totalReviews > 1 ? 's' : ''}`;
-                        } else {
-                            badge.textContent = 'No Reviews';
+                if (d.summary && d.summary.total_reviews > 0) {
+                    const sm = d.summary;
+                    const reviewCount = parseInt(sm.total_reviews) || 0;
+                    const reviewText = reviewCount === 1 ? '1 Review' : `${reviewCount} Reviews`;
+                    const avgRating = (sm.average_rating !== undefined && sm.average_rating !== null && !isNaN(parseFloat(sm.average_rating))) ? parseFloat(sm.average_rating).toFixed(1) : '0.0';
+
+                    summary.style.display = 'block';
+                    summary.innerHTML = `
+                    <div style="background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.18); border-radius:12px; padding:11px 14px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
+                        <div style="display:flex; align-items:center; gap:6px;">
+                            <span style="color:#fbbf24; font-size:16px; font-weight:800;">★ ${avgRating}</span>
+                            <span style="font-size:11.5px; color:rgba(255,255,255,0.75); font-weight:700;">/ 5.0</span>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:6px;">
+                            <span style="font-size:11.5px; color:#ffffff; font-weight:800; display:inline-flex; align-items:center; gap:5px;"><i class="fa-solid fa-chart-simple" style="color:#00f2fe;"></i> Visitor Insights (${reviewText})</span>
+                            ${isOfflineCached ? '<span style="font-size:10px; color:#fde047; font-weight:800; background:rgba(250,204,21,0.2); padding:2px 6px; border-radius:6px;"><i class="fa-solid fa-cloud-arrow-down"></i> Cached</span>' : ''}
+                        </div>
+                    </div>`;
+                } else {
+                    summary.style.display = 'none';
+                }
+
+                if (d.data && d.data.length > 0) {
+                    const maskUserName = (name) => {
+                        if (!name || typeof name !== 'string') return 'Explorer';
+                        const trimmed = name.trim();
+                        if (!trimmed) return 'Explorer';
+
+                        const parts = trimmed.split(/\s+/);
+                        if (parts.length === 1) {
+                            const w = parts[0];
+                            if (w.length <= 2) return w.charAt(0) + '*';
+                            if (w.length <= 4) return w.slice(0, 2) + '*'.repeat(w.length - 2);
+                            return w.slice(0, 2) + '*'.repeat(w.length - 4) + w.slice(-2);
                         }
-                    }
 
-                    // Render summary metrics (rating & review count only)
-                    if (d.summary && d.summary.total_reviews > 0) {
-                        const sm = d.summary;
-                        const reviewCount = parseInt(sm.total_reviews) || 0;
-                        const reviewText = reviewCount === 1 ? '1 Review' : `${reviewCount} Reviews`;
-                        const avgRating = (sm.average_rating !== undefined && sm.average_rating !== null && !isNaN(parseFloat(sm.average_rating))) ? parseFloat(sm.average_rating).toFixed(1) : '0.0';
+                        return parts.map((part, index) => {
+                            part = part || '';
+                            const len = part.length;
+                            if (len <= 2) return part.charAt(0) + '*';
 
-                        summary.style.display = 'block';
-                        summary.innerHTML = `
-                        <div style="background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.18); border-radius:12px; padding:11px 14px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
-                            <div style="display:flex; align-items:center; gap:6px;">
-                                <span style="color:#fbbf24; font-size:16px; font-weight:800;">★ ${avgRating}</span>
-                                <span style="font-size:11.5px; color:rgba(255,255,255,0.75); font-weight:700;">/ 5.0</span>
+                            if (index === 0) {
+                                const visible = Math.min(2, Math.max(1, len - 2));
+                                return part.slice(0, visible) + '*'.repeat(len - visible);
+                            } else if (index === parts.length - 1) {
+                                const visible = Math.min(2, Math.max(1, len - 2));
+                                return '*'.repeat(len - visible) + part.slice(-visible);
+                            } else {
+                                return '*'.repeat(len);
+                            }
+                        }).join(' ');
+                    };
+
+                    const renderCard = (fb) => {
+                        const user = fb.user || { name: 'Explorer' };
+                        const rawName = user.name || user.full_name || 'Explorer';
+                        const maskedName = maskUserName(rawName);
+                        const initial = (rawName || 'E').charAt(0).toUpperCase();
+                        const date = fb.created_at ? new Date(fb.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) : '';
+                        const ratingNum = Math.min(5, Math.max(1, parseInt(fb.rating) || 5));
+                        let starsHtml = '';
+                        for (let s = 1; s <= 5; s++) {
+                            if (s <= ratingNum) {
+                                starsHtml += '<i class="fa-solid fa-star" style="color:#fbbf24; font-size:10.5px;"></i>';
+                            } else {
+                                starsHtml += '<i class="fa-regular fa-star" style="color:rgba(255,255,255,0.3); font-size:10.5px;"></i>';
+                            }
+                        }
+
+                        const rawClean = (fb.cleanliness_level || 'clean').toLowerCase();
+                        const cleanVal = rawClean === 'dirty' ? 'Dirty' : (rawClean === 'moderate' ? 'Moderate' : 'Clean');
+                        const cleanBg = cleanVal === 'Clean' ? '#10b981' : (cleanVal === 'Moderate' ? '#f59e0b' : '#ef4444');
+
+                        const rawSafe = (fb.safety_level || 'safe').toLowerCase();
+                        const safeVal = rawSafe === 'unsafe' ? 'Unsafe' : (rawSafe === 'moderate' ? 'Moderate' : 'Safe');
+                        const safeBg = safeVal === 'Safe' ? '#10b981' : (safeVal === 'Moderate' ? '#f59e0b' : '#ef4444');
+
+                        const metricsHtml = `
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:9px 0 10px 0;">
+                            <div style="background:rgba(255,255,255,0.1); border-radius:10px; padding:7px 10px; display:flex; justify-content:space-between; align-items:center;">
+                                <span style="font-size:10px; color:rgba(255,255,255,0.85); text-transform:uppercase; font-weight:800; letter-spacing:0.4px;">Cleanliness</span>
+                                <span style="font-size:11px; font-weight:800; color:#ffffff; background:${cleanBg}; padding:2px 8px; border-radius:6px; display:inline-flex; align-items:center;">${cleanVal}</span>
                             </div>
-                            <div style="display:flex; align-items:center; gap:6px;">
-                                <span style="font-size:11.5px; color:#ffffff; font-weight:800; display:inline-flex; align-items:center; gap:5px;"><i class="fa-solid fa-chart-simple" style="color:#00f2fe;"></i> Visitor Insights (${reviewText})</span>
+                            <div style="background:rgba(255,255,255,0.1); border-radius:10px; padding:7px 10px; display:flex; justify-content:space-between; align-items:center;">
+                                <span style="font-size:10px; color:rgba(255,255,255,0.85); text-transform:uppercase; font-weight:800; letter-spacing:0.4px;">Safety</span>
+                                <span style="font-size:11px; font-weight:800; color:#ffffff; background:${safeBg}; padding:2px 8px; border-radius:6px; display:inline-flex; align-items:center;">${safeVal}</span>
                             </div>
                         </div>`;
-                    } else {
-                        summary.style.display = 'none';
-                    }
 
-                    // Render testimonies list
-                    if (d.data && d.data.length > 0) {
-                        const maskUserName = (name) => {
-                            if (!name || typeof name !== 'string') return 'Explorer';
-                            const trimmed = name.trim();
-                            if (!trimmed) return 'Explorer';
+                        const policyHtml = fb.policy_recommendation ? `
+                        <div style="background:rgba(0,242,254,0.12); border-left:3px solid #00f2fe; border-radius:10px; padding:10px 12px; margin-top:10px;">
+                            <div style="display:flex; align-items:center; gap:5px; margin-bottom:4px;">
+                                <i class="fa-solid fa-lightbulb" style="color:#00f2fe; font-size:11px;"></i>
+                                <strong style="font-size:10px; color:#00f2fe; text-transform:uppercase; letter-spacing:0.5px; font-weight:800;">Policy Recommendation for LGU</strong>
+                            </div>
+                            <span style="color:#ffffff; font-size:12px; line-height:1.45; display:block;">${fb.policy_recommendation}</span>
+                        </div>` : '';
 
-                            const parts = trimmed.split(/\s+/);
-                            if (parts.length === 1) {
-                                const w = parts[0];
-                                if (w.length <= 2) return w.charAt(0) + '*';
-                                if (w.length <= 4) return w.slice(0, 2) + '*'.repeat(w.length - 2);
-                                return w.slice(0, 2) + '*'.repeat(w.length - 4) + w.slice(-2);
-                            }
-
-                            return parts.map((part, index) => {
-                                part = part || '';
-                                const len = part.length;
-                                if (len <= 2) return part.charAt(0) + '*';
-
-                                if (index === 0) {
-                                    const visible = Math.min(2, Math.max(1, len - 2));
-                                    return part.slice(0, visible) + '*'.repeat(len - visible);
-                                } else if (index === parts.length - 1) {
-                                    const visible = Math.min(2, Math.max(1, len - 2));
-                                    return '*'.repeat(len - visible) + part.slice(-visible);
-                                } else {
-                                    return '*'.repeat(len);
-                                }
-                            }).join(' ');
-                        };
-
-                        const renderCard = (fb) => {
-                            const user = fb.user || { name: 'Explorer' };
-                            const rawName = user.name || user.full_name || 'Explorer';
-                            const maskedName = maskUserName(rawName);
-                            const initial = (rawName || 'E').charAt(0).toUpperCase();
-                            const date = fb.created_at ? new Date(fb.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) : '';
-                            const ratingNum = Math.min(5, Math.max(1, parseInt(fb.rating) || 5));
-                            let starsHtml = '';
-                            for (let s = 1; s <= 5; s++) {
-                                if (s <= ratingNum) {
-                                    starsHtml += '<i class="fa-solid fa-star" style="color:#fbbf24; font-size:10.5px;"></i>';
-                                } else {
-                                    starsHtml += '<i class="fa-regular fa-star" style="color:rgba(255,255,255,0.3); font-size:10.5px;"></i>';
-                                }
-                            }
-
-                            // Cleanliness & Safety Parameters for this review (solid colors)
-                            const rawClean = (fb.cleanliness_level || 'clean').toLowerCase();
-                            const cleanVal = rawClean === 'dirty' ? 'Dirty' : (rawClean === 'moderate' ? 'Moderate' : 'Clean');
-                            const cleanBg = cleanVal === 'Clean' ? '#10b981' : (cleanVal === 'Moderate' ? '#f59e0b' : '#ef4444');
-
-                            const rawSafe = (fb.safety_level || 'safe').toLowerCase();
-                            const safeVal = rawSafe === 'unsafe' ? 'Unsafe' : (rawSafe === 'moderate' ? 'Moderate' : 'Safe');
-                            const safeBg = safeVal === 'Safe' ? '#10b981' : (safeVal === 'Moderate' ? '#f59e0b' : '#ef4444');
-
-                            const metricsHtml = `
-                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:9px 0 10px 0;">
-                                <div style="background:rgba(255,255,255,0.1); border-radius:10px; padding:7px 10px; display:flex; justify-content:space-between; align-items:center;">
-                                    <span style="font-size:10px; color:rgba(255,255,255,0.85); text-transform:uppercase; font-weight:800; letter-spacing:0.4px;">Cleanliness</span>
-                                    <span style="font-size:11px; font-weight:800; color:#ffffff; background:${cleanBg}; padding:2px 8px; border-radius:6px; display:inline-flex; align-items:center;">${cleanVal}</span>
-                                </div>
-                                <div style="background:rgba(255,255,255,0.1); border-radius:10px; padding:7px 10px; display:flex; justify-content:space-between; align-items:center;">
-                                    <span style="font-size:10px; color:rgba(255,255,255,0.85); text-transform:uppercase; font-weight:800; letter-spacing:0.4px;">Safety</span>
-                                    <span style="font-size:11px; font-weight:800; color:#ffffff; background:${safeBg}; padding:2px 8px; border-radius:6px; display:inline-flex; align-items:center;">${safeVal}</span>
-                                </div>
-                            </div>`;
-
-                            const policyHtml = fb.policy_recommendation ? `
-                            <div style="background:rgba(0,242,254,0.12); border-left:3px solid #00f2fe; border-radius:10px; padding:10px 12px; margin-top:10px;">
-                                <div style="display:flex; align-items:center; gap:5px; margin-bottom:4px;">
-                                    <i class="fa-solid fa-lightbulb" style="color:#00f2fe; font-size:11px;"></i>
-                                    <strong style="font-size:10px; color:#00f2fe; text-transform:uppercase; letter-spacing:0.5px; font-weight:800;">Policy Recommendation for LGU</strong>
-                                </div>
-                                <span style="color:#ffffff; font-size:12px; line-height:1.45; display:block;">${fb.policy_recommendation}</span>
-                            </div>` : '';
-
-                            return `
+                        return `
                         <div style="background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.18); border-radius:14px; padding:14px; font-size:12px;">
                             <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
                                 <div style="display:flex; align-items:center; gap:8px;">
@@ -4966,16 +4893,16 @@ if (is_dir($imgDir)) {
                             <p style="margin:0; color:#ffffff; font-size:12.5px; line-height:1.5;">${fb.testimony || 'Visited this destination.'}</p>
                             ${policyHtml}
                         </div>`;
-                        };
+                    };
 
-                        let html = renderCard(d.data[0]);
+                    let html = renderCard(d.data[0]);
 
-                        if (d.data.length > 1) {
-                            let extraCardsHtml = '';
-                            for (let i = 1; i < d.data.length; i++) {
-                                extraCardsHtml += renderCard(d.data[i]);
-                            }
-                            html += `
+                    if (d.data.length > 1) {
+                        let extraCardsHtml = '';
+                        for (let i = 1; i < d.data.length; i++) {
+                            extraCardsHtml += renderCard(d.data[i]);
+                        }
+                        html += `
                         <div id="extra-testimonies-container" data-total-count="${d.data.length}" style="display:none; flex-direction:column; gap:10px; margin-top:10px; max-height:0; opacity:0; transform:translateY(-8px); overflow:hidden; transition:max-height 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease, transform 0.35s ease;">
                             ${extraCardsHtml}
                         </div>
@@ -4985,28 +4912,101 @@ if (is_dir($imgDir)) {
                                 <i class="fa-solid fa-chevron-down" id="toggle-testimonies-chevron" style="transition:transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1); color:#ffffff;"></i>
                             </button>
                         </div>`;
-                        }
+                    }
 
-                        list.innerHTML = html;
-                    } else {
-                        list.innerHTML = `
-                        <div style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.16); border-radius:14px; padding:20px 16px; text-align:center;">
-                            <div style="width:40px; height:40px; border-radius:50%; background:#ffffff; display:inline-flex; align-items:center; justify-content:center; color:#1e3a8a; font-size:16px; margin-bottom:8px; box-shadow:0 2px 6px rgba(0,0,0,0.18);">
-                                <i class="fa-regular fa-comment-dots"></i>
-                            </div>
-                            <div style="font-size:13.5px; font-weight:800; color:#ffffff; margin-bottom:4px;">No Testimonies Yet</div>
-                            <p style="margin:0 0 12px; font-size:12px; color:rgba(255,255,255,0.88); line-height:1.5;">
-                                Be the first verified visitor to review this <strong style="color:${classMeta.color}; font-weight:800;">${classMeta.label}</strong> spot and share policy feedback during your trip navigation to earn <strong>+${classMeta.points} Points</strong>!
-                            </p>
-                            <div style="display:inline-flex; align-items:center; gap:6px; font-size:10.5px; font-weight:700; color:#ffffff; background:rgba(255,255,255,0.18); padding:5px 12px; border-radius:20px;">
-                                <i class="fa-solid fa-route" style="color:#ffffff;"></i> Review available in Trip Map & Visited Stops
-                            </div>
-                        </div>`;
+                    list.innerHTML = html;
+                } else {
+                    renderEmptyTestimonies(isOfflineCached);
+                }
+                return true;
+            };
+
+            const renderEmptyTestimonies = (isOffline = false) => {
+                if (badge) badge.textContent = isOffline ? 'Offline' : 'No Reviews';
+                list.innerHTML = `
+                <div style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.16); border-radius:14px; padding:20px 16px; text-align:center;">
+                    <div style="width:40px; height:40px; border-radius:50%; background:#ffffff; display:inline-flex; align-items:center; justify-content:center; color:#1e3a8a; font-size:16px; margin-bottom:8px; box-shadow:0 2px 6px rgba(0,0,0,0.18);">
+                        <i class="fa-solid ${isOffline ? 'fa-cloud-arrow-down' : 'fa-comment-dots'}" style="color:#1e3a8a;"></i>
+                    </div>
+                    <div style="font-size:13.5px; font-weight:800; color:#ffffff; margin-bottom:12px;">${isOffline ? 'Offline Reviews Mode' : 'No Testimonies Yet'}</div>
+                    <div style="display:inline-flex; align-items:center; gap:6px; font-size:10.5px; font-weight:700; color:#ffffff; background:rgba(255,255,255,0.18); padding:5px 12px; border-radius:20px;">
+                        <i class="fa-solid fa-route" style="color:#ffffff;"></i> Review available in Trip Map & Visited Stops
+                    </div>
+                </div>`;
+            };
+
+            const cacheKey = 'intan_elyu_testimonies_spot_' + spotId;
+            let cachedData = null;
+            try {
+                const stored = localStorage.getItem(cacheKey);
+                if (stored) cachedData = JSON.parse(stored);
+            } catch (err) { }
+
+            // If offline, immediately render cached data if available
+            if (!navigator.onLine || window.isAppOnline === false) {
+                if (cachedData) {
+                    renderTestimoniesPayload(cachedData, true);
+                } else {
+                    renderEmptyTestimonies(true);
+                }
+                return;
+            }
+
+            // Pre-hydrate from cache while fetching live
+            if (cachedData) {
+                renderTestimoniesPayload(cachedData, false);
+            } else {
+                list.innerHTML = '<div style="font-size:12px; color:#94a3b8; text-align:center; padding:16px 10px;"><i class="fa-solid fa-spinner fa-spin" style="margin-right:6px; color:#38bdf8;"></i> Loading reviews...</div>';
+            }
+
+            try {
+                const token = localStorage.getItem('intan_elyu_token');
+                const _backendBase = getAppBackendUrl();
+                const headers = { 'Accept': 'application/json' };
+                if (token) headers['Authorization'] = 'Bearer ' + token;
+
+                const controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+                const timeoutId = controller ? setTimeout(() => controller.abort(), 7000) : null;
+
+                let res = null;
+                try {
+                    res = await fetch(_backendBase + '/api/public/feedback?tourist_spot_id=' + spotId, {
+                        signal: controller ? controller.signal : undefined,
+                        headers
+                    });
+                    if (!res.ok && token) {
+                        res = await fetch(_backendBase + '/api/tourist/feedback?tourist_spot_id=' + spotId, {
+                            signal: controller ? controller.signal : undefined,
+                            headers
+                        });
+                    }
+                } finally {
+                    if (timeoutId) clearTimeout(timeoutId);
+                }
+
+                if (res && res.ok) {
+                    const text = await res.text();
+                    const d = window.safeJsonParse(text, null);
+                    if (d && d.status === 'success') {
+                        try { localStorage.setItem(cacheKey, JSON.stringify(d)); } catch (e) { }
+                        renderTestimoniesPayload(d, false);
+                        return;
                     }
                 }
+
+                // If fetch was not successful but we have cached data
+                if (cachedData) {
+                    renderTestimoniesPayload(cachedData, true);
+                } else {
+                    renderEmptyTestimonies(true);
+                }
             } catch (e) {
-                console.error("Testimonies load error:", e);
-                list.innerHTML = '<div style="font-size:12px; color:#ef4444; text-align:center; padding:12px 10px;">Failed to load reviews.</div>';
+                // Graceful fallback to cached data or offline state - NEVER display error red text
+                if (cachedData) {
+                    renderTestimoniesPayload(cachedData, true);
+                } else {
+                    renderEmptyTestimonies(true);
+                }
             }
         }
 
@@ -5088,9 +5088,7 @@ if (is_dir($imgDir)) {
                 return;
             }
 
-            const _backendUrl = (window.backendUrl && window.backendUrl.trim() !== '')
-                ? window.backendUrl
-                : (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : 'https://api.intan-elyu.online');
+            const _backendUrl = getAppBackendUrl();
 
             const headers = {
                 'Accept': 'application/json',
@@ -5193,7 +5191,7 @@ if (is_dir($imgDir)) {
         async function checkForNewSpots() {
             if (!window.mapInstance || document.visibilityState !== 'visible' || document.body.getAttribute('data-view') !== 'map') return;
             try {
-                const res = await fetch((window.backendUrl || '') + '/api/public/map', {
+                const res = await fetch(getAppBackendUrl() + '/api/public/map', {
                     headers: { 'Accept': 'application/json' }
                 });
                 const text = await res.text();

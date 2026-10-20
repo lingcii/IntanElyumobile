@@ -456,6 +456,7 @@ Route::prefix('admin')->middleware('tourist.auth')->group(function () {
                 'category' => $spot->category ?? '',
                 'municipality' => $spot && $spot->municipality ? $spot->municipality->name : '',
                 'proof_image' => $item->proof_image,
+                'proof_images' => $item->proof_images ?? [],
                 'proof_status' => $item->proof_status ?? ($item->is_visited ? 'approved' : 'pending'),
                 'is_visited' => (bool) $item->is_visited,
                 'visited_at' => $item->visited_at ? $item->visited_at->toIso8601String() : null,
@@ -982,6 +983,7 @@ foreach (['lupto', 'pitco', 'picto', 'municipal'] as $rolePrefix) {
                     'category' => $spot->category ?? '',
                     'municipality' => $spot && $spot->municipality ? $spot->municipality->name : '',
                     'proof_image' => $item->proof_image,
+                    'proof_images' => $item->proof_images ?? [],
                     'proof_status' => $item->proof_status ?? ($item->is_visited ? 'approved' : 'pending'),
                     'is_visited' => (bool) $item->is_visited,
                     'visited_at' => $item->visited_at ? $item->visited_at->toIso8601String() : null,
@@ -1170,6 +1172,8 @@ Route::prefix('tourist')->middleware('tourist.auth')->group(function () {
 
     Route::patch('/itineraries/items/{id}/visit', [ItineraryItemController::class, 'visit']);
     Route::post('/itineraries/items/{id}/visit', [ItineraryItemController::class, 'visit']);
+    Route::post('/itineraries/items/{id}/checkin', [ItineraryItemController::class, 'checkinLocation']);
+    Route::post('/itineraries/items/{id}/proof', [ItineraryItemController::class, 'uploadProof']);
 
     Route::get('/notifications', [NotificationController::class, 'index']);
     Route::post('/notifications/{id}/read', [NotificationController::class, 'markRead']);

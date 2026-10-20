@@ -9,6 +9,11 @@ $activeTab = 'leaderboard';
 
 <div class="leaderboard-container has-header has-bottom-nav animate-fade-in">
 
+    <!-- Offline status badge -->
+    <div id="leaderboard-offline-badge" style="display: none; background: #fffbeb; border: 1px solid #fde68a; color: #b45309; padding: 7px 12px; border-radius: 12px; font-size: 11px; font-weight: 700; margin-bottom: 12px; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.04);">
+        <i class="fa-solid fa-cloud-arrow-down" style="margin-right: 5px;"></i> Showing Cached Season Standings (Offline)
+    </div>
+
     <!-- Title & Season Header -->
     <div class="leaderboard-title stagger-0" style="position: relative;">
         <h2>
@@ -176,7 +181,23 @@ $activeTab = 'leaderboard';
         if (tabPoints) tabPoints.classList.toggle('active', mode === 'points');
         if (tabVisited) tabVisited.classList.toggle('active', mode === 'visited');
 
+        // Check cache for this specific sort mode
+        try {
+            const token = localStorage.getItem('api_token') || localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+            const cacheKey = `leaderboard_data_v26_${mode}_` + (token ? token.substring(0, 10) : 'public');
+            const stored = localStorage.getItem(cacheKey);
+            if (stored) {
+                const parsed = JSON.parse(stored);
+                if (parsed) applyLeaderboardData(parsed);
+            }
+        } catch (e) { }
+
         renderLeaderboardUI();
+
+        // Fetch fresh top 10 for this sort mode from the server
+        if (navigator.onLine && window.isAppOnline !== false) {
+            window.refreshLeaderboard(false, mode);
+        }
     }
     window.setLeaderboardSort = setLeaderboardSort;
 
@@ -257,6 +278,7 @@ $activeTab = 'leaderboard';
 
             // Maximum of Tourist users in the leaderboard is strictly 10
             leaders = leaders.slice(0, 10);
+            window._renderedLeaderboardUsers = leaders;
 
             const countBadge = document.getElementById('explorers-count-badge');
             if (countBadge) {
@@ -264,14 +286,43 @@ $activeTab = 'leaderboard';
             }
 
             // Prepare current logged-in user standing information (function-scoped for ranking comparisons)
-            const authUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
+            const authUser = JSON.parse(localStorage.getItem('auth_user') || localStorage.getItem('intan_elyu_user') || '{}');
+            const myRealId = Number(authUser.id || authUser.user_id || 0);
+            const myRealEmail = String(authUser.email || '').trim().toLowerCase();
+
+            if (!cachedMeData && authUser && (authUser.id || authUser.name || authUser.email)) {
+                const userPts = parseInt(authUser.points || authUser.xp || 0);
+                const userActs = parseInt(authUser.completed_activities || authUser.places_visited || 0);
+                cachedMeData = {
+                    id: myRealId,
+                    user_id: myRealId,
+                    name: authUser.name || authUser.full_name || 'You',
+                    full_name: authUser.name || authUser.full_name || 'You',
+                    email: authUser.email || '',
+                    avatar: authUser.avatar || '',
+                    home_location: authUser.home_location || authUser.municipality || 'La Union',
+                    municipality: authUser.municipality || authUser.home_location || 'La Union',
+                    points: userPts,
+                    total_points: userPts,
+                    pts: userPts,
+                    xp: parseInt(authUser.xp || 0),
+                    total_xp: parseInt(authUser.xp || 0),
+                    completed_activities: userActs,
+                    places_visited: userActs,
+                    rank: (cachedMyRank && cachedMyRank < 999) ? cachedMyRank : ((userPts > 0 || userActs > 0) ? (rawLeadersList ? (rawLeadersList.length + 1) : 11) : null)
+                };
+                window._cachedMeData = cachedMeData;
+            }
             const myPts = cachedMeData ? parseInt(cachedMeData.points ?? cachedMeData.pts ?? cachedMeData.total_points ?? cachedMeData.claimable_points ?? 0) : parseInt(authUser.points || 0);
             const myActivities = cachedMeData ? parseInt(cachedMeData.completed_activities ?? cachedMeData.activities ?? cachedMeData.total_activities ?? cachedMeData.places_visited ?? 0) : parseInt(authUser.completed_activities || authUser.places_visited || 0);
-            const isRanked = Boolean((cachedMyRank && cachedMyRank < 999) || myPts > 0 || myActivities > 0);
-            const myRankNum = (cachedMyRank && cachedMyRank < 999) ? cachedMyRank : (isRanked ? (rawLeadersList.length > 0 ? (rawLeadersList.length + '+') : '★') : '—');
+            const hasEarnedRank = Boolean((cachedMyRank && cachedMyRank < 999) || myPts > 0 || myActivities > 0);
+            const myRankNum = (cachedMyRank && cachedMyRank < 999) ? cachedMyRank : (hasEarnedRank ? (rawLeadersList.length > 0 ? (rawLeadersList.length + '+') : '★') : '—');
             const myRawName = String((cachedMeData && (cachedMeData.name || cachedMeData.full_name)) || (authUser && (authUser.name || authUser.full_name)) || 'Explorer').trim() || 'Explorer';
-            const myDisplayName = (!isRanked && myPts === 0) ? `${myRawName} (Unranked)` : myRawName;
-            const myAvatar = cachedMeData && cachedMeData.avatar ? cachedMeData.avatar : (authUser.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(myRawName)}&background=007AFF&color=fff&rounded=true&bold=true&size=128`);
+            const myDisplayName = (!hasEarnedRank) ? `${myRawName} (Unranked)` : myRawName;
+            const rawAvatar = cachedMeData && cachedMeData.avatar ? cachedMeData.avatar : (authUser.avatar || '');
+            const myAvatar = (rawAvatar && rawAvatar !== 'null' && rawAvatar !== 'undefined' && String(rawAvatar).trim() !== '')
+                ? rawAvatar
+                : `https://ui-avatars.com/api/?name=${encodeURIComponent(myRawName)}&background=007AFF&color=fff&rounded=true&bold=true&size=128`;
 
             window.myUserData = {
                 name: myRawName,
@@ -297,7 +348,7 @@ $activeTab = 'leaderboard';
                 if (rankCircle) {
                     if (cachedMyRank && cachedMyRank < 999) {
                         rankCircle.textContent = '#' + cachedMyRank;
-                    } else if (isRanked && myRankNum !== '—') {
+                    } else if (hasEarnedRank && myRankNum !== '—') {
                         rankCircle.textContent = String(myRankNum).startsWith('#') ? myRankNum : '#' + myRankNum;
                     } else {
                         rankCircle.textContent = '—';
@@ -317,7 +368,7 @@ $activeTab = 'leaderboard';
                             subtext.textContent = `${myPts.toLocaleString()} Points • ${myActivities} Spots Visited`;
                         }
                     } else {
-                        subtext.textContent = 'Check in at spots or play games to rank!';
+                        subtext.textContent = 'Check in at spots or play games to earn Points and rank!';
                     }
                 }
             }
@@ -343,9 +394,9 @@ $activeTab = 'leaderboard';
                         `;
                 }
             } else {
-                if (leaders[1]) podiumHTML += generatePodiumPlace(leaders[1], 2);
-                if (leaders[0]) podiumHTML += generatePodiumPlace(leaders[0], 1);
-                if (leaders[2]) podiumHTML += generatePodiumPlace(leaders[2], 3);
+                if (leaders[1]) podiumHTML += generatePodiumPlace(leaders[1], 2, 1);
+                if (leaders[0]) podiumHTML += generatePodiumPlace(leaders[0], 1, 0);
+                if (leaders[2]) podiumHTML += generatePodiumPlace(leaders[2], 3, 2);
                 if (podiumContainer) podiumContainer.innerHTML = podiumHTML;
             }
 
@@ -354,19 +405,22 @@ $activeTab = 'leaderboard';
             if (leaders.length > 3) {
                 for (let i = 3; i < leaders.length; i++) {
                     const user = leaders[i];
-                    const isMe = Boolean(cachedMeData && ((user.id && user.id === cachedMeData.id) || (user.user_id && user.user_id === (cachedMeData.user_id || cachedMeData.id))));
-                    rankListHTML += generateRankItem(user, i + 1, isMe);
+                    const isMe = Boolean(
+                        (myRealId > 0 && (Number(user.id) === myRealId || Number(user.user_id) === myRealId)) ||
+                        (myRealEmail && myRealEmail.includes('@') && String(user.email || '').trim().toLowerCase() === myRealEmail)
+                    );
+                    rankListHTML += generateRankItem(user, i + 1, isMe, false, i);
                 }
             }
 
-            // Append current user if they are outside the loaded list
-            const isMeAlreadyInList = Boolean(cachedMeData && leaders.some(u => {
-                const uId = u.id || u.user_id;
-                const mId = cachedMeData.id || cachedMeData.user_id;
-                return uId && mId && uId === mId;
-            }));
-            if (cachedMeData && !isMeAlreadyInList && cachedMyRank && cachedMyRank <= 999) {
-                rankListHTML += generateRankItem(cachedMeData, cachedMyRank, true);
+            // Append current user ONLY if they have earned points/activity and are outside the top 10
+            const isMeAlreadyInList = Boolean(
+                (myRealId > 0 && leaders.some(u => Number(u.id || u.user_id) === myRealId)) ||
+                (myRealEmail && myRealEmail.includes('@') && leaders.some(u => String(u.email || '').trim().toLowerCase() === myRealEmail))
+            );
+            if (cachedMeData && !isMeAlreadyInList && hasEarnedRank) {
+                const displayRank = (cachedMyRank && cachedMyRank < 999) ? cachedMyRank : (leaders.length > 0 ? (leaders.length + '+') : 11);
+                rankListHTML += generateRankItem(cachedMeData, displayRank, true, true, -1);
             }
 
             const rankListSec = document.getElementById('rank-list-section');
@@ -384,23 +438,52 @@ $activeTab = 'leaderboard';
     }
 
     function getUserDisplayName(user, rank) {
-        if (!user) return rank ? `${rank}# Explorer` : 'Explorer';
+        if (!user) return rank ? `Explorer #${rank}` : 'Explorer';
         const name = String(user.name || user.full_name || user.real_name || '').trim();
         if (name && !name.match(/^Explorer\s*#?\d*$/i) && name.toLowerCase() !== 'explorer') {
             return name;
         }
         if (rank) {
-            return `${rank}# Explorer`;
+            return `Explorer #${rank}`;
         }
         const idToUse = user.rank || user.user_id || user.id || 1;
-        return `${idToUse}# Explorer`;
+        return `Explorer #${idToUse}`;
     }
 
-    function generatePodiumPlace(user, rank) {
+    window.showUserProfileByIndex = function (idx) {
+        const list = window._renderedLeaderboardUsers || rawLeadersList || [];
+        const user = (idx === -1) ? cachedMeData : list[idx];
+        if (!user) return;
+        const rank = user.rank || (idx >= 0 ? idx + 1 : (cachedMyRank || '★'));
         const displayName = getUserDisplayName(user, rank);
-        const rawName = String(user.name || user.full_name || user.real_name || 'Explorer').replace(/[^a-zA-Z\s]/g, '').trim() || 'Explorer';
+        const rawName = String(user.name || user.full_name || user.real_name || 'Explorer').trim() || 'Explorer';
         const bUrl = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || '')).replace(/\/+$/, '');
-        let avatarUrl = user.avatar ? user.avatar : `https://ui-avatars.com/api/?name=${encodeURIComponent(rawName)}&background=007AFF&color=fff&rounded=true&bold=true&size=128`;
+        let avatarUrl = (user.avatar && user.avatar !== 'null' && user.avatar !== 'undefined' && String(user.avatar).trim() !== '') ? user.avatar : `https://ui-avatars.com/api/?name=${encodeURIComponent(rawName)}&background=007AFF&color=fff&rounded=true&bold=true&size=128`;
+        if (avatarUrl && !avatarUrl.startsWith('http') && !avatarUrl.startsWith('data:')) {
+            avatarUrl = bUrl ? (bUrl + '/' + avatarUrl.replace(/^\//, '')) : avatarUrl;
+        }
+        const pts = parseInt(user.points ?? user.pts ?? user.total_points ?? user.claimable_points ?? 0);
+        const activities = parseInt(user.completed_activities ?? user.places_visited ?? 0);
+        const location = user.home_location || user.municipality || '';
+        const bio = user.bio || '';
+
+        const authUser = JSON.parse(localStorage.getItem('auth_user') || localStorage.getItem('intan_elyu_user') || '{}');
+        const myRealId = Number(authUser.id || authUser.user_id || 0);
+        const myRealEmail = String(authUser.email || '').trim().toLowerCase();
+        const isMe = Boolean(
+            (idx === -1) ||
+            (myRealId > 0 && (Number(user.id) === myRealId || Number(user.user_id) === myRealId)) ||
+            (myRealEmail && myRealEmail.includes('@') && String(user.email || '').trim().toLowerCase() === myRealEmail)
+        );
+
+        window.showUserProfile(displayName, avatarUrl, pts, rank, activities, location, bio, isMe);
+    };
+
+    function generatePodiumPlace(user, rank, userIndex = 0) {
+        const displayName = getUserDisplayName(user, rank);
+        const rawName = String(user.name || user.full_name || user.real_name || 'Explorer').trim() || 'Explorer';
+        const bUrl = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || '')).replace(/\/+$/, '');
+        let avatarUrl = (user.avatar && user.avatar !== 'null' && user.avatar !== 'undefined' && String(user.avatar).trim() !== '') ? user.avatar : `https://ui-avatars.com/api/?name=${encodeURIComponent(rawName)}&background=007AFF&color=fff&rounded=true&bold=true&size=128`;
         if (avatarUrl && !avatarUrl.startsWith('http') && !avatarUrl.startsWith('data:')) {
             avatarUrl = bUrl ? (bUrl + '/' + avatarUrl.replace(/^\//, '')) : avatarUrl;
         }
@@ -423,12 +506,8 @@ $activeTab = 'leaderboard';
             badgeLabel = '3RD';
         }
 
-        const isMe = Boolean(cachedMeData && (user.id === cachedMeData.id || user.user_id === cachedMeData.id));
-        const safeName = displayName.replace(/'/g, "\\'");
         const pts = parseInt(user.points ?? user.pts ?? user.total_points ?? user.claimable_points ?? 0);
         const activities = parseInt(user.completed_activities ?? user.places_visited ?? 0);
-        const safeLocation = (user.home_location || '').replace(/'/g, "\\'");
-        const safeBio = (user.bio || '').replace(/'/g, "\\'");
 
         let iconHtml = '';
         let textMetric = '';
@@ -447,7 +526,7 @@ $activeTab = 'leaderboard';
             </div>`;
 
         return `
-        <div class="podium-place rank-${rank}" onclick="showUserProfile('${safeName}', '${avatarUrl}', ${pts}, ${rank}, ${activities}, '${safeLocation}', '${safeBio}', ${isMe})">
+        <div class="podium-place rank-${rank}" onclick="window.showUserProfileByIndex(${userIndex})">
             <div class="podium-avatar-wrap">
                 ${medalIcon}
                 <img src="${avatarUrl}" alt="${displayName}" class="podium-avatar" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(rawName)}&background=007AFF&color=fff&rounded=true&bold=true&size=128';">
@@ -461,24 +540,24 @@ $activeTab = 'leaderboard';
         </div>`;
     }
 
-    function generateRankItem(user, rank, isMe) {
+    function generateRankItem(user, rank, isMe, isSticky = false, userIndex = 0) {
         const displayName = getUserDisplayName(user, rank);
-        const rawName = (user.name || user.full_name || user.real_name || 'Explorer').replace(/[^a-zA-Z\s]/g, '').trim() || 'Explorer';
+        const rawName = String(user.name || user.full_name || user.real_name || 'Explorer').trim() || 'Explorer';
         const bUrl = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || '')).replace(/\/+$/, '');
-        let avatarUrl = user.avatar ? user.avatar : `https://ui-avatars.com/api/?name=${encodeURIComponent(rawName)}&background=007AFF&color=fff&rounded=true&bold=true&size=128`;
+        let avatarUrl = (user.avatar && user.avatar !== 'null' && user.avatar !== 'undefined' && String(user.avatar).trim() !== '') ? user.avatar : `https://ui-avatars.com/api/?name=${encodeURIComponent(rawName)}&background=007AFF&color=fff&rounded=true&bold=true&size=128`;
         if (avatarUrl && !avatarUrl.startsWith('http') && !avatarUrl.startsWith('data:')) {
             avatarUrl = bUrl ? (bUrl + '/' + avatarUrl.replace(/^\//, '')) : avatarUrl;
         }
 
-        const activeClass = isMe ? 'is-me' : '';
+        const activeClass = [
+            isMe ? 'is-me' : '',
+            isSticky ? 'sticky-you-card is-sticky-bottom' : ''
+        ].filter(Boolean).join(' ');
         const youTag = isMe ? `<span style="font-size:9px; background:linear-gradient(135deg, #38bdf8, #2563eb); color:white; padding:2px 7px; border-radius:100px; font-weight:800; margin-left:6px;">YOU</span>` : '';
         const delay = 0.15 + ((rank - 4) * 0.03);
 
-        const safeName = displayName.replace(/'/g, "\\'");
         const pts = parseInt(user.points ?? user.pts ?? user.total_points ?? user.claimable_points ?? 0);
         const activities = parseInt(user.completed_activities ?? user.places_visited ?? 0);
-        const safeLocation = (user.home_location || '').replace(/'/g, "\\'");
-        const safeBio = (user.bio || '').replace(/'/g, "\\'");
 
         let rightBadgeHtml = '';
         let subMetaText = `<span>${activities} Spots Visited</span>`;
@@ -495,8 +574,10 @@ $activeTab = 'leaderboard';
             </div>`;
         }
 
+        const clickHandler = isSticky ? 'window.showUserProfileByIndex(-1)' : `window.showUserProfileByIndex(${userIndex})`;
+
         return `
-        <div class="rank-item ${activeClass}" style="animation-delay: ${Math.max(0, delay)}s;" onclick="showUserProfile('${safeName}', '${avatarUrl}', ${pts}, ${rank}, ${activities}, '${safeLocation}', '${safeBio}', ${Boolean(isMe)})">
+        <div class="rank-item ${activeClass}" style="animation-delay: ${Math.max(0, delay)}s;" onclick="${clickHandler}">
             <div style="display: flex; align-items: center; min-width: 0; flex: 1; gap: 10px;">
                 <div class="rank-number-box">#${rank}</div>
                 <img src="${avatarUrl}" alt="${displayName}" class="rank-avatar" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(rawName)}&background=007AFF&color=fff&rounded=true&bold=true&size=128';">
@@ -541,12 +622,13 @@ $activeTab = 'leaderboard';
             }
         }
 
+        const cleanRank = String(rank || '').replace(/^#/, '');
         document.getElementById('modal-avatar').src = avatar;
         document.getElementById('modal-name').innerText = name;
         document.getElementById('modal-pts').innerText = displayPts.toLocaleString();
-        document.getElementById('modal-rank-badge').innerText = rank;
+        document.getElementById('modal-rank-badge').innerText = cleanRank || '★';
         const rankNumEl = document.getElementById('modal-rank-num');
-        if (rankNumEl) rankNumEl.innerText = rank ? (String(rank).startsWith('#') ? rank : '#' + rank) : '—';
+        if (rankNumEl) rankNumEl.innerText = cleanRank ? (cleanRank !== '—' ? '#' + cleanRank : '—') : '—';
         document.getElementById('modal-activities').innerText = activities ? Number(activities).toLocaleString() : '0';
 
         // When viewing self, fetch fresh live balance to guarantee accuracy
@@ -579,9 +661,9 @@ $activeTab = 'leaderboard';
         const rankPill = document.getElementById('modal-rank-pill');
         if (rankPill) {
             if (isSelf) {
-                rankPill.innerText = (rank && rank !== '—') ? `#${rank} Ranked Explorer (You)` : `Your Explorer Profile`;
+                rankPill.innerText = (cleanRank && cleanRank !== '—') ? `#${cleanRank} Ranked Explorer (You)` : `Your Explorer Profile`;
             } else {
-                rankPill.innerText = `#${rank} Ranked Explorer`;
+                rankPill.innerText = cleanRank ? `#${cleanRank} Ranked Explorer` : 'Ranked Explorer';
             }
         }
 
@@ -658,241 +740,226 @@ $activeTab = 'leaderboard';
             window._cachedMyRank = cachedMyRank;
         }
 
-        // Resilient self-matching: match by ID, email, or name
+        // Safe self-matching: strictly match by valid positive ID or real email (never generic name)
         const myId = Number(authUser.id || authUser.user_id || 0);
         const myEmail = String(authUser.email || '').trim().toLowerCase();
         const myName = String(authUser.name || authUser.full_name || '').trim().toLowerCase();
+        const isGenericName = ['tourist', 'explorer', 'guest', 'guest explorer', 'you'].includes(myName);
 
+        let userFoundInLeaders = false;
         if (rawLeadersList && rawLeadersList.length > 0) {
             const foundIndex = rawLeadersList.findIndex((u, idx) => {
                 const uId = Number(u.id || u.user_id || 0);
                 const uEmail = String(u.email || '').trim().toLowerCase();
                 const uName = String(u.name || u.full_name || u.real_name || '').trim().toLowerCase();
-                if (myId && uId && myId === uId) return true;
-                if (myEmail && uEmail && myEmail === uEmail) return true;
-                if (myName && uName && myName === uName) return true;
+                if (myId > 0 && uId > 0 && myId === uId) return true;
+                if (myEmail && myEmail.includes('@') && uEmail && myEmail === uEmail) return true;
+                if (!isGenericName && myName && uName && myName === uName && myName.length > 3) return true;
                 return false;
             });
             if (foundIndex !== -1) {
+                userFoundInLeaders = true;
                 const found = rawLeadersList[foundIndex];
-                if (!cachedMeData) {
-                    cachedMeData = found;
-                    window._cachedMeData = found;
-                }
+                cachedMeData = found;
+                window._cachedMeData = found;
                 cachedMyRank = Number(found.rank || found.position || (foundIndex + 1));
                 window._cachedMyRank = cachedMyRank;
+            } else {
+                if (!data.me && (!data.my_rank || data.my_rank >= 999)) {
+                    cachedMeData = null;
+                    cachedMyRank = null;
+                    window._cachedMyRank = null;
+                }
+            }
+        }
+
+        // Resilient fallback: If current user is authenticated but outside top 10, synthesize cachedMeData from authUser
+        if (!cachedMeData && authUser && (authUser.id || authUser.name || authUser.email)) {
+            const myUserPts = parseInt(authUser.points || authUser.xp || 0);
+            const myUserActs = parseInt(authUser.completed_activities || authUser.places_visited || 0);
+            const hasActivity = (myUserPts > 0 || myUserActs > 0);
+
+            cachedMeData = {
+                id: myId,
+                user_id: myId,
+                name: authUser.name || authUser.full_name || 'You',
+                full_name: authUser.name || authUser.full_name || 'You',
+                email: authUser.email || '',
+                avatar: authUser.avatar || '',
+                home_location: authUser.home_location || authUser.municipality || 'La Union',
+                municipality: authUser.municipality || authUser.home_location || 'La Union',
+                points: myUserPts,
+                total_points: myUserPts,
+                pts: myUserPts,
+                xp: parseInt(authUser.xp || 0),
+                total_xp: parseInt(authUser.xp || 0),
+                completed_activities: myUserActs,
+                places_visited: myUserActs,
+                rank: (cachedMyRank && cachedMyRank < 999) ? cachedMyRank : (hasActivity ? 11 : null)
+            };
+            window._cachedMeData = cachedMeData;
+            if (cachedMyRank && cachedMyRank >= 999) {
+                cachedMyRank = null;
+                window._cachedMyRank = null;
             }
         }
         renderLeaderboardUI();
     }
 
-    window.refreshLeaderboard = async function (force = true) {
-        const refreshIcon = document.getElementById('leaderboard-refresh-icon');
-        if (refreshIcon) refreshIcon.classList.add('fa-spin');
+    // Immediate hydration from real cached standings, then fetch real live data if online
+    (function hydrateAndFetchLeaderboard() {
         try {
             const token = localStorage.getItem('api_token') || localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
-            const cacheKey = 'leaderboard_data_v26_' + (token ? token.substring(0, 10) : 'public');
-            localStorage.removeItem(cacheKey);
-            for (let i = localStorage.length - 1; i >= 0; i--) {
-                const k = localStorage.key(i);
-                if (k && k.startsWith('leaderboard_data_')) localStorage.removeItem(k);
+            const tokenSuffix = token ? token.substring(0, 10) : 'public';
+            const cacheKeyMode = 'leaderboard_data_v26_' + currentSortMode + '_' + tokenSuffix;
+            const cacheKeyLegacy = 'leaderboard_data_v26_' + tokenSuffix;
+            const storedRaw = localStorage.getItem(cacheKeyMode) || 
+                              localStorage.getItem(cacheKeyLegacy) || 
+                              localStorage.getItem('leaderboard_data_offline_fallback_' + currentSortMode) || 
+                              localStorage.getItem('leaderboard_data_offline_fallback');
+            if (storedRaw) {
+                const parsed = JSON.parse(storedRaw);
+                const d = parsed.data || parsed;
+                if (d) {
+                    applyLeaderboardData(d);
+                }
             }
         } catch (e) { }
-        window.leaderboardNeedsRefresh = true;
-        await window.initLeaderboardView(true);
-        if (refreshIcon) refreshIcon.classList.remove('fa-spin');
-        if (typeof showToast === 'function') {
-            showToast('Leaderboard rankings synced!');
+
+        // Render cached rankings (or empty state if not yet cached)
+        renderLeaderboardUI();
+
+        // Fetch fresh real rankings from live server
+        if (navigator.onLine && window.isAppOnline !== false) {
+            setTimeout(() => {
+                if (typeof window.refreshLeaderboard === 'function') {
+                    window.refreshLeaderboard(false, currentSortMode);
+                }
+            }, 60);
         }
-    };
+    })();
 
     let _isFetchingLeaderboard = false;
-    let _lastLeaderboardFetchTime = 0;
 
-    window.initLeaderboardView = async function (forceRefresh = false) {
-        const podiumContainer = document.getElementById('podium-container');
-        const rankListContainer = document.getElementById('rank-list-container');
-        const refreshIcon = document.getElementById('leaderboard-refresh-icon');
-
-        // Prevent overlapping fetches and rapid re-fetch flapping
+    // Explicit manual refresh: Triggered when user taps the refresh button at the top right or changes filter
+    window.refreshLeaderboard = async function (force = true, requestedSort = null) {
         if (_isFetchingLeaderboard) return;
-        const now = Date.now();
-        if (forceRefresh && (now - _lastLeaderboardFetchTime < 6000) && rawLeadersList && rawLeadersList.length > 0) {
+        _isFetchingLeaderboard = true;
+
+        const refreshIcon = document.getElementById('leaderboard-refresh-icon');
+        if (refreshIcon) refreshIcon.classList.add('fa-spin');
+
+        if (!navigator.onLine || window.isAppOnline === false) {
+            if (force && typeof showToast === 'function') {
+                showToast('Currently offline. Showing cached standings.', 'info', 3000);
+            }
+            if (refreshIcon) refreshIcon.classList.remove('fa-spin');
+            _isFetchingLeaderboard = false;
             return;
         }
-        _isFetchingLeaderboard = true;
-        _lastLeaderboardFetchTime = now;
 
-        if (refreshIcon && forceRefresh) refreshIcon.classList.add('fa-spin');
-
-        // 1. If we already have leaders in memory or window cache, render immediately! Otherwise show loading state
-        if (rawLeadersList && rawLeadersList.length > 0) {
-            renderLeaderboardUI();
+        const sortMode = requestedSort || currentSortMode || 'points';
+        let apiSort = 'points';
+        if (sortMode === 'visited') {
+            apiSort = 'visited';
+        } else if (sortMode === 'xp') {
+            apiSort = 'xp';
         } else {
-            renderLeaderboardLoading();
+            apiSort = 'points';
         }
 
         try {
             const token = localStorage.getItem('api_token') || localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
-            var backendUrl = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
-            const cacheKey = 'leaderboard_data_v26_' + (token ? token.substring(0, 10) : 'public');
+            const reqHeaders = { 'Accept': 'application/json' };
+            if (token) reqHeaders['Authorization'] = 'Bearer ' + token;
 
-            if (forceRefresh) {
-                window.leaderboardNeedsRefresh = true;
+            // Dynamically resolve backend endpoint
+            const bUrl = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || '')).replace(/\/+$/, '');
+            const candidates = [];
+            if (bUrl) {
+                if (token) {
+                    candidates.push(`${bUrl}/api/tourist/leaderboard?limit=10&sort=${apiSort}`);
+                }
+                candidates.push(`${bUrl}/api/public/leaderboard?limit=10&sort=${apiSort}`);
             }
 
-            // In parallel, fetch live points balance if user is authenticated
+            // Fallback production Cloudflare endpoints
             if (token) {
-                fetch(backendUrl + '/api/tourist/points/balance', {
-                    headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/json' }
-                }).then(r => r.json()).then(d => {
-                    if (d && d.status === 'success' && d.points !== undefined) {
-                        const ptsVal = parseInt(d.points);
-                        if (window.myUserData) {
-                            window.myUserData.pts = ptsVal;
-                            const subtext = document.getElementById('my-standing-subtext');
-                            if (subtext) {
-                                const currentActivities = window.myUserData.activities || (cachedMeData ? parseInt(cachedMeData.completed_activities ?? cachedMeData.activities ?? cachedMeData.places_visited ?? 0) : 0);
-                                if (currentSortMode === 'visited') {
-                                    subtext.textContent = `${currentActivities} Spots Visited • ${ptsVal.toLocaleString()} Points`;
-                                } else {
-                                    subtext.textContent = `${ptsVal.toLocaleString()} Points • ${currentActivities} Spots Visited`;
+                candidates.push(`https://api.intan-elyu.online/api/tourist/leaderboard?limit=10&sort=${apiSort}`);
+            }
+            candidates.push(`https://api.intan-elyu.online/api/public/leaderboard?limit=10&sort=${apiSort}`);
+            candidates.push(`/api/public/leaderboard?limit=10&sort=${apiSort}`);
+
+            let fetchedData = null;
+            for (const url of candidates) {
+                const controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+                const timeoutId = controller ? setTimeout(() => controller.abort(), 8000) : null;
+                try {
+                    const res = await fetch(url, { headers: reqHeaders, signal: controller ? controller.signal : undefined });
+                    if (timeoutId) clearTimeout(timeoutId);
+                    if (res.ok) {
+                        const json = await res.json();
+                        const users = json.users || json.leaders || json.data || json.tourists || (Array.isArray(json) ? json : []);
+                        if (Array.isArray(users) && users.length > 0) {
+                            fetchedData = json;
+                            break;
+                        }
+                    }
+                } catch (err) {
+                    if (timeoutId) clearTimeout(timeoutId);
+                }
+            }
+
+            if (fetchedData) {
+                applyLeaderboardData(fetchedData);
+                try {
+                    const tokenSuffix = token ? token.substring(0, 10) : 'public';
+                    localStorage.setItem(`leaderboard_data_v26_${sortMode}_${tokenSuffix}`, JSON.stringify(fetchedData));
+                    localStorage.setItem(`leaderboard_data_offline_fallback_${sortMode}`, JSON.stringify(fetchedData));
+                    localStorage.setItem(`leaderboard_data_v26_${tokenSuffix}`, JSON.stringify(fetchedData));
+                    localStorage.setItem('leaderboard_data_offline_fallback', JSON.stringify(fetchedData));
+                } catch (e) { }
+                if (force && typeof showToast === 'function') {
+                    showToast('Leaderboard rankings synced!', 'success', 3000);
+                }
+            } else {
+                if (force && typeof showToast === 'function') {
+                    showToast('Could not reach leaderboard server. Showing cached standings.', 'info', 3500);
+                }
+            }
+
+            // Also refresh user's live points balance if authenticated
+            if (token) {
+                try {
+                    const ptsBase = bUrl || 'https://api.intan-elyu.online';
+                    const ptsRes = await fetch(ptsBase + '/api/tourist/points/balance', {
+                        headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/json' }
+                    });
+                    if (ptsRes.ok) {
+                        const d = await ptsRes.json();
+                        if (d && d.status === 'success' && d.points !== undefined) {
+                            const ptsVal = parseInt(d.points);
+                            if (window.myUserData) {
+                                window.myUserData.pts = ptsVal;
+                                const subtext = document.getElementById('my-standing-subtext');
+                                if (subtext) {
+                                    const currentActivities = window.myUserData.activities || (cachedMeData ? parseInt(cachedMeData.completed_activities ?? cachedMeData.activities ?? cachedMeData.places_visited ?? 0) : 0);
+                                    if (currentSortMode === 'visited') {
+                                        subtext.textContent = `${currentActivities} Spots Visited • ${ptsVal.toLocaleString()} Points`;
+                                    } else {
+                                        subtext.textContent = `${ptsVal.toLocaleString()} Points • ${currentActivities} Spots Visited`;
+                                    }
                                 }
                             }
                         }
                     }
-                }).catch(() => { });
+                } catch (e) { }
             }
 
-            const fetchCache = window.useCache || (async (key, fetcher, renderer) => { const d = await fetcher(); if (renderer) renderer(d); return d; });
-
-            // Ambient offline check: Pre-hydrate from cache if available
-            try {
-                const storedRaw = localStorage.getItem(cacheKey);
-                if (storedRaw) {
-                    const parsed = JSON.parse(storedRaw);
-                    const d = parsed.data || parsed;
-                    if (d) {
-                        applyLeaderboardData(d);
-                    }
-                }
-            } catch (e) { }
-
-
-            // Robust multi-tier fetch with cascaded fallbacks
-            async function fetchLeaderboardWithFallbacks() {
-                // Tier 1: Tourist authenticated endpoint
-                if (token) {
-                    try {
-                        const res = await fetch(backendUrl + '/api/tourist/leaderboard?limit=10', {
-                            headers: { 'Accept': 'application/json', 'Authorization': 'Bearer ' + token }
-                        });
-                        if (res.ok) {
-                            const json = await res.json();
-                            const users = json.users || json.leaders || json.data || json.tourists || (Array.isArray(json) ? json : []);
-                            if (Array.isArray(users)) return json;
-                        }
-                    } catch (err1) {
-                        console.warn("Tier 1 tourist leaderboard fetch error:", err1);
-                    }
-                }
-
-                // Tier 2: Public leaderboard endpoint on configured backend
-                try {
-                    const headers2 = { 'Accept': 'application/json' };
-                    if (token) headers2['Authorization'] = 'Bearer ' + token;
-                    const res2 = await fetch(backendUrl + '/api/public/leaderboard?limit=10', { headers: headers2 });
-                    if (res2.ok) {
-                        const json2 = await res2.json();
-                        const users2 = json2.users || json2.leaders || json2.data || json2.tourists || (Array.isArray(json2) ? json2 : []);
-                        if (Array.isArray(users2)) return json2;
-                    }
-                } catch (err2) {
-                    console.warn("Tier 2 public leaderboard fetch error:", err2);
-                }
-
-                // Tier 3: Standard public endpoint /api/leaderboard on configured backend
-                try {
-                    const headers3 = { 'Accept': 'application/json' };
-                    if (token) headers3['Authorization'] = 'Bearer ' + token;
-                    const res3 = await fetch(backendUrl + '/api/leaderboard?limit=10', { headers: headers3 });
-                    if (res3.ok) {
-                        const json3 = await res3.json();
-                        const users3 = json3.users || json3.leaders || json3.data || json3.tourists || (Array.isArray(json3) ? json3 : []);
-                        if (Array.isArray(users3)) return json3;
-                    }
-                } catch (err3) {
-                    console.warn("Tier 3 public leaderboard fetch error:", err3);
-                }
-
-                // Tier 4: Direct canonical production domain
-                try {
-                    const res4 = await fetch('https://api.intan-elyu.online/api/public/leaderboard?limit=10', {
-                        headers: { 'Accept': 'application/json' }
-                    });
-                    if (res4.ok) {
-                        const json4 = await res4.json();
-                        const users4 = json4.users || json4.leaders || json4.data || json4.tourists || (Array.isArray(json4) ? json4 : []);
-                        if (Array.isArray(users4)) return json4;
-                    }
-                } catch (err4) {
-                    console.warn("Tier 4 direct API fetch error:", err4);
-                }
-
-                throw new Error("Could not reach any leaderboard endpoint");
-            }
-
-            await fetchCache(
-                cacheKey,
-                fetchLeaderboardWithFallbacks,
-                (data) => {
-                    if (!data) {
-                        if (!rawLeadersList || rawLeadersList.length === 0) {
-                            renderLeaderboardUI();
-                        }
-                        return;
-                    }
-                    applyLeaderboardData(data);
-                },
-                Boolean(forceRefresh || window.leaderboardNeedsRefresh),
-                15000 // 15 seconds TTL
-            );
-            window.leaderboardNeedsRefresh = false;
-
-            // Re-render after fetch to ensure latest data is displayed
-            if (rawLeadersList && rawLeadersList.length > 0) {
-                renderLeaderboardUI();
-            }
-
-        } catch (e) {
-            console.warn("Leaderboard fetch error:", e);
-            renderLeaderboardUI();
-            // Only show offline empty state if we genuinely have NO cached data at all
-            if (!rawLeadersList || rawLeadersList.length === 0) {
-                if (!navigator.onLine) {
-                    if (podiumContainer) {
-                        podiumContainer.innerHTML = `
-                            <div style="grid-column: 1 / -1; width: 100%; text-align: center; padding: 28px 16px;">
-                                <div style="width: 48px; height: 48px; border-radius: 50%; background: rgba(245, 158, 11, 0.12); display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; color: #f59e0b; font-size: 20px;">
-                                    <i class="fa-solid fa-cloud-slash"></i>
-                                </div>
-                                <div style="font-size: 14px; font-weight: 700; color: #1e293b; margin-bottom: 4px;">Rankings Offline</div>
-                                <div style="font-size: 12px; color: #64748b; max-width: 260px; margin: 0 auto; line-height: 1.4;">
-                                    Full provincial rankings will update automatically when reconnected.
-                                </div>
-                            </div>`;
-                    }
-                } else {
-                    if (podiumContainer) {
-                        podiumContainer.innerHTML = `
-                            <div style="grid-column: 1 / -1; width: 100%; text-align: center; padding: 28px 16px;">
-                                <div style="font-size: 14px; font-weight: 700; color: #dc2626; margin-bottom: 6px;">Rankings Temporarily Unavailable</div>
-                                <button onclick="window.refreshLeaderboard(true)" style="background: #1e3a8a; color: white; border: none; padding: 8px 18px; border-radius: 100px; font-size: 12px; font-weight: 800; cursor: pointer;">
-                                    <i class="fa-solid fa-rotate-right" style="margin-right: 5px;"></i> Try Again
-                                </button>
-                            </div>`;
-                    }
-                }
+        } catch (err) {
+            console.warn('Leaderboard refresh error:', err);
+            if (force && typeof showToast === 'function') {
+                showToast('Sync error. Retaining cached rankings.', 'warning', 3000);
             }
         } finally {
             _isFetchingLeaderboard = false;
@@ -900,40 +967,50 @@ $activeTab = 'leaderboard';
         }
     };
 
-    // Initialize immediately
-    window.initLeaderboardView();
+    window.initLeaderboardView = async function (forceRefresh = false) {
+        if (forceRefresh) {
+            await window.refreshLeaderboard(true);
+        } else {
+            renderLeaderboardUI();
+        }
+    };
 
-    // Ambient automatic reconnect listeners (debounced to avoid multiple rapid-fire fetches)
-    let _leaderboardReconnectTimer = null;
-    function handleLeaderboardReconnect() {
-        if (_leaderboardReconnectTimer) clearTimeout(_leaderboardReconnectTimer);
-        _leaderboardReconnectTimer = setTimeout(() => {
-            const current = (document.body ? document.body.getAttribute('data-view') : '') || (window.currentView || '');
-            if (current !== 'leaderboard') {
-                window.leaderboardNeedsRefresh = true;
-                return;
-            }
-            if (typeof window.initLeaderboardView === 'function') {
-                window.leaderboardNeedsRefresh = true;
-                window.initLeaderboardView(true);
-            }
-        }, 400);
+    // Offline status badge updater & auto-reconnect refresh
+    function updateLeaderboardOfflineStatus() {
+        const badge = document.getElementById('leaderboard-offline-badge');
+        const isOff = (typeof navigator.onLine === 'boolean') ? !navigator.onLine : (window.isAppOnline === false);
+        if (badge) badge.style.setProperty('display', isOff ? 'block' : 'none', 'important');
+        if (!isOff) {
+            try {
+                localStorage.removeItem('intan_elyu_offline_mode');
+                localStorage.removeItem('intan_elyu_offline_guest');
+            } catch(e) {}
+        }
     }
-    window.addEventListener('online', handleLeaderboardReconnect);
-    window.addEventListener('appOnline', handleLeaderboardReconnect);
-    document.addEventListener('visibilitychange', function () {
-        if (!document.hidden && (!rawLeadersList || rawLeadersList.length === 0 || window.leaderboardNeedsRefresh)) {
-            handleLeaderboardReconnect();
+    window.addEventListener('online', () => {
+        updateLeaderboardOfflineStatus();
+        if (typeof window.enforceAllOfflineBadgesHidden === 'function') window.enforceAllOfflineBadgesHidden();
+        if (typeof window.refreshLeaderboard === 'function') {
+            window.refreshLeaderboard(false);
         }
     });
+    window.addEventListener('offline', updateLeaderboardOfflineStatus);
+    window.addEventListener('appOnline', () => {
+        updateLeaderboardOfflineStatus();
+        if (typeof window.enforceAllOfflineBadgesHidden === 'function') window.enforceAllOfflineBadgesHidden();
+        if (typeof window.refreshLeaderboard === 'function') {
+            window.refreshLeaderboard(false);
+        }
+    });
+    window.addEventListener('appOffline', updateLeaderboardOfflineStatus);
+    window.addEventListener('app-connection-changed', updateLeaderboardOfflineStatus);
+    setTimeout(updateLeaderboardOfflineStatus, 150);
 
-    // Also listen for SPA viewLoaded event when navigating back to leaderboard
+    // Re-render UI when switching back to leaderboard tab (no network fetch)
     function handleLeaderboardViewLoaded(e) {
         if (e && e.detail && e.detail.view === 'leaderboard') {
-            if (typeof window.initLeaderboardView === 'function') {
-                const mustForce = (!rawLeadersList || rawLeadersList.length === 0 || window.leaderboardNeedsRefresh);
-                window.initLeaderboardView(mustForce);
-            }
+            updateLeaderboardOfflineStatus();
+            renderLeaderboardUI();
         }
     }
     window.addEventListener('viewLoaded', handleLeaderboardViewLoaded);

@@ -19,7 +19,7 @@
 <!-- Notifications Modal Backdrop with Soft Blur -->
 <div id="notifications-backdrop" onclick="toggleNotifications()" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; width: 100vw; height: 100vh; background: rgba(10, 25, 60, 0.45); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); z-index: 999990; opacity: 0; transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1); pointer-events: none;"></div>
 
-<div id="notifications-dropdown" class="hide-scrollbar" style="position: fixed; top: max(env(safe-area-inset-top, 0px), 65px); right: 12px; left: 12px; max-width: 360px; margin: 0 auto; background: #ffffff; border: none !important; outline: none !important; border-radius: 22px; z-index: 999999; box-shadow: 0 16px 40px rgba(10, 25, 60, 0.45); padding: 0; max-height: 75vh; display: flex; flex-direction: column; overflow: hidden; opacity: 0; pointer-events: none; transform-origin: top right; transform: scale(0.4) translate(35px, -35px); transition: opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1), transform 0.34s cubic-bezier(0.175, 0.885, 0.32, 1.15) !important;">
+<div id="notifications-dropdown" class="hide-scrollbar" style="position: fixed; top: calc(max(env(safe-area-inset-top, 0px), 36px) + 54px); right: 12px; left: 12px; max-width: 360px; margin: 0 auto; background: #ffffff; border: none !important; outline: none !important; border-radius: 22px; z-index: 999999; box-shadow: 0 16px 40px rgba(10, 25, 60, 0.45); padding: 0; max-height: 75vh; display: flex; flex-direction: column; overflow: hidden; opacity: 0; pointer-events: none; transform-origin: top right; transform: scale(0.4) translate(35px, -35px); transition: opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1), transform 0.34s cubic-bezier(0.175, 0.885, 0.32, 1.15) !important;">
     <!-- Notifications Header Banner -->
     <div style="padding: 14px 16px; border-bottom: none !important; background: linear-gradient(180deg, #1e3a8a 0%, #193375 100%); flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; border: none !important; outline: none !important;">
         <span style="display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 800; color: #ffffff; letter-spacing: -0.3px;">
@@ -54,7 +54,7 @@
     </div>
 </div>
 
-<div id="sidebar-overlay" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.45); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); z-index: 100002 !important; transition: opacity 0.3s ease;" onclick="toggleSidebar()"></div>
+<div id="sidebar-overlay" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.45); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); z-index: 100002 !important; transition: opacity 0.3s ease; pointer-events: none;" onclick="toggleSidebar()"></div>
 <div id="sidebar-menu" style="position: fixed; top: 0; left: -280px; width: 260px; bottom: 0; background: #ffffff; z-index: 100003 !important; transition: left 0.32s cubic-bezier(0.16, 1, 0.3, 1); display: flex; flex-direction: column; box-shadow: 10px 0 35px rgba(0,0,0,0.12); border: none !important; border-right: none !important; outline: none !important; overflow: hidden;">
     
     <!-- User Profile Header Banner -->
@@ -146,12 +146,56 @@
     </div>
 </div>
 
+<!-- Universal Logout Confirmation Modal -->
+<div id="logout-confirm-modal" onclick="if(event.target===this) window.closeLogoutModal();"
+    style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(10, 25, 60, 0.72); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 999999; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box;">
+    <div style="background: #ffffff; border-radius: 24px; width: 100%; max-width: 340px; padding: 24px 20px; text-align: center; box-shadow: 0 20px 45px rgba(0, 0, 0, 0.28); position: relative; animation: popInLogoutModal 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;">
+        
+        <!-- Icon -->
+        <div style="width: 56px; height: 56px; border-radius: 50%; background: #fee2e2; color: #ef4444; display: flex; align-items: center; justify-content: center; font-size: 22px; margin: 0 auto 16px; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i>
+        </div>
+
+        <!-- Question Title -->
+        <h3 style="margin: 0 0 8px 0; font-size: 18px; font-weight: 800; color: #0f172a; line-height: 1.3;">
+            Are you sure you want to log out?
+        </h3>
+        
+        <!-- Subtitle Note -->
+        <p id="logout-modal-subtext" style="margin: 0 0 20px 0; font-size: 13px; color: #64748b; line-height: 1.45;">
+            You will be signed out of your tourist explorer session.
+        </p>
+
+        <!-- No & Yes Action Buttons -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <button type="button" id="logout-btn-no" onclick="window.closeLogoutModal()"
+                style="padding: 12px 16px; border-radius: 14px; background: #f1f5f9; border: 1.5px solid #e2e8f0; color: #475569; font-size: 14px; font-weight: 800; cursor: pointer; transition: all 0.15s ease;"
+                onpointerdown="this.style.transform='scale(0.97)'" onpointerup="this.style.transform='scale(1)'">
+                No
+            </button>
+            <button type="button" id="logout-btn-yes" onclick="window.confirmExecuteLogout()"
+                style="padding: 12px 16px; border-radius: 14px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border: none; color: #ffffff; font-size: 14px; font-weight: 800; cursor: pointer; box-shadow: 0 4px 14px rgba(220, 38, 38, 0.35); transition: all 0.15s ease;"
+                onpointerdown="this.style.transform='scale(0.97)'" onpointerup="this.style.transform='scale(1)'">
+                Yes
+            </button>
+        </div>
+    </div>
+</div>
+<style>
+@keyframes popInLogoutModal {
+    0% { opacity: 0; transform: scale(0.92); }
+    100% { opacity: 1; transform: scale(1); }
+}
+</style>
+
 <script>
     function updateSidebarUserProfile() {
         try {
             const user = window.safeJsonParse ? window.safeJsonParse(localStorage.getItem('auth_user'), {}) : (JSON.parse(localStorage.getItem('auth_user') || '{}'));
             const avatarEl = document.getElementById('sidebar-avatar');
             const nameEl = document.getElementById('sidebar-user-name');
+            const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+            const isGuest = !token || token === 'guest_token' || token === 'offline_guest_token' || token.startsWith('guest_') || token.startsWith('offline_');
             if (user) {
                 const fullName = (user.first_name || user.name || '').trim();
                 const firstName = fullName ? fullName.split(/\s+/)[0] : 'Explorer';
@@ -160,8 +204,38 @@
                     avatarEl.src = user.avatar ? (window.getFullImageUrl ? window.getFullImageUrl(user.avatar) : user.avatar) : `https://ui-avatars.com/api/?name=${encodeURIComponent(firstName)}&background=007AFF&color=fff&rounded=true&bold=true&size=128`;
                 }
             }
+            const logoutBtn = document.getElementById('sidebar-logout-btn');
+            if (logoutBtn) {
+                if (isGuest) {
+                    logoutBtn.innerHTML = '<i class="fa-solid fa-user-plus" style="color: #ffffff !important; font-size: 14px;"></i> Register / Sign In';
+                    logoutBtn.style.setProperty('background', 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)', 'important');
+                    logoutBtn.onclick = function() { 
+                        closeSidebarInstantly(); 
+                        navigateTo('auth&mode=register&from_sidebar=1'); 
+                        return false; 
+                    };
+                } else {
+                    logoutBtn.innerHTML = '<i class="fa-solid fa-right-from-bracket" style="color: #ffffff !important; font-size: 14px;"></i> Log Out';
+                    logoutBtn.style.setProperty('background', 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)', 'important');
+                    logoutBtn.onclick = function() { logoutUser(); return false; };
+                }
+            }
         } catch (e) {}
     }
+
+    function closeSidebarInstantly() {
+        const sidebar = document.getElementById('sidebar-menu');
+        const overlay = document.getElementById('sidebar-overlay');
+        const bottomNav = document.getElementById('bottom-navigation');
+        if (sidebar) sidebar.style.left = '-280px';
+        if (overlay) {
+            overlay.style.display = 'none';
+            overlay.style.opacity = '0';
+            overlay.style.pointerEvents = 'none';
+        }
+        if (bottomNav) bottomNav.classList.remove('nav-hidden');
+    }
+    window.closeSidebarInstantly = closeSidebarInstantly;
 
     function toggleSidebar() {
         const sidebar = document.getElementById('sidebar-menu');
@@ -174,12 +248,14 @@
                 sidebar.style.left = '0px';
                 overlay.style.display = 'block';
                 overlay.style.opacity = '1';
+                overlay.style.pointerEvents = 'auto';
                 if (bottomNav) bottomNav.classList.add('nav-hidden');
             } else {
                 sidebar.style.left = '-280px';
                 overlay.style.opacity = '0';
+                overlay.style.pointerEvents = 'none';
                 if (bottomNav) bottomNav.classList.remove('nav-hidden');
-                setTimeout(() => { overlay.style.display = 'none'; }, 300);
+                setTimeout(() => { overlay.style.display = 'none'; }, 250);
             }
         }
     }
@@ -191,12 +267,25 @@
     }
 
     function logoutUser() {
-        if (typeof handleLogout === 'function') {
+        const sidebar = document.getElementById('sidebar-menu');
+        const overlay = document.getElementById('sidebar-overlay');
+        const bottomNav = document.getElementById('bottom-navigation');
+        if (sidebar && overlay) {
+            sidebar.style.left = '-280px';
+            overlay.style.opacity = '0';
+            if (bottomNav) bottomNav.classList.remove('nav-hidden');
+            setTimeout(() => { overlay.style.display = 'none'; }, 300);
+        }
+        if (typeof window.showLogoutConfirmationModal === 'function') {
+            window.showLogoutConfirmationModal();
+        } else if (typeof handleLogout === 'function') {
             handleLogout();
         } else {
-            localStorage.removeItem('intan_elyu_token');
-            localStorage.removeItem('auth_user');
-            window.location.href = '?view=auth';
+            if (confirm("Are you sure you want to log out?")) {
+                localStorage.removeItem('intan_elyu_token');
+                localStorage.removeItem('auth_user');
+                window.location.href = '?view=auth';
+            }
         }
     }
 
@@ -206,6 +295,7 @@
         if (!dropdown) return;
         const isOpen = dropdown.style.opacity === '1';
         if (isOpen) {
+            document.body.classList.remove('notif-open');
             dropdown.style.opacity = '0';
             dropdown.style.pointerEvents = 'none';
             dropdown.style.transform = 'scale(0.4) translate(35px, -35px)';
@@ -219,19 +309,18 @@
                 }, 300);
             }
         } else {
+            document.body.classList.add('notif-open');
             if (backdrop) {
                 backdrop.style.display = 'block';
                 void backdrop.offsetHeight; // trigger reflow for smooth animation
                 backdrop.style.opacity = '1';
-                backdrop.style.pointerEvents = 'all';
+                backdrop.style.pointerEvents = 'auto';
             }
             dropdown.style.opacity = '1';
-            dropdown.style.pointerEvents = 'all';
+            dropdown.style.pointerEvents = 'auto';
             dropdown.style.transform = 'scale(1) translate(0, 0)';
             const bell = document.getElementById('bell-icon');
             if (bell) { bell.classList.remove('bell-ring'); void bell.offsetWidth; bell.classList.add('bell-ring'); }
-            const dot = document.getElementById('bell-dot');
-            if (dot) dot.classList.remove('show');
             fetchNotifications();
         }
     }
@@ -251,15 +340,9 @@
         const footer = document.getElementById('notifications-footer');
         if (!list) return;
         if (footer) footer.style.display = 'none';
-        list.innerHTML = `
-            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 36px 16px; gap: 10px; color: #64748b;">
-                <i class="fa-solid fa-spinner fa-spin" style="font-size: 22px; color: #1e3a8a;"></i>
-                <span style="font-size: 13px; font-weight: 600; color: #64748b;">Loading notifications...</span>
-            </div>
-        `;
 
         const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('tourist_token');
-        if (!token) {
+        if (!token || token === 'offline_guest_token' || token === 'guest_token' || token.startsWith('guest_') || token.startsWith('offline_')) {
             list.innerHTML = `
                 <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 36px 16px; gap: 10px; color: #64748b;">
                     <div style="width: 48px; height: 48px; border-radius: 50%; background: #f1f5f9; display: flex; align-items: center; justify-content: center;">
@@ -271,25 +354,71 @@
             return;
         }
 
+        const notifCacheKey = 'intan_elyu_cached_notifs_' + token.substring(0, 10);
+        let cachedNotifs = [];
         try {
-            const backendUrl = window.backendUrl || 'https://api.intan-elyu.online';
-            const res = await fetch(backendUrl + '/api/tourist/notifications', {
-                credentials: 'include',
-                headers: {
-                    'Accept': 'application/json',
-                    'Authorization': 'Bearer ' + token
-                }
-            });
-            if (!res.ok) return;
-            const data = await res.json();
-            renderNotifications(data.notifications || []);
-        } catch (e) {
+            const raw = localStorage.getItem(notifCacheKey);
+            if (raw) cachedNotifs = JSON.parse(raw);
+        } catch (e) { }
+
+        // Fast offline check: immediately render cached notifications if offline
+        if (!navigator.onLine || window.isAppOnline === false) {
+            if (Array.isArray(cachedNotifs) && cachedNotifs.length > 0) {
+                renderNotifications(cachedNotifs);
+            } else {
+                list.innerHTML = getNotifEmptyStateHtml();
+            }
+            return;
+        }
+
+        // Pre-hydrate from cache while fetching live
+        if (Array.isArray(cachedNotifs) && cachedNotifs.length > 0) {
+            renderNotifications(cachedNotifs);
+        } else {
             list.innerHTML = `
                 <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 36px 16px; gap: 10px; color: #64748b;">
-                    <i class="fa-solid fa-circle-exclamation" style="font-size: 22px; color: #ef4444;"></i>
-                    <span style="font-size: 13px; font-weight: 600; color: #64748b;">Failed to load notifications.</span>
+                    <i class="fa-solid fa-spinner fa-spin" style="font-size: 22px; color: #1e3a8a;"></i>
+                    <span style="font-size: 13px; font-weight: 600; color: #64748b;">Loading notifications...</span>
                 </div>
             `;
+        }
+
+        try {
+            const backendUrl = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
+            const controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+            const timeoutId = controller ? setTimeout(() => controller.abort(), 8000) : null;
+            try {
+                const res = await fetch(backendUrl + '/api/tourist/notifications', {
+                    signal: controller ? controller.signal : undefined,
+                    credentials: 'include',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    }
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    const notifs = data.notifications || [];
+                    try { localStorage.setItem(notifCacheKey, JSON.stringify(notifs)); } catch (e) { }
+                    renderNotifications(notifs);
+                    return;
+                }
+            } finally {
+                if (timeoutId) clearTimeout(timeoutId);
+            }
+            // If fetch did not succeed but we have cache
+            if (Array.isArray(cachedNotifs) && cachedNotifs.length > 0) {
+                renderNotifications(cachedNotifs);
+            } else {
+                list.innerHTML = getNotifEmptyStateHtml();
+            }
+        } catch (e) {
+            // Gracefully fallback to cache or empty state - never display error exclamation
+            if (Array.isArray(cachedNotifs) && cachedNotifs.length > 0) {
+                renderNotifications(cachedNotifs);
+            } else {
+                list.innerHTML = getNotifEmptyStateHtml();
+            }
         }
     }
 </script>
@@ -315,6 +444,7 @@
         </div>
 
         <div class="push-notif-actions">
+            <button id="push-notif-action-btn" type="button" class="push-notif-btn-primary" onclick="handlePushNotificationAction()" style="display: none;">View Details</button>
             <button type="button" class="push-notif-btn-secondary" onclick="closePushNotificationModal()">Dismiss</button>
             <button id="push-notif-delete-btn" type="button" class="push-notif-btn-delete" onclick="handlePushNotificationDelete()">Delete</button>
         </div>
@@ -325,6 +455,36 @@
     var _currentPushNotifTargetUrl = window._currentPushNotifTargetUrl || null;
     var _currentPushNotifId = window._currentPushNotifId || null;
     window._notifTimerInterval = window._notifTimerInterval || null;
+    window._notifItemsMap = window._notifItemsMap || {};
+
+    function getNotifCacheKey() {
+        const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('tourist_token');
+        if (!token || token === 'offline_guest_token' || token === 'guest_token' || token.startsWith('guest_') || token.startsWith('offline_')) {
+            return null;
+        }
+        return 'intan_elyu_cached_notifs_' + token.substring(0, 10);
+    }
+
+    function getCachedNotifs() {
+        const key = getNotifCacheKey();
+        if (!key) return [];
+        try {
+            const raw = localStorage.getItem(key);
+            if (raw) {
+                const parsed = JSON.parse(raw);
+                return Array.isArray(parsed) ? parsed : [];
+            }
+        } catch (e) { }
+        return [];
+    }
+
+    function saveCachedNotifs(notifs) {
+        const key = getNotifCacheKey();
+        if (!key) return;
+        try {
+            localStorage.setItem(key, JSON.stringify(notifs || []));
+        } catch (e) { }
+    }
 
     window.cleanNotifTitle = function(title, isWelcome) {
         if (!title) return isWelcome ? 'Welcome to Intan Elyu' : 'Notification';
@@ -344,11 +504,30 @@
             .trim();
     };
 
+    window.getNotifTimestamp = function(item) {
+        if (!item) return Date.now();
+        if (typeof item.elapsed_seconds === 'number' && !isNaN(item.elapsed_seconds) && item.elapsed_seconds >= 0) {
+            return Date.now() - (item.elapsed_seconds * 1000);
+        }
+        if (item.created_at) {
+            let str = String(item.created_at).trim();
+            if (/^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}/.test(str)) {
+                str = str.replace(/\s+/, 'T');
+                if (!/[Z+\-]\d*$/.test(str)) {
+                    str = str + 'Z';
+                }
+            }
+            const t = new Date(str).getTime();
+            if (!isNaN(t) && t > 0) return t;
+        }
+        return Date.now();
+    };
+
     window.formatReverseTimer = function(timestamp) {
-        if (!timestamp) return 'Just now';
+        if (!timestamp || isNaN(timestamp)) return 'Just now';
         const now = Date.now();
         const diffSec = Math.max(0, Math.floor((now - timestamp) / 1000));
-        if (diffSec < 1) return '1s ago';
+        if (isNaN(diffSec) || diffSec < 2) return 'Just now';
         if (diffSec < 60) return `${diffSec}s ago`;
         const mins = Math.floor(diffSec / 60);
         const secs = diffSec % 60;
@@ -404,21 +583,24 @@
         const dot = document.getElementById('bell-dot');
         if (!list) return;
 
-        if (notifications.length > 0) {
+        window._notifItemsMap = window._notifItemsMap || {};
+
+        if (Array.isArray(notifications) && notifications.length > 0) {
             let html = '';
             const unread = notifications.filter(n => !n.is_read);
             notifications.forEach(item => {
+                if (!item || !item.id) return;
+                window._notifItemsMap[item.id] = item;
                 const isWelcome = item.type === 'welcome';
                 const isUnread = !item.is_read;
-                const encodedItem = encodeURIComponent(JSON.stringify(item));
-                const itemTime = item.created_at ? new Date(item.created_at).getTime() : Date.now();
+                const itemTime = window.getNotifTimestamp(item);
                 const timerStr = window.formatReverseTimer(itemTime);
                 const formattedDate = new Date(itemTime).toLocaleDateString(undefined, {month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'});
                 const displayTitle = window.cleanNotifTitle(item.title, isWelcome);
                 const displayMsg = window.cleanNotifMessage(item.message);
 
                 html += `
-                    <div class="notif-card-item" id="notif-item-${item.id}" style="display: block; padding: 12px 14px; background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; box-shadow: 0 4px 12px rgba(32, 63, 141, 0.28) !important; border: none !important; outline: none !important; border-radius: 14px; cursor: pointer; transition: transform 0.2s ease, opacity 0.2s ease, background 0.2s;" onclick="handleNotifClick('${encodedItem}', this)" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'" onpointercancel="this.style.transform='scale(1)'">
+                    <div class="notif-card-item" id="notif-item-${item.id}" style="display: block; padding: 12px 14px; background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; box-shadow: 0 4px 12px rgba(32, 63, 141, 0.28) !important; border: none !important; outline: none !important; border-radius: 14px; cursor: pointer; transition: transform 0.2s ease, opacity 0.2s ease, background 0.2s;" onclick="handleNotifClick('${item.id}', this)" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'" onpointercancel="this.style.transform='scale(1)'">
                         <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 5px;">
                             <div style="display: flex; align-items: center; gap: 6px; min-width: 0; flex: 1;">
                                 ${isUnread ? '<span class="unread-dot" style="width: 7px; height: 7px; border-radius: 50%; background: #00f2fe; flex-shrink: 0; box-shadow: 0 0 8px #00f2fe; display: inline-block;"></span>' : ''}
@@ -443,7 +625,10 @@
                 const markBtn = document.getElementById('notif-mark-all-btn');
                 if (markBtn) markBtn.style.display = unread.length > 0 ? 'inline-flex' : 'none';
             }
-            if (unread.length > 0 && dot) dot.classList.add('show');
+            if (dot) {
+                if (unread.length > 0) dot.classList.add('show');
+                else dot.classList.remove('show');
+            }
             startNotifTimerTicker();
         } else {
             list.innerHTML = getNotifEmptyStateHtml();
@@ -452,9 +637,10 @@
         }
     }
 
-    window.handleNotifClick = function(encodedItem, el) {
+    window.handleNotifClick = function(id, el) {
         try {
-            const item = JSON.parse(decodeURIComponent(encodedItem));
+            const item = (window._notifItemsMap && window._notifItemsMap[id]) ? window._notifItemsMap[id] : null;
+            if (!item) return;
             if (!item.is_read) {
                 markNotifRead(item.id, el);
             }
@@ -476,9 +662,9 @@
         const rawBody = opts.message || opts.body || 'You have a new update.';
         const body = window.cleanNotifMessage(rawBody);
         const type = opts.type || 'general';
-        const actionUrl = opts.action_url || opts.url || null;
-        const spotName = opts.spot_name || opts.spot || null;
-        const notifTimestamp = opts.created_at ? new Date(opts.created_at).getTime() : Date.now();
+        const actionUrl = opts.action_url || opts.url || (opts.data && (opts.data.action_url || opts.data.url)) || null;
+        const spotName = opts.spot_name || opts.spot || (opts.data && opts.data.spot_name) || null;
+        const notifTimestamp = window.getNotifTimestamp ? window.getNotifTimestamp(opts) : Date.now();
         const timeStr = window.formatReverseTimer ? window.formatReverseTimer(notifTimestamp) : 'Just now';
 
         let category = 'PUSH ALERT';
@@ -505,6 +691,7 @@
         const badgeEl = document.getElementById('push-notif-badge');
         const spotContainer = document.getElementById('push-notif-footer-extra');
         const spotNameEl = document.getElementById('push-notif-spot-name');
+        const actionBtn = document.getElementById('push-notif-action-btn');
 
         if (titleEl) titleEl.textContent = title;
         if (bodyEl) bodyEl.textContent = body;
@@ -530,6 +717,24 @@
 
         _currentPushNotifTargetUrl = actionUrl;
 
+        if (actionBtn) {
+            if (actionUrl) {
+                actionBtn.style.display = 'inline-block';
+                if (type === 'new_spot' || type === 'spot_added' || type === 'favorite_update' || type === 'spot_updated' || spotName) {
+                    actionBtn.textContent = 'View Spot';
+                } else if (type === 'itinerary_reminder' || type === 'trip') {
+                    actionBtn.textContent = 'View Trip';
+                } else if (type === 'reward' || type === 'quest' || type === 'points') {
+                    actionBtn.textContent = 'View Rewards';
+                } else {
+                    actionBtn.textContent = 'View Details';
+                }
+            } else {
+                actionBtn.style.display = 'none';
+            }
+        }
+
+        document.body.classList.add('notif-open');
         modal.style.display = 'flex';
         requestAnimationFrame(() => {
             modal.classList.add('active');
@@ -537,6 +742,7 @@
     };
 
     window.closePushNotificationModal = function() {
+        document.body.classList.remove('notif-open');
         const modal = document.getElementById('push-notification-modal');
         if (!modal) return;
         modal.classList.remove('active');
@@ -547,7 +753,18 @@
     };
 
     window.handlePushNotificationAction = function() {
+        const target = _currentPushNotifTargetUrl;
+        document.body.classList.remove('notif-open');
         closePushNotificationModal();
+        if (target) {
+            if (typeof window.navigateTo === 'function') {
+                window.navigateTo(target);
+            } else if (target.startsWith('http')) {
+                window.location.href = target;
+            } else {
+                window.location.href = target.startsWith('?') ? target : ('?view=' + target);
+            }
+        }
     };
 
     window.handlePushNotificationDelete = async function() {
@@ -565,6 +782,13 @@
         if (!id) return;
         const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('tourist_token');
         if (!token) return;
+
+        // Immediate cache synchronization: remove from localStorage
+        try {
+            let cached = getCachedNotifs();
+            cached = cached.filter(n => String(n.id) !== String(id));
+            saveCachedNotifs(cached);
+        } catch(e) {}
 
         if (el) {
             el.style.opacity = '0';
@@ -592,7 +816,7 @@
         }
 
         try {
-            const backendUrl = window.backendUrl || 'https://api.intan-elyu.online';
+            const backendUrl = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
             const res = await fetch(backendUrl + '/api/tourist/notifications/' + id, {
                 method: 'DELETE',
                 headers: {
@@ -615,6 +839,11 @@
         const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('tourist_token');
         if (!token) return;
 
+        // Immediate cache synchronization: clear localStorage
+        try {
+            saveCachedNotifs([]);
+        } catch(e) {}
+
         const list = document.getElementById('notifications-list');
         if (list) {
             list.innerHTML = getNotifEmptyStateHtml();
@@ -625,7 +854,7 @@
         if (footer) footer.style.display = 'none';
 
         try {
-            const backendUrl = window.backendUrl || 'https://api.intan-elyu.online';
+            const backendUrl = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
             await fetch(backendUrl + '/api/tourist/notifications/clear-all', {
                 method: 'POST',
                 headers: {
@@ -642,8 +871,22 @@
     async function markNotifRead(id, el) {
         const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('tourist_token');
         if (!token) return;
+
+        // Immediate cache synchronization: set is_read = true in localStorage
         try {
-            const backendUrl = window.backendUrl || 'https://api.intan-elyu.online';
+            let cached = getCachedNotifs();
+            let changed = false;
+            cached.forEach(n => {
+                if (String(n.id) === String(id)) {
+                    n.is_read = true;
+                    changed = true;
+                }
+            });
+            if (changed) saveCachedNotifs(cached);
+        } catch(e) {}
+
+        try {
+            const backendUrl = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
             await fetch(backendUrl + '/api/tourist/notifications/' + id + '/read', {
                 method: 'POST',
                 headers: {
@@ -673,8 +916,16 @@
     async function markAllNotifRead() {
         const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('tourist_token');
         if (!token) return;
+
+        // Immediate cache synchronization: set all is_read = true in localStorage
         try {
-            const backendUrl = window.backendUrl || 'https://api.intan-elyu.online';
+            let cached = getCachedNotifs();
+            cached.forEach(n => { n.is_read = true; });
+            saveCachedNotifs(cached);
+        } catch(e) {}
+
+        try {
+            const backendUrl = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
             await fetch(backendUrl + '/api/tourist/notifications/read-all', {
                 method: 'POST',
                 headers: {
@@ -706,4 +957,15 @@
             else dot.classList.remove('show');
         }
     };
+
+    // Immediate badge check on page load from cached notifications
+    (function initBellBadgeFromCache() {
+        try {
+            const cached = getCachedNotifs();
+            if (Array.isArray(cached) && cached.length > 0) {
+                const unread = cached.filter(n => !n.is_read);
+                window.updateUnreadBadge(unread.length);
+            }
+        } catch(e) {}
+    })();
 </script>

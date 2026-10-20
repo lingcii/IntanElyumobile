@@ -5,9 +5,7 @@
         var scrH = (window.screen && window.screen.height) ? window.screen.height : 0;
         var h = Math.max(winH, scrH > 300 ? scrH : winH);
         if (h > 0) {
-            var topH = Math.min(330, Math.max(250, Math.round(h * 0.38)));
             document.documentElement.style.setProperty('--auth-screen-h', h + 'px');
-            document.documentElement.style.setProperty('--auth-top-h', topH + 'px');
         }
     })();
 </script>
@@ -56,6 +54,11 @@
     <!-- Bottom White Section -->
     <div class="auth-bottom">
 
+        <!-- Offline Mode Status Indicator -->
+        <div id="auth-offline-badge" class="auth-offline-badge" style="display: none;">
+            <i class="fa-solid fa-cloud-slash" style="color: #f59e0b; font-size: 11px;"></i>
+            <span>Offline Mode Active &bull; Saved Guides Available</span>
+        </div>
 
         <div class="auth-tabs" id="auth-tabs">
             <div class="auth-tab active" id="tab-login" onclick="toggleAuthMode(false)">Login</div>
@@ -113,6 +116,10 @@
                         </svg>
                         <span>Sign in with Google</span>
                     </button>
+                    <button type="button" id="btn-offline-mode" class="btn-offline-guest" onclick="window.enterOfflineMode(event)">
+                        <i class="fa-solid fa-compass" style="color: #38bdf8; font-size: 13.5px;"></i>
+                        <span>Continue as Guest</span>
+                    </button>
                     <p class="auth-switch-prompt">
                         Don't have an account? <a href="#" onclick="toggleAuthMode(true); return false;"
                             class="auth-switch-link">Register now</a>
@@ -144,36 +151,34 @@
                     <div class="input-group">
                         <i class="fa-solid fa-lock"></i>
                         <input type="password" id="reg-password" class="auth-input" placeholder="Create Password"
-                            required oninput="validateRegisterFormInline()">
+                            autocomplete="off" required oninput="validateRegisterFormInline()"
+                            onfocus="onPasswordFocus()" onblur="onPasswordBlur()">
                         <i id="reg-password-status-icon" class="fa-solid field-status-icon password-offset"></i>
                         <i class="fa-regular fa-eye password-toggle"
                             onclick="togglePasswordVisibility('reg-password', this)"></i>
                     </div>
                     <div id="pwd-strength-container" class="pwd-strength-wrapper"
-                        style="display: none; margin-top: 6px; margin-bottom: 12px;" data-score="0">
-                        <div class="pwd-strength-segments">
-                            <div class="pwd-segment seg-1"></div>
-                            <div class="pwd-segment seg-2"></div>
-                            <div class="pwd-segment seg-3"></div>
-                            <div class="pwd-segment seg-4"></div>
-                        </div>
-                        <div
-                            style="display: flex; align-items: center; justify-space-between; margin-top: 6px; font-size: 11px; font-weight: 700;">
-                            <span id="pwd-strength-label" style="color: #94a3b8; transition: color 0.2s ease;">Password
-                                Strength</span>
-                            <span id="pwd-strength-score"
-                                style="color: rgba(148, 163, 184, 0.7); font-size: 10px;">0/4</span>
-                        </div>
-                        <div class="pwd-checklist"
-                            style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; font-size: 10.5px; font-weight: 600;">
-                            <span id="chk-len8" class="pwd-chk-item"><i class="fa-solid fa-circle"
-                                    style="font-size: 6px; vertical-align: middle;"></i> 8+ chars</span>
-                            <span id="chk-num" class="pwd-chk-item"><i class="fa-solid fa-circle"
-                                    style="font-size: 6px; vertical-align: middle;"></i> a number</span>
-                            <span id="chk-cap" class="pwd-chk-item"><i class="fa-solid fa-circle"
-                                    style="font-size: 6px; vertical-align: middle;"></i> a capital</span>
-                            <span id="chk-sym" class="pwd-chk-item"><i class="fa-solid fa-circle"
-                                    style="font-size: 6px; vertical-align: middle;"></i> a symbol</span>
+                        style="display: none;" data-score="0">
+                        <div class="pwd-strength-card">
+                            <div class="pwd-strength-header">
+                                <div class="pwd-strength-badge status-weak" id="pwd-strength-badge">
+                                    <i class="fa-solid fa-shield-halved" id="pwd-strength-icon"></i>
+                                    <span id="pwd-strength-label">Password Strength: Weak</span>
+                                </div>
+                                <span id="pwd-strength-score" class="pwd-score-pill">0/4</span>
+                            </div>
+                            <div class="pwd-strength-segments">
+                                <div class="pwd-segment seg-1"></div>
+                                <div class="pwd-segment seg-2"></div>
+                                <div class="pwd-segment seg-3"></div>
+                                <div class="pwd-segment seg-4"></div>
+                            </div>
+                            <div class="pwd-checklist">
+                                <span id="chk-len8" class="pwd-chk-item"><i class="fa-solid fa-circle-dot"></i> 8+ characters</span>
+                                <span id="chk-num" class="pwd-chk-item"><i class="fa-solid fa-circle-dot"></i> A number</span>
+                                <span id="chk-cap" class="pwd-chk-item"><i class="fa-solid fa-circle-dot"></i> A capital letter</span>
+                                <span id="chk-sym" class="pwd-chk-item"><i class="fa-solid fa-circle-dot"></i> A symbol</span>
+                            </div>
                         </div>
                     </div>
 
@@ -214,6 +219,10 @@
                                 d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.18 2.12 1.21 5.46l4.11 3.22c.94-2.85 3.57-4.93 6.68-4.93z" />
                         </svg>
                         <span>Sign up with Google</span>
+                    </button>
+                    <button type="button" class="btn-offline-guest" onclick="window.enterOfflineMode(event)">
+                        <i class="fa-solid fa-compass" style="color: #38bdf8; font-size: 13.5px;"></i>
+                        <span>Continue as Guest</span>
                     </button>
                     <p class="auth-switch-prompt">
                         Already have an account? <a href="#" onclick="toggleAuthMode(false); return false;"
@@ -535,73 +544,175 @@
     </div>
 </div>
 
-<!-- Offline Mode Dialog Modal Removed as requested -->
+<!-- Offline Mode Dialog Modal -->
+<div id="offline-auth-modal" class="auth-offline-modal" style="display: none;">
+    <div class="auth-offline-backdrop" onclick="window.closeOfflineAuthModal()"></div>
+    <div class="auth-offline-card">
+        <div class="auth-offline-icon-circle">
+            <i class="fa-solid fa-cloud-slash"></i>
+        </div>
+        <h3 class="auth-offline-title">Internet Required to Log In</h3>
+        <p class="auth-offline-desc" id="offline-auth-desc">
+            An active internet connection is required to log in and verify your cloud account. You can enter Offline Mode to explore all saved attractions, itineraries, and maps right now.
+        </p>
+        <div class="auth-offline-actions">
+            <button type="button" class="btn-offline-confirm" onclick="window.enterOfflineMode()">
+                <i class="fa-solid fa-compass"></i> Explore in Offline Mode
+            </button>
+            <button type="button" class="btn-offline-dismiss" onclick="window.closeOfflineAuthModal()">
+                Dismiss
+            </button>
+        </div>
+    </div>
+</div>
 
 <script>
+(function initAuthScope() {
     var backendUrl = window.backendUrl || 'https://api.intan-elyu.online';
 
     // =========================================================================
     // Universal Offline Mode Engine for Auth View
     // =========================================================================
-    (function initAuthOfflineStatus() {
         function updateOfflineStatus() {
-            const isOffline = !navigator.onLine || window.isAppOnline === false;
-            const badge = document.getElementById('auth-offline-badge');
-            if (badge) {
-                badge.style.display = isOffline ? 'inline-flex' : 'none';
+            var isOffline = (typeof navigator.onLine === 'boolean') ? !navigator.onLine : (window.isAppOnline === false);
+            if (isOffline) {
+                document.body.classList.add('is-offline');
+                document.body.setAttribute('data-offline', 'true');
+            } else {
+                document.body.classList.remove('is-offline');
+                document.body.removeAttribute('data-offline');
+                try {
+                    localStorage.removeItem('intan_elyu_offline_mode');
+                    localStorage.removeItem('intan_elyu_offline_guest');
+                    sessionStorage.removeItem('elyu_show_offline_bypass_notice');
+                } catch(e) {}
             }
+            var badge = document.getElementById('auth-offline-badge');
+            if (badge) {
+                badge.style.setProperty('display', isOffline ? 'inline-flex' : 'none', 'important');
+            }
+            var offlineBtns = document.querySelectorAll('.btn-offline-guest');
+            offlineBtns.forEach(function (btn) {
+                btn.style.setProperty('display', 'flex', 'important');
+                var span = btn.querySelector('span');
+                var icon = btn.querySelector('i');
+                if (isOffline) {
+                    if (span) span.textContent = 'Explore in Offline Mode';
+                    if (icon) icon.className = 'fa-solid fa-cloud-slash';
+                } else {
+                    if (span) span.textContent = 'Continue as Guest';
+                    if (icon) icon.className = 'fa-solid fa-compass';
+                }
+            });
         }
         updateOfflineStatus();
-        window.addEventListener('online', updateOfflineStatus);
+        window.addEventListener('online', () => {
+            updateOfflineStatus();
+            if (typeof window.enforceAllOfflineBadgesHidden === 'function') window.enforceAllOfflineBadgesHidden();
+        });
         window.addEventListener('offline', updateOfflineStatus);
-        window.addEventListener('appOnline', updateOfflineStatus);
+        window.addEventListener('appOnline', () => {
+            updateOfflineStatus();
+            if (typeof window.enforceAllOfflineBadgesHidden === 'function') window.enforceAllOfflineBadgesHidden();
+        });
         window.addEventListener('appOffline', updateOfflineStatus);
-    })();
 
     window.showOfflineAuthModal = function (email) {
-        if (typeof showToast === 'function') {
-            showToast('Internet connection is required to log in. Please connect to the internet.', 'warning', 5000);
+        const modal = document.getElementById('offline-auth-modal');
+        if (!modal) return;
+        const desc = document.getElementById('offline-auth-desc');
+        if (desc && email) {
+            desc.innerHTML = `An active internet connection is required to log in with <strong>${email}</strong>. Please connect to Wi-Fi or mobile data, or explore saved guides in Offline Mode.`;
         }
+        modal.style.display = 'flex';
+        modal.classList.add('active');
+        modal.style.pointerEvents = 'auto';
     };
 
     window.closeOfflineAuthModal = function () {
         const modal = document.getElementById('offline-auth-modal');
-        if (modal) modal.style.display = 'none';
+        if (modal) {
+            modal.classList.remove('active');
+            modal.style.display = 'none';
+            modal.style.pointerEvents = 'none';
+        }
     };
 
     window.enterOfflineMode = function (e) {
         if (e && e.preventDefault) e.preventDefault();
         window.closeOfflineAuthModal();
 
-        let cached = null;
-        try {
-            cached = JSON.parse(localStorage.getItem('auth_user') || 'null');
-        } catch (err) {}
+        var isOffline = !navigator.onLine || window.isAppOnline === false;
+        if (isOffline) {
+            // Truly Offline: Activate Offline Mode
+            let cached = null;
+            try {
+                cached = JSON.parse(localStorage.getItem('auth_user') || 'null');
+            } catch (err) {}
 
-        if (!cached || !cached.name) {
-            cached = {
-                id: 'offline_guest',
-                user_id: 'offline_guest',
-                name: 'Offline Explorer',
-                full_name: 'Offline Explorer',
-                role: 'tourist',
-                points: 0,
-                xp: 0,
-                completed_activities: 0,
-                home_location: 'La Union',
-                is_offline_guest: true
-            };
-            localStorage.setItem('auth_user', JSON.stringify(cached));
-        }
+            if (!cached || !cached.name) {
+                cached = {
+                    id: 'offline_guest',
+                    user_id: 'offline_guest',
+                    name: 'Offline Explorer',
+                    full_name: 'Offline Explorer',
+                    role: 'tourist',
+                    points: 0,
+                    xp: 0,
+                    completed_activities: 0,
+                    home_location: 'La Union',
+                    is_offline_guest: true
+                };
+                localStorage.setItem('auth_user', JSON.stringify(cached));
+            }
 
-        localStorage.setItem('intan_elyu_token', 'offline_guest_token');
-        localStorage.setItem('intan_elyu_offline_guest', 'true');
+            const prevTok = localStorage.getItem('intan_elyu_token');
+            if (prevTok && !prevTok.startsWith('offline_') && !prevTok.startsWith('guest_')) {
+                localStorage.setItem('intan_elyu_real_token_backup', prevTok);
+            }
+            localStorage.setItem('intan_elyu_token', 'offline_guest_token');
+            localStorage.setItem('intan_elyu_offline_mode', 'true');
+            localStorage.setItem('intan_elyu_offline_guest', 'true');
+            sessionStorage.setItem('elyu_show_offline_bypass_notice', 'true');
 
-        if (typeof window.notifyAppOffline === 'function') {
-            window.notifyAppOffline();
-        }
-        if (typeof showToast === 'function') {
-            showToast('Entered Offline Mode! Showing saved guides & maps.');
+            if (typeof window.notifyAppOffline === 'function') {
+                window.notifyAppOffline();
+            }
+            if (typeof showToast === 'function') {
+                showToast('Entered Offline Mode! Showing saved guides & maps.');
+            }
+        } else {
+            // Truly Online: Continue as Guest (Do NOT force offline mode!)
+            localStorage.setItem('intan_elyu_token', 'guest_token');
+            localStorage.setItem('intan_elyu_guest', 'true');
+            localStorage.removeItem('intan_elyu_offline_mode');
+            localStorage.removeItem('intan_elyu_offline_guest');
+            sessionStorage.removeItem('elyu_show_offline_bypass_notice');
+
+            let cached = null;
+            try {
+                cached = JSON.parse(localStorage.getItem('auth_user') || 'null');
+            } catch (err) {}
+
+            if (!cached || !cached.name || cached.is_offline_guest) {
+                cached = {
+                    id: 'guest',
+                    user_id: 'guest',
+                    name: 'Guest Explorer',
+                    full_name: 'Guest Explorer',
+                    role: 'tourist',
+                    points: 0,
+                    xp: 0,
+                    completed_activities: 0,
+                    home_location: 'La Union',
+                    is_guest: true
+                };
+                localStorage.setItem('auth_user', JSON.stringify(cached));
+            }
+
+            if (typeof showToast === 'function') {
+                showToast('Continuing as Guest Explorer. Welcome!', 'info', 3000);
+            }
         }
 
         if (typeof navigateTo === 'function') {
@@ -610,6 +721,7 @@
             window.location.href = 'index.php?view=dashboard';
         }
     };
+    window.handleGuestOrOfflineClick = window.enterOfflineMode;
 
     window.openAuthCancelModal = function (msg) {
         const modal = document.getElementById('auth-cancel-modal');
@@ -812,28 +924,32 @@
         }, 2800);
     };
 
-    const wrapper = document.getElementById('forms-wrapper');
-    const titleEl = document.getElementById('auth-title');
-    const tabLogin = document.getElementById('tab-login');
-    const tabRegister = document.getElementById('tab-register');
-    const tabsContainer = document.getElementById('auth-tabs');
-
     function updateTitleWithTransition(newText) {
-        if (titleEl.textContent === newText) return;
+        const titleEl = document.getElementById('auth-title');
+        if (!titleEl || titleEl.textContent === newText) return;
         titleEl.classList.add('text-fade-out');
         setTimeout(() => {
             titleEl.textContent = newText;
             titleEl.classList.remove('text-fade-out');
-        }, 200); // Wait for the 0.2s fade out transition
+        }, 200);
     }
 
     function positionTabGlider(isRegister, animate = true) {
         const glider = document.getElementById('tab-gooey-glider');
+        const tabLogin = document.getElementById('tab-login');
+        const tabRegister = document.getElementById('tab-register');
+        const tabsContainer = document.getElementById('auth-tabs');
         const targetTab = isRegister ? tabRegister : tabLogin;
         if (!glider || !targetTab || !tabsContainer) return;
 
         const targetRect = targetTab.getBoundingClientRect();
         const containerRect = tabsContainer.getBoundingClientRect();
+
+        if (targetRect.width === 0 || containerRect.width === 0) {
+            requestAnimationFrame(() => positionTabGlider(isRegister, false));
+            return;
+        }
+
         const targetLeft = targetRect.left - containerRect.left + (targetRect.width - 32) / 2;
 
         if (!animate) {
@@ -853,40 +969,98 @@
         }
         glider.style.left = `${targetLeft}px`;
     }
-
-    // Initialize glider position on load & handle resize
-    setTimeout(() => { positionTabGlider(false, false); }, 80);
-    window.addEventListener('resize', () => {
-        const isReg = wrapper && wrapper.classList.contains('show-register');
-        positionTabGlider(isReg, false);
-    });
+    window.positionTabGlider = positionTabGlider;
 
     function toggleAuthMode(isRegister) {
-        tabsContainer.style.display = 'flex';
-        wrapper.classList.remove('show-forgot', 'show-otp');
-        positionTabGlider(isRegister, true);
+        const wrapper = document.getElementById('forms-wrapper');
+        const tabLogin = document.getElementById('tab-login');
+        const tabRegister = document.getElementById('tab-register');
+        const tabsContainer = document.getElementById('auth-tabs');
+        const authContainer = document.querySelector('.auth-container');
+
+        if (tabsContainer) tabsContainer.style.display = 'flex';
+        if (wrapper) wrapper.classList.remove('show-forgot', 'show-otp');
+
+        if (authContainer) {
+            if (isRegister) {
+                authContainer.classList.add('mode-register');
+            } else {
+                authContainer.classList.remove('mode-register');
+            }
+        }
 
         if (isRegister) {
-            wrapper.classList.add('show-register');
-            tabLogin.classList.remove('active');
-            tabRegister.classList.add('active');
+            if (wrapper) wrapper.classList.add('show-register');
+            if (tabLogin) tabLogin.classList.remove('active');
+            if (tabRegister) tabRegister.classList.add('active');
             updateTitleWithTransition('Start your Journey');
         } else {
-            wrapper.classList.remove('show-register');
-            tabRegister.classList.remove('active');
-            tabLogin.classList.add('active');
+            if (wrapper) wrapper.classList.remove('show-register');
+            if (tabRegister) tabRegister.classList.remove('active');
+            if (tabLogin) tabLogin.classList.add('active');
             updateTitleWithTransition('Welcome to Elyu');
         }
+
+        positionTabGlider(isRegister, true);
     }
     window.toggleAuthMode = toggleAuthMode;
+
+    window.initAuthView = function () {
+        const searchParams = new URLSearchParams(window.location.search);
+        const isRegisterMode = searchParams.get('mode') === 'register' || 
+                               searchParams.get('tab') === 'register' || 
+                               window._authStartMode === 'register';
+        const isFromSidebar = searchParams.get('from_sidebar') === '1' || 
+                              window._authFromSidebar === true;
+
+        // Dismiss all lingering overlays and backdrops so they can NEVER block touch events
+        ['sidebar-overlay', 'global-oauth-overlay', 'offline-auth-modal', 'login-success-modal', 'auth-cancel-modal', 'privacy-policy-modal'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                if (id === 'sidebar-overlay') {
+                    el.style.display = 'none';
+                    el.style.opacity = '0';
+                    el.style.pointerEvents = 'none';
+                    try { el.remove(); } catch (e) { }
+                } else if (id === 'global-oauth-overlay') {
+                    el.style.display = 'none';
+                    try { el.remove(); } catch (e) { }
+                } else {
+                    el.classList.remove('active');
+                    el.style.display = 'none';
+                    el.style.pointerEvents = 'none';
+                }
+            }
+        });
+
+        toggleAuthMode(Boolean(isRegisterMode));
+
+        // Ensure "Continue as Guest" / "Explore in Offline Mode" button is always visible and clickable
+        document.querySelectorAll('.btn-offline-guest').forEach(btn => {
+            btn.style.setProperty('display', 'flex', 'important');
+            btn.style.setProperty('pointer-events', 'auto', 'important');
+        });
+
+        setTimeout(() => { positionTabGlider(Boolean(isRegisterMode), false); }, 50);
+        setTimeout(() => { positionTabGlider(Boolean(isRegisterMode), false); }, 180);
+    };
+
+    window.addEventListener('resize', () => {
+        const wrapper = document.getElementById('forms-wrapper');
+        const isReg = wrapper && wrapper.classList.contains('show-register');
+        positionTabGlider(Boolean(isReg), false);
+    });
 
     window.showForgotPassword = function (e) {
         if (e) e.preventDefault();
 
-        // Hide tabs
-        if (tabsContainer) tabsContainer.style.display = 'none';
+        const tabsContainer = document.getElementById('auth-tabs');
+        const wrapper = document.getElementById('forms-wrapper');
+        const authContainer = document.querySelector('.auth-container');
 
-        // Reset forgot form steps
+        if (tabsContainer) tabsContainer.style.display = 'none';
+        if (authContainer) authContainer.classList.remove('mode-register');
+
         const formState = document.getElementById('fp-form-state');
         const codeState = document.getElementById('fp-code-state');
         const pwdState = document.getElementById('fp-password-state');
@@ -907,34 +1081,45 @@
             wrapper.classList.remove('show-register');
             wrapper.classList.add('show-forgot');
         }
-        if (typeof updateTitleWithTransition === 'function') {
-            updateTitleWithTransition('Account Recovery');
-        }
+        updateTitleWithTransition('Account Recovery');
     };
 
     window.hideForgotPassword = function (e) {
         if (e) e.preventDefault();
-        // Restore tabs
+        const tabsContainer = document.getElementById('auth-tabs');
+        const wrapper = document.getElementById('forms-wrapper');
+        const authContainer = document.querySelector('.auth-container');
+        const tabLogin = document.getElementById('tab-login');
+        const tabRegister = document.getElementById('tab-register');
+
         if (tabsContainer) tabsContainer.style.display = 'flex';
+        if (authContainer) authContainer.classList.remove('mode-register');
         if (wrapper) wrapper.classList.remove('show-forgot', 'show-register');
         if (tabRegister) tabRegister.classList.remove('active');
         if (tabLogin) tabLogin.classList.add('active');
-        if (typeof updateTitleWithTransition === 'function') {
-            updateTitleWithTransition('Welcome to Elyu');
-        }
+        updateTitleWithTransition('Welcome to Elyu');
+        positionTabGlider(false, false);
     };
 
-    function togglePasswordVisibility(inputId, iconElement) {
+    window.togglePasswordVisibility = function (inputId, iconElement) {
         const input = document.getElementById(inputId);
+        if (!input) return;
         if (input.type === 'password') {
             input.type = 'text';
-            iconElement.classList.remove('fa-eye');
-            iconElement.classList.add('fa-eye-slash');
+            if (iconElement) {
+                iconElement.classList.remove('fa-eye');
+                iconElement.classList.add('fa-eye-slash');
+            }
         } else {
             input.type = 'password';
-            iconElement.classList.remove('fa-eye-slash');
-            iconElement.classList.add('fa-eye');
+            if (iconElement) {
+                iconElement.classList.remove('fa-eye-slash');
+                iconElement.classList.add('fa-eye');
+            }
         }
+    };
+    function togglePasswordVisibility(inputId, iconElement) {
+        window.togglePasswordVisibility(inputId, iconElement);
     }
 
     window.handleLogin = async function (e) {
@@ -961,6 +1146,10 @@
                 (cachedUser.email && cachedUser.email.toLowerCase() === email.toLowerCase()) ||
                 (rememberedEmail && rememberedEmail.toLowerCase() === email.toLowerCase())
             )) {
+                const prevTok = localStorage.getItem('intan_elyu_token');
+                if (prevTok && !prevTok.startsWith('offline_') && !prevTok.startsWith('guest_')) {
+                    localStorage.setItem('intan_elyu_real_token_backup', prevTok);
+                }
                 localStorage.setItem('intan_elyu_token', 'offline_session_token');
                 localStorage.setItem('intan_elyu_offline_mode', 'true');
                 if (remember) {
@@ -974,9 +1163,11 @@
                 return;
             }
 
-            // Not matched or new account while offline: show clear explanation
-            if (typeof showToast === 'function') {
-                showToast('Internet connection is required to log in. Please connect to the internet.', 'warning', 5000);
+            // Not matched or new account while offline: show modal with Explore in Offline Mode option
+            if (typeof window.showOfflineAuthModal === 'function') {
+                window.showOfflineAuthModal(email);
+            } else if (typeof showToast === 'function') {
+                showToast('Internet connection is required to log in. Please connect to the internet or enter Offline Mode.', 'warning', 5000);
             }
             return;
         }
@@ -1017,8 +1208,13 @@
                 localStorage.removeItem('intan_elyu_cached_vouchers');
             } catch (e) { }
 
+            localStorage.removeItem('intan_elyu_guest');
+            localStorage.removeItem('intan_elyu_offline_guest');
+            localStorage.removeItem('intan_elyu_offline_mode');
             localStorage.setItem('auth_user', JSON.stringify(data.user));
+            localStorage.setItem('auth_user_backup', JSON.stringify(data.user));
             localStorage.setItem('intan_elyu_token', data.token);
+            localStorage.setItem('intan_elyu_real_token_backup', data.token);
 
             showLoginSuccessModal(data.user);
         } catch (error) {
@@ -1097,7 +1293,8 @@
             const chkCap = document.getElementById('chk-cap');
             const chkSym = document.getElementById('chk-sym');
 
-            if (pwd.length === 0) {
+            var isFocused = (document.activeElement === pwdEl);
+            if (pwd.length === 0 && !isFocused) {
                 if (pwdIcon) pwdIcon.className = 'fa-solid field-status-icon password-offset';
                 if (container) container.style.display = 'none';
             } else {
@@ -1112,25 +1309,38 @@
                 if (container) container.dataset.score = score;
                 if (scoreEl) scoreEl.textContent = score + '/4';
 
-                // Update checklist item styles
-                if (chkLen8) chkLen8.className = 'pwd-chk-item' + (len8 ? ' passed' : '');
-                if (chkNum) chkNum.className = 'pwd-chk-item' + (hasNum ? ' passed' : '');
-                if (chkCap) chkCap.className = 'pwd-chk-item' + (hasCap ? ' passed' : '');
-                if (chkSym) chkSym.className = 'pwd-chk-item' + (hasSym ? ' passed' : '');
+                // Update checklist item styles with high-contrast icons
+                const updateChk = (el, passed, text) => {
+                    if (!el) return;
+                    el.className = 'pwd-chk-item' + (passed ? ' passed' : '');
+                    el.innerHTML = passed
+                        ? '<i class="fa-solid fa-circle-check"></i> ' + text
+                        : '<i class="fa-solid fa-circle-dot"></i> ' + text;
+                };
 
-                // Label and status icon update
-                const labels = ['Weak', 'Weak', 'Fair', 'Good', 'Strong'];
-                const colors = ['#f87171', '#f87171', '#fb923c', '#facc15', '#34d399'];
+                updateChk(chkLen8, len8, '8+ characters');
+                updateChk(chkNum, hasNum, 'A number');
+                updateChk(chkCap, hasCap, 'A capital letter');
+                updateChk(chkSym, hasSym, 'A symbol');
+
+                // High-contrast badge and score update
+                const labels = ['Too Weak', 'Weak', 'Fair', 'Good', 'Strong'];
+                const badgeClasses = ['status-weak', 'status-weak', 'status-fair', 'status-good', 'status-strong'];
+                const badgeEl = document.getElementById('pwd-strength-badge');
 
                 if (label) {
-                    label.textContent = labels[score] || 'Password Strength';
-                    label.style.color = colors[score] || '#94a3b8';
+                    label.textContent = 'Strength: ' + (labels[score] || 'Weak');
+                }
+                if (badgeEl) {
+                    badgeEl.className = 'pwd-strength-badge ' + (badgeClasses[score] || 'status-weak');
                 }
 
                 if (score >= 3 && len8) {
                     if (pwdIcon) pwdIcon.className = 'fa-solid fa-circle-check field-status-icon password-offset valid';
-                } else {
+                } else if (pwd.length > 0) {
                     if (pwdIcon) pwdIcon.className = 'fa-solid fa-circle-xmark field-status-icon password-offset invalid';
+                } else {
+                    if (pwdIcon) pwdIcon.className = 'fa-solid field-status-icon password-offset';
                 }
             }
         }
@@ -1584,7 +1794,7 @@
         }
     };
 
-    let fpTimerInterval = null;
+    var fpTimerInterval = null;
 
     function startFpResendTimer() {
         const resendBtn = document.getElementById('fp-resend-btn');
@@ -2020,19 +2230,57 @@
             return;
         }
 
-        // Direct Google OAuth 2.0 Authorization Redirection (Universal for Android APK, WebViews & Web)
-        let redirectUri = window.location.origin + window.location.pathname;
-        if (!redirectUri.endsWith('.php') && !redirectUri.endsWith('/')) {
-            redirectUri += '/index.php';
-        } else if (redirectUri.endsWith('/')) {
-            redirectUri += 'index.php';
+        // Check if accessed from a private IP or unsupported host for Google OAuth
+        const hn = window.location.hostname;
+        const isPrivateIp = /^(\d{1,3}\.){3}\d{1,3}$/.test(hn) ||
+                            hn.startsWith('192.168.') ||
+                            hn.startsWith('10.') ||
+                            hn.startsWith('172.') ||
+                            window.location.protocol === 'file:' ||
+                            window.location.protocol === 'capacitor:';
+
+        // Google OAuth strictly forbids private IP addresses in redirect_uri.
+        // When accessed via USB tethering/local IP, warn the user clearly instead of letting Google show the 400 malformed error.
+        if (isPrivateIp && hn !== 'localhost' && hn !== '127.0.0.1') {
+            resetBtns();
+            const msg = 'Google Sign-In requires the official domain (https://app.intan-elyu.online). Google strictly forbids local IP addresses (192.168.x.x). Please log in with your Email & Password or use Offline Mode.';
+            if (typeof showToast === 'function') {
+                showToast(msg, 'warning', 6000);
+            }
+            if (typeof window.openAuthCancelModal === 'function') {
+                window.openAuthCancelModal(msg);
+            } else {
+                alert(msg);
+            }
+            return;
         }
 
-        const stateObj = { timestamp: Date.now(), returnView: 'auth' };
+        // Direct Google OAuth 2.0 Authorization Redirection (Universal for Android APK, WebViews & Web)
+        // Must match registered authorized redirect URI in Google Cloud Console
+        const redirectUri = 'https://app.intan-elyu.online/index.php';
+
+        const isNative = Boolean(
+            (window.Capacitor && typeof window.Capacitor.isNativePlatform === 'function' && window.Capacitor.isNativePlatform()) ||
+            (navigator.userAgent && navigator.userAgent.includes('IntanElyuAPK'))
+        );
+
+        try {
+            sessionStorage.setItem('intan_elyu_google_oauth_pending', 'true');
+        } catch (e) { }
+
+        const stateObj = { timestamp: Date.now(), returnView: 'auth', fromApp: isNative };
         const stateStr = encodeURIComponent(JSON.stringify(stateObj));
         const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${encodeURIComponent(clientId)}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=email%20profile%20openid&prompt=select_account&state=${stateStr}`;
 
-        window.location.href = googleAuthUrl;
+        // In Capacitor native mobile platform, open in system browser to prevent Google WebView blocking (Error 403: disallowed_useragent)
+        if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Browser) {
+            window.Capacitor.Plugins.Browser.open({ url: googleAuthUrl }).catch(function () {
+                window.location.href = googleAuthUrl;
+            });
+            resetBtns();
+        } else {
+            window.location.href = googleAuthUrl;
+        }
     };
 
     window.handleCredentialResponse = async function (response, onDone) {
@@ -2075,6 +2323,14 @@
                 window.AppStorage.setItem('auth_user', data.user);
                 window.AppStorage.setItem('intan_elyu_token', data.token);
             }
+
+            // Clear offline flags on successful cloud authentication
+            localStorage.removeItem('intan_elyu_offline_mode');
+            localStorage.removeItem('intan_elyu_offline_guest');
+            try {
+                sessionStorage.removeItem('intan_elyu_google_oauth_pending');
+                sessionStorage.removeItem('elyu_show_offline_bypass_notice');
+            } catch (e) { }
 
             showLoginSuccessModal(data.user);
         } catch (error) {
@@ -2128,59 +2384,47 @@
         }
     })();
 
-    // Lock scroll on login page to ensure completely fixed layout
-    (function preventLoginScroll() {
-        document.addEventListener('touchmove', function (e) {
-            const wrapper = document.getElementById('forms-wrapper');
-            if (wrapper && !wrapper.classList.contains('show-register') && !wrapper.classList.contains('show-forgot') && !wrapper.classList.contains('show-otp')) {
-                // On login page - prevent bounce/scrolling
-                if (!e.target.closest('.privacy-modal-card')) {
-                    e.preventDefault();
-                }
-            }
-        }, { passive: false });
-    })();
 
-    // Freeze and lock Auth viewport height to prevent keyboard squeezing
-    (function freezeAuthLayout() {
-        function applyLockedDimensions() {
-            var winH = window.innerHeight || 0;
-            var scrH = (window.screen && window.screen.height) ? window.screen.height : 0;
-            var storedH = parseInt(sessionStorage.getItem('auth_locked_screen_h') || '0', 10);
-            if (!storedH || winH > storedH) {
-                storedH = Math.max(winH, scrH > 300 ? scrH : winH);
-                try { sessionStorage.setItem('auth_locked_screen_h', storedH); } catch (e) { }
+
+    // Password Strength Focus Helpers
+    window.onPasswordFocus = function () {
+        var container = document.getElementById('pwd-strength-container');
+        if (container) {
+            container.style.display = 'block';
+            if (typeof window.validateRegisterFormInline === 'function') {
+                window.validateRegisterFormInline();
             }
-            if (storedH > 0) {
-                var topH = Math.min(330, Math.max(250, Math.round(storedH * 0.38)));
-                document.documentElement.style.setProperty('--auth-screen-h', storedH + 'px');
-                document.documentElement.style.setProperty('--auth-top-h', topH + 'px');
-                var container = document.querySelector('.auth-container');
-                if (container) {
-                    container.style.height = storedH + 'px';
-                    container.style.minHeight = storedH + 'px';
-                    container.style.maxHeight = storedH + 'px';
-                }
-                var topEl = document.querySelector('.auth-top');
-                if (topEl) {
-                    topEl.style.height = topH + 'px';
-                    topEl.style.minHeight = topH + 'px';
-                    topEl.style.maxHeight = topH + 'px';
-                }
-            }
+            setTimeout(function () {
+                try {
+                    container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                } catch (e) { }
+            }, 180);
         }
+    };
 
-        applyLockedDimensions();
-        window.addEventListener('resize', function () {
-            var currentH = window.innerHeight || 0;
-            var storedH = parseInt(sessionStorage.getItem('auth_locked_screen_h') || '0', 10);
-            if (currentH > storedH) {
-                applyLockedDimensions();
+    window.onPasswordBlur = function () {
+        var pwdEl = document.getElementById('reg-password');
+        var container = document.getElementById('pwd-strength-container');
+        if (pwdEl && pwdEl.value.length === 0 && container) {
+            container.style.display = 'none';
+        }
+    };
+
+    // Keep login layout 100% intact with splash branding without shrinking header or logo
+    (function setupKeyboardAdaptiveAuth() {
+        document.addEventListener('focusin', function (e) {
+            if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) {
+                setTimeout(function () {
+                    try {
+                        e.target.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    } catch (err) { }
+                }, 180);
             }
         });
-        window.addEventListener('orientationchange', function () {
-            try { sessionStorage.removeItem('auth_locked_screen_h'); } catch (e) { }
-            setTimeout(applyLockedDimensions, 250);
-        });
     })();
+
+    if (typeof window.initAuthView === 'function') {
+        window.initAuthView();
+    }
+})();
 </script>

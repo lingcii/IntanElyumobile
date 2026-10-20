@@ -26,13 +26,16 @@ if (!$localApk) {
 $apkSizeStr = $localApk && file_exists($localApk) ? '~' . round(filesize($localApk) / (1024 * 1024), 1) . ' MB' : '~226 MB';
 
 $buildGradle = dirname(__DIR__, 2) . '/android/app/build.gradle';
-$appVersion = 'v1.4.0';
+$appVersion = 'v0.0.0';
 if (file_exists($buildGradle)) {
   $gradleContent = file_get_contents($buildGradle);
   if (preg_match('/versionName\s+["\']([^"\']+)["\']/', $gradleContent, $matches)) {
     $appVersion = 'v' . $matches[1];
   }
 }
+
+$r2ApkUrl = getenv('CLOUDFLARE_R2_APK_URL') ?: (rtrim(getenv('CLOUDFLARE_R2_URL') ?: 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev', '/') . '/apks/intan-elyu.apk?v=' . ltrim($appVersion, 'v'));
+$gdriveMirrorUrl = getenv('APK_GDRIVE_MIRROR_URL') ?: '';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -49,6 +52,33 @@ if (file_exists($buildGradle)) {
   <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
   <meta name="googlebot" content="index, follow">
   <meta name="bingbot" content="index, follow">
+  <!-- Check if browser returned here from Google OAuth callback with access_token / id_token / error -->
+  <script>
+    (function() {
+      var h = window.location.hash || '';
+      var s = window.location.search || '';
+      var targetPayload = h || s;
+      if (targetPayload && (targetPayload.includes('access_token=') || targetPayload.includes('id_token=') || targetPayload.includes('error='))) {
+        var isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+        if (isMobile) {
+          var appUrl = "intanelyu://google-auth" + targetPayload;
+          var intentUrl = "intent://google-auth" + targetPayload + "#Intent;scheme=intanelyu;package=com.intan.elyu;end";
+          try {
+            if (/Android/i.test(navigator.userAgent)) {
+              window.location.replace(intentUrl);
+            } else {
+              window.location.replace(appUrl);
+            }
+          } catch(e) {
+            window.location.href = appUrl;
+          }
+          setTimeout(function() { window.location.href = appUrl; }, 600);
+        } else {
+          window.location.replace('index.php?view=auth&app=true' + targetPayload);
+        }
+      }
+    })();
+  </script>
   <link rel="canonical" href="https://app.intan-elyu.online/?view=download">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#1e3a8a">
@@ -221,14 +251,30 @@ if (file_exists($buildGradle)) {
             Scan with another device's camera, or tap the button below to download directly to this phone.
           </p>
           <a href="index.php?action=download_apk" download="intan-elyu.apk" class="btn-hero-dl">
-            <i class="fa-brands fa-android"></i> Download APK
+            <i class="fa-brands fa-android"></i> Direct Download APK
           </a>
           <div class="hero-mirror-row">
-            <a href="https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/apks/intan-elyu.apk" target="_blank"
-              rel="noopener" class="hero-mirror-link">
+            <a href="index.php?action=download_apk&redirect=1" target="_blank"
+              rel="noopener" class="hero-mirror-link" title="Download via Cloudflare R2 mirror">
               <i class="fa-solid fa-cloud-arrow-down"></i> Cloud Mirror (R2)
             </a>
+            <?php if (!empty($gdriveMirrorUrl)): ?>
+            <a href="<?= htmlspecialchars($gdriveMirrorUrl) ?>" target="_blank"
+              rel="noopener" class="hero-mirror-link" title="Download via Google Drive mirror">
+              <i class="fa-brands fa-google-drive"></i> GDrive
+            </a>
+            <?php endif; ?>
             <span class="hero-ver-tag"><?= htmlspecialchars($appVersion) ?> &bull; <?= htmlspecialchars($apkSizeStr) ?> &bull; Android 8.0+</span>
+          </div>
+
+          <!-- Quick Mobile Troubleshooting Tip Box -->
+          <div class="dl-dns-helper" style="margin-top: 14px; width: 100%; text-align: left; font-size: 11.5px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 10px 12px; color: #475569;">
+            <div style="font-weight: 700; color: #0f172a; display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
+              <i class="fa-solid fa-circle-question" style="color: #0284c7;"></i> Trouble downloading on mobile?
+            </div>
+            <div style="line-height: 1.45; font-size: 11px;">
+              If your phone shows <em>"Couldn't find DNS address"</em>, use <strong>Direct Download</strong> above, or open this link in <strong>Google Chrome</strong> (not Xiaomi/MIUI browser).
+            </div>
           </div>
         </div>
       </div>
@@ -1009,7 +1055,7 @@ if (file_exists($buildGradle)) {
       </div>
     </a>
     <a href="index.php?action=download_apk" download="intan-elyu.apk" class="btn-dock-dl">
-      <i class="fa-brands fa-android"></i> Download APK
+      <i class="fa-brands fa-android"></i> Direct Download APK
     </a>
   </div>
 
@@ -1119,6 +1165,7 @@ if (file_exists($buildGradle)) {
     // 4. Fallback Dynamic QR Code Generator for Current Domain
     (function () {
       const qrImg = document.getElementById('portal-hero-qr');
+      if (!qrImg) return;
       const hostOrigin = (window.location.hostname.indexOf('railway.app') !== -1)
         ? 'https://app.intan-elyu.online'
         : window.location.origin;
@@ -1130,6 +1177,16 @@ if (file_exists($buildGradle)) {
         this.src = 'https://chart.googleapis.com/chart?cht=qr&chs=200x200&chl=' + encodeURIComponent(apkUrl) + '&chld=M|1';
       };
     })();
+
+    // 5. Offline Download Guard
+    document.querySelectorAll('a[download], a.btn-hero-dl, a.btn-dock-dl').forEach(function(el) {
+      el.addEventListener('click', function(e) {
+        if (!navigator.onLine) {
+          e.preventDefault();
+          alert("Internet connection required to download the Intan Elyu APK package (~226 MB). Please connect to Wi-Fi or mobile data.");
+        }
+      });
+    });
   </script>
 </body>
 

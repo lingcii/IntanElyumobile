@@ -239,12 +239,80 @@ window.OfflineCheckinManager = {
         return q.some(entry => String(entry.itemId) === target || String(entry.spotId) === target);
     },
 
+    getQueuedItem: function (itemId) {
+        if (!itemId) return null;
+        const q = this.getQueue();
+        const target = String(itemId);
+        return q.find(entry => String(entry.itemId) === target || String(entry.spotId) === target) || null;
+    },
+
+    createThumbnail: function (blobOrFile, maxDim = 120, quality = 0.6) {
+        return new Promise((resolve) => {
+            try {
+                if (!blobOrFile) return resolve(null);
+                if (typeof blobOrFile === 'string') {
+                    if (blobOrFile.startsWith('data:image')) {
+                        if (blobOrFile.length < 60000) return resolve(blobOrFile);
+                    } else if (!blobOrFile.startsWith('http') && !blobOrFile.startsWith('blob:')) {
+                        return resolve(null);
+                    }
+                }
+                const img = new Image();
+                let objectUrl = null;
+                if (blobOrFile instanceof Blob) {
+                    objectUrl = URL.createObjectURL(blobOrFile);
+                    img.src = objectUrl;
+                } else if (typeof blobOrFile === 'string') {
+                    img.src = blobOrFile;
+                } else {
+                    return resolve(null);
+                }
+
+                img.onload = () => {
+                    try {
+                        if (objectUrl) URL.revokeObjectURL(objectUrl);
+                        let w = img.width || 120;
+                        let h = img.height || 120;
+                        if (w > maxDim || h > maxDim) {
+                            if (w > h) { h = Math.round((h * maxDim) / w); w = maxDim; }
+                            else { w = Math.round((w * maxDim) / h); h = maxDim; }
+                        }
+                        const canvas = document.createElement('canvas');
+                        canvas.width = Math.max(w, 1);
+                        canvas.height = Math.max(h, 1);
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, w, h);
+                        resolve(canvas.toDataURL('image/jpeg', quality));
+                    } catch (err) {
+                        resolve(null);
+                    }
+                };
+                img.onerror = () => {
+                    if (objectUrl) URL.revokeObjectURL(objectUrl);
+                    resolve(null);
+                };
+            } catch (e) {
+                resolve(null);
+            }
+        });
+    },
+
     queueOfflineCheckin: async function (data) {
         const id = 'chk_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
         const capturedAt = data.capturedAt || new Date().toISOString();
 
         let hasPhoto = false;
+        let previewUrl = null;
         const photoData = data.image || data.imageFile || data.photo || null;
+
+        if (photoData) {
+            try {
+                previewUrl = await this.createThumbnail(photoData, 120, 0.65);
+            } catch (thumbErr) {
+                console.warn('Could not generate offline photo preview:', thumbErr);
+            }
+        }
+
         if (photoData && window.AppStorage && window.AppStorage.setPhoto) {
             try {
                 const saved = await window.AppStorage.setPhoto(id, photoData);
@@ -269,7 +337,8 @@ window.OfflineCheckinManager = {
             altitude: data.altitude || null,
             speed: data.speed || null,
             capturedAt: capturedAt,
-            hasPhoto: hasPhoto,
+            hasPhoto: hasPhoto || Boolean(previewUrl),
+            previewUrl: previewUrl,
             status: 'queued',
             attempts: 0
         };
@@ -376,11 +445,71 @@ window.OfflineCheckinManager = {
                 });
                 clearTimeout(timeoutId);
 
-                const data = await response.json().catch(() => ({}));
+                let data = await response.json().catch(() => ({}));
+                let isResolved = response.ok || response.status === 409 || data.already_recorded || (data.status && ['pending', 'approved', 'success'].includes(data.status));
+
+                // If itinerary item check-in 404s (e.g. temporary offline item ID) and spotId is known, fallback to destination check-in
+                if (!isResolved && response.status === 404 && item.spotId) {
+                    try {
+                        const fallbackUrl = `${baseUrl}/api/tourist/destinations/${item.spotId}/check-in`;
+                        const res2 = await fetch(fallbackUrl, {
+                            method: 'POST',
+                            headers: {
+                                'Accept': 'application/json',
+                                'Authorization': 'Bearer ' + token,
+                                'ngrok-skip-browser-warning': 'true'
+                            },
+                            body: formData
+                        });
+                        const data2 = await res2.json().catch(() => ({}));
+                        if (res2.ok || res2.status === 409 || data2.already_recorded || (data2.status && ['pending', 'approved', 'success'].includes(data2.status))) {
+                            isResolved = true;
+                            data = data2;
+                        }
+                    } catch (fbErr) {}
+                }
 
                 // Treat 200, 201, 409 (already recorded), or explicit already_recorded flag as successfully resolved
-                if (response.ok || response.status === 409 || data.already_recorded || (data.status && ['pending', 'approved', 'success'].includes(data.status))) {
+                if (isResolved) {
                     syncedCount++;
+
+                    // Optimistically update cached itinerary trips so user immediately sees their photo & pending review status
+                    const returnedPhoto = data.proof_image || item.previewUrl || null;
+                    const finalStatus = data.status || 'pending';
+                    const isApproved = finalStatus === 'approved' || finalStatus === 'success';
+
+                    if (item.itemId) {
+                        try {
+                            const tokenKey = token.substring(0, 10);
+                            ['saved_trips_' + tokenKey, 'dashboard_saved_trips_' + tokenKey, 'dashboard_trips_' + tokenKey].forEach(cacheKey => {
+                                const raw = localStorage.getItem(cacheKey);
+                                if (!raw) return;
+                                const parsed = JSON.parse(raw);
+                                const list = Array.isArray(parsed) ? parsed : (parsed.itineraries || parsed.data || null);
+                                if (Array.isArray(list)) {
+                                    list.forEach(trip => {
+                                        if (trip.items && Array.isArray(trip.items)) {
+                                            const match = trip.items.find(i => String(i.id) === String(item.itemId));
+                                            if (match) {
+                                                match.proof_status = finalStatus;
+                                                if (returnedPhoto) match.proof_image = returnedPhoto;
+                                                if (isApproved) match.is_visited = true;
+                                            }
+                                        }
+                                    });
+                                    if (Array.isArray(parsed)) {
+                                        localStorage.setItem(cacheKey, JSON.stringify(list));
+                                    } else {
+                                        parsed[parsed.itineraries ? 'itineraries' : 'data'] = list;
+                                        localStorage.setItem(cacheKey, JSON.stringify(parsed));
+                                    }
+                                }
+                            });
+                        } catch (cacheErr) {
+                            console.warn('Could not update local cached trip after sync:', cacheErr);
+                        }
+                    }
+
                     await this.removeQueuedCheckin(item.id);
                 } else if (response.status >= 400 && response.status < 500 && response.status !== 408) {
                     // Client permanent errors (e.g. 404 item deleted, 422 permanent invalid)
@@ -404,11 +533,33 @@ window.OfflineCheckinManager = {
         this.isSyncing = false;
 
         if (syncedCount > 0) {
+            // Force cache expiration so next useCache fetch calls the network
+            try {
+                const tokenKey = token.substring(0, 10);
+                ['saved_trips_' + tokenKey, 'dashboard_saved_trips_' + tokenKey, 'dashboard_trips_' + tokenKey].forEach(k => {
+                    const raw = localStorage.getItem(k);
+                    if (raw) {
+                        try {
+                            const parsed = JSON.parse(raw);
+                            if (parsed && typeof parsed === 'object') {
+                                parsed.timestamp = 0;
+                                localStorage.setItem(k, JSON.stringify(parsed));
+                            }
+                        } catch (e) { }
+                    }
+                });
+            } catch (e) { }
+
             if (typeof showToast === 'function') {
                 showToast(`⚡ ${syncedCount} Offline Check-in(s) synced! Proof submitted.`);
             }
             window.dispatchEvent(new CustomEvent('checkins-synced', { detail: { count: syncedCount } }));
         }
+        return syncedCount;
+    },
+
+    syncOfflineQueue: function () {
+        return this.processQueue();
     },
 
     init: function () {
@@ -455,6 +606,51 @@ window.OfflineTripManager = {
     queueOfflineTrip: function (tripData) {
         try {
             const trips = this.getQueuedTrips();
+            const updateId = tripData.update_id ? String(tripData.update_id) : null;
+
+            // 1. If updating an already-queued offline trip (e.g. offline_1729...)
+            if (updateId && updateId.startsWith('offline_')) {
+                const existingIdx = trips.findIndex(t => t.id === updateId || t.local_id === updateId);
+                if (existingIdx !== -1) {
+                    trips[existingIdx] = {
+                        ...trips[existingIdx],
+                        ...tripData,
+                        id: updateId,
+                        local_id: updateId,
+                        is_offline_queued: true,
+                        updated_at: new Date().toISOString()
+                    };
+                    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(trips));
+                    window.dispatchEvent(new CustomEvent('offlineTripQueued', { detail: trips[existingIdx] }));
+                    return trips[existingIdx];
+                }
+            }
+
+            // 2. If editing an existing server-synced trip while offline
+            if (updateId && !updateId.startsWith('offline_')) {
+                const editTempId = 'offline_edit_' + updateId;
+                const existingEditIdx = trips.findIndex(t => t.id === editTempId || String(t.update_id) === updateId);
+                const updatedTrip = {
+                    ...tripData,
+                    id: editTempId,
+                    local_id: editTempId,
+                    update_id: updateId,
+                    is_offline_queued: true,
+                    is_offline_update: true,
+                    updated_at: new Date().toISOString()
+                };
+
+                if (existingEditIdx !== -1) {
+                    trips[existingEditIdx] = updatedTrip;
+                } else {
+                    trips.unshift(updatedTrip);
+                }
+                localStorage.setItem(this.STORAGE_KEY, JSON.stringify(trips));
+                window.dispatchEvent(new CustomEvent('offlineTripQueued', { detail: updatedTrip }));
+                return updatedTrip;
+            }
+
+            // 3. Brand new offline trip
             const tempId = 'offline_' + Date.now();
             const newTrip = {
                 ...tripData,
@@ -475,20 +671,131 @@ window.OfflineTripManager = {
 
     removeQueuedTrip: function (tempId) {
         try {
-            const trips = this.getQueuedTrips().filter(t => t.id !== tempId);
+            if (!tempId) return;
+            const targetStr = String(tempId).trim();
+            const trips = this.getQueuedTrips().filter(t => {
+                if (!t) return false;
+                const idStr = String(t.id || '');
+                const localIdStr = String(t.local_id || '');
+                const updateIdStr = String(t.update_id || '');
+                const tripIdStr = String(t.trip_id || '');
+
+                if (idStr === targetStr || localIdStr === targetStr || updateIdStr === targetStr || tripIdStr === targetStr) {
+                    return false;
+                }
+                if (idStr === 'offline_edit_' + targetStr || localIdStr === 'offline_edit_' + targetStr) {
+                    return false;
+                }
+                if (targetStr.startsWith('offline_edit_')) {
+                    const rawId = targetStr.replace('offline_edit_', '');
+                    if (idStr === rawId || updateIdStr === rawId || localIdStr === rawId) {
+                        return false;
+                    }
+                }
+                return true;
+            });
             localStorage.setItem(this.STORAGE_KEY, JSON.stringify(trips));
         } catch (e) {}
     },
 
-    syncQueuedTrips: async function () {
-        if (!navigator.onLine) return;
+    syncSingleTrip: async function (tripId) {
+        if (!navigator.onLine) return false;
         const trips = this.getQueuedTrips();
-        if (!trips || trips.length === 0) return;
+        const trip = trips.find(t => t.id === tripId || t.local_id === tripId);
+        if (!trip) return false;
 
         const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
-        if (!token) return;
+        if (!token) return false;
 
-        const bUrl = (window.backendUrl || window.BACKEND_URL || 'https://api.intan-elyu.online').replace(/\/+$/, '');
+        const primaryUrl = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || window.BACKEND_URL || '')).replace(/\/+$/, '');
+        const baseCandidates = [];
+        if (primaryUrl && !primaryUrl.includes('localhost') && !primaryUrl.includes('127.0.0.1')) {
+            baseCandidates.push(primaryUrl);
+        }
+        baseCandidates.push('https://api.intan-elyu.online');
+        if (primaryUrl && !baseCandidates.includes(primaryUrl)) {
+            baseCandidates.push(primaryUrl);
+        }
+        baseCandidates.push('');
+
+        const payload = {
+            title: trip.title,
+            trip_date: trip.trip_date || null,
+            budget: trip.budget || null,
+            destinations: trip.destinations || [],
+            route_type: trip.route_type || 'Recommended',
+            transport_mode: trip.transport_mode || 'No Vehicle Selected',
+            leg_transports: trip.leg_transports || []
+        };
+
+        let synced = false;
+        for (const bUrl of baseCandidates) {
+            try {
+                const endpoint = (trip.is_offline_update && trip.update_id)
+                    ? `${bUrl}/api/tourist/itineraries/${trip.update_id}`
+                    : `${bUrl}/api/tourist/itineraries`;
+                const method = (trip.is_offline_update && trip.update_id) ? 'PUT' : 'POST';
+                const controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+                const timeoutId = controller ? setTimeout(() => controller.abort(), 10000) : null;
+                const res = await fetch(endpoint, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify(payload),
+                    signal: controller ? controller.signal : undefined
+                });
+                if (timeoutId) clearTimeout(timeoutId);
+                if (res.ok) {
+                    this.removeQueuedTrip(trip.id);
+                    synced = true;
+                    break;
+                }
+            } catch (e) {
+                // Try next candidate
+            }
+        }
+
+        if (synced) {
+            const tokenKey = token.substring(0, 10);
+            localStorage.removeItem('saved_trips_' + tokenKey);
+            localStorage.removeItem('dashboard_trips_' + tokenKey);
+            localStorage.removeItem('dashboard_saved_trips_' + tokenKey);
+            if (typeof window._cachedSavedTrips !== 'undefined') {
+                window._cachedSavedTrips = null;
+            }
+            window.dispatchEvent(new CustomEvent('tripsSynced'));
+            if (typeof window.fetchSavedTrips === 'function') {
+                window.fetchSavedTrips(true);
+            }
+            if (typeof window.loadSavedTrips === 'function') {
+                window.loadSavedTrips(true);
+            }
+        }
+        return synced;
+    },
+
+    syncQueuedTrips: async function () {
+        if (!navigator.onLine) return 0;
+        const trips = this.getQueuedTrips();
+        if (!trips || trips.length === 0) return 0;
+
+        const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+        if (!token) return 0;
+
+        const primaryUrl = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || window.BACKEND_URL || '')).replace(/\/+$/, '');
+        const baseCandidates = [];
+        if (primaryUrl && !primaryUrl.includes('localhost') && !primaryUrl.includes('127.0.0.1')) {
+            baseCandidates.push(primaryUrl);
+        }
+        baseCandidates.push('https://api.intan-elyu.online');
+        if (primaryUrl && !baseCandidates.includes(primaryUrl)) {
+            baseCandidates.push(primaryUrl);
+        }
+        baseCandidates.push('');
+
         let syncedCount = 0;
 
         for (const trip of trips) {
@@ -503,19 +810,35 @@ window.OfflineTripManager = {
                     leg_transports: trip.leg_transports || []
                 };
 
-                const res = await fetch(`${bUrl}/api/tourist/itineraries`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        'Authorization': 'Bearer ' + token
-                    },
-                    body: JSON.stringify(payload)
-                });
-
-                if (res.ok) {
-                    this.removeQueuedTrip(trip.id);
-                    syncedCount++;
+                let tripSuccess = false;
+                for (const bUrl of baseCandidates) {
+                    try {
+                        const endpoint = (trip.is_offline_update && trip.update_id)
+                            ? `${bUrl}/api/tourist/itineraries/${trip.update_id}`
+                            : `${bUrl}/api/tourist/itineraries`;
+                        const method = (trip.is_offline_update && trip.update_id) ? 'PUT' : 'POST';
+                        const controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+                        const timeoutId = controller ? setTimeout(() => controller.abort(), 10000) : null;
+                        const res = await fetch(endpoint, {
+                            method: method,
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'Authorization': 'Bearer ' + token
+                            },
+                            body: JSON.stringify(payload),
+                            signal: controller ? controller.signal : undefined
+                        });
+                        if (timeoutId) clearTimeout(timeoutId);
+                        if (res.ok) {
+                            this.removeQueuedTrip(trip.id);
+                            syncedCount++;
+                            tripSuccess = true;
+                            break;
+                        }
+                    } catch (candErr) {
+                        // continue to next base URL candidate
+                    }
                 }
             } catch (err) {
                 console.warn('Could not sync trip:', trip.title, err);
@@ -523,17 +846,347 @@ window.OfflineTripManager = {
         }
 
         if (syncedCount > 0) {
-            if (typeof showToast === 'function') {
-                showToast(`🎉 ${syncedCount} offline trip${syncedCount > 1 ? 's' : ''} synced to your account!`);
-            }
             const tokenKey = token.substring(0, 10);
             localStorage.removeItem('saved_trips_' + tokenKey);
             localStorage.removeItem('dashboard_trips_' + tokenKey);
+            localStorage.removeItem('dashboard_saved_trips_' + tokenKey);
+            if (typeof window._cachedSavedTrips !== 'undefined') {
+                window._cachedSavedTrips = null;
+            }
             window.dispatchEvent(new CustomEvent('tripsSynced'));
+            if (typeof window.fetchSavedTrips === 'function') {
+                window.fetchSavedTrips(true);
+            }
             if (typeof window.loadSavedTrips === 'function') {
                 window.loadSavedTrips(true);
             }
         }
+        return syncedCount;
+    }
+};
+
+// ══════════════════════════════════════════════════════════════════════════
+// OFFLINE QUEUE: COMPLETED TRIPS MANAGER
+// ══════════════════════════════════════════════════════════════════════════
+window.OfflineCompletedTripsManager = {
+    STORAGE_KEY: 'intan_elyu_offline_completed_trips',
+
+    getQueue: function () {
+        try {
+            return JSON.parse(localStorage.getItem(this.STORAGE_KEY) || '[]');
+        } catch (e) {
+            return [];
+        }
+    },
+
+    saveQueue: function (queue) {
+        try {
+            if (!queue || queue.length === 0) {
+                localStorage.removeItem(this.STORAGE_KEY);
+            } else {
+                localStorage.setItem(this.STORAGE_KEY, JSON.stringify(queue));
+            }
+        } catch (e) {}
+    },
+
+    queueCompletion: function (tripId) {
+        const queue = this.getQueue();
+        if (!queue.some(item => String(item.tripId) === String(tripId))) {
+            queue.push({ tripId: String(tripId), timestamp: Date.now() });
+            this.saveQueue(queue);
+        }
+    },
+
+    processQueue: async function () {
+        if (!navigator.onLine) return 0;
+        const queue = this.getQueue();
+        if (!queue || queue.length === 0) return 0;
+
+        const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+        if (!token) return 0;
+
+        const bUrl = (window.backendUrl || window.BACKEND_URL || 'https://api.intan-elyu.online').replace(/\/+$/, '');
+        let synced = 0;
+        const remaining = [];
+
+        for (const item of queue) {
+            try {
+                const res = await fetch(`${bUrl}/api/tourist/itineraries/${item.tripId}/complete`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    }
+                });
+                if (res.ok || res.status === 409) {
+                    synced++;
+                } else if (res.status >= 400 && res.status < 500 && res.status !== 408) {
+                    // permanent client error (e.g. 404 deleted)
+                } else {
+                    remaining.push(item);
+                }
+            } catch (err) {
+                remaining.push(item);
+                break;
+            }
+        }
+
+        this.saveQueue(remaining);
+        if (synced > 0) {
+            const tokenKey = token.substring(0, 10);
+            localStorage.removeItem('saved_trips_' + tokenKey);
+            localStorage.removeItem('dashboard_trips_' + tokenKey);
+            window.dispatchEvent(new CustomEvent('tripsSynced'));
+        }
+        return synced;
+    }
+};
+
+// ══════════════════════════════════════════════════════════════════════════
+// OFFLINE QUEUE: FAVORITE / BOOKMARK TOGGLES MANAGER
+// ══════════════════════════════════════════════════════════════════════════
+window.OfflineFavoriteManager = {
+    STORAGE_KEY: 'intan_elyu_offline_favorite_toggles',
+
+    getQueue: function () {
+        try {
+            return JSON.parse(localStorage.getItem(this.STORAGE_KEY) || '[]');
+        } catch (e) {
+            return [];
+        }
+    },
+
+    saveQueue: function (queue) {
+        try {
+            if (!queue || queue.length === 0) {
+                localStorage.removeItem(this.STORAGE_KEY);
+            } else {
+                localStorage.setItem(this.STORAGE_KEY, JSON.stringify(queue));
+            }
+        } catch (e) {}
+    },
+
+    queueToggle: function (spotId) {
+        const queue = this.getQueue();
+        queue.push({ spotId: String(spotId), timestamp: Date.now() });
+        this.saveQueue(queue);
+    },
+
+    processQueue: async function () {
+        if (!navigator.onLine) return 0;
+        const queue = this.getQueue();
+        if (!queue || queue.length === 0) return 0;
+
+        const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+        if (!token) return 0;
+
+        const bUrl = (window.backendUrl || window.BACKEND_URL || 'https://api.intan-elyu.online').replace(/\/+$/, '');
+        let synced = 0;
+        const remaining = [];
+
+        for (const item of queue) {
+            try {
+                const res = await fetch(`${bUrl}/api/tourist/destinations/${item.spotId}/favorite`, {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    }
+                });
+                if (res.ok || res.status === 409) {
+                    synced++;
+                } else if (res.status >= 400 && res.status < 500 && res.status !== 408) {
+                    // permanent client error
+                } else {
+                    remaining.push(item);
+                }
+            } catch (err) {
+                remaining.push(item);
+                break;
+            }
+        }
+
+        this.saveQueue(remaining);
+        if (synced > 0) {
+            const tokenKey = token.substring(0, 10);
+            localStorage.removeItem('saved_places_' + tokenKey);
+            for (let i = 0; i < localStorage.length; i++) {
+                const k = localStorage.key(i);
+                if (k && k.startsWith('dashboard_data_')) localStorage.removeItem(k);
+            }
+            window.dispatchEvent(new CustomEvent('favoritesSynced'));
+        }
+        return synced;
+    }
+};
+
+// ══════════════════════════════════════════════════════════════════════════
+// OFFLINE QUEUE: GAMEZONE CLAIMS MANAGER
+// ══════════════════════════════════════════════════════════════════════════
+window.OfflineGameClaimsManager = {
+    STORAGE_KEY: 'intan_elyu_offline_game_claims',
+
+    getQueue: function () {
+        try {
+            return JSON.parse(localStorage.getItem(this.STORAGE_KEY) || '[]');
+        } catch (e) {
+            return [];
+        }
+    },
+
+    saveQueue: function (queue) {
+        try {
+            if (!queue || queue.length === 0) {
+                localStorage.removeItem(this.STORAGE_KEY);
+            } else {
+                localStorage.setItem(this.STORAGE_KEY, JSON.stringify(queue));
+            }
+        } catch (e) {}
+    },
+
+    queueClaim: function (gameType) {
+        const queue = this.getQueue();
+        if (!queue.some(item => item.game_type === gameType)) {
+            queue.push({ game_type: gameType, timestamp: Date.now() });
+            this.saveQueue(queue);
+        }
+    },
+
+    processQueue: async function () {
+        if (!navigator.onLine) return 0;
+        const queue = this.getQueue();
+        if (!queue || queue.length === 0) return 0;
+
+        const token = localStorage.getItem('api_token') || localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+        if (!token) return 0;
+
+        const bUrl = (window.backendUrl || window.BACKEND_URL || 'https://api.intan-elyu.online').replace(/\/+$/, '');
+        let synced = 0;
+        const remaining = [];
+
+        for (const item of queue) {
+            try {
+                let endpoint = '/api/tourist/points/minigame';
+                let bodyObj = { game_type: item.game_type };
+                if (item.game_type === 'puzzle') {
+                    endpoint = '/api/tourist/points/puzzle';
+                    bodyObj = {};
+                } else if (item.game_type === 'trivia') {
+                    endpoint = '/api/tourist/points/trivia';
+                    bodyObj = {};
+                }
+
+                const res = await fetch(`${bUrl}${endpoint}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify(bodyObj)
+                });
+                if (res.ok || res.status === 409 || res.status === 429) {
+                    synced++;
+                } else if (res.status >= 400 && res.status < 500 && res.status !== 408) {
+                    // permanent client error
+                } else {
+                    remaining.push(item);
+                }
+            } catch (err) {
+                remaining.push(item);
+                break;
+            }
+        }
+
+        this.saveQueue(remaining);
+        if (synced > 0) {
+            window.leaderboardNeedsRefresh = true;
+            for (let i = localStorage.length - 1; i >= 0; i--) {
+                const k = localStorage.key(i);
+                if (k && (k.startsWith('leaderboard_data_') || k.startsWith('points_balance_'))) {
+                    localStorage.removeItem(k);
+                }
+            }
+            window.dispatchEvent(new CustomEvent('gamePointsSynced'));
+        }
+        return synced;
+    }
+};
+
+// ══════════════════════════════════════════════════════════════════════════
+// OFFLINE QUEUE: PENDING PROFILE UPDATES MANAGER
+// ══════════════════════════════════════════════════════════════════════════
+window.OfflineProfileManager = {
+    STORAGE_KEY: 'intan_elyu_pending_profile_update',
+
+    getPending: function () {
+        try {
+            return JSON.parse(localStorage.getItem(this.STORAGE_KEY) || 'null');
+        } catch (e) {
+            return null;
+        }
+    },
+
+    savePending: function (data) {
+        try {
+            if (!data) localStorage.removeItem(this.STORAGE_KEY);
+            else localStorage.setItem(this.STORAGE_KEY, JSON.stringify(data));
+        } catch (e) {}
+    },
+
+    processQueue: async function () {
+        if (!navigator.onLine) return 0;
+        const pending = this.getPending();
+        if (!pending) return 0;
+
+        const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+        if (!token) return 0;
+
+        const bUrl = (window.backendUrl || window.BACKEND_URL || 'https://api.intan-elyu.online').replace(/\/+$/, '');
+
+        try {
+            const formData = new FormData();
+            if (pending.name) formData.append('name', pending.name);
+            if (pending.email) formData.append('email', pending.email);
+            if (pending.phone) formData.append('phone', pending.phone);
+            if (pending.home_location) formData.append('home_location', pending.home_location);
+            if (pending.age) formData.append('age', pending.age);
+            if (pending.gender) formData.append('gender', pending.gender);
+            if (pending.bio) formData.append('bio', pending.bio);
+            if (pending.travel_preferences) formData.append('travel_preferences', pending.travel_preferences);
+
+            if (pending.avatarBase64 && pending.avatarBase64.startsWith('data:')) {
+                const bRes = await fetch(pending.avatarBase64);
+                const blob = await bRes.blob();
+                formData.append('avatar', blob, 'offline_avatar.jpg');
+            }
+
+            const res = await fetch(`${bUrl}/api/tourist/profile`, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                },
+                body: formData
+            });
+
+            if (res.ok) {
+                this.savePending(null);
+                const data = await res.json().catch(() => ({}));
+                if (data.user) {
+                    const stored = JSON.parse(localStorage.getItem('auth_user') || '{}');
+                    Object.assign(stored, data.user);
+                    localStorage.setItem('auth_user', JSON.stringify(stored));
+                }
+                window.dispatchEvent(new CustomEvent('userProfileUpdated'));
+                return 1;
+            }
+        } catch (err) {
+            console.warn('Offline profile sync error:', err);
+        }
+        return 0;
     }
 };
 
@@ -545,8 +1198,20 @@ window.OfflineTripManager = {
     let hidePillTimeout = null;
     let offlineDebounceTimeout = null;
     let lastOnlineSyncTime = 0;
-
     window.isAppOnline = (typeof navigator.onLine === 'boolean') ? navigator.onLine : true;
+    window.isAppOffline = function () {
+        if (typeof navigator !== 'undefined' && typeof navigator.onLine === 'boolean') {
+            return !navigator.onLine;
+        }
+        return window.isAppOnline === false;
+    };
+    window.isOffline = window.isAppOffline;
+    if (window.isAppOnline) {
+        try {
+            localStorage.removeItem('intan_elyu_offline_mode');
+            sessionStorage.removeItem('elyu_show_offline_bypass_notice');
+        } catch(e) {}
+    }
 
     function showOfflinePill() {
         const pill = document.getElementById('elyu-offline-pill');
@@ -594,30 +1259,64 @@ window.OfflineTripManager = {
         }, 2500);
     }
 
-    // Gentle sync orchestrator when connection returns
+    // Unified background sync orchestrator when connection returns
     window.syncAllDataWhenOnline = async function () {
         if (window._isSyncingOnlineData) return;
+        if (!navigator.onLine) return;
         window._isSyncingOnlineData = true;
 
         try {
-            // 1. Sync queued offline operations
-            setTimeout(() => {
-                if (window.OfflineTripManager && typeof window.OfflineTripManager.syncQueuedTrips === 'function') {
-                    window.OfflineTripManager.syncQueuedTrips();
-                }
-                if (window.OfflineCheckinManager && typeof window.OfflineCheckinManager.syncOfflineQueue === 'function') {
-                    window.OfflineCheckinManager.syncOfflineQueue();
-                }
-            }, 300);
+            let totalSynced = 0;
 
-            // 2. Mark views as needing refresh so they fetch cleanly when user navigates
+            // 1. Sync queued offline itineraries
+            if (window.OfflineTripManager && typeof window.OfflineTripManager.syncQueuedTrips === 'function') {
+                const count = await window.OfflineTripManager.syncQueuedTrips();
+                totalSynced += (count || 0);
+            }
+
+            // 2. Sync queued offline check-ins (with photo blobs)
+            if (window.OfflineCheckinManager && typeof window.OfflineCheckinManager.processQueue === 'function') {
+                const count = await window.OfflineCheckinManager.processQueue();
+                totalSynced += (count || 0);
+            }
+
+            // 3. Sync queued offline trip completions
+            if (window.OfflineCompletedTripsManager && typeof window.OfflineCompletedTripsManager.processQueue === 'function') {
+                const count = await window.OfflineCompletedTripsManager.processQueue();
+                totalSynced += (count || 0);
+            }
+
+            // 4. Sync queued offline favorite bookmarks
+            if (window.OfflineFavoriteManager && typeof window.OfflineFavoriteManager.processQueue === 'function') {
+                const count = await window.OfflineFavoriteManager.processQueue();
+                totalSynced += (count || 0);
+            }
+
+            // 5. Sync queued offline GameZone claims
+            if (window.OfflineGameClaimsManager && typeof window.OfflineGameClaimsManager.processQueue === 'function') {
+                const count = await window.OfflineGameClaimsManager.processQueue();
+                totalSynced += (count || 0);
+            }
+
+            // 6. Sync queued offline profile updates
+            if (window.OfflineProfileManager && typeof window.OfflineProfileManager.processQueue === 'function') {
+                const count = await window.OfflineProfileManager.processQueue();
+                totalSynced += (count || 0);
+            }
+
+            // Consolidated status notification
+            if (totalSynced > 0 && typeof showToast === 'function') {
+                showToast(`⚡ All offline data synced (${totalSynced} items updated)!`);
+            }
+
+            // Mark views as needing refresh so they fetch cleanly when user navigates
             window.leaderboardNeedsRefresh = true;
             window.dashboardNeedsRefresh = true;
             window.profileNeedsRefresh = true;
             window.discountNeedsRefresh = true;
             window.trendingNeedsRefresh = true;
 
-            // 3. ONLY refresh the CURRENTLY active view to prevent cross-view DOM mutation collisions
+            // Refresh ONLY the currently active view
             const activeView = (document.body ? document.body.getAttribute('data-view') : '') || (window.currentView || '');
             if (activeView === 'leaderboard' && typeof window.initLeaderboardView === 'function') {
                 window.initLeaderboardView(true);
@@ -631,9 +1330,12 @@ window.OfflineTripManager = {
                 if (typeof window.fetchUserPointsAndRedemptions === 'function') window.fetchUserPointsAndRedemptions();
             } else if (activeView === 'trending' && typeof window.fetchAllData === 'function') {
                 window.fetchAllData(true);
+            } else if (activeView === 'saved_places' && typeof window.fetchSavedPlaces === 'function') {
+                window.fetchSavedPlaces(true);
+            } else if (activeView === 'saved_trips' && typeof window.fetchSavedTrips === 'function') {
+                window.fetchSavedTrips(true);
             }
 
-            // 4. Pre-warm offline caches gently in the background
             prewarmOfflineData();
 
         } catch (e) {
@@ -643,18 +1345,78 @@ window.OfflineTripManager = {
         }
     };
 
+    function enforceAllOfflineBadgesHidden() {
+        if (typeof navigator.onLine === 'boolean' && !navigator.onLine) return;
+        window.isAppOnline = true;
+        if (document.body) {
+            document.body.classList.remove('is-offline');
+            document.body.removeAttribute('data-offline');
+        }
+        try {
+            localStorage.removeItem('intan_elyu_offline_mode');
+            localStorage.removeItem('intan_elyu_offline_guest');
+            sessionStorage.removeItem('elyu_show_offline_bypass_notice');
+
+            const curToken = localStorage.getItem('intan_elyu_token');
+            const realBackup = localStorage.getItem('intan_elyu_real_token_backup');
+            if (curToken === 'offline_guest_token' || (curToken && curToken.startsWith('offline_'))) {
+                if (realBackup && realBackup !== 'guest_token' && !realBackup.startsWith('offline_') && !realBackup.startsWith('guest_')) {
+                    localStorage.setItem('intan_elyu_token', realBackup);
+                    const realUserBackup = localStorage.getItem('auth_user_backup');
+                    if (realUserBackup) {
+                        try { localStorage.setItem('auth_user', realUserBackup); } catch (e) { }
+                    }
+                } else if (curToken === 'offline_guest_token') {
+                    localStorage.setItem('intan_elyu_token', 'guest_token');
+                    localStorage.setItem('intan_elyu_guest', 'true');
+                }
+            }
+        } catch(e) {}
+
+        const pillsToHide = [
+            'elyu-offline-pill', 'dash-offline-pill', 'trending-offline-pill',
+            'trip-offline-badge', 'saved-trips-offline-badge', 'saved-places-offline-badge',
+            'puzzles-offline-badge', 'auth-offline-badge', 'profile-offline-badge',
+            'discount-offline-badge', 'edit-profile-offline-badge', 'leaderboard-offline-badge',
+            'reset-offline-badge', 'splash-offline-pill'
+        ];
+        pillsToHide.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.style.setProperty('display', 'none', 'important');
+                el.classList.add('hidden');
+            }
+        });
+
+        document.querySelectorAll('[id*="offline-badge"], [id*="offline-pill"], .auth-offline-badge, .offline-badge, .offline-banner, .splash-offline-pill').forEach(el => {
+            el.style.setProperty('display', 'none', 'important');
+            el.classList.add('hidden');
+        });
+
+        document.querySelectorAll('.btn-offline-guest').forEach(btn => {
+            const span = btn.querySelector('span');
+            const icon = btn.querySelector('i');
+            if (span && span.textContent && span.textContent.includes('Offline')) {
+                span.textContent = 'Continue as Guest';
+            }
+            if (icon && icon.classList.contains('fa-cloud-slash')) {
+                icon.className = 'fa-solid fa-compass';
+            }
+        });
+    }
+    window.enforceAllOfflineBadgesHidden = enforceAllOfflineBadgesHidden;
+
     window.notifyAppOnline = function () {
         if (offlineDebounceTimeout) {
             clearTimeout(offlineDebounceTimeout);
             offlineDebounceTimeout = null;
         }
 
-        const now = Date.now();
-        if (now - lastOnlineSyncTime < 8000 && window.isAppOnline) return;
-        lastOnlineSyncTime = now;
-
         window.isAppOnline = true;
+        enforceAllOfflineBadgesHidden();
+        [50, 150, 300, 600, 1200, 2000].forEach(d => setTimeout(enforceAllOfflineBadgesHidden, d));
 
+        const now = Date.now();
         if (wasOffline) {
             wasOffline = false;
             showOnlineSyncPill();
@@ -662,7 +1424,7 @@ window.OfflineTripManager = {
             const pill = document.getElementById('elyu-offline-pill');
             if (pill) {
                 pill.classList.add('hidden');
-                pill.style.display = 'none';
+                pill.style.setProperty('display', 'none', 'important');
             }
         }
 
@@ -670,7 +1432,10 @@ window.OfflineTripManager = {
             window.dispatchEvent(new CustomEvent('appOnline', { detail: { timestamp: now } }));
         } catch(e) {}
 
-        window.syncAllDataWhenOnline();
+        if (now - lastOnlineSyncTime >= 2000) {
+            lastOnlineSyncTime = now;
+            window.syncAllDataWhenOnline();
+        }
     };
 
     window.notifyAppOffline = function () {
@@ -678,6 +1443,12 @@ window.OfflineTripManager = {
         if (offlineDebounceTimeout) clearTimeout(offlineDebounceTimeout);
         offlineDebounceTimeout = setTimeout(() => {
             offlineDebounceTimeout = null;
+            if (typeof navigator.onLine === 'boolean' && navigator.onLine) {
+                // False alarm: network is already back online
+                window.isAppOnline = true;
+                enforceAllOfflineBadgesHidden();
+                return;
+            }
             window.isAppOnline = false;
             wasOffline = true;
             showOfflinePill();
@@ -688,12 +1459,83 @@ window.OfflineTripManager = {
         }, 2200);
     };
 
+    let isProbing = false;
+    let lastProbeTime = 0;
+    async function probeBackendReachability(force = false) {
+        const now = Date.now();
+        if (isProbing || (!force && now - lastProbeTime < 2000)) return;
+        isProbing = true;
+        lastProbeTime = now;
+
+        try {
+            const bUrl = (window.backendUrl || window.BACKEND_URL || 'https://api.intan-elyu.online').replace(/\/+$/, '');
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), 2600);
+
+            let ok = false;
+            try {
+                const res = await fetch(`${bUrl}/api/public/map?probe=${now}`, {
+                    method: 'HEAD',
+                    cache: 'no-store',
+                    headers: { 'Accept': 'application/json' },
+                    signal: controller.signal
+                });
+                if (res && (res.ok || (res.status >= 200 && res.status < 500))) {
+                    ok = true;
+                }
+            } catch (eMap) {
+                try {
+                    const res2 = await fetch(`${bUrl}/favicon.ico?probe=${now}`, {
+                        method: 'HEAD',
+                        cache: 'no-store',
+                        signal: controller.signal
+                    });
+                    if (res2 && (res2.ok || (res2.status >= 200 && res2.status < 500))) {
+                        ok = true;
+                    }
+                } catch (eFav) { }
+            }
+            clearTimeout(timer);
+
+            if (ok) {
+                window.isAppOnline = true;
+                enforceAllOfflineBadgesHidden();
+            }
+        } catch (e) {
+        } finally {
+            isProbing = false;
+        }
+    }
+    window.probeBackendReachability = probeBackendReachability;
+
+    // Periodic watchdog to guarantee no offline text stays stuck when Wi-Fi is on
+    setInterval(() => {
+        if (typeof navigator.onLine === 'boolean' && navigator.onLine) {
+            window.isAppOnline = true;
+            enforceAllOfflineBadgesHidden();
+        }
+    }, 1000);
+
     // 1. Standard browser network events (fired by OS / WebView)
     window.addEventListener('online', () => {
+        window.isAppOnline = true;
+        enforceAllOfflineBadgesHidden();
         window.notifyAppOnline();
     });
     window.addEventListener('offline', () => {
         window.notifyAppOffline();
+    });
+    window.addEventListener('focus', () => {
+        if (typeof navigator.onLine === 'boolean' && navigator.onLine) {
+            window.isAppOnline = true;
+            enforceAllOfflineBadgesHidden();
+        }
+    });
+    document.addEventListener('visibilitychange', () => {
+        if (!document.hidden && typeof navigator.onLine === 'boolean' && navigator.onLine) {
+            window.isAppOnline = true;
+            enforceAllOfflineBadgesHidden();
+        }
     });
 
     // 2. Capacitor Native Plugins integration (Network & App)
@@ -702,6 +1544,8 @@ window.OfflineTripManager = {
             try {
                 window.Capacitor.Plugins.Network.addListener('networkStatusChange', (status) => {
                     if (status && status.connected) {
+                        window.isAppOnline = true;
+                        enforceAllOfflineBadgesHidden();
                         window.notifyAppOnline();
                     } else if (status && status.connected === false) {
                         window.notifyAppOffline();
@@ -712,8 +1556,12 @@ window.OfflineTripManager = {
         if (window.Capacitor.Plugins.App && typeof window.Capacitor.Plugins.App.addListener === 'function') {
             try {
                 window.Capacitor.Plugins.App.addListener('appStateChange', (state) => {
-                    if (state && state.isActive && wasOffline) {
-                        window.notifyAppOnline();
+                    if (state && state.isActive) {
+                        if (typeof navigator.onLine === 'boolean' && navigator.onLine) {
+                            window.isAppOnline = true;
+                            enforceAllOfflineBadgesHidden();
+                            window.notifyAppOnline();
+                        }
                     }
                 });
             } catch(e) {}
@@ -762,18 +1610,39 @@ window.formatVisitorCount = function (visits, options = {}) {
 };
 
 window.getBackendUrl = function () {
+    const isNative = Boolean(
+        (typeof window !== 'undefined' && window.Capacitor && typeof window.Capacitor.isNativePlatform === 'function' && window.Capacitor.isNativePlatform()) ||
+        (typeof navigator !== 'undefined' && navigator.userAgent && navigator.userAgent.includes('IntanElyuAPK')) ||
+        (typeof window !== 'undefined' && window.location && (window.location.protocol === 'capacitor:' || window.location.protocol === 'file:'))
+    );
+
     var url = window.backendUrl || window.BACKEND_URL;
     if (url) {
+        if (isNative && (url.includes('localhost') || url.includes('127.0.0.1'))) {
+            return 'https://api.intan-elyu.online';
+        }
         return url.replace(/\/+$/, '');
     }
     if (typeof window !== 'undefined' && window.location) {
-        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-            if (window.location.port === '3000') return 'http://localhost:8000';
+        if (isNative) {
+            return 'https://api.intan-elyu.online';
+        }
+        const hn = window.location.hostname;
+        const isLocalHost = (hn === 'localhost' || hn === '127.0.0.1' || hn === '::1' ||
+            /^192\.168\.\d+\.\d+$/.test(hn) ||
+            /^10\.\d+\.\d+\.\d+$/.test(hn) ||
+            /^172\.(1[6-9]|2\d|3[01])\.\d+\.\d+$/.test(hn));
+
+        if (isLocalHost) {
+            if (window.location.port === '3000') {
+                return window.location.protocol + '//' + hn + ':8000';
+            }
             if (window.location.pathname.includes('/Intan-Elyu-Tourism-Management-System/')) {
                 return window.location.protocol + '//' + window.location.host + '/Intan-Elyu-Tourism-Management-System/backend/public';
             }
+            return 'https://api.intan-elyu.online';
         }
-        if (window.location.hostname === 'app.intan-elyu.online') {
+        if (hn === 'app.intan-elyu.online') {
             return 'https://api.intan-elyu.online';
         }
         return window.location.origin.replace('app.', 'api.').replace(/\/+$/, '');
@@ -880,12 +1749,84 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
         }
     }
 
-    // Global Auth Enforcement: Ensure user is logged in
-    const publicViews = ['splash', 'auth', 'download', 'about', 'terms', 'reset-password', 'user_manual'];
-    const authToken = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
-    if (!publicViews.includes(targetView) && !authToken) {
-        targetView = 'auth';
-        extraParams.forEach((_, key) => extraParams.delete(key));
+    // Parse targetView params for Auth mode & source
+    if (targetView === 'auth') {
+        if (extraParams.get('mode') === 'register' || extraParams.get('tab') === 'register') {
+            window._authStartMode = 'register';
+        } else if (extraParams.has('mode') || extraParams.has('tab')) {
+            window._authStartMode = extraParams.get('mode') || extraParams.get('tab');
+        }
+        if (extraParams.get('from_sidebar') === '1') {
+            window._authFromSidebar = true;
+        }
+    }
+
+    // Mobile Guest Session Initialization:
+    let authToken = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+    const isNetworkOffline = (typeof navigator.onLine === 'boolean') ? !navigator.onLine : (window.isAppOnline === false);
+
+    if (!authToken && targetView !== 'auth' && targetView !== 'download') {
+        if (isNetworkOffline) {
+            authToken = 'offline_guest_token';
+            localStorage.setItem('intan_elyu_token', authToken);
+            localStorage.setItem('intan_elyu_offline_mode', 'true');
+            localStorage.setItem('intan_elyu_offline_guest', 'true');
+        } else if (localStorage.getItem('intan_elyu_guest') === 'true') {
+            // User explicitly tapped "Continue as Guest" on Auth screen
+            authToken = 'guest_token';
+            localStorage.setItem('intan_elyu_token', authToken);
+        } else {
+            // Online and unauthenticated: do NOT auto-create a guest session!
+            // Direct to Auth screen where the user can sign in or tap "Continue as Guest"
+            targetView = 'auth';
+            if (addToHistory) {
+                try {
+                    window.history.replaceState({ view: 'auth' }, '', 'index.php?view=auth');
+                } catch (e) { }
+            }
+        }
+        if (!localStorage.getItem('auth_user') && (isNetworkOffline || localStorage.getItem('intan_elyu_guest') === 'true')) {
+            localStorage.setItem('auth_user', JSON.stringify({
+                id: isNetworkOffline ? 'offline_guest' : 'guest',
+                user_id: isNetworkOffline ? 'offline_guest' : 'guest',
+                name: 'Guest',
+                full_name: 'Guest Explorer',
+                role: 'tourist',
+                tourist_number: '',
+                points: 0,
+                xp: 0,
+                completed_activities: 0,
+                home_location: 'La Union',
+                is_guest: true,
+                is_offline_guest: isNetworkOffline
+            }));
+        }
+    }
+
+    // GUEST / OFFLINE PERMISSION RULES:
+    // Guests can view Dashboard, Map, Itinerary, Leaderboard, and Profile barrier (to sign in).
+    // Direct edit views like edit_profile require a cloud account.
+    const isRealAuthToken = Boolean(
+        authToken && 
+        authToken !== 'guest_token' && 
+        authToken !== 'offline_guest_token' && 
+        !authToken.startsWith('guest_') && 
+        !authToken.startsWith('offline_')
+    );
+    if (isRealAuthToken) {
+        try {
+            localStorage.removeItem('intan_elyu_guest');
+            localStorage.removeItem('intan_elyu_offline_guest');
+        } catch(e) {}
+    }
+    const isGuestUser = !isRealAuthToken;
+
+    if (isGuestUser && targetView === 'edit_profile') {
+        if (typeof showToast === 'function') {
+            showToast('Please sign in to customize and edit your profile.', 'info', 4500);
+        }
+        navigateTo('auth');
+        return;
     }
 
     // If we're already on this view with no extra params and it's not a back-button event, do nothing
@@ -982,7 +1923,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                     </div>
                 </div>
                 <div class="auth-bottom">
-                    <div id="auth-offline-badge" class="auth-offline-badge" style="display:inline-flex;">
+                    <div id="auth-offline-badge" class="auth-offline-badge" style="display:none;">
                         <i class="fa-solid fa-cloud-slash" style="color:#f59e0b; font-size:11px;"></i>
                         <span>Offline Mode Active &bull; Saved Guides Available</span>
                     </div>
@@ -1057,7 +1998,32 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
 
         const updateContent = () => {
             try {
+                // Immediately dismiss and remove any lingering sidebar menu or overlay
+                const lingeringOverlay = document.getElementById('sidebar-overlay');
+                if (lingeringOverlay) {
+                    lingeringOverlay.style.display = 'none';
+                    lingeringOverlay.style.opacity = '0';
+                    lingeringOverlay.style.pointerEvents = 'none';
+                    try { lingeringOverlay.remove(); } catch (e) { }
+                }
+                const lingeringSidebar = document.getElementById('sidebar-menu');
+                if (lingeringSidebar) {
+                    lingeringSidebar.style.left = '-280px';
+                    try { lingeringSidebar.remove(); } catch (e) { }
+                }
+
                 // ── Teardown previous view resources to prevent mobile lag & leaks ──
+                ['full-history-modal', 'full-vouchers-modal', 'full-deals-modal', 'active-voucher-qr-modal', 'trip-details-modal', 'reward-details-modal', 'delete-trip-modal', 'elyu-proof-viewer-modal', 'global-oauth-overlay', 'offline-auth-modal', 'login-success-modal', 'auth-cancel-modal', 'privacy-policy-modal'].forEach(id => {
+                    document.querySelectorAll('#' + id).forEach(m => {
+                        if (m.parentElement === document.body) {
+                            try { m.remove(); } catch (e) { }
+                        } else {
+                            m.style.display = 'none';
+                            m.style.pointerEvents = 'none';
+                            m.classList.remove('active');
+                        }
+                    });
+                });
                 if (window._savedTripsInterval) {
                     clearInterval(window._savedTripsInterval);
                     window._savedTripsInterval = null;
@@ -1119,8 +2085,17 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                     mainContent.classList.remove('view-transitioning');
                 }
 
-                // Update URL
+                // Update URL & Track View Navigation History
                 if (addToHistory) {
+                    if (state.currentView && state.currentView !== targetView && state.currentView !== 'splash') {
+                        window._navHistory = window._navHistory || [];
+                        if (window._navHistory[window._navHistory.length - 1] !== state.currentView) {
+                            window._navHistory.push(state.currentView);
+                            if (window._navHistory.length > 30) {
+                                window._navHistory.shift();
+                            }
+                        }
+                    }
                     const url = new URL(window.location);
                     url.searchParams.set('view', targetView);
                     extraParams.forEach((val, key) => {
@@ -1134,6 +2109,19 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
 
                 // Dispatch viewLoaded event for view auto-refresh and lifecycle handlers
                 window.dispatchEvent(new CustomEvent('viewLoaded', { detail: { view: targetView } }));
+
+                if (targetView === 'profile' && typeof window.updateProfileAccessBarrier === 'function') {
+                    window.updateProfileAccessBarrier();
+                }
+                if (targetView === 'auth' && typeof window.initAuthView === 'function') {
+                    window.initAuthView();
+                }
+                if (targetView === 'dashboard' && typeof window.updateDashboardProfileHeader === 'function') {
+                    const _curTok = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+                    const _isG = !_curTok || _curTok === 'guest_token' || _curTok === 'offline_guest_token' || _curTok.indexOf('guest_') === 0 || _curTok.indexOf('offline_') === 0 || localStorage.getItem('intan_elyu_guest') === 'true' || localStorage.getItem('intan_elyu_offline_guest') === 'true';
+                    const _curU = window.safeJsonParse ? window.safeJsonParse(localStorage.getItem('auth_user'), {}) : {};
+                    window.updateDashboardProfileHeader(_isG, _curU);
+                }
 
                 // Post-render scroll resets on next animation frames and timeouts to guarantee top placement
                 resetAppScrollTop();
@@ -1164,41 +2152,261 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
     }
     window.navigateTo = navigateTo;
 
-    window.navigateBack = function (fallbackRoute = 'dashboard') {
+    /**
+     * Universal App Exit Confirmation Modal
+     * Displays a clean, premium dialog: "Are you sure you want to exit?" with Yes and No buttons.
+     */
+    window.ensureAppExitModal = function () {
+        let modal = document.getElementById('app-exit-confirm-modal');
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'app-exit-confirm-modal';
+            modal.style.cssText = 'display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(10,25,60,0.72); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); z-index:9999999; align-items:center; justify-content:center; padding:20px; box-sizing:border-box;';
+            modal.onclick = function (e) {
+                if (e.target === modal) window.closeAppExitModal();
+            };
+            modal.innerHTML = `
+                <div style="background:#ffffff; border-radius:24px; width:100%; max-width:330px; padding:26px 22px 22px; text-align:center; box-shadow:0 20px 50px rgba(0,0,0,0.3); position:relative; animation:popInAppModal 0.22s cubic-bezier(0.16,1,0.3,1) forwards;">
+                    <div style="width:58px; height:58px; border-radius:50%; background:#fee2e2; color:#ef4444; display:flex; align-items:center; justify-content:center; font-size:24px; margin:0 auto 16px; box-shadow:0 4px 14px rgba(239,68,68,0.2);">
+                        <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                    </div>
+                    <h3 style="margin:0 0 8px 0; font-size:18px; font-weight:800; color:#0f172a; line-height:1.3; letter-spacing:-0.2px;">
+                        Are you sure you want to exit?
+                    </h3>
+                    <p style="margin:0 0 22px 0; font-size:13px; color:#64748b; line-height:1.45;">
+                        You will exit the Intan Elyu application.
+                    </p>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                        <button type="button" id="app-exit-btn-no" onclick="window.closeAppExitModal()"
+                            style="padding:13px 16px; border-radius:14px; background:#f1f5f9; border:1.5px solid #e2e8f0; color:#475569; font-size:14px; font-weight:800; cursor:pointer; transition:transform 0.15s ease;"
+                            onpointerdown="this.style.transform='scale(0.96)'" onpointerup="this.style.transform='scale(1)'">
+                            No
+                        </button>
+                        <button type="button" id="app-exit-btn-yes" onclick="window.confirmExecuteAppExit()"
+                            style="padding:13px 16px; border-radius:14px; background:linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border:none; color:#ffffff; font-size:14px; font-weight:800; cursor:pointer; box-shadow:0 4px 14px rgba(220,38,38,0.35); transition:transform 0.15s ease;"
+                            onpointerdown="this.style.transform='scale(0.96)'" onpointerup="this.style.transform='scale(1)'">
+                            Yes
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            if (!document.getElementById('app-exit-modal-styles')) {
+                const style = document.createElement('style');
+                style.id = 'app-exit-modal-styles';
+                style.textContent = `
+                    @keyframes popInAppModal {
+                        0% { opacity: 0; transform: scale(0.92); }
+                        100% { opacity: 1; transform: scale(1); }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+        }
+        return modal;
+    };
+
+    window.showAppExitModal = function () {
+        const modal = window.ensureAppExitModal();
+        if (modal) {
+            modal.style.display = 'flex';
+        }
+    };
+
+    window.closeAppExitModal = function () {
+        const modal = document.getElementById('app-exit-confirm-modal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    };
+
+    window.confirmExecuteAppExit = function () {
+        window.closeAppExitModal();
+        try {
+            if (window.IntanElyuNative && typeof window.IntanElyuNative.exitApp === 'function') {
+                window.IntanElyuNative.exitApp();
+                return;
+            }
+        } catch (e) {}
+
+        try {
+            if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App && typeof window.Capacitor.Plugins.App.exitApp === 'function') {
+                window.Capacitor.Plugins.App.exitApp();
+                return;
+            }
+        } catch (e) {}
+
+        try {
+            if (navigator && navigator.app && typeof navigator.app.exitApp === 'function') {
+                navigator.app.exitApp();
+                return;
+            }
+        } catch (e) {}
+
+        try {
+            window.close();
+        } catch (e) {}
+    };
+
+    /**
+     * Universal Mobile Back Button & Navigation Handler
+     * Handles hardware back button, Android gesture swipe, header back button, and popstate.
+     * Closes open modals/drawers first; if none, navigates to previous view or natural parent;
+     * if on root dashboard, prompts the user with an exit confirmation modal (Yes/No).
+     * @returns {boolean} True if back action was handled, false if app should exit.
+     */
+    window.handleAppBack = function (explicitFallback) {
+        // 0. If App Exit Modal is currently open, dismiss it
+        const exitModal = document.getElementById('app-exit-confirm-modal');
+        if (exitModal && exitModal.style.display !== 'none' && window.getComputedStyle(exitModal).display !== 'none') {
+            window.closeAppExitModal();
+            return true;
+        }
+
+        // 1. Check Sidebar & Notifications in header
+        const sidebar = document.getElementById('sidebar-menu');
+        if (sidebar && (sidebar.style.left === '0px' || window.getComputedStyle(sidebar).left === '0px')) {
+            if (typeof toggleSidebar === 'function') toggleSidebar();
+            return true;
+        }
+
+        const notifDropdown = document.getElementById('notifications-dropdown');
+        if (notifDropdown && (notifDropdown.style.opacity === '1' || window.getComputedStyle(notifDropdown).opacity === '1')) {
+            if (typeof toggleNotifications === 'function') toggleNotifications();
+            return true;
+        }
+
+        // 2. Check Map Sheets & Overlays
+        const destSheet = document.getElementById('destination-sheet');
+        if (destSheet && destSheet.classList.contains('open')) {
+            if (typeof window.closeSheet === 'function') window.closeSheet();
+            else destSheet.classList.remove('open');
+            return true;
+        }
+
+        const nearbySheet = document.getElementById('nearby-sites-sheet');
+        if (nearbySheet && nearbySheet.classList.contains('open')) {
+            if (typeof window.closeNearbySitesSheet === 'function') window.closeNearbySitesSheet();
+            else nearbySheet.classList.remove('open');
+            return true;
+        }
+
+        // 3. Check Known Modals by ID
+        const knownModalClosers = [
+            { id: 'spot-vehicles-modal', fn: window.closeSpotVehiclesModal },
+            { id: 'itin-add-confirm', fn: window.closeAddConfirm },
+            { id: 'leg-transport-modal', fn: window.closeLegTransportModal },
+            { id: 'transit-summary-opensheet', fn: window.closeTransitSummaryOpensheet },
+            { id: 'travel-mode-starter-modal', fn: window.closeTravelModeStarterModal },
+            { id: 'save-trip-modal', fn: window.closeSaveModal },
+            { id: 'checkin-modal', fn: window.closeCheckinModal },
+            { id: 'checkin-image-picker-modal', fn: window.closeCheckinImagePickerModal },
+            { id: 'complete-trip-modal', fn: window.closeCompleteTripModal },
+            { id: 'delete-trip-modal', fn: window.closeDeleteTripModal },
+            { id: 'trip-completion-review-modal', fn: window.closeTripCompletionReviewModal },
+            { id: 'user-profile-modal', fn: window.closeUserProfile },
+            { id: 'full-deals-modal', fn: window.closeFullDealsModal },
+            { id: 'full-history-modal', fn: window.closeFullHistoryModal },
+            { id: 'full-vouchers-modal', fn: window.closeFullVouchersModal },
+            { id: 'reward-details-modal', fn: window.closeRewardDetailsModal },
+            { id: 'active-voucher-qr-modal', fn: window.closeActiveVoucherQrModal },
+            { id: 'trip-details-modal', fn: window.closeTripDetailsModal },
+            { id: 'voucher-modal', fn: window.closeVoucherModal },
+            { id: 'logout-confirm-modal', fn: window.closeLogoutModal },
+            { id: 'push-notification-modal', fn: window.closePushNotificationModal }
+        ];
+
+        for (const item of knownModalClosers) {
+            const el = document.getElementById(item.id);
+            if (el) {
+                const style = window.getComputedStyle(el);
+                if (style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0') {
+                    if (typeof item.fn === 'function') {
+                        item.fn();
+                    } else {
+                        el.style.display = 'none';
+                        el.classList.remove('active', 'open', 'show');
+                    }
+                    return true;
+                }
+            }
+        }
+
+        // 4. Check Generic Open Modals & Dialogs (ignoring #app-exit-confirm-modal)
         const openModals = Array.from(document.querySelectorAll(
-            '#full-deals-modal, #full-history-modal, #trip-details-modal, #full-vouchers-modal, #reward-details-modal, #active-voucher-qr-modal, #voucher-modal, #testimony-modal, .modal'
+            '.modal, .profile-modal-overlay, .modal-backdrop, .dialog-overlay, [role="dialog"], #change-password-modal, #two-factor-modal, #game-confirm-modal, #game-success-modal, #game-alert-modal'
         )).filter(el => {
+            if (el.id === 'app-exit-confirm-modal') return false;
             const style = window.getComputedStyle(el);
             return style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0';
         });
 
         if (openModals.length > 0) {
-            const modalToClose = openModals[openModals.length - 1];
-            if (typeof window.closeFullDealsModal === 'function' && modalToClose.id === 'full-deals-modal') {
-                window.closeFullDealsModal();
-            } else if (typeof window.closeTripDetailsModal === 'function' && modalToClose.id === 'trip-details-modal') {
-                window.closeTripDetailsModal();
-            } else if (typeof window.closeFullHistoryModal === 'function' && modalToClose.id === 'full-history-modal') {
-                window.closeFullHistoryModal();
-            } else if (typeof window.closeFullVouchersModal === 'function' && modalToClose.id === 'full-vouchers-modal') {
-                window.closeFullVouchersModal();
-            } else if (typeof window.closeRewardDetailsModal === 'function' && modalToClose.id === 'reward-details-modal') {
-                window.closeRewardDetailsModal();
-            } else if (typeof window.closeActiveVoucherQrModal === 'function' && modalToClose.id === 'active-voucher-qr-modal') {
-                window.closeActiveVoucherQrModal();
-            } else if (typeof window.closeVoucherModal === 'function' && modalToClose.id === 'voucher-modal') {
-                window.closeVoucherModal();
-            } else {
-                modalToClose.style.display = 'none';
-            }
-            return;
+            const topModal = openModals[openModals.length - 1];
+            topModal.style.display = 'none';
+            topModal.classList.remove('active', 'open', 'show');
+            return true;
         }
 
-        if (window.history.state && window.history.state.view && window.history.length > 1) {
-            window.history.back();
-        } else {
-            navigateTo(fallbackRoute);
+        // 5. Navigate back to previous view or explicit fallback
+        const currentView = (state && state.currentView) || new URLSearchParams(window.location.search).get('view') || 'dashboard';
+
+        // Explicit fallback provided by header back button (e.g. $backRoute)
+        if (explicitFallback && explicitFallback !== currentView) {
+            navigateTo(explicitFallback, false);
+            return true;
         }
+
+        // Navigation history stack check
+        window._navHistory = window._navHistory || [];
+        while (window._navHistory.length > 0) {
+            const prevView = window._navHistory.pop();
+            if (prevView && prevView !== currentView && prevView !== 'splash') {
+                navigateTo(prevView, false);
+                return true;
+            }
+        }
+
+        // View hierarchy parent fallback
+        const parentMap = {
+            'trip_map': 'saved_trips',
+            'saved_trips': 'itinerary',
+            'saved_places': 'dashboard',
+            'trending': 'dashboard',
+            'settings': 'dashboard',
+            'user_manual': 'settings',
+            'help': 'dashboard',
+            'about': 'dashboard',
+            'terms': 'dashboard',
+            'edit_profile': 'profile',
+            'discount': 'profile',
+            'puzzles': 'dashboard',
+            'explore': 'dashboard',
+            'map': 'dashboard',
+            'itinerary': 'dashboard',
+            'leaderboard': 'dashboard',
+            'profile': 'dashboard',
+            'reset-password': 'auth'
+        };
+
+        if (parentMap[currentView] && parentMap[currentView] !== currentView) {
+            navigateTo(parentMap[currentView], false);
+            return true;
+        }
+
+        if (currentView !== 'dashboard' && currentView !== 'auth' && currentView !== 'splash') {
+            navigateTo('dashboard', false);
+            return true;
+        }
+
+        // 6. User is on Root Screen ('dashboard' or 'auth') -> Prompt with Exit Confirmation Modal
+        window.showAppExitModal();
+        return true;
+    };
+
+    window.navigateBack = function (fallbackRoute = 'dashboard') {
+        return window.handleAppBack(fallbackRoute);
     };
 
     /**
@@ -1207,9 +2415,20 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
      */
     window._isProcessingGoogleOAuth = false;
 
-    window.initGoogleOAuthHandler = function () {
-        const rawHash = window.location.hash || '';
-        const rawSearch = window.location.search || '';
+    window.initGoogleOAuthHandler = function (customUrl) {
+        let rawHash = window._googleOAuthHash || window.location.hash || '';
+        let rawSearch = window._googleOAuthSearch || window.location.search || '';
+
+        if (customUrl) {
+            try {
+                const parsed = new URL(customUrl);
+                rawHash = parsed.hash || rawHash;
+                rawSearch = parsed.search || rawSearch;
+            } catch (e) {
+                if (customUrl.includes('#')) rawHash = '#' + customUrl.split('#')[1];
+                if (customUrl.includes('?')) rawSearch = '?' + customUrl.split('?')[1];
+            }
+        }
 
         // 1. Check for direct token handoff (?token=...&user=...) from mobile browser to APK
         const searchParams = new URLSearchParams(rawSearch.startsWith('?') ? rawSearch.substring(1) : rawSearch);
@@ -1220,12 +2439,24 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
             localStorage.setItem('intan_elyu_token', directToken);
             if (directUser) {
                 try {
-                    const parsedUser = typeof directUser === 'object' ? directUser : JSON.parse(directUser);
+                    let userStr = directUser;
+                    if (typeof userStr === 'string' && (userStr.startsWith('%') || userStr.includes('%22') || userStr.includes('%7B'))) {
+                        try { userStr = decodeURIComponent(userStr); } catch (eDec) {}
+                    }
+                    const parsedUser = typeof userStr === 'object' ? userStr : JSON.parse(userStr);
                     localStorage.setItem('auth_user', JSON.stringify(parsedUser));
                     if (window.AppStorage) window.AppStorage.setItem('auth_user', parsedUser);
                 } catch (e) { }
             }
             if (window.AppStorage) window.AppStorage.setItem('intan_elyu_token', directToken);
+
+            // Clear offline flags on real authenticated login
+            localStorage.removeItem('intan_elyu_offline_mode');
+            localStorage.removeItem('intan_elyu_offline_guest');
+            try {
+                sessionStorage.removeItem('intan_elyu_google_oauth_pending');
+                sessionStorage.removeItem('elyu_show_offline_bypass_notice');
+            } catch (e) { }
 
             if (window.history && window.history.replaceState) {
                 window.history.replaceState({}, document.title, window.location.pathname + '?view=dashboard');
@@ -1243,8 +2474,21 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
             return;
         }
 
-        if (window._isProcessingGoogleOAuth) return;
+        if (window._googleOAuthActiveProcessing && !customUrl) return;
+        window._googleOAuthActiveProcessing = true;
         window._isProcessingGoogleOAuth = true;
+
+        // Auto-close Capacitor Browser if returning from OAuth
+        if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Browser && typeof window.Capacitor.Plugins.Browser.close === 'function') {
+            window.Capacitor.Plugins.Browser.close().catch(function () {});
+        }
+
+        // Immediately hide and suppress splash screen elements if still in DOM
+        const splashMain = document.getElementById('splash-main');
+        if (splashMain) {
+            splashMain.style.display = 'none';
+            try { splashMain.remove(); } catch (e) { }
+        }
 
         const rawParams = rawHash.startsWith('#') ? rawHash.substring(1) : (rawSearch.startsWith('?') ? rawSearch.substring(1) : (rawHash || rawSearch));
         const params = new URLSearchParams(rawParams);
@@ -1256,6 +2500,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
 
         if (hasError) {
             window._isProcessingGoogleOAuth = false;
+            try { sessionStorage.removeItem('intan_elyu_google_oauth_pending'); } catch (e) { }
             const errorDesc = params.get('error_description') || params.get('error') || 'Google sign-in was cancelled.';
             console.warn('Google OAuth returned error:', errorDesc);
             if (typeof showToast === 'function') showToast(errorDesc, 'error');
@@ -1268,6 +2513,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
 
         if (!accessToken && !idToken) {
             window._isProcessingGoogleOAuth = false;
+            try { sessionStorage.removeItem('intan_elyu_google_oauth_pending'); } catch (e) { }
             return;
         }
 
@@ -1277,7 +2523,15 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
             if (!overlay) {
                 overlay = document.createElement('div');
                 overlay.id = 'global-oauth-overlay';
-                document.body ? document.body.appendChild(overlay) : document.addEventListener('DOMContentLoaded', () => document.body.appendChild(overlay));
+                if (document.body) {
+                    document.body.appendChild(overlay);
+                } else {
+                    document.addEventListener('DOMContentLoaded', () => {
+                        if (!document.getElementById('global-oauth-overlay') && document.body) {
+                            document.body.appendChild(overlay);
+                        }
+                    });
+                }
             }
             overlay.innerHTML = `
             <div class="oauth-modal-content" style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; border: none !important; outline: none !important; box-shadow: 0 15px 35px rgba(10, 25, 60, 0.4), 0 0 25px rgba(63, 125, 183, 0.25) !important;">
@@ -1349,6 +2603,18 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                     window.AppStorage.setItem('intan_elyu_token', data.token);
                 }
 
+                // Clear offline flags on real authenticated login
+                localStorage.removeItem('intan_elyu_offline_mode');
+                localStorage.removeItem('intan_elyu_offline_guest');
+                try {
+                    sessionStorage.removeItem('intan_elyu_google_oauth_pending');
+                    sessionStorage.removeItem('elyu_show_offline_bypass_notice');
+                } catch (e) { }
+
+                if (window.history && window.history.replaceState) {
+                    window.history.replaceState({}, document.title, window.location.pathname + '?view=dashboard');
+                }
+
                 const currentOverlay = document.getElementById('global-oauth-overlay');
                 if (currentOverlay) {
                     currentOverlay.innerHTML = `
@@ -1362,6 +2628,49 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                 `;
                 }
 
+                const stateRaw = params.get('state');
+                let stateObj = null;
+                try {
+                    stateObj = JSON.parse(decodeURIComponent(stateRaw));
+                } catch (e) {
+                    try { stateObj = JSON.parse(stateRaw); } catch (e2) {}
+                }
+
+                const isNativePlatform = Boolean(
+                    (window.Capacitor && typeof window.Capacitor.isNativePlatform === 'function' && window.Capacitor.isNativePlatform()) ||
+                    (navigator.userAgent && navigator.userAgent.includes('IntanElyuAPK'))
+                );
+
+                const shouldHandoffToApp = !isNativePlatform && (
+                    Boolean(stateObj && stateObj.fromApp) ||
+                    /Android/i.test(navigator.userAgent)
+                );
+
+                if (shouldHandoffToApp) {
+                    const deepLink = `intanelyu://auth?app=true&token=${encodeURIComponent(data.token)}&user=${encodeURIComponent(JSON.stringify(data.user))}`;
+                    
+                    const currentOverlay = document.getElementById('global-oauth-overlay');
+                    if (currentOverlay) {
+                        currentOverlay.innerHTML = `
+                        <div class="oauth-modal-content" style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; border: none !important; outline: none !important; box-shadow: 0 15px 35px rgba(10, 25, 60, 0.4), 0 0 25px rgba(63, 125, 183, 0.25) !important;">
+                            <div class="oauth-success-circle">
+                                <i class="fa-solid fa-check" style="font-size:28px; color:#1e3a8a;"></i>
+                            </div>
+                            <h3 class="oauth-modal-title">Welcome, ${data.user?.name || 'Explorer'}!</h3>
+                            <p class="oauth-modal-subtitle">Returning to the Intan Elyu app...</p>
+                            <a href="${deepLink}" class="dash-empty-btn" style="margin-top: 14px; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: #ffffff !important; color: #1e3a8a !important; font-weight: 800; border-radius: 100px; padding: 12px 24px; box-shadow: 0 4px 14px rgba(0,0,0,0.2);">
+                                <i class="fa-solid fa-arrow-up-right-from-square"></i> Open App
+                            </a>
+                        </div>
+                        `;
+                    }
+                    window.location.href = deepLink;
+                    setTimeout(() => {
+                        window.location.href = deepLink;
+                    }, 800);
+                    return;
+                }
+
                 setTimeout(() => {
                     const ov = document.getElementById('global-oauth-overlay');
                     if (ov) {
@@ -1370,12 +2679,16 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                         setTimeout(() => ov.remove(), 300);
                     }
                     window._isProcessingGoogleOAuth = false;
+                    if (typeof showToast === 'function') {
+                        showToast(`Welcome back, ${data.user?.name || 'Explorer'}!`, 'success');
+                    }
                     navigateTo('dashboard', true, true);
-                }, 1200);
+                }, 1000);
             })
             .catch(err => {
                 console.error('Google OAuth Handshake Error:', err);
                 window._isProcessingGoogleOAuth = false;
+                try { sessionStorage.removeItem('intan_elyu_google_oauth_pending'); } catch (e) { }
                 const ov = document.getElementById('global-oauth-overlay');
                 if (ov) ov.remove();
                 if (typeof showToast === 'function') showToast(err.message || 'Google sign-in failed.', 'error');
@@ -1385,6 +2698,27 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
 
     // Check for Google OAuth token immediately on script execution
     window.initGoogleOAuthHandler();
+
+    // Listen to hash changes in case WebView or browser updates hash in place
+    window.addEventListener('hashchange', function () {
+        if (window.location.hash && (window.location.hash.includes('access_token=') || window.location.hash.includes('id_token='))) {
+            window.initGoogleOAuthHandler();
+        }
+    });
+
+    // Listen to Capacitor App url open events
+    if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
+        window.Capacitor.Plugins.App.addListener('appUrlOpen', function (data) {
+            if (data && data.url) {
+                if (window.Capacitor.Plugins.Browser && typeof window.Capacitor.Plugins.Browser.close === 'function') {
+                    window.Capacitor.Plugins.Browser.close().catch(function () {});
+                }
+                if (typeof window.initGoogleOAuthHandler === 'function') {
+                    window.initGoogleOAuthHandler(data.url);
+                }
+            }
+        });
+    }
 
     document.addEventListener('DOMContentLoaded', () => {
         // Check again once DOM is ready if not already handled
@@ -1425,49 +2759,22 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
         if (typeof initCurrentView === 'function') initCurrentView();
     });
 
-    // Handle Browser Back Button & Android System Back
+    // Handle Browser Back Button & Android System Back via Universal Handler
     window.addEventListener('popstate', (e) => {
-        // 1. Check if any active modal or sheet is currently open
-        const openModals = Array.from(document.querySelectorAll(
-            '#full-history-modal, #trip-details-modal, #full-vouchers-modal, #reward-details-modal, #active-voucher-qr-modal, #voucher-modal, #testimony-modal, .modal'
-        )).filter(el => {
-            const style = window.getComputedStyle(el);
-            return style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0';
-        });
-
-        if (openModals.length > 0) {
-            const modalToClose = openModals[openModals.length - 1];
-            if (typeof window.closeTripDetailsModal === 'function' && modalToClose.id === 'trip-details-modal') {
-                window.closeTripDetailsModal();
-            } else if (typeof window.closeFullHistoryModal === 'function' && modalToClose.id === 'full-history-modal') {
-                window.closeFullHistoryModal();
-            } else if (typeof window.closeFullVouchersModal === 'function' && modalToClose.id === 'full-vouchers-modal') {
-                window.closeFullVouchersModal();
-            } else if (typeof window.closeRewardDetailsModal === 'function' && modalToClose.id === 'reward-details-modal') {
-                window.closeRewardDetailsModal();
-            } else if (typeof window.closeActiveVoucherQrModal === 'function' && modalToClose.id === 'active-voucher-qr-modal') {
-                window.closeActiveVoucherQrModal();
-            } else if (typeof window.closeVoucherModal === 'function' && modalToClose.id === 'voucher-modal') {
-                window.closeVoucherModal();
-            } else {
-                modalToClose.style.display = 'none';
-            }
-            window.history.pushState({ view: state.currentView }, '', window.location.href);
-            return;
+        if (typeof window.handleAppBack === 'function') {
+            window.handleAppBack();
         }
-
-        const targetView = (e.state && e.state.view) || new URLSearchParams(window.location.search).get('view') || 'splash';
-        if (targetView === state.currentView) {
-            return;
-        }
-        navigateTo(targetView, false);
     });
 
     // Hook into Capacitor Android hardware back button
     if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App && typeof window.Capacitor.Plugins.App.addListener === 'function') {
         try {
             window.Capacitor.Plugins.App.addListener('backButton', () => {
-                window.navigateBack('dashboard');
+                if (typeof window.handleAppBack === 'function') {
+                    window.handleAppBack();
+                } else if (typeof window.navigateBack === 'function') {
+                    window.navigateBack('dashboard');
+                }
             });
         } catch(e) {}
     }
@@ -1713,20 +3020,57 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
 
 
     /**
-     * Handle Logout
+     * Universal Logout Confirmation Modal Handlers
      */
-    async function handleLogout(e) {
-        if (e) e.preventDefault();
-        showToast('Logging out...', 1000);
+    window.closeLogoutModal = function () {
+        const modal = document.getElementById('logout-confirm-modal');
+        if (modal) modal.style.display = 'none';
+    };
+
+    window.showLogoutConfirmationModal = function () {
+        const modal = document.getElementById('logout-confirm-modal');
+        if (modal) {
+            const hasPending = (function () {
+                try {
+                    const c1 = JSON.parse(localStorage.getItem('intan_elyu_offline_checkins_queue') || '[]').length;
+                    const c2 = JSON.parse(localStorage.getItem('intan_elyu_offline_trips_queue') || '[]').length;
+                    const c3 = JSON.parse(localStorage.getItem('intan_elyu_offline_completed_trips_queue') || '[]').length;
+                    const c4 = JSON.parse(localStorage.getItem('intan_elyu_offline_favorites_queue') || '[]').length;
+                    const c5 = JSON.parse(localStorage.getItem('intan_elyu_offline_game_claims_queue') || '[]').length;
+                    const c6 = JSON.parse(localStorage.getItem('intan_elyu_offline_profile_queue') || '[]').length;
+                    return (c1 + c2 + c3 + c4 + c5 + c6);
+                } catch (e) { return 0; }
+            })();
+
+            const subtext = document.getElementById('logout-modal-subtext');
+            if (subtext) {
+                if (hasPending > 0) {
+                    subtext.innerHTML = `<span style="color: #b45309; font-weight: 700;">⚠️ You have ${hasPending} unsynced offline item(s).</span><br>Logging out will clear this session and unsynced items.`;
+                } else {
+                    subtext.textContent = 'You will be signed out of your tourist explorer session.';
+                }
+            }
+
+            modal.style.display = 'flex';
+        } else {
+            if (confirm("Are you sure you want to log out?")) {
+                window.confirmExecuteLogout();
+            }
+        }
+    };
+
+    window.confirmExecuteLogout = async function () {
+        window.closeLogoutModal();
+        if (typeof showToast === 'function') showToast('Logging out...', 1000);
 
         try {
-            const token = localStorage.getItem('intan_elyu_token');
+            const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
             if (token) {
-                await fetch(window.backendUrl + '/api/auth/logout', {
+                const backend = (window.backendUrl || 'https://api.intan-elyu.online').replace(/\/+$/, '');
+                await fetch(backend + '/api/auth/logout', {
                     method: 'POST',
                     headers: {
                         'Accept': 'application/json',
-
                         'Authorization': 'Bearer ' + token
                     }
                 });
@@ -1752,14 +3096,19 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                     k.startsWith('intan_cache_') ||
                     k === 'intan_elyu_token' ||
                     k === 'Intan_Elyu_Token' ||
-                    k === 'auth_user'
+                    k === 'auth_user' ||
+                    k === 'intan_elyu_guest' ||
+                    k === 'intan_elyu_offline_guest' ||
+                    k === 'intan_elyu_offline_mode'
                 ) {
                     keysToRemove.push(k);
                 }
             }
             keysToRemove.forEach(k => localStorage.removeItem(k));
+            sessionStorage.removeItem('elyu_show_offline_bypass_notice');
         } catch (e) {
             localStorage.removeItem('intan_elyu_token');
+            localStorage.removeItem('Intan_Elyu_Token');
             localStorage.removeItem('auth_user');
             localStorage.removeItem('intan_elyu_claimed_vouchers');
             localStorage.removeItem('intan_elyu_cached_vouchers');
@@ -1770,10 +3119,26 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
         if (window._cachedHistoryVouchers) window._cachedHistoryVouchers = [];
 
         setTimeout(() => {
-            // Hard reset the URL to clear Capacitor saved state and show splash
-            window.location.replace('index.php?view=splash');
-        }, 1000);
+            // Direct cleanly to Auth (Sign In / Register) screen
+            if (typeof window.navigateTo === 'function') {
+                window.navigateTo('auth', true, false);
+            } else {
+                window.location.replace('index.php?view=auth');
+            }
+        }, 300);
+    };
+
+    /**
+     * Handle Logout - Shows confirmation notification modal
+     */
+    async function handleLogout(e) {
+        if (e) {
+            if (typeof e.preventDefault === 'function') e.preventDefault();
+            if (typeof e.stopPropagation === 'function') e.stopPropagation();
+        }
+        window.showLogoutConfirmationModal();
     }
+    window.handleLogout = handleLogout;
 
     /**
      * Pull to Refresh Logic
@@ -2415,12 +3780,12 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
 
             // 2. Full HTTP / HTTPS URLs — preserve intact if already an API / serve link
             if (url.indexOf('http://') === 0 || url.indexOf('https://') === 0) {
-                if (url.includes('localhost') || url.includes('127.0.0.1')) {
+                if (url.includes('localhost') || url.includes('127.0.0.1') || /192\.168\.\d+\.\d+/.test(url) || /10\.\d+\.\d+\.\d+/.test(url) || /172\.(1[6-9]|2\d|3[01])\.\d+\.\d+/.test(url)) {
                     var localMatch = url.match(/(spot_|avatar_|proof_)[a-z0-9_]+\.(?:jpg|jpeg|png|webp|gif)/i);
                     if (localMatch && localMatch[0]) {
                         url = localMatch[0];
                     } else if (backendUrl) {
-                        url = url.replace(/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/i, backendUrl);
+                        url = url.replace(/^https?:\/\/(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.(?:1[6-9]|2\d|3[01])\.\d+\.\d+)(:\d+)?/i, backendUrl);
                     }
                 } else if (url.includes('/api/serve') || url.includes('/api/image/')) {
                     // If it contains a spot/avatar/proof filename, map directly to Cloudflare R2 for fast delivery
@@ -2549,6 +3914,128 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
         imgEl.src = defaultNoImage;
     };
 
+    window.checkForAppUpdate = function () {
+        const apkUrl = 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/apks/intan-elyu.apk';
+        if (typeof showToast === 'function') {
+            showToast('Downloading latest Intan Elyu update (v0.0.0 dev)...');
+        }
+        setTimeout(() => {
+            window.open(apkUrl, '_system');
+        }, 350);
+    };
+
+    /**
+     * Global Lightbox Proof Photo Viewer Modal (Supports single photo or multiple photos gallery)
+     */
+    window.viewProofPhotoModal = function (urlOrUrls, title = 'Visit Proof', subtitle = '', initialIndex = 0) {
+        if (!urlOrUrls) return;
+        var urls = [];
+        if (Array.isArray(urlOrUrls)) {
+            urls = urlOrUrls.filter(Boolean);
+        } else if (typeof urlOrUrls === 'string') {
+            try {
+                var parsed = JSON.parse(urlOrUrls);
+                if (Array.isArray(parsed)) urls = parsed.filter(Boolean);
+                else urls = [urlOrUrls];
+            } catch (e) {
+                urls = [urlOrUrls];
+            }
+        }
+        if (!urls.length) return;
+
+        var currentIndex = Math.max(0, Math.min(initialIndex || 0, urls.length - 1));
+        var existing = document.getElementById('elyu-proof-viewer-modal');
+        if (existing) existing.remove();
+
+        var modal = document.createElement('div');
+        modal.id = 'elyu-proof-viewer-modal';
+        modal.style.cssText = 'display:flex; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.88); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:999999; flex-direction:column; align-items:center; justify-content:center; padding:16px; box-sizing:border-box;';
+        modal.onclick = function (e) {
+            if (e.target === modal || e.target.closest('.close-viewer-btn')) {
+                modal.remove();
+            }
+        };
+
+        function renderContent() {
+            var total = urls.length;
+            var currentUrl = urls[currentIndex];
+            var counterText = total > 1 ? `<span style="font-size:11px; font-weight:800; background:rgba(0,242,254,0.2); color:#00f2fe; padding:2px 8px; border-radius:100px;">${currentIndex + 1} / ${total}</span>` : '';
+
+            var navControls = '';
+            if (total > 1) {
+                navControls = `
+                    <button type="button" class="proof-nav-btn prev" style="position:absolute; left:10px; top:50%; transform:translateY(-50%); width:36px; height:36px; border-radius:50%; background:rgba(15,23,42,0.75); color:#fff; border:1px solid rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; cursor:pointer; z-index:10; backdrop-filter:blur(8px);">
+                        <i class="fa-solid fa-chevron-left"></i>
+                    </button>
+                    <button type="button" class="proof-nav-btn next" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); width:36px; height:36px; border-radius:50%; background:rgba(15,23,42,0.75); color:#fff; border:1px solid rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; cursor:pointer; z-index:10; backdrop-filter:blur(8px);">
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+                `;
+            }
+
+            var thumbStrip = '';
+            if (total > 1) {
+                var thumbsHtml = urls.map(function (u, idx) {
+                    var isSelected = (idx === currentIndex);
+                    return `<img src="${u}" data-idx="${idx}" class="proof-thumb-item" style="width:40px; height:40px; border-radius:8px; object-fit:cover; border:${isSelected ? '2px solid #00f2fe' : '1px solid rgba(255,255,255,0.2)'}; opacity:${isSelected ? '1' : '0.6'}; cursor:pointer; flex-shrink:0;">`;
+                }).join('');
+                thumbStrip = `<div style="display:flex; gap:8px; overflow-x:auto; padding:6px 0; justify-content:center; max-width:100%;">${thumbsHtml}</div>`;
+            }
+
+            modal.innerHTML = `
+                <div style="position:relative; width:100%; max-width:440px; background:linear-gradient(135deg, rgba(30, 58, 138, 0.96), rgba(15, 23, 42, 0.98)); border-radius:24px; padding:20px; box-shadow:0 20px 50px rgba(0,0,0,0.6); display:flex; flex-direction:column; gap:14px; border:1px solid rgba(255,255,255,0.12);" onclick="event.stopPropagation();">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <h3 style="margin:0; font-size:16px; font-weight:800; color:#ffffff; display:flex; align-items:center; gap:8px;">
+                                <i class="fa-solid fa-camera" style="color:#00f2fe; font-size:15px;"></i> ${title} ${counterText}
+                            </h3>
+                            ${subtitle ? `<span style="font-size:11px; color:#cbd5e1; font-weight:600; display:block; margin-top:2px;">${subtitle}</span>` : ''}
+                        </div>
+                        <button type="button" class="close-viewer-btn" onclick="document.getElementById('elyu-proof-viewer-modal')?.remove();" style="width:34px; height:34px; border-radius:50%; background:rgba(255,255,255,0.15); border:none; outline:none; color:#ffffff; display:flex; align-items:center; justify-content:center; cursor:pointer;">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                    <div style="position:relative; width:100%; max-height:60vh; min-height:220px; border-radius:16px; overflow:hidden; background:#000; display:flex; align-items:center; justify-content:center;">
+                        <img src="${currentUrl}" alt="Visit Proof" style="width:100%; height:auto; max-height:60vh; object-fit:contain; display:block;">
+                        ${navControls}
+                    </div>
+                    ${thumbStrip}
+                </div>
+            `;
+
+            var prevBtn = modal.querySelector('.proof-nav-btn.prev');
+            var nextBtn = modal.querySelector('.proof-nav-btn.next');
+            if (prevBtn) {
+                prevBtn.onclick = function (ev) {
+                    ev.stopPropagation();
+                    currentIndex = (currentIndex - 1 + total) % total;
+                    renderContent();
+                };
+            }
+            if (nextBtn) {
+                nextBtn.onclick = function (ev) {
+                    ev.stopPropagation();
+                    currentIndex = (currentIndex + 1) % total;
+                    renderContent();
+                };
+            }
+
+            modal.querySelectorAll('.proof-thumb-item').forEach(function (thumb) {
+                thumb.onclick = function (ev) {
+                    ev.stopPropagation();
+                    var targetIdx = parseInt(thumb.getAttribute('data-idx'), 10);
+                    if (!isNaN(targetIdx) && targetIdx !== currentIndex) {
+                        currentIndex = targetIdx;
+                        renderContent();
+                    }
+                };
+            });
+        }
+
+        renderContent();
+        document.body.appendChild(modal);
+    };
+
     /**
      * Resolves an array of all images for a destination.
      * If dest.images is provided, resolves each image; otherwise falls back to single image.
@@ -2632,167 +4119,48 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
         }
     };
 
-    // ── Global Badge Detail Modal Handler ─────────────────────────────────────────
-    window.openBadgeModal = function (name, description, isUnlocked, category, icon) {
-        const existing = document.getElementById('badge-details-modal');
-        if (existing) existing.remove();
-
-        const isQuest = category === 'Quest';
-        const borderGlow = isUnlocked
-            ? 'border: 1.5px solid rgba(251, 191, 36, 0.5); box-shadow: 0 0 35px rgba(251, 191, 36, 0.25);'
-            : 'border: 1.5px solid rgba(255, 255, 255, 0.15); box-shadow: 0 0 35px rgba(0, 0, 0, 0.5);';
-
-        const statusBadge = isUnlocked
-            ? `<span style="background:rgba(52,211,153,0.15); border:1px solid rgba(52,211,153,0.3); color:#34d399; font-size:11px; font-weight:800; padding:4px 12px; border-radius:100px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-check-circle"></i> UNLOCKED BADGE</span>`
-            : `<span style="background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.3); color:#f87171; font-size:11px; font-weight:800; padding:4px 12px; border-radius:100px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-lock"></i> LOCKED BADGE</span>`;
-
-        const iconStyle = isUnlocked
-            ? 'background:rgba(251,191,36,0.15); color:#fbbf24; border:1px solid rgba(251,191,36,0.4);'
-            : 'background:rgba(255,255,255,0.04); color:rgba(255,255,255,0.3); border:1px dashed rgba(255,255,255,0.15); filter:grayscale(1);';
-
-        const actionButton = !isUnlocked
-            ? `<button onclick="window.closeBadgeModal(); if(typeof navigateTo === 'function') navigateTo('map');" style="width:100%; margin-top:16px; padding:12px; border-radius:100px; border:none; background:linear-gradient(135deg,#10b981,#059669); color:#fff; font-weight:800; font-size:13px; cursor:pointer;"><i class="fa-solid fa-map-location-dot" style="margin-right:6px;"></i>Explore Destinations</button>`
-            : `<button onclick="window.closeBadgeModal()" style="width:100%; margin-top:16px; padding:12px; border-radius:100px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.06); color:#e2e8f0; font-weight:700; font-size:13px; cursor:pointer;">Close</button>`;
-
-        const safeDesc = (description || 'Complete activities in La Union to unlock this badge.').replace(/'/g, "&apos;").replace(/"/g, "&quot;");
-
-        const modalHtml = `
-    <div id="badge-details-modal" onclick="if(event.target === this) window.closeBadgeModal();" style="position:fixed; inset:0; z-index:99999; background:rgba(6,11,25,0.85); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); display:flex; align-items:center; justify-content:center; padding:20px; opacity:0; transition:opacity 0.3s ease;">
-        <div style="position:relative; background:linear-gradient(145deg, rgba(30, 41, 59, 0.96) 0%, rgba(15, 23, 42, 0.99) 100%); ${borderGlow} border-radius:24px; padding:26px 22px; width:100%; max-width:360px; text-align:center; transform:scale(0.92) translateY(12px); transition:transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);">
-            <button onclick="window.closeBadgeModal()" style="position:absolute; top:14px; right:14px; background:rgba(255,255,255,0.08); border:none; color:rgba(255,255,255,0.7); width:30px; height:30px; border-radius:50%; font-size:14px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.2s ease;" title="Close">✕</button>
-            <div style="width:68px; height:68px; border-radius:50%; ${iconStyle} display:flex; align-items:center; justify-content:center; margin:0 auto 16px auto; font-size:32px;">
-                ${isUnlocked ? '<i class="fa-solid fa-award"></i>' : '<i class="fa-solid fa-lock"></i>'}
-            </div>
-            <div style="margin-bottom:8px;">${statusBadge}</div>
-            <h3 style="margin:10px 0 4px; color:#fff; font-size:19px; font-weight:900;">${name}</h3>
-            <div style="font-size:11px; color:rgba(148,163,184,0.7); text-transform:uppercase; font-weight:800; letter-spacing:0.5px; margin-bottom:12px;">${category || 'Badge'}</div>
-            <p style="font-size:12.5px; color:rgba(255,255,255,0.8); margin:0 0 4px; line-height:1.5; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); padding:12px; border-radius:14px;">
-                ${safeDesc}
-            </p>
-            ${actionButton}
-        </div>
-    </div>`;
-
-        document.body.insertAdjacentHTML('beforeend', modalHtml);
-
-        requestAnimationFrame(() => {
-            const modal = document.getElementById('badge-details-modal');
-            if (modal) {
-                modal.style.opacity = '1';
-                const card = modal.querySelector('div > div');
-                if (card) card.style.transform = 'scale(1) translateY(0)';
-            }
-        });
-    };
-
+    // ── Badges Removed: Safe No-Op Handlers & Residual DOM Purge ────────────────
+    window.openBadgeModal = function () {};
     window.closeBadgeModal = function () {
-        const modal = document.getElementById('badge-details-modal');
-        if (modal) {
-            modal.style.opacity = '0';
-            setTimeout(() => modal.remove(), 300);
-        }
+        const m1 = document.getElementById('badge-details-modal');
+        if (m1) m1.remove();
+        const m2 = document.getElementById('all-badges-modal');
+        if (m2) m2.remove();
     };
-
-    // ── View All Badges Modal Sheet ───────────────────────────────────────────────
-    window.openAllBadgesModal = function (badgesData) {
-        const existing = document.getElementById('all-badges-modal');
-        if (existing) existing.remove();
-
-        const badges = badgesData || window._cachedMasterBadges || [];
-
-        const unlocked = badges.filter(b => b.is_unlocked);
-        const locked = badges.filter(b => !b.is_unlocked);
-
-        const renderBadgeItem = (b) => {
-            const safeName = (b.name || '').replace(/'/g, "\\'");
-            const safeDesc = (b.description || '').replace(/'/g, "\\'");
-            const clickFn = `onclick="window.openBadgeModal('${safeName}', '${safeDesc}', ${b.is_unlocked ? 'true' : 'false'}, '${b.category || 'Badge'}', '${b.icon || '🏅'}')"`;
-
-            const badgeIcons = {
-                'Beach Chiller': '<i class="fa-solid fa-umbrella-beach"></i>',
-                'City Express': '<i class="fa-solid fa-city"></i>',
-                'Sunset Chaser': '<i class="fa-solid fa-sun"></i>',
-                'Foodie Explorer': '<i class="fa-solid fa-utensils"></i>',
-                'Adrenaline Chaser': '<i class="fa-solid fa-person-hiking"></i>',
-                'Heritage Guardian': '<i class="fa-solid fa-landmark"></i>',
-                'Nature Seeker': '<i class="fa-solid fa-water"></i>',
-                'Wave Rider': '<i class="fa-solid fa-water-ladder"></i>',
-                'First Step': '<i class="fa-solid fa-star"></i>',
-                'Globe Trotter': '<i class="fa-solid fa-globe"></i>',
-                'Master Voyager': '<i class="fa-solid fa-crown"></i>',
-                'Pioneer Explorer': '<i class="fa-solid fa-flag"></i>',
-                'Local Voice': '<i class="fa-solid fa-comments"></i>',
-            };
-            const displayIcon = badgeIcons[b.name] || (b.is_unlocked ? '<i class="fa-solid fa-award"></i>' : '<i class="fa-solid fa-lock"></i>');
-
-            if (b.is_unlocked) {
-                return `
-            <div ${clickFn} style="background: rgba(251,191,36,0.08); border: 1px solid rgba(251,191,36,0.3); border-radius: 18px; padding: 14px 10px; text-align: center; cursor: pointer; transition: transform 0.2s;">
-                <div style="font-size: 24px; margin-bottom: 6px; color: #fbbf24;">${displayIcon}</div>
-                <div style="font-size: 11.5px; font-weight: 800; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${b.name}</div>
-                <div style="font-size: 9px; color: #fbbf24; margin-top: 2px; font-weight: 700;">✓ Unlocked</div>
-            </div>`;
-            } else {
-                return `
-            <div ${clickFn} style="background: rgba(255,255,255,0.02); border: 1px dashed rgba(255,255,255,0.12); border-radius: 18px; padding: 14px 10px; text-align: center; opacity: 0.55; filter: grayscale(1); cursor: pointer; transition: transform 0.2s;">
-                <div style="font-size: 22px; margin-bottom: 6px; color: rgba(255,255,255,0.4);"><i class="fa-solid fa-lock"></i></div>
-                <div style="font-size: 11.5px; font-weight: 700; color: rgba(255,255,255,0.6); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${b.name}</div>
-                <div style="font-size: 9px; color: rgba(255,255,255,0.4); margin-top: 2px;">Locked</div>
-            </div>`;
-            }
-        };
-
-        const modalHtml = `
-    <div id="all-badges-modal" style="position:fixed; inset:0; z-index:99998; background:rgba(6,11,25,0.85); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); display:flex; align-items:flex-end; justify-content:center; opacity:0; transition:opacity 0.3s ease;">
-        <div style="background:linear-gradient(145deg, rgba(30, 41, 59, 0.98) 0%, rgba(15, 23, 42, 0.99) 100%); border-top:1.5px solid rgba(251,191,36,0.4); border-radius:28px 28px 0 0; padding:24px 20px 36px; width:100%; max-width:480px; max-height:85vh; overflow-y:auto; transform:translateY(100%); transition:transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);">
-            <div style="width:40px; height:4px; background:rgba(255,255,255,0.2); border-radius:2px; margin:0 auto 16px auto;"></div>
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;">
-                <div>
-                    <h3 style="margin:0; font-size:18px; font-weight:900; color:#fff; display:flex; align-items:center; gap:8px;"><i class="fa-solid fa-award" style="color:#fbbf24;"></i> All Explorer Badges</h3>
-                    <p style="margin:2px 0 0; font-size:11px; color:rgba(255,255,255,0.5);">${unlocked.length} / ${badges.length} Unlocked Badges</p>
-                </div>
-                <button onclick="window.closeAllBadgesModal()" style="background:rgba(255,255,255,0.08); border:none; color:rgba(255,255,255,0.7); width:32px; height:32px; border-radius:50%; font-size:14px; cursor:pointer;">✕</button>
-            </div>
-
-            ${unlocked.length > 0 ? `
-                <div style="margin-bottom:20px;">
-                    <div style="font-size:11px; font-weight:800; color:#fbbf24; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:10px;"><i class="fa-solid fa-trophy" style="margin-right:6px;"></i> Unlocked Badges (${unlocked.length})</div>
-                    <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:10px;">
-                        ${unlocked.map(renderBadgeItem).join('')}
-                    </div>
-                </div>
-            ` : ''}
-
-            <div>
-                <div style="font-size:11px; font-weight:800; color:rgba(255,255,255,0.45); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:10px;"><i class="fa-solid fa-lock" style="margin-right:6px;"></i> Locked Badges (${locked.length})</div>
-                <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:10px;">
-                    ${locked.map(renderBadgeItem).join('')}
-                </div>
-            </div>
-        </div>
-    </div>`;
-
-        document.body.insertAdjacentHTML('beforeend', modalHtml);
-
-        requestAnimationFrame(() => {
-            const modal = document.getElementById('all-badges-modal');
-            if (modal) {
-                modal.style.opacity = '1';
-                const sheet = modal.querySelector('div > div');
-                if (sheet) sheet.style.transform = 'translateY(0)';
-            }
-        });
-    };
-
+    window.openAllBadgesModal = function () {};
     window.closeAllBadgesModal = function () {
-        const modal = document.getElementById('all-badges-modal');
-        if (modal) {
-            modal.style.opacity = '0';
-            const sheet = modal.querySelector('div > div');
-            if (sheet) sheet.style.transform = 'translateY(100%)';
-            setTimeout(() => modal.remove(), 350);
-        }
+        const m2 = document.getElementById('all-badges-modal');
+        if (m2) m2.remove();
     };
+
+    // Emergency purge for stale cached DOM elements from ServiceWorker or web cache
+    window.purgeResidualBadges = function () {
+        try {
+            const el1 = document.getElementById('profile-badges-container');
+            if (el1) el1.remove();
+            const el2 = document.getElementById('profile-badges-grid');
+            if (el2) el2.remove();
+            const el3 = document.getElementById('profile-badge-count-label');
+            if (el3) el3.remove();
+            const m1 = document.getElementById('badge-details-modal');
+            if (m1) m1.remove();
+            const m2 = document.getElementById('all-badges-modal');
+            if (m2) m2.remove();
+            document.querySelectorAll('h3').forEach(h3 => {
+                if (h3 && h3.textContent && h3.textContent.includes('Badges & Achievements')) {
+                    const row = h3.closest('.stagger-3') || h3.parentElement;
+                    if (row) row.remove();
+                }
+            });
+        } catch (e) {}
+    };
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', window.purgeResidualBadges);
+    } else {
+        window.purgeResidualBadges();
+    }
+    [100, 300, 600, 1000, 2000].forEach(delay => setTimeout(window.purgeResidualBadges, delay));
 
     // ── Offline Low-Signal Check-in Auto-Sync Queue Handler ─────────────────────
     window.processOfflineCheckinQueue = async function () {
@@ -2942,21 +4310,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
             try { sessionStorage.setItem('auth_locked_screen_h', storedH); } catch (e) { }
         }
         if (storedH > 0) {
-            const topH = Math.min(330, Math.max(250, Math.round(storedH * 0.38)));
             document.documentElement.style.setProperty('--auth-screen-h', storedH + 'px');
-            document.documentElement.style.setProperty('--auth-top-h', topH + 'px');
-            const container = document.querySelector('.auth-container');
-            if (container) {
-                container.style.height = storedH + 'px';
-                container.style.minHeight = storedH + 'px';
-                container.style.maxHeight = storedH + 'px';
-            }
-            const topEl = document.querySelector('.auth-top');
-            if (topEl) {
-                topEl.style.height = topH + 'px';
-                topEl.style.minHeight = topH + 'px';
-                topEl.style.maxHeight = topH + 'px';
-            }
         }
     };
 

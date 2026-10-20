@@ -61,7 +61,7 @@ $backRoute = 'settings';
                 <p class="manual-section-sub">Gamified tourism companion for La Union, Philippines</p>
             </div>
         </div>
-        <p style="font-size: 13px; color: rgba(148,163,184,0.9); line-height: 1.5; margin-bottom: 12px;">
+        <p style="font-size: 13px; color: #ffffff; line-height: 1.5; margin-bottom: 12px;">
             Intan Elyu provides smart interactive maps, AI-assisted itinerary planning, AR location verification,
             mini-games, and local merchant voucher rewards.
         </p>
@@ -399,7 +399,7 @@ $backRoute = 'settings';
             <div class="manual-section-icon blue"><i class="fa-solid fa-user-circle"></i></div>
             <div>
                 <h2 class="manual-section-title">Step 10 &mdash; My Profile</h2>
-                <p class="manual-section-sub">Profile details, trip history, badges, and session management</p>
+                <p class="manual-section-sub">Profile details, trip history, rewards, and session management</p>
             </div>
         </div>
         <div class="step-card">
@@ -413,9 +413,9 @@ $backRoute = 'settings';
         <div class="step-card">
             <div class="step-num">2</div>
             <div class="step-content">
-                <div class="step-title">Review Visits &amp; Badges</div>
+                <div class="step-title">Review Visits &amp; Points</div>
                 <div class="step-desc">Track completed destination visits, check-in history, earned Points milestones,
-                    and unlocked badges.</div>
+                    and redeemed reward vouchers.</div>
             </div>
         </div>
         <div class="step-card">
@@ -484,27 +484,27 @@ $backRoute = 'settings';
             <tbody>
                 <tr>
                     <td>AR / Photo Check-In</td>
-                    <td><strong style="color:#38bdf8;">+50 Points</strong></td>
+                    <td><strong style="color:#ffffff;">+50 Points</strong></td>
                     <td>Explore Map / Saved Trips</td>
                 </tr>
                 <tr>
                     <td>Complete Itinerary Trip</td>
-                    <td><strong style="color:#38bdf8;">+100 Points</strong></td>
+                    <td><strong style="color:#ffffff;">+100 Points</strong></td>
                     <td>Trip Planner / Saved Trips</td>
                 </tr>
                 <tr>
                     <td>Solve Slide Puzzle</td>
-                    <td><strong style="color:#34c759;">+100 Points</strong></td>
+                    <td><strong style="color:#ffffff;">+100 Points</strong></td>
                     <td>GameZone</td>
                 </tr>
                 <tr>
                     <td>Complete Memory Match</td>
-                    <td><strong style="color:#34c759;">+75 Points</strong></td>
+                    <td><strong style="color:#ffffff;">+75 Points</strong></td>
                     <td>GameZone</td>
                 </tr>
                 <tr>
                     <td>Solve Word Scramble</td>
-                    <td><strong style="color:#34c759;">+75 Points</strong></td>
+                    <td><strong style="color:#ffffff;">+75 Points</strong></td>
                     <td>GameZone</td>
                 </tr>
             </tbody>

@@ -64,6 +64,12 @@ $email = $_GET['email'] ?? '';
                     <i class="fa-solid fa-arrow-left"></i> Back
                 </a>
 
+                <!-- Offline Mode Status Indicator -->
+                <div id="reset-offline-badge" class="auth-offline-badge" style="display: none; margin: 0 auto 14px auto;">
+                    <i class="fa-solid fa-cloud-slash" style="color: #f59e0b; font-size: 11px;"></i>
+                    <span>Offline &bull; Internet required to reset password</span>
+                </div>
+
                 <div class="fp-header" style="margin-bottom: 24px; text-align: center;">
                     <h3 style="font-size: 22px; font-weight: 800; color: #ffffff; margin-bottom: 6px;">Reset Password
                     </h3>
@@ -229,8 +235,42 @@ $email = $_GET['email'] ?? '';
             }
         };
 
+        function updateResetOfflineStatus() {
+            var offlineBadge = document.getElementById('reset-offline-badge');
+            var isOffline = (typeof navigator.onLine === 'boolean') ? !navigator.onLine : (window.isAppOnline === false);
+            if (offlineBadge) {
+                offlineBadge.style.setProperty('display', isOffline ? 'inline-flex' : 'none', 'important');
+            }
+            if (!isOffline) {
+                try {
+                    localStorage.removeItem('intan_elyu_offline_mode');
+                    localStorage.removeItem('intan_elyu_offline_guest');
+                } catch(e) {}
+            }
+        }
+        window.addEventListener('online', () => {
+            updateResetOfflineStatus();
+            if (typeof window.enforceAllOfflineBadgesHidden === 'function') window.enforceAllOfflineBadgesHidden();
+        });
+        window.addEventListener('offline', updateResetOfflineStatus);
+        window.addEventListener('appOnline', () => {
+            updateResetOfflineStatus();
+            if (typeof window.enforceAllOfflineBadgesHidden === 'function') window.enforceAllOfflineBadgesHidden();
+        });
+        window.addEventListener('appOffline', updateResetOfflineStatus);
+        setTimeout(updateResetOfflineStatus, 100);
+
         window.handleResetPassword = async function (e) {
             e.preventDefault();
+
+            if ((typeof navigator.onLine === 'boolean') ? !navigator.onLine : (window.isAppOnline === false)) {
+                if (typeof showToast === 'function') {
+                    showToast('Internet connection is required to reset your password. Please reconnect and try again.', 'warning', 5000);
+                } else {
+                    alert('Internet connection is required to reset your password. Please reconnect and try again.');
+                }
+                return;
+            }
 
             const password = document.getElementById('reset-password-val').value;
             const confirmPassword = document.getElementById('reset-password-confirm').value;
@@ -312,7 +352,19 @@ $email = $_GET['email'] ?? '';
 
             } catch (error) {
                 console.error('Reset Password Error:', error);
-                if (typeof showToast === 'function') showToast(error.message);
+                const isOfflineError = !navigator.onLine || 
+                    window.isAppOnline === false || 
+                    (error && error.message && (error.message.includes('fetch') || error.message.includes('Network') || error.message.includes('Failed to fetch')));
+
+                const userMessage = isOfflineError
+                    ? 'Unable to connect to server. Please check your internet connection and try again.'
+                    : (error.message || 'Failed to reset password.');
+
+                if (typeof showToast === 'function') {
+                    showToast(userMessage, isOfflineError ? 'warning' : 'danger');
+                } else {
+                    alert(userMessage);
+                }
                 btn.innerHTML = oldHtml;
                 btn.disabled = false;
             }

@@ -80,14 +80,16 @@ $backRoute = 'dashboard';
             <i class="fa-solid fa-rotate" style="color: rgba(255,255,255,0.3); font-size: 12px;"></i>
         </div>
 
-        <div class="settings-row">
+        <div class="settings-row clickable" onclick="if (typeof window.checkForAppUpdate === 'function') { window.checkForAppUpdate(); } else { window.open('https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/apks/intan-elyu.apk', '_system'); }">
             <div class="settings-label-group">
-                <div class="settings-icon-box gray"><i class="fa-solid fa-circle-info"></i></div>
+                <div class="settings-icon-box blue"><i class="fa-solid fa-cloud-arrow-down"></i></div>
                 <div>
-                    <div class="settings-title">Intan Elyu App Version</div>
-                    <div class="settings-subtitle">v0.0.0 (Latest)</div>
+                    <div class="settings-title">Check for App Updates</div>
+                    <div class="settings-subtitle">v0.0.0 (Dev Build 1) &bull; Tap to update</div>
                 </div>
             </div>
+            <span style="font-size: 10px; font-weight: 800; background: rgba(56,189,248,0.2); color: #38bdf8; padding: 3px 10px; border-radius: 100px; margin-right: 6px;">Check</span>
+            <i class="fa-solid fa-chevron-right" style="color: rgba(255,255,255,0.3); font-size: 12px;"></i>
         </div>
 
         <div class="settings-row clickable" onclick="confirmSignOut()">
@@ -312,6 +314,10 @@ $backRoute = 'dashboard';
         };
 
         window.handleInitiate2FA = async function () {
+            if (!navigator.onLine || window.isAppOnline === false) {
+                if (typeof showToast === 'function') showToast('Internet connection required to configure 2FA security.');
+                return;
+            }
             try {
                 const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
                 const backendUrl = window.backendUrl || 'https://api.intan-elyu.online';
@@ -344,6 +350,10 @@ $backRoute = 'dashboard';
 
         window.handleVerify2FA = async function (e) {
             if (e) e.preventDefault();
+            if (!navigator.onLine || window.isAppOnline === false) {
+                if (typeof showToast === 'function') showToast('Internet connection required to verify 2FA security.');
+                return;
+            }
             const code = document.getElementById('2fa-otp-input').value.trim();
             if (!code || code.length < 6) {
                 if (typeof showToast === 'function') showToast('Please enter a valid 6-digit code.');
@@ -379,6 +389,10 @@ $backRoute = 'dashboard';
         };
 
         window.handleDisable2FA = async function () {
+            if (!navigator.onLine || window.isAppOnline === false) {
+                if (typeof showToast === 'function') showToast('Internet connection required to update 2FA settings.');
+                return;
+            }
             if (confirm('Are you sure you want to disable Two-Factor Authentication?')) {
                 try {
                     const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
@@ -434,6 +448,9 @@ $backRoute = 'dashboard';
         window.clearAppCache = function () {
             const keys = Object.keys(localStorage);
             keys.forEach(k => {
+                if (k.startsWith('intan_elyu_offline_') || k.includes('queue') || k.includes('sync')) {
+                    return; // Preserve offline sync queues
+                }
                 if (k.startsWith('profile_data_') || k.startsWith('dashboard_data_') || k.startsWith('leaderboard_data_') || k.startsWith('intan_cache_')) {
                     localStorage.removeItem(k);
                 }
@@ -445,45 +462,15 @@ $backRoute = 'dashboard';
         };
 
         window.confirmSignOut = function () {
-            if (confirm('Are you sure you want to sign out of your account?')) {
-                try {
-                    const keysToRemove = [];
-                    for (let i = 0; i < localStorage.length; i++) {
-                        const k = localStorage.key(i);
-                        if (!k) continue;
-                        if (
-                            k.startsWith('intan_elyu_claimed_vouchers') ||
-                            k.startsWith('intan_elyu_cached_vouchers') ||
-                            k.startsWith('profile_data_') ||
-                            k.startsWith('dashboard_data_') ||
-                            k.startsWith('dashboard_trips_') ||
-                            k.startsWith('saved_trips_') ||
-                            k.startsWith('saved_places_') ||
-                            k.startsWith('leaderboard_data_') ||
-                            k.startsWith('intan_cache_') ||
-                            k === 'intan_elyu_token' ||
-                            k === 'Intan_Elyu_Token' ||
-                            k === 'auth_user'
-                        ) {
-                            keysToRemove.push(k);
-                        }
-                    }
-                    keysToRemove.forEach(k => localStorage.removeItem(k));
-                } catch (e) {
+            if (typeof window.showLogoutConfirmationModal === 'function') {
+                window.showLogoutConfirmationModal();
+            } else if (typeof handleLogout === 'function') {
+                handleLogout();
+            } else {
+                if (confirm('Are you sure you want to log out?')) {
                     localStorage.removeItem('intan_elyu_token');
                     localStorage.removeItem('Intan_Elyu_Token');
                     localStorage.removeItem('auth_user');
-                    localStorage.removeItem('intan_elyu_claimed_vouchers');
-                    localStorage.removeItem('intan_elyu_cached_vouchers');
-                }
-
-                if (window._touristRedemptions) window._touristRedemptions = [];
-                if (window._cachedActiveVouchers) window._cachedActiveVouchers = [];
-                if (window._cachedHistoryVouchers) window._cachedHistoryVouchers = [];
-
-                if (typeof navigateTo === 'function') {
-                    navigateTo('auth');
-                } else {
                     window.location.href = 'index.php?view=auth';
                 }
             }
@@ -533,6 +520,10 @@ $backRoute = 'dashboard';
 
         window.submitChangePassword = async function (e) {
             if (e) e.preventDefault();
+            if (!navigator.onLine || window.isAppOnline === false) {
+                if (typeof showToast === 'function') showToast('Internet connection required to change your account password.');
+                return;
+            }
             const currPass = document.getElementById('curr-password').value;
             const newPass = document.getElementById('new-password').value;
             const confPass = document.getElementById('conf-password').value;

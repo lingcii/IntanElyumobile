@@ -41,7 +41,7 @@ class DashboardController extends Controller
             return TouristSpot::activeForTourists()
                 ->orderByDesc('visits')
                 ->limit($trendingLimit)
-                ->get(['id', 'name', 'category', 'photo_url', 'latitude', 'longitude', 'visits', 'rating', 'description', 'entrance_fee', 'adult_fee', 'kids_fee', 'pwd_fee', 'senior_citizen_fee', 'entrance_fee_types', 'environmental_fee', 'fee_types', 'classification_status', 'municipality_id', 'status', 'maximum_capacity'])
+                ->get(['id', 'name', 'category', 'photo_url', 'latitude', 'longitude', 'visits', 'rating', 'description', 'entrance_fee', 'adult_fee', 'kids_fee', 'pwd_fee', 'senior_citizen_fee', 'entrance_fee_types', 'environmental_fee', 'fee_types', 'classification_status', 'municipality_id', 'status'])
                 ->map(fn($s) => $this->formatSpot($s))
                 ->toArray();
         });
@@ -104,8 +104,20 @@ class DashboardController extends Controller
             ->whereNotNull('itinerary_items.tourist_spot_id')
             ->distinct('itinerary_items.tourist_spot_id')
             ->count('itinerary_items.tourist_spot_id');
-        if ($placesVisited === 0 && ($user->completed_activities ?? 0) > 0) {
-            $placesVisited = min(1, (int) $user->completed_activities);
+
+        // Fallback to distinct completed itinerary spot count or completed_activities counter
+        if ($placesVisited === 0) {
+            $completedTripsSpotCount = (int) DB::table('itinerary_items')
+                ->join('itineraries', 'itinerary_items.itinerary_id', '=', 'itineraries.id')
+                ->where('itineraries.user_id', $user->id)
+                ->where('itineraries.status', 'completed')
+                ->whereNotNull('itinerary_items.tourist_spot_id')
+                ->distinct('itinerary_items.tourist_spot_id')
+                ->count('itinerary_items.tourist_spot_id');
+
+            $placesVisited = max($completedTripsSpotCount, (int) ($user->completed_activities ?? 0));
+        } else {
+            $placesVisited = max($placesVisited, (int) ($user->completed_activities ?? 0));
         }
 
         // Rank — Technique 2: Server-Side Caching + Technique 6: Materialized Views
@@ -243,7 +255,7 @@ class DashboardController extends Controller
             'fee_types'    => $spot->fee_types ?? [],
             'classification_status' => $spot->classification_status,
             'status'       => $spot->status ?? 'approved',
-            'maximum_capacity' => $spot->maximum_capacity ? (int) $spot->maximum_capacity : null,
+            'maximum_capacity' => (isset($spot->maximum_capacity) && $spot->maximum_capacity) ? (int) $spot->maximum_capacity : null,
             'municipality_id' => $spot->municipality_id,
             'municipality' => $muniName,
             'location'     => $muniName,

@@ -22,6 +22,7 @@ return [
         'http://localhost:8000',
         'http://127.0.0.1:8000',
         'http://localhost:3000', // Mobile Frontend
+        'http://127.0.0.1:3000',
         'http://localhost:4000', // Admin Website
         'http://localhost',
         'http://127.0.0.1',
@@ -35,7 +36,14 @@ return [
         'https://intanelyu-production.up.railway.app',
     ],
 
-    'allowed_origins_patterns' => [],
+    'allowed_origins_patterns' => [
+        // Support USB tethering (192.168.42.x, etc.), Wi-Fi LAN (192.168.x.x), 10.x.x.x, 172.16-31.x.x, and localhost on any port
+        '#^https?://(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+)(:\d+)?$#',
+        '#^https?://.*\.intan-elyu\.online$#',
+        '#^https?://.*\.trycloudflare\.com$#',
+        '#^capacitor://.*$#',
+        '#^https?://localhost(:\d+)?$#',
+    ],
 
     'allowed_headers' => ['*'],
 

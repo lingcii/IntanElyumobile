@@ -103,8 +103,16 @@ $hideBottomNav = true; // Hide bottom nav for full immersive view
                 userLat = pos.coords.latitude;
                 userLng = pos.coords.longitude;
 
-                // Just enable the button if we have GPS. The backend will enforce the 50m geofence.
-                document.getElementById('ar-status').innerHTML = '<i class="fa-solid fa-location-crosshairs" style="color:#34d399;"></i> GPS Ready';
+                const isOffline = !navigator.onLine || window.isAppOnline === false;
+                const statusEl = document.getElementById('ar-status');
+                if (statusEl) {
+                    if (isOffline) {
+                        statusEl.innerHTML = '<i class="fa-solid fa-cloud-slash" style="color:#f59e0b;"></i> GPS Ready (Offline)';
+                    } else {
+                        statusEl.innerHTML = '<i class="fa-solid fa-location-crosshairs" style="color:#34d399;"></i> GPS Ready';
+                    }
+                }
+
                 document.getElementById('ar-reticle').classList.add('active');
                 document.getElementById('btn-scan').style.display = 'flex';
                 document.getElementById('scan-hint').textContent = 'Tap to Check In!';
@@ -121,7 +129,7 @@ $hideBottomNav = true; // Hide bottom nav for full immersive view
             document.getElementById('btn-scan').innerHTML = '<i class="fa-solid fa-spinner spinning"></i>';
 
             // Immediate offline fallback if disconnected
-            if (!navigator.onLine && window.OfflineCheckinManager) {
+            if ((!navigator.onLine || window.isAppOnline === false) && window.OfflineCheckinManager) {
                 try {
                     await window.OfflineCheckinManager.queueOfflineCheckin({
                         type: 'ar',

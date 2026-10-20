@@ -31,6 +31,34 @@ if (is_dir($imgDir)) {
 
 <div class="dashboard-container has-header has-bottom-nav animate-slide-up">
 
+    <!-- Offline Status Banner -->
+    <div id="dash-offline-pill" style="display: none; align-items: center; justify-content: center; gap: 8px; margin: 0 0 14px 0; padding: 8px 16px; border-radius: 100px; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.35); color: #d97706; font-size: 12px; font-weight: 800; text-align: center;">
+        <i class="fa-solid fa-cloud-slash" style="color: #f59e0b;"></i>
+        <span>Offline Mode &bull; Showing Saved Guides & Local GPS</span>
+    </div>
+
+    <!-- Dynamic Guard Style for Instant Guest Profile Header Sanitization -->
+    <style id="dash-guest-guard-style"></style>
+    <script>
+        (function() {
+            try {
+                var t = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+                var isReal = Boolean(t && t !== 'guest_token' && t !== 'offline_guest_token' && t.indexOf('guest_') !== 0 && t.indexOf('offline_') !== 0);
+                if (isReal) {
+                    try {
+                        localStorage.removeItem('intan_elyu_guest');
+                        localStorage.removeItem('intan_elyu_offline_guest');
+                    } catch(err) {}
+                }
+                var isG = !isReal;
+                var st = document.getElementById('dash-guest-guard-style');
+                if (st && isG) {
+                    st.textContent = '#dash-title-row, #dash-stats-row { display: none !important; } #dash-guest-subtitle { display: flex !important; }';
+                }
+            } catch(e) {}
+        })();
+    </script>
+
     <!-- Profile Card with embedded Stats -->
     <div class="profile-header stagger-1" onclick="navigateTo('profile')"
         style="background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline: none !important; box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important;">
@@ -45,20 +73,22 @@ if (is_dir($imgDir)) {
                     <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
                         <h2 class="profile-name" id="dash-name" style="margin:0;">Hi, there! <i class="fa-solid fa-hand"
                                 style="color:#fbbf24; font-size:18px; margin-left:4px;"></i></h2>
-                        <span id="dash-explorer-id">ID: #--</span>
                     </div>
-                    <div style="display:flex; align-items:center; gap:8px; margin-top:6px; flex-wrap:wrap;">
+                    <div id="dash-title-row" style="display:flex; align-items:center; gap:8px; margin-top:6px; flex-wrap:wrap;">
                         <span class="profile-title" id="dash-title"><i class="fa-solid fa-compass"
                                 style="color:#ffffff; font-size:11px;"></i> Explorer of Elyu</span>
                         <span id="dash-status-badge"><i class="fa-solid fa-circle"
                                 style="font-size:6px; margin-right:4px; color:#ffffff;"></i> Active Tourist</span>
+                    </div>
+                    <div id="dash-guest-subtitle" style="display:none; align-items:center; gap:6px; margin-top:6px; font-size:12px; color:#93c5fd; font-weight:700;">
+                        <i class="fa-solid fa-user-clock"></i> Guest Explorer &bull; Tap to sign in
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- 3 Stat Cards inside Profile Card (Sleek & Visible, No Outlines) -->
-        <div class="stats-row" style="margin-bottom:0; display:grid; grid-template-columns:repeat(3, 1fr); gap:8px;">
+        <div class="stats-row" id="dash-stats-row" style="margin-bottom:0; display:grid; grid-template-columns:repeat(3, 1fr); gap:8px;">
             <div class="stat-card" onclick="event.stopPropagation(); navigateTo('itinerary');"
                 style="background: linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.14) 100%) !important; border: none !important; outline: none !important; border-radius: 16px; padding: 10px 6px; text-align: center; cursor: pointer; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 4px 14px rgba(10, 25, 60, 0.2) !important; transition: transform 0.2s ease;">
                 <div class="stat-icon" style="font-size:18px; margin-bottom:3px;"><i
@@ -369,6 +399,47 @@ if (is_dir($imgDir)) {
 
 <script>
     window.AVAILABLE_MUNI_IMAGES = <?= json_encode($municipalityImages) ?>;
+
+    function getDashBackendUrl() {
+        if (typeof window.getBackendUrl === 'function') {
+            const u = window.getBackendUrl();
+            if (u) return u.replace(/\/+$/, '');
+        }
+        if (window.backendUrl) return window.backendUrl.replace(/\/+$/, '');
+        if (window.BACKEND_URL) return window.BACKEND_URL.replace(/\/+$/, '');
+        return 'https://api.intan-elyu.online';
+    }
+    window.getDashBackendUrl = getDashBackendUrl;
+
+    function updateDashboardOfflineStatus() {
+        var pill = document.getElementById('dash-offline-pill');
+        var isOffline = (typeof navigator.onLine === 'boolean') ? !navigator.onLine : (window.isAppOnline === false);
+        if (pill) {
+            pill.style.setProperty('display', isOffline ? 'flex' : 'none', 'important');
+            var span = pill.querySelector('span');
+            if (span && isOffline) {
+                span.innerHTML = 'Offline Mode &bull; Showing Saved Guides & Local GPS';
+            }
+        }
+        if (!isOffline) {
+            try {
+                localStorage.removeItem('intan_elyu_offline_mode');
+                localStorage.removeItem('intan_elyu_offline_guest');
+            } catch(e) {}
+        }
+    }
+    window.addEventListener('online', () => {
+        updateDashboardOfflineStatus();
+        if (typeof window.enforceAllOfflineBadgesHidden === 'function') window.enforceAllOfflineBadgesHidden();
+    });
+    window.addEventListener('offline', updateDashboardOfflineStatus);
+    window.addEventListener('appOnline', () => {
+        updateDashboardOfflineStatus();
+        if (typeof window.enforceAllOfflineBadgesHidden === 'function') window.enforceAllOfflineBadgesHidden();
+    });
+    window.addEventListener('appOffline', updateDashboardOfflineStatus);
+    setTimeout(updateDashboardOfflineStatus, 100);
+
     window.filterCategoryDash = function (cat, el) {
         document.querySelectorAll('#dash-categories-list .category-card').forEach(card => card.classList.remove('active'));
         if (el) el.classList.add('active');
@@ -718,8 +789,42 @@ if (is_dir($imgDir)) {
     };
 
     window.fetchAllTouristSpots = async function () {
-        const backendUrl = window.backendUrl || 'https://api.intan-elyu.online';
+        const backendUrl = getDashBackendUrl();
         const cacheKey = 'public_map_data';
+
+        // Instant synchronous render from cache if available (0ms delay)
+        let initialSpots = (window.allTouristSpots && window.allTouristSpots.length > 0) ? window.allTouristSpots : null;
+        if (!initialSpots) {
+            try {
+                const mapCache = window.safeJsonParse ? window.safeJsonParse(localStorage.getItem('public_map_data'), null)?.data : null;
+                initialSpots = (mapCache && mapCache.destinations) || null;
+            } catch(e) {}
+        }
+        if (!initialSpots) {
+            try {
+                const fallbackRaw = localStorage.getItem('intan_elyu_cached_spots_map');
+                if (fallbackRaw) {
+                    const parsed = JSON.parse(fallbackRaw)?.data;
+                    if (parsed && (parsed.destinations || parsed.spots)) {
+                        initialSpots = parsed.destinations || parsed.spots;
+                    }
+                }
+            } catch(e) {}
+        }
+        if (initialSpots && initialSpots.length > 0) {
+            window.allTouristSpots = initialSpots
+                .filter(d => !d.status || !['pending', 'draft', 'rejected'].includes(d.status.toLowerCase()))
+                .sort((a, b) => (b.id || 0) - (a.id || 0));
+            const activeCat = window.currentDashCategory || 'All';
+            let filtered = window.allTouristSpots;
+            if (activeCat !== 'All' && typeof window.matchesCategory === 'function') {
+                filtered = window.allTouristSpots.filter(d => window.matchesCategory(d.category, d.name, d.municipality || d.location, activeCat));
+            }
+            if (typeof window.renderAllTouristSpots === 'function') {
+                window.renderAllTouristSpots(filtered, activeCat);
+            }
+        }
+
         try {
             await window.useCache(
                 cacheKey,
@@ -750,7 +855,11 @@ if (is_dir($imgDir)) {
                         if (activeCat !== 'All' && typeof window.matchesCategory === 'function') {
                             filtered = window.allTouristSpots.filter(d => window.matchesCategory(d.category, d.name, d.municipality || d.location, activeCat));
                         }
-                        window.renderAllTouristSpots(filtered, activeCat);
+                        if (typeof window.renderAllTouristSpots === 'function') {
+                            window.renderAllTouristSpots(filtered, activeCat);
+                        }
+                    } else if (typeof handleDashboardEmptyOrError === 'function') {
+                        handleDashboardEmptyOrError();
                     }
                 },
                 false,
@@ -758,6 +867,9 @@ if (is_dir($imgDir)) {
             );
         } catch (e) {
             console.warn('fetchAllTouristSpots handled:', e);
+            if ((!initialSpots || initialSpots.length === 0) && typeof handleDashboardEmptyOrError === 'function') {
+                handleDashboardEmptyOrError();
+            }
         }
     };
 
@@ -846,69 +958,763 @@ if (is_dir($imgDir)) {
         }
     };
 
+    // ─────────────────────────────────────────────────────────────────────────────
+    //  Weather API Integration
+    // ─────────────────────────────────────────────────────────────────────────────
+    window.currentWeatherLocation = { lat: 16.6159, lng: 120.3209, name: 'San Fernando, La Union', isCurrentLoc: false };
+
+    window.renderWeatherIconHtml = function (iconEmoji, faIcon) {
+        if (faIcon) {
+            let color = '#fbbf24';
+            if (faIcon.includes('sun')) color = '#fbbf24';
+            else if (faIcon.includes('moon')) color = '#a78bfa';
+            else if (faIcon.includes('rain') || faIcon.includes('shower')) color = '#38bdf8';
+            else if (faIcon.includes('bolt')) color = '#f59e0b';
+            else if (faIcon.includes('cloud')) color = '#94a3b8';
+            else if (faIcon.includes('smog')) color = '#cbd5e1';
+
+            return `<i class="fa-solid ${faIcon}" style="color:${color}; filter:drop-shadow(0 0 10px ${color}80);"></i>`;
+        }
+        return iconEmoji || '⛅';
+    };
+
+    window.updateWeatherModal = function (data) {
+        if (!data) return;
+        const modalLoc = document.getElementById('modal-weather-loc');
+        const modalTemp = document.getElementById('modal-temp');
+        const modalCondition = document.getElementById('modal-condition');
+        const modalFeels = document.getElementById('modal-feels');
+        const modalIcon = document.getElementById('modal-icon');
+        const forecastContainer = document.getElementById('weather-forecast-container');
+
+        if (modalLoc) modalLoc.textContent = data.location;
+        if (modalTemp) modalTemp.textContent = `${data.temperature}°C`;
+        if (modalCondition) modalCondition.textContent = data.condition;
+        if (modalFeels) modalFeels.textContent = `Feels like ${data.feels_like}°C · Humidity ${data.humidity}% · Wind ${data.wind_speed}km/h`;
+        if (modalIcon) modalIcon.innerHTML = window.renderWeatherIconHtml(data.icon, data.fa_icon);
+
+        if (forecastContainer && data.forecast && data.forecast.length > 0) {
+            forecastContainer.innerHTML = data.forecast.map(item => `
+                <div style="background:rgba(0,0,0,0.12); border:none; border-radius:16px; padding:12px 16px; display:flex; align-items:center; justify-content:space-between;">
+                    <div style="display:flex; align-items:center; gap:14px;">
+                        <span style="font-size:26px; width:32px; text-align:center; display:inline-block;">${window.renderWeatherIconHtml(item.icon, item.fa_icon)}</span>
+                        <div>
+                            <div style="font-size:14px; font-weight:800; color:#fff;">${item.day}</div>
+                            <div style="font-size:11px; color:rgba(255,255,255,0.9);">${item.condition}</div>
+                        </div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div style="font-size:14px; font-weight:800; color:#fff;">${item.temp_max}° <span style="font-size:12px; color:rgba(255,255,255,0.8); font-weight:500;">/ ${item.temp_min}°C</span></div>
+                        <div style="font-size:10px; color:#ffffff; font-weight:700; margin-top:2px;"><i class="fa-solid fa-droplet" style="font-size:9px; color:#38bdf8;"></i> ${item.rain_prob}% rain</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+    };
+
+    window.fetchWeather = async function (lat = 16.6159, lng = 120.3209, locationName = 'San Fernando, La Union', isCurrentLoc = false) {
+        window.currentWeatherLocation = { lat, lng, name: locationName, isCurrentLoc };
+        const tempEl = document.getElementById('weather-temp');
+        const descEl = document.getElementById('weather-desc');
+        const locEl = document.getElementById('weather-loc');
+        const humidityEl = document.getElementById('weather-humidity');
+        const windEl = document.getElementById('weather-wind');
+        const uvEl = document.getElementById('weather-uv');
+        const iconEl = document.getElementById('weather-icon');
+
+        // Pre-hydrate from cache immediately so "Loading Weather..." disappears in 0ms
+        try {
+            const rawW = localStorage.getItem('intan_elyu_cached_weather');
+            if (rawW) {
+                const cw = (window.safeJsonParse ? window.safeJsonParse(rawW, null) : JSON.parse(rawW))?.data;
+                if (cw) {
+                    if (tempEl) tempEl.textContent = `${cw.temperature}°C`;
+                    if (descEl) descEl.textContent = cw.condition;
+                    if (locEl) locEl.innerHTML = `<i class="fa-solid fa-location-dot" style="color:#38bdf8; margin-right:4px;"></i> ${cw.location || locationName}`;
+                    if (humidityEl) humidityEl.textContent = `${cw.humidity}%`;
+                    if (windEl) windEl.textContent = `${cw.wind_speed} km/h`;
+                    if (uvEl) uvEl.textContent = cw.uv_index;
+                    if (iconEl) iconEl.innerHTML = window.renderWeatherIconHtml(cw.icon, cw.fa_icon);
+                    window.updateWeatherModal(cw);
+                }
+            } else {
+                if (tempEl && (tempEl.textContent.includes('Loading') || tempEl.querySelector('.fa-spinner'))) {
+                    tempEl.textContent = '29°C';
+                    if (descEl) descEl.textContent = 'Partly Cloudy';
+                    if (locEl) locEl.innerHTML = `<i class="fa-solid fa-location-dot" style="color:#38bdf8; margin-right:4px;"></i> ${locationName || 'San Fernando, La Union'}`;
+                    if (humidityEl) humidityEl.textContent = '72%';
+                    if (windEl) windEl.textContent = '14 km/h';
+                    if (uvEl) uvEl.textContent = '6';
+                    if (iconEl) iconEl.innerHTML = window.renderWeatherIconHtml('⛅', 'fa-cloud-sun');
+                }
+            }
+        } catch(e) {}
+
+        const isOffline = (typeof navigator.onLine === 'boolean') ? !navigator.onLine : (window.isAppOnline === false);
+        if (isOffline) {
+            if (tempEl && tempEl.textContent.includes('Loading')) {
+                tempEl.textContent = '29°C';
+                if (descEl) descEl.textContent = 'Partly Cloudy';
+                if (locEl) locEl.innerHTML = `<i class="fa-solid fa-location-dot" style="color:#38bdf8; margin-right:4px;"></i> ${locationName}`;
+                if (humidityEl) humidityEl.textContent = '72%';
+                if (windEl) windEl.textContent = '14 km/h';
+                if (uvEl) uvEl.textContent = '6';
+                if (iconEl) iconEl.innerHTML = window.renderWeatherIconHtml('⛅', 'fa-cloud-sun');
+            }
+            return;
+        }
+
+        try {
+            const apiBase = getDashBackendUrl();
+            const isCurrentParam = isCurrentLoc ? '&is_current_location=1' : '';
+            const url = `${apiBase}/api/public/weather?lat=${lat}&lng=${lng}&location=${encodeURIComponent(locationName)}${isCurrentParam}`;
+
+            const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+            if (!res.ok) throw new Error('Weather request failed with status ' + res.status);
+            const data = await res.json();
+
+            try { localStorage.setItem('intan_elyu_cached_weather', JSON.stringify({ data, timestamp: Date.now() })); } catch(e) {}
+
+            if (tempEl) tempEl.textContent = `${data.temperature}°C`;
+            if (descEl) descEl.textContent = data.condition;
+            if (locEl) locEl.innerHTML = `<i class="fa-solid fa-location-dot" style="color:#38bdf8; margin-right:4px;"></i> ${data.location}`;
+            if (humidityEl) humidityEl.textContent = `${data.humidity}%`;
+            if (windEl) windEl.textContent = `${data.wind_speed} km/h`;
+            if (uvEl) uvEl.textContent = data.uv_index;
+            if (iconEl) iconEl.innerHTML = window.renderWeatherIconHtml(data.icon, data.fa_icon);
+
+            window.updateWeatherModal(data);
+        } catch (e) {
+            console.warn('Weather fetch error, checking cache or fallback:', e);
+            let cachedW = null;
+            try {
+                const rawW = localStorage.getItem('intan_elyu_cached_weather');
+                if (rawW) cachedW = (window.safeJsonParse ? window.safeJsonParse(rawW, null) : JSON.parse(rawW))?.data;
+            } catch(err) {}
+
+            if (cachedW) {
+                if (tempEl) tempEl.textContent = `${cachedW.temperature}°C`;
+                if (descEl) descEl.textContent = cachedW.condition;
+                if (locEl) locEl.innerHTML = `<i class="fa-solid fa-location-dot" style="color:#38bdf8; margin-right:4px;"></i> ${cachedW.location || locationName}`;
+                if (humidityEl) humidityEl.textContent = `${cachedW.humidity}%`;
+                if (windEl) windEl.textContent = `${cachedW.wind_speed} km/h`;
+                if (uvEl) uvEl.textContent = cachedW.uv_index;
+                if (iconEl) iconEl.innerHTML = window.renderWeatherIconHtml(cachedW.icon, cachedW.fa_icon);
+            } else {
+                if (tempEl) tempEl.textContent = '29°C';
+                if (descEl) descEl.textContent = 'Partly Cloudy';
+                if (locEl) locEl.innerHTML = `<i class="fa-solid fa-location-dot" style="color:#38bdf8; margin-right:4px;"></i> ${locationName}`;
+                if (humidityEl) humidityEl.textContent = '72%';
+                if (windEl) windEl.textContent = '14 km/h';
+                if (uvEl) uvEl.textContent = '6';
+                if (iconEl) iconEl.innerHTML = window.renderWeatherIconHtml('⛅', 'fa-cloud-sun');
+            }
+        }
+    };
+
+    window.locateMeForWeather = function () {
+        const locEl = document.getElementById('weather-loc');
+        const descEl = document.getElementById('weather-desc');
+        if (locEl) locEl.innerHTML = `<i class="fa-solid fa-location-dot fa-spin" style="color:#38bdf8; margin-right:4px;"></i> Detecting location...`;
+        if (descEl) descEl.textContent = 'Acquiring location...';
+
+        const fallbackToLocal = () => {
+            try {
+                const manual = localStorage.getItem('intan_elyu_manual_loc');
+                if (manual) {
+                    const parsed = JSON.parse(manual);
+                    if (parsed && parsed.lat && parsed.lng) {
+                        window.fetchWeather(parsed.lat, parsed.lng, parsed.name || 'La Union', false);
+                        if (typeof window.loadNearMe === 'function') window.loadNearMe(parsed.lat, parsed.lng, parsed.name);
+                        return;
+                    }
+                }
+            } catch (e) { }
+            window.fetchWeather(16.6159, 120.3209, 'San Fernando, La Union', false);
+            if (typeof window.loadNearMe === 'function') window.loadNearMe(16.6159, 120.3209, 'San Fernando City');
+        };
+
+        if (typeof window.requestPreciseLocation === 'function') {
+            window.requestPreciseLocation(true).then(loc => {
+                if (loc && loc.lat && loc.lng) {
+                    window.userCurrentCoords = { lat: loc.lat, lng: loc.lng };
+                    window.currentGPSLat = loc.lat;
+                    window.currentGPSLng = loc.lng;
+                    window.currentGPSSource = 'gps';
+                    window.fetchWeather(loc.lat, loc.lng, 'My Location 📍', true);
+                    if (typeof loadNearMe === 'function') loadNearMe(loc.lat, loc.lng);
+                } else {
+                    fallbackToLocal();
+                }
+            }).catch(() => {
+                fallbackToLocal();
+            });
+        } else if ("geolocation" in navigator) {
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    const lat = pos.coords.latitude;
+                    const lng = pos.coords.longitude;
+                    window.userCurrentCoords = { lat, lng };
+                    window.currentGPSLat = lat;
+                    window.currentGPSLng = lng;
+                    window.currentGPSSource = 'gps';
+                    window.fetchWeather(lat, lng, 'My Location 📍', true);
+                    if (typeof loadNearMe === 'function') loadNearMe(lat, lng);
+                },
+                (err) => {
+                    console.warn('GPS location failed/denied, using local fallback:', err);
+                    fallbackToLocal();
+                },
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+            );
+        } else {
+            fallbackToLocal();
+        }
+    };
+
+    window.openWeatherModal = function () {
+        const modal = document.getElementById('weather-modal');
+        if (modal) modal.style.display = 'flex';
+    };
+
+    window.closeWeatherModal = function () {
+        const modal = document.getElementById('weather-modal');
+        if (modal) modal.style.display = 'none';
+    };
+
+    window.changeWeatherLocation = function (valStr) {
+        if (valStr === 'GPS_CURRENT') {
+            window.locateMeForWeather();
+            return;
+        }
+        const parts = valStr.split(',');
+        if (parts.length >= 3) {
+            const lat = parseFloat(parts[0]);
+            const lng = parseFloat(parts[1]);
+            const name = parts[2];
+            window.fetchWeather(lat, lng, name + ', La Union', false);
+            if (typeof window.loadNearMe === 'function') {
+                window.loadNearMe(lat, lng, name);
+            }
+        }
+    };
+
+    // Live continuous GPS sync listener for real-time Near Me distances (debounced to eliminate twitching)
+    window._gpsDebounceTimer = window._gpsDebounceTimer || null;
+    document.addEventListener('gpsUpdated', function (e) {
+        if (e.detail && e.detail.lat && e.detail.lng) {
+            const liveLat = parseFloat(e.detail.lat);
+            const liveLng = parseFloat(e.detail.lng);
+            if (!isNaN(liveLat) && !isNaN(liveLng) && liveLat !== 0 && liveLng !== 0) {
+                window.userCurrentCoords = { lat: liveLat, lng: liveLng };
+                window.currentGPSLat = liveLat;
+                window.currentGPSLng = liveLng;
+                if (typeof window.loadNearMe === 'function') {
+                    clearTimeout(window._gpsDebounceTimer);
+                    window._gpsDebounceTimer = setTimeout(() => {
+                        window.loadNearMe(liveLat, liveLng);
+                    }, 1500);
+                }
+            }
+        }
+    });
+
+    // Auto locate & fetch weather on startup
+    setTimeout(() => {
+        if (typeof window.fetchWeather === 'function') {
+            window.locateMeForWeather();
+        }
+    }, 100);
+
     async function dashboardInit(forceRefresh = false) {
         const setTxt = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
         const setHtml = (id, html) => { const el = document.getElementById(id); if (el) el.innerHTML = html; };
         const setSrc = (id, src) => { const el = document.getElementById(id); if (el) el.src = src; };
 
-        var backendUrl = window.backendUrl || 'https://api.intan-elyu.online';
+        var backendUrl = getDashBackendUrl();
         const token = localStorage.getItem('intan_elyu_token');
         const user = window.safeJsonParse ? window.safeJsonParse(localStorage.getItem('auth_user'), {}) : {};
+        const isRealUser = Boolean(token && token !== 'guest_token' && token !== 'offline_guest_token' && token.indexOf('guest_') !== 0 && token.indexOf('offline_') !== 0 && user && user.id && user.id !== 'guest');
+        if (isRealUser) {
+            try {
+                localStorage.removeItem('intan_elyu_guest');
+                localStorage.removeItem('intan_elyu_offline_guest');
+            } catch(e) {}
+        }
+        let isGuest = !isRealUser;
 
-        // Instant render from cache
-        if (user && user.name) {
-            setHtml('dash-name', 'Hi, ' + user.name.split(' ')[0] + '! <i class="fa-solid fa-hand" style="color:#fbbf24; font-size:18px; margin-left:4px;"></i>');
-            setSrc('dash-avatar', user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=007AFF&color=fff&rounded=true&bold=true&size=128`);
-            const initTouristNum = user.tourist_number || user.tourist_id || (user.role === 'tourist' ? 1 : '');
-            if (initTouristNum) {
-                setTxt('dash-explorer-id', 'ID: #' + initTouristNum);
+        function updateDashboardProfileHeader(isG, u) {
+            const titleEl = document.getElementById('dash-title');
+            const badgeEl = document.getElementById('dash-status-badge');
+            const titleRow = document.getElementById('dash-title-row');
+            const statsRow = document.getElementById('dash-stats-row');
+            const guestSub = document.getElementById('dash-guest-subtitle');
+            const guardStyle = document.getElementById('dash-guest-guard-style');
+
+            if (isG) {
+                if (guardStyle) guardStyle.textContent = '#dash-title-row, #dash-stats-row { display: none !important; } #dash-guest-subtitle { display: flex !important; }';
+                if (titleEl) titleEl.style.setProperty('display', 'none', 'important');
+                if (badgeEl) badgeEl.style.setProperty('display', 'none', 'important');
+                if (titleRow) titleRow.style.setProperty('display', 'none', 'important');
+                if (statsRow) statsRow.style.setProperty('display', 'none', 'important');
+                if (guestSub) guestSub.style.setProperty('display', 'flex', 'important');
+
+                setHtml('dash-name', 'Hi, Guest! <i class="fa-solid fa-hand" style="color:#fbbf24; font-size:18px; margin-left:4px;"></i>');
+                setSrc('dash-avatar', 'https://ui-avatars.com/api/?name=Guest&background=1e3a8a&color=fff&rounded=true&bold=true&size=128');
+            } else {
+                if (guardStyle) guardStyle.textContent = '';
+                if (titleEl) titleEl.style.display = 'inline-flex';
+                if (badgeEl) badgeEl.style.display = 'inline-flex';
+                if (titleRow) titleRow.style.display = 'flex';
+                if (statsRow) statsRow.style.display = 'grid';
+                if (guestSub) guestSub.style.display = 'none';
+
+                const firstName = (u && u.name ? u.name : 'Explorer').split(' ')[0];
+                setHtml('dash-name', 'Hi, ' + firstName + '! <i class="fa-solid fa-hand" style="color:#fbbf24; font-size:18px; margin-left:4px;"></i>');
+                setTxt('dash-title', 'Explorer of Elyu');
+                if (u && u.avatar) {
+                    setSrc('dash-avatar', u.avatar);
+                } else if (u && u.name) {
+                    setSrc('dash-avatar', `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name)}&background=007AFF&color=fff&rounded=true&bold=true&size=128`);
+                }
             }
+        }
+        window.updateDashboardProfileHeader = updateDashboardProfileHeader;
+
+        // Apply instant profile header state
+        updateDashboardProfileHeader(isGuest, user);
+
+        // Instant render stats from cache only if NOT guest
+        if (!isGuest && user && user.name) {
             const initPts = parseInt(user.points !== undefined ? user.points : (user.xp || 0)) || 0;
             const ptsEl = document.getElementById('dash-stat-points');
             if (ptsEl) ptsEl.textContent = initPts.toLocaleString();
-            setTxt('dash-title', 'Explorer of Elyu');
+
+            let initPlaces = parseInt(user.places_visited || user.completed_activities || 0);
+            if (!initPlaces) {
+                try {
+                    const localTrips = JSON.parse(localStorage.getItem('intan_elyu_saved_trips') || localStorage.getItem('intan_elyu_offline_saved_trips_backup') || '[]');
+                    const completed = localTrips.filter(t => t.status === 'completed' || t.is_completed);
+                    let spotSet = new Set();
+                    completed.forEach(t => (t.items || t.spots || []).forEach(s => { if (s.id || s.tourist_spot_id) spotSet.add(s.id || s.tourist_spot_id); }));
+                    if (spotSet.size > 0) initPlaces = spotSet.size;
+                    else if (completed.length > 0) initPlaces = completed.length;
+                } catch(e) {}
+            }
+            const placesEl = document.getElementById('dash-stat-places');
+            if (placesEl) placesEl.textContent = initPlaces.toLocaleString();
+
+            const rankEl = document.getElementById('dash-stat-rank');
+            if (rankEl) {
+                const initRank = user.my_rank || user.rank || (window._cachedMyRank !== undefined ? window._cachedMyRank : null);
+                if (initRank && initRank < 999) {
+                    rankEl.textContent = '#' + initRank;
+                } else if (initRank) {
+                    rankEl.textContent = '#' + initRank;
+                }
+            }
         }
 
-        if (!token) return;
+        // Show offline mode notification banner & toast ONLY if really offline
+        if (sessionStorage.getItem('elyu_show_offline_bypass_notice') === 'true') {
+            sessionStorage.removeItem('elyu_show_offline_bypass_notice');
+            const isReallyOffline = (typeof navigator.onLine === 'boolean') ? !navigator.onLine : (window.isAppOnline === false);
+            if (isReallyOffline) {
+                setTimeout(() => {
+                    if (typeof showToast === 'function') {
+                        showToast('Running in Offline Mode • Showing saved guides', 'info', 4000);
+                    }
+                    if (typeof window.showOfflinePill === 'function') {
+                        window.showOfflinePill();
+                    }
+                }, 600);
+            }
+        }
 
-        // Fetch all tourist spots early so "All Tourist Sites" container loads without delay
+        // ── Helper: Municipality Resolution ──
+        const resolveMunicipalityName = function (dest) {
+            if (!dest) return 'La Union';
+            const muniMap = {
+                1: 'San Fernando City', 2: 'San Juan', 3: 'Bauang', 4: 'Bacnotan',
+                5: 'Balaoan', 6: 'Luna', 7: 'Bangar', 8: 'Sudipen', 9: 'Santol',
+                10: 'San Gabriel', 11: 'Bagulin', 12: 'Burgos', 13: 'Naguilian',
+                14: 'Caba', 15: 'Aringay', 16: 'Agoo', 17: 'Tubao', 18: 'Pugo',
+                19: 'Santo Tomas', 20: 'Rosario'
+            };
+            let val = dest.municipality || dest.location;
+            if (!val || !isNaN(Number(val))) {
+                val = muniMap[dest.municipality_id] || muniMap[Number(val)] || 'San Juan, La Union';
+            }
+            return val;
+        };
+        window.resolveMunicipalityName = resolveMunicipalityName;
+
+        // ── Helper: Recommended Item Card Builder ──
+        const buildRecommendedItem = function (dest) {
+            const img = window.getDestImage(dest, 300);
+            const rating = (dest.rating !== undefined && dest.rating !== null && !isNaN(parseFloat(dest.rating))) ? parseFloat(dest.rating).toFixed(1) : (dest.reviews_avg_rating ? parseFloat(dest.reviews_avg_rating).toFixed(1) : '0.0');
+            const desc = dest.description ? dest.description.substring(0, 150) + (dest.description.length > 150 ? '...' : '') : 'A beautiful destination waiting to be explored.';
+            const locName = resolveMunicipalityName(dest);
+
+            const encodedDest = encodeURIComponent(JSON.stringify(dest));
+            return `
+            <div class="rec-item-card" data-category="${(dest.category || '').replace(/"/g, '&quot;')}" data-name="${(dest.name || '').replace(/"/g, '&quot;')}" data-municipality="${(locName || '').replace(/"/g, '&quot;')}">
+                <div onclick="window.toggleRecommendedCard(this)" style="cursor:pointer; display:flex; align-items:center; gap: 12px; padding: 12px; transition: background 0.15s;" onpointerdown="this.style.background='rgba(56, 189, 248, 0.18)'" onpointerup="this.style.background=''" onpointercancel="this.style.background=''">
+                    <img src="${img}" alt="${dest.name}" loading="lazy" decoding="async" style="width:60px; height:60px; border-radius:12px; object-fit:cover;" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=150';">
+                    <div style="flex:1; min-width:0;">
+                        <h4 class="rec-title">${dest.name}</h4>
+                        <p class="rec-loc"><i class="fa-solid fa-location-dot" style="margin-right:4px; color:#00f2fe;"></i>${locName}</p>
+                        <div style="display:flex; align-items:center; gap:5px; flex-wrap:wrap;">
+                            <i class="fa-solid fa-star" style="color:#f59e0b; font-size:11px;"></i>
+                            <span class="rec-rating">${rating}</span>
+                            ${dest.classification_status ? `<span style="padding: 2px 6px; border-radius: 6px; font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#0284c7' : (dest.classification_status === 'EMERGE' ? '#ef4444' : '#10b981')};">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</span>` : ''}
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-right toggle-icon rec-chevron"></i>
+                </div>
+                
+                <div class="rec-details-panel">
+                    <div class="rec-desc">
+                        ${desc}
+                    </div>
+                    <div style="display:flex; gap:8px; font-size:11px; margin-bottom:12px; flex-wrap:wrap;">
+                        ${dest.category ? `<span style="background:#ffffff !important; color:#1e3a8a !important; padding:4px 10px; border-radius:100px; font-weight:800; box-shadow:0 1px 4px rgba(0,0,0,0.12);">${dest.category}</span>` : ''}
+                        ${dest.entrance_fee ? `<span style="background:#ffffff !important; color:#0284c7 !important; padding:4px 10px; border-radius:100px; font-weight:800; box-shadow:0 1px 4px rgba(0,0,0,0.12);">₱${dest.entrance_fee}</span>` : '<span style="background:#ffffff !important; color:#16a34a !important; padding:4px 10px; border-radius:100px; font-weight:800; box-shadow:0 1px 4px rgba(0,0,0,0.12);">Free</span>'}
+                    </div>
+                    <button onclick="window.viewDestinationOnMap('${encodedDest}')" style="width:100%; margin-bottom:14px; background:linear-gradient(135deg, #00f2fe, #0284c7); border:none; color:#ffffff !important; padding:10px; border-radius:12px; font-weight:800; font-size:13px; cursor:pointer; box-shadow:none; display:flex; align-items:center; justify-content:center; gap:8px;">
+                        <i class="fa-solid fa-map-location-dot" style="color:#ffffff !important;"></i> View Details on Map
+                    </button>
+                </div>
+            </div>
+        `;
+        };
+        window.buildRecommendedItem = buildRecommendedItem;
+
+        // ── Helper: Rank Display ──
+        function renderRank(rankData) {
+            const el = document.getElementById('dash-stat-rank');
+            if (!el) return;
+            const r = rankData ? (rankData.myRank || rankData.rank || rankData.my_rank || (rankData.stats && (rankData.stats.rank || rankData.stats.myRank))) : null;
+            if (r) {
+                el.textContent = '#' + r;
+                try {
+                    localStorage.setItem('my_rank', r);
+                    const authU = JSON.parse(localStorage.getItem('auth_user') || '{}');
+                    authU.my_rank = r;
+                    localStorage.setItem('auth_user', JSON.stringify(authU));
+                } catch (e) { }
+            } else {
+                const u = window.safeJsonParse ? window.safeJsonParse(localStorage.getItem('auth_user'), {}) : {};
+                el.textContent = (u && (u.is_guest || u.is_offline_guest)) ? '—' : 'Unranked';
+            }
+        }
+
+        // ── Helper: Saved Trips Display ──
+        function renderSavedTrips(itinData) {
+            const tripsContainer = document.getElementById('saved-trips-container');
+            if (!tripsContainer) return;
+
+            const queuedTrips = (window.OfflineTripManager && typeof window.OfflineTripManager.getQueuedTrips === 'function')
+                ? window.OfflineTripManager.getQueuedTrips()
+                : [];
+            const serverItineraries = (itinData && itinData.itineraries) ? itinData.itineraries : [];
+            const allItineraries = [...queuedTrips, ...serverItineraries];
+            const itineraries = allItineraries.filter(t => t.status !== 'completed');
+            if (itineraries.length > 0) {
+                let tripsHtml = '';
+                itineraries.slice(0, 3).forEach(trip => {
+                    let destinationsHtml = '';
+                    if (trip.items && trip.items.length > 0) {
+                        trip.items.forEach((item, index) => {
+                            const destName = item.destination ? item.destination.name : 'Unknown Destination';
+                            const queuedItem = window.OfflineCheckinManager ? window.OfflineCheckinManager.getQueuedItem(item.id) : null;
+                            const isQueued = Boolean(queuedItem);
+
+                            let proofImgHtml = '';
+                            let proofImages = [];
+                            if (Array.isArray(item.proof_images) && item.proof_images.length > 0) {
+                                proofImages = item.proof_images;
+                            } else if (item.proof_image) {
+                                try {
+                                    const parsed = JSON.parse(item.proof_image);
+                                    if (Array.isArray(parsed)) proofImages = parsed;
+                                    else proofImages = [item.proof_image];
+                                } catch (e) {
+                                    proofImages = [item.proof_image];
+                                }
+                            }
+                            if (proofImages.length > 0) {
+                                let pUrl = proofImages[0];
+                                if (!pUrl.startsWith('http') && !pUrl.startsWith('data:') && !pUrl.startsWith('blob:')) {
+                                    let b = (window.backendUrl || '').replace(/\/+$/, '');
+                                    pUrl = b + '/' + pUrl.replace(/^\//, '');
+                                }
+                                const cleanImgName = pUrl.split('/').pop().replace(/[?#].*$/, '');
+                                let fallbackUrl = (window.backendUrl || '').replace(/\/+$/, '') + '/api/image/proof_images/' + cleanImgName;
+                                const destEscaped = destName.replace(/'/g, "\\'");
+                                const jsonUrlsAttr = JSON.stringify(proofImages).replace(/"/g, '&quot;');
+                                proofImgHtml = `<div style="position:relative; flex-shrink:0;">
+                                    <img src="${pUrl}" onerror="if(this.dataset.triedFallback!=='1'){this.dataset.triedFallback='1';this.src='${fallbackUrl}';}" onclick="event.stopPropagation(); if(typeof window.viewProofPhotoModal==='function') window.viewProofPhotoModal(${jsonUrlsAttr}, '${destEscaped}', '${item.is_visited ? 'Verified Visit Proof' : 'Pending Verification'}');" alt="Proof" title="Tap to view proof photo" style="width:28px; height:28px; border-radius:8px; object-fit:cover; border:1px solid ${item.is_visited ? 'rgba(52,199,89,0.5)' : (item.proof_status === 'rejected' ? 'rgba(239,68,68,0.5)' : 'rgba(255,149,0,0.5)')}; flex-shrink:0; cursor:pointer;">
+                                    ${proofImages.length > 1 ? `<span style="position:absolute; bottom:0; right:0; background:rgba(0,0,0,0.75); color:#fff; font-size:6.5px; font-weight:800; padding:0 2px; border-radius:2px;">+${proofImages.length - 1}</span>` : ''}
+                                </div>`;
+                            } else if (isQueued && queuedItem && queuedItem.previewUrl) {
+                                const destEscaped = destName.replace(/'/g, "\\'");
+                                proofImgHtml = `<img src="${queuedItem.previewUrl}" onclick="event.stopPropagation(); if(typeof window.viewProofPhotoModal==='function') window.viewProofPhotoModal('${queuedItem.previewUrl}', '${destEscaped}', 'Offline Proof (Queued on Device)');" alt="Proof" title="Tap to view offline proof photo" style="width:28px; height:28px; border-radius:8px; object-fit:cover; border:1.5px solid #f59e0b; flex-shrink:0; cursor:pointer;">`;
+                            }
+
+                            let proofBadge = '';
+                            const isLocVerified = Boolean(item.is_location_verified || item.visited_at);
+                            const hasProof = Boolean(proofImages.length > 0);
+                            if (isQueued) {
+                                proofBadge = `<span style="font-size:10px; font-weight:800; color:#fbbf24; background:rgba(245,158,11,0.18); border:1px solid rgba(245,158,11,0.35); padding:2px 8px; border-radius:100px; margin-left:auto; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-cloud-arrow-up"></i> Queued</span>`;
+                            } else if (item.is_visited || item.proof_status === 'approved') {
+                                proofBadge = `<span style="font-size:10px; font-weight:800; color:#34c759; background:rgba(52,199,89,0.15); border:1px solid rgba(52,199,89,0.3); padding:2px 8px; border-radius:100px; margin-left:auto; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-circle-check"></i> Verified</span>`;
+                            } else if (item.proof_status === 'rejected') {
+                                proofBadge = `<span style="font-size:10px; font-weight:800; color:#ef4444; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.3); padding:2px 8px; border-radius:100px; margin-left:auto; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-circle-xmark"></i> Rejected</span>`;
+                            } else if (isLocVerified && hasProof) {
+                                proofBadge = `<span style="font-size:10px; font-weight:800; color:#FF9500; background:rgba(255,149,0,0.15); border:1px solid rgba(255,149,0,0.3); padding:2px 8px; border-radius:100px; margin-left:auto; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-clock"></i> Pending</span>`;
+                            } else if (isLocVerified && !hasProof) {
+                                proofBadge = `<span style="font-size:10px; font-weight:800; color:#38bdf8; background:rgba(56,189,248,0.15); border:1px solid rgba(56,189,248,0.3); padding:2px 8px; border-radius:100px; margin-left:auto; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-location-dot"></i> Checked In</span>`;
+                            } else if (!isLocVerified && hasProof) {
+                                proofBadge = `<span style="font-size:10px; font-weight:800; color:#a78bfa; background:rgba(167,139,250,0.15); border:1px solid rgba(167,139,250,0.3); padding:2px 8px; border-radius:100px; margin-left:auto; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-camera"></i> Photo Ready</span>`;
+                            }
+
+                            destinationsHtml += `
+                            <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px; padding:8px 12px; background:rgba(0,0,0,0.12); border:none; border-radius:12px;">
+                                <div style="width:22px; height:22px; border-radius:50%; background:linear-gradient(135deg, #38bdf8, #2563eb); color:#ffffff; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:900; flex-shrink:0; box-shadow:none;">${index + 1}</div>
+                                ${proofImgHtml}
+                                <div style="flex:1; font-size:13px; color:#ffffff; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${destName}</div>
+                                ${proofBadge}
+                            </div>
+                        `;
+                        });
+                    } else {
+                        destinationsHtml = '<div style="font-size:12px; color:rgba(255,255,255,0.7); font-style:italic; text-align:center; padding:10px 0;">No destinations added yet.</div>';
+                    }
+
+                    const safeTitle = (trip.title || 'Trip').replace(/'/g, "\\'");
+                    tripsHtml += `
+                    <div class="trip-swipe-container" data-trip-id="${trip.id}" data-trip-title="${safeTitle}" style="margin-bottom: 14px; position: relative; overflow: hidden; border-radius: 20px; -webkit-mask-image: -webkit-radial-gradient(white, black); mask-image: radial-gradient(white, black); isolation: isolate; contain: paint;">
+                        <div class="trip-swipe-bg" onclick="window.confirmDeleteSavedTrip('${trip.id}', this.closest('.trip-swipe-container'), '${safeTitle}')" style="position: absolute; top: 0; right: 0; bottom: 0; width: 85px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border-radius: 0 20px 20px 0; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 13px; font-weight: 800; gap: 4px; z-index: 1; opacity: 0; pointer-events: none; transform: translateX(85px); transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease; cursor: pointer;">
+                            <i class="fa-solid fa-trash-can"></i> Delete
+                        </div>
+                        <div class="trip-swipe-content" style="position: relative; z-index: 2; transition: transform 0.2s ease, border-radius 0.2s ease; background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline: none !important; border-radius: 20px; overflow: hidden; box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important;">
+                            <div onclick="const content = this.nextElementSibling; const icon = this.querySelector('.toggle-icon'); if(content.style.maxHeight === '0px' || !content.style.maxHeight){ content.style.paddingTop = '14px'; content.style.paddingBottom = '16px'; content.style.maxHeight = (content.scrollHeight + 50) + 'px'; content.style.opacity = '1'; icon.style.transform = 'rotate(90deg)'; } else { content.style.maxHeight = '0px'; content.style.opacity = '0'; content.style.paddingTop = '0'; content.style.paddingBottom = '0'; icon.style.transform = 'rotate(0deg)'; }" style="cursor:pointer; display:flex; align-items:center; gap: 14px; padding: 16px; transition: background 0.15s;" onpointerdown="this.style.background='rgba(255,255,255,0.08)'" onpointerup="this.style.background=''" onpointercancel="this.style.background=''">
+                                <div style="width: 48px; height: 48px; border-radius: 14px; background: rgba(255, 255, 255, 0.22); border: none; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: none;">
+                                    <i class="fa-solid fa-map-location-dot" style="color: #ffffff; font-size: 20px;"></i>
+                                </div>
+                                <div style="flex: 1; min-width: 0;">
+                                    <span style="display:block; font-size:16px; font-weight:800; color:#ffffff; margin-bottom:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; letter-spacing:-0.3px;">${trip.title}</span>
+                                    <span style="display:flex; align-items:center; gap:8px; font-size:12px; color:rgba(255,255,255,0.9); font-weight:600; flex-wrap:wrap;">
+                                        <span><i class="fa-solid fa-location-dot" style="margin-right:4px; color:#ffffff;"></i>${trip.items ? trip.items.length : 0} Stops</span>
+                                        <span style="color:rgba(255,255,255,0.4);">&bull;</span>
+                                        <span><i class="fa-regular fa-calendar" style="margin-right:4px; color:#ffffff;"></i>${trip.trip_date ? new Date(trip.trip_date).toLocaleDateString() : 'No Date'}</span>
+                                        ${trip.transport_mode ? (() => {
+                                            const parts = String(trip.transport_mode).split(/[,+]|\band\b/i).map(s => s.trim().toLowerCase().replace(/[- ]/g, '_')).filter(Boolean);
+                                            if (parts.length === 0 || parts[0].includes('no_vehicle') || parts[0].includes('no vehicle')) {
+                                                return `<span style="color:rgba(255,255,255,0.4);">&bull;</span><span><i class="fa-solid fa-ban" style="margin-right:4px; color:#f87171;"></i>No Vehicle Selected</span>`;
+                                            }
+                                            if (parts.length > 1) {
+                                                return `<span style="color:rgba(255,255,255,0.4);">&bull;</span><span><i class="fa-solid fa-route" style="margin-right:4px; color:#38bdf8;"></i>${parts.length} Vehicles</span>`;
+                                            }
+                                            const rawT = parts[0];
+                                            const tMap = {
+                                                'own_car': 'Own Car', 'mpuj': 'MPUJ', 'tpuj': 'TPUJ', 'pub_aircon': 'PUB Aircon',
+                                                'pub_ordinary': 'PUB Ordinary', 'pub_regular': 'PUB Regular', 'uve': 'UV Express',
+                                                'jeepney': 'Jeepney', 'tricycle': 'Tricycle', 'bus': 'Bus', 'private_bus': 'PUB Aircon',
+                                                'mini_bus': 'Mini Bus', 'lutrampco': 'LUTRAMPCO', 'taxi': 'Taxi', 'motorcycle': 'Motorcycle', 'walking': 'Walking'
+                                            };
+                                            const tIco = {
+                                                'own_car': 'fa-car', 'mpuj': 'fa-van-shuttle', 'tpuj': 'fa-van-shuttle', 'pub_aircon': 'fa-bus',
+                                                'pub_ordinary': 'fa-bus-simple', 'pub_regular': 'fa-bus-simple', 'uve': 'fa-van-shuttle',
+                                                'jeepney': 'fa-van-shuttle', 'tricycle': 'fa-motorcycle', 'bus': 'fa-bus', 'private_bus': 'fa-bus',
+                                                'mini_bus': 'fa-bus-simple', 'lutrampco': 'fa-van-shuttle', 'taxi': 'fa-taxi', 'motorcycle': 'fa-motorcycle', 'walking': 'fa-person-walking'
+                                            };
+                                            const displayName = tMap[rawT] || rawT.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                                            return `<span style="color:rgba(255,255,255,0.4);">&bull;</span><span><i class="fa-solid ${tIco[rawT] || 'fa-car'}" style="margin-right:4px; color:#38bdf8;"></i>${displayName}</span>`;
+                                        })() : ''}
+                                    </span>
+                                </div>
+                                <i class="fa-solid fa-chevron-right toggle-icon" style="color: rgba(255,255,255,0.7); font-size: 14px; margin-right:4px; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);"></i>
+                            </div>
+                            <div style="max-height: 0px; opacity: 0; padding: 0 16px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); overflow: hidden; background: transparent; border-top: none;">
+                                ${destinationsHtml}
+                                <div style="display:flex; gap:10px; margin-top:12px; margin-bottom:2px;">
+                                    <button onclick="if(window.sessionStorage){sessionStorage.setItem('active_trip_transport_${trip.id}', '${trip.transport_mode || ''}'); localStorage.setItem('selected_trip_vehicle_${trip.id}', '${trip.transport_mode || ''}');} window.location.href='?view=trip_map&trip_id=${trip.id}${trip.transport_mode ? '&transport=' + encodeURIComponent(trip.transport_mode) : ''}'" style="flex:1; background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); border:none; outline:none; color:#ffffff; padding:12px; border-radius:14px; font-weight:800; font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; box-shadow:none;">
+                                        <i class="fa-solid fa-compass"></i> Start Trip
+                                    </button>
+                                    <button onclick="navigateTo('saved_trips')" style="flex:1; background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; padding:12px; border-radius:14px; font-weight:800; font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; box-shadow:0 2px 8px rgba(0,0,0,0.15) !important;">
+                                        <i class="fa-solid fa-route" style="color:#1e3a8a !important;"></i> View Details
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                });
+                tripsContainer.innerHTML = tripsHtml;
+                if (typeof window.setupDashboardSwipeToDelete === 'function') {
+                    window.setupDashboardSwipeToDelete();
+                }
+            } else {
+                tripsContainer.innerHTML = `
+                <div class="dash-empty-state">
+                    <div class="dash-empty-icon-wrap" style="background: #ffffff !important; color: #1e3a8a !important; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15) !important;">
+                        <i class="fa-solid fa-route" style="color: #1e3a8a !important;"></i>
+                    </div>
+                    <div class="dash-empty-title">No Saved Trips Yet</div>
+                    <div class="dash-empty-desc">Create custom itineraries and explore recommended routes for your La Union adventure.</div>
+                    <button type="button" onclick="navigateTo('itinerary')" class="dash-empty-btn">
+                        <i class="fa-solid fa-plus"></i> Plan a Trip
+                    </button>
+                </div>
+            `;
+            }
+        }
+
+        // ── Helper: Graceful Empty/Error Clearer ──
+        function handleDashboardEmptyOrError() {
+            const trendEl = document.getElementById('trending-container');
+            if (trendEl && trendEl.querySelector('.dash-loading-state')) {
+                if (window.allTouristSpots && window.allTouristSpots.length > 0) {
+                    const topSpots = [...window.allTouristSpots].sort((a,b) => (b.visits || 0) - (a.visits || 0)).slice(0, 5);
+                    window.dashTrending = topSpots;
+                    trendEl.classList.remove('is-empty');
+                    trendEl.style.paddingLeft = '';
+                    trendEl.style.paddingRight = '';
+                    trendEl.style.marginLeft = '';
+                    trendEl.style.marginRight = '';
+                    trendEl.innerHTML = '';
+                    topSpots.forEach(dest => {
+                        const img = window.getDestImage(dest, 600);
+                        const encodedDest = encodeURIComponent(JSON.stringify(dest));
+                        const muni = dest.municipality || dest.location || '';
+                        trendEl.innerHTML += `
+                        <div class="fav-card" data-category="${(dest.category || '').replace(/"/g, '&quot;')}" onclick="window.viewDestinationOnMap('${encodedDest}')">
+                            <img src="${img}" alt="${dest.name}" loading="lazy" decoding="async">
+                            <div class="fav-card-overlay">
+                                <span class="fav-card-name">${dest.name}</span>
+                                ${muni ? `<span style="display:block; font-size:10px; color:#38bdf8; margin-top:2px; font-weight:700;"><i class="fa-solid fa-location-dot"></i> ${muni}</span>` : ''}
+                            </div>
+                            <i class="fa-solid fa-fire fav-heart" style="color: #ff9500; font-size: 14px;"></i>
+                        </div>`;
+                    });
+                    window.initLoopingFocusCarousel('trending-container');
+                } else {
+                    trendEl.classList.add('is-empty');
+                    trendEl.innerHTML = `
+                    <div class="dash-empty-state">
+                        <div class="dash-empty-icon-wrap"><i class="fa-solid fa-fire-flame-curved"></i></div>
+                        <div class="dash-empty-title">No Trending Spots</div>
+                        <div class="dash-empty-desc">Check back soon for popular attractions and trending activities in La Union.</div>
+                    </div>`;
+                }
+            }
+
+            const savedEl = document.getElementById('saved-places-container');
+            if (savedEl && savedEl.querySelector('.dash-loading-state')) {
+                savedEl.classList.add('is-empty');
+                savedEl.innerHTML = `
+                <div class="dash-empty-state">
+                    <div class="dash-empty-icon-wrap"><i class="fa-solid fa-map-location-dot"></i></div>
+                    <div class="dash-empty-title">No Saved Places Yet</div>
+                    <div class="dash-empty-desc">Discover destinations on the map and tap the heart icon to save your favorite spots.</div>
+                    <button type="button" onclick="navigateTo('map')" class="dash-empty-btn"><i class="fa-solid fa-location-arrow"></i> Open Map</button>
+                </div>`;
+            }
+
+            const recEl = document.getElementById('recommended-container');
+            if (recEl && recEl.querySelector('.dash-loading-state')) {
+                if (window.allTouristSpots && window.allTouristSpots.length > 0) {
+                    const recSpots = [...window.allTouristSpots].sort((a,b) => parseFloat(b.rating || 0) - parseFloat(a.rating || 0)).slice(0, 3);
+                    window.dashRecommended = recSpots;
+                    recEl.innerHTML = recSpots.map(dest => buildRecommendedItem(dest)).join('');
+                } else {
+                    recEl.innerHTML = `
+                    <div class="dash-empty-state">
+                        <div class="dash-empty-icon-wrap"><i class="fa-solid fa-compass"></i></div>
+                        <div class="dash-empty-title">No Recommendations</div>
+                        <div class="dash-empty-desc">Explore more tourist spots to receive customized recommendations.</div>
+                    </div>`;
+                }
+            }
+
+            const tripsEl = document.getElementById('saved-trips-container');
+            if (tripsEl && tripsEl.querySelector('.dash-loading-state')) {
+                tripsEl.innerHTML = `
+                <div class="dash-empty-state">
+                    <div class="dash-empty-icon-wrap" style="background: #ffffff !important; color: #1e3a8a !important; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15) !important;">
+                        <i class="fa-solid fa-route" style="color: #1e3a8a !important;"></i>
+                    </div>
+                    <div class="dash-empty-title">No Saved Trips Yet</div>
+                    <div class="dash-empty-desc">Create custom itineraries and explore recommended routes for your La Union adventure.</div>
+                    <button type="button" onclick="navigateTo('itinerary')" class="dash-empty-btn">
+                        <i class="fa-solid fa-plus"></i> Plan a Trip
+                    </button>
+                </div>`;
+            }
+
+            const allSpotsEl = document.getElementById('all-spots-container');
+            if (allSpotsEl && allSpotsEl.querySelector('.dash-loading-state')) {
+                if (window.allTouristSpots && window.allTouristSpots.length > 0) {
+                    if (typeof window.renderAllTouristSpots === 'function') {
+                        window.renderAllTouristSpots(window.allTouristSpots);
+                    }
+                } else {
+                    allSpotsEl.innerHTML = `
+                    <div class="dash-empty-state" style="margin-top: 6px !important;">
+                        <div class="dash-empty-icon-wrap"><i class="fa-solid fa-compass"></i></div>
+                        <div class="dash-empty-title">Tourist Sites</div>
+                        <div class="dash-empty-desc">Explore destinations across La Union on the interactive map.</div>
+                        <button type="button" onclick="navigateTo('map')" class="dash-empty-btn"><i class="fa-solid fa-map-location-dot"></i> Open Map</button>
+                    </div>`;
+                }
+            }
+        }
+
+        // Pre-hydrate Rank and Saved Trips from local caches if present
+        if (token) {
+            const rankCacheKey = 'dashboard_rank_' + token.substring(0, 10);
+            try {
+                const cachedRank = window.safeJsonParse ? window.safeJsonParse(localStorage.getItem(rankCacheKey), null)?.data : null;
+                if (cachedRank) renderRank(cachedRank);
+            } catch (e) {}
+
+            const tripsCacheKey = 'dashboard_trips_' + token.substring(0, 10);
+            try {
+                const cachedTrips = window.safeJsonParse ? window.safeJsonParse(localStorage.getItem(tripsCacheKey), null)?.data : null;
+                if (cachedTrips) renderSavedTrips(cachedTrips);
+            } catch (e) {}
+        }
+
+        // Early fetch for tourist spots
         if (typeof window.fetchAllTouristSpots === 'function') {
             window.fetchAllTouristSpots();
         }
-        try {
-            if (typeof window.requestPreciseLocation === 'function') {
-                const loc = await window.requestPreciseLocation(true);
+
+        // Non-blocking coordinate resolution
+        let currentCoords = window.userCurrentCoords || (window.currentGPSLat && window.currentGPSLng ? { lat: window.currentGPSLat, lng: window.currentGPSLng } : null);
+        let lat = currentCoords ? currentCoords.lat : null;
+        let lng = currentCoords ? currentCoords.lng : null;
+
+        if ((!lat || !lng) && typeof window.requestPreciseLocation === 'function') {
+            window.requestPreciseLocation(false).then(loc => {
                 if (loc && loc.lat && loc.lng) {
-                    lat = loc.lat;
-                    lng = loc.lng;
-                    window.currentGPSLat = lat;
-                    window.currentGPSLng = lng;
+                    window.userCurrentCoords = { lat: loc.lat, lng: loc.lng };
+                    window.currentGPSLat = loc.lat;
+                    window.currentGPSLng = loc.lng;
                     window.currentGPSSource = 'gps';
-                    window.userCurrentCoords = { lat, lng };
+                    if (typeof window.loadNearMe === 'function') window.loadNearMe(loc.lat, loc.lng);
+                    if (typeof window.fetchWeather === 'function') window.fetchWeather(loc.lat, loc.lng, 'My Location', true);
                 }
-            } else if ("geolocation" in navigator) {
-                const pos = await new Promise((res, rej) => {
-                    navigator.geolocation.getCurrentPosition(res, rej, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
-                });
-                if (pos && pos.coords) {
-                    lat = pos.coords.latitude;
-                    lng = pos.coords.longitude;
-                    window.currentGPSLat = lat;
-                    window.currentGPSLng = lng;
-                    window.currentGPSSource = 'gps';
-                    window.userCurrentCoords = { lat, lng };
-                }
-            }
-        } catch (e) {
-            if (e && e.code !== 3) {
-                console.log("Location access issue (handled):", e.message);
-            }
+            }).catch(() => {});
         }
 
         let apiUrl = backendUrl + '/api/tourist/dashboard?limit=50';
         if (lat && lng) apiUrl += `&lat=${lat}&lng=${lng}`;
 
-        const cacheKey = 'dashboard_data_' + (lat && lng ? `${lat.toFixed(3)}_${lng.toFixed(3)}` : 'default');
+        // Stable User-Centric Cache Key
+        const cacheKey = 'dashboard_data_v3_' + (user.id || (token ? token.substring(0, 10) : 'default'));
 
         function renderDashboard(data) {
             window.dashTrending = (data.trending || []).filter(d => !d.status || d.status.toLowerCase() !== 'pending');
@@ -921,55 +1727,98 @@ if (is_dir($imgDir)) {
             }
 
             const u = data.user || {};
+            const isGuestSession = !token || 
+                token === 'guest_token' || 
+                token === 'offline_guest_token' || 
+                token.indexOf('guest_') === 0 || 
+                token.indexOf('offline_') === 0 || 
+                Boolean(u && (u.is_guest || u.is_offline_guest || u.id === 'guest'));
 
-            const points = parseInt(u.points !== undefined ? u.points : (u.xp || 0)) || 0;
-
-            // Profile header
-            const firstName = (u.name || 'Explorer').split(' ')[0];
-            setHtml('dash-name', 'Hi, ' + firstName + '! <i class="fa-solid fa-hand" style="color:#fbbf24; font-size:18px; margin-left:4px;"></i>');
-            setTxt('dash-title', 'Explorer of Elyu');
-
-            const touristNum = u.tourist_number || u.tourist_id || (u.role === 'tourist' ? 1 : (u.id || u.user_id || ''));
-            if (touristNum) {
-                setTxt('dash-explorer-id', 'ID: #' + touristNum);
-                try {
-                    const storedUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
-                    storedUser.tourist_number = touristNum;
-                    storedUser.tourist_id = touristNum;
-                    localStorage.setItem('auth_user', JSON.stringify(storedUser));
-                } catch (e) { }
+            if (typeof updateDashboardProfileHeader === 'function') {
+                updateDashboardProfileHeader(isGuestSession, u);
             }
 
-            if (u.avatar) {
-                let avatarUrl = u.avatar;
-                if (avatarUrl.includes('localhost:3000') || avatarUrl.includes('127.0.0.1:3000')) {
-                    avatarUrl = avatarUrl.replace(/http:\/\/(localhost|127\.0\.0\.1):3000/, window.backendUrl || 'http://localhost:8000');
-                }
-                if (!avatarUrl.startsWith('http') && !avatarUrl.startsWith('data:') && !avatarUrl.startsWith('blob:')) {
-                    let b = (window.backendUrl || '').replace(/\/+$/, '');
-                    avatarUrl = b + '/' + avatarUrl.replace(/^\//, '');
+            if (!isGuestSession) {
+                // Profile header
+                const firstName = (u.name || 'Explorer').split(' ')[0];
+                setHtml('dash-name', 'Hi, ' + firstName + '! <i class="fa-solid fa-hand" style="color:#fbbf24; font-size:18px; margin-left:4px;"></i>');
+                setTxt('dash-title', 'Explorer of Elyu');
+
+                const touristNum = u.tourist_number || u.tourist_id || (u.role === 'tourist' ? 1 : (u.id || u.user_id || ''));
+                if (touristNum) {
+                    try {
+                        const storedUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
+                        storedUser.tourist_number = touristNum;
+                        storedUser.tourist_id = touristNum;
+                        localStorage.setItem('auth_user', JSON.stringify(storedUser));
+                    } catch (e) { }
                 }
 
-                const dashAvatarEl = document.getElementById('dash-avatar');
-                if (dashAvatarEl) {
-                    let fallbackAvatar = (window.backendUrl || '').replace(/\/+$/, '') + '/api/image/' + u.avatar.replace(/^\//, '');
-                    dashAvatarEl.onerror = function () {
-                        if (this.src !== fallbackAvatar) {
-                            this.src = fallbackAvatar;
-                        } else {
-                            this.onerror = null;
-                            this.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name || 'Tourist')}&background=007AFF&color=fff&rounded=true&bold=true&size=128`;
-                        }
-                    };
-                    dashAvatarEl.src = avatarUrl;
+                if (u.avatar) {
+                    let avatarUrl = u.avatar;
+                    if (avatarUrl.includes('localhost:3000') || avatarUrl.includes('127.0.0.1:3000')) {
+                        avatarUrl = avatarUrl.replace(/http:\/\/(localhost|127\.0\.0\.1):3000/, window.backendUrl || 'http://localhost:8000');
+                    }
+                    if (!avatarUrl.startsWith('http') && !avatarUrl.startsWith('data:') && !avatarUrl.startsWith('blob:')) {
+                        let b = (window.backendUrl || '').replace(/\/+$/, '');
+                        avatarUrl = b + '/' + avatarUrl.replace(/^\//, '');
+                    }
+
+                    const dashAvatarEl = document.getElementById('dash-avatar');
+                    if (dashAvatarEl) {
+                        let fallbackAvatar = (window.backendUrl || '').replace(/\/+$/, '') + '/api/image/' + u.avatar.replace(/^\//, '');
+                        dashAvatarEl.onerror = function () {
+                            if (this.src !== fallbackAvatar) {
+                                this.src = fallbackAvatar;
+                            } else {
+                                this.onerror = null;
+                                this.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name || 'Tourist')}&background=007AFF&color=fff&rounded=true&bold=true&size=128`;
+                            }
+                        };
+                        dashAvatarEl.src = avatarUrl;
+                    }
+                } else {
+                    setSrc('dash-avatar', `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name || 'Tourist')}&background=007AFF&color=fff&rounded=true&bold=true&size=128`);
                 }
-            } else {
-                setSrc('dash-avatar', `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name || 'Tourist')}&background=007AFF&color=fff&rounded=true&bold=true&size=128`);
+
+                // Stats
+                let visitedCount = 0;
+                if (data.stats && (data.stats.placesVisited !== undefined && data.stats.placesVisited !== null)) {
+                    visitedCount = parseInt(data.stats.placesVisited, 10);
+                }
+                if (visitedCount === 0 && u) {
+                    visitedCount = parseInt(u.places_visited || u.completed_activities || 0, 10);
+                }
+                if (visitedCount === 0) {
+                    try {
+                        const localTrips = JSON.parse(localStorage.getItem('intan_elyu_saved_trips') || localStorage.getItem('intan_elyu_offline_saved_trips_backup') || '[]');
+                        const completed = localTrips.filter(t => t.status === 'completed' || t.is_completed);
+                        let spotSet = new Set();
+                        completed.forEach(t => (t.items || t.spots || []).forEach(s => { if (s.id || s.tourist_spot_id) spotSet.add(s.id || s.tourist_spot_id); }));
+                        if (spotSet.size > 0) visitedCount = spotSet.size;
+                        else if (completed.length > 0) visitedCount = completed.length;
+                    } catch(e) {}
+                }
+                const points = parseInt((u && (u.points !== undefined ? u.points : u.xp)) || (data && data.stats && (data.stats.points !== undefined ? data.stats.points : data.stats.xp)) || 0, 10);
+                if (document.getElementById('dash-stat-places')) document.getElementById('dash-stat-places').textContent = visitedCount.toLocaleString();
+                if (document.getElementById('dash-stat-points')) document.getElementById('dash-stat-points').textContent = points.toLocaleString();
+
+                const rVal = (data && (data.myRank || data.my_rank || (data.stats && (data.stats.rank || data.stats.myRank))));
+                const rankEl = document.getElementById('dash-stat-rank');
+                if (rankEl) {
+                    if (rVal && rVal < 999) {
+                        rankEl.textContent = '#' + rVal;
+                        try {
+                            localStorage.setItem('my_rank', rVal);
+                            const authU = JSON.parse(localStorage.getItem('auth_user') || '{}');
+                            authU.my_rank = rVal;
+                            localStorage.setItem('auth_user', JSON.stringify(authU));
+                        } catch (e) { }
+                    } else if (rVal) {
+                        rankEl.textContent = '#' + rVal;
+                    }
+                }
             }
-
-            // Stats
-            if (document.getElementById('dash-stat-places')) document.getElementById('dash-stat-places').textContent = (data.stats && data.stats.placesVisited) ? data.stats.placesVisited : 0;
-            if (document.getElementById('dash-stat-points')) document.getElementById('dash-stat-points').textContent = points.toLocaleString();
 
             // Populate Trending Spots (Limit to top 5, "See All" opens full list)
             const trendingContainer = document.getElementById('trending-container');
@@ -1105,6 +1954,35 @@ if (is_dir($imgDir)) {
 
             // Cache updated user
             localStorage.setItem('auth_user', JSON.stringify(u));
+        }
+        window.renderDashboard = renderDashboard;
+
+        // ── Instant Synchronous Pre-Hydration of Sections (0ms, zero spinner delay!) ──
+        const cachedPayload = window._lastDashboardPayload ||
+            (window.safeJsonParse ? window.safeJsonParse(localStorage.getItem('dashboard_cached_payload'), null) : null) ||
+            (window.safeJsonParse ? window.safeJsonParse(localStorage.getItem(cacheKey), null)?.data : null);
+
+        if (cachedPayload && (cachedPayload.trending || cachedPayload.recommended || cachedPayload.savedPlaces)) {
+            renderDashboard(cachedPayload);
+        } else {
+            // Check fallback from public_map_data or cached spots map
+            try {
+                const mapCache = window.safeJsonParse ? window.safeJsonParse(localStorage.getItem('public_map_data'), null)?.data : null;
+                const spots = (mapCache && mapCache.destinations) || (window.allTouristSpots && window.allTouristSpots.length > 0 ? window.allTouristSpots : null);
+                if (spots && spots.length > 0) {
+                    const activeSpots = spots.filter(d => !d.status || !['pending', 'draft', 'rejected'].includes(d.status.toLowerCase()));
+                    renderDashboard({
+                        user: user,
+                        stats: { placesVisited: 0, rank: 1, unread_notifications: 0 },
+                        trending: [...activeSpots].sort((a, b) => (b.visits || 0) - (a.visits || 0)).slice(0, 5),
+                        savedPlaces: [],
+                        recommended: [...activeSpots].sort((a, b) => (parseFloat(b.rating || 0)) - (parseFloat(a.rating || 0))).slice(0, 5),
+                        timeLabel: 'Popular in La Union'
+                    });
+                }
+            } catch (e) {
+                console.warn('Fallback pre-render handled:', e);
+            }
         }
 
         // Helper functions used inside render/build
@@ -1363,64 +2241,140 @@ if (is_dir($imgDir)) {
                     }
                 },
                 false,
-                60000 // 1 minute TTL
+                60000 // 1 minute
             );
         }
-        window.loadNearMe = loadNearMe;
 
-        window.resolveMunicipalityName = function (dest) {
-            if (!dest) return 'La Union';
-            const muniMap = {
-                1: 'San Fernando City', 2: 'San Juan', 3: 'Bauang', 4: 'Bacnotan',
-                5: 'Balaoan', 6: 'Luna', 7: 'Bangar', 8: 'Sudipen', 9: 'Santol',
-                10: 'San Gabriel', 11: 'Bagulin', 12: 'Burgos', 13: 'Naguilian',
-                14: 'Caba', 15: 'Aringay', 16: 'Agoo', 17: 'Tubao', 18: 'Pugo',
-                19: 'Santo Tomas', 20: 'Rosario'
-            };
-            let val = dest.municipality || dest.location;
-            if (!val || !isNaN(Number(val))) {
-                val = muniMap[dest.municipality_id] || muniMap[Number(val)] || 'San Juan, La Union';
-            }
-            return val;
-        };
+        const isOffline = (typeof navigator.onLine === 'boolean') ? !navigator.onLine : (window.isAppOnline === false);
+        const isRealUserSession = Boolean(token && token !== 'guest_token' && token !== 'offline_guest_token' && !token.startsWith('guest_') && !token.startsWith('offline_') && user && user.id && user.id !== 'guest');
+        if (isRealUserSession) {
+            try {
+                localStorage.removeItem('intan_elyu_guest');
+                localStorage.removeItem('intan_elyu_offline_guest');
+            } catch(e) {}
+        }
+        isGuest = !isRealUserSession;
 
-        window.buildRecommendedItem = function (dest) {
-            const img = window.getDestImage(dest, 300);
-            const rating = (dest.rating !== undefined && dest.rating !== null && !isNaN(parseFloat(dest.rating))) ? parseFloat(dest.rating).toFixed(1) : (dest.reviews_avg_rating ? parseFloat(dest.reviews_avg_rating).toFixed(1) : '0.0');
-            const desc = dest.description ? dest.description.substring(0, 150) + (dest.description.length > 150 ? '...' : '') : 'A beautiful destination waiting to be explored.';
-            const locName = window.resolveMunicipalityName(dest);
-
-            const encodedDest = encodeURIComponent(JSON.stringify(dest));
-            return `
-            <div class="rec-item-card" data-category="${(dest.category || '').replace(/"/g, '&quot;')}" data-name="${(dest.name || '').replace(/"/g, '&quot;')}" data-municipality="${(locName || '').replace(/"/g, '&quot;')}">
-                <div onclick="window.toggleRecommendedCard(this)" style="cursor:pointer; display:flex; align-items:center; gap: 12px; padding: 12px; transition: background 0.15s;" onpointerdown="this.style.background='rgba(56, 189, 248, 0.18)'" onpointerup="this.style.background=''" onpointercancel="this.style.background=''">
-                    <img src="${img}" alt="${dest.name}" loading="lazy" decoding="async" style="width:60px; height:60px; border-radius:12px; object-fit:cover;" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=150';">
-                    <div style="flex:1; min-width:0;">
-                        <h4 class="rec-title">${dest.name}</h4>
-                        <p class="rec-loc"><i class="fa-solid fa-location-dot" style="margin-right:4px; color:#00f2fe;"></i>${locName}</p>
-                        <div style="display:flex; align-items:center; gap:5px; flex-wrap:wrap;">
-                            <i class="fa-solid fa-star" style="color:#f59e0b; font-size:11px;"></i>
-                            <span class="rec-rating">${rating}</span>
-                            ${dest.classification_status ? `<span style="padding: 2px 6px; border-radius: 6px; font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#0284c7' : (dest.classification_status === 'EMERGE' ? '#ef4444' : '#10b981')};">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</span>` : ''}
+        if (isGuest) {
+            // Instantly clear trips loading state for guest
+            const guestTripsEl = document.getElementById('saved-trips-container');
+            if (guestTripsEl) {
+                guestTripsEl.innerHTML = `
+                    <div class="dash-empty-state">
+                        <div class="dash-empty-icon-wrap" style="background: #ffffff !important; color: #1e3a8a !important; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15) !important;">
+                            <i class="fa-solid fa-route" style="color: #1e3a8a !important;"></i>
                         </div>
+                        <div class="dash-empty-title">No Saved Trips Yet</div>
+                        <div class="dash-empty-desc">Create custom itineraries and explore recommended routes for your La Union adventure.</div>
+                        <button type="button" onclick="navigateTo('itinerary')" class="dash-empty-btn">
+                            <i class="fa-solid fa-plus"></i> Plan a Trip
+                        </button>
                     </div>
-                    <i class="fa-solid fa-chevron-right toggle-icon rec-chevron"></i>
-                </div>
-                
-                <div class="rec-details-panel">
-                    <div class="rec-desc">
-                        ${desc}
+                `;
+            }
+
+            // Instantly clear saved places loading state for guest
+            const guestSavedEl = document.getElementById('saved-places-container');
+            if (guestSavedEl) {
+                guestSavedEl.classList.add('is-empty');
+                guestSavedEl.innerHTML = `
+                    <div class="dash-empty-state">
+                        <div class="dash-empty-icon-wrap">
+                            <i class="fa-solid fa-map-location-dot"></i>
+                        </div>
+                        <div class="dash-empty-title">No Saved Places Yet</div>
+                        <div class="dash-empty-desc">Discover destinations on the map and tap the heart icon to save your favorite spots.</div>
+                        <button type="button" onclick="navigateTo('map')" class="dash-empty-btn">
+                            <i class="fa-solid fa-location-arrow"></i> Open Map
+                        </button>
                     </div>
-                    <div style="display:flex; gap:8px; font-size:11px; margin-bottom:12px; flex-wrap:wrap;">
-                        ${dest.category ? `<span style="background:#ffffff !important; color:#1e3a8a !important; padding:4px 10px; border-radius:100px; font-weight:800; box-shadow:0 1px 4px rgba(0,0,0,0.12);">${dest.category}</span>` : ''}
-                        ${dest.entrance_fee ? `<span style="background:#ffffff !important; color:#0284c7 !important; padding:4px 10px; border-radius:100px; font-weight:800; box-shadow:0 1px 4px rgba(0,0,0,0.12);">₱${dest.entrance_fee}</span>` : '<span style="background:#ffffff !important; color:#16a34a !important; padding:4px 10px; border-radius:100px; font-weight:800; box-shadow:0 1px 4px rgba(0,0,0,0.12);">Free</span>'}
-                    </div>
-                    <button onclick="window.viewDestinationOnMap('${encodedDest}')" style="width:100%; margin-bottom:14px; background:linear-gradient(135deg, #00f2fe, #0284c7); border:none; color:#ffffff !important; padding:10px; border-radius:12px; font-weight:800; font-size:13px; cursor:pointer; box-shadow:none; display:flex; align-items:center; justify-content:center; gap:8px;">
-                        <i class="fa-solid fa-map-location-dot" style="color:#ffffff !important;"></i> View Details on Map
-                    </button>
-                </div>
-            </div>
-        `;
+                `;
+            }
+
+            // Guest Mode: Populate dashboard using public map data without requiring private bearer token
+            const renderGuestDashboard = (spots) => {
+                if (spots && spots.length > 0) {
+                    const activeSpots = spots.filter(d => !d.status || !['pending', 'draft', 'rejected'].includes(d.status.toLowerCase()));
+                    window.allTouristSpots = activeSpots;
+                    renderDashboard({
+                        user: { ...user, is_guest: true, name: 'Guest' },
+                        stats: { placesVisited: 0, rank: null, unread_notifications: 0 },
+                        trending: [...activeSpots].sort((a, b) => (b.visits || 0) - (a.visits || 0)).slice(0, 5),
+                        savedPlaces: [],
+                        recommended: [...activeSpots].sort((a, b) => (parseFloat(b.rating || 0)) - (parseFloat(a.rating || 0))).slice(0, 5),
+                        timeLabel: 'Popular in La Union'
+                    });
+                    if (typeof window.renderAllTouristSpots === 'function') {
+                        window.renderAllTouristSpots(activeSpots);
+                    }
+                } else {
+                    handleDashboardEmptyOrError();
+                }
+            };
+
+            let spots = (window.allTouristSpots && window.allTouristSpots.length > 0) ? window.allTouristSpots : null;
+            if (!spots) {
+                try {
+                    const mapCache = window.safeJsonParse ? window.safeJsonParse(localStorage.getItem('public_map_data'), null)?.data : null;
+                    spots = (mapCache && mapCache.destinations) || null;
+                } catch(e) {}
+            }
+            if (!spots) {
+                try {
+                    const fallbackRaw = localStorage.getItem('intan_elyu_cached_spots_map');
+                    if (fallbackRaw) {
+                        const parsed = JSON.parse(fallbackRaw)?.data;
+                        if (parsed && (parsed.destinations || parsed.spots)) {
+                            spots = parsed.destinations || parsed.spots;
+                        }
+                    }
+                } catch(e) {}
+            }
+
+            if (spots && spots.length > 0) {
+                renderGuestDashboard(spots);
+            }
+
+            if (!isOffline) {
+                const bUrl = getDashBackendUrl();
+                fetch(`${bUrl}/api/public/map`, { headers: { 'Accept': 'application/json' } })
+                    .then(r => r.ok ? r.json() : null)
+                    .then(d => {
+                        const fetchedSpots = d ? (d.destinations || d.spots || d.data || []) : [];
+                        if (fetchedSpots.length > 0) {
+                            window.allTouristSpots = fetchedSpots;
+                            try { localStorage.setItem('public_map_data', JSON.stringify({ data: { destinations: fetchedSpots }, timestamp: Date.now() })); } catch(e) {}
+                            renderGuestDashboard(fetchedSpots);
+                        } else if (!spots || spots.length === 0) {
+                            handleDashboardEmptyOrError();
+                        }
+                        if (typeof window.fetchAllTouristSpots === 'function') {
+                            window.fetchAllTouristSpots();
+                        }
+                    })
+                    .catch(() => {
+                        if (typeof window.fetchAllTouristSpots === 'function') {
+                            window.fetchAllTouristSpots();
+                        } else if (!spots || spots.length === 0) {
+                            handleDashboardEmptyOrError();
+                        }
+                    });
+            } else if (!spots || spots.length === 0) {
+                handleDashboardEmptyOrError();
+            }
+
+            if (lat && lng) {
+                loadNearMe(lat, lng);
+                if (typeof window.fetchWeather === 'function') {
+                    window.fetchWeather(lat, lng, 'My Location', true);
+                }
+            } else {
+                loadNearMe(16.6159, 120.3209, 'San Fernando City');
+                if (typeof window.fetchWeather === 'function') {
+                    window.fetchWeather(16.6159, 120.3209, 'San Fernando, La Union', false);
+                }
+            }
+            return;
         }
 
         try {
@@ -1437,9 +2391,15 @@ if (is_dir($imgDir)) {
                     });
                     if (!res.ok) {
                         if (res.status === 401) {
-                            localStorage.removeItem('intan_elyu_token');
-                            localStorage.removeItem('auth_user');
-                            window.location.href = '?view=auth';
+                            const isGuestToken = isOfflineGuest || !token || token === 'guest_token' || token === 'offline_guest_token' || token.indexOf('guest_') === 0 || token.indexOf('offline_') === 0 || localStorage.getItem('intan_elyu_guest') === 'true' || localStorage.getItem('intan_elyu_offline_guest') === 'true';
+                            if (isGuestToken) {
+                                console.warn("Guest mode active; suppressing auth redirect.");
+                                throw new Error("Guest session");
+                            } else {
+                                localStorage.removeItem('intan_elyu_token');
+                                localStorage.removeItem('auth_user');
+                                window.location.href = '?view=auth';
+                            }
                         }
                         throw new Error("Dashboard fetch failed");
                     }
@@ -1447,7 +2407,13 @@ if (is_dir($imgDir)) {
                 },
                 (data) => {
                     if (data) {
+                        try {
+                            window._lastDashboardPayload = data;
+                            localStorage.setItem('dashboard_cached_payload', JSON.stringify(data));
+                        } catch (e) { }
                         renderDashboard(data);
+                    } else {
+                        handleDashboardEmptyOrError();
                     }
                 },
                 Boolean(forceRefresh || window.dashboardNeedsRefresh),
@@ -1455,18 +2421,21 @@ if (is_dir($imgDir)) {
             );
             window.dashboardNeedsRefresh = false;
 
-            loadNearMe(lat, lng);
-            if (typeof window.fetchWeather === 'function') {
-                if (lat && lng) {
+            if (lat && lng) {
+                loadNearMe(lat, lng);
+                if (typeof window.fetchWeather === 'function') {
                     window.fetchWeather(lat, lng, 'My Location', true);
-                } else {
+                }
+            } else {
+                loadNearMe(16.6159, 120.3209, 'San Fernando City');
+                if (typeof window.fetchWeather === 'function') {
                     window.fetchWeather(16.6159, 120.3209, 'San Fernando, La Union', false);
                 }
             }
 
-            // Fetch Rank and Cache it
+            // Fetch Rank concurrently
             const rankCacheKey = 'dashboard_rank_' + token.substring(0, 10);
-            await window.useCache(
+            window.useCache(
                 rankCacheKey,
                 async () => {
                     const rankRes = await fetch(backendUrl + '/api/tourist/leaderboard', {
@@ -1476,23 +2445,17 @@ if (is_dir($imgDir)) {
                     throw new Error("Rank fetch failed");
                 },
                 (rankData) => {
-                    if (rankData && rankData.myRank) {
-                        const el = document.getElementById('dash-stat-rank');
-                        if (el) el.textContent = '#' + rankData.myRank;
-                    } else {
-                        const el = document.getElementById('dash-stat-rank');
-                        if (el) el.textContent = 'Unranked';
-                    }
+                    if (rankData) renderRank(rankData);
                 },
                 Boolean(forceRefresh || window.dashboardNeedsRefresh),
-                60000 // 1 minute TTL for rank
-            );
+                60000 // 1 minute TTL
+            ).catch(e => console.warn('Rank fetch handled:', e));
 
-            // Fetch Saved Trips and Cache it
+            // Fetch Saved Trips concurrently
             const tripsContainer = document.getElementById('saved-trips-container');
             if (tripsContainer) {
                 const tripsCacheKey = 'dashboard_trips_' + token.substring(0, 10);
-                await window.useCache(
+                window.useCache(
                     tripsCacheKey,
                     async () => {
                         const itinRes = await fetch(backendUrl + '/api/tourist/itineraries', {
@@ -1502,203 +2465,68 @@ if (is_dir($imgDir)) {
                         throw new Error("Trips fetch failed");
                     },
                     (itinData) => {
-                        const queuedTrips = (window.OfflineTripManager && typeof window.OfflineTripManager.getQueuedTrips === 'function')
-                            ? window.OfflineTripManager.getQueuedTrips()
-                            : [];
-                        const serverItineraries = (itinData && itinData.itineraries) ? itinData.itineraries : [];
-                        const allItineraries = [...queuedTrips, ...serverItineraries];
-                        const itineraries = allItineraries.filter(t => t.status !== 'completed');
-                        if (itineraries.length > 0) {
-                            let tripsHtml = '';
-                            // Show up to 3 most recent trips
-                            itineraries.slice(0, 3).forEach(trip => {
-                                let destinationsHtml = '';
-                                if (trip.items && trip.items.length > 0) {
-                                    trip.items.forEach((item, index) => {
-                                        const destName = item.destination ? item.destination.name : 'Unknown Destination';
-                                        let proofImgHtml = '';
-                                        if (item.proof_image) {
-                                            let pUrl = item.proof_image;
-                                            if (!pUrl.startsWith('http') && !pUrl.startsWith('data:') && !pUrl.startsWith('blob:')) {
-                                                let b = (window.backendUrl || '').replace(/\/+$/, '');
-                                                pUrl = b + '/' + pUrl.replace(/^\//, '');
-                                            }
-                                            let fallbackUrl = (window.backendUrl || '').replace(/\/+$/, '') + '/api/image/' + item.proof_image.replace(/^\//, '');
-                                            proofImgHtml = `<img src="${pUrl}" onerror="if(this.src!=='${fallbackUrl}'){this.src='${fallbackUrl}';}" alt="Proof" style="width:28px; height:28px; border-radius:8px; object-fit:cover; border:1px solid ${item.is_visited ? 'rgba(52,199,89,0.5)' : (item.proof_status === 'rejected' ? 'rgba(239,68,68,0.5)' : 'rgba(255,149,0,0.5)')}; flex-shrink:0;">`;
-                                        }
-
-                                        let proofBadge = '';
-                                        if (item.is_visited || item.proof_status === 'approved') {
-                                            proofBadge = `<span style="font-size:10px; font-weight:800; color:#34c759; background:rgba(52,199,89,0.15); border:1px solid rgba(52,199,89,0.3); padding:2px 8px; border-radius:100px; margin-left:auto; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-circle-check"></i> Verified</span>`;
-                                        } else if (item.proof_status === 'rejected') {
-                                            proofBadge = `<span style="font-size:10px; font-weight:800; color:#ef4444; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.3); padding:2px 8px; border-radius:100px; margin-left:auto; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-circle-xmark"></i> Rejected</span>`;
-                                        } else if (item.proof_image && (item.proof_status === 'pending' || !item.proof_status)) {
-                                            proofBadge = `<span style="font-size:10px; font-weight:800; color:#FF9500; background:rgba(255,149,0,0.15); border:1px solid rgba(255,149,0,0.3); padding:2px 8px; border-radius:100px; margin-left:auto; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-clock"></i> Pending</span>`;
-                                        }
-
-                                        destinationsHtml += `
-                                        <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px; padding:8px 12px; background:rgba(0,0,0,0.12); border:none; border-radius:12px;">
-                                            <div style="width:22px; height:22px; border-radius:50%; background:linear-gradient(135deg, #38bdf8, #2563eb); color:#ffffff; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:900; flex-shrink:0; box-shadow:none;">${index + 1}</div>
-                                            ${proofImgHtml}
-                                            <div style="flex:1; font-size:13px; color:#ffffff; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${destName}</div>
-                                            ${proofBadge}
-                                        </div>
-                                    `;
-                                    });
-                                } else {
-                                    destinationsHtml = '<div style="font-size:12px; color:rgba(255,255,255,0.7); font-style:italic; text-align:center; padding:10px 0;">No destinations added yet.</div>';
-                                }
-
-                                const safeTitle = (trip.title || 'Trip').replace(/'/g, "\\'");
-                                tripsHtml += `
-                                <div class="trip-swipe-container" data-trip-id="${trip.id}" data-trip-title="${safeTitle}" style="margin-bottom: 14px; position: relative; overflow: hidden; border-radius: 20px; -webkit-mask-image: -webkit-radial-gradient(white, black); mask-image: radial-gradient(white, black); isolation: isolate; contain: paint;">
-                                    <div class="trip-swipe-bg" onclick="window.confirmDeleteSavedTrip('${trip.id}', this.closest('.trip-swipe-container'), '${safeTitle}')" style="position: absolute; top: 0; right: 0; bottom: 0; width: 85px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border-radius: 0 20px 20px 0; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 13px; font-weight: 800; gap: 4px; z-index: 1; opacity: 0; pointer-events: none; transform: translateX(85px); transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease; cursor: pointer;">
-                                        <i class="fa-solid fa-trash-can"></i> Delete
-                                    </div>
-                                    <div class="trip-swipe-content" style="position: relative; z-index: 2; transition: transform 0.2s ease, border-radius 0.2s ease; background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline: none !important; border-radius: 20px; overflow: hidden; box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important;">
-                                        <div onclick="const content = this.nextElementSibling; const icon = this.querySelector('.toggle-icon'); if(content.style.maxHeight === '0px' || !content.style.maxHeight){ content.style.paddingTop = '14px'; content.style.paddingBottom = '16px'; content.style.maxHeight = (content.scrollHeight + 50) + 'px'; content.style.opacity = '1'; icon.style.transform = 'rotate(90deg)'; } else { content.style.maxHeight = '0px'; content.style.opacity = '0'; content.style.paddingTop = '0'; content.style.paddingBottom = '0'; icon.style.transform = 'rotate(0deg)'; }" style="cursor:pointer; display:flex; align-items:center; gap: 14px; padding: 16px; transition: background 0.15s;" onpointerdown="this.style.background='rgba(255,255,255,0.08)'" onpointerup="this.style.background=''" onpointercancel="this.style.background=''">
-                                            <div style="width: 48px; height: 48px; border-radius: 14px; background: rgba(255, 255, 255, 0.22); border: none; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: none;">
-                                                <i class="fa-solid fa-map-location-dot" style="color: #ffffff; font-size: 20px;"></i>
-                                            </div>
-                                            <div style="flex: 1; min-width: 0;">
-                                                <span style="display:block; font-size:16px; font-weight:800; color:#ffffff; margin-bottom:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; letter-spacing:-0.3px;">${trip.title}</span>
-                                                <span style="display:flex; align-items:center; gap:8px; font-size:12px; color:rgba(255,255,255,0.9); font-weight:600; flex-wrap:wrap;">
-                                                    <span><i class="fa-solid fa-location-dot" style="margin-right:4px; color:#ffffff;"></i>${trip.items ? trip.items.length : 0} Stops</span>
-                                                    <span style="color:rgba(255,255,255,0.4);">&bull;</span>
-                                                    <span><i class="fa-regular fa-calendar" style="margin-right:4px; color:#ffffff;"></i>${trip.trip_date ? new Date(trip.trip_date).toLocaleDateString() : 'No Date'}</span>
-                                                    ${trip.transport_mode ? (() => {
-                                        const parts = String(trip.transport_mode).split(/[,+]|\band\b/i).map(s => s.trim().toLowerCase().replace(/[- ]/g, '_')).filter(Boolean);
-                                        if (parts.length === 0 || parts[0].includes('no_vehicle') || parts[0].includes('no vehicle')) {
-                                            return `<span style="color:rgba(255,255,255,0.4);">&bull;</span><span><i class="fa-solid fa-ban" style="margin-right:4px; color:#f87171;"></i>No Vehicle Selected</span>`;
-                                        }
-                                        if (parts.length > 1) {
-                                            return `<span style="color:rgba(255,255,255,0.4);">&bull;</span><span><i class="fa-solid fa-route" style="margin-right:4px; color:#38bdf8;"></i>${parts.length} Vehicles</span>`;
-                                        }
-                                        const rawT = parts[0];
-                                        const tMap = {
-                                            'own_car': 'Own Car',
-                                            'mpuj': 'MPUJ',
-                                            'tpuj': 'TPUJ',
-                                            'pub_aircon': 'PUB Aircon',
-                                            'pub_ordinary': 'PUB Ordinary',
-                                            'pub_regular': 'PUB Regular',
-                                            'uve': 'UV Express',
-                                            'jeepney': 'Jeepney',
-                                            'tricycle': 'Tricycle',
-                                            'bus': 'Bus',
-                                            'private_bus': 'PUB Aircon',
-                                            'mini_bus': 'Mini Bus',
-                                            'lutrampco': 'LUTRAMPCO',
-                                            'taxi': 'Taxi',
-                                            'motorcycle': 'Motorcycle',
-                                            'walking': 'Walking'
-                                        };
-                                        const tIco = {
-                                            'own_car': 'fa-car',
-                                            'mpuj': 'fa-van-shuttle',
-                                            'tpuj': 'fa-van-shuttle',
-                                            'pub_aircon': 'fa-bus',
-                                            'pub_ordinary': 'fa-bus-simple',
-                                            'pub_regular': 'fa-bus-simple',
-                                            'uve': 'fa-van-shuttle',
-                                            'jeepney': 'fa-van-shuttle',
-                                            'tricycle': 'fa-motorcycle',
-                                            'bus': 'fa-bus',
-                                            'private_bus': 'fa-bus',
-                                            'mini_bus': 'fa-bus-simple',
-                                            'lutrampco': 'fa-van-shuttle',
-                                            'taxi': 'fa-taxi',
-                                            'motorcycle': 'fa-motorcycle',
-                                            'walking': 'fa-person-walking'
-                                        };
-                                        const displayName = tMap[rawT] || rawT.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-                                        return `<span style="color:rgba(255,255,255,0.4);">&bull;</span><span><i class="fa-solid ${tIco[rawT] || 'fa-car'}" style="margin-right:4px; color:#38bdf8;"></i>${displayName}</span>`;
-                                    })() : ''}
-                                                </span>
-                                            </div>
-                                            <i class="fa-solid fa-chevron-right toggle-icon" style="color: rgba(255,255,255,0.7); font-size: 14px; margin-right:4px; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);"></i>
-                                        </div>
-                                        <div style="max-height: 0px; opacity: 0; padding: 0 16px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); overflow: hidden; background: transparent; border-top: none;">
-                                            ${destinationsHtml}
-                                            <div style="display:flex; gap:10px; margin-top:12px; margin-bottom:2px;">
-                                                <button onclick="if(window.sessionStorage){sessionStorage.setItem('active_trip_transport_${trip.id}', '${trip.transport_mode || ''}'); localStorage.setItem('selected_trip_vehicle_${trip.id}', '${trip.transport_mode || ''}');} window.location.href='?view=trip_map&trip_id=${trip.id}${trip.transport_mode ? '&transport=' + encodeURIComponent(trip.transport_mode) : ''}'" style="flex:1; background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); border:none; outline:none; color:#ffffff; padding:12px; border-radius:14px; font-weight:800; font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; box-shadow:none;">
-                                                    <i class="fa-solid fa-compass"></i> Start Trip
-                                                </button>
-                                                <button onclick="navigateTo('saved_trips')" style="flex:1; background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; padding:12px; border-radius:14px; font-weight:800; font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; box-shadow:0 2px 8px rgba(0,0,0,0.15) !important;">
-                                                    <i class="fa-solid fa-route" style="color:#1e3a8a !important;"></i> View Details
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            `;
-                            });
-                            tripsContainer.innerHTML = tripsHtml;
-                            if (typeof window.setupDashboardSwipeToDelete === 'function') {
-                                window.setupDashboardSwipeToDelete();
-                            }
-                        } else {
-                            tripsContainer.innerHTML = `
-                            <div class="dash-empty-state">
-                                <div class="dash-empty-icon-wrap" style="background: #ffffff !important; color: #1e3a8a !important; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15) !important;">
-                                    <i class="fa-solid fa-route" style="color: #1e3a8a !important;"></i>
-                                </div>
-                                <div class="dash-empty-title">No Saved Trips Yet</div>
-                                <div class="dash-empty-desc">Create custom itineraries and explore recommended routes for your La Union adventure.</div>
-                                <button type="button" onclick="navigateTo('itinerary')" class="dash-empty-btn">
-                                    <i class="fa-solid fa-plus"></i> Plan a Trip
-                                </button>
-                            </div>
-                        `;
-                        }
+                        if (itinData) renderSavedTrips(itinData);
                     },
                     Boolean(forceRefresh || window.dashboardNeedsRefresh),
-                    60000 // 1 minute TTL for trips
-                );
+                    60000 // 1 minute TTL
+                ).catch(e => console.warn('Trips fetch handled:', e));
             }
         } catch (e) {
-            console.error(e);
+            console.error('dashboardInit error:', e);
+            handleDashboardEmptyOrError();
         }
     }
     window.dashboardInit = dashboardInit;
 
-    // Ambient automatic reconnect & lifecycle listeners
-    window.addEventListener('online', function () {
-        const current = (document.body ? document.body.getAttribute('data-view') : '') || (window.currentView || '');
-        if (current !== 'dashboard') {
-            window.dashboardNeedsRefresh = true;
-            return;
-        }
-        if (typeof window.dashboardInit === 'function') window.dashboardInit(true);
-    });
-    window.addEventListener('appOnline', function () {
-        const current = (document.body ? document.body.getAttribute('data-view') : '') || (window.currentView || '');
-        if (current !== 'dashboard') {
-            window.dashboardNeedsRefresh = true;
-            return;
-        }
-        if (typeof window.dashboardInit === 'function') window.dashboardInit(true);
-    });
-    document.addEventListener('visibilitychange', function () {
-        const current = (document.body ? document.body.getAttribute('data-view') : '') || (window.currentView || '');
-        if (current !== 'dashboard') return;
-        if (!document.hidden && window.dashboardNeedsRefresh) {
-            if (typeof window.dashboardInit === 'function') window.dashboardInit(true);
-        }
-    });
-    window.addEventListener('viewLoaded', function (e) {
-        if (e && e.detail && e.detail.view === 'dashboard') {
-            if (typeof window.dashboardInit === 'function') {
-                window.dashboardInit(Boolean(window.dashboardNeedsRefresh));
+    // Ambient automatic reconnect & lifecycle listeners (bound once)
+    if (!window._dashboardLifecycleListenersBound) {
+        window._dashboardLifecycleListenersBound = true;
+
+        window.addEventListener('online', function () {
+            const current = (document.body ? document.body.getAttribute('data-view') : '') || (window.currentView || '');
+            if (current !== 'dashboard') {
+                window.dashboardNeedsRefresh = true;
+                return;
             }
-        }
-    });
+            if (typeof window.dashboardInit === 'function') window.dashboardInit(true);
+        });
+        window.addEventListener('appOnline', function () {
+            const current = (document.body ? document.body.getAttribute('data-view') : '') || (window.currentView || '');
+            if (current !== 'dashboard') {
+                window.dashboardNeedsRefresh = true;
+                return;
+            }
+            if (typeof window.dashboardInit === 'function') window.dashboardInit(true);
+        });
+        window.addEventListener('checkins-synced', function () {
+            const current = (document.body ? document.body.getAttribute('data-view') : '') || (window.currentView || '');
+            if (current !== 'dashboard') {
+                window.dashboardNeedsRefresh = true;
+                return;
+            }
+            if (typeof window.dashboardInit === 'function') window.dashboardInit(true);
+        });
+        document.addEventListener('visibilitychange', function () {
+            const current = (document.body ? document.body.getAttribute('data-view') : '') || (window.currentView || '');
+            if (current !== 'dashboard') return;
+            if (!document.hidden && window.dashboardNeedsRefresh) {
+                if (typeof window.dashboardInit === 'function') window.dashboardInit(true);
+            }
+        });
+        window.addEventListener('viewLoaded', function (e) {
+            if (e && e.detail && e.detail.view === 'dashboard') {
+                if (typeof window.dashboardInit === 'function') {
+                    window.dashboardInit(Boolean(window.dashboardNeedsRefresh));
+                }
+            }
+        });
+    }
 
     dashboardInit();
 
     window.toggleFavorite = function (destId, element) {
         const token = localStorage.getItem('intan_elyu_token');
-        var backendUrl = window.backendUrl || 'https://api.intan-elyu.online';
+        var backendUrl = getDashBackendUrl();
 
         const card = element.closest('.fav-card');
         const isSavedContainer = card && (card.closest('#saved-places-container') !== null);
@@ -1791,17 +2619,27 @@ if (is_dir($imgDir)) {
             }
         } catch (e) { }
 
-        // 2. BACKGROUND NETWORK REQUEST
-        fetch(backendUrl + '/api/tourist/destinations/' + destId + '/favorite', {
-            method: 'POST',
-            credentials: 'include',
-            headers: {
-                'Accept': 'application/json',
-                'Authorization': 'Bearer ' + token
+        // 2. BACKGROUND NETWORK REQUEST OR OFFLINE QUEUE
+        const isOfflineFavoriteAction = (typeof navigator.onLine === 'boolean') ? !navigator.onLine : (window.isAppOnline === false);
+        if (isOfflineFavoriteAction) {
+            if (window.OfflineFavoriteManager && typeof window.OfflineFavoriteManager.queueToggle === 'function') {
+                window.OfflineFavoriteManager.queueToggle(destId, isRemoving ? 'remove' : 'add');
             }
-        }).catch(e => {
-            console.warn('Background favorite sync error:', e);
-        });
+        } else {
+            fetch(backendUrl + '/api/tourist/destinations/' + destId + '/favorite', {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Accept': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                }
+            }).catch(e => {
+                console.warn('Background favorite sync error, queuing locally:', e);
+                if (window.OfflineFavoriteManager && typeof window.OfflineFavoriteManager.queueToggle === 'function') {
+                    window.OfflineFavoriteManager.queueToggle(destId, isRemoving ? 'remove' : 'add');
+                }
+            });
+        }
     };
 
     window.viewDestinationOnMap = function (encodedDest) {
@@ -1978,91 +2816,166 @@ if (is_dir($imgDir)) {
             const content = container.querySelector('.trip-swipe-content');
             const bg = container.querySelector('.trip-swipe-bg');
             if (!content) return;
-            let startX = 0, currentX = 0, isSwiping = false, moved = false;
+            let startX = 0, startY = 0, currentX = 0, currentY = 0;
+            let isSwiping = false, isHorizontalSwipe = false, isGestureDetermined = false, isOpen = false;
 
-            const handleStart = (clientX) => {
+            container.style.touchAction = 'pan-y';
+            content.style.touchAction = 'pan-y';
+
+            const openSwipe = () => {
+                isOpen = true;
+                content.style.transition = 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)';
+                content.style.transform = 'translateX(-85px)';
+                if (bg) {
+                    bg.style.transition = 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease';
+                    bg.style.width = '85px';
+                    bg.style.opacity = '1';
+                    bg.style.pointerEvents = 'auto';
+                    bg.style.transform = 'translateX(0px)';
+                    bg.style.zIndex = '10';
+                }
+            };
+
+            const closeSwipe = () => {
+                isOpen = false;
+                content.style.transition = 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)';
+                content.style.transform = 'translateX(0px)';
+                if (bg) {
+                    bg.style.transition = 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease';
+                    bg.style.width = '85px';
+                    bg.style.opacity = '0';
+                    bg.style.pointerEvents = 'none';
+                    bg.style.transform = 'translateX(85px)';
+                    bg.style.zIndex = '1';
+                }
+            };
+
+            const handleStart = (clientX, clientY, target) => {
+                if (target && target.closest('button, a, input, select, textarea, .stat-card')) return;
+                if (target && target.closest('.trip-swipe-bg')) return;
                 startX = clientX;
+                startY = clientY;
                 currentX = startX;
+                currentY = startY;
                 isSwiping = true;
-                moved = false;
+                isHorizontalSwipe = false;
+                isGestureDetermined = false;
                 content.style.transition = 'none';
                 if (bg) bg.style.transition = 'none';
             };
 
-            const handleMove = (clientX) => {
+            const handleMove = (clientX, clientY) => {
                 if (!isSwiping) return;
                 currentX = clientX;
-                let diff = startX - currentX;
-                if (Math.abs(diff) > 5) moved = true;
-                if (diff > 0) {
-                    const translate = Math.min(diff, 85);
-                    content.style.transform = `translateX(-${translate}px)`;
-                    content.style.borderRadius = '20px';
+                currentY = clientY;
+                const diffX = startX - currentX;
+                const diffY = startY - currentY;
+
+                if (!isGestureDetermined) {
+                    if (Math.abs(diffX) > 7 || Math.abs(diffY) > 7) {
+                        isGestureDetermined = true;
+                        if (Math.abs(diffX) > Math.abs(diffY)) {
+                            isHorizontalSwipe = true;
+                        } else {
+                            isHorizontalSwipe = false;
+                            isSwiping = false;
+                            return;
+                        }
+                    } else {
+                        return;
+                    }
+                }
+
+                if (!isHorizontalSwipe) return;
+
+                const baseOffset = isOpen ? 85 : 0;
+                const effectiveDiff = diffX + baseOffset;
+
+                if (effectiveDiff > 0) {
+                    const cardWidth = container.offsetWidth || 320;
+                    const dragAmount = Math.min(effectiveDiff, cardWidth * 0.85);
+                    content.style.transform = `translateX(-${dragAmount}px)`;
                     if (bg) {
                         bg.style.opacity = '1';
                         bg.style.pointerEvents = 'auto';
-                        bg.style.transform = `translateX(${85 - translate}px)`;
+                        bg.style.zIndex = '10';
+                        if (dragAmount > 85) {
+                            bg.style.width = `${dragAmount}px`;
+                            bg.style.transform = 'translateX(0px)';
+                        } else {
+                            bg.style.width = '85px';
+                            bg.style.transform = `translateX(${85 - dragAmount}px)`;
+                        }
                     }
-                } else if (diff < -5) {
+                } else {
                     content.style.transform = 'translateX(0px)';
-                    content.style.borderRadius = '20px';
                     if (bg) {
+                        bg.style.width = '85px';
                         bg.style.opacity = '0';
                         bg.style.pointerEvents = 'none';
                         bg.style.transform = 'translateX(85px)';
+                        bg.style.zIndex = '1';
                     }
                 }
             };
 
             const handleEnd = () => {
                 if (!isSwiping) return;
-                content.style.transition = 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)';
-                if (bg) bg.style.transition = 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease';
-                const diff = startX - currentX;
+                isSwiping = false;
+                const diffX = startX - currentX;
+                const baseOffset = isOpen ? 85 : 0;
+                const effectiveDiff = diffX + baseOffset;
                 const tripId = container.dataset.tripId;
                 const tripTitle = container.dataset.tripTitle || '';
-                if (diff > 75 && moved) {
-                    // Full swipe across -> Reveal red button & trigger confirmation modal
-                    content.style.transform = 'translateX(-85px)';
-                    content.style.borderRadius = '20px';
+
+                if (effectiveDiff > 120) {
+                    content.style.transition = 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)';
+                    content.style.transform = 'translateX(-90px)';
                     if (bg) {
+                        bg.style.transition = 'transform 0.25s ease, opacity 0.2s ease';
+                        bg.style.width = '90px';
                         bg.style.opacity = '1';
                         bg.style.pointerEvents = 'auto';
                         bg.style.transform = 'translateX(0px)';
+                        bg.style.zIndex = '10';
                     }
+                    isOpen = true;
                     window.confirmDeleteSavedTrip(tripId, container, tripTitle);
-                } else if (diff > 30 && moved) {
-                    // Partial swipe -> Reveal red delete button for tap
-                    content.style.transform = 'translateX(-85px)';
-                    content.style.borderRadius = '20px';
-                    if (bg) {
-                        bg.style.opacity = '1';
-                        bg.style.pointerEvents = 'auto';
-                        bg.style.transform = 'translateX(0px)';
-                    }
+                } else if (effectiveDiff > 30) {
+                    openSwipe();
                 } else {
-                    // Tap or small drag -> Snap closed
-                    content.style.transform = 'translateX(0px)';
-                    content.style.borderRadius = '20px';
-                    content.style.borderRightColor = '';
-                    if (bg) {
-                        bg.style.opacity = '0';
-                        bg.style.pointerEvents = 'none';
-                        bg.style.transform = 'translateX(85px)';
-                    }
+                    closeSwipe();
                 }
+
                 startX = 0;
+                startY = 0;
                 currentX = 0;
-                isSwiping = false;
-                moved = false;
+                currentY = 0;
+                isHorizontalSwipe = false;
+                isGestureDetermined = false;
             };
 
-            content.addEventListener('touchstart', (e) => handleStart(e.touches[0].clientX), { passive: true });
-            content.addEventListener('touchmove', (e) => handleMove(e.touches[0].clientX), { passive: true });
-            content.addEventListener('touchend', handleEnd, { passive: true });
+            const handleCancel = () => {
+                if (!isSwiping) return;
+                isSwiping = false;
+                if (isOpen) openSwipe(); else closeSwipe();
+            };
 
-            content.addEventListener('mousedown', (e) => handleStart(e.clientX));
-            window.addEventListener('mousemove', (e) => { if (isSwiping) handleMove(e.clientX); });
+            content.addEventListener('touchstart', (e) => {
+                if (e.touches && e.touches.length === 1) {
+                    handleStart(e.touches[0].clientX, e.touches[0].clientY, e.target);
+                }
+            }, { passive: true });
+            content.addEventListener('touchmove', (e) => {
+                if (e.touches && e.touches.length === 1) {
+                    handleMove(e.touches[0].clientX, e.touches[0].clientY);
+                }
+            }, { passive: true });
+            content.addEventListener('touchend', handleEnd, { passive: true });
+            content.addEventListener('touchcancel', handleCancel, { passive: true });
+
+            content.addEventListener('mousedown', (e) => handleStart(e.clientX, e.clientY, e.target));
+            window.addEventListener('mousemove', (e) => { if (isSwiping) handleMove(e.clientX, e.clientY); });
             window.addEventListener('mouseup', () => { if (isSwiping) handleEnd(); });
         });
     };
@@ -2114,315 +3027,156 @@ if (is_dir($imgDir)) {
         const element = window._pendingDeleteTripContainer;
         const btn = document.getElementById('btn-confirm-delete-trip');
         const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
-        if (!id || !token) {
+        if (!id) {
             window.closeDeleteTripModal();
             return;
         }
 
-        if (btn) {
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Deleting...';
-            btn.disabled = true;
+        const pruneTripFromLocalCaches = (tripId) => {
+            if (!tripId) return;
+            const targetStr = String(tripId).trim();
+
+            const filterOut = (list) => {
+                if (!Array.isArray(list)) return [];
+                return list.filter(t => {
+                    if (!t) return false;
+                    const idStr = String(t.id || '');
+                    const tripIdStr = String(t.trip_id || '');
+                    const localIdStr = String(t.local_id || '');
+                    const updateIdStr = String(t.update_id || '');
+                    if (idStr === targetStr || tripIdStr === targetStr || localIdStr === targetStr || updateIdStr === targetStr) return false;
+                    if (idStr === 'offline_edit_' + targetStr || tripIdStr === 'offline_edit_' + targetStr) return false;
+                    if (targetStr.startsWith('offline_edit_')) {
+                        const raw = targetStr.replace('offline_edit_', '');
+                        if (idStr === raw || tripIdStr === raw || localIdStr === raw || updateIdStr === raw) return false;
+                    }
+                    return true;
+                });
+            };
+
+            ['intan_elyu_offline_saved_trips', 'intan_elyu_offline_saved_trips_backup', 'intan_elyu_saved_trips'].forEach(k => {
+                try {
+                    const raw = localStorage.getItem(k);
+                    if (raw) {
+                        const parsed = JSON.parse(raw);
+                        if (Array.isArray(parsed)) {
+                            localStorage.setItem(k, JSON.stringify(filterOut(parsed)));
+                        } else if (parsed && Array.isArray(parsed.itineraries)) {
+                            parsed.itineraries = filterOut(parsed.itineraries);
+                            localStorage.setItem(k, JSON.stringify(parsed));
+                        } else if (parsed && Array.isArray(parsed.data)) {
+                            parsed.data = filterOut(parsed.data);
+                            localStorage.setItem(k, JSON.stringify(parsed));
+                        }
+                    }
+                } catch (e) { }
+            });
+
+            if (window.OfflineTripManager && typeof window.OfflineTripManager.removeQueuedTrip === 'function') {
+                try { window.OfflineTripManager.removeQueuedTrip(tripId); } catch(e) {}
+            }
+
+            try {
+                for (let i = localStorage.length - 1; i >= 0; i--) {
+                    const k = localStorage.key(i);
+                    if (k && (k.startsWith('saved_trips_') || k.startsWith('dashboard_trips_') || k.startsWith('dashboard_saved_trips_'))) {
+                        try {
+                            const raw = localStorage.getItem(k);
+                            if (raw) {
+                                const parsed = JSON.parse(raw);
+                                if (parsed && Array.isArray(parsed.data)) {
+                                    parsed.data = filterOut(parsed.data);
+                                    localStorage.setItem(k, JSON.stringify(parsed));
+                                } else if (Array.isArray(parsed)) {
+                                    localStorage.setItem(k, JSON.stringify(filterOut(parsed)));
+                                } else if (parsed && Array.isArray(parsed.itineraries)) {
+                                    parsed.itineraries = filterOut(parsed.itineraries);
+                                    localStorage.setItem(k, JSON.stringify(parsed));
+                                }
+                            }
+                        } catch (e) {
+                            localStorage.removeItem(k);
+                        }
+                    }
+                }
+            } catch(e) {}
+
+            if (Array.isArray(window._cachedSavedTrips)) {
+                window._cachedSavedTrips = filterOut(window._cachedSavedTrips);
+            }
+        };
+
+        const isGuestOrOffline = !token || 
+            token === 'guest_token' || 
+            token === 'offline_guest_token' || 
+            token.startsWith('guest_') || 
+            token.startsWith('offline_') || 
+            String(id).startsWith('offline_') ||
+            ((typeof navigator.onLine === 'boolean') ? !navigator.onLine : (window.isAppOnline === false));
+
+        pruneTripFromLocalCaches(id);
+
+        if (element) {
+            element.style.transition = 'all 0.3s ease';
+            element.style.opacity = '0';
+            element.style.transform = 'scale(0.9)';
+            setTimeout(() => {
+                element.remove();
+                const tripsContainer = document.getElementById('saved-trips-container');
+                if (tripsContainer && (!tripsContainer.querySelectorAll('.trip-swipe-container') || tripsContainer.querySelectorAll('.trip-swipe-container').length === 0)) {
+                    tripsContainer.innerHTML = `
+                        <div class="dash-empty-state">
+                            <div class="dash-empty-icon-wrap" style="background: #ffffff !important; color: #1e3a8a !important; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15) !important;">
+                                <i class="fa-solid fa-route" style="color: #1e3a8a !important;"></i>
+                            </div>
+                            <div class="dash-empty-title">No Saved Trips Yet</div>
+                            <div class="dash-empty-desc">Create custom itineraries and explore recommended routes for your La Union adventure.</div>
+                            <button type="button" onclick="navigateTo('itinerary')" class="dash-empty-btn">
+                                <i class="fa-solid fa-plus"></i> Plan a Trip
+                            </button>
+                        </div>
+                    `;
+                }
+            }, 300);
+        }
+
+        window.closeDeleteTripModal();
+
+        if (isGuestOrOffline) {
+            if (typeof showToast === 'function') showToast("Trip deleted from device.");
+            window.dispatchEvent(new CustomEvent('tripDeleted', { detail: { id: id } }));
+            return;
         }
 
         try {
-            const res = await fetch(window.backendUrl + '/api/tourist/itineraries/' + id, {
+            const bUrl = (typeof window.getDashBackendUrl === 'function' ? window.getDashBackendUrl() : (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online'))).replace(/\/+$/, '');
+            const res = await fetch(bUrl + '/api/tourist/itineraries/' + id, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': 'Bearer ' + token,
-                    'Accept': 'application/json'
+                    'Accept': 'application/json',
+                    'ngrok-skip-browser-warning': 'true'
                 }
             });
 
-            // Clear local cached saved trips in both views
-            const tokenKey = token.substring(0, 10);
-            localStorage.removeItem('saved_trips_' + tokenKey);
-            localStorage.removeItem('dashboard_trips_' + tokenKey);
-            localStorage.removeItem('dashboard_saved_trips_' + tokenKey);
+            pruneTripFromLocalCaches(id);
 
             if (res.ok || res.status === 404) {
-                if (element) {
-                    element.style.transition = 'all 0.3s ease';
-                    element.style.opacity = '0';
-                    element.style.transform = 'scale(0.9)';
-                    setTimeout(() => {
-                        element.remove();
-                        const tripsContainer = document.getElementById('saved-trips-container');
-                        if (tripsContainer && (!tripsContainer.querySelectorAll('.trip-swipe-container') || tripsContainer.querySelectorAll('.trip-swipe-container').length === 0)) {
-                            tripsContainer.innerHTML = `
-                                <div class="dash-empty-state">
-                                    <div class="dash-empty-icon-wrap" style="background: #ffffff !important; color: #1e3a8a !important; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15) !important;">
-                                        <i class="fa-solid fa-route" style="color: #1e3a8a !important;"></i>
-                                    </div>
-                                    <div class="dash-empty-title">No Saved Trips Yet</div>
-                                    <div class="dash-empty-desc">Create custom itineraries and explore recommended routes for your La Union adventure.</div>
-                                    <button type="button" onclick="navigateTo('itinerary')" class="dash-empty-btn">
-                                        <i class="fa-solid fa-plus"></i> Plan a Trip
-                                    </button>
-                                </div>
-                            `;
-                        }
-                    }, 300);
-                }
                 if (typeof showToast === 'function') showToast("Trip deleted successfully.");
+            } else if (res.status === 403) {
+                if (typeof showToast === 'function') showToast("Unauthorized to delete this trip.", "error");
             } else {
-                if (typeof showToast === 'function') showToast("Failed to delete trip.");
+                if (typeof showToast === 'function') showToast("Trip deleted locally.");
             }
+
+            window.dispatchEvent(new CustomEvent('tripDeleted', { detail: { id: id } }));
         } catch (e) {
             console.error('Error deleting itinerary', e);
-            if (typeof showToast === 'function') showToast("Error deleting trip.");
-        } finally {
-            if (btn) {
-                btn.innerHTML = 'Delete';
-                btn.disabled = false;
-            }
-            window.closeDeleteTripModal();
+            pruneTripFromLocalCaches(id);
+            if (typeof showToast === 'function') showToast("Trip removed from device (offline).");
+            window.dispatchEvent(new CustomEvent('tripDeleted', { detail: { id: id } }));
         }
     };
-
-    // ─────────────────────────────────────────────────────────────────────────────
-    //  Weather API Integration
-    // ─────────────────────────────────────────────────────────────────────────────
-    window.currentWeatherLocation = { lat: 16.6159, lng: 120.3209, name: 'San Fernando, La Union', isCurrentLoc: false };
-
-    window.fetchWeather = async function (lat = 16.6159, lng = 120.3209, locationName = 'San Fernando, La Union', isCurrentLoc = false) {
-        window.currentWeatherLocation = { lat, lng, name: locationName, isCurrentLoc };
-        const tempEl = document.getElementById('weather-temp');
-        const descEl = document.getElementById('weather-desc');
-        const locEl = document.getElementById('weather-loc');
-        const humidityEl = document.getElementById('weather-humidity');
-        const windEl = document.getElementById('weather-wind');
-        const uvEl = document.getElementById('weather-uv');
-        const iconEl = document.getElementById('weather-icon');
-
-        try {
-            const apiBase = window.backendUrl || '';
-            const isCurrentParam = isCurrentLoc ? '&is_current_location=1' : '';
-            const url = `${apiBase}/api/public/weather?lat=${lat}&lng=${lng}&location=${encodeURIComponent(locationName)}${isCurrentParam}`;
-            
-            // Fast offline render
-            if (!navigator.onLine) {
-                try {
-                    const rawW = localStorage.getItem('intan_elyu_cached_weather');
-                    if (rawW) {
-                        const cw = JSON.parse(rawW)?.data;
-                        if (cw) {
-                            if (tempEl) tempEl.textContent = `${cw.temperature}°C`;
-                            if (descEl) descEl.textContent = cw.condition;
-                            if (locEl) locEl.innerHTML = `<i class="fa-solid fa-location-dot" style="color:#38bdf8; margin-right:4px;"></i> ${cw.location}`;
-                            if (humidityEl) humidityEl.textContent = `${cw.humidity}%`;
-                            if (windEl) windEl.textContent = `${cw.wind_speed} km/h`;
-                            if (uvEl) uvEl.textContent = cw.uv_index;
-                            if (iconEl) iconEl.innerHTML = window.renderWeatherIconHtml(cw.icon, cw.fa_icon);
-                            window.updateWeatherModal(cw);
-                            return;
-                        }
-                    }
-                } catch(e) {}
-            }
-
-            const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
-            if (!res.ok) throw new Error('Weather request failed with status ' + res.status);
-            const data = await res.json();
-
-            try { localStorage.setItem('intan_elyu_cached_weather', JSON.stringify({ data, timestamp: Date.now() })); } catch(e) {}
-
-            if (tempEl) tempEl.textContent = `${data.temperature}°C`;
-            if (descEl) descEl.textContent = data.condition;
-            if (locEl) locEl.innerHTML = `<i class="fa-solid fa-location-dot" style="color:#38bdf8; margin-right:4px;"></i> ${data.location}`;
-            if (humidityEl) humidityEl.textContent = `${data.humidity}%`;
-            if (windEl) windEl.textContent = `${data.wind_speed} km/h`;
-            if (uvEl) uvEl.textContent = data.uv_index;
-            if (iconEl) iconEl.innerHTML = window.renderWeatherIconHtml(data.icon, data.fa_icon);
-
-            window.updateWeatherModal(data);
-        } catch (e) {
-            console.warn('Weather fetch error, checking cache or fallback:', e);
-            let cachedW = null;
-            try {
-                const rawW = localStorage.getItem('intan_elyu_cached_weather');
-                if (rawW) cachedW = JSON.parse(rawW)?.data;
-            } catch(err) {}
-
-            if (cachedW) {
-                if (tempEl) tempEl.textContent = `${cachedW.temperature}°C`;
-                if (descEl) descEl.textContent = cachedW.condition;
-                if (locEl) locEl.innerHTML = `<i class="fa-solid fa-location-dot" style="color:#38bdf8; margin-right:4px;"></i> ${cachedW.location}`;
-                if (humidityEl) humidityEl.textContent = `${cachedW.humidity}%`;
-                if (windEl) windEl.textContent = `${cachedW.wind_speed} km/h`;
-                if (uvEl) uvEl.textContent = cachedW.uv_index;
-                if (iconEl) iconEl.innerHTML = window.renderWeatherIconHtml(cachedW.icon, cachedW.fa_icon);
-            } else {
-                if (tempEl) tempEl.textContent = '29°C';
-                if (descEl) descEl.textContent = 'Partly Cloudy';
-                if (humidityEl) humidityEl.textContent = '72%';
-                if (windEl) windEl.textContent = '14 km/h';
-                if (uvEl) uvEl.textContent = '6';
-            }
-        }
-    };
-
-    window.renderWeatherIconHtml = function (iconEmoji, faIcon) {
-        if (faIcon) {
-            let color = '#fbbf24';
-            if (faIcon.includes('sun')) color = '#fbbf24';
-            else if (faIcon.includes('moon')) color = '#a78bfa';
-            else if (faIcon.includes('rain') || faIcon.includes('shower')) color = '#38bdf8';
-            else if (faIcon.includes('bolt')) color = '#f59e0b';
-            else if (faIcon.includes('cloud')) color = '#94a3b8';
-            else if (faIcon.includes('smog')) color = '#cbd5e1';
-
-            return `<i class="fa-solid ${faIcon}" style="color:${color}; filter:drop-shadow(0 0 10px ${color}80);"></i>`;
-        }
-        return iconEmoji || '⛅';
-    };
-
-    window.locateMeForWeather = function () {
-        const locEl = document.getElementById('weather-loc');
-        const descEl = document.getElementById('weather-desc');
-        if (locEl) locEl.innerHTML = `<i class="fa-solid fa-location-dot fa-spin" style="color:#38bdf8; margin-right:4px;"></i> Detecting location...`;
-        if (descEl) descEl.textContent = 'Acquiring location...';
-
-        const fallbackToLocal = () => {
-            try {
-                const manual = localStorage.getItem('intan_elyu_manual_loc');
-                if (manual) {
-                    const parsed = JSON.parse(manual);
-                    if (parsed && parsed.lat && parsed.lng) {
-                        window.fetchWeather(parsed.lat, parsed.lng, parsed.name || 'La Union', false);
-                        if (typeof window.loadNearMe === 'function') window.loadNearMe(parsed.lat, parsed.lng, parsed.name);
-                        return;
-                    }
-                }
-            } catch (e) { }
-            window.fetchWeather(16.6159, 120.3209, 'San Fernando, La Union', false);
-            if (typeof window.loadNearMe === 'function') window.loadNearMe(16.6159, 120.3209, 'San Fernando City');
-        };
-
-        if (typeof window.requestPreciseLocation === 'function') {
-            window.requestPreciseLocation(true).then(loc => {
-                if (loc && loc.lat && loc.lng) {
-                    window.userCurrentCoords = { lat: loc.lat, lng: loc.lng };
-                    window.currentGPSLat = loc.lat;
-                    window.currentGPSLng = loc.lng;
-                    window.currentGPSSource = 'gps';
-                    window.fetchWeather(loc.lat, loc.lng, 'My Location 📍', true);
-                    if (typeof loadNearMe === 'function') loadNearMe(loc.lat, loc.lng);
-                } else {
-                    fallbackToLocal();
-                }
-            }).catch(() => {
-                fallbackToLocal();
-            });
-        } else if ("geolocation" in navigator) {
-            navigator.geolocation.getCurrentPosition(
-                (pos) => {
-                    const lat = pos.coords.latitude;
-                    const lng = pos.coords.longitude;
-                    window.userCurrentCoords = { lat, lng };
-                    window.currentGPSLat = lat;
-                    window.currentGPSLng = lng;
-                    window.currentGPSSource = 'gps';
-                    window.fetchWeather(lat, lng, 'My Location 📍', true);
-                    if (typeof loadNearMe === 'function') loadNearMe(lat, lng);
-                },
-                (err) => {
-                    console.warn('GPS location failed/denied, using local fallback:', err);
-                    fallbackToLocal();
-                },
-                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-            );
-        } else {
-            fallbackToLocal();
-        }
-    };
-
-    // Live continuous GPS sync listener for real-time Near Me distances (debounced to eliminate twitching)
-    window._gpsDebounceTimer = window._gpsDebounceTimer || null;
-    document.addEventListener('gpsUpdated', function (e) {
-        if (e.detail && e.detail.lat && e.detail.lng) {
-            const liveLat = parseFloat(e.detail.lat);
-            const liveLng = parseFloat(e.detail.lng);
-            if (!isNaN(liveLat) && !isNaN(liveLng) && liveLat !== 0 && liveLng !== 0) {
-                window.userCurrentCoords = { lat: liveLat, lng: liveLng };
-                window.currentGPSLat = liveLat;
-                window.currentGPSLng = liveLng;
-                if (typeof window.loadNearMe === 'function') {
-                    clearTimeout(window._gpsDebounceTimer);
-                    window._gpsDebounceTimer = setTimeout(() => {
-                        window.loadNearMe(liveLat, liveLng);
-                    }, 1500);
-                }
-            }
-        }
-    });
-
-    window.updateWeatherModal = function (data) {
-        const modalLoc = document.getElementById('modal-weather-loc');
-        const modalTemp = document.getElementById('modal-temp');
-        const modalCondition = document.getElementById('modal-condition');
-        const modalFeels = document.getElementById('modal-feels');
-        const modalIcon = document.getElementById('modal-icon');
-        const forecastContainer = document.getElementById('weather-forecast-container');
-        const muniSelect = document.getElementById('weather-muni-select');
-
-        if (modalLoc) modalLoc.textContent = data.location;
-        if (modalTemp) modalTemp.textContent = `${data.temperature}°C`;
-        if (modalCondition) modalCondition.textContent = data.condition;
-        if (modalFeels) modalFeels.textContent = `Feels like ${data.feels_like}°C · Humidity ${data.humidity}% · Wind ${data.wind_speed}km/h`;
-        if (modalIcon) modalIcon.innerHTML = window.renderWeatherIconHtml(data.icon, data.fa_icon);
-
-        if (forecastContainer && data.forecast && data.forecast.length > 0) {
-            forecastContainer.innerHTML = data.forecast.map(item => `
-                <div style="background:rgba(0,0,0,0.12); border:none; border-radius:16px; padding:12px 16px; display:flex; align-items:center; justify-content:space-between;">
-                    <div style="display:flex; align-items:center; gap:14px;">
-                        <span style="font-size:26px; width:32px; text-align:center; display:inline-block;">${window.renderWeatherIconHtml(item.icon, item.fa_icon)}</span>
-                        <div>
-                            <div style="font-size:14px; font-weight:800; color:#fff;">${item.day}</div>
-                            <div style="font-size:11px; color:rgba(255,255,255,0.9);">${item.condition}</div>
-                        </div>
-                    </div>
-                    <div style="text-align:right;">
-                        <div style="font-size:14px; font-weight:800; color:#fff;">${item.temp_max}° <span style="font-size:12px; color:rgba(255,255,255,0.8); font-weight:500;">/ ${item.temp_min}°C</span></div>
-                        <div style="font-size:10px; color:#ffffff; font-weight:700; margin-top:2px;"><i class="fa-solid fa-droplet" style="font-size:9px; color:#38bdf8;"></i> ${item.rain_prob}% rain</div>
-                    </div>
-                </div>
-            `).join('');
-        }
-    };
-
-    window.openWeatherModal = function () {
-        const modal = document.getElementById('weather-modal');
-        if (modal) modal.style.display = 'flex';
-    };
-
-    window.closeWeatherModal = function () {
-        const modal = document.getElementById('weather-modal');
-        if (modal) modal.style.display = 'none';
-    };
-
-    window.changeWeatherLocation = function (valStr) {
-        if (valStr === 'GPS_CURRENT') {
-            window.locateMeForWeather();
-            return;
-        }
-        const parts = valStr.split(',');
-        if (parts.length >= 3) {
-            const lat = parseFloat(parts[0]);
-            const lng = parseFloat(parts[1]);
-            const name = parts[2];
-            window.fetchWeather(lat, lng, name + ', La Union', false);
-            if (typeof window.loadNearMe === 'function') {
-                window.loadNearMe(lat, lng, name);
-            }
-        }
-    };
-
-    // Auto locate & fetch weather on startup
-    setTimeout(() => {
-        if (typeof window.fetchWeather === 'function') {
-            window.locateMeForWeather();
-        }
-    }, 100);
 
     // =========================================================================
     // ONBOARDING MODAL CONTROLLER (Complete Profile)
@@ -2488,7 +3242,7 @@ if (is_dir($imgDir)) {
 
         if (token) {
             try {
-                const res = await fetch((window.backendUrl || window.location.origin) + '/api/tourist/profile', {
+                const res = await fetch(getDashBackendUrl() + '/api/tourist/profile', {
                     method: 'POST',
                     headers: { 'Accept': 'application/json', 'Authorization': 'Bearer ' + token },
                     body: formData
@@ -2527,32 +3281,6 @@ if (is_dir($imgDir)) {
         }
     }, 200);
 </script>
-
-<!-- Delete Trip Confirmation Modal -->
-<div id="delete-trip-modal"
-    style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.75); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:999999; justify-content:center; align-items:center;">
-    <div
-        style="background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%); border: none; outline:none; border-radius:24px; padding:28px 24px; width:90%; max-width:360px; box-shadow: 0 12px 30px rgba(10, 25, 60, 0.4); text-align:center;">
-        <i class="fa-solid fa-trash-can" style="font-size:32px; color:#ffffff; margin-bottom:10px; display:block;"></i>
-        <h3 style="margin:0 0 8px; color:#ffffff; font-size:20px; font-weight:800;">Delete Saved Trip?</h3>
-        <p id="delete-trip-title-text"
-            style="font-size:13px; color:rgba(255, 255, 255, 0.95); margin-bottom:22px; line-height:1.5;">Are you sure
-            you want to delete this trip? All saved itinerary items will be removed.</p>
-
-        <div style="display:flex; gap:10px;">
-            <button type="button"
-                style="flex:1; padding:13px; border-radius:14px; border:none; outline:none; background:rgba(255,255,255,0.22); color:#ffffff; font-size:13px; font-weight:700; cursor:pointer;"
-                onclick="window.closeDeleteTripModal()">
-                Cancel
-            </button>
-            <button type="button" id="btn-confirm-delete-trip"
-                style="flex:1; padding:13px; font-size:14px; font-weight:800; background:#ef4444; border:none; outline:none; color:#ffffff; border-radius:14px; box-shadow:none; cursor:pointer;"
-                onclick="window.executeConfirmDeleteTrip()">
-                Delete
-            </button>
-        </div>
-    </div>
-</div>
 
 <!-- Complete Profile Modal -->
 <div id="onboard-profile-modal"

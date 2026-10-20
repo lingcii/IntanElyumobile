@@ -6,6 +6,12 @@ include __DIR__ . '/../components/header.php';
 
 <div class="puzzles-container has-header animate-slide-up">
 
+    <!-- Offline Status Badge -->
+    <div id="puzzles-offline-badge" style="display: none; align-items: center; justify-content: center; gap: 8px; margin: 0 auto 14px auto; padding: 7px 16px; border-radius: 100px; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.35); color: #d97706; font-size: 11.5px; font-weight: 800; text-align: center; width: fit-content;">
+        <i class="fa-solid fa-cloud-slash" style="color: #f59e0b;"></i>
+        <span>Offline Mode &bull; Games Playable Offline (Rewards Queue Locally)</span>
+    </div>
+
     <!-- Points Status Header -->
     <div
         style="background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline: none !important; border-radius: 20px; padding: 16px 18px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important;">
@@ -1342,7 +1348,7 @@ include __DIR__ . '/../components/header.php';
                 }
 
                 // Ambient offline game queueing if solving while on a walk outside
-                if (!navigator.onLine) {
+                if (!navigator.onLine || window.isAppOnline === false) {
                     try {
                         let queue = JSON.parse(localStorage.getItem('intan_elyu_offline_game_claims') || '[]');
                         if (!queue.some(q => q.gameType === gameType)) {
@@ -1400,7 +1406,18 @@ include __DIR__ . '/../components/header.php';
                     openGameAlert(d.message || "Game already completed today! Come back tomorrow.", title);
                 }
             } catch (e) {
-                console.error("Points claim error:", e);
+                console.error("Points claim error, saving offline:", e);
+                try {
+                    let queue = JSON.parse(localStorage.getItem('intan_elyu_offline_game_claims') || '[]');
+                    if (!queue.some(q => q.gameType === gameType)) {
+                        queue.push({ gameType: gameType, timestamp: Date.now() });
+                        localStorage.setItem('intan_elyu_offline_game_claims', JSON.stringify(queue));
+                    }
+                    localStorage.setItem('game_done_' + gameType, new Date().toDateString());
+                    updateAllGamesFinishedUI();
+                    openGameSuccess("Game completed! Your points will sync automatically when back online.");
+                    return;
+                } catch (queueErr) { }
                 openGameAlert("Connection issue. Please try again.", "Error");
             }
         }
@@ -1566,6 +1583,31 @@ include __DIR__ . '/../components/header.php';
             syncOfflineGameClaims();
         });
         syncOfflineGameClaims();
+
+        function updatePuzzlesOfflineStatus() {
+            var badge = document.getElementById('puzzles-offline-badge');
+            var isOffline = (typeof navigator.onLine === 'boolean') ? !navigator.onLine : (window.isAppOnline === false);
+            if (badge) {
+                badge.style.setProperty('display', isOffline ? 'inline-flex' : 'none', 'important');
+            }
+            if (!isOffline) {
+                try {
+                    localStorage.removeItem('intan_elyu_offline_mode');
+                    localStorage.removeItem('intan_elyu_offline_guest');
+                } catch(e) {}
+            }
+        }
+        window.addEventListener('online', () => {
+            updatePuzzlesOfflineStatus();
+            if (typeof window.enforceAllOfflineBadgesHidden === 'function') window.enforceAllOfflineBadgesHidden();
+        });
+        window.addEventListener('offline', updatePuzzlesOfflineStatus);
+        window.addEventListener('appOnline', () => {
+            updatePuzzlesOfflineStatus();
+            if (typeof window.enforceAllOfflineBadgesHidden === 'function') window.enforceAllOfflineBadgesHidden();
+        });
+        window.addEventListener('appOffline', updatePuzzlesOfflineStatus);
+        setTimeout(updatePuzzlesOfflineStatus, 100);
 
         window.playInPracticeMode = playInPracticeMode;
     })();

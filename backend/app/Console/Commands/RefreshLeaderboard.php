@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class RefreshLeaderboard extends Command
 {
@@ -23,6 +24,11 @@ class RefreshLeaderboard extends Command
     public function handle(): int
     {
         $this->info('Refreshing leaderboard cache...');
+
+        if (!Schema::hasTable('leaderboard_cache')) {
+            $this->warn('Table "leaderboard_cache" does not exist in the database. Skipping cache table refresh.');
+            return Command::SUCCESS;
+        }
 
         $startTime = microtime(true);
 

@@ -65,29 +65,6 @@ try {
             </button>
         </div>
 
-        <!-- Step 1 Primary Travel Mode Card -->
-        <div id="draft-travel-mode-bar" onclick="window.openTravelModeStarterModal()"
-            style="display:flex; align-items:center; justify-content:space-between; background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; color:#ffffff; padding:11px 16px; border-radius:16px; margin-bottom:14px; cursor:pointer; border:none !important; outline:none !important; box-shadow:none !important; transition:all 0.2s ease;">
-            <div style="display:flex; align-items:center; gap:10px; min-width:0; flex:1;">
-                <div id="draft-travel-mode-icon"
-                    style="width:34px; height:34px; border-radius:10px; background:#ffffff !important; display:flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.15);">
-                    <i class="fa-solid fa-car" style="color:#1e3a8a !important;"></i>
-                </div>
-                <div style="min-width:0; flex:1;">
-                    <div
-                        style="font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:rgba(255,255,255,0.8);">
-                        Trip Transportation</div>
-                    <div id="draft-travel-mode-label"
-                        style="font-size:13.5px; font-weight:800; color:#ffffff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                        Own Car</div>
-                </div>
-            </div>
-            <span
-                style="font-size:11px; font-weight:800; background:rgba(255,255,255,0.22); color:#ffffff; padding:4px 10px; border-radius:100px; display:inline-flex; align-items:center; gap:4px; flex-shrink:0;">
-                <i class="fa-solid fa-sliders" style="font-size:10px;"></i> Change
-            </span>
-        </div>
-
         <!-- Map Visualization Container -->
         <div id="draft-map-wrapper" style="display:none; margin-top:0; margin-bottom:14px;">
             <!-- Route Type Container with Smooth Sliding Pill -->
@@ -145,15 +122,11 @@ try {
             <i class="fa-solid fa-route" style="color: #1e3a8a !important;"></i>
         </div>
         <h3>No plans yet</h3>
-        <p>Start your itinerary by selecting which vehicle you will use for transportation, then add your stops!</p>
+        <p>Explore La Union tourist spots and plan your personalized itinerary.</p>
         <div style="display:flex; flex-direction:column; gap:10px; width:100%; max-width:280px; margin:14px auto 0;">
-            <button class="btn-primary" onclick="window.openTravelModeStarterModal()"
-                style="width:100%; padding:14px 18px; border-radius:18px; font-weight:800; font-size:14px; border:none !important; outline:none !important; background:#ffffff !important; color:#1e3a8a !important; box-shadow:0 4px 14px rgba(0, 0, 0, 0.15) !important; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:8px;">
-                <i class="fa-solid fa-car-side" style="color:#1e3a8a !important;"></i> Select Vehicle
-            </button>
             <button class="btn-open-map" onclick="navigateTo('map')"
                 style="width:100%; margin:0; justify-content:center;">
-                <i class="fa-solid fa-location-dot"></i> Browse Map
+                <i class="fa-solid fa-location-dot"></i> Browse Map & Add Stops
             </button>
         </div>
     </div>
@@ -872,7 +845,13 @@ try {
 </div>
 <script>
     (function () {
-        var backendUrl = window.backendUrl || 'https://api.intan-elyu.online';
+        if (typeof window.setTxt !== 'function') {
+            window.setTxt = function (id, val) {
+                const el = document.getElementById(id);
+                if (el) el.textContent = val;
+            };
+        }
+        var backendUrl = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
 
         // Synchronize GPS state immediately or resolve via high-accuracy hardware GPS
         window.myLat = window.myLat || window.currentGPSLat || null;
@@ -1634,11 +1613,12 @@ try {
 
         window.isSpotUnderMaintenance = function (spot) {
             if (!spot) return false;
+            const target = spot.destination || spot;
             try {
-                const spotId = String(spot.id || spot.tourist_spot_id || '');
-                if (spotId && spot.is_maintenance === undefined) {
+                const spotId = String(target.id || target.tourist_spot_id || spot.id || spot.tourist_spot_id || '');
+                if (spotId && target.is_maintenance === undefined && spot.is_maintenance === undefined) {
                     if (window._cachedMapSpots && window._cachedMapSpots[spotId]) {
-                        spot.is_maintenance = window._cachedMapSpots[spotId].is_maintenance;
+                        target.is_maintenance = window._cachedMapSpots[spotId].is_maintenance;
                     } else {
                         const rawMap = localStorage.getItem('public_map_data');
                         if (rawMap) {
@@ -1646,17 +1626,23 @@ try {
                             const list = parsed?.destinations || parsed?.data?.destinations || [];
                             const mapSpot = list.find(s => String(s?.id) === spotId);
                             if (mapSpot && mapSpot.is_maintenance !== undefined) {
-                                spot.is_maintenance = mapSpot.is_maintenance;
+                                target.is_maintenance = mapSpot.is_maintenance;
                             }
                         }
                     }
                 }
             } catch (e) { }
             return Boolean(
+                target.is_maintenance === 1 ||
+                target.is_maintenance === true ||
+                target.is_maintenance === '1' ||
                 spot.is_maintenance === 1 ||
                 spot.is_maintenance === true ||
                 spot.is_maintenance === '1' ||
-                (spot.status && String(spot.status).toLowerCase().includes('maint'))
+                (target.status && String(target.status).toLowerCase().includes('maint')) ||
+                (target.operating_status && String(target.operating_status).toLowerCase().includes('maint')) ||
+                (spot.status && String(spot.status).toLowerCase().includes('maint')) ||
+                (spot.operating_status && String(spot.operating_status).toLowerCase().includes('maint'))
             );
         };
 
@@ -1698,14 +1684,14 @@ try {
                 }
             }
 
-            const isSiteUnderMaintenance = window.isSpotUnderMaintenance(toSpot);
+            const isSiteUnderMaintenance = Boolean(window.isSpotUnderMaintenance(toSpot) || (fromSpot && window.isSpotUnderMaintenance(fromSpot)));
             if (isSiteUnderMaintenance) {
                 return {
                     mode: 'suspended',
                     transport_mode: 'suspended',
                     transport_modes: [],
                     name: 'Unavailable',
-                    icon: '',
+                    icon: 'fa-ban',
                     cost: 0,
                     leg_cost: 0,
                     distance_km: distKm,
@@ -1868,17 +1854,19 @@ try {
 
             const isNonDrivable = Boolean(toSpot && (toSpot.accessible_by_private_vehicle === 0 || toSpot.accessible_by_private_vehicle === false || toSpot.accessible_by_private_vehicle === '0'));
             const isSiteUnderMaintenance = Boolean(
-                (toSpot && (toSpot.is_maintenance === 1 || toSpot.is_maintenance === true || toSpot.is_maintenance === '1')) ||
+                window.isSpotUnderMaintenance(toSpot) ||
+                (fromSpot && window.isSpotUnderMaintenance(fromSpot)) ||
                 (typeof window.getLegTransportInfo === 'function' && window.getLegTransportInfo(legIdx).is_maintenance)
             );
             window.currentLegIsSiteUnderMaintenance = isSiteUnderMaintenance;
 
-            // If the destination site is under maintenance, DO NOT show the Choose Leg Transport opensheet modal!
+            // If any destination on this leg is under maintenance, DO NOT show the Choose Leg Transport opensheet modal!
             if (isSiteUnderMaintenance) {
                 const modal = document.getElementById('leg-transport-modal');
                 if (modal) modal.style.display = 'none';
                 if (typeof showToast === 'function') {
-                    showToast(`${toName || 'This site'} is currently under maintenance or temporarily closed. Vehicle transit is restricted.`);
+                    const maintName = window.isSpotUnderMaintenance(toSpot) ? toName : (fromSpot ? fromName : 'This destination');
+                    showToast(`${maintName || 'This site'} is currently under maintenance or temporarily closed. Transport options are disabled.`);
                 }
                 return;
             }
@@ -2240,11 +2228,18 @@ try {
                 ? window.getEffectiveDraft()
                 : JSON.parse(localStorage.getItem('intan_elyu_draft_itinerary') || '[]');
             const toSpot = draft[legIdx];
-            const isSiteUnderMaintenance = Boolean(toSpot && (toSpot.is_maintenance === 1 || toSpot.is_maintenance === true || toSpot.is_maintenance === '1'));
+            const fromSpot = (legIdx === 0) ? null : draft[legIdx - 1];
+            const isSiteUnderMaintenance = Boolean(
+                window.isSpotUnderMaintenance(toSpot) ||
+                (fromSpot && window.isSpotUnderMaintenance(fromSpot)) ||
+                (typeof window.getLegTransportInfo === 'function' && window.getLegTransportInfo(legIdx).is_maintenance)
+            );
             if (isSiteUnderMaintenance) {
                 if (typeof showToast === 'function') {
-                    showToast('Transit cannot be configured while the destination is under maintenance.');
+                    showToast('Transit cannot be configured while this destination is under maintenance.');
                 }
+                const modal = document.getElementById('leg-transport-modal');
+                if (modal) modal.style.display = 'none';
                 return;
             }
 
@@ -2367,8 +2362,8 @@ try {
                 let transportMarkup = '';
                 if (isMaintenance) {
                     transportMarkup = `
-                        <span style="display:inline-flex; align-items:center; background:#ef4444; color:#ffffff; font-size:11px; font-weight:800; padding:4px 10px; border-radius:100px; border:none !important; outline:none !important;">
-                            Unavailable
+                        <span style="display:inline-flex; align-items:center; gap:5px; background:#ef4444; color:#ffffff; font-size:11px; font-weight:800; padding:4px 10px; border-radius:100px; border:none !important; outline:none !important;">
+                            <i class="fa-solid fa-ban" style="font-size:10px;"></i> Unavailable
                         </span>
                     `;
                 } else {
@@ -2940,16 +2935,6 @@ try {
                 window.updateDraftTravelModeBar();
             }
 
-            // Step 1: If tourist has items in draft but hasn't picked a vehicle yet, prompt once
-            if (rawDraft.length > 0 && !localStorage.getItem('intan_elyu_draft_trip_transport') && !sessionStorage.getItem('editing_itinerary_id') && !sessionStorage.getItem('intan_elyu_starter_prompted')) {
-                sessionStorage.setItem('intan_elyu_starter_prompted', 'true');
-                setTimeout(() => {
-                    if (typeof window.openTravelModeStarterModal === 'function') {
-                        window.openTravelModeStarterModal();
-                    }
-                }, 400);
-            }
-
             // Sync active class on route toggle buttons
             const recBtn = document.getElementById('btn-route-rec');
             const altBtn = document.getElementById('btn-route-alt');
@@ -2991,7 +2976,7 @@ try {
 
                 const startDistText = startEta ? `${startEta.distanceText} &bull; ~${startEta.durationText}` : 'Start Leg';
                 const fareBadge = leg0Info.is_maintenance
-                    ? ''
+                    ? `<span class="leg-fare-tag" style="color:#ffffff; background:rgba(0,0,0,0.25); font-weight:800;">₱0.00</span>`
                     : ((leg0Info.cost > 0)
                         ? `<span class="leg-fare-tag">₱${leg0Info.cost.toFixed(2)}</span>`
                         : `<span class="leg-fare-tag" style="color:#059669; background:rgba(16,185,129,0.1);">₱0</span>`);
@@ -3001,28 +2986,25 @@ try {
                 const leg0NameStyle = leg0Info.is_maintenance ? 'color:#ffffff; font-weight:800;' : '';
                 const leg0DestName = (draft[0] && draft[0].name) ? draft[0].name.replace(/'/g, "\\'") : 'Destination';
                 const leg0ClickAction = leg0Info.is_maintenance
-                    ? `if(typeof showToast==='function') showToast('${leg0DestName} is currently under maintenance or temporarily closed. Vehicle transit is restricted.');`
+                    ? `if(typeof showToast==='function') showToast('${leg0DestName} is currently under maintenance or temporarily closed. Transport options are disabled.');`
                     : `window.openLegTransportModal(0)`;
-                const leg0LeadingIcon = (leg0Info.is_maintenance || !leg0Info.icon)
-                    ? ''
-                    : `<i class="fa-solid ${leg0Info.icon}" style="color:${leg0IconColor}; font-size:11px; flex-shrink:0;"></i>`;
+                const leg0LeadingIcon = leg0Info.is_maintenance
+                    ? `<i class="fa-solid fa-ban" style="color:#ffffff; font-size:11px; flex-shrink:0;"></i>`
+                    : (leg0Info.icon ? `<i class="fa-solid ${leg0Info.icon}" style="color:${leg0IconColor}; font-size:11px; flex-shrink:0;"></i>` : '');
                 const leg0TrailingIcon = leg0Info.is_maintenance
-                    ? ''
+                    ? `<span style="font-size:9.5px; opacity:0.85; margin-left:2px; font-weight:700;">(Maintenance)</span>`
                     : `<i class="fa-solid fa-chevron-right leg-action-edit" style="flex-shrink:0;"></i>`;
 
                 startingLegHtml = `
             <div class="stops-swap-divider starting-leg-divider">
                 <div class="stops-swap-line"></div>
                 <div class="stops-leg-wrapper" style="display:flex; align-items:center; gap:8px; z-index:3;">
-                    <div class="${leg0ChipClass}" style="display:none !important;" onclick="${leg0ClickAction}" title="${leg0Info.is_maintenance ? 'Destination is under maintenance. Transport options are disabled.' : 'Selected: ' + (leg0Info.full_names || leg0Info.name)}">
+                    <div class="${leg0ChipClass}" onclick="${leg0ClickAction}" title="${leg0Info.is_maintenance ? 'Destination is under maintenance. Transport options are disabled.' : 'Selected: ' + (leg0Info.full_names || leg0Info.name)}">
                         ${leg0LeadingIcon}
                         <span class="leg-chip-name" style="${leg0NameStyle}">${leg0Info.name}</span>
                         ${fareBadge}
                         ${leg0Info.is_maintenance ? '' : `<span class="leg-dist-text">&bull; ${startDistText}</span>`}
                         ${leg0TrailingIcon}
-                    </div>
-                    <div class="starting-leg-icon-pill" title="Start of Itinerary Route">
-                        <i class="fa-solid fa-arrow-down"></i>
                     </div>
                 </div>
             </div>`;
@@ -3060,7 +3042,7 @@ try {
                     let nextStopBadge = '';
                     let nextStopEtaHtml = '';
 
-                    const isMaint = Boolean(place.is_maintenance === 1 || place.is_maintenance === true || place.is_maintenance === '1');
+                    const isMaint = (typeof window.isSpotUnderMaintenance === 'function') ? window.isSpotUnderMaintenance(place) : Boolean(place.is_maintenance === 1 || place.is_maintenance === true || place.is_maintenance === '1');
 
                     if (isNextStop) {
                         nextStopBadge = `<span class="badge-next-stop" style="border:none !important; outline:none !important; box-shadow:none !important;"><i class="fa-solid fa-location-dot"></i> NEXT STOP</span>`;
@@ -3100,7 +3082,7 @@ try {
 
                         const legDistText = legEta ? `${legEta.distanceText} &bull; ~${legEta.durationText}` : 'Leg Route';
                         const fareBadge = legInfo.is_maintenance
-                            ? ''
+                            ? `<span class="leg-fare-tag" style="color:#ffffff; background:rgba(0,0,0,0.25); font-weight:800;">₱0.00</span>`
                             : ((legInfo.cost > 0)
                                 ? `<span class="leg-fare-tag">₱${legInfo.cost.toFixed(2)}</span>`
                                 : `<span class="leg-fare-tag" style="color:#059669; background:rgba(16,185,129,0.1);">₱0</span>`);
@@ -3110,20 +3092,20 @@ try {
                         const legNameStyle = legInfo.is_maintenance ? 'color:#ffffff; font-weight:800;' : '';
                         const legDestName = (place && place.name) ? place.name.replace(/'/g, "\\'") : 'Destination';
                         const legClickAction = legInfo.is_maintenance
-                            ? `if(typeof showToast==='function') showToast('${legDestName} is currently under maintenance or temporarily closed. Vehicle transit is restricted.');`
+                            ? `if(typeof showToast==='function') showToast('${legDestName} is currently under maintenance or temporarily closed. Transport options are disabled.');`
                             : `window.openLegTransportModal(${index})`;
-                        const legLeadingIcon = (legInfo.is_maintenance || !legInfo.icon)
-                            ? ''
-                            : `<i class="fa-solid ${legInfo.icon}" style="color:${legIconColor}; font-size:11px; flex-shrink:0;"></i>`;
+                        const legLeadingIcon = legInfo.is_maintenance
+                            ? `<i class="fa-solid fa-ban" style="color:#ffffff; font-size:11px; flex-shrink:0;"></i>`
+                            : (legInfo.icon ? `<i class="fa-solid ${legInfo.icon}" style="color:${legIconColor}; font-size:11px; flex-shrink:0;"></i>` : '');
                         const legTrailingIcon = legInfo.is_maintenance
-                            ? ''
+                            ? `<span style="font-size:9.5px; opacity:0.85; margin-left:2px; font-weight:700;">(Maintenance)</span>`
                             : `<i class="fa-solid fa-chevron-right leg-action-edit" style="flex-shrink:0;"></i>`;
 
                         html += `
                         <div class="stops-swap-divider">
                             <div class="stops-swap-line"></div>
                             <div class="stops-leg-wrapper" style="display:flex; align-items:center; gap:8px; z-index:3;">
-                                <div class="${legChipClass}" style="display:none !important;" onclick="${legClickAction}" title="${legInfo.is_maintenance ? 'Destination is under maintenance. Transport options are disabled.' : 'Selected: ' + (legInfo.full_names || legInfo.name)}">
+                                <div class="${legChipClass}" onclick="${legClickAction}" title="${legInfo.is_maintenance ? 'Destination is under maintenance. Transport options are disabled.' : 'Selected: ' + (legInfo.full_names || legInfo.name)}">
                                     ${legLeadingIcon}
                                     <span class="leg-chip-name" style="${legNameStyle}">${legInfo.name}</span>
                                     ${fareBadge}
@@ -3179,7 +3161,7 @@ try {
                             ${nextStopEtaHtml}
                             ${(() => {
                             const isNonDrivable = (place.accessible_by_private_vehicle === 0 || place.accessible_by_private_vehicle === false || place.accessible_by_private_vehicle === '0');
-                            const isMaint = Boolean(place.is_maintenance === 1 || place.is_maintenance === true || place.is_maintenance === '1');
+                            const isMaint = (typeof window.isSpotUnderMaintenance === 'function') ? window.isSpotUnderMaintenance(place) : Boolean(place.is_maintenance === 1 || place.is_maintenance === true || place.is_maintenance === '1');
                             const acc = Array.isArray(place.accessible_vehicles) ? place.accessible_vehicles : [];
                             if (isMaint) {
                                 return `<div style="display:flex; gap:5px; flex-wrap:wrap; margin-top:8px;">
@@ -3469,7 +3451,7 @@ try {
             const draft = JSON.parse(localStorage.getItem('intan_elyu_draft_itinerary') || '[]');
             if (draft.length > 0) {
                 const nextPlace = draft[0];
-                const isMaint = Boolean(nextPlace.is_maintenance === 1 || nextPlace.is_maintenance === true || nextPlace.is_maintenance === '1');
+                const isMaint = (typeof window.isSpotUnderMaintenance === 'function') ? window.isSpotUnderMaintenance(nextPlace) : Boolean(nextPlace.is_maintenance === 1 || nextPlace.is_maintenance === true || nextPlace.is_maintenance === '1');
                 const nextEtaEl = document.getElementById('itinerary-next-eta');
                 if (nextEtaEl) {
                     if (isMaint) {
@@ -3558,11 +3540,12 @@ try {
             const donutEl = document.getElementById('modal-budget-donut');
             const pctEl = document.getElementById('modal-donut-pct');
             const startPct = _currentDonutPct;
-            const startTime = performance.now();
+            const startTime = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
             const duration = 650; // ms
 
             function step(now) {
-                const elapsed = now - startTime;
+                const currentTime = now || ((typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now());
+                const elapsed = currentTime - startTime;
                 const progress = Math.min(elapsed / duration, 1);
                 // Ease-out cubic
                 const ease = 1 - Math.pow(1 - progress, 3);
@@ -4096,6 +4079,7 @@ try {
                 const modalTitleEl = document.getElementById('save-trip-modal-title');
                 const submitBtn = document.getElementById('btn-submit-trip');
 
+                let targetDateStr = '';
                 if (editingId) {
                     if (modalTitleEl) {
                         modalTitleEl.innerHTML = '<i class="fa-solid fa-pen-to-square" style="color:#38bdf8; font-size:18px;"></i> Edit Your Trip';
@@ -4112,17 +4096,30 @@ try {
                     if (titleInput && savedTitle !== null && savedTitle !== undefined) {
                         titleInput.value = savedTitle;
                     }
+
+                    targetDateStr = savedDate ? savedDate.split(/[T ]/)[0] : '';
                     const dateInput = document.getElementById('trip-date');
                     if (dateInput) {
-                        dateInput.value = savedDate || '';
+                        dateInput.value = targetDateStr;
                         const display = document.getElementById('custom-date-display') || document.getElementById('trip-date-display');
                         if (display) {
-                            const formatted = savedDate ? new Date(savedDate + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }) : 'Select trip date';
+                            let formatted = 'Select trip date';
+                            if (targetDateStr) {
+                                const parts = targetDateStr.split('-');
+                                if (parts.length === 3) {
+                                    const dObj = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+                                    if (!isNaN(dObj.getTime())) {
+                                        formatted = dObj.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+                                    }
+                                }
+                            }
                             if ('value' in display) display.value = formatted;
                             display.textContent = formatted;
+                            display.style.color = targetDateStr ? '#ffffff' : 'rgba(255,255,255,0.85)';
+                            display.style.fontWeight = targetDateStr ? '700' : '600';
                         }
                         const clearLink = document.getElementById('calendar-clear-link');
-                        if (clearLink) clearLink.style.display = savedDate ? 'inline' : 'none';
+                        if (clearLink) clearLink.style.display = targetDateStr ? 'inline' : 'none';
                     }
                     const budgetInput = document.getElementById('trip-budget');
                     if (budgetInput) {
@@ -4140,30 +4137,43 @@ try {
                     if (submitBtn) {
                         submitBtn.textContent = 'Save Trip';
                     }
+                    const dateInput = document.getElementById('trip-date');
+                    if (dateInput && dateInput.value) {
+                        targetDateStr = dateInput.value.split(/[T ]/)[0];
+                    }
                 }
 
+                // Sync custom dark-glass calendar with target date or current month
+                const today = new Date();
+                let calYear = today.getFullYear();
+                let calMonth = today.getMonth();
+                if (targetDateStr) {
+                    const parts = targetDateStr.split('-');
+                    if (parts.length === 3) {
+                        const y = parseInt(parts[0], 10);
+                        const m = parseInt(parts[1], 10);
+                        if (!isNaN(y) && !isNaN(m) && m >= 1 && m <= 12) {
+                            calYear = y;
+                            calMonth = m - 1;
+                        }
+                    }
+                }
+                if (window.calendarState) {
+                    window.calendarState.currentYear = calYear;
+                    window.calendarState.currentMonth = calMonth;
+                    window.calendarState.selectedDateStr = targetDateStr;
+                }
+                if (typeof window.renderCalendarGrid === 'function') {
+                    window.renderCalendarGrid();
+                }
 
                 // Calculate Point-to-Point transit budget and populate summary card
                 if (typeof window.calculateModalBudget === 'function') {
                     window.calculateModalBudget();
                 }
 
-                // Initialize calendar to current month
-                const today = new Date();
-                if (window.calendarState) {
-                    window.calendarState.currentYear = today.getFullYear();
-                    window.calendarState.currentMonth = today.getMonth();
-                }
-                if (typeof window.renderCalendarGrid === 'function') {
-                    window.renderCalendarGrid();
-                }
-
                 const modal = document.getElementById('save-trip-modal');
                 if (modal) modal.style.display = 'flex';
-
-                if (typeof window.calculateModalBudget === 'function') {
-                    window.calculateModalBudget();
-                }
 
                 // Hide bottom nav while modal is open
                 const bottomNav = document.getElementById('bottom-navigation');
@@ -4223,7 +4233,8 @@ try {
                     return;
                 }
 
-                const url = editingId ? `${backendUrl}/api/tourist/itineraries/${editingId}` : `${backendUrl}/api/tourist/itineraries`;
+                const bUrl = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
+                const url = editingId ? `${bUrl}/api/tourist/itineraries/${editingId}` : `${bUrl}/api/tourist/itineraries`;
                 const method = editingId ? 'PUT' : 'POST';
 
                 const legTransports = draft.map((place, idx) => {
@@ -4247,15 +4258,45 @@ try {
                     route_type: activeRouteType,
                     transport_mode: effectiveTransport,
                     leg_transports: legTransports,
+                    update_id: editingId || null,
                     items: draft.map((place, idx) => ({
-                        id: idx + 1,
+                        id: 'offline_item_' + Date.now() + '_' + (idx + 1),
                         tourist_spot_id: parseInt(place.id || place.tourist_spot_id || 0),
                         destination: place,
                         transport_type: effectiveTransport,
-                        status: 'pending'
+                        transport_mode: (legTransports && legTransports[idx] && legTransports[idx].transport_mode) ? legTransports[idx].transport_mode : effectiveTransport,
+                        is_visited: false,
+                        proof_image: null,
+                        proof_status: null
                     }))
                 };
 
+                // Fast offline trip queueing
+                if ((!navigator.onLine || window.isAppOnline === false) && tripPayload && window.OfflineTripManager) {
+                    const queued = window.OfflineTripManager.queueOfflineTrip(tripPayload);
+                    const queuedId = queued ? (queued.local_id || queued.id) : ('offline_' + Date.now());
+                    showToast(editingId ? "📍 Offline Mode: Trip changes saved on device for auto-sync!" : "📍 Offline Mode: Trip saved on device for auto-sync!", "info", 5000);
+                    sessionStorage.setItem('just_saved_trip_id', queuedId);
+                    sessionStorage.setItem('active_trip_transport_' + queuedId, effectiveTransport);
+                    localStorage.setItem('selected_trip_vehicle_' + queuedId, effectiveTransport);
+                    localStorage.removeItem('intan_elyu_draft_itinerary');
+                    localStorage.removeItem('intan_elyu_pre_edit_backup_draft');
+                    sessionStorage.removeItem('intan_elyu_pre_edit_backup_draft');
+                    sessionStorage.removeItem('editing_itinerary_id');
+                    sessionStorage.removeItem('editing_trip_title');
+                    sessionStorage.removeItem('editing_trip_date');
+                    sessionStorage.removeItem('editing_trip_budget');
+                    sessionStorage.removeItem('editing_trip_transport');
+                    sessionStorage.removeItem('editing_transport_initialized');
+                    localStorage.removeItem('intan_elyu_draft_leg_vehicles');
+                    window.resetSaveModalInputs();
+                    document.getElementById('save-trip-modal').style.display = 'none';
+                    const bottomNav = document.getElementById('bottom-navigation');
+                    if (bottomNav) bottomNav.classList.remove('nav-hidden');
+                    window.renderItinerary();
+                    navigateTo('saved_trips');
+                    return;
+                }
 
                 const response = await fetch(url, {
                     method: method,
@@ -4322,6 +4363,12 @@ try {
                     }
                     localStorage.removeItem('intan_elyu_pre_edit_backup_draft');
                     sessionStorage.removeItem('intan_elyu_pre_edit_backup_draft');
+                    sessionStorage.removeItem('editing_itinerary_id');
+                    sessionStorage.removeItem('editing_trip_title');
+                    sessionStorage.removeItem('editing_trip_date');
+                    sessionStorage.removeItem('editing_trip_budget');
+                    sessionStorage.removeItem('editing_trip_transport');
+                    sessionStorage.removeItem('editing_transport_initialized');
                     localStorage.removeItem('intan_elyu_draft_leg_vehicles');
 
                     window.resetSaveModalInputs();
@@ -4338,11 +4385,21 @@ try {
                 const isNetworkErr = !navigator.onLine || (error && (error.name === 'TypeError' || String(error.message).toLowerCase().includes('network') || String(error.message).toLowerCase().includes('fetch')));
                 if (isNetworkErr && tripPayload && window.OfflineTripManager) {
                     const queued = window.OfflineTripManager.queueOfflineTrip(tripPayload);
-                    showToast("📍 Network lost. Saved offline for auto-sync!");
-                    sessionStorage.setItem('just_saved_trip_id', queued.local_id);
-                    sessionStorage.setItem('active_trip_transport_' + queued.local_id, effectiveTransport);
-                    localStorage.setItem('selected_trip_vehicle_' + queued.local_id, effectiveTransport);
+                    const queuedId = queued ? (queued.local_id || queued.id) : ('offline_' + Date.now());
+                    showToast(editingId ? "📍 Network lost. Trip changes saved offline for auto-sync!" : "📍 Network lost. Saved offline for auto-sync!");
+                    sessionStorage.setItem('just_saved_trip_id', queuedId);
+                    sessionStorage.setItem('active_trip_transport_' + queuedId, effectiveTransport);
+                    localStorage.setItem('selected_trip_vehicle_' + queuedId, effectiveTransport);
                     localStorage.removeItem('intan_elyu_draft_itinerary');
+                    localStorage.removeItem('intan_elyu_pre_edit_backup_draft');
+                    sessionStorage.removeItem('intan_elyu_pre_edit_backup_draft');
+                    sessionStorage.removeItem('editing_itinerary_id');
+                    sessionStorage.removeItem('editing_trip_title');
+                    sessionStorage.removeItem('editing_trip_date');
+                    sessionStorage.removeItem('editing_trip_budget');
+                    sessionStorage.removeItem('editing_trip_transport');
+                    sessionStorage.removeItem('editing_transport_initialized');
+                    localStorage.removeItem('intan_elyu_draft_leg_vehicles');
                     window.resetSaveModalInputs();
                     document.getElementById('save-trip-modal').style.display = 'none';
                     const bottomNav = document.getElementById('bottom-navigation');

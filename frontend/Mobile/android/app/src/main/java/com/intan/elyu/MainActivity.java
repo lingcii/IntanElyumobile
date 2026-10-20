@@ -55,6 +55,14 @@ public class MainActivity extends BridgeActivity {
                 settings.setAllowFileAccessFromFileURLs(true);
                 settings.setAllowUniversalAccessFromFileURLs(true);
 
+                // Add native JavascriptInterface for clean and instant application exit
+                webView.addJavascriptInterface(new Object() {
+                    @android.webkit.JavascriptInterface
+                    public void exitApp() {
+                        runOnUiThread(() -> finishAffinity());
+                    }
+                }, "IntanElyuNative");
+
                 String ua = settings.getUserAgentString();
                 if (ua != null) {
                     ua = ua.replace("; wv", "").replace("Version/4.0 ", "");
@@ -105,6 +113,15 @@ public class MainActivity extends BridgeActivity {
                         if (url.contains("offline=true") || url.contains("local-portal")) {
                             loadLocalOfflinePortal(view);
                             return true;
+                        }
+
+                        // Open Google OAuth URLs in external system browser to prevent WebView Error 403: disallowed_useragent
+                        if (url.contains("accounts.google.com") || url.contains("google.com/o/oauth2")) {
+                            try {
+                                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                                startActivity(browserIntent);
+                                return true;
+                            } catch (Exception ignored) {}
                         }
 
                         return false;
@@ -239,10 +256,49 @@ public class MainActivity extends BridgeActivity {
                         queryOrPath = uriStr.substring(uriStr.indexOf("#"));
                     }
                     final String targetUrl = "https://app.intan-elyu.online/index.php" + queryOrPath;
-                    webView.post(() -> webView.loadUrl(targetUrl));
+                    final String safeUri = uriStr.replace("'", "\\'");
+                    
+                    webView.post(() -> {
+                        webView.evaluateJavascript(
+                            "try {" +
+                            "  if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Browser) {" +
+                            "    window.Capacitor.Plugins.Browser.close().catch(function(){});" +
+                            "  }" +
+                            "  if (typeof window.initGoogleOAuthHandler === 'function') {" +
+                            "    window.initGoogleOAuthHandler('" + safeUri + "');" +
+                            "  } else {" +
+                            "    window.location.href = '" + targetUrl + "';" +
+                            "  }" +
+                            "} catch(e) {" +
+                            "  window.location.href = '" + targetUrl + "';" +
+                            "}",
+                            null
+                        );
+                    });
                 } else if (uriStr.contains("app.intan-elyu.online")) {
                     final String targetUrl = uriStr;
-                    webView.post(() -> webView.loadUrl(targetUrl));
+                    final String safeUri = uriStr.replace("'", "\\'");
+                    webView.post(() -> {
+                        if (safeUri.contains("access_token=") || safeUri.contains("id_token=")) {
+                            webView.evaluateJavascript(
+                                "try {" +
+                                "  if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Browser) {" +
+                                "    window.Capacitor.Plugins.Browser.close().catch(function(){});" +
+                                "  }" +
+                                "  if (typeof window.initGoogleOAuthHandler === 'function') {" +
+                                "    window.initGoogleOAuthHandler('" + safeUri + "');" +
+                                "  } else {" +
+                                "    window.location.href = '" + targetUrl + "';" +
+                                "  }" +
+                                "} catch(e) {" +
+                                "  window.location.href = '" + targetUrl + "';" +
+                                "}",
+                                null
+                            );
+                        } else {
+                            webView.loadUrl(targetUrl);
+                        }
+                    });
                 }
             }
         } catch (Exception e) {
@@ -268,11 +324,13 @@ public class MainActivity extends BridgeActivity {
         }
     }
 
+    private long lastBackPressTime = 0;
+
     @Override
     public void onBackPressed() {
         try {
             if (this.bridge != null && this.bridge.getWebView() != null) {
-                WebView webView = this.bridge.getWebView();
+                final WebView webView = this.bridge.getWebView();
                 String currentUrl = webView.getUrl();
                 if (currentUrl != null && (currentUrl.contains("accounts.google.com") || currentUrl.contains("google.com"))) {
                     if (webView.canGoBack()) {
@@ -283,11 +341,47 @@ public class MainActivity extends BridgeActivity {
                         return;
                     }
                 }
+
+                // Delegate to JavaScript's universal back handler (handles modals, sheets, and view navigation)
+                webView.evaluateJavascript(
+                    "(function() {" +
+                    "  try {" +
+                    "    if (typeof window.handleAppBack === 'function') {" +
+                    "      return window.handleAppBack() ? 'HANDLED' : 'EXIT';" +
+                    "    } else if (typeof window.navigateBack === 'function') {" +
+                    "      window.navigateBack();" +
+                    "      return 'HANDLED';" +
+                    "    }" +
+                    "  } catch(e) {}" +
+                    "  return 'EXIT';" +
+                    "})()",
+                    value -> {
+                        String res = value != null ? value.replace("\"", "").trim() : "EXIT";
+                        if ("EXIT".equalsIgnoreCase(res)) {
+                            long now = System.currentTimeMillis();
+                            if (now - lastBackPressTime < 2000) {
+                                finishAffinity();
+                            } else {
+                                lastBackPressTime = now;
+                                android.widget.Toast.makeText(MainActivity.this, "Press back again to exit", android.widget.Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    }
+                );
+                return;
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        super.onBackPressed();
+
+        // Native double-back fallback
+        long now = System.currentTimeMillis();
+        if (now - lastBackPressTime < 2000) {
+            finishAffinity();
+        } else {
+            lastBackPressTime = now;
+            android.widget.Toast.makeText(this, "Press back again to exit", android.widget.Toast.LENGTH_SHORT).show();
+        }
     }
 
     /**

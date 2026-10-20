@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "cd src && php -S localhost:3000 router.php",
+    "start": "cd src && php -S 0.0.0.0:3000 router.php",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -12,11 +12,14 @@
   "license": "ISC",
   "dependencies": {
     "@capacitor/android": "^8.4.0",
+    "@capacitor/app": "^8.1.2",
+    "@capacitor/browser": "^8.0.5",
     "@capacitor/camera": "^8.2.1",
     "@capacitor/cli": "^8.4.0",
     "@capacitor/core": "^8.4.0",
     "@capacitor/geolocation": "^8.2.0",
-    "@capacitor/keyboard": "^8.0.5"
+    "@capacitor/keyboard": "^8.0.5",
+    "@capacitor/network": "^8.0.1"
   },
   "devDependencies": {
     "@capacitor/assets": "^3.0.5"

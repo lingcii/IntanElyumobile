@@ -1163,6 +1163,30 @@
     gap: 12px;
 }
 
+.push-notif-btn-primary {
+    flex: 1;
+    border: none !important;
+    outline: none !important;
+    background: #00f2fe !important;
+    color: #1e3a8a !important;
+    padding: 13px 18px;
+    border-radius: 14px;
+    font-weight: 800;
+    font-size: 14px;
+    cursor: pointer;
+    text-align: center;
+    box-shadow: 0 4px 14px rgba(0, 242, 254, 0.35);
+    transition: all 0.2s ease;
+}
+
+.push-notif-btn-primary:hover {
+    background: #38bdf8 !important;
+}
+
+.push-notif-btn-primary:active {
+    transform: scale(0.97);
+}
+
 .push-notif-btn-secondary {
     flex: 1;
     border: none !important;

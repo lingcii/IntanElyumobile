@@ -11,6 +11,12 @@ include_once __DIR__ . '/../components/testimony_modal.php';
 <div id="trip-conveyor-wrapper"
     style="position: absolute; bottom: max(env(safe-area-inset-bottom), 16px); left: 0; right: 0; z-index: 1000; display: flex; flex-direction: column; align-items: center; gap: 12px; pointer-events: none; width: 100%; box-sizing: border-box; overflow: hidden;">
 
+    <!-- Offline Navigation Status Pill -->
+    <div id="trip-offline-badge"
+        style="display: none; align-self: center; background: rgba(245, 158, 11, 0.22); border: 1px solid rgba(245, 158, 11, 0.45); border-radius: 100px; padding: 5px 14px; color: #fbbf24; font-size: 11px; font-weight: 800; gap: 6px; align-items: center; pointer-events: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
+        <i class="fa-solid fa-cloud-slash"></i> Offline Navigation &bull; Geodesic Mode
+    </div>
+
     <!-- Trip Overview Summary Header Pill -->
     <div id="trip-summary-pill"
         style="align-self: center; background: linear-gradient(135deg, rgba(30, 58, 138, 0.96) 0%, rgba(63, 125, 183, 0.94) 100%); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: none !important; outline: none !important; border-radius: 100px; padding: 7px 16px; display: flex; align-items: center; gap: 12px; box-shadow: 0 10px 28px rgba(10, 25, 60, 0.35); pointer-events: auto;">
@@ -37,104 +43,75 @@ include_once __DIR__ . '/../components/testimony_modal.php';
     </div>
 </div>
 
-<!-- Check-in Verification Modal (GPS and Photo Proof) -->
-<div id="checkin-modal"
-    style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.75); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:99999; justify-content:center; align-items:center;">
+<!-- Multi-Photo Proof Upload Modal (Independent Process) -->
+<div id="proof-upload-modal"
+    style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.78); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); z-index:999999; justify-content:center; align-items:center; padding:16px;">
     <div
-        style="background:linear-gradient(145deg, rgba(30, 58, 138, 0.98) 0%, rgba(63, 125, 183, 0.96) 100%); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border:none !important; outline:none !important; border-radius:24px; padding:28px 24px; width:90%; max-width:380px; box-shadow:0 24px 60px rgba(10,25,60,0.55); text-align:center;">
-        <div
-            style="width:58px; height:58px; border-radius:50%; background:rgba(255,255,255,0.2); border:none !important; display:flex; align-items:center; justify-content:center; margin:0 auto 14px;">
-            <i class="fa-solid fa-camera" style="font-size:26px; color:#ffffff;"></i>
-        </div>
-        <h3 style="margin:0 0 8px; color:#ffffff; font-size:20px; font-weight:800;">Submit Visit Proof</h3>
-        <p style="font-size:13px; color:rgba(255, 255, 255, 0.85); margin-bottom:20px; line-height:1.5;">Take a selfie
-            or capture a photo at this destination. Your submission will be submitted for review and approval before
-            earning <strong style="color:#67e8f9; font-weight:800;">+50 Points</strong>.</p>
-
-        <input type="hidden" id="checkin-item-id">
-
-        <!-- Step 1: Photo Proof -->
-        <div style="margin-bottom: 16px; text-align: left;">
-            <label
-                style="font-size:11px; font-weight:800; color:#67e8f9; margin-bottom:6px; display:block; text-transform:uppercase; letter-spacing:0.5px;">Step
-                1: Photo Proof (Required)</label>
-            <input type="file" id="checkin-proof-image" accept="image/*" style="display:none;"
-                onchange="window.handlePhotoSelected(this)">
-            <button type="button" onclick="window.openCheckinImagePickerModal()" id="btn-select-photo"
-                style="width:100%; padding:14px; background:rgba(255,255,255,0.15); border:none !important; outline:none !important; border-radius:14px; color:#ffffff; font-weight:800; font-size:13px; display:flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition:all 0.2s ease;">
-                <i class="fa-solid fa-camera" style="font-size:16px;"></i> <span id="photo-status-text">Take or Choose
-                    Photo</span>
-            </button>
-
-            <!-- Picture Preview Container (Displays actual picture preview instead of filename string) -->
-            <div id="checkin-photo-preview-container"
-                style="display:none; margin-top:12px; position:relative; border-radius:16px; overflow:hidden; border:none !important; outline:none !important; background:rgba(10,25,60,0.8); box-shadow:0 8px 24px rgba(0,0,0,0.3);">
-                <img id="checkin-photo-preview-img" src="" alt="Proof Preview"
-                    style="width:100%; max-height:180px; object-fit:cover; display:block;">
-                <div style="position:absolute; top:8px; right:8px; display:flex; gap:6px;">
-                    <button type="button" onclick="window.openCheckinImagePickerModal()" title="Change Picture"
-                        style="background:rgba(10,25,60,0.85); color:#ffffff; border:none; border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; cursor:pointer; backdrop-filter:blur(6px);">
-                        <i class="fa-solid fa-arrows-rotate" style="font-size:13px;"></i>
-                    </button>
-                    <button type="button" onclick="window.removeCheckinPhoto()" title="Remove Picture"
-                        style="background:rgba(239,68,68,0.9); color:#ffffff; border:none; border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; cursor:pointer; backdrop-filter:blur(6px);">
-                        <i class="fa-solid fa-xmark" style="font-size:14px;"></i>
-                    </button>
-                </div>
-                <div
-                    style="padding:6px 10px; background:rgba(10,25,60,0.9); font-size:10px; font-weight:700; color:#67e8f9; text-transform:uppercase; text-align:center; border:none !important;">
-                    <i class="fa-solid fa-circle-check" style="margin-right:4px; color:#34c759;"></i> Picture Proof
-                    Attached
-                </div>
+        style="background:linear-gradient(135deg, rgba(30, 58, 138, 0.98) 0%, rgba(63, 125, 183, 0.96) 60%, rgba(2, 132, 199, 0.96) 100%); border:none; outline:none; border-radius:24px; padding:24px 20px; width:100%; max-width:380px; box-shadow:0 20px 50px rgba(10,25,60,0.55); text-align:center; max-height:90vh; overflow-y:auto;">
+        
+        <!-- Header -->
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <div style="text-align:left;">
+                <h3 id="proof-spot-title" style="margin:0; color:#ffffff; font-size:18px; font-weight:800; display:flex; align-items:center; gap:8px;">
+                    <i class="fa-solid fa-camera" style="color:#00f2fe; font-size:17px;"></i> Upload Photo Proof
+                </h3>
+                <span style="font-size:11px; color:#ffffff; opacity:0.9; font-weight:600;">Multiple photos allowed (up to 5)</span>
             </div>
-        </div>
-
-        <!-- Step 2: Location Verification -->
-        <div style="margin-bottom: 12px; text-align: left;">
-            <label
-                style="font-size:11px; font-weight:800; color:#67e8f9; margin-bottom:6px; display:block; text-transform:uppercase; letter-spacing:0.5px;">Step
-                2: Location Check-in</label>
-            <button class="btn-primary" id="btn-verify-gps"
-                style="width:100%; padding:14px; font-size:14px; font-weight:800; background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); border:none !important; outline:none !important; color:#ffffff; border-radius:14px; box-shadow:0 4px 16px rgba(2,132,199,0.4); cursor:pointer;"
-                onclick="verifyGpsCheckIn()">
-                <i class="fa-solid fa-location-crosshairs" style="margin-right:8px;"></i> Verify Location & Submit
+            <button type="button" onclick="window.closeProofUploadModal()"
+                style="background:rgba(255,255,255,0.18); border:none; outline:none; color:#ffffff; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer;">
+                <i class="fa-solid fa-xmark" style="font-size:14px;"></i>
             </button>
         </div>
 
-        <button
-            style="width:100%; padding:12px; border-radius:14px; border:none !important; outline:none !important; background:rgba(255,255,255,0.12); color:#ffffff; font-size:13px; font-weight:700; cursor:pointer;"
-            onclick="closeCheckinModal()">Cancel</button>
-    </div>
-</div>
+        <p style="font-size:12px; color:#ffffff; opacity:0.95; line-height:1.45; text-align:left; margin-bottom:14px;">
+            Capture selfies or photos at the destination. Staff will verify your submission to complete your visit and award <strong style="color:#fde047;">+50 Points</strong>.
+        </p>
 
-<!-- Check-in Image Picker Choice Modal -->
-<div id="checkin-image-picker-modal" onclick="if(event.target===this) window.closeCheckinImagePickerModal()"
-    style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; width:100vw; height:100vh; background:rgba(6,11,25,0.75); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); z-index:999999; align-items:flex-end; justify-content:center; padding:0; margin:0; box-sizing:border-box;">
-    <div
-        style="background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border:none !important; outline:none !important; border-radius:28px 28px 0 0; width:100%; max-width:500px; padding:26px 22px; box-shadow:0 -10px 45px rgba(10,25,60,0.6); animation:slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1); box-sizing:border-box;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-            <h3
-                style="margin:0; font-size:17px; font-weight:800; color:#ffffff; display:flex; align-items:center; gap:10px;">
-                <i class="fa-solid fa-camera" style="color:#67e8f9; font-size:18px;"></i> Attach Proof Photo
-            </h3>
-            <button type="button" onclick="window.closeCheckinImagePickerModal()"
-                style="background:rgba(255,255,255,0.15); border:none; color:#ffffff; width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer;">
-                <i class="fa-solid fa-xmark" style="font-size:15px;"></i>
+        <input type="file" id="proof-upload-input" accept="image/*" multiple style="display:none;" onchange="window.handleProofPhotosSelected(this)">
+
+        <!-- Add Photo Action Buttons -->
+        <div style="display:flex; gap:10px; margin-bottom:14px;">
+            <button type="button" onclick="window.addProofPhotoFromSource('camera')"
+                style="flex:1; padding:12px 10px; background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); border:none; outline:none; border-radius:14px; color:#ffffff; font-weight:800; font-size:12.5px; display:flex; align-items:center; justify-content:center; gap:6px; cursor:pointer; box-shadow:none;">
+                <i class="fa-solid fa-camera" style="font-size:15px;"></i> Take Photo
+            </button>
+            <button type="button" onclick="window.addProofPhotoFromSource('gallery')"
+                style="flex:1; padding:12px 10px; background:rgba(255,255,255,0.18); border:none; outline:none; border-radius:14px; color:#ffffff; font-weight:800; font-size:12.5px; display:flex; align-items:center; justify-content:center; gap:6px; cursor:pointer;">
+                <i class="fa-solid fa-images" style="color:#00f2fe; font-size:15px;"></i> Add from Gallery
             </button>
         </div>
-        <div style="display:flex; flex-direction:column; gap:12px;">
-            <button type="button" onclick="window.selectCheckinImageSource('camera')"
-                style="width:100%; padding:15px; background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); border:none !important; outline:none !important; border-radius:18px; color:#ffffff; font-size:14px; font-weight:800; display:flex; align-items:center; justify-content:center; gap:10px; cursor:pointer; box-shadow:0 4px 14px rgba(2,132,199,0.35); transition:transform 0.15s ease;">
-                <i class="fa-solid fa-camera" style="font-size:17px;"></i> Take Photo with Camera
+
+        <!-- Selected Photos Area -->
+        <div style="margin-bottom:16px; text-align:left;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                <label style="font-size:11px; font-weight:800; color:#ffffff; text-transform:uppercase; letter-spacing:0.5px;">
+                    Selected Photos
+                </label>
+                <span id="proof-count-badge" style="font-size:11px; font-weight:700; color:#00f2fe;">0 / 5 photos</span>
+            </div>
+
+            <!-- Empty State Prompt -->
+            <div id="proof-empty-prompt" onclick="window.addProofPhotoFromSource('gallery')"
+                style="border:2px dashed rgba(255,255,255,0.35); border-radius:16px; padding:24px 16px; text-align:center; cursor:pointer; background:rgba(15,23,42,0.35); transition:all 0.2s ease;">
+                <i class="fa-solid fa-cloud-arrow-up" style="font-size:26px; color:#00f2fe; margin-bottom:6px; display:block;"></i>
+                <p style="margin:0; font-size:12.5px; font-weight:800; color:#ffffff;">Tap to select photos</p>
+                <p style="margin:4px 0 0 0; font-size:11px; color:rgba(255,255,255,0.75);">You can choose multiple photos</p>
+            </div>
+
+            <!-- Thumbnails Grid -->
+            <div id="proof-thumbnails-grid" style="display:none; grid-template-columns:repeat(3, 1fr); gap:10px;"></div>
+        </div>
+
+        <!-- Submit & Cancel Buttons -->
+        <div style="display:flex; flex-direction:column; gap:8px;">
+            <button type="button" id="btn-submit-proof-photos" class="btn-primary"
+                style="width:100%; padding:14px; font-size:14px; font-weight:800; background:linear-gradient(135deg, #10b981 0%, #059669 100%); border:none; outline:none; color:#ffffff; border-radius:14px; cursor:pointer;"
+                onclick="window.submitProofPhotos()">
+                <i class="fa-solid fa-cloud-arrow-up" style="margin-right:6px;"></i> Submit Photo Proof
             </button>
-            <button type="button" onclick="window.selectCheckinImageSource('gallery')"
-                style="width:100%; padding:15px; background:rgba(255,255,255,0.15); border:none !important; outline:none !important; border-radius:18px; color:#ffffff; font-size:14px; font-weight:700; display:flex; align-items:center; justify-content:center; gap:10px; cursor:pointer; transition:transform 0.15s ease, background 0.15s ease;">
-                <i class="fa-solid fa-images" style="font-size:17px; color:#67e8f9;"></i> Choose from Photo Gallery
-            </button>
-            <button type="button" onclick="window.closeCheckinImagePickerModal()"
-                style="width:100%; padding:12px; background:transparent; border:none; color:rgba(255,255,255,0.8); font-size:13px; font-weight:600; cursor:pointer; margin-top:4px;">
-                Cancel
-            </button>
+            <button type="button"
+                style="width:100%; padding:11px; border-radius:14px; border:none; outline:none; background:rgba(255,255,255,0.15); color:#ffffff; font-size:12.5px; font-weight:700; cursor:pointer;"
+                onclick="window.closeProofUploadModal()">Cancel</button>
         </div>
     </div>
 </div>
@@ -144,7 +121,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
 
 <script>
     (function () {
-        var backendUrl = window.backendUrl || 'https://api.intan-elyu.online';
+        var backendUrl = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
         var tripMap;
 
         window.myLat = window.myLat || window.currentGPSLat || null;
@@ -425,112 +402,182 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                 const lat = parseFloat(dest.lat || dest.latitude);
                 const lng = parseFloat(dest.lng || dest.longitude);
                 const isVisited = Boolean(item.is_visited || item.proof_status === 'approved');
-                const isPending = Boolean(item.proof_image && (item.proof_status === 'pending' || !item.proof_status));
                 const isRejected = (item.proof_status === 'rejected');
-                const isQueued = Boolean(window.OfflineCheckinManager && window.OfflineCheckinManager.isItemQueued(item.id));
+                const isLocationVerified = Boolean(item.is_location_verified || item.visited_at);
+                const queuedItem = window.OfflineCheckinManager ? window.OfflineCheckinManager.getQueuedItem(item.id) : null;
+                const isQueued = Boolean(queuedItem);
                 const isActive = idx === activeIndex;
+
+                let proofImages = [];
+                if (Array.isArray(item.proof_images) && item.proof_images.length > 0) {
+                    proofImages = item.proof_images;
+                } else if (item.proof_image) {
+                    try {
+                        const parsed = JSON.parse(item.proof_image);
+                        if (Array.isArray(parsed)) proofImages = parsed;
+                        else proofImages = [item.proof_image];
+                    } catch (e) {
+                        proofImages = [item.proof_image];
+                    }
+                }
+                const hasProof = Boolean(proofImages.length > 0);
+                const isPendingApproval = Boolean(isLocationVerified && hasProof && (item.proof_status === 'pending' || !item.proof_status) && !isVisited);
 
                 let badgeHtml = '';
                 if (isQueued) {
                     badgeHtml = `<span class="conveyor-status-badge" style="background:rgba(245,158,11,0.25); border:none !important; outline:none !important; color:#fde68a; padding:4px 12px; border-radius:100px; font-size:10px; font-weight:800; flex-shrink:0;"><i class="fa-solid fa-cloud-arrow-up"></i> Queued (Offline)</span>`;
                 } else if (isVisited) {
                     badgeHtml = `<span class="conveyor-status-badge" style="background:rgba(52,199,89,0.25); border:none !important; outline:none !important; color:#ffffff; padding:4px 12px; border-radius:100px; font-size:10px; font-weight:800; flex-shrink:0;"><i class="fa-solid fa-circle-check"></i> Visited</span>`;
-                } else if (isPending) {
-                    badgeHtml = `<span class="conveyor-status-badge" style="background:rgba(245,158,11,0.25); border:none !important; outline:none !important; color:#ffffff; padding:4px 12px; border-radius:100px; font-size:10px; font-weight:800; flex-shrink:0;"><i class="fa-solid fa-clock"></i> Pending Review</span>`;
                 } else if (isRejected) {
                     badgeHtml = `<span class="conveyor-status-badge" style="background:rgba(239,68,68,0.25); border:none !important; outline:none !important; color:#ffffff; padding:4px 12px; border-radius:100px; font-size:10px; font-weight:800; flex-shrink:0;"><i class="fa-solid fa-circle-xmark"></i> Rejected</span>`;
+                } else if (isPendingApproval) {
+                    badgeHtml = `<span class="conveyor-status-badge" style="background:rgba(245,158,11,0.25); border:none !important; outline:none !important; color:#ffffff; padding:4px 12px; border-radius:100px; font-size:10px; font-weight:800; flex-shrink:0;"><i class="fa-solid fa-clock"></i> Pending Review</span>`;
+                } else if (isLocationVerified && !hasProof) {
+                    badgeHtml = `<span class="conveyor-status-badge" style="background:rgba(56,189,248,0.25); border:none !important; outline:none !important; color:#38bdf8; padding:4px 12px; border-radius:100px; font-size:10px; font-weight:800; flex-shrink:0;"><i class="fa-solid fa-location-dot"></i> Checked In</span>`;
+                } else if (!isLocationVerified && hasProof) {
+                    badgeHtml = `<span class="conveyor-status-badge" style="background:rgba(167,139,250,0.25); border:none !important; outline:none !important; color:#c4b5fd; padding:4px 12px; border-radius:100px; font-size:10px; font-weight:800; flex-shrink:0;"><i class="fa-solid fa-camera"></i> Photo Ready</span>`;
                 } else if (isActive) {
                     badgeHtml = `<span class="conveyor-status-badge" style="background:rgba(255,255,255,0.25); border:none !important; outline:none !important; color:#ffffff; padding:4px 12px; border-radius:100px; font-size:10px; font-weight:800; flex-shrink:0;">Stop ${idx + 1} of ${items.length} • NEXT</span>`;
                 } else {
                     badgeHtml = `<span class="conveyor-status-badge" style="background:rgba(255,255,255,0.15); border:none !important; outline:none !important; color:rgba(255,255,255,0.85); padding:4px 12px; border-radius:100px; font-size:10px; font-weight:700; flex-shrink:0;">Stop ${idx + 1} of ${items.length}</span>`;
                 }
 
-                let proofThumbnail = '';
-                if (item.proof_image) {
-                    let pUrl = item.proof_image;
-                    if (!pUrl.startsWith('http') && !pUrl.startsWith('data:') && !pUrl.startsWith('blob:')) {
-                        let b = (window.backendUrl || '').replace(/\/+$/, '');
-                        pUrl = b + '/' + pUrl.replace(/^\//, '');
+                const destEscaped = (dest && dest.name) ? dest.name.replace(/'/g, "\\'") : 'Destination';
+                const jsonUrlsAttr = JSON.stringify(proofImages).replace(/"/g, '&quot;');
+
+                let proofThumbnailStrip = '';
+                if (proofImages.length > 0) {
+                    const activeBackend = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
+                    proofThumbnailStrip = `<div style="display:inline-flex; align-items:center; gap:4px; flex-shrink:0;">
+                        ${proofImages.slice(0, 3).map((imgUrl, pIdx) => {
+                            let pUrl = imgUrl;
+                            if (!pUrl.startsWith('http') && !pUrl.startsWith('data:') && !pUrl.startsWith('blob:')) {
+                                pUrl = activeBackend + '/' + pUrl.replace(/^\//, '');
+                            }
+                            const cleanImgName = pUrl.split('/').pop().replace(/[?#].*$/, '');
+                            let fallbackUrl = activeBackend + '/api/image/proof_images/' + cleanImgName;
+                            return `<img src="${pUrl}" onerror="if(this.dataset.triedFallback!=='1'){this.dataset.triedFallback='1';this.src='${fallbackUrl}';}" onclick="event.stopPropagation(); if(typeof window.viewProofPhotoModal==='function') window.viewProofPhotoModal(${jsonUrlsAttr}, '${destEscaped}', '${isVisited ? 'Verified Visit Proof' : 'Uploaded Proof'}');" alt="Proof" title="Tap to view proof photo" style="width:30px; height:30px; border-radius:7px; object-fit:cover; border:1px solid rgba(255,255,255,0.3); flex-shrink:0; cursor:pointer;">`;
+                        }).join('')}
+                        ${proofImages.length > 3 ? `<span onclick="event.stopPropagation(); if(typeof window.viewProofPhotoModal==='function') window.viewProofPhotoModal(${jsonUrlsAttr}, '${destEscaped}', '${isVisited ? 'Verified Visit Proof' : 'Uploaded Proof'}');" style="background:rgba(0,0,0,0.7); color:#fff; font-size:8px; font-weight:800; padding:2px 4px; border-radius:4px; cursor:pointer;">+${proofImages.length - 3}</span>` : ''}
+                    </div>`;
+                }
+
+                let queuedThumbnail = '';
+                if (isQueued && queuedItem) {
+                    const qSrc = queuedItem.previewUrl || '';
+                    if (qSrc) {
+                        queuedThumbnail = `<img src="${qSrc}" onclick="event.stopPropagation(); if(typeof window.viewProofPhotoModal==='function') window.viewProofPhotoModal('${qSrc}', '${destEscaped}', 'Offline Proof (Queued on Device)');" alt="Proof" title="Tap to view offline proof photo" style="width:30px; height:30px; border-radius:7px; object-fit:cover; border:1.5px solid #f59e0b !important; box-shadow:none !important; flex-shrink:0; cursor:pointer;">`;
+                    } else {
+                        queuedThumbnail = `<div style="width:30px; height:30px; border-radius:7px; background:rgba(245,158,11,0.2); border:1px dashed #f59e0b; display:flex; align-items:center; justify-content:center; color:#fbbf24; flex-shrink:0;"><i class="fa-solid fa-camera" style="font-size:11px;"></i></div>`;
                     }
-                    let fallbackUrl = (window.backendUrl || '').replace(/\/+$/, '') + '/api/image/' + item.proof_image.replace(/^\//, '');
-                    proofThumbnail = `<img src="${pUrl}" onerror="if(this.src!=='${fallbackUrl}'){this.src='${fallbackUrl}';}" alt="Proof" style="width:34px; height:34px; border-radius:8px; object-fit:cover; border:none !important; box-shadow:none !important; flex-shrink:0;">`;
                 }
 
                 let actionBtnHtml = '';
                 if (isQueued) {
-                    actionBtnHtml = `<span style="background:rgba(245,158,11,0.25); border:none !important; outline:none !important; color:#fde68a; font-weight:800; font-size:10.5px; padding:3px 8px; border-radius:100px; display:inline-flex; align-items:center; gap:4px; white-space:nowrap;"><i class="fa-solid fa-cloud-arrow-up"></i> Queued (Offline)</span>`;
+                    actionBtnHtml = `<div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
+                        ${queuedThumbnail}
+                        <span style="background:rgba(245,158,11,0.25); border:none !important; outline:none !important; color:#fde68a; font-weight:800; font-size:10.5px; padding:3px 8px; border-radius:100px; display:inline-flex; align-items:center; gap:4px; white-space:nowrap;"><i class="fa-solid fa-cloud-arrow-up"></i> Queued</span>
+                    </div>`;
                 } else if (isVisited) {
                     const sId = item.tourist_spot_id || (item.destination ? item.destination.id : '');
                     const isReviewed = sId && window.userReviewedSpotIds && window.userReviewedSpotIds.has(Number(sId));
                     const sClass = (dest && dest.classification_status) ? dest.classification_status : '';
                     const sMeta = (window.getRewardPointsForClassification) ? window.getRewardPointsForClassification(sClass) : { points: 50 };
                     actionBtnHtml = `<div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
-                    ${proofThumbnail}
-                    <div style="display:flex; flex-direction:column; gap:2px;">
-                        <span style="background:rgba(52,199,89,0.25); border:none !important; outline:none !important; color:#ffffff; font-weight:800; font-size:10.5px; padding:3px 7px; border-radius:100px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-circle-check"></i> Visited</span>
-                        <button type="button" data-spot-id="${sId}" data-spot-classification="${sClass}" onclick="event.stopPropagation(); window.openWriteTestimonyModal('${sId}', this)" style="background:rgba(255,255,255,0.18); border:none !important; outline:none !important; color:#ffffff; font-size:10px; font-weight:700; padding:3px 8px; border-radius:100px; cursor:pointer; width:fit-content;">
-                            ${isReviewed ? '<i class="fa-solid fa-check" style="margin-right:2px;"></i> Reviewed' : `<i class="fa-solid fa-pen" style="margin-right:2px;"></i> Review (+${sMeta.points} PTS)`}
-                        </button>
-                    </div>
-                </div>`;
+                        ${proofThumbnailStrip}
+                        <div style="display:flex; flex-direction:column; gap:2px;">
+                            <span style="background:rgba(52,199,89,0.25); border:none !important; outline:none !important; color:#ffffff; font-weight:800; font-size:10px; padding:3px 7px; border-radius:100px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-circle-check"></i> Visited</span>
+                            <button type="button" data-spot-id="${sId}" data-spot-classification="${sClass}" onclick="event.stopPropagation(); window.openWriteTestimonyModal('${sId}', this)" style="background:rgba(255,255,255,0.18); border:none !important; outline:none !important; color:#ffffff; font-size:9.5px; font-weight:700; padding:2px 7px; border-radius:100px; cursor:pointer; width:fit-content;">
+                                ${isReviewed ? '<i class="fa-solid fa-check"></i> Reviewed' : `<i class="fa-solid fa-pen"></i> Review (+${sMeta.points} PTS)`}
+                            </button>
+                        </div>
+                    </div>`;
                 } else if (isRejected) {
                     actionBtnHtml = `<div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
-                    ${proofThumbnail}
-                    <div style="display:flex; flex-direction:column; gap:2px;">
-                        <span style="background:rgba(239,68,68,0.25); border:none !important; outline:none !important; color:#ffffff; font-weight:800; font-size:10.5px; padding:3px 7px; border-radius:100px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-circle-xmark"></i> Rejected</span>
-                        <button onclick="event.stopPropagation(); window.currentCheckinItemId='${item.id}'; window.triggerMapCheckinModal()" style="background:linear-gradient(135deg, #ef4444, #dc2626); color:#ffffff; border:none !important; outline:none !important; padding:4px 8px; border-radius:100px; font-weight:800; font-size:10px; cursor:pointer;"><i class="fa-solid fa-camera" style="margin-right:2px;"></i> Re-upload</button>
-                    </div>
-                </div>`;
-                } else if (isPending) {
+                        ${proofThumbnailStrip}
+                        <div style="display:flex; flex-direction:column; gap:2px;">
+                            <span style="background:rgba(239,68,68,0.25); border:none !important; outline:none !important; color:#ffffff; font-weight:800; font-size:10px; padding:2px 6px; border-radius:100px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-circle-xmark"></i> Rejected</span>
+                            <button onclick="event.stopPropagation(); window.openProofUploadModal('${item.id}', '${destEscaped}')" style="background:linear-gradient(135deg, #ef4444, #dc2626); color:#ffffff; border:none !important; outline:none !important; padding:4px 8px; border-radius:100px; font-weight:800; font-size:9.5px; cursor:pointer; white-space:nowrap;"><i class="fa-solid fa-camera" style="margin-right:2px;"></i> Re-upload Proof</button>
+                        </div>
+                    </div>`;
+                } else if (isPendingApproval) {
+                    // State 4: Both Submitted
                     actionBtnHtml = `<div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
-                    ${proofThumbnail}
-                    <span style="background:rgba(245,158,11,0.25); border:none !important; outline:none !important; color:#ffffff; font-weight:800; font-size:10.5px; padding:3px 8px; border-radius:100px; display:inline-flex; align-items:center; gap:4px; white-space:nowrap;"><i class="fa-solid fa-clock"></i> Under Review</span>
-                </div>`;
-                } else if (isActive) {
-                    actionBtnHtml = `<button onclick="event.stopPropagation(); window.currentCheckinItemId='${item.id}'; window.triggerMapCheckinModal()" style="background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); color:#ffffff; border:none !important; outline:none !important; padding:8px 14px; border-radius:100px; font-weight:800; font-size:11px; box-shadow:none !important; cursor:pointer;"><i class="fa-solid fa-location-crosshairs" style="margin-right:4px;"></i> Check In (+50 PTS)</button>`;
+                        ${proofThumbnailStrip}
+                        <span style="background:rgba(245,158,11,0.25); border:none !important; outline:none !important; color:#ffffff; font-weight:800; font-size:10px; padding:4px 8px; border-radius:100px; display:inline-flex; align-items:center; gap:4px; white-space:nowrap;"><i class="fa-solid fa-clock"></i> Awaiting Approval</span>
+                    </div>`;
+                } else if (isLocationVerified && !hasProof) {
+                    // State 2: Location Only
+                    actionBtnHtml = `<div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
+                        <span style="background:rgba(56,189,248,0.2); color:#38bdf8; font-weight:800; font-size:10px; padding:4px 8px; border-radius:100px; white-space:nowrap;"><i class="fa-solid fa-location-dot"></i> Checked In</span>
+                        <button onclick="event.stopPropagation(); window.openProofUploadModal('${item.id}', '${destEscaped}')" style="background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); color:#ffffff; border:none !important; outline:none !important; padding:6px 11px; border-radius:100px; font-weight:800; font-size:10.5px; box-shadow:none !important; cursor:pointer; white-space:nowrap;"><i class="fa-solid fa-camera" style="margin-right:3px;"></i> Upload Proof</button>
+                    </div>`;
+                } else if (!isLocationVerified && hasProof) {
+                    // State 3: Photo Only
+                    actionBtnHtml = `<div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
+                        ${proofThumbnailStrip}
+                        <button onclick="event.stopPropagation(); window.executeLocationCheckIn('${item.id}', '${destEscaped}', ${lat}, ${lng}, this)" style="background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); color:#ffffff; border:none !important; outline:none !important; padding:6px 11px; border-radius:100px; font-weight:800; font-size:10.5px; box-shadow:none !important; cursor:pointer; white-space:nowrap;"><i class="fa-solid fa-location-crosshairs" style="margin-right:3px;"></i> Check In</button>
+                    </div>`;
                 } else {
-                    actionBtnHtml = `<span style="color:rgba(255,255,255,0.6); font-size:12px; font-weight:700;"><i class="fa-solid fa-lock"></i> Locked</span>`;
+                    // State 1: Not Started
+                    actionBtnHtml = `<div style="display:flex; align-items:center; gap:5px; flex-shrink:0;">
+                        <button onclick="event.stopPropagation(); window.executeLocationCheckIn('${item.id}', '${destEscaped}', ${lat}, ${lng}, this)" style="background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); color:#ffffff; border:none !important; outline:none !important; padding:6px 10px; border-radius:100px; font-weight:800; font-size:10.5px; box-shadow:none !important; cursor:pointer; white-space:nowrap;"><i class="fa-solid fa-location-crosshairs" style="margin-right:3px;"></i> Check In</button>
+                        <button onclick="event.stopPropagation(); window.openProofUploadModal('${item.id}', '${destEscaped}')" style="background:rgba(255,255,255,0.18); color:#ffffff; border:none !important; outline:none !important; padding:6px 10px; border-radius:100px; font-weight:800; font-size:10.5px; cursor:pointer; white-space:nowrap;"><i class="fa-solid fa-camera" style="margin-right:3px;"></i> Proof</button>
+                    </div>`;
                 }
 
                 const classBadge = dest.classification_status ? `<span style="padding: 3px 8px; border-radius: 100px; font-size: 8px; font-weight: 800; text-transform: uppercase; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#0284c7' : (dest.classification_status === 'EMERGE' ? '#ef4444' : '#10b981')}; border:none !important; outline:none !important; flex-shrink:0;">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</span>` : '';
 
                 let legTransitHtml = '';
                 if (item.transport_mode) {
-                    const legParts = String(item.transport_mode).split(/[,+]|\band\b/i).map(s => s.trim().toLowerCase().replace(/[- ]/g, '_')).filter(Boolean);
-                    let vIcon = 'fa-van-shuttle';
-                    let vName = item.transport_mode;
+                    const isSpotMaint = Boolean(
+                        (dest && (dest.is_maintenance === 1 || dest.is_maintenance === true || dest.is_maintenance === '1' || (dest.status && String(dest.status).toLowerCase().includes('maint')))) ||
+                        item.transport_mode === 'suspended'
+                    );
 
-                    if (legParts.length > 1) {
-                        vIcon = 'fa-route';
-                        vName = `${legParts.length} Vehicles`;
-                    } else if (legParts.length === 1) {
-                        const single = legParts[0];
-                        if (single === 'own_car' || single === 'car') { vIcon = 'fa-car'; vName = 'Own Car'; }
-                        else if (single === 'motorcycle') { vIcon = 'fa-motorcycle'; vName = 'Motorcycle'; }
-                        else if (single === 'tricycle' || single === 'trike') { vIcon = 'fa-motorcycle'; vName = 'Tricycle'; }
-                        else if (single === 'mpuj') { vIcon = 'fa-bus-simple'; vName = 'Modern Jeepney'; }
-                        else if (single === 'tpuj') { vIcon = 'fa-van-shuttle'; vName = 'Traditional Jeepney'; }
-                        else if (single === 'pub_aircon' || single.includes('aircon')) { vIcon = 'fa-bus'; vName = 'Aircon Bus'; }
-                        else if (single === 'pub_regular' || single === 'pub_ordinary' || single.includes('ordinary') || single.includes('regular')) { vIcon = 'fa-bus-simple'; vName = 'Ordinary Bus'; }
-                        else if (single === 'uve') { vIcon = 'fa-van-shuttle'; vName = 'UV Express'; }
-                        else if (single === 'van') { vIcon = 'fa-van-shuttle'; vName = 'Van'; }
-                        else if (single === 'taxi') { vIcon = 'fa-taxi'; vName = 'Taxi'; }
-                        else if (single === 'bus' || single === 'private_bus') { vIcon = 'fa-bus'; vName = 'Bus'; }
-                        else if (single === 'walking' || single === 'walk') { vIcon = 'fa-person-walking'; vName = 'Walk / Hike'; }
-                        else {
-                            vName = single.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                    if (isSpotMaint) {
+                        legTransitHtml = `<div style="display:flex; align-items:center; gap:6px; margin-bottom:8px; flex-wrap:wrap;">
+                        <span style="background:#ef4444; color:#ffffff; padding:2px 8px; border-radius:100px; font-size:10px; font-weight:800; display:inline-flex; align-items:center; gap:4px; box-shadow:0 2px 6px rgba(239,68,68,0.3);">
+                            <i class="fa-solid fa-ban" style="color:#ffffff; font-size:9px;"></i> Unavailable (Maintenance) &bull; ₱0.00
+                        </span>
+                    </div>`;
+                    } else {
+                        const legParts = String(item.transport_mode).split(/[,+]|\band\b/i).map(s => s.trim().toLowerCase().replace(/[- ]/g, '_')).filter(Boolean);
+                        let vIcon = 'fa-van-shuttle';
+                        let vName = item.transport_mode;
+
+                        if (legParts.length > 1) {
+                            vIcon = 'fa-route';
+                            vName = `${legParts.length} Vehicles`;
+                        } else if (legParts.length === 1) {
+                            const single = legParts[0];
+                            if (single === 'own_car' || single === 'car') { vIcon = 'fa-car'; vName = 'Own Car'; }
+                            else if (single === 'motorcycle') { vIcon = 'fa-motorcycle'; vName = 'Motorcycle'; }
+                            else if (single === 'tricycle' || single === 'trike') { vIcon = 'fa-motorcycle'; vName = 'Tricycle'; }
+                            else if (single === 'mpuj') { vIcon = 'fa-bus-simple'; vName = 'Modern Jeepney'; }
+                            else if (single === 'tpuj') { vIcon = 'fa-van-shuttle'; vName = 'Traditional Jeepney'; }
+                            else if (single === 'pub_aircon' || single.includes('aircon')) { vIcon = 'fa-bus'; vName = 'Aircon Bus'; }
+                            else if (single === 'pub_regular' || single === 'pub_ordinary' || single.includes('ordinary') || single.includes('regular')) { vIcon = 'fa-bus-simple'; vName = 'Ordinary Bus'; }
+                            else if (single === 'uve') { vIcon = 'fa-van-shuttle'; vName = 'UV Express'; }
+                            else if (single === 'van') { vIcon = 'fa-van-shuttle'; vName = 'Van'; }
+                            else if (single === 'taxi') { vIcon = 'fa-taxi'; vName = 'Taxi'; }
+                            else if (single === 'bus' || single === 'private_bus') { vIcon = 'fa-bus'; vName = 'Bus'; }
+                            else if (single === 'walking' || single === 'walk') { vIcon = 'fa-person-walking'; vName = 'Walk / Hike'; }
+                            else {
+                                vName = single.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                            }
                         }
+
+                        const cNum = parseFloat(item.leg_cost || 0);
+                        const cStr = (cNum > 0) ? `&bull; ₱${cNum.toFixed(2)}` : (legParts.length === 1 && ['own_car', 'motorcycle', 'walking'].includes(legParts[0]) ? '&bull; ₱0' : '');
+
+                        legTransitHtml = `<div style="display:flex; align-items:center; gap:6px; margin-bottom:8px; flex-wrap:wrap;">
+                        <span style="background:rgba(255,255,255,0.18); color:#e0f2fe; padding:2px 8px; border-radius:100px; font-size:10px; font-weight:700; display:inline-flex; align-items:center; gap:4px;">
+                            <i class="fa-solid ${vIcon}" style="color:#00f2fe; font-size:9px;"></i> ${vName} ${cStr}
+                        </span>
+                        ${(dest && (dest.accessible_by_private_vehicle === 0 || dest.accessible_by_private_vehicle === false || dest.accessible_by_private_vehicle === '0')) ? `<span style="background:rgba(245,158,11,0.22); color:#fef3c7; padding:2px 7px; border-radius:100px; font-size:9px; font-weight:800; display:inline-flex; align-items:center; gap:3px;"><i class="fa-solid fa-triangle-exclamation" style="color:#fbbf24;"></i> Trailhead</span>` : ''}
+                    </div>`;
                     }
-
-                    const cNum = parseFloat(item.leg_cost || 0);
-                    const cStr = (cNum > 0) ? `&bull; ₱${cNum.toFixed(2)}` : (legParts.length === 1 && ['own_car', 'motorcycle', 'walking'].includes(legParts[0]) ? '&bull; ₱0' : '');
-
-                    legTransitHtml = `<div style="display:flex; align-items:center; gap:6px; margin-bottom:8px; flex-wrap:wrap;">
-                    <span style="background:rgba(255,255,255,0.18); color:#e0f2fe; padding:2px 8px; border-radius:100px; font-size:10px; font-weight:700; display:inline-flex; align-items:center; gap:4px;">
-                        <i class="fa-solid ${vIcon}" style="color:#00f2fe; font-size:9px;"></i> ${vName} ${cStr}
-                    </span>
-                    ${(dest && (dest.accessible_by_private_vehicle === 0 || dest.accessible_by_private_vehicle === false || dest.accessible_by_private_vehicle === '0')) ? `<span style="background:rgba(245,158,11,0.22); color:#fef3c7; padding:2px 7px; border-radius:100px; font-size:9px; font-weight:800; display:inline-flex; align-items:center; gap:3px;"><i class="fa-solid fa-triangle-exclamation" style="color:#fbbf24;"></i> Trailhead</span>` : ''}
-                </div>`;
                 }
 
                 conveyorHtml += `
@@ -717,8 +764,12 @@ include_once __DIR__ . '/../components/testimony_modal.php';
 
                         let iconHtml = '';
                         const isVisited = Boolean(item.is_visited || item.proof_status === 'approved');
-                        const isPending = Boolean(item.proof_image && (item.proof_status === 'pending' || !item.proof_status));
                         const isRejected = (item.proof_status === 'rejected');
+                        const isLocationVerified = Boolean(item.is_location_verified || item.visited_at);
+                        const hasProof = Boolean((Array.isArray(item.proof_images) && item.proof_images.length > 0) || item.proof_image);
+                        const isPending = Boolean(isLocationVerified && hasProof && (item.proof_status === 'pending' || !item.proof_status) && !isVisited);
+                        const isLocOnly = Boolean(isLocationVerified && !hasProof && !isVisited);
+                        const isPhotoOnly = Boolean(!isLocationVerified && hasProof && !isVisited);
                         const isQueued = Boolean(window.OfflineCheckinManager && window.OfflineCheckinManager.isItemQueued(item.id));
 
                         if (isQueued) {
@@ -766,6 +817,30 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                                 </div>
                                 <div style="background: linear-gradient(135deg, rgba(30, 58, 138, 0.96) 0%, rgba(63, 125, 183, 0.94) 100%); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: none !important; outline: none !important; border-radius: 10px; padding: 4px 8px; margin-top: 5px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 12px rgba(10,25,60,0.3); z-index: 1;">
                                     <span style="color: #fca5a5; font-size: 10px; font-weight: 700;">Re-upload</span>
+                                </div>
+                            </div>
+                        `;
+                        } else if (isLocOnly) {
+                            // LOCATION ONLY - Cyan GPS Check
+                            iconHtml = `
+                            <div style="display: flex; flex-direction: column; align-items: center; cursor: pointer;">
+                                <div style="background: linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); color: #ffffff; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; border: 2.5px solid #ffffff; box-shadow: 0 4px 12px rgba(2,132,199,0.4); z-index: 2;">
+                                    <i class="fa-solid fa-location-dot"></i>
+                                </div>
+                                <div style="background: linear-gradient(135deg, rgba(30, 58, 138, 0.96) 0%, rgba(63, 125, 183, 0.94) 100%); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: none !important; outline: none !important; border-radius: 10px; padding: 4px 8px; margin-top: 5px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 12px rgba(10,25,60,0.3); z-index: 1;">
+                                    <span style="color: #38bdf8; font-size: 10px; font-weight: 700;">Checked In</span>
+                                </div>
+                            </div>
+                        `;
+                        } else if (isPhotoOnly) {
+                            // PHOTO ONLY - Purple Camera
+                            iconHtml = `
+                            <div style="display: flex; flex-direction: column; align-items: center; cursor: pointer;">
+                                <div style="background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); color: #ffffff; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; border: 2.5px solid #ffffff; box-shadow: 0 4px 12px rgba(109,40,217,0.4); z-index: 2;">
+                                    <i class="fa-solid fa-camera"></i>
+                                </div>
+                                <div style="background: linear-gradient(135deg, rgba(30, 58, 138, 0.96) 0%, rgba(63, 125, 183, 0.94) 100%); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: none !important; outline: none !important; border-radius: 10px; padding: 4px 8px; margin-top: 5px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 12px rgba(10,25,60,0.3); z-index: 1;">
+                                    <span style="color: #c4b5fd; font-size: 10px; font-weight: 700;">Photo Ready</span>
                                 </div>
                             </div>
                         `;
@@ -962,7 +1037,58 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                                 }
                             }
                         }).catch(e => {
-                            console.error("Trip routing error", e);
+                            console.warn("Trip online routing failed, using geodesic route fallback:", e);
+                            try {
+                                const directCoords = coords.map(c => c.split(',').map(Number));
+                                if (directCoords.length >= 2) {
+                                    const geojson = {
+                                        'type': 'Feature',
+                                        'geometry': {
+                                            'type': 'LineString',
+                                            'coordinates': directCoords
+                                        }
+                                    };
+
+                                    let totalDistKm = 0;
+                                    function getLocalHaversineKm(lat1, lon1, lat2, lon2) {
+                                        const R = 6371;
+                                        const dLat = (lat2 - lat1) * Math.PI / 180;
+                                        const dLon = (lon2 - lon1) * Math.PI / 180;
+                                        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                                            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                                            Math.sin(dLon / 2) * Math.sin(dLon / 2);
+                                        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+                                    }
+
+                                    for (let i = 0; i < directCoords.length - 1; i++) {
+                                        totalDistKm += getLocalHaversineKm(directCoords[i][1], directCoords[i][0], directCoords[i + 1][1], directCoords[i + 1][0]);
+                                    }
+
+                                    const speed = activeVehicle.speedKmH || 35;
+                                    const durationMin = Math.max(5, Math.round((totalDistKm / speed) * 60));
+
+                                    window.setTxt('trip-info-distance', totalDistKm.toFixed(1) + ' km (direct)');
+                                    window.setTxt('trip-info-time', durationMin + ' mins');
+
+                                    if (tripMap.getSource('route')) {
+                                        tripMap.getSource('route').setData(geojson);
+                                        tripMap.setPaintProperty('route-line', 'line-color', '#f59e0b');
+                                        tripMap.setPaintProperty('route-line', 'line-dasharray', [2, 2]);
+                                    } else {
+                                        tripMap.addSource('route', { 'type': 'geojson', 'data': geojson });
+                                        tripMap.addLayer({
+                                            'id': 'route-line',
+                                            'type': 'line',
+                                            'source': 'route',
+                                            'layout': { 'line-join': 'round', 'line-cap': 'round' },
+                                            'paint': { 'line-color': '#f59e0b', 'line-width': 4, 'line-dasharray': [2, 2], 'line-opacity': 0.85 }
+                                        });
+                                    }
+                                    return;
+                                }
+                            } catch (fallbackErr) {
+                                console.error('Geodesic route fallback failed:', fallbackErr);
+                            }
                             const distEl = document.getElementById('trip-info-distance');
                             const timeEl = document.getElementById('trip-info-time');
                             if (distEl) distEl.textContent = "N/A";
@@ -977,24 +1103,49 @@ include_once __DIR__ . '/../components/testimony_modal.php';
             }
         }
 
-        // Map Checkin Modal functions
-        window.selectedCheckinImageFile = null;
+        // --- MULTI-PHOTO PROOF & INDEPENDENT LOCATION CHECK-IN HANDLERS ---
+        window.selectedProofPhotos = [];
+        window._currentProofItemId = null;
+        window._currentProofSpotName = null;
 
-        window.triggerMapCheckinModal = function () {
-            if (!window.currentCheckinItemId) return;
-            document.getElementById('checkin-item-id').value = window.currentCheckinItemId;
-            document.getElementById('checkin-modal').style.display = 'flex';
-        };
+        window.openProofUploadModal = function (itemId, spotName = '') {
+            window._currentProofItemId = itemId;
+            window._currentProofSpotName = spotName;
+            window.selectedProofPhotos = [];
 
-        window.openCheckinImagePickerModal = function () {
-            const modal = document.getElementById('checkin-image-picker-modal');
+            const titleEl = document.getElementById('proof-spot-title');
+            if (titleEl) {
+                titleEl.innerHTML = `<i class="fa-solid fa-camera" style="color:#00f2fe; font-size:17px;"></i> ${spotName || 'Upload Photo Proof'}`;
+            }
+
+            const input = document.getElementById('proof-upload-input');
+            if (input) input.value = '';
+
+            window.renderProofThumbnailsGrid();
+
+            const modal = document.getElementById('proof-upload-modal');
             if (modal) modal.style.display = 'flex';
         };
 
-        window.closeCheckinImagePickerModal = function () {
-            const modal = document.getElementById('checkin-image-picker-modal');
+        window.closeProofUploadModal = function () {
+            const modal = document.getElementById('proof-upload-modal');
             if (modal) modal.style.display = 'none';
+            window.selectedProofPhotos = [];
+            window._currentProofItemId = null;
+            window._currentProofSpotName = null;
+
+            const btn = document.getElementById('btn-submit-proof-photos');
+            if (btn) {
+                btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up" style="margin-right:6px;"></i> Submit Photo Proof';
+                btn.disabled = false;
+            }
         };
+
+        // Aliases for backwards compatibility
+        window.triggerMapCheckinModal = function (id) {
+            window.openProofUploadModal(id || window.currentCheckinItemId);
+        };
+        window.closeCheckinModal = window.closeProofUploadModal;
 
         window.compressImageFile = async function (fileOrBlob, maxDimension = 1280, quality = 0.8) {
             return new Promise((resolve) => {
@@ -1042,9 +1193,75 @@ include_once __DIR__ . '/../components/testimony_modal.php';
             });
         };
 
-        window.selectCheckinImageSource = async function (mode) {
-            window.closeCheckinImagePickerModal();
-            const input = document.getElementById('checkin-proof-image');
+        window.renderProofThumbnailsGrid = function () {
+            const emptyPrompt = document.getElementById('proof-empty-prompt');
+            const grid = document.getElementById('proof-thumbnails-grid');
+            const countBadge = document.getElementById('proof-count-badge');
+            const submitBtn = document.getElementById('btn-submit-proof-photos');
+
+            const total = window.selectedProofPhotos.length;
+            if (countBadge) {
+                countBadge.textContent = `${total} / 5 photos`;
+            }
+
+            if (submitBtn) {
+                submitBtn.innerHTML = `<i class="fa-solid fa-cloud-arrow-up" style="margin-right:6px;"></i> Submit Photo Proof ${total > 0 ? `(${total})` : ''}`;
+            }
+
+            if (total === 0) {
+                if (emptyPrompt) emptyPrompt.style.display = 'block';
+                if (grid) {
+                    grid.style.display = 'none';
+                    grid.innerHTML = '';
+                }
+                return;
+            }
+
+            if (emptyPrompt) emptyPrompt.style.display = 'none';
+            if (grid) {
+                grid.style.display = 'grid';
+                let html = '';
+
+                window.selectedProofPhotos.forEach((item, index) => {
+                    html += `
+                        <div style="position:relative; aspect-ratio:1/1; border-radius:14px; overflow:hidden; background:#000; box-shadow:0 4px 12px rgba(0,0,0,0.3); border:1.5px solid rgba(255,255,255,0.2);">
+                            <img src="${item.dataUrl}" alt="Photo ${index + 1}" style="width:100%; height:100%; object-fit:cover; display:block;">
+                            <span style="position:absolute; bottom:4px; left:4px; background:rgba(0,0,0,0.7); color:#fff; font-size:9px; font-weight:800; padding:2px 6px; border-radius:6px;">
+                                ${index + 1}
+                            </span>
+                            <button type="button" onclick="event.stopPropagation(); window.removeProofPhotoAtIndex(${index})" title="Remove Photo"
+                                style="position:absolute; top:4px; right:4px; width:26px; height:26px; border-radius:50%; background:rgba(239,68,68,0.9); color:#fff; border:none; outline:none; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.4);">
+                                <i class="fa-solid fa-xmark" style="font-size:12px;"></i>
+                            </button>
+                        </div>
+                    `;
+                });
+
+                if (total < 5) {
+                    html += `
+                        <div onclick="window.addProofPhotoFromSource('gallery')"
+                            style="aspect-ratio:1/1; border:2px dashed rgba(255,255,255,0.4); border-radius:14px; display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer; background:rgba(255,255,255,0.08); transition:background 0.2s ease;">
+                            <i class="fa-solid fa-plus" style="font-size:20px; color:#ffffff; opacity:0.8; margin-bottom:4px;"></i>
+                            <span style="font-size:10px; font-weight:800; color:#ffffff; opacity:0.8;">Add More</span>
+                        </div>
+                    `;
+                }
+
+                grid.innerHTML = html;
+            }
+        };
+
+        window.removeProofPhotoAtIndex = function (index) {
+            window.selectedProofPhotos.splice(index, 1);
+            window.renderProofThumbnailsGrid();
+        };
+
+        window.addProofPhotoFromSource = async function (mode) {
+            const remainingSlots = 5 - window.selectedProofPhotos.length;
+            if (remainingSlots <= 0) {
+                if (typeof showToast === 'function') showToast('Maximum 5 photos reached.');
+                return;
+            }
 
             const isCapacitorNative = Boolean(
                 window.Capacitor &&
@@ -1069,15 +1286,20 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                     if (image && image.dataUrl) {
                         const res = await fetch(image.dataUrl);
                         const blob = await res.blob();
-                        const rawFile = new File([blob], 'proof_' + Date.now() + '.jpg', { type: blob.type || 'image/jpeg' });
+                        const rawFile = new File([blob], `proof_${Date.now()}.jpg`, { type: blob.type || 'image/jpeg' });
                         const compressed = await window.compressImageFile(rawFile, 1280, 0.8);
-                        window.selectedCheckinImageFile = compressed;
-                        window.updateCheckinPhotoPreview(image.dataUrl);
+
+                        window.selectedProofPhotos.push({
+                            file: compressed,
+                            dataUrl: image.dataUrl
+                        });
+                        window.renderProofThumbnailsGrid();
                     }
                 } catch (err) {
-                    console.warn('Capacitor Camera cancel or error:', err);
+                    console.warn('Native camera cancelled or failed:', err);
                 }
             } else {
+                const input = document.getElementById('proof-upload-input');
                 if (!input) return;
                 if (mode === 'camera') {
                     input.setAttribute('capture', 'environment');
@@ -1088,177 +1310,418 @@ include_once __DIR__ . '/../components/testimony_modal.php';
             }
         };
 
-        window.handlePhotoSelected = async function (input) {
-            if (input.files && input.files[0]) {
-                const rawFile = input.files[0];
-                try {
-                    const compressed = await window.compressImageFile(rawFile, 1280, 0.8);
-                    window.selectedCheckinImageFile = compressed;
-                    const reader = new FileReader();
-                    reader.onload = function (e) {
-                        window.updateCheckinPhotoPreview(e.target.result);
-                    };
-                    reader.readAsDataURL(compressed);
-                } catch (err) {
-                    window.selectedCheckinImageFile = rawFile;
-                    const reader = new FileReader();
-                    reader.onload = function (e) {
-                        window.updateCheckinPhotoPreview(e.target.result);
-                    };
-                    reader.readAsDataURL(rawFile);
-                }
-            }
-        };
+        window.handleProofPhotosSelected = async function (input) {
+            if (!input.files || input.files.length === 0) return;
 
-        window.updateCheckinPhotoPreview = function (dataUrl) {
-            const previewContainer = document.getElementById('checkin-photo-preview-container');
-            const previewImg = document.getElementById('checkin-photo-preview-img');
-            const btnText = document.getElementById('photo-status-text');
-            const btn = document.getElementById('btn-select-photo');
-
-            if (previewContainer && previewImg) {
-                previewImg.src = dataUrl;
-                previewContainer.style.display = 'block';
-            }
-
-            if (btnText) btnText.textContent = 'Change Photo 📸';
-            if (btn) {
-                btn.style.background = 'rgba(52, 199, 89, 0.15)';
-                btn.style.borderColor = 'rgba(52, 199, 89, 0.5)';
-                btn.style.color = '#34c759';
-            }
-        };
-
-        window.removeCheckinPhoto = function () {
-            window.selectedCheckinImageFile = null;
-            const imgInput = document.getElementById('checkin-proof-image');
-            if (imgInput) imgInput.value = '';
-
-            const previewContainer = document.getElementById('checkin-photo-preview-container');
-            const previewImg = document.getElementById('checkin-photo-preview-img');
-            if (previewContainer) previewContainer.style.display = 'none';
-            if (previewImg) previewImg.src = '';
-
-            const photoBtn = document.getElementById('btn-select-photo');
-            const photoText = document.getElementById('photo-status-text');
-            if (photoText) photoText.textContent = 'Take or Choose Photo';
-            if (photoBtn) {
-                photoBtn.style.background = 'rgba(56,189,248,0.1)';
-                photoBtn.style.borderColor = 'rgba(56,189,248,0.4)';
-                photoBtn.style.color = '#38bdf8';
-            }
-        };
-
-        window.closeCheckinModal = function () {
-            document.getElementById('checkin-modal').style.display = 'none';
-            document.getElementById('checkin-item-id').value = '';
-            window.removeCheckinPhoto();
-
-            const btn = document.getElementById('btn-verify-gps');
-            if (btn) { btn.innerHTML = '<i class="fa-solid fa-location-crosshairs" style="margin-right:8px;"></i> Verify Location & Submit'; btn.disabled = false; }
-        };
-
-        window.verifyGpsCheckIn = async function () {
-            let imageFile = window.selectedCheckinImageFile || (document.getElementById('checkin-proof-image') ? document.getElementById('checkin-proof-image').files[0] : null);
-            if (!imageFile) {
-                if (typeof showToast === 'function') showToast('Please select or capture a photo proof first.');
+            const remainingSlots = 5 - window.selectedProofPhotos.length;
+            if (remainingSlots <= 0) {
+                if (typeof showToast === 'function') showToast('Maximum 5 photos allowed.');
                 return;
             }
 
-            const itemId = document.getElementById('checkin-item-id').value;
-            if (!itemId) return;
+            const filesToProcess = Array.from(input.files).slice(0, remainingSlots);
 
-            const btn = document.getElementById('btn-verify-gps');
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="margin-right:8px;"></i> Verifying...';
-            btn.disabled = true;
-
-            if (imageFile && (imageFile.size > 1024 * 1024 || !imageFile.type)) {
+            for (const file of filesToProcess) {
                 try {
-                    imageFile = await window.compressImageFile(imageFile, 1280, 0.8);
+                    const compressed = await window.compressImageFile(file, 1280, 0.8);
+                    const dataUrl = await new Promise((res) => {
+                        const r = new FileReader();
+                        r.onload = (e) => res(e.target.result);
+                        r.readAsDataURL(compressed);
+                    });
+                    window.selectedProofPhotos.push({
+                        file: compressed,
+                        dataUrl: dataUrl
+                    });
                 } catch (e) {
-                    console.warn('Check-in pre-compression failed:', e);
+                    console.warn('Failed to process file:', e);
                 }
             }
 
-            const lat = window.myLat || 16.6159;
-            const lng = window.myLng || 120.3186;
-            const capturedAt = new Date().toISOString();
+            input.value = '';
+            window.renderProofThumbnailsGrid();
+        };
 
+        window.applyPhotoProofUpdateLocally = function (itemId, proofUrls, proofStatus = 'pending') {
+            if (!itemId) return;
+            const targetIdStr = String(itemId);
+            const urls = Array.isArray(proofUrls) ? proofUrls : (proofUrls ? [proofUrls] : []);
+            if (urls.length === 0) return;
+
+            if (window.currentTrip && Array.isArray(window.currentTrip.items)) {
+                window.currentTrip.items = window.currentTrip.items.map(it => {
+                    if (!it) return it;
+                    const itIdStr = String(it.id || '');
+                    if (itIdStr === targetIdStr || (targetIdStr && itIdStr && targetIdStr.includes(itIdStr))) {
+                        return {
+                            ...it,
+                            proof_image: urls[0],
+                            proof_images: urls,
+                            proof_status: proofStatus,
+                            rejection_reason: null
+                        };
+                    }
+                    return it;
+                });
+                window.currentTripItems = window.currentTrip.items;
+                const activeIndex = window.currentTripItems.findIndex(i => !i.is_visited && i.proof_status !== 'approved');
+                if (typeof renderConveyorCards === 'function') {
+                    renderConveyorCards(window.currentTripItems, activeIndex >= 0 ? activeIndex : 0);
+                }
+            }
+
+            // Sync with local storage
+            ['intan_elyu_saved_trips', 'intan_elyu_offline_saved_trips_backup', 'intan_elyu_offline_saved_trips'].forEach(k => {
+                try {
+                    const raw = localStorage.getItem(k);
+                    if (raw) {
+                        const parsed = JSON.parse(raw);
+                        const updateList = (list) => {
+                            if (!Array.isArray(list)) return list;
+                            return list.map(trip => {
+                                if (!trip || !Array.isArray(trip.items)) return trip;
+                                return {
+                                    ...trip,
+                                    items: trip.items.map(it => {
+                                        if (String(it.id) === targetIdStr) {
+                                            return { ...it, proof_image: urls[0], proof_images: urls, proof_status: proofStatus, rejection_reason: null };
+                                        }
+                                        return it;
+                                    })
+                                };
+                            });
+                        };
+                        if (Array.isArray(parsed)) {
+                            localStorage.setItem(k, JSON.stringify(updateList(parsed)));
+                        } else if (parsed && Array.isArray(parsed.itineraries)) {
+                            parsed.itineraries = updateList(parsed.itineraries);
+                            localStorage.setItem(k, JSON.stringify(parsed));
+                        }
+                    }
+                } catch (e) { }
+            });
+        };
+
+        window.applyLocationCheckinLocally = function (itemId) {
+            if (!itemId) return;
+            const targetIdStr = String(itemId);
+            const nowIso = new Date().toISOString();
+
+            if (window.currentTrip && Array.isArray(window.currentTrip.items)) {
+                window.currentTrip.items = window.currentTrip.items.map(it => {
+                    if (!it) return it;
+                    const itIdStr = String(it.id || '');
+                    if (itIdStr === targetIdStr || (targetIdStr && itIdStr && targetIdStr.includes(itIdStr))) {
+                        return {
+                            ...it,
+                            is_location_verified: true,
+                            visited_at: it.visited_at || nowIso
+                        };
+                    }
+                    return it;
+                });
+                window.currentTripItems = window.currentTrip.items;
+                const activeIndex = window.currentTripItems.findIndex(i => !i.is_visited && i.proof_status !== 'approved');
+                if (typeof renderConveyorCards === 'function') {
+                    renderConveyorCards(window.currentTripItems, activeIndex >= 0 ? activeIndex : 0);
+                }
+            }
+        };
+
+        window.submitProofPhotos = async function () {
+            const itemId = window._currentProofItemId;
+            if (!itemId) return;
+
+            if (window.selectedProofPhotos.length === 0) {
+                if (typeof showToast === 'function') showToast('Please select or capture at least one photo proof.');
+                return;
+            }
+
+            const btn = document.getElementById('btn-submit-proof-photos');
+            if (btn) {
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="margin-right:6px;"></i> Submitting...';
+                btn.disabled = true;
+            }
+
+            const previewUrls = window.selectedProofPhotos.map(p => p.dataUrl).filter(Boolean);
+            const firstFile = window.selectedProofPhotos[0].file;
+            const spotName = window._currentProofSpotName || 'Destination';
+
+            // Optimistically update memory and DOM right now!
+            window.applyPhotoProofUpdateLocally(itemId, previewUrls, 'pending');
 
             const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+            const isOfflineItem = !itemId || 
+                String(itemId).startsWith('offline_') || 
+                !navigator.onLine || 
+                window.isAppOnline === false ||
+                !token ||
+                token === 'guest_token' ||
+                token.startsWith('guest_') ||
+                token.startsWith('offline_');
+
+            if (isOfflineItem) {
+                if (window.OfflineCheckinManager) {
+                    await window.OfflineCheckinManager.queueOfflineCheckin({
+                        type: 'itinerary',
+                        itemId: itemId,
+                        spotName: spotName,
+                        lat: window.myLat || 16.6159,
+                        lng: window.myLng || 120.3209,
+                        image: firstFile,
+                        capturedAt: new Date().toISOString()
+                    });
+                }
+                window.closeProofUploadModal();
+                if (typeof showToast === 'function') {
+                    showToast('📍 Photo proof saved on device! Auto-syncs when online.', 'success');
+                }
+                if (window.confetti) {
+                    try { window.confetti({ particleCount: 70, spread: 60, origin: { y: 0.7 } }); } catch (e) { }
+                }
+                return;
+            }
+
             const formData = new FormData();
-            formData.append('lat', lat);
-            formData.append('lng', lng);
-            formData.append('captured_at', capturedAt);
-            formData.append('image', imageFile);
+            window.selectedProofPhotos.forEach((item, idx) => {
+                formData.append('images[]', item.file, item.file.name || `proof_${Date.now()}_${idx}.jpg`);
+            });
+            formData.append('image', firstFile);
+
+            const fallbackOffline = async (reason) => {
+                if (window.OfflineCheckinManager) {
+                    await window.OfflineCheckinManager.queueOfflineCheckin({
+                        type: 'itinerary',
+                        itemId: itemId,
+                        spotName: spotName,
+                        lat: window.myLat || 16.6159,
+                        lng: window.myLng || 120.3209,
+                        image: firstFile,
+                        capturedAt: new Date().toISOString()
+                    });
+                    window.closeProofUploadModal();
+                    if (typeof showToast === 'function') {
+                        showToast('📍 Saved Offline! Photo proof saved on device. Auto-syncs when online.', 'success');
+                    }
+                } else {
+                    if (typeof showToast === 'function') showToast(reason || 'Upload failed. Please try again.');
+                    if (btn) {
+                        btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up" style="margin-right:6px;"></i> Submit Photo Proof';
+                        btn.disabled = false;
+                    }
+                }
+            };
 
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 8000);
+            const timeoutId = setTimeout(() => controller.abort(), 20000);
 
             try {
-                const response = await fetch(backendUrl + '/api/tourist/itineraries/items/' + itemId + '/visit', {
+                const activeBackend = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
+                const response = await fetch(activeBackend + '/api/tourist/itineraries/items/' + itemId + '/proof', {
                     method: 'POST',
                     headers: {
                         'Accept': 'application/json',
-                        'ngrok-skip-browser-warning': 'true',
-                        'Authorization': 'Bearer ' + token
+                        'Authorization': 'Bearer ' + token,
+                        'ngrok-skip-browser-warning': 'true'
                     },
                     body: formData,
                     signal: controller.signal
                 });
                 clearTimeout(timeoutId);
+                const data = await response.json();
 
-                const result = await response.json();
+                if (response.ok && data.success) {
+                    window.closeProofUploadModal();
+                    const permanentUrls = data.proof_images || (data.proof_image ? [data.proof_image] : previewUrls);
+                    window.applyPhotoProofUpdateLocally(itemId, permanentUrls, data.proof_status || 'pending');
 
-                if (response.ok) {
-                    closeCheckinModal();
-                    if (typeof showToast === 'function') showToast(result.message || 'Photo proof submitted! Pending verification before completion.');
-                    const promptCard = document.getElementById('checkin-prompt-card');
-                    if (promptCard) promptCard.style.display = 'none';
-
-                    loadTripData();
-                } else {
-                    if (typeof showToast === 'function') showToast(result.message || 'Check-in failed.');
-                    btn.innerHTML = '<i class="fa-solid fa-location-crosshairs" style="margin-right:8px;"></i> Verify Location & Photo';
-                    btn.disabled = false;
-                }
-            } catch (error) {
-                clearTimeout(timeoutId);
-                console.warn('Check-in online failed or timed out:', error);
-
-                if (window.OfflineCheckinManager) {
-                    try {
-                        await window.OfflineCheckinManager.queueOfflineCheckin({
-                            itemId: itemId,
-                            lat: lat,
-                            lng: lng,
-                            image: imageFile,
-                            imageFile: imageFile,
-                            capturedAt: capturedAt
-                        });
-                        closeCheckinModal();
-                        if (typeof showToast === 'function') {
-                            showToast('📴 Network weak: Check-in queued offline! Will auto-sync when online.');
-                        }
-                        const promptCard = document.getElementById('checkin-prompt-card');
-                        if (promptCard) promptCard.style.display = 'none';
-                        loadTripData();
-                    } catch (e) {
-                        console.error('Offline fallback save failed:', e);
-                        if (typeof showToast === 'function') showToast('Check-in failed. Please try again.');
-                        btn.innerHTML = '<i class="fa-solid fa-location-crosshairs" style="margin-right:8px;"></i> Verify Location & Photo';
-                        btn.disabled = false;
+                    if (typeof showToast === 'function') {
+                        showToast(data.message || 'Photo proof submitted! Pending review before completion.', 'success');
+                    }
+                    if (window.confetti) {
+                        try { window.confetti({ particleCount: 80, spread: 60, origin: { y: 0.7 } }); } catch (e) { }
                     }
                 } else {
-                    if (typeof showToast === 'function') showToast('Network error. Please try again.');
-                    btn.innerHTML = '<i class="fa-solid fa-location-crosshairs" style="margin-right:8px;"></i> Verify Location & Photo';
-                    btn.disabled = false;
+                    console.warn('Server proof upload error:', data);
+                    await fallbackOffline(data.message || 'Server upload failed; saved offline.');
                 }
+            } catch (err) {
+                clearTimeout(timeoutId);
+                console.warn('Network timeout or error during proof upload, falling back offline:', err);
+                await fallbackOffline('Network timeout during upload.');
             }
         };
 
-        // Automatically refresh route and pins when offline check-ins finish syncing
+        window.executeLocationCheckIn = function (itemId, spotName = '', spotLat = null, spotLng = null, btnEl = null) {
+            if (!itemId) return;
+
+            const originalHtml = btnEl ? btnEl.innerHTML : '';
+            if (btnEl) {
+                btnEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Checking in...';
+                btnEl.disabled = true;
+            }
+
+            const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+            const isOfflineItem = !itemId || 
+                String(itemId).startsWith('offline_') || 
+                !navigator.onLine || 
+                window.isAppOnline === false ||
+                !token ||
+                token === 'guest_token' ||
+                token.startsWith('guest_') ||
+                token.startsWith('offline_');
+
+            const doSubmitCheckin = async (lat, lng) => {
+                window.applyLocationCheckinLocally(itemId);
+
+                if (isOfflineItem) {
+                    if (window.OfflineCheckinManager) {
+                        await window.OfflineCheckinManager.queueOfflineCheckin({
+                            type: 'itinerary',
+                            itemId: itemId,
+                            spotName: spotName || 'Destination',
+                            lat: lat,
+                            lng: lng,
+                            capturedAt: new Date().toISOString()
+                        });
+                    }
+                    if (typeof showToast === 'function') {
+                        showToast(`📍 Checked in offline at ${spotName}! Auto-syncs when online.`, 'success');
+                    }
+                    if (window.confetti) {
+                        try { window.confetti({ particleCount: 70, spread: 60, origin: { y: 0.7 } }); } catch (e) { }
+                    }
+                    if (btnEl) {
+                        btnEl.innerHTML = originalHtml;
+                        btnEl.disabled = false;
+                    }
+                    return;
+                }
+
+                const formData = new FormData();
+                formData.append('lat', lat);
+                formData.append('lng', lng);
+                formData.append('captured_at', new Date().toISOString());
+
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 12000);
+
+                try {
+                    const activeBackend = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
+                    const response = await fetch(activeBackend + '/api/tourist/itineraries/items/' + itemId + '/checkin', {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Authorization': 'Bearer ' + token,
+                            'ngrok-skip-browser-warning': 'true'
+                        },
+                        body: formData,
+                        signal: controller.signal
+                    });
+                    clearTimeout(timeoutId);
+                    const data = await response.json();
+
+                    if (response.ok && (data.success || data.is_location_verified)) {
+                        window.applyLocationCheckinLocally(itemId);
+                        if (typeof showToast === 'function') {
+                            showToast(data.message || `📍 Location verified at ${spotName}! Photo proof is required to earn +50 Points.`, 'success');
+                        }
+                        if (window.confetti) {
+                            try { window.confetti({ particleCount: 70, spread: 60, origin: { y: 0.7 } }); } catch (e) { }
+                        }
+                    } else {
+                        if (typeof showToast === 'function') {
+                            showToast(data.message || 'Check-in failed. Please ensure you are at the destination.', 'error');
+                        }
+                    }
+                    if (btnEl) {
+                        btnEl.innerHTML = originalHtml;
+                        btnEl.disabled = false;
+                    }
+                } catch (err) {
+                    clearTimeout(timeoutId);
+                    console.warn('Location check-in error, queuing offline:', err);
+                    if (window.OfflineCheckinManager) {
+                        await window.OfflineCheckinManager.queueOfflineCheckin({
+                            type: 'itinerary',
+                            itemId: itemId,
+                            spotName: spotName || 'Destination',
+                            lat: lat,
+                            lng: lng,
+                            capturedAt: new Date().toISOString()
+                        });
+                        if (typeof showToast === 'function') {
+                            showToast('📍 Saved Offline! Check-in queued on device. Auto-syncs when online.', 'info');
+                        }
+                    } else {
+                        if (typeof showToast === 'function') showToast('Network error during check-in.');
+                    }
+                    if (btnEl) {
+                        btnEl.innerHTML = originalHtml;
+                        btnEl.disabled = false;
+                    }
+                }
+            };
+
+            const getDistance = (lat1, lon1, lat2, lon2) => {
+                const R = 6371e3;
+                const φ1 = lat1 * Math.PI / 180;
+                const φ2 = lat2 * Math.PI / 180;
+                const Δφ = (lat2 - lat1) * Math.PI / 180;
+                const Δλ = (lon2 - lon1) * Math.PI / 180;
+                const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+                return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            };
+
+            const checkAndProceed = (lat, lng) => {
+                if (spotLat != null && spotLng != null && !isNaN(spotLat) && !isNaN(spotLng)) {
+                    const dist = getDistance(lat, lng, parseFloat(spotLat), parseFloat(spotLng));
+                    if (dist > 300) {
+                        const distM = Math.round(dist);
+                        const distKm = (dist / 1000).toFixed(1);
+                        const displayDist = dist >= 1000 ? `${distKm} km` : `${distM} meters`;
+                        if (typeof showToast === 'function') {
+                            showToast(`⚠️ You are ${displayDist} away from ${spotName}. Must be within 300m to check in.`, 'warning');
+                        }
+                        if (btnEl) {
+                            btnEl.innerHTML = originalHtml;
+                            btnEl.disabled = false;
+                        }
+                        return;
+                    }
+                }
+                doSubmitCheckin(lat, lng);
+            };
+
+            if (window.myLat && window.myLng) {
+                checkAndProceed(window.myLat, window.myLng);
+            } else if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (pos) => {
+                        window.myLat = pos.coords.latitude;
+                        window.myLng = pos.coords.longitude;
+                        checkAndProceed(pos.coords.latitude, pos.coords.longitude);
+                    },
+                    (err) => {
+                        console.warn('Geolocation error:', err);
+                        const fallbackLat = 16.6159;
+                        const fallbackLng = 120.3209;
+                        checkAndProceed(fallbackLat, fallbackLng);
+                    },
+                    { enableHighAccuracy: true, timeout: 6000 }
+                );
+            } else {
+                doSubmitCheckin(16.6159, 120.3209);
+            }
+        };
+
+        // Automatically refresh route and pins when offline check-ins or trips finish syncing
         window.addEventListener('checkins-synced', () => {
+            if (typeof loadTripData === 'function') {
+                loadTripData();
+            }
+        });
+        window.addEventListener('tripsSynced', () => {
             if (typeof loadTripData === 'function') {
                 loadTripData();
             }
@@ -1331,6 +1794,31 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                 if (icon) icon.className = origClass || 'fa-solid fa-location-crosshairs';
             }
         };
+
+        function updateTripOfflineStatus() {
+            var pill = document.getElementById('trip-offline-badge');
+            var isOffline = (typeof navigator.onLine === 'boolean') ? !navigator.onLine : (window.isAppOnline === false);
+            if (pill) {
+                pill.style.setProperty('display', isOffline ? 'inline-flex' : 'none', 'important');
+            }
+            if (!isOffline) {
+                try {
+                    localStorage.removeItem('intan_elyu_offline_mode');
+                    localStorage.removeItem('intan_elyu_offline_guest');
+                } catch(e) {}
+            }
+        }
+        window.addEventListener('online', () => {
+            updateTripOfflineStatus();
+            if (typeof window.enforceAllOfflineBadgesHidden === 'function') window.enforceAllOfflineBadgesHidden();
+        });
+        window.addEventListener('offline', updateTripOfflineStatus);
+        window.addEventListener('appOnline', () => {
+            updateTripOfflineStatus();
+            if (typeof window.enforceAllOfflineBadgesHidden === 'function') window.enforceAllOfflineBadgesHidden();
+        });
+        window.addEventListener('appOffline', updateTripOfflineStatus);
+        setTimeout(updateTripOfflineStatus, 100);
 
         initTripMap();
     })();

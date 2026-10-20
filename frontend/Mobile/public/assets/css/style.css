@@ -882,46 +882,154 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
  * ============================================================ */
 .pwd-strength-wrapper {
   width: 100%;
+  margin-top: 6px;
+  margin-bottom: 11px;
+}
+
+.pwd-strength-card {
+  background: rgba(15, 23, 42, 0.52);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-radius: 14px;
+  padding: 10px 13px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pwd-strength-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.pwd-strength-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
   transition: all 0.25s ease;
+}
+
+.pwd-strength-badge.status-weak {
+  background: rgba(239, 68, 68, 0.28);
+  border: 1px solid rgba(239, 68, 68, 0.75);
+  color: #fecaca;
+}
+
+.pwd-strength-badge.status-fair {
+  background: rgba(249, 115, 22, 0.28);
+  border: 1px solid rgba(249, 115, 22, 0.75);
+  color: #fed7aa;
+}
+
+.pwd-strength-badge.status-good {
+  background: rgba(234, 179, 8, 0.28);
+  border: 1px solid rgba(234, 179, 8, 0.75);
+  color: #fef08a;
+}
+
+.pwd-strength-badge.status-strong {
+  background: rgba(16, 185, 129, 0.28);
+  border: 1px solid rgba(16, 185, 129, 0.85);
+  color: #a7f3d0;
+}
+
+.pwd-score-pill {
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 999px;
 }
 
 .pwd-strength-segments {
   display: flex;
-  gap: 5px;
-  height: 4px;
+  gap: 6px;
+  height: 6px;
   width: 100%;
-  margin-top: 6px;
 }
 
 .pwd-segment {
   flex: 1;
   height: 100%;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.15);
-  transition: background 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  background: rgba(255, 255, 255, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: background 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
 }
 
-.pwd-strength-wrapper[data-score="1"] .pwd-segment.seg-1 { background: #f87171; }
+.pwd-strength-wrapper[data-score="1"] .pwd-segment.seg-1 {
+  background: #ef4444;
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.85);
+}
+
 .pwd-strength-wrapper[data-score="2"] .pwd-segment.seg-1,
-.pwd-strength-wrapper[data-score="2"] .pwd-segment.seg-2 { background: #fb923c; }
+.pwd-strength-wrapper[data-score="2"] .pwd-segment.seg-2 {
+  background: #f97316;
+  box-shadow: 0 0 10px rgba(249, 115, 22, 0.85);
+}
+
 .pwd-strength-wrapper[data-score="3"] .pwd-segment.seg-1,
 .pwd-strength-wrapper[data-score="3"] .pwd-segment.seg-2,
-.pwd-strength-wrapper[data-score="3"] .pwd-segment.seg-3 { background: #facc15; }
+.pwd-strength-wrapper[data-score="3"] .pwd-segment.seg-3 {
+  background: #eab308;
+  box-shadow: 0 0 10px rgba(234, 179, 8, 0.85);
+}
+
 .pwd-strength-wrapper[data-score="4"] .pwd-segment.seg-1,
 .pwd-strength-wrapper[data-score="4"] .pwd-segment.seg-2,
 .pwd-strength-wrapper[data-score="4"] .pwd-segment.seg-3,
-.pwd-strength-wrapper[data-score="4"] .pwd-segment.seg-4 { background: #34d399; }
+.pwd-strength-wrapper[data-score="4"] .pwd-segment.seg-4 {
+  background: #10b981;
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.9);
+}
+
+.pwd-checklist {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px;
+}
 
 .pwd-chk-item {
-  color: rgba(148, 163, 184, 0.7);
-  display: inline-flex;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  padding: 5px 8px;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 10.5px;
+  font-weight: 600;
+  display: flex;
   align-items: center;
-  gap: 4px;
-  transition: color 0.25s ease;
+  gap: 6px;
+  transition: all 0.25s ease;
+}
+
+.pwd-chk-item i {
+  font-size: 9.5px;
+  color: rgba(255, 255, 255, 0.45);
+  transition: all 0.25s ease;
+  flex-shrink: 0;
 }
 
 .pwd-chk-item.passed {
+  background: rgba(16, 185, 129, 0.25) !important;
+  border-color: rgba(16, 185, 129, 0.7) !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+}
+
+.pwd-chk-item.passed i {
   color: #34d399 !important;
+  font-size: 11px;
 }
 
 .pwd-chk-item.passed i {

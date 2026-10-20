@@ -10,88 +10,120 @@
 body[data-view="auth"],
 body[data-view="reset-password"] {
     background: #74a3cf !important;
-    overflow: hidden !important;
-    height: 100% !important;
-    height: var(--auth-screen-h, 100lvh) !important;
-    min-height: var(--auth-screen-h, 100lvh) !important;
-    max-height: var(--auth-screen-h, 100lvh) !important;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    min-height: 100% !important;
+    min-height: 100dvh !important;
     width: 100%;
-    overscroll-behavior: none !important;
+    margin: 0;
+    padding: 0;
+    -webkit-overflow-scrolling: touch;
 }
 
 .auth-container {
-    height: 100%;
-    height: var(--auth-screen-h, 100lvh);
-    min-height: var(--auth-screen-h, 100lvh);
-    max-height: var(--auth-screen-h, 100lvh);
+    min-height: 100%;
+    min-height: 100dvh;
     width: 100%;
+    max-width: 460px;
+    margin: 0 auto;
     display: flex;
     flex-direction: column;
     background: #74a3cf;
     position: relative;
-    overflow: hidden !important;
-    overscroll-behavior: none !important;
-    touch-action: manipulation;
-    flex-shrink: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
 }
 
 /* --- Top Blue Section --- */
+/* --- Top Blue Section (Kept 100% Intact Matching Splash Screen Layout) --- */
 .auth-top {
     position: relative;
     width: 100%;
-    height: var(--auth-top-h, 38%);
-    min-height: 250px;
-    max-height: 330px;
+    height: clamp(230px, 35vh, 290px) !important;
+    min-height: 230px !important;
+    max-height: 310px !important;
     flex-shrink: 0;
     background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%);
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    padding-bottom: 26px;
-    /* Space for wave */
+    justify-content: center !important;
+    padding-top: calc(max(env(safe-area-inset-top, 0px), 24px) + 6px) !important;
+    padding-bottom: 28px !important;
+    box-sizing: border-box;
     overflow: hidden;
+    transition: none !important;
 }
 
-/* Circle Logo */
+/* Never collapse top banner in Register mode or when keyboard is open - UX design stays intact */
+.auth-container.mode-register .auth-top,
+.auth-container.keyboard-active .auth-top,
+body.keyboard-open .auth-top {
+    height: clamp(230px, 35vh, 290px) !important;
+    min-height: 230px !important;
+    max-height: 310px !important;
+    padding-top: calc(max(env(safe-area-inset-top, 0px), 24px) + 6px) !important;
+    padding-bottom: 28px !important;
+}
+
+/* Circle Logo - Matches Splash Screen Icon and Branding */
 .logo-container {
-    width: 140px;
-    height: 140px;
-    background: #ffffff;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 8px;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
-    padding: 5px;
-    position: relative;
-    z-index: 10;
-    box-sizing: border-box;
+    width: clamp(96px, 14vh, 120px) !important;
+    height: clamp(96px, 14vh, 120px) !important;
+    background: #ffffff !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin-bottom: 8px !important;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4) !important;
+    padding: 5px !important;
+    position: relative !important;
+    z-index: 10 !important;
+    box-sizing: border-box !important;
+    flex-shrink: 0 !important;
+    transition: none !important;
 }
 
 .logo-container img {
     width: 100% !important;
     height: 100% !important;
     object-fit: contain !important;
-    border-radius: 50%;
+    border-radius: 50% !important;
+    display: block !important;
+}
+
+.auth-container.mode-register .logo-container,
+.auth-container.keyboard-active .logo-container,
+body.keyboard-open .logo-container {
+    width: clamp(96px, 14vh, 120px) !important;
+    height: clamp(96px, 14vh, 120px) !important;
+    display: flex !important;
+    margin-bottom: 8px !important;
+    padding: 5px !important;
 }
 
 .auth-top h1 {
-    font-size: 21px;
-    font-weight: 800;
-    color: #ffffff;
-    margin: 0;
-    letter-spacing: 0.5px;
-    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
-    position: relative;
-    z-index: 5;
-    transition: opacity 0.2s ease, transform 0.2s ease;
+    font-size: clamp(18px, 2.6vh, 22px) !important;
+    font-weight: 800 !important;
+    color: #ffffff !important;
+    margin: 0 !important;
+    letter-spacing: 0.5px !important;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5) !important;
+    position: relative !important;
+    z-index: 5 !important;
+    display: block !important;
+    transition: none !important;
+}
+
+.auth-container.mode-register .auth-top h1,
+.auth-container.keyboard-active .auth-top h1,
+body.keyboard-open .auth-top h1 {
+    font-size: clamp(18px, 2.6vh, 22px) !important;
+    display: block !important;
+    margin: 0 !important;
 }
 
 .auth-top h1.text-fade-out {
@@ -146,10 +178,9 @@ body[data-view="reset-password"] {
 
 .auth-bottom {
     flex: 1;
-    height: calc(100% - var(--auth-top-h, 38%));
     min-height: 0;
     background: #74a3cf;
-    padding: 10px 26px calc(14px + env(safe-area-inset-bottom, 0px)) 26px;
+    padding: 8px 18px calc(max(env(safe-area-inset-bottom, 0px), 16px) + 24px) 18px;
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
@@ -157,9 +188,8 @@ body[data-view="reset-password"] {
     z-index: 5;
     margin-top: -1px;
     margin-bottom: 0;
-    overflow: hidden !important;
-    overscroll-behavior: none !important;
-    touch-action: manipulation;
+    overflow: visible !important;
+    touch-action: pan-y;
 }
 
 .auth-bottom::-webkit-scrollbar {
@@ -219,6 +249,7 @@ body[data-view="reset-password"] {
     bottom: 2px;
     height: 4px;
     width: 32px;
+    left: calc(25% - 16px);
     border-radius: 99px;
     background: linear-gradient(90deg, #2563eb, #1d4ed8);
     box-shadow: 0 3px 10px rgba(29, 78, 216, 0.45);
@@ -226,6 +257,10 @@ body[data-view="reset-password"] {
     z-index: 1;
     transition: left 0.45s cubic-bezier(0.34, 1.4, 0.64, 1);
     transform-origin: center center;
+}
+
+.auth-container.mode-register .tab-gooey-glider {
+    left: calc(75% - 16px);
 }
 
 .tab-gooey-glider.stretching-right {
@@ -292,22 +327,31 @@ body[data-view="reset-password"] {
 }
 
 .form-panel.login-form {
-    overflow: hidden !important;
-    overscroll-behavior: none !important;
-    touch-action: manipulation;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    overscroll-behavior: contain !important;
+    touch-action: pan-y !important;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
     display: flex;
     flex-direction: column;
-    height: 100%;
+    height: auto;
+    min-height: 100%;
+    padding-bottom: calc(max(env(safe-area-inset-bottom, 0px), 16px) + 24px) !important;
+}
+
+.form-panel.login-form::-webkit-scrollbar {
+    display: none;
 }
 
 .form-panel.login-form form {
     margin: 0;
     width: 100%;
-    flex: 1;
+    flex: 0 0 auto;
     display: flex;
     flex-direction: column;
-    justify-content: space-evenly;
-    min-height: 0;
+    justify-content: flex-start;
+    gap: 9px;
 }
 
 .login-form .input-group {
@@ -315,16 +359,16 @@ body[data-view="reset-password"] {
 }
 
 .login-form .auth-options-row {
-    margin-top: 0;
-    margin-bottom: 0;
+    margin-top: 4px;
+    margin-bottom: 4px;
 }
 
 .login-form .btn-circle-submit {
-    margin: 0 auto;
+    margin: 10px auto 6px auto !important;
 }
 
 .login-form .auth-social-section {
-    margin-top: 0;
+    margin-top: 14px;
     padding-top: 6px;
     padding-bottom: 2px;
 }
@@ -332,15 +376,24 @@ body[data-view="reset-password"] {
 .form-panel.register-form,
 .form-panel.forgot-form,
 .form-panel.otp-form {
-    overflow-y: auto;
-    overflow-x: hidden;
-    max-height: 100%;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
-    padding-bottom: 6px;
+    padding-bottom: calc(max(env(safe-area-inset-bottom, 0px), 16px) + 32px) !important;
     display: flex;
     flex-direction: column;
-    height: 100%;
+    height: auto;
+    min-height: 100%;
+    touch-action: pan-y !important;
+}
+
+/* Keyboard active padding on form panels and container to prevent button cutoff */
+.auth-container.keyboard-active .form-panel,
+body.keyboard-open .form-panel,
+.auth-container.keyboard-active .auth-bottom,
+body.keyboard-open .auth-bottom {
+    padding-bottom: clamp(260px, 42vh, 340px) !important;
 }
 
 .form-panel.register-form::-webkit-scrollbar,
@@ -401,6 +454,45 @@ body[data-view="reset-password"] {
     pointer-events: none;
 }
 
+/* Explicit interactive states ensuring touches and clicks always register */
+.forms-wrapper:not(.show-register):not(.show-forgot):not(.show-otp) .login-form {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+}
+
+.forms-wrapper.show-register .register-form {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+}
+
+.forms-wrapper.show-forgot .forgot-form {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+}
+
+.forms-wrapper.show-otp .otp-form {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+}
+
+.auth-tab,
+.form-panel button,
+.form-panel input,
+.form-panel a,
+.form-panel label,
+.form-panel .password-toggle,
+.form-panel .btn-circle-submit,
+.form-panel .btn-google,
+.form-panel .btn-offline-guest,
+.btn-circle-submit,
+.btn-google,
+.btn-offline-guest {
+    pointer-events: auto !important;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation !important;
+    cursor: pointer;
+}
+
 /* 6-Digit OTP Individual Number Boxes */
 .otp-boxes-container {
     display: flex;
@@ -437,13 +529,20 @@ body[data-view="reset-password"] {
     position: relative;
     background: #ffffff;
     border: 1.5px solid rgba(255, 255, 255, 0.9);
-    border-radius: 16px;
-    margin-bottom: 12px;
+    border-radius: 12px;
+    height: 42px !important;
+    min-height: 42px !important;
+    max-height: 42px !important;
+    flex-shrink: 0 !important;
+    display: flex;
+    align-items: center;
+    margin-bottom: 9px;
     transition: border-color 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
     width: 100%;
     opacity: 0;
     animation: popUpSmooth 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
     box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08);
+    box-sizing: border-box;
 }
 
 .login-form .input-group {
@@ -451,16 +550,16 @@ body[data-view="reset-password"] {
 }
 
 .login-form .auth-options-row {
-    margin-top: 0 !important;
-    margin-bottom: 0 !important;
+    margin-top: 4px !important;
+    margin-bottom: 4px !important;
 }
 
 .login-form .btn-circle-submit {
-    margin: 0 auto !important;
+    margin: 10px auto 6px auto !important;
 }
 
 .register-form .input-group {
-    margin-bottom: 11px;
+    margin-bottom: 8px !important;
 }
 
 .form-panel .input-group:nth-of-type(1) {
@@ -481,29 +580,39 @@ body[data-view="reset-password"] {
     box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.2), 0 4px 14px rgba(15, 23, 42, 0.08);
 }
 
-.input-group i {
-    position: absolute;
-    left: 15px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #1d4ed8;
-    font-size: 17px;
-    width: 20px;
-    text-align: center;
-    transition: color 0.3s;
-    pointer-events: none;
+/* Leading Field Icon (Mail, Phone, Lock, User) - Always on the left */
+.input-group > i:first-child,
+.input-group > i:not(.password-toggle):not(.field-status-icon) {
+    position: absolute !important;
+    left: 14px !important;
+    right: auto !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    color: #1d4ed8 !important;
+    font-size: 15px !important;
+    width: 18px !important;
+    height: 18px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    pointer-events: none !important;
+    z-index: 2 !important;
+    margin: 0 !important;
 }
 
-.input-group:focus-within i {
-    color: #2563eb;
+.input-group:focus-within > i:not(.password-toggle):not(.field-status-icon) {
+    color: #2563eb !important;
 }
 
 .auth-input {
     width: 100%;
+    height: 100% !important;
     border: none;
     background: transparent;
-    padding: 13.5px 42px 13.5px 44px !important;
-    font-size: 15px;
+    padding: 0 38px 0 38px !important;
+    font-size: 13.5px;
+    line-height: normal;
     color: #0f172a;
     font-weight: 500;
     outline: none;
@@ -525,25 +634,44 @@ body[data-view="reset-password"] {
     transition: background-color 5000s ease-in-out 0s;
 }
 
-.input-group i.password-toggle {
-    left: auto;
-    right: 14px;
-    color: #64748b;
-    cursor: pointer;
-    pointer-events: auto;
+/* Password Visibility Toggle Eye Icon - Always fixed on the right */
+.input-group > i.password-toggle {
+    position: absolute !important;
+    right: 14px !important;
+    left: auto !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    color: #64748b !important;
+    font-size: 15px !important;
+    width: 24px !important;
+    height: 24px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    cursor: pointer !important;
+    pointer-events: auto !important;
+    z-index: 10 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    transition: color 0.2s ease, transform 0.15s ease !important;
 }
 
-.input-group i.password-toggle:hover {
-    color: #0f172a;
+.input-group > i.password-toggle:hover,
+.input-group > i.password-toggle:active {
+    color: #0f172a !important;
+    transform: translateY(-50%) scale(1.1) !important;
 }
 
 /* Inline Field Validation Badges & Microcopy */
 .input-group i.field-status-icon {
     left: auto !important;
-    right: 14px !important;
+    right: 12px !important;
     top: 50% !important;
     transform: translateY(-50%) !important;
-    font-size: 15px !important;
+    font-size: 14px !important;
     width: auto !important;
     pointer-events: none !important;
     transition: opacity 0.2s ease, transform 0.2s ease !important;
@@ -553,7 +681,7 @@ body[data-view="reset-password"] {
 
 .input-group i.field-status-icon.password-offset {
     left: auto !important;
-    right: 40px !important;
+    right: 36px !important;
 }
 
 .input-group i.field-status-icon.valid {
@@ -581,54 +709,150 @@ body[data-view="reset-password"] {
  * ============================================================ */
 .pwd-strength-wrapper {
     width: 100%;
+    margin-top: 6px;
+    margin-bottom: 11px;
+    animation: popUpSmooth 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.pwd-strength-card {
+    background: #ffffff !important;
+    border: 1.5px solid #e2e8f0 !important;
+    border-radius: 16px !important;
+    padding: 10px 13px !important;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+}
+
+.pwd-strength-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.pwd-strength-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: 0.2px;
     transition: all 0.25s ease;
+}
+
+.pwd-strength-badge.status-weak {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #dc2626;
+}
+
+.pwd-strength-badge.status-fair {
+    background: #fff7ed;
+    border: 1px solid #fed7aa;
+    color: #ea580c;
+}
+
+.pwd-strength-badge.status-good {
+    background: #fefce8;
+    border: 1px solid #fde68a;
+    color: #ca8a04;
+}
+
+.pwd-strength-badge.status-strong {
+    background: #ecfdf5;
+    border: 1px solid #a7f3d0;
+    color: #059669;
+}
+
+.pwd-score-pill {
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    color: #0f172a;
+    font-size: 11px;
+    font-weight: 800;
+    padding: 2px 8px;
+    border-radius: 999px;
 }
 
 .pwd-strength-segments {
     display: flex;
-    gap: 5px;
-    height: 4px;
+    gap: 6px;
+    height: 6px;
     width: 100%;
-    margin-top: 6px;
 }
 
 .pwd-segment {
     flex: 1;
     height: 100%;
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.12);
-    transition: background 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    background: #e2e8f0;
+    border: none;
+    transition: background 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
 }
 
-/* Segment color states driven by data-score */
-.pwd-strength-wrapper[data-score="1"] .pwd-segment.seg-1 { background: #f87171; }
+/* Glowing vibrant segments based on score */
+.pwd-strength-wrapper[data-score="1"] .pwd-segment.seg-1 {
+    background: #ef4444;
+}
 
 .pwd-strength-wrapper[data-score="2"] .pwd-segment.seg-1,
-.pwd-strength-wrapper[data-score="2"] .pwd-segment.seg-2 { background: #fb923c; }
+.pwd-strength-wrapper[data-score="2"] .pwd-segment.seg-2 {
+    background: #f97316;
+}
 
 .pwd-strength-wrapper[data-score="3"] .pwd-segment.seg-1,
 .pwd-strength-wrapper[data-score="3"] .pwd-segment.seg-2,
-.pwd-strength-wrapper[data-score="3"] .pwd-segment.seg-3 { background: #facc15; }
+.pwd-strength-wrapper[data-score="3"] .pwd-segment.seg-3 {
+    background: #eab308;
+}
 
 .pwd-strength-wrapper[data-score="4"] .pwd-segment.seg-1,
 .pwd-strength-wrapper[data-score="4"] .pwd-segment.seg-2,
 .pwd-strength-wrapper[data-score="4"] .pwd-segment.seg-3,
-.pwd-strength-wrapper[data-score="4"] .pwd-segment.seg-4 { background: #34d399; }
+.pwd-strength-wrapper[data-score="4"] .pwd-segment.seg-4 {
+    background: #10b981;
+}
+
+.pwd-checklist {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5px;
+}
 
 .pwd-chk-item {
-    color: rgba(148, 163, 184, 0.65);
-    display: inline-flex;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 5px 8px;
+    color: #475569;
+    font-size: 10.5px;
+    font-weight: 600;
+    display: flex;
     align-items: center;
-    gap: 4px;
-    transition: color 0.25s ease;
+    gap: 6px;
+    transition: all 0.25s ease;
+}
+
+.pwd-chk-item i {
+    font-size: 9.5px;
+    color: #94a3b8;
+    transition: all 0.25s ease;
+    flex-shrink: 0;
 }
 
 .pwd-chk-item.passed {
-    color: #34d399 !important;
+    background: #ecfdf5 !important;
+    border-color: #a7f3d0 !important;
+    color: #047857 !important;
+    font-weight: 700 !important;
 }
 
 .pwd-chk-item.passed i {
-    color: #34d399 !important;
+    color: #10b981 !important;
+    font-size: 11px;
 }
 
 /* Auth Options Row (Remember Me + Forgot Password) */
@@ -1303,21 +1527,28 @@ body[data-view="reset-password"] {
     body[data-view="auth"],
     body[data-view="reset-password"] {
         display: flex;
-        align-items: center;
+        align-items: flex-start;
         justify-content: center;
         min-height: 100vh;
-        background: #0b0f19 !important;
-        overflow: hidden !important;
+        min-height: 100dvh;
+        background: #74a3cf !important;
+        overflow-x: hidden !important;
+        overflow-y: auto !important;
+        padding: 0;
     }
     body[data-view="auth"] .auth-container,
     body[data-view="reset-password"] .auth-container {
-        max-width: 420px;
-        height: 90vh;
-        max-height: 820px;
-        border-radius: 28px;
-        box-shadow: 0 24px 70px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.1);
+        max-width: 440px;
+        min-height: 100vh;
+        min-height: 100dvh;
+        height: auto;
+        max-height: none;
+        border-radius: 0;
+        box-shadow: 0 0 50px rgba(0, 0, 0, 0.25);
         margin: auto;
-        overflow: hidden;
+        overflow-x: hidden;
+        overflow-y: auto !important;
+        touch-action: pan-y;
     }
 }
 
@@ -1325,7 +1556,7 @@ body[data-view="reset-password"] {
  * Offline Mode Elements for Auth View
  * ============================================================ */
 .auth-offline-badge {
-    display: inline-flex;
+    display: none;
     align-items: center;
     justify-content: center;
     gap: 7px;
@@ -1344,6 +1575,11 @@ body[data-view="reset-password"] {
     animation: fadeIn 0.3s ease;
 }
 
+body.is-offline .auth-offline-badge,
+body[data-offline="true"] .auth-offline-badge {
+    display: inline-flex;
+}
+
 .btn-offline-guest {
     width: 100%;
     margin-top: 9px;
@@ -1356,12 +1592,19 @@ body[data-view="reset-password"] {
     color: #ffffff;
     font-size: 13px;
     font-weight: 700;
-    display: flex;
+    display: flex !important; /* Always visible for instant guest exploration */
     align-items: center;
     justify-content: center;
     gap: 9px;
     cursor: pointer;
     transition: background 0.2s, transform 0.1s, border-color 0.2s;
+}
+
+.btn-offline-guest,
+body.is-offline .btn-offline-guest,
+.is-offline .btn-offline-guest,
+body[data-offline="true"] .btn-offline-guest {
+    display: flex !important;
 }
 
 .btn-offline-guest:active {
@@ -1378,11 +1621,20 @@ body[data-view="reset-password"] {
     width: 100%;
     height: 100%;
     z-index: 999999;
-    display: flex;
+    display: none;
     align-items: center;
     justify-content: center;
     padding: 20px;
     box-sizing: border-box;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+}
+
+.auth-offline-modal.active {
+    display: flex !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
 }
 
 .auth-offline-backdrop {
@@ -1474,5 +1726,79 @@ body[data-view="reset-password"] {
     font-size: 12.5px;
     font-weight: 600;
     cursor: pointer;
+}
+
+/* ============================================================
+ * Flexible Viewport & Ratio Adaptation (Compact, Standard, Tall, Landscape)
+ * ============================================================ */
+@media (max-height: 740px) {
+    .auth-bottom {
+        padding: 10px 18px calc(max(env(safe-area-inset-bottom, 0px), 14px) + 20px) 18px !important;
+    }
+    .auth-tabs {
+        margin-bottom: 10px !important;
+    }
+    .auth-tab {
+        font-size: 14.5px !important;
+        padding: 5px 14px 7px 14px !important;
+    }
+    .input-group {
+        height: 39px !important;
+        min-height: 39px !important;
+        max-height: 39px !important;
+    }
+    .auth-input {
+        padding: 0 36px 0 36px !important;
+        font-size: 13px !important;
+    }
+    .input-group > i:first-child,
+    .input-group > i:not(.password-toggle):not(.field-status-icon) {
+        font-size: 14.5px !important;
+        left: 13px !important;
+        right: auto !important;
+    }
+    .input-group > i.password-toggle {
+        font-size: 14.5px !important;
+        left: auto !important;
+        right: 12px !important;
+    }
+    .btn-circle-submit {
+        width: 48px !important;
+        height: 48px !important;
+        font-size: 18px !important;
+        margin: 8px auto !important;
+    }
+}
+
+@media (max-height: 600px) {
+    .auth-bottom {
+        padding: 8px 16px calc(max(env(safe-area-inset-bottom, 0px), 12px) + 16px) 16px !important;
+    }
+    .auth-tabs {
+        margin-bottom: 8px !important;
+    }
+    .auth-tab {
+        font-size: 13.5px !important;
+    }
+    .input-group {
+        height: 36px !important;
+        min-height: 36px !important;
+        max-height: 36px !important;
+    }
+    .auth-input {
+        padding: 0 34px 0 34px !important;
+        font-size: 12.5px !important;
+    }
+    .input-group > i:first-child,
+    .input-group > i:not(.password-toggle):not(.field-status-icon) {
+        font-size: 14px !important;
+        left: 12px !important;
+        right: auto !important;
+    }
+    .input-group > i.password-toggle {
+        font-size: 14px !important;
+        left: auto !important;
+        right: 11px !important;
+    }
 }
 

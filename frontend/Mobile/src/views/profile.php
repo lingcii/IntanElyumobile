@@ -9,6 +9,55 @@ $activeTab = 'profile';
 
 <div class="profile-container has-header has-bottom-nav animate-slide-up">
 
+    <!-- Dynamic Guard Style for Instant Guest Profile Barrier Enforcement -->
+    <style id="profile-guest-guard-style"></style>
+    <script>
+        (function() {
+            try {
+                var t = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+                var isG = !t || t === 'guest_token' || t === 'offline_guest_token' || t.indexOf('guest_') === 0 || t.indexOf('offline_') === 0 || localStorage.getItem('intan_elyu_guest') === 'true' || localStorage.getItem('intan_elyu_offline_guest') === 'true';
+                var st = document.getElementById('profile-guest-guard-style');
+                if (st && isG) {
+                    st.textContent = '#profile-offline-lock-barrier { display: block !important; } #profile-normal-content { display: none !important; }';
+                }
+            } catch(e) {}
+        })();
+    </script>
+
+    <!-- Offline Mode Locked Barrier (Displayed if accessed while in Offline / Guest Mode) -->
+    <div id="profile-offline-lock-barrier" style="display: none; text-align: center; padding: 32px 18px 40px; margin-top: 10px;">
+        <div style="width: 78px; height: 78px; border-radius: 26px; background: linear-gradient(135deg, rgba(30,58,138,0.12) 0%, rgba(0,242,254,0.2) 100%); display: flex; align-items: center; justify-content: center; margin: 0 auto 18px; box-shadow: 0 8px 24px rgba(30,58,138,0.12);">
+            <i class="fa-solid fa-user-lock" style="font-size: 34px; color: #1e3a8a;"></i>
+        </div>
+        <div id="profile-barrier-pill" style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 100px; font-size: 11px; font-weight: 800; background: rgba(2, 132, 199, 0.1); color: #0284c7; border: 1px solid rgba(2, 132, 199, 0.25); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">
+            <i id="profile-barrier-pill-icon" class="fa-solid fa-user-clock"></i> <span id="profile-barrier-pill-text">Guest Mode</span>
+        </div>
+        <h2 id="profile-barrier-title" style="font-size: 21px; font-weight: 800; color: #0f172a; margin: 0 0 8px; letter-spacing: -0.3px;">Sign in to Access Your Profile</h2>
+        <p id="profile-barrier-desc" style="font-size: 13.5px; color: #64748b; line-height: 1.55; max-width: 320px; margin: 0 auto 24px;">
+            Create a free account or sign in to track your points, save custom itineraries, and redeem exclusive provincial discounts!
+        </p>
+
+        <div style="display: flex; flex-direction: column; gap: 10px; max-width: 290px; margin: 0 auto;">
+            <button type="button" id="profile-barrier-auth-btn" onclick="navigateTo('auth')" style="width: 100%; padding: 13px; border-radius: 16px; border: none; background: linear-gradient(135deg, #1e3a8a 0%, #0284c7 100%); color: #ffffff; font-size: 13.5px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 6px 18px rgba(30,58,138,0.25);">
+                <i class="fa-solid fa-right-to-bracket" style="color: #00f2fe;"></i> Sign In / Create Account
+            </button>
+            <button type="button" onclick="navigateTo('map')" style="width: 100%; padding: 13px; border-radius: 16px; border: 1.5px solid #e2e8f0; background: #ffffff; color: #1e3a8a; font-size: 13.5px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                <i class="fa-solid fa-map-location-dot" style="color: #0284c7;"></i> Explore Interactive Map
+            </button>
+            <button type="button" onclick="navigateTo('leaderboard')" style="width: 100%; padding: 11px; border-radius: 16px; border: none; background: #f1f5f9; color: #475569; font-size: 12.5px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                <i class="fa-solid fa-trophy" style="color: #f59e0b;"></i> View Leaderboards
+            </button>
+        </div>
+    </div>
+
+    <!-- Normal Profile Content Container -->
+    <div id="profile-normal-content">
+
+    <!-- Offline status badge -->
+    <div id="profile-offline-badge" style="display: none; background: #fffbeb; border: 1px solid #fde68a; color: #b45309; padding: 7px 12px; border-radius: 12px; font-size: 11px; font-weight: 700; margin-bottom: 14px; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.04);">
+        <i class="fa-solid fa-cloud-arrow-down" style="margin-right: 5px;"></i> Browsing Offline Profile (Cached)
+    </div>
+
     <!-- Profile Main Header Card -->
     <div class="profile-header stagger-1"
         style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border: none; outline: none; border-radius: 24px; padding: 24px 20px; text-align: center; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25); margin-bottom: 20px;">
@@ -98,6 +147,8 @@ $activeTab = 'profile';
         <div id="trip-history-list"></div>
     </div>
 
+
+
     <!-- Points & Rewards Card (Styled like Notification Modal: Blue Banner Header, White Body) -->
     <div class="stagger-3"
         style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 22px; overflow: hidden; margin-bottom: 24px; box-shadow: 0 8px 24px rgba(10, 25, 60, 0.08);">
@@ -180,7 +231,7 @@ $activeTab = 'profile';
             <div class="settings-text">Help & Support Center</div>
             <i class="fa-solid fa-chevron-right settings-arrow"></i>
         </a>
-        <a href="#" class="settings-item" onclick="handleLogout(event)">
+        <a href="#" class="settings-item" onclick="handleLogout(event); return false;">
             <div class="settings-icon logout"
                 style="background: #FF3B30 !important; box-shadow: 0 2px 8px rgba(255, 59, 48, 0.3) !important;"><i
                     class="fa-solid fa-arrow-right-from-bracket" style="color: #ffffff !important;"></i></div>
@@ -188,12 +239,38 @@ $activeTab = 'profile';
         </a>
     </div>
 
+    </div><!-- End #profile-normal-content -->
 </div>
 
 <script>
-    var backendUrl = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
+    function getProfileAuthToken() {
+        return localStorage.getItem('api_token') || localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token') || '';
+    }
+    function getProfileBackendUrl() {
+        return (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
+    }
+    var backendUrl = getProfileBackendUrl();
+
+    window.openBadgeModalByIndex = function () {};
 
     // ── Dedicated Helper Rendering Functions ──
+    window.ensureProfileModalOnBody = function (modalId) {
+        const matches = document.querySelectorAll('#' + modalId);
+        if (matches.length > 1) {
+            matches.forEach((el, idx) => {
+                // If it is an old duplicate on document.body, remove it so only the latest is kept
+                if (el.parentElement === document.body && idx < matches.length - 1) {
+                    try { el.remove(); } catch(e) {}
+                }
+            });
+        }
+        const modal = document.getElementById(modalId);
+        if (modal && modal.parentElement !== document.body) {
+            document.body.appendChild(modal);
+        }
+        return modal;
+    };
+
     window.renderProfileUserMeta = function (u) {
         const elMeta = document.getElementById('profile-meta');
         if (!elMeta || !u) return;
@@ -284,12 +361,17 @@ $activeTab = 'profile';
         const points = parseInt(u.points !== undefined ? u.points : (u.xp || 0)) || 0;
 
         if (elPoints) elPoints.textContent = points.toLocaleString();
-        if (elPlaces) elPlaces.textContent = data.places_visited || 0;
-        if (elRank && data.my_rank) elRank.textContent = '#' + data.my_rank;
+        if (elPlaces) elPlaces.textContent = (data.places_visited !== undefined ? data.places_visited : (u.places_visited || u.completed_activities || 0));
+        if (elRank) elRank.textContent = (data.my_rank && data.my_rank < 999) ? '#' + data.my_rank : (u.my_rank ? '#' + u.my_rank : '—');
         if (elName && u.name) elName.textContent = u.name;
         if (elEmail && u.email) elEmail.textContent = u.email;
-        if (elImg && u.avatar) {
-            elImg.src = window.getFullImageUrl ? window.getFullImageUrl(u.avatar) : u.avatar;
+        if (elImg) {
+            if (u.avatar && u.avatar !== 'null' && u.avatar !== 'undefined' && String(u.avatar).trim().length > 0) {
+                elImg.src = window.getFullImageUrl ? window.getFullImageUrl(u.avatar) : u.avatar;
+            } else {
+                const fbName = encodeURIComponent(u.name || 'Explorer');
+                elImg.src = `https://ui-avatars.com/api/?name=${fbName}&background=1e3a8a&color=fff&rounded=true&bold=true&size=128`;
+            }
         }
 
         if (u && u.id) {
@@ -302,58 +384,7 @@ $activeTab = 'profile';
             } catch (e) { }
         }
 
-        // Render Badges (Unlocked & Locked)
-        const badges = data.badges || [];
-        window._cachedMasterBadges = badges;
-        const badgesGrid = document.getElementById('profile-badges-grid');
-        const badgeLabel = document.getElementById('profile-badge-count-label');
 
-        if (badgeLabel) {
-            badgeLabel.textContent = `${data.unlocked_badge_count || 0} / ${data.total_badge_count || badges.length} Unlocked`;
-        }
-
-        if (badgesGrid && badges.length) {
-            const lockedFirst = [...badges].sort((a, b) => (a.is_unlocked ? 1 : 0) - (b.is_unlocked ? 1 : 0));
-            const featuredLocked = lockedFirst.slice(0, 3);
-            badgesGrid.innerHTML = featuredLocked.map(b => {
-                const safeName = (b.name || '').replace(/'/g, "\\'");
-                const safeDesc = (b.description || 'Complete activities in La Union to unlock this badge.').replace(/'/g, "\\'");
-                const clickAction = `onclick="openBadgeModal('${safeName}', '${safeDesc}', ${b.is_unlocked ? 'true' : 'false'}, '${b.category || 'Badge'}', '${b.icon || '🏅'}')"`;
-
-                const badgeIcons = {
-                    'Beach Chiller': '<i class="fa-solid fa-umbrella-beach"></i>',
-                    'City Express': '<i class="fa-solid fa-city"></i>',
-                    'Sunset Chaser': '<i class="fa-solid fa-sun"></i>',
-                    'Foodie Explorer': '<i class="fa-solid fa-utensils"></i>',
-                    'Adrenaline Chaser': '<i class="fa-solid fa-person-hiking"></i>',
-                    'Heritage Guardian': '<i class="fa-solid fa-landmark"></i>',
-                    'Nature Seeker': '<i class="fa-solid fa-water"></i>',
-                    'Wave Rider': '<i class="fa-solid fa-water-ladder"></i>',
-                    'First Step': '<i class="fa-solid fa-star"></i>',
-                    'Globe Trotter': '<i class="fa-solid fa-globe"></i>',
-                    'Master Voyager': '<i class="fa-solid fa-crown"></i>',
-                    'Pioneer Explorer': '<i class="fa-solid fa-flag"></i>',
-                    'Local Voice': '<i class="fa-solid fa-comments"></i>',
-                };
-                const displayIcon = badgeIcons[b.name] || (b.is_unlocked ? '<i class="fa-solid fa-award"></i>' : '<i class="fa-solid fa-lock"></i>');
-
-                if (b.is_unlocked) {
-                    return `
-                    <div ${clickAction} style="background: rgba(251,191,36,0.08); border: 1px solid rgba(251,191,36,0.3); border-radius: 16px; padding: 12px 8px; text-align: center; cursor: pointer; transition: transform 0.2s;" title="${b.description}">
-                        <div style="font-size: 22px; margin-bottom: 4px; color: #fbbf24;">${displayIcon}</div>
-                        <div style="font-size: 11px; font-weight: 800; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${b.name}</div>
-                        <div style="font-size: 9px; color: #fbbf24; margin-top: 2px; font-weight: 700;"><i class="fa-solid fa-circle-check" style="font-size:8.5px; margin-right:2px;"></i> Unlocked</div>
-                    </div>`;
-                } else {
-                    return `
-                    <div ${clickAction} style="background: rgba(255,255,255,0.02); border: 1px dashed rgba(255,255,255,0.1); border-radius: 16px; padding: 12px 8px; text-align: center; opacity: 0.7; cursor: pointer; transition: transform 0.2s;" title="${b.description}">
-                        <div style="font-size: 20px; margin-bottom: 4px; color: rgba(255,255,255,0.4);"><i class="fa-solid fa-lock"></i></div>
-                        <div style="font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.7); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${b.name}</div>
-                        <div style="font-size: 9px; color: #f87171; margin-top: 2px; font-weight: 700;"><i class="fa-solid fa-lock" style="font-size:8.5px; margin-right:2px;"></i> Locked</div>
-                    </div>`;
-                }
-            }).join('');
-        }
 
         window.renderProfileUserMeta(u);
         window.renderProfileBio(u.bio);
@@ -604,7 +635,7 @@ $activeTab = 'profile';
                     const u = JSON.parse(localStorage.getItem('auth_user') || '{}');
                     if (u && (u.id || u.user_id)) return String(u.id || u.user_id);
                 } catch(e) {}
-                const tok = localStorage.getItem('intan_elyu_token');
+                const tok = getProfileAuthToken();
                 return (tok && tok.length > 10) ? 'tok_' + tok.substring(0, 12) : 'guest';
             })();
             const arr = JSON.parse(localStorage.getItem('intan_elyu_claimed_vouchers_' + uid) || '[]');
@@ -681,6 +712,18 @@ $activeTab = 'profile';
     // ── Instant Synchronous Cache Hydration (0ms, Zero Flicker, Zero Latency) ──
     function hydrateProfileFromCache() {
         const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('api_token');
+        const isGuest = !token || 
+            token === 'guest_token' || 
+            token === 'offline_guest_token' || 
+            token.indexOf('guest_') === 0 || 
+            token.indexOf('offline_') === 0 || 
+            localStorage.getItem('intan_elyu_guest') === 'true' ||
+            localStorage.getItem('intan_elyu_offline_guest') === 'true';
+
+        if (isGuest) {
+            if (typeof updateProfileAccessBarrier === 'function') updateProfileAccessBarrier();
+            return;
+        }
 
         // 1. Hydrate user basic info & points from auth_user
         try {
@@ -756,11 +799,74 @@ $activeTab = 'profile';
     }
 
     // Immediately hydrate on script execution
-    hydrateProfileFromCache();
+    function updateProfileAccessBarrier() {
+        const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+        const isOffline = (typeof navigator.onLine === 'boolean') ? !navigator.onLine : (window.isAppOnline === false);
+        const isGuest = !token || 
+            token === 'guest_token' || 
+            token === 'offline_guest_token' || 
+            token.indexOf('guest_') === 0 || 
+            token.indexOf('offline_') === 0 || 
+            localStorage.getItem('intan_elyu_guest') === 'true' ||
+            localStorage.getItem('intan_elyu_offline_guest') === 'true';
+
+        const barrier = document.getElementById('profile-offline-lock-barrier');
+        const normal = document.getElementById('profile-normal-content');
+        const pill = document.getElementById('profile-barrier-pill');
+        const pillIcon = document.getElementById('profile-barrier-pill-icon');
+        const pillText = document.getElementById('profile-barrier-pill-text');
+        const title = document.getElementById('profile-barrier-title');
+        const desc = document.getElementById('profile-barrier-desc');
+        const guardStyle = document.getElementById('profile-guest-guard-style');
+
+        if (isGuest) {
+            if (guardStyle) guardStyle.textContent = '#profile-offline-lock-barrier { display: block !important; } #profile-normal-content { display: none !important; }';
+            if (barrier) barrier.style.setProperty('display', 'block', 'important');
+            if (normal) normal.style.setProperty('display', 'none', 'important');
+
+            if (isOffline) {
+                // Offline Guest
+                if (pill) {
+                    pill.style.background = '#fffbeb';
+                    pill.style.color = '#b45309';
+                    pill.style.borderColor = '#fde68a';
+                }
+                if (pillIcon) pillIcon.className = 'fa-solid fa-cloud-slash';
+                if (pillText) pillText.textContent = 'Offline Mode Active';
+                if (title) title.textContent = 'Profile Unavailable in Offline Mode';
+                if (desc) desc.textContent = 'An active internet connection is required to sign in and view your personal profile, rewards, and trip history. You can still explore saved maps and leaderboards offline!';
+            } else {
+                // Online Guest (Connected to Wi-Fi)
+                if (pill) {
+                    pill.style.background = 'rgba(2, 132, 199, 0.1)';
+                    pill.style.color = '#0284c7';
+                    pill.style.borderColor = 'rgba(2, 132, 199, 0.25)';
+                }
+                if (pillIcon) pillIcon.className = 'fa-solid fa-user-clock';
+                if (pillText) pillText.textContent = 'Guest Mode';
+                if (title) title.textContent = 'Sign in to Access Your Profile';
+                if (desc) desc.textContent = 'Create a free account or sign in to track your points, save custom itineraries, and redeem exclusive provincial discounts!';
+            }
+        } else {
+            // Logged-in Tourist
+            if (guardStyle) guardStyle.textContent = '';
+            if (barrier) barrier.style.display = 'none';
+            if (normal) normal.style.display = 'block';
+            hydrateProfileFromCache();
+            if (!isOffline) fetchProfileData();
+        }
+    }
+    window.updateProfileAccessBarrier = updateProfileAccessBarrier;
+
+    updateProfileAccessBarrier();
+    window.addEventListener('online', updateProfileAccessBarrier);
+    window.addEventListener('offline', updateProfileAccessBarrier);
+    window.addEventListener('appOnline', updateProfileAccessBarrier);
+    window.addEventListener('appOffline', updateProfileAccessBarrier);
 
     async function fetchProfileData(force = false) {
         const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('api_token');
-        if (!token) return;
+        if (!token || token === 'guest_token' || token === 'offline_guest_token' || token.indexOf('offline_') === 0 || token.indexOf('guest_') === 0 || localStorage.getItem('intan_elyu_guest') === 'true') return;
 
         const cacheKey = 'profile_data_' + token.substring(0, 10);
         const shouldForce = force || Boolean(window.profileNeedsRefresh);
@@ -790,13 +896,12 @@ $activeTab = 'profile';
 
     async function fetchPointsAndVouchers(force = false) {
         const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('api_token');
-        if (!token) return;
+        if (!token || token === 'guest_token' || token === 'offline_guest_token' || token.indexOf('offline_') === 0 || token.indexOf('guest_') === 0 || localStorage.getItem('intan_elyu_guest') === 'true') return;
 
         const ptsCacheKey = 'points_balance_' + token.substring(0, 10);
         const shouldForce = force || Boolean(window.profileNeedsRefresh);
         if (shouldForce) {
             window.profileNeedsRefresh = false;
-            try { localStorage.removeItem(ptsCacheKey); } catch (e) { }
         }
 
         await window.useCache(
@@ -848,7 +953,7 @@ $activeTab = 'profile';
     }
 
     window.redeemAdminVoucher = async function (voucherId, cost, title) {
-        const token = localStorage.getItem('intan_elyu_token');
+        const token = getProfileAuthToken();
         if (!token) return;
 
         const currentPts = window._userPointsBalance || 0;
@@ -859,8 +964,16 @@ $activeTab = 'profile';
 
         if (!confirm(`Redeem '${title}' for ${cost} Points?`)) return;
 
+        if (!navigator.onLine || window.isAppOnline === false) {
+            if (typeof showToast === 'function') {
+                showToast("Voucher redemption requires an active internet connection to generate your official pass.");
+            }
+            return;
+        }
+
         try {
-            const response = await fetch(backendUrl + '/api/tourist/points/redeem-voucher', {
+            const bUrl = getProfileBackendUrl();
+            const response = await fetch(bUrl + '/api/tourist/points/redeem-voucher', {
                 method: 'POST',
                 headers: {
                     'Accept': 'application/json',
@@ -884,7 +997,7 @@ $activeTab = 'profile';
                             const u = JSON.parse(localStorage.getItem('auth_user') || '{}');
                             if (u && (u.id || u.user_id)) return String(u.id || u.user_id);
                         } catch(e) {}
-                        const tok = localStorage.getItem('intan_elyu_token');
+                        const tok = getProfileAuthToken();
                         return (tok && tok.length > 10) ? 'tok_' + tok.substring(0, 12) : 'guest';
                     })();
                     const storageKey = 'intan_elyu_claimed_vouchers_' + uid;
@@ -913,7 +1026,7 @@ $activeTab = 'profile';
     };
 
     window.redeemReward = async function (type, cost) {
-        const token = localStorage.getItem('intan_elyu_token');
+        const token = getProfileAuthToken();
         if (!token) return;
 
         const currentPts = window._userPointsBalance || 0;
@@ -923,6 +1036,13 @@ $activeTab = 'profile';
         }
 
         if (!confirm(`Are you sure you want to redeem this reward for ${cost} Points?`)) return;
+
+        if (!navigator.onLine || window.isAppOnline === false) {
+            if (typeof showToast === 'function') {
+                showToast("Reward redemption requires an active internet connection.");
+            }
+            return;
+        }
 
         try {
             const response = await fetch(backendUrl + '/api/tourist/points/redeem', {
@@ -976,7 +1096,7 @@ $activeTab = 'profile';
         }
         if (!voucher) return;
 
-        const modal = document.getElementById('reward-details-modal');
+        const modal = window.ensureProfileModalOnBody('reward-details-modal');
         if (!modal) return;
 
         const badge = document.getElementById('reward-modal-badge');
@@ -1037,18 +1157,18 @@ $activeTab = 'profile';
     };
 
     window.closeRewardDetailsModal = function () {
-        const modal = document.getElementById('reward-details-modal');
-        if (!modal) return;
-        modal.style.opacity = '0';
-        const card = modal.querySelector('div');
-        if (card) card.style.transform = 'scale(0.88)';
-        setTimeout(() => {
-            modal.style.display = 'none';
-        }, 220);
+        document.querySelectorAll('#reward-details-modal').forEach(modal => {
+            modal.style.opacity = '0';
+            const card = modal.querySelector('div');
+            if (card) card.style.transform = 'scale(0.88)';
+            setTimeout(() => {
+                modal.style.display = 'none';
+            }, 220);
+        });
     };
 
     window.openFullHistoryModal = function () {
-        const modal = document.getElementById('full-history-modal');
+        const modal = window.ensureProfileModalOnBody('full-history-modal');
         const container = document.getElementById('full-history-list');
         if (!modal || !container) return;
 
@@ -1099,12 +1219,13 @@ $activeTab = 'profile';
     };
 
     window.closeFullHistoryModal = function () {
-        const modal = document.getElementById('full-history-modal');
-        if (modal) modal.style.display = 'none';
+        document.querySelectorAll('#full-history-modal').forEach(modal => {
+            modal.style.display = 'none';
+        });
     };
 
     window.openFullVouchersModal = function (initialTab = 'all') {
-        const modal = document.getElementById('full-vouchers-modal');
+        const modal = window.ensureProfileModalOnBody('full-vouchers-modal');
         if (!modal) return;
         window._currentVouchersTab = initialTab || 'all';
         window.switchFullVouchersTab(window._currentVouchersTab);
@@ -1112,8 +1233,9 @@ $activeTab = 'profile';
     };
 
     window.closeFullVouchersModal = function () {
-        const modal = document.getElementById('full-vouchers-modal');
-        if (modal) modal.style.display = 'none';
+        document.querySelectorAll('#full-vouchers-modal').forEach(modal => {
+            modal.style.display = 'none';
+        });
     };
 
     window.switchFullVouchersTab = function (tab) {
@@ -1309,7 +1431,7 @@ $activeTab = 'profile';
 
     // ── All Deals & Rewards Modal Handlers (Stays on Profile Page) ──
     window.openFullDealsModal = function () {
-        const modal = document.getElementById('full-deals-modal');
+        const modal = window.ensureProfileModalOnBody('full-deals-modal');
         if (!modal) return;
 
         const pts = window._userPointsBalance || 0;
@@ -1326,8 +1448,9 @@ $activeTab = 'profile';
     };
 
     window.closeFullDealsModal = function () {
-        const modal = document.getElementById('full-deals-modal');
-        if (modal) modal.style.display = 'none';
+        document.querySelectorAll('#full-deals-modal').forEach(modal => {
+            modal.style.display = 'none';
+        });
     };
 
     window.handleDealsModalSearch = function (query) {
@@ -1426,7 +1549,7 @@ $activeTab = 'profile';
         if (!resolvedCode) return;
 
         currentActiveQrCode = resolvedCode;
-        const modal = document.getElementById('active-voucher-qr-modal');
+        const modal = window.ensureProfileModalOnBody('active-voucher-qr-modal');
         if (!modal) return;
 
         const titleEl = document.getElementById('active-qr-modal-title');
@@ -1560,8 +1683,9 @@ $activeTab = 'profile';
     window.closeActiveVoucherQrModal = function () {
         stopActiveQrSync();
         window._isVoucherCodeUnmasked = false;
-        const modal = document.getElementById('active-voucher-qr-modal');
-        if (modal) modal.style.display = 'none';
+        document.querySelectorAll('#active-voucher-qr-modal').forEach(modal => {
+            modal.style.display = 'none';
+        });
     };
 
     window.copyCurrentActiveQrCode = function () {
@@ -1583,7 +1707,7 @@ $activeTab = 'profile';
         const check = async () => {
             if (!navigator.onLine) return; // Ambient check: pause polling while offline
             try {
-                const baseUrl = (window.backendUrl || 'https://api.intan-elyu.online').replace(/\/+$/, '');
+                const baseUrl = getProfileBackendUrl();
                 const res = await fetch(`${baseUrl}/api/public/redemptions/${encodeURIComponent(code)}/status`, {
                     headers: { 'Accept': 'application/json', 'ngrok-skip-browser-warning': 'true' }
                 });
@@ -1677,16 +1801,17 @@ $activeTab = 'profile';
         let trip = trips.find(t => String(t.id) === String(tripId));
         if (!trip && trips.length > 0) trip = trips[0];
 
-        const modal = document.getElementById('trip-details-modal');
+        const modal = window.ensureProfileModalOnBody('trip-details-modal');
         if (trip) {
             window.renderTripDetailModalContent(trip);
             if (modal) modal.style.display = 'flex';
             return;
         }
 
-        const token = localStorage.getItem('intan_elyu_token');
-        if (tripId && token && typeof backendUrl !== 'undefined') {
-            fetch(`${backendUrl}/api/tourist/itineraries/${tripId}`, {
+        const token = getProfileAuthToken();
+        const bUrl = getProfileBackendUrl();
+        if (tripId && token && bUrl) {
+            fetch(`${bUrl}/api/tourist/itineraries/${tripId}`, {
                 headers: { 'Accept': 'application/json', 'Authorization': 'Bearer ' + token }
             })
                 .then(r => r.json())
@@ -1707,8 +1832,9 @@ $activeTab = 'profile';
     };
 
     window.closeTripDetailsModal = function () {
-        const modal = document.getElementById('trip-details-modal');
-        if (modal) modal.style.display = 'none';
+        document.querySelectorAll('#trip-details-modal').forEach(modal => {
+            modal.style.display = 'none';
+        });
     };
 
 
@@ -1750,21 +1876,72 @@ $activeTab = 'profile';
 
     // Real-time re-hydration when returning to Profile view
     window.addEventListener('viewLoaded', function (e) {
-        if (e && e.detail && e.detail.view === 'profile') {
-            hydrateProfileFromCache();
-            fetchProfileData(true);
-            fetchPointsAndVouchers(true);
+        if (e && e.detail) {
+            if (e.detail.view === 'profile') {
+                if (typeof updateProfileAccessBarrier === 'function') updateProfileAccessBarrier();
+                const _tok = getProfileAuthToken();
+                const _isGuest = !_tok || _tok === 'guest_token' || _tok === 'offline_guest_token' || _tok.indexOf('guest_') === 0 || _tok.indexOf('offline_') === 0 || localStorage.getItem('intan_elyu_guest') === 'true' || localStorage.getItem('intan_elyu_offline_guest') === 'true';
+                if (!_isGuest) {
+                    hydrateProfileFromCache();
+                    fetchProfileData(true);
+                    fetchPointsAndVouchers(true);
+                }
+            } else {
+                // When navigating away from profile, close open modals and stop polling
+                ['full-history-modal', 'full-vouchers-modal', 'full-deals-modal', 'active-voucher-qr-modal', 'trip-details-modal', 'reward-details-modal'].forEach(id => {
+                    const m = document.getElementById(id);
+                    if (m) m.style.display = 'none';
+                });
+                if (typeof stopActiveQrSync === 'function') stopActiveQrSync();
+            }
         }
     });
 
-    hydrateProfileFromCache();
-    fetchProfileData();
-    fetchPointsAndVouchers(true);
+    // Offline Indicator Status Management
+    function updateProfileOfflineStatus() {
+        const badge = document.getElementById('profile-offline-badge');
+        const isOff = (typeof navigator.onLine === 'boolean') ? !navigator.onLine : (window.isAppOnline === false);
+        if (badge) badge.style.setProperty('display', isOff ? 'block' : 'none', 'important');
+        if (!isOff) {
+            try {
+                localStorage.removeItem('intan_elyu_offline_mode');
+                localStorage.removeItem('intan_elyu_offline_guest');
+            } catch(e) {}
+        }
+    }
+    window.addEventListener('online', () => {
+        updateProfileOfflineStatus();
+        if (typeof window.enforceAllOfflineBadgesHidden === 'function') window.enforceAllOfflineBadgesHidden();
+    });
+    window.addEventListener('offline', updateProfileOfflineStatus);
+    window.addEventListener('appOnline', () => {
+        updateProfileOfflineStatus();
+        if (typeof window.enforceAllOfflineBadgesHidden === 'function') window.enforceAllOfflineBadgesHidden();
+    });
+    window.addEventListener('appOffline', updateProfileOfflineStatus);
+    window.addEventListener('app-connection-changed', updateProfileOfflineStatus);
+    setTimeout(updateProfileOfflineStatus, 150);
+
+    // Immediately port all modals to document.body so they stay above bottom-navigation and blur out the nav bar behind backdrop
+    setTimeout(() => {
+        ['full-history-modal', 'full-vouchers-modal', 'full-deals-modal', 'active-voucher-qr-modal', 'trip-details-modal', 'reward-details-modal'].forEach(id => {
+            if (window.ensureProfileModalOnBody) window.ensureProfileModalOnBody(id);
+        });
+    }, 50);
+
+    if (typeof updateProfileAccessBarrier === 'function') updateProfileAccessBarrier();
+    const _initTok = getProfileAuthToken();
+    const _initGuest = !_initTok || _initTok === 'guest_token' || _initTok === 'offline_guest_token' || _initTok.indexOf('guest_') === 0 || _initTok.indexOf('offline_') === 0 || localStorage.getItem('intan_elyu_guest') === 'true' || localStorage.getItem('intan_elyu_offline_guest') === 'true';
+    if (!_initGuest) {
+        hydrateProfileFromCache();
+        fetchProfileData();
+        fetchPointsAndVouchers(true);
+    }
 </script>
 
 <!-- Full Trip History Modal -->
 <div id="full-history-modal" onclick="if(event.target===this)window.closeFullHistoryModal()"
-    style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.85); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:999999; justify-content:center; align-items:center; padding:20px;">
+    style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.85); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:9999999 !important; justify-content:center; align-items:center; padding:20px;">
     <div
         style="background:#ffffff !important; border:none !important; outline:none !important; border-radius:24px; width:100%; max-width:400px; max-height:82vh; display:flex; flex-direction:column; box-shadow:none !important; overflow:hidden; text-align:left; padding:0;">
         <!-- Trip History Header Banner -->
@@ -1774,10 +1951,10 @@ $activeTab = 'profile';
                 style="margin:0; color:#ffffff; font-size:18px; font-weight:800; display:flex; align-items:center; gap:9px; letter-spacing:-0.2px;">
                 <i class="fa-solid fa-clock-rotate-left" style="color:#00f2fe; font-size:17px;"></i> Trip History
             </h3>
-            <button onclick="window.closeFullHistoryModal()"
-                style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:14px; box-shadow:none !important; transition:transform 0.15s ease;"
-                onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">
-                <i class="fa-solid fa-xmark" style="color:#1e3a8a !important;"></i>
+            <button type="button" onclick="window.closeFullHistoryModal()"
+                style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:15px; box-shadow:0 2px 8px rgba(0,0,0,0.2) !important; position:relative; z-index:100; pointer-events:auto !important; touch-action:manipulation;"
+                aria-label="Close Trip History Modal">
+                <i class="fa-solid fa-xmark" style="color:#1e3a8a !important; pointer-events:none;"></i>
             </button>
         </div>
 
@@ -1792,7 +1969,7 @@ $activeTab = 'profile';
 
 <!-- Full Vouchers & History Modal (Tabbed) -->
 <div id="full-vouchers-modal" onclick="if(event.target===this)window.closeFullVouchersModal()"
-    style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.85); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:999999; justify-content:center; align-items:center; padding:20px;">
+    style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.85); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:9999999 !important; justify-content:center; align-items:center; padding:20px;">
     <div
         style="background:#ffffff !important; border:none !important; outline:none !important; border-radius:24px; width:100%; max-width:400px; max-height:84vh; display:flex; flex-direction:column; box-shadow:none !important; overflow:hidden; text-align:left; padding:0;">
         <!-- Vouchers Header Banner -->
@@ -1802,26 +1979,26 @@ $activeTab = 'profile';
                 style="margin:0; color:#ffffff; font-size:18px; font-weight:800; display:flex; align-items:center; gap:9px; letter-spacing:-0.2px;">
                 <i class="fa-solid fa-ticket" style="color:#00f2fe; font-size:17px;"></i> My Vouchers
             </h3>
-            <button onclick="window.closeFullVouchersModal()"
-                style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:14px; box-shadow:none !important; transition:transform 0.15s ease;"
-                onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">
-                <i class="fa-solid fa-xmark" style="color:#1e3a8a !important;"></i>
+            <button type="button" onclick="window.closeFullVouchersModal()"
+                style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:15px; box-shadow:0 2px 8px rgba(0,0,0,0.2) !important; position:relative; z-index:100; pointer-events:auto !important; touch-action:manipulation;"
+                aria-label="Close Vouchers Modal">
+                <i class="fa-solid fa-xmark" style="color:#1e3a8a !important; pointer-events:none;"></i>
             </button>
         </div>
 
         <!-- Segmented Tab Switcher (All vs Active vs History) -->
         <div style="display:flex; background:#f1f5f9; padding:4px; margin:12px 16px 4px; border-radius:12px; gap:4px; flex-shrink:0;">
             <button type="button" id="modal-tab-all-vouchers" onclick="window.switchFullVouchersTab('all')"
-                style="flex:1; padding:8px 6px; border-radius:9px; border:none; background:#1e3a8a; color:#ffffff; font-size:11.5px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:5px; transition:all 0.2s ease;">
-                <i class="fa-solid fa-layer-group"></i> All (<span id="modal-tab-all-count">0</span>)
+                style="flex:1; min-width:0; padding:8px 4px; border-radius:9px; border:none; background:#1e3a8a; color:#ffffff; font-size:11px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:4px; white-space:nowrap; transition:all 0.2s ease;">
+                <i class="fa-solid fa-layer-group" style="font-size:10px;"></i> All (<span id="modal-tab-all-count">0</span>)
             </button>
             <button type="button" id="modal-tab-active-vouchers" onclick="window.switchFullVouchersTab('active')"
-                style="flex:1; padding:8px 6px; border-radius:9px; border:none; background:transparent; color:#64748b; font-size:11.5px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:5px; transition:all 0.2s ease;">
-                <i class="fa-solid fa-ticket"></i> Active (<span id="modal-tab-active-count">0</span>)
+                style="flex:1; min-width:0; padding:8px 4px; border-radius:9px; border:none; background:transparent; color:#64748b; font-size:11px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:4px; white-space:nowrap; transition:all 0.2s ease;">
+                <i class="fa-solid fa-ticket" style="font-size:10px;"></i> Active (<span id="modal-tab-active-count">0</span>)
             </button>
             <button type="button" id="modal-tab-history-vouchers" onclick="window.switchFullVouchersTab('history')"
-                style="flex:1; padding:8px 6px; border-radius:9px; border:none; background:transparent; color:#64748b; font-size:11.5px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:5px; transition:all 0.2s ease;">
-                <i class="fa-solid fa-clock-rotate-left"></i> History (<span id="modal-tab-history-count">0</span>)
+                style="flex:1; min-width:0; padding:8px 4px; border-radius:9px; border:none; background:transparent; color:#64748b; font-size:11px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:4px; white-space:nowrap; transition:all 0.2s ease;">
+                <i class="fa-solid fa-clock-rotate-left" style="font-size:10px;"></i> History (<span id="modal-tab-history-count">0</span>)
             </button>
         </div>
 
@@ -1835,7 +2012,7 @@ $activeTab = 'profile';
 
 <!-- Full Deals & Rewards Modal (Preserves Profile View and User Account) -->
 <div id="full-deals-modal" onclick="if(event.target===this)window.closeFullDealsModal()"
-    style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.85); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:999999; justify-content:center; align-items:center; padding:20px;">
+    style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.85); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:9999999 !important; justify-content:center; align-items:center; padding:20px;">
     <div
         style="background:#ffffff !important; border:none !important; outline:none !important; border-radius:24px; width:100%; max-width:420px; max-height:86vh; display:flex; flex-direction:column; box-shadow:0 20px 50px rgba(0,0,0,0.3) !important; overflow:hidden; text-align:left; padding:0;">
         <!-- Header Banner -->
@@ -1845,10 +2022,10 @@ $activeTab = 'profile';
                 <i class="fa-solid fa-gift" style="color:#00f2fe; font-size:18px;"></i>
                 <h3 style="margin:0; color:#ffffff; font-size:17.5px; font-weight:800; letter-spacing:-0.2px;">All Deals & Rewards</h3>
             </div>
-            <button onclick="window.closeFullDealsModal()"
-                style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:14px; transition:transform 0.15s ease;"
-                onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">
-                <i class="fa-solid fa-xmark" style="color:#1e3a8a !important;"></i>
+            <button type="button" onclick="window.closeFullDealsModal()"
+                style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:15px; box-shadow:0 2px 8px rgba(0,0,0,0.2) !important; position:relative; z-index:100; pointer-events:auto !important; touch-action:manipulation;"
+                aria-label="Close Deals Modal">
+                <i class="fa-solid fa-xmark" style="color:#1e3a8a !important; pointer-events:none;"></i>
             </button>
         </div>
 
@@ -1890,7 +2067,7 @@ $activeTab = 'profile';
 
 <!-- Dedicated Active Voucher QR Pass Modal -->
 <div id="active-voucher-qr-modal" onclick="if(event.target===this)window.closeActiveVoucherQrModal()"
-    style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.85); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:2000002; justify-content:center; align-items:center; padding:20px;">
+    style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.85); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:9999999 !important; justify-content:center; align-items:center; padding:20px;">
     <div
         style="background:#ffffff !important; border:none !important; outline:none !important; border-radius:24px; width:100%; max-width:390px; max-height:88vh; display:flex; flex-direction:column; box-shadow:0 20px 50px rgba(0,0,0,0.3) !important; overflow:hidden; text-align:center; padding:0;">
         <!-- Header Banner (Royal Blue) -->
@@ -1901,10 +2078,10 @@ $activeTab = 'profile';
                 <h3 style="margin:0; color:#ffffff; font-size:17px; font-weight:800; letter-spacing:-0.2px;">Voucher QR
                     Pass</h3>
             </div>
-            <button onclick="window.closeActiveVoucherQrModal()"
-                style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:14px; transition:transform 0.15s ease;"
-                onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">
-                <i class="fa-solid fa-xmark" style="color:#1e3a8a !important;"></i>
+            <button type="button" onclick="window.closeActiveVoucherQrModal()"
+                style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:15px; box-shadow:0 2px 8px rgba(0,0,0,0.2) !important; position:relative; z-index:100; pointer-events:auto !important; touch-action:manipulation;"
+                aria-label="Close Voucher QR Pass Modal">
+                <i class="fa-solid fa-xmark" style="color:#1e3a8a !important; pointer-events:none;"></i>
             </button>
         </div>
 
@@ -1974,7 +2151,7 @@ $activeTab = 'profile';
 
 <!-- Completed Trip Details Modal -->
 <div id="trip-details-modal" onclick="if(event.target===this)window.closeTripDetailsModal()"
-    style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.85); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:2000000; justify-content:center; align-items:center; padding:20px;">
+    style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.85); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:9999999 !important; justify-content:center; align-items:center; padding:20px;">
     <div
         style="background:#ffffff !important; border:none !important; outline:none !important; border-radius:24px; width:100%; max-width:400px; max-height:82vh; display:flex; flex-direction:column; box-shadow:none !important; overflow:hidden; text-align:left; padding:0;">
         <!-- Header Banner -->
@@ -1994,10 +2171,10 @@ $activeTab = 'profile';
                         Details</h3>
                 </div>
             </div>
-            <button onclick="window.closeTripDetailsModal()"
-                style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:14px; box-shadow:none !important; transition:transform 0.15s ease;"
-                onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">
-                <i class="fa-solid fa-xmark" style="color:#1e3a8a !important;"></i>
+            <button type="button" onclick="window.closeTripDetailsModal()"
+                style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:15px; box-shadow:0 2px 8px rgba(0,0,0,0.2) !important; position:relative; z-index:100; pointer-events:auto !important; touch-action:manipulation;"
+                aria-label="Close Trip Details Modal">
+                <i class="fa-solid fa-xmark" style="color:#1e3a8a !important; pointer-events:none;"></i>
             </button>
         </div>
 
@@ -2029,7 +2206,7 @@ $activeTab = 'profile';
 
 <!-- Reward Details Modal -->
 <div id="reward-details-modal" onclick="if(event.target===this)window.closeRewardDetailsModal()"
-    style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(10,25,60,0.65); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:2000000; justify-content:center; align-items:center; padding:20px; opacity:0; transition:opacity 0.25s ease;">
+    style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(10,25,60,0.65); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:9999999 !important; justify-content:center; align-items:center; padding:20px; opacity:0; transition:opacity 0.25s ease;">
     <div
         style="background:#ffffff !important; border:none !important; outline:none !important; border-radius:24px; width:100%; max-width:350px; max-height:86vh; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 16px 40px rgba(10,25,60,0.45); text-align:center; transform:scale(0.88); transition:transform 0.25s cubic-bezier(0.16,1,0.3,1); position:relative; padding:0;">
         <!-- Header Banner (Royal Blue) -->
@@ -2043,8 +2220,9 @@ $activeTab = 'profile';
                     style="font-size:9.5px; font-weight:800; color:#1e3a8a !important; background:#eff6ff !important; padding:2px 7px; border-radius:6px; margin-top:3px; display:inline-block; text-transform:uppercase;">PROMO</span>
             </div>
             <button type="button" onclick="window.closeRewardDetailsModal()"
-                style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:13px; box-shadow:0 2px 8px rgba(0,0,0,0.18);">
-                <i class="fa-solid fa-xmark" style="color:#1e3a8a !important;"></i>
+                style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:15px; box-shadow:0 2px 8px rgba(0,0,0,0.2) !important; position:relative; z-index:100; pointer-events:auto !important; touch-action:manipulation;"
+                aria-label="Close Reward Details Modal">
+                <i class="fa-solid fa-xmark" style="color:#1e3a8a !important; pointer-events:none;"></i>
             </button>
         </div>
 

@@ -7,6 +7,11 @@ $backRoute = 'profile';
 <?php include __DIR__ . '/../components/header.php'; ?>
 
 <div class="merch-page-container has-header animate-fade-in">
+    <!-- Offline status badge -->
+    <div id="discount-offline-badge" style="display: none; background: #fffbeb; border: 1px solid #fde68a; color: #b45309; padding: 7px 12px; border-radius: 12px; font-size: 11px; font-weight: 700; margin-bottom: 14px; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.04);">
+        <i class="fa-solid fa-cloud-arrow-down" style="margin-right: 5px;"></i> Browsing Offline Vouchers (Cached)
+    </div>
+
     <!-- Hero Section with User Account Profile & Live Points -->
     <div class="merch-hero" style="background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #0284c7 100%) !important; border: none !important; outline: none !important; border-radius: 24px; padding: 18px 20px; margin-bottom: 18px; box-shadow: 0 8px 24px rgba(30, 58, 138, 0.25) !important; color: #ffffff !important;">
         <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px;">
@@ -1332,6 +1337,13 @@ async function handleModalRedeem() {
         return;
     }
 
+    if (!navigator.onLine || window.isAppOnline === false) {
+        if (typeof showToast === 'function') {
+            showToast("Voucher redemption requires an active internet connection to generate your official pass.");
+        }
+        return;
+    }
+
     const btn = document.getElementById('modal-redeem-btn');
     if (btn) {
         btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Redeeming...';
@@ -2042,6 +2054,31 @@ populateMunicipalityDropdown();
 
 fetchLiveDatabaseVouchers();
 fetchUserPointsAndRedemptions();
+
+// Offline Indicator Status Management
+function updateDiscountOfflineStatus() {
+    const badge = document.getElementById('discount-offline-badge');
+    const isOff = (typeof navigator.onLine === 'boolean') ? !navigator.onLine : (window.isAppOnline === false);
+    if (badge) badge.style.setProperty('display', isOff ? 'block' : 'none', 'important');
+    if (!isOff) {
+        try {
+            localStorage.removeItem('intan_elyu_offline_mode');
+            localStorage.removeItem('intan_elyu_offline_guest');
+        } catch(e) {}
+    }
+}
+window.addEventListener('online', () => {
+    updateDiscountOfflineStatus();
+    if (typeof window.enforceAllOfflineBadgesHidden === 'function') window.enforceAllOfflineBadgesHidden();
+});
+window.addEventListener('offline', updateDiscountOfflineStatus);
+window.addEventListener('appOnline', () => {
+    updateDiscountOfflineStatus();
+    if (typeof window.enforceAllOfflineBadgesHidden === 'function') window.enforceAllOfflineBadgesHidden();
+});
+window.addEventListener('appOffline', updateDiscountOfflineStatus);
+window.addEventListener('app-connection-changed', updateDiscountOfflineStatus);
+setTimeout(updateDiscountOfflineStatus, 150);
 
 window.addEventListener('online', function () {
     const current = (document.body ? document.body.getAttribute('data-view') : '') || (window.currentView || '');

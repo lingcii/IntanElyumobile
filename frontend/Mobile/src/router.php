@@ -76,7 +76,63 @@ if (strpos($path, 'intan-elyu.apk') !== false || strpos($path, '.apk') !== false
         }
         exit;
     } else {
-        header('Location: https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/apks/intan-elyu.apk');
+        // Fallback: If no local file on disk, stream directly from Cloudflare R2
+        // to bypass mobile ISP DNS resolution failures (ERR_NAME_NOT_RESOLVED / -105) on the *.r2.dev domain!
+        $remoteApkUrl = getenv('CLOUDFLARE_R2_APK_URL') ?: (rtrim(getenv('CLOUDFLARE_R2_URL') ?: 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev', '/') . '/apks/intan-elyu.apk?v=0.0.0');
+        $preferRedirect = isset($_GET['redirect']) && $_GET['redirect'] === '1';
+        $isCustomDomain = (strpos($remoteApkUrl, 'r2.dev') === false);
+
+        if ($preferRedirect || $isCustomDomain) {
+            header('Location: ' . $remoteApkUrl);
+            exit;
+        }
+
+        @set_time_limit(0);
+        $ctx = stream_context_create([
+            'http' => [
+                'method' => 'GET',
+                'timeout' => 30,
+                'follow_location' => 1,
+                'header' => "User-Agent: IntanElyuStreamer/1.0\r\n"
+            ]
+        ]);
+
+        $remoteHandle = @fopen($remoteApkUrl, 'rb', false, $ctx);
+        if ($remoteHandle) {
+            while (ob_get_level()) {
+                ob_end_clean();
+            }
+            $meta = stream_get_meta_data($remoteHandle);
+            $headers = $meta['wrapper_data'] ?? [];
+            $contentLength = null;
+            foreach ($headers as $hdr) {
+                if (stripos($hdr, 'Content-Length:') === 0) {
+                    $contentLength = trim(substr($hdr, 15));
+                    break;
+                }
+            }
+
+            header('Content-Description: File Transfer');
+            header('Content-Type: application/vnd.android.package-archive');
+            header('Content-Disposition: attachment; filename="intan-elyu.apk"');
+            header('Content-Transfer-Encoding: binary');
+            header('Expires: 0');
+            header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
+            header('Pragma: public');
+            if ($contentLength) {
+                header('Content-Length: ' . $contentLength);
+            }
+            header('Accept-Ranges: bytes');
+
+            while (!feof($remoteHandle) && connection_status() === 0) {
+                echo fread($remoteHandle, 512 * 1024);
+                flush();
+            }
+            fclose($remoteHandle);
+            exit;
+        }
+
+        header('Location: ' . $remoteApkUrl);
         exit;
     }
 }
@@ -132,7 +188,19 @@ if (strpos($path, '/api/') !== 0 && strpos($path, '/storage/') !== 0 && preg_mat
     exit;
 }
 
-$backendUrl = getenv('BACKEND_URL') ?: (isset($_SERVER['HTTP_HOST']) && (strpos($_SERVER['HTTP_HOST'], 'localhost') !== false || strpos($_SERVER['HTTP_HOST'], '127.0.0.1') !== false) ? 'http://127.0.0.1:8000' : 'https://api.intan-elyu.online');
+function isLocalOrPrivateHost($host) {
+    if (empty($host)) return false;
+    $hostname = parse_url('http://' . $host, PHP_URL_HOST);
+    if (!$hostname) $hostname = explode(':', $host)[0];
+    if (in_array($hostname, ['localhost', '127.0.0.1', '::1'])) return true;
+    // Match private IP ranges: 192.168.x.x (USB tethering, Wi-Fi LAN), 10.x.x.x, 172.16-31.x.x
+    if (preg_match('/^(192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+)$/', $hostname)) {
+        return true;
+    }
+    return false;
+}
+
+$backendUrl = getenv('BACKEND_URL') ?: (isset($_SERVER['HTTP_HOST']) && isLocalOrPrivateHost($_SERVER['HTTP_HOST']) ? 'http://127.0.0.1:8000' : 'https://api.intan-elyu.online');
 $cacheDir = __DIR__ . '/assets/img/upload_image';
 
 function serveCachedImage($cachePath) {
