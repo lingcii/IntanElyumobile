@@ -53,7 +53,7 @@ if (is_dir($imgDir)) {
                 var isG = !isReal;
                 var st = document.getElementById('dash-guest-guard-style');
                 if (st && isG) {
-                    st.textContent = '#dash-explorer-id, #dash-title-row, #dash-stats-row { display: none !important; } #dash-guest-subtitle { display: flex !important; }';
+                    st.textContent = '#dash-title-row, #dash-stats-row { display: none !important; } #dash-guest-subtitle { display: flex !important; }';
                 }
             } catch(e) {}
         })();
@@ -73,7 +73,6 @@ if (is_dir($imgDir)) {
                     <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
                         <h2 class="profile-name" id="dash-name" style="margin:0;">Hi, there! <i class="fa-solid fa-hand"
                                 style="color:#fbbf24; font-size:18px; margin-left:4px;"></i></h2>
-                        <span id="dash-explorer-id">ID: #--</span>
                     </div>
                     <div id="dash-title-row" style="display:flex; align-items:center; gap:8px; margin-top:6px; flex-wrap:wrap;">
                         <span class="profile-title" id="dash-title"><i class="fa-solid fa-compass"
@@ -1233,7 +1232,6 @@ if (is_dir($imgDir)) {
         let isGuest = !isRealUser;
 
         function updateDashboardProfileHeader(isG, u) {
-            const idEl = document.getElementById('dash-explorer-id');
             const titleEl = document.getElementById('dash-title');
             const badgeEl = document.getElementById('dash-status-badge');
             const titleRow = document.getElementById('dash-title-row');
@@ -1242,8 +1240,7 @@ if (is_dir($imgDir)) {
             const guardStyle = document.getElementById('dash-guest-guard-style');
 
             if (isG) {
-                if (guardStyle) guardStyle.textContent = '#dash-explorer-id, #dash-title-row, #dash-stats-row { display: none !important; } #dash-guest-subtitle { display: flex !important; }';
-                if (idEl) idEl.style.setProperty('display', 'none', 'important');
+                if (guardStyle) guardStyle.textContent = '#dash-title-row, #dash-stats-row { display: none !important; } #dash-guest-subtitle { display: flex !important; }';
                 if (titleEl) titleEl.style.setProperty('display', 'none', 'important');
                 if (badgeEl) badgeEl.style.setProperty('display', 'none', 'important');
                 if (titleRow) titleRow.style.setProperty('display', 'none', 'important');
@@ -1254,7 +1251,6 @@ if (is_dir($imgDir)) {
                 setSrc('dash-avatar', 'https://ui-avatars.com/api/?name=Guest&background=1e3a8a&color=fff&rounded=true&bold=true&size=128');
             } else {
                 if (guardStyle) guardStyle.textContent = '';
-                if (idEl) idEl.style.display = 'inline-block';
                 if (titleEl) titleEl.style.display = 'inline-flex';
                 if (badgeEl) badgeEl.style.display = 'inline-flex';
                 if (titleRow) titleRow.style.display = 'flex';
@@ -1278,10 +1274,6 @@ if (is_dir($imgDir)) {
 
         // Instant render stats from cache only if NOT guest
         if (!isGuest && user && user.name) {
-            const initTouristNum = user.tourist_number || user.tourist_id || (user.role === 'tourist' ? 1 : '');
-            if (initTouristNum) {
-                setTxt('dash-explorer-id', 'ID: #' + initTouristNum);
-            }
             const initPts = parseInt(user.points !== undefined ? user.points : (user.xp || 0)) || 0;
             const ptsEl = document.getElementById('dash-stat-points');
             if (ptsEl) ptsEl.textContent = initPts.toLocaleString();
@@ -1742,7 +1734,6 @@ if (is_dir($imgDir)) {
 
                 const touristNum = u.tourist_number || u.tourist_id || (u.role === 'tourist' ? 1 : (u.id || u.user_id || ''));
                 if (touristNum) {
-                    setTxt('dash-explorer-id', 'ID: #' + touristNum);
                     try {
                         const storedUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
                         storedUser.tourist_number = touristNum;

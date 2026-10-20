@@ -28,6 +28,21 @@ class Notification extends Model
         'is_read' => 'boolean',
     ];
 
+    protected $appends = [
+        'elapsed_seconds',
+        'server_time',
+    ];
+
+    public function getElapsedSecondsAttribute(): int
+    {
+        return $this->created_at ? max(0, now()->diffInSeconds($this->created_at)) : 0;
+    }
+
+    public function getServerTimeAttribute(): int
+    {
+        return now()->timestamp;
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
