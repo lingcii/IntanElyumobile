@@ -1556,7 +1556,7 @@ body.keyboard-open .auth-bottom {
  * Offline Mode Elements for Auth View
  * ============================================================ */
 .auth-offline-badge {
-    display: inline-flex;
+    display: none;
     align-items: center;
     justify-content: center;
     gap: 7px;
@@ -1573,6 +1573,11 @@ body.keyboard-open .auth-bottom {
     letter-spacing: 0.2px;
     box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
     animation: fadeIn 0.3s ease;
+}
+
+body.is-offline .auth-offline-badge,
+body[data-offline="true"] .auth-offline-badge {
+    display: inline-flex;
 }
 
 .btn-offline-guest {

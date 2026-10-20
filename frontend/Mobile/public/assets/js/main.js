@@ -1199,6 +1199,13 @@ window.OfflineProfileManager = {
     let offlineDebounceTimeout = null;
     let lastOnlineSyncTime = 0;
     window.isAppOnline = (typeof navigator.onLine === 'boolean') ? navigator.onLine : true;
+    window.isAppOffline = function () {
+        if (typeof navigator !== 'undefined' && typeof navigator.onLine === 'boolean') {
+            return !navigator.onLine;
+        }
+        return window.isAppOnline === false;
+    };
+    window.isOffline = window.isAppOffline;
     if (window.isAppOnline) {
         try {
             localStorage.removeItem('intan_elyu_offline_mode');
@@ -1339,7 +1346,7 @@ window.OfflineProfileManager = {
     };
 
     function enforceAllOfflineBadgesHidden() {
-        if (typeof navigator.onLine === 'boolean' && !navigator.onLine && window.isAppOnline === false) return;
+        if (typeof navigator.onLine === 'boolean' && !navigator.onLine) return;
         window.isAppOnline = true;
         if (document.body) {
             document.body.classList.remove('is-offline');
@@ -1371,7 +1378,7 @@ window.OfflineProfileManager = {
             'trip-offline-badge', 'saved-trips-offline-badge', 'saved-places-offline-badge',
             'puzzles-offline-badge', 'auth-offline-badge', 'profile-offline-badge',
             'discount-offline-badge', 'edit-profile-offline-badge', 'leaderboard-offline-badge',
-            'reset-offline-badge'
+            'reset-offline-badge', 'splash-offline-pill'
         ];
         pillsToHide.forEach(id => {
             const el = document.getElementById(id);
@@ -1379,6 +1386,11 @@ window.OfflineProfileManager = {
                 el.style.setProperty('display', 'none', 'important');
                 el.classList.add('hidden');
             }
+        });
+
+        document.querySelectorAll('[id*="offline-badge"], [id*="offline-pill"], .auth-offline-badge, .offline-badge, .offline-banner, .splash-offline-pill').forEach(el => {
+            el.style.setProperty('display', 'none', 'important');
+            el.classList.add('hidden');
         });
 
         document.querySelectorAll('.btn-offline-guest').forEach(btn => {
@@ -1402,12 +1414,9 @@ window.OfflineProfileManager = {
 
         window.isAppOnline = true;
         enforceAllOfflineBadgesHidden();
-        [80, 250, 600, 1200, 2500].forEach(d => setTimeout(enforceAllOfflineBadgesHidden, d));
+        [50, 150, 300, 600, 1200, 2000].forEach(d => setTimeout(enforceAllOfflineBadgesHidden, d));
 
         const now = Date.now();
-        if (now - lastOnlineSyncTime < 2000) return;
-        lastOnlineSyncTime = now;
-
         if (wasOffline) {
             wasOffline = false;
             showOnlineSyncPill();
@@ -1423,7 +1432,10 @@ window.OfflineProfileManager = {
             window.dispatchEvent(new CustomEvent('appOnline', { detail: { timestamp: now } }));
         } catch(e) {}
 
-        window.syncAllDataWhenOnline();
+        if (now - lastOnlineSyncTime >= 2000) {
+            lastOnlineSyncTime = now;
+            window.syncAllDataWhenOnline();
+        }
     };
 
     window.notifyAppOffline = function () {
@@ -1431,6 +1443,12 @@ window.OfflineProfileManager = {
         if (offlineDebounceTimeout) clearTimeout(offlineDebounceTimeout);
         offlineDebounceTimeout = setTimeout(() => {
             offlineDebounceTimeout = null;
+            if (typeof navigator.onLine === 'boolean' && navigator.onLine) {
+                // False alarm: network is already back online
+                window.isAppOnline = true;
+                enforceAllOfflineBadgesHidden();
+                return;
+            }
             window.isAppOnline = false;
             wasOffline = true;
             showOfflinePill();
@@ -1480,11 +1498,8 @@ window.OfflineProfileManager = {
             clearTimeout(timer);
 
             if (ok) {
-                if (window.isAppOnline === false || wasOffline) {
-                    window.notifyAppOnline();
-                } else {
-                    enforceAllOfflineBadgesHidden();
-                }
+                window.isAppOnline = true;
+                enforceAllOfflineBadgesHidden();
             }
         } catch (e) {
         } finally {
@@ -1496,29 +1511,30 @@ window.OfflineProfileManager = {
     // Periodic watchdog to guarantee no offline text stays stuck when Wi-Fi is on
     setInterval(() => {
         if (typeof navigator.onLine === 'boolean' && navigator.onLine) {
+            window.isAppOnline = true;
             enforceAllOfflineBadgesHidden();
-            if (window.isAppOnline === false) {
-                probeBackendReachability(true);
-            }
-        } else if (window.isAppOnline === false) {
-            probeBackendReachability(false);
         }
-    }, 2500);
+    }, 1000);
 
     // 1. Standard browser network events (fired by OS / WebView)
     window.addEventListener('online', () => {
+        window.isAppOnline = true;
+        enforceAllOfflineBadgesHidden();
         window.notifyAppOnline();
-        probeBackendReachability(true);
     });
     window.addEventListener('offline', () => {
         window.notifyAppOffline();
     });
     window.addEventListener('focus', () => {
-        probeBackendReachability(true);
+        if (typeof navigator.onLine === 'boolean' && navigator.onLine) {
+            window.isAppOnline = true;
+            enforceAllOfflineBadgesHidden();
+        }
     });
     document.addEventListener('visibilitychange', () => {
-        if (!document.hidden) {
-            probeBackendReachability(true);
+        if (!document.hidden && typeof navigator.onLine === 'boolean' && navigator.onLine) {
+            window.isAppOnline = true;
+            enforceAllOfflineBadgesHidden();
         }
     });
 
@@ -1528,8 +1544,9 @@ window.OfflineProfileManager = {
             try {
                 window.Capacitor.Plugins.Network.addListener('networkStatusChange', (status) => {
                     if (status && status.connected) {
+                        window.isAppOnline = true;
+                        enforceAllOfflineBadgesHidden();
                         window.notifyAppOnline();
-                        probeBackendReachability(true);
                     } else if (status && status.connected === false) {
                         window.notifyAppOffline();
                     }
@@ -1540,8 +1557,9 @@ window.OfflineProfileManager = {
             try {
                 window.Capacitor.Plugins.App.addListener('appStateChange', (state) => {
                     if (state && state.isActive) {
-                        probeBackendReachability(true);
-                        if (wasOffline) {
+                        if (typeof navigator.onLine === 'boolean' && navigator.onLine) {
+                            window.isAppOnline = true;
+                            enforceAllOfflineBadgesHidden();
                             window.notifyAppOnline();
                         }
                     }
@@ -1745,7 +1763,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
 
     // Mobile Guest Session Initialization:
     let authToken = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
-    const isNetworkOffline = !navigator.onLine || window.isAppOnline === false;
+    const isNetworkOffline = (typeof navigator.onLine === 'boolean') ? !navigator.onLine : (window.isAppOnline === false);
 
     if (!authToken && targetView !== 'auth' && targetView !== 'download') {
         if (isNetworkOffline) {
@@ -1905,7 +1923,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                     </div>
                 </div>
                 <div class="auth-bottom">
-                    <div id="auth-offline-badge" class="auth-offline-badge" style="display:inline-flex;">
+                    <div id="auth-offline-badge" class="auth-offline-badge" style="display:none;">
                         <i class="fa-solid fa-cloud-slash" style="color:#f59e0b; font-size:11px;"></i>
                         <span>Offline Mode Active &bull; Saved Guides Available</span>
                     </div>

@@ -978,11 +978,18 @@ $activeTab = 'leaderboard';
     // Offline status badge updater & auto-reconnect refresh
     function updateLeaderboardOfflineStatus() {
         const badge = document.getElementById('leaderboard-offline-badge');
-        const isOff = window.isAppOnline === false || (typeof navigator.onLine === 'boolean' ? !navigator.onLine : false);
+        const isOff = (typeof navigator.onLine === 'boolean') ? !navigator.onLine : (window.isAppOnline === false);
         if (badge) badge.style.setProperty('display', isOff ? 'block' : 'none', 'important');
+        if (!isOff) {
+            try {
+                localStorage.removeItem('intan_elyu_offline_mode');
+                localStorage.removeItem('intan_elyu_offline_guest');
+            } catch(e) {}
+        }
     }
     window.addEventListener('online', () => {
         updateLeaderboardOfflineStatus();
+        if (typeof window.enforceAllOfflineBadgesHidden === 'function') window.enforceAllOfflineBadgesHidden();
         if (typeof window.refreshLeaderboard === 'function') {
             window.refreshLeaderboard(false);
         }
@@ -990,6 +997,7 @@ $activeTab = 'leaderboard';
     window.addEventListener('offline', updateLeaderboardOfflineStatus);
     window.addEventListener('appOnline', () => {
         updateLeaderboardOfflineStatus();
+        if (typeof window.enforceAllOfflineBadgesHidden === 'function') window.enforceAllOfflineBadgesHidden();
         if (typeof window.refreshLeaderboard === 'function') {
             window.refreshLeaderboard(false);
         }

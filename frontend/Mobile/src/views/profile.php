@@ -876,7 +876,7 @@ $activeTab = 'profile';
     // Immediately hydrate on script execution
     function updateProfileAccessBarrier() {
         const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
-        const isOffline = !navigator.onLine || window.isAppOnline === false;
+        const isOffline = (typeof navigator.onLine === 'boolean') ? !navigator.onLine : (window.isAppOnline === false);
         const isGuest = !token || 
             token === 'guest_token' || 
             token === 'offline_guest_token' || 
@@ -1975,12 +1975,24 @@ $activeTab = 'profile';
     // Offline Indicator Status Management
     function updateProfileOfflineStatus() {
         const badge = document.getElementById('profile-offline-badge');
-        const isOff = window.isAppOnline === false || (typeof navigator.onLine === 'boolean' ? !navigator.onLine : false);
+        const isOff = (typeof navigator.onLine === 'boolean') ? !navigator.onLine : (window.isAppOnline === false);
         if (badge) badge.style.setProperty('display', isOff ? 'block' : 'none', 'important');
+        if (!isOff) {
+            try {
+                localStorage.removeItem('intan_elyu_offline_mode');
+                localStorage.removeItem('intan_elyu_offline_guest');
+            } catch(e) {}
+        }
     }
-    window.addEventListener('online', updateProfileOfflineStatus);
+    window.addEventListener('online', () => {
+        updateProfileOfflineStatus();
+        if (typeof window.enforceAllOfflineBadgesHidden === 'function') window.enforceAllOfflineBadgesHidden();
+    });
     window.addEventListener('offline', updateProfileOfflineStatus);
-    window.addEventListener('appOnline', updateProfileOfflineStatus);
+    window.addEventListener('appOnline', () => {
+        updateProfileOfflineStatus();
+        if (typeof window.enforceAllOfflineBadgesHidden === 'function') window.enforceAllOfflineBadgesHidden();
+    });
     window.addEventListener('appOffline', updateProfileOfflineStatus);
     window.addEventListener('app-connection-changed', updateProfileOfflineStatus);
     setTimeout(updateProfileOfflineStatus, 150);

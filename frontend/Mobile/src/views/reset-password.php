@@ -237,21 +237,33 @@ $email = $_GET['email'] ?? '';
 
         function updateResetOfflineStatus() {
             var offlineBadge = document.getElementById('reset-offline-badge');
-            var isOffline = window.isAppOnline === false || (typeof navigator.onLine === 'boolean' ? !navigator.onLine : false);
+            var isOffline = (typeof navigator.onLine === 'boolean') ? !navigator.onLine : (window.isAppOnline === false);
             if (offlineBadge) {
                 offlineBadge.style.setProperty('display', isOffline ? 'inline-flex' : 'none', 'important');
             }
+            if (!isOffline) {
+                try {
+                    localStorage.removeItem('intan_elyu_offline_mode');
+                    localStorage.removeItem('intan_elyu_offline_guest');
+                } catch(e) {}
+            }
         }
-        window.addEventListener('online', updateResetOfflineStatus);
+        window.addEventListener('online', () => {
+            updateResetOfflineStatus();
+            if (typeof window.enforceAllOfflineBadgesHidden === 'function') window.enforceAllOfflineBadgesHidden();
+        });
         window.addEventListener('offline', updateResetOfflineStatus);
-        window.addEventListener('appOnline', updateResetOfflineStatus);
+        window.addEventListener('appOnline', () => {
+            updateResetOfflineStatus();
+            if (typeof window.enforceAllOfflineBadgesHidden === 'function') window.enforceAllOfflineBadgesHidden();
+        });
         window.addEventListener('appOffline', updateResetOfflineStatus);
         setTimeout(updateResetOfflineStatus, 100);
 
         window.handleResetPassword = async function (e) {
             e.preventDefault();
 
-            if (!navigator.onLine || window.isAppOnline === false) {
+            if ((typeof navigator.onLine === 'boolean') ? !navigator.onLine : (window.isAppOnline === false)) {
                 if (typeof showToast === 'function') {
                     showToast('Internet connection is required to reset your password. Please reconnect and try again.', 'warning', 5000);
                 } else {

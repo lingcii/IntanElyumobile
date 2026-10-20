@@ -413,7 +413,7 @@ if (is_dir($imgDir)) {
 
     function updateDashboardOfflineStatus() {
         var pill = document.getElementById('dash-offline-pill');
-        var isOffline = window.isAppOnline === false || (typeof navigator.onLine === 'boolean' ? !navigator.onLine : false);
+        var isOffline = (typeof navigator.onLine === 'boolean') ? !navigator.onLine : (window.isAppOnline === false);
         if (pill) {
             pill.style.setProperty('display', isOffline ? 'flex' : 'none', 'important');
             var span = pill.querySelector('span');
@@ -421,10 +421,22 @@ if (is_dir($imgDir)) {
                 span.innerHTML = 'Offline Mode &bull; Showing Saved Guides & Local GPS';
             }
         }
+        if (!isOffline) {
+            try {
+                localStorage.removeItem('intan_elyu_offline_mode');
+                localStorage.removeItem('intan_elyu_offline_guest');
+            } catch(e) {}
+        }
     }
-    window.addEventListener('online', updateDashboardOfflineStatus);
+    window.addEventListener('online', () => {
+        updateDashboardOfflineStatus();
+        if (typeof window.enforceAllOfflineBadgesHidden === 'function') window.enforceAllOfflineBadgesHidden();
+    });
     window.addEventListener('offline', updateDashboardOfflineStatus);
-    window.addEventListener('appOnline', updateDashboardOfflineStatus);
+    window.addEventListener('appOnline', () => {
+        updateDashboardOfflineStatus();
+        if (typeof window.enforceAllOfflineBadgesHidden === 'function') window.enforceAllOfflineBadgesHidden();
+    });
     window.addEventListener('appOffline', updateDashboardOfflineStatus);
     setTimeout(updateDashboardOfflineStatus, 100);
 
@@ -1038,7 +1050,7 @@ if (is_dir($imgDir)) {
             }
         } catch(e) {}
 
-        const isOffline = !navigator.onLine || window.isAppOnline === false;
+        const isOffline = (typeof navigator.onLine === 'boolean') ? !navigator.onLine : (window.isAppOnline === false);
         if (isOffline) {
             if (tempEl && tempEl.textContent.includes('Loading')) {
                 tempEl.textContent = '29°C';
@@ -1306,7 +1318,7 @@ if (is_dir($imgDir)) {
         // Show offline mode notification banner & toast ONLY if really offline
         if (sessionStorage.getItem('elyu_show_offline_bypass_notice') === 'true') {
             sessionStorage.removeItem('elyu_show_offline_bypass_notice');
-            const isReallyOffline = !navigator.onLine || window.isAppOnline === false;
+            const isReallyOffline = (typeof navigator.onLine === 'boolean') ? !navigator.onLine : (window.isAppOnline === false);
             if (isReallyOffline) {
                 setTimeout(() => {
                     if (typeof showToast === 'function') {
@@ -2233,7 +2245,7 @@ if (is_dir($imgDir)) {
             );
         }
 
-        const isOffline = !navigator.onLine || window.isAppOnline === false;
+        const isOffline = (typeof navigator.onLine === 'boolean') ? !navigator.onLine : (window.isAppOnline === false);
         const isRealUserSession = Boolean(token && token !== 'guest_token' && token !== 'offline_guest_token' && !token.startsWith('guest_') && !token.startsWith('offline_') && user && user.id && user.id !== 'guest');
         if (isRealUserSession) {
             try {
@@ -2608,7 +2620,8 @@ if (is_dir($imgDir)) {
         } catch (e) { }
 
         // 2. BACKGROUND NETWORK REQUEST OR OFFLINE QUEUE
-        if (!navigator.onLine || window.isAppOnline === false) {
+        const isOfflineFavoriteAction = (typeof navigator.onLine === 'boolean') ? !navigator.onLine : (window.isAppOnline === false);
+        if (isOfflineFavoriteAction) {
             if (window.OfflineFavoriteManager && typeof window.OfflineFavoriteManager.queueToggle === 'function') {
                 window.OfflineFavoriteManager.queueToggle(destId, isRemoving ? 'remove' : 'add');
             }
@@ -3099,8 +3112,7 @@ if (is_dir($imgDir)) {
             token.startsWith('guest_') || 
             token.startsWith('offline_') || 
             String(id).startsWith('offline_') ||
-            !navigator.onLine || 
-            window.isAppOnline === false;
+            ((typeof navigator.onLine === 'boolean') ? !navigator.onLine : (window.isAppOnline === false));
 
         pruneTripFromLocalCaches(id);
 

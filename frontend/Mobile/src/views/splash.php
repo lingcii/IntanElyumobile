@@ -100,13 +100,16 @@
         }
 
         // Immediate Offline Status Check
-        const isOffline = !navigator.onLine || window.isAppOnline === false;
+        const isOffline = (typeof navigator.onLine === 'boolean') ? !navigator.onLine : (window.isAppOnline === false);
         const pill = document.getElementById('splash-offline-pill');
-        if (isOffline && pill) {
-            pill.style.display = 'inline-flex';
+        if (pill) {
+            pill.style.display = isOffline ? 'inline-flex' : 'none';
         }
         window.addEventListener('offline', () => { if (pill) pill.style.display = 'inline-flex'; });
-        window.addEventListener('online', () => { if (pill) pill.style.display = 'none'; });
+        window.addEventListener('online', () => { 
+            if (pill) pill.style.display = 'none'; 
+            if (typeof window.enforceAllOfflineBadgesHidden === 'function') window.enforceAllOfflineBadgesHidden();
+        });
 
         // Simulate loading and check authentication
         setTimeout(() => {
@@ -120,7 +123,7 @@
             const splashMain = document.getElementById('splash-main');
             const token = localStorage.getItem('intan_elyu_token');
             const cachedUser = localStorage.getItem('auth_user');
-            const isOffline = !navigator.onLine || window.isAppOnline === false;
+            const isOffline = (typeof navigator.onLine === 'boolean') ? !navigator.onLine : (window.isAppOnline === false);
 
             if (isOffline) {
                 // Device has NO internet connection:

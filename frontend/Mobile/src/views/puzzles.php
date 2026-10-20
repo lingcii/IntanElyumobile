@@ -1586,14 +1586,26 @@ include __DIR__ . '/../components/header.php';
 
         function updatePuzzlesOfflineStatus() {
             var badge = document.getElementById('puzzles-offline-badge');
-            var isOffline = window.isAppOnline === false || (typeof navigator.onLine === 'boolean' ? !navigator.onLine : false);
+            var isOffline = (typeof navigator.onLine === 'boolean') ? !navigator.onLine : (window.isAppOnline === false);
             if (badge) {
                 badge.style.setProperty('display', isOffline ? 'inline-flex' : 'none', 'important');
             }
+            if (!isOffline) {
+                try {
+                    localStorage.removeItem('intan_elyu_offline_mode');
+                    localStorage.removeItem('intan_elyu_offline_guest');
+                } catch(e) {}
+            }
         }
-        window.addEventListener('online', updatePuzzlesOfflineStatus);
+        window.addEventListener('online', () => {
+            updatePuzzlesOfflineStatus();
+            if (typeof window.enforceAllOfflineBadgesHidden === 'function') window.enforceAllOfflineBadgesHidden();
+        });
         window.addEventListener('offline', updatePuzzlesOfflineStatus);
-        window.addEventListener('appOnline', updatePuzzlesOfflineStatus);
+        window.addEventListener('appOnline', () => {
+            updatePuzzlesOfflineStatus();
+            if (typeof window.enforceAllOfflineBadgesHidden === 'function') window.enforceAllOfflineBadgesHidden();
+        });
         window.addEventListener('appOffline', updatePuzzlesOfflineStatus);
         setTimeout(updatePuzzlesOfflineStatus, 100);
 

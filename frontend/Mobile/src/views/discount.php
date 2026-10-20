@@ -2058,12 +2058,24 @@ fetchUserPointsAndRedemptions();
 // Offline Indicator Status Management
 function updateDiscountOfflineStatus() {
     const badge = document.getElementById('discount-offline-badge');
-    const isOff = window.isAppOnline === false || (typeof navigator.onLine === 'boolean' ? !navigator.onLine : false);
+    const isOff = (typeof navigator.onLine === 'boolean') ? !navigator.onLine : (window.isAppOnline === false);
     if (badge) badge.style.setProperty('display', isOff ? 'block' : 'none', 'important');
+    if (!isOff) {
+        try {
+            localStorage.removeItem('intan_elyu_offline_mode');
+            localStorage.removeItem('intan_elyu_offline_guest');
+        } catch(e) {}
+    }
 }
-window.addEventListener('online', updateDiscountOfflineStatus);
+window.addEventListener('online', () => {
+    updateDiscountOfflineStatus();
+    if (typeof window.enforceAllOfflineBadgesHidden === 'function') window.enforceAllOfflineBadgesHidden();
+});
 window.addEventListener('offline', updateDiscountOfflineStatus);
-window.addEventListener('appOnline', updateDiscountOfflineStatus);
+window.addEventListener('appOnline', () => {
+    updateDiscountOfflineStatus();
+    if (typeof window.enforceAllOfflineBadgesHidden === 'function') window.enforceAllOfflineBadgesHidden();
+});
 window.addEventListener('appOffline', updateDiscountOfflineStatus);
 window.addEventListener('app-connection-changed', updateDiscountOfflineStatus);
 setTimeout(updateDiscountOfflineStatus, 150);

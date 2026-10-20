@@ -213,7 +213,7 @@ if (is_dir($imgDir)) {
             const token = localStorage.getItem('intan_elyu_token');
             if (!token) return;
 
-            const isOffline = !navigator.onLine || window.isAppOnline === false;
+            const isOffline = (typeof navigator.onLine === 'boolean') ? !navigator.onLine : (window.isAppOnline === false);
 
             // 1. Instant Optimistic UI Removal
             const card = btn.closest('.trending-card');
@@ -301,20 +301,29 @@ if (is_dir($imgDir)) {
 
         function updateSavedPlacesOfflineStatus() {
             var badge = document.getElementById('saved-places-offline-badge');
-            var isOffline = window.isAppOnline === false || (typeof navigator.onLine === 'boolean' ? !navigator.onLine : false);
+            var isOffline = (typeof navigator.onLine === 'boolean') ? !navigator.onLine : (window.isAppOnline === false);
             if (badge) {
                 badge.style.setProperty('display', isOffline ? 'inline-flex' : 'none', 'important');
             }
+            if (!isOffline) {
+                try {
+                    localStorage.removeItem('intan_elyu_offline_mode');
+                    localStorage.removeItem('intan_elyu_offline_guest');
+                } catch(e) {}
+            }
         }
-        window.addEventListener('online', updateSavedPlacesOfflineStatus);
-        window.addEventListener('offline', updateSavedPlacesOfflineStatus);
-        window.addEventListener('appOnline', updateSavedPlacesOfflineStatus);
-        window.addEventListener('appOffline', updateSavedPlacesOfflineStatus);
-        setTimeout(updateSavedPlacesOfflineStatus, 100);
-
-        window.addEventListener('online', function () {
+        window.addEventListener('online', () => {
+            updateSavedPlacesOfflineStatus();
+            if (typeof window.enforceAllOfflineBadgesHidden === 'function') window.enforceAllOfflineBadgesHidden();
             fetchSavedPlaces(true);
         });
+        window.addEventListener('offline', updateSavedPlacesOfflineStatus);
+        window.addEventListener('appOnline', () => {
+            updateSavedPlacesOfflineStatus();
+            if (typeof window.enforceAllOfflineBadgesHidden === 'function') window.enforceAllOfflineBadgesHidden();
+        });
+        window.addEventListener('appOffline', updateSavedPlacesOfflineStatus);
+        setTimeout(updateSavedPlacesOfflineStatus, 100);
 
         fetchSavedPlaces();
     })();

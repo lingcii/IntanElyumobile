@@ -574,7 +574,7 @@
     // Universal Offline Mode Engine for Auth View
     // =========================================================================
         function updateOfflineStatus() {
-            var isOffline = window.isAppOnline === false || (typeof navigator.onLine === 'boolean' ? !navigator.onLine : false);
+            var isOffline = (typeof navigator.onLine === 'boolean') ? !navigator.onLine : (window.isAppOnline === false);
             if (isOffline) {
                 document.body.classList.add('is-offline');
                 document.body.setAttribute('data-offline', 'true');
@@ -606,9 +606,15 @@
             });
         }
         updateOfflineStatus();
-        window.addEventListener('online', updateOfflineStatus);
+        window.addEventListener('online', () => {
+            updateOfflineStatus();
+            if (typeof window.enforceAllOfflineBadgesHidden === 'function') window.enforceAllOfflineBadgesHidden();
+        });
         window.addEventListener('offline', updateOfflineStatus);
-        window.addEventListener('appOnline', updateOfflineStatus);
+        window.addEventListener('appOnline', () => {
+            updateOfflineStatus();
+            if (typeof window.enforceAllOfflineBadgesHidden === 'function') window.enforceAllOfflineBadgesHidden();
+        });
         window.addEventListener('appOffline', updateOfflineStatus);
 
     window.showOfflineAuthModal = function (email) {

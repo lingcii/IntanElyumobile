@@ -72,7 +72,7 @@
 
         /* Dedicated Offline Status Badge */
         .auth-offline-badge {
-            display: inline-flex;
+            display: none;
             align-items: center;
             gap: 6px;
             padding: 4px 14px;
@@ -89,6 +89,11 @@
             box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
             position: relative;
             z-index: 10;
+        }
+
+        body.is-offline .auth-offline-badge,
+        body[data-offline="true"] .auth-offline-badge {
+            display: inline-flex;
         }
 
         /* Explore in Offline Mode Button */
@@ -961,6 +966,10 @@
             } else {
                 document.body.classList.remove('is-offline');
                 document.body.removeAttribute('data-offline');
+                try {
+                    localStorage.removeItem('intan_elyu_offline_mode');
+                    localStorage.removeItem('intan_elyu_offline_guest');
+                } catch(e) {}
                 attemptAutoReconnect();
             }
             const badge = document.getElementById('auth-offline-badge');

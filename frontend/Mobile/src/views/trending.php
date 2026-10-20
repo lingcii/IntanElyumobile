@@ -620,14 +620,26 @@ if (is_dir($imgDir)) {
 
         function updateTrendingOfflineStatus() {
             var pill = document.getElementById('trending-offline-pill');
-            var isOffline = !navigator.onLine || window.isAppOnline === false;
+            var isOffline = (typeof navigator.onLine === 'boolean') ? !navigator.onLine : (window.isAppOnline === false);
             if (pill) {
-                pill.style.display = isOffline ? 'inline-flex' : 'none';
+                pill.style.setProperty('display', isOffline ? 'inline-flex' : 'none', 'important');
+            }
+            if (!isOffline) {
+                try {
+                    localStorage.removeItem('intan_elyu_offline_mode');
+                    localStorage.removeItem('intan_elyu_offline_guest');
+                } catch(e) {}
             }
         }
-        window.addEventListener('online', updateTrendingOfflineStatus);
+        window.addEventListener('online', () => {
+            updateTrendingOfflineStatus();
+            if (typeof window.enforceAllOfflineBadgesHidden === 'function') window.enforceAllOfflineBadgesHidden();
+        });
         window.addEventListener('offline', updateTrendingOfflineStatus);
-        window.addEventListener('appOnline', updateTrendingOfflineStatus);
+        window.addEventListener('appOnline', () => {
+            updateTrendingOfflineStatus();
+            if (typeof window.enforceAllOfflineBadgesHidden === 'function') window.enforceAllOfflineBadgesHidden();
+        });
         window.addEventListener('appOffline', updateTrendingOfflineStatus);
         setTimeout(updateTrendingOfflineStatus, 100);
 

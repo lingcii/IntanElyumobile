@@ -168,6 +168,12 @@ $backRoute = 'itinerary';
         };
 
         window.fetchSavedTrips = async function (forceRefresh = false) {
+            if (typeof navigator.onLine === 'boolean' && navigator.onLine) {
+                try {
+                    localStorage.removeItem('intan_elyu_offline_mode');
+                    localStorage.removeItem('intan_elyu_offline_guest');
+                } catch (e) { }
+            }
             const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
             const isGuestOrOffline = !token || token === 'guest_token' || token.startsWith('guest_') || token.startsWith('offline_') || localStorage.getItem('intan_elyu_guest') === 'true' || localStorage.getItem('intan_elyu_offline_mode') === 'true';
 
@@ -2516,14 +2522,27 @@ $backRoute = 'itinerary';
 
             function updateSavedTripsOfflineStatus() {
                 var badge = document.getElementById('saved-trips-offline-badge');
-                var isOffline = window.isAppOnline === false || (typeof navigator.onLine === 'boolean' ? !navigator.onLine : false);
+                var isOffline = (typeof navigator.onLine === 'boolean') ? !navigator.onLine : (window.isAppOnline === false);
                 if (badge) {
                     badge.style.setProperty('display', isOffline ? 'inline-flex' : 'none', 'important');
+                }
+                if (!isOffline) {
+                    try {
+                        localStorage.removeItem('intan_elyu_offline_mode');
+                        localStorage.removeItem('intan_elyu_offline_guest');
+                    } catch(e) {}
                 }
             }
 
             async function handleSavedTripsReconnect() {
+                if (typeof window.enforceAllOfflineBadgesHidden === 'function') {
+                    window.enforceAllOfflineBadgesHidden();
+                }
                 updateSavedTripsOfflineStatus();
+                try {
+                    localStorage.removeItem('intan_elyu_offline_mode');
+                    localStorage.removeItem('intan_elyu_offline_guest');
+                } catch(e) {}
                 try {
                     const queuedTrips = (window.OfflineTripManager && typeof window.OfflineTripManager.getQueuedTrips === 'function')
                         ? window.OfflineTripManager.getQueuedTrips()

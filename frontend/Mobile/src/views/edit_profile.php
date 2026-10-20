@@ -896,14 +896,26 @@ $backRoute = 'profile';
 
         function updateEditProfileOfflineStatus() {
             var badge = document.getElementById('edit-profile-offline-badge');
-            var isOffline = window.isAppOnline === false || (typeof navigator.onLine === 'boolean' ? !navigator.onLine : false);
+            var isOffline = (typeof navigator.onLine === 'boolean') ? !navigator.onLine : (window.isAppOnline === false);
             if (badge) {
                 badge.style.setProperty('display', isOffline ? 'inline-flex' : 'none', 'important');
             }
+            if (!isOffline) {
+                try {
+                    localStorage.removeItem('intan_elyu_offline_mode');
+                    localStorage.removeItem('intan_elyu_offline_guest');
+                } catch(e) {}
+            }
         }
-        window.addEventListener('online', updateEditProfileOfflineStatus);
+        window.addEventListener('online', () => {
+            updateEditProfileOfflineStatus();
+            if (typeof window.enforceAllOfflineBadgesHidden === 'function') window.enforceAllOfflineBadgesHidden();
+        });
         window.addEventListener('offline', updateEditProfileOfflineStatus);
-        window.addEventListener('appOnline', updateEditProfileOfflineStatus);
+        window.addEventListener('appOnline', () => {
+            updateEditProfileOfflineStatus();
+            if (typeof window.enforceAllOfflineBadgesHidden === 'function') window.enforceAllOfflineBadgesHidden();
+        });
         window.addEventListener('appOffline', updateEditProfileOfflineStatus);
         setTimeout(updateEditProfileOfflineStatus, 100);
     })();

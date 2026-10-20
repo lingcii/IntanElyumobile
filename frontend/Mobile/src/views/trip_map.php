@@ -1797,14 +1797,26 @@ include_once __DIR__ . '/../components/testimony_modal.php';
 
         function updateTripOfflineStatus() {
             var pill = document.getElementById('trip-offline-badge');
-            var isOffline = window.isAppOnline === false || (typeof navigator.onLine === 'boolean' ? !navigator.onLine : false);
+            var isOffline = (typeof navigator.onLine === 'boolean') ? !navigator.onLine : (window.isAppOnline === false);
             if (pill) {
                 pill.style.setProperty('display', isOffline ? 'inline-flex' : 'none', 'important');
             }
+            if (!isOffline) {
+                try {
+                    localStorage.removeItem('intan_elyu_offline_mode');
+                    localStorage.removeItem('intan_elyu_offline_guest');
+                } catch(e) {}
+            }
         }
-        window.addEventListener('online', updateTripOfflineStatus);
+        window.addEventListener('online', () => {
+            updateTripOfflineStatus();
+            if (typeof window.enforceAllOfflineBadgesHidden === 'function') window.enforceAllOfflineBadgesHidden();
+        });
         window.addEventListener('offline', updateTripOfflineStatus);
-        window.addEventListener('appOnline', updateTripOfflineStatus);
+        window.addEventListener('appOnline', () => {
+            updateTripOfflineStatus();
+            if (typeof window.enforceAllOfflineBadgesHidden === 'function') window.enforceAllOfflineBadgesHidden();
+        });
         window.addEventListener('appOffline', updateTripOfflineStatus);
         setTimeout(updateTripOfflineStatus, 100);
 
