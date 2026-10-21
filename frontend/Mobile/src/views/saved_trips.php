@@ -189,7 +189,8 @@ $backRoute = 'itinerary';
                             fallbackItins = Array.isArray(parsed) ? parsed : (parsed.itineraries || parsed.data || []);
                         }
                     } catch (e) { }
-                    renderSavedTrips(fallbackItins);
+                    const safeFallback = fallbackItins.filter(t => !window.isTripDeleted(t));
+                    renderSavedTrips(safeFallback);
                 }
             }, 3000);
 
@@ -199,8 +200,11 @@ $backRoute = 'itinerary';
                 if (storedRaw) {
                     const parsed = JSON.parse(storedRaw);
                     const itins = Array.isArray(parsed) ? parsed : (parsed.itineraries || parsed.data || null);
-                    if (Array.isArray(itins) && itins.length > 0) {
-                        renderSavedTrips(itins);
+                    if (Array.isArray(itins)) {
+                        const safeItins = itins.filter(t => !window.isTripDeleted(t));
+                        if (safeItins.length > 0) {
+                            renderSavedTrips(safeItins);
+                        }
                     }
                 }
             } catch (e) { }
@@ -218,7 +222,7 @@ $backRoute = 'itinerary';
                     }
                 } catch (e) { }
 
-                const combined = [...queuedTrips, ...localTrips];
+                const combined = [...queuedTrips, ...localTrips].filter(t => !window.isTripDeleted(t));
                 renderSavedTrips(combined);
                 return;
             }
@@ -232,7 +236,10 @@ $backRoute = 'itinerary';
                     const parsed = JSON.parse(storedRaw);
                     const itins = Array.isArray(parsed) ? parsed : (parsed.itineraries || parsed.data || null);
                     if (Array.isArray(itins)) {
-                        renderSavedTrips(itins);
+                        const safeItins = itins.filter(t => !window.isTripDeleted(t));
+                        if (safeItins.length > 0) {
+                            renderSavedTrips(safeItins);
+                        }
                     }
                 }
             } catch (e) { }
@@ -404,8 +411,17 @@ $backRoute = 'itinerary';
                     return t;
                 });
 
-                const combinedTrips = [...queuedNewTrips, ...serverTrips];
-                window._cachedSavedTrips = combinedTrips;
+                const combinedTrips = [...queuedNewTrips, ...serverTrips].filter(t => !window.isTripDeleted(t));
+                // Deduplicate any trips with identical title & date so rapid clones never display
+                const seenSig = {};
+                const dedupedTrips = combinedTrips.filter(t => {
+                    if (!t) return false;
+                    const sig = String(t.title || '').trim().toLowerCase() + '|' + (t.trip_date || '');
+                    if (seenSig[sig]) return false;
+                    seenSig[sig] = true;
+                    return true;
+                });
+                window._cachedSavedTrips = dedupedTrips;
                 const list = document.getElementById('saved-trips-list');
 
                 if (!list) return;
@@ -425,12 +441,12 @@ $backRoute = 'itinerary';
                 </div>
             `;
 
-                if (!combinedTrips || combinedTrips.length === 0) {
+                if (!dedupedTrips || dedupedTrips.length === 0) {
                     list.innerHTML = emptyStateHtml;
                     return;
                 }
 
-                const activeItineraries = combinedTrips.filter(trip => trip && trip.status !== 'completed');
+                const activeItineraries = dedupedTrips.filter(trip => trip && trip.status !== 'completed');
 
                 if (activeItineraries.length === 0) {
                     list.innerHTML = emptyStateHtml;
@@ -484,9 +500,6 @@ $backRoute = 'itinerary';
                                 <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
                                     <button type="button" class="btn-edit-saved-trip" onclick="event.stopPropagation(); window.editSavedTrip('${trip.id}')" ontouchstart="event.stopPropagation();" onpointerdown="event.stopPropagation();" onmousedown="event.stopPropagation();" onmouseover="this.style.background='rgba(255,255,255,0.28)'" onmouseout="this.style.background='rgba(255,255,255,0.18)'" style="background: rgba(255,255,255,0.18); border: none !important; outline: none !important; border-radius: 12px; padding: 6px 14px; color: #ffffff; font-size: 12px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s ease; box-shadow: none !important; position: relative; z-index: 10; pointer-events: auto; touch-action: manipulation;">
                                         <i class="fa-solid fa-pen-to-square"></i> Edit
-                                    </button>
-                                    <button type="button" class="btn-delete-saved-trip" onclick="event.stopPropagation(); window.confirmDeleteSavedTrip('${trip.id}', this.closest('.trip-swipe-container'), '${safeTitle}');" ontouchstart="event.stopPropagation();" onpointerdown="event.stopPropagation();" onmousedown="event.stopPropagation();" onmouseover="this.style.background='rgba(239,68,68,0.45)'" onmouseout="this.style.background='rgba(239,68,68,0.25)'" style="background: rgba(239,68,68,0.25); border: 1px solid rgba(255,255,255,0.22) !important; outline: none !important; border-radius: 12px; padding: 6px 12px; color: #ffffff; font-size: 12px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; transition: all 0.2s ease; box-shadow: none !important; position: relative; z-index: 10; pointer-events: auto; touch-action: manipulation;">
-                                        <i class="fa-solid fa-trash-can" style="color: #fca5a5;"></i> Delete
                                     </button>
                                 </div>
                             </div>
@@ -732,6 +745,14 @@ $backRoute = 'itinerary';
                         } else {
                             html += `<p style="font-size:13px; color:#ffffff; opacity:0.85; margin:10px 0;">No destinations in this trip.</p>`;
                         }
+
+                        // Subtle delete option inside details (unobtrusive & accessible)
+                        html += `
+                        <div style="display:flex; justify-content:flex-end; margin-top:14px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.14);">
+                            <button type="button" onclick="event.stopPropagation(); window.confirmDeleteSavedTrip('${trip.id}', this.closest('.trip-swipe-container'), '${safeTitle}');" style="background:rgba(239,68,68,0.2); border:1px solid rgba(239,68,68,0.4); border-radius:10px; padding:6px 14px; color:#ffffff; font-size:11.5px; font-weight:800; cursor:pointer; display:inline-flex; align-items:center; gap:6px; transition:all 0.2s ease;">
+                                <i class="fa-solid fa-trash-can" style="color:#fca5a5;"></i> Delete Trip
+                            </button>
+                        </div>`;
 
                         html += `</div></div></div>`; // Close timeline, timeline-inner, and timeline-collapsible
 
@@ -2082,6 +2103,26 @@ $backRoute = 'itinerary';
 
             if (!id) return;
 
+            // 1. Immediately record in persistent deleted IDs blacklist
+            window.markTripAsDeleted(id);
+
+            // If there was an update_id or offline_edit, mark that too
+            if (String(id).startsWith('offline_edit_')) {
+                window.markTripAsDeleted(String(id).replace('offline_edit_', ''));
+            }
+
+            // If deletedTitle is available, also mark any ghost clones with identical title in cached trips
+            if (deletedTitle && Array.isArray(window._cachedSavedTrips)) {
+                window._cachedSavedTrips.forEach(t => {
+                    if (t && t.title && t.title.trim().toLowerCase() === deletedTitle.trim().toLowerCase()) {
+                        window.markTripAsDeleted(t.id);
+                        if (t.trip_id) window.markTripAsDeleted(t.trip_id);
+                        if (t.local_id) window.markTripAsDeleted(t.local_id);
+                        if (t.update_id) window.markTripAsDeleted(t.update_id);
+                    }
+                });
+            }
+
             // Comprehensive local trip pruner so deleted trip never resurrects from offline cache
             const pruneTripFromLocalCaches = (tripId) => {
                 if (!tripId) return;
@@ -2091,6 +2132,7 @@ $backRoute = 'itinerary';
                     if (!Array.isArray(list)) return [];
                     return list.filter(t => {
                         if (!t) return false;
+                        if (window.isTripDeleted(t)) return false;
                         const idStr = String(t.id || '');
                         const tripIdStr = String(t.trip_id || '');
                         const localIdStr = String(t.local_id || '');
@@ -2101,6 +2143,7 @@ $backRoute = 'itinerary';
                             const raw = targetStr.replace('offline_edit_', '');
                             if (idStr === raw || tripIdStr === raw || localIdStr === raw || updateIdStr === raw) return false;
                         }
+                        if (deletedTitle && t.title && t.title.trim().toLowerCase() === deletedTitle.trim().toLowerCase()) return false;
                         return true;
                     });
                 };
@@ -2129,28 +2172,12 @@ $backRoute = 'itinerary';
                     try { window.OfflineTripManager.removeQueuedTrip(tripId); } catch(e) {}
                 }
 
-                // 3. Scan and purge from ALL dynamic localStorage cache keys (saved_trips_*, dashboard_trips_*, dashboard_saved_trips_*)
+                // 3. HARD PURGE ALL dynamic localStorage cache keys (saved_trips_*, dashboard_trips_*, dashboard_saved_trips_*)
                 try {
                     for (let i = localStorage.length - 1; i >= 0; i--) {
                         const k = localStorage.key(i);
                         if (k && (k.startsWith('saved_trips_') || k.startsWith('dashboard_trips_') || k.startsWith('dashboard_saved_trips_'))) {
-                            try {
-                                const raw = localStorage.getItem(k);
-                                if (raw) {
-                                    const parsed = JSON.parse(raw);
-                                    if (parsed && Array.isArray(parsed.data)) {
-                                        parsed.data = filterOut(parsed.data);
-                                        localStorage.setItem(k, JSON.stringify(parsed));
-                                    } else if (Array.isArray(parsed)) {
-                                        localStorage.setItem(k, JSON.stringify(filterOut(parsed)));
-                                    } else if (parsed && Array.isArray(parsed.itineraries)) {
-                                        parsed.itineraries = filterOut(parsed.itineraries);
-                                        localStorage.setItem(k, JSON.stringify(parsed));
-                                    }
-                                }
-                            } catch (e) {
-                                localStorage.removeItem(k);
-                            }
+                            localStorage.removeItem(k);
                         }
                     }
                 } catch(e) {}
@@ -2213,6 +2240,9 @@ $backRoute = 'itinerary';
                 window.isAppOnline === false;
 
             if (isGuestOrOffline) {
+                if (!String(id).startsWith('offline_')) {
+                    window.queuePendingServerDelete(id);
+                }
                 pruneTripFromLocalCaches(id);
                 if (typeof showToast === 'function') showToast("Trip deleted from device.");
                 animateAndRemoveCard(element);
@@ -2227,30 +2257,49 @@ $backRoute = 'itinerary';
                 pruneTripFromLocalCaches(id);
                 animateAndRemoveCard(element);
 
-                const bUrl = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
-                const res = await fetch(bUrl + '/api/tourist/itineraries/' + id, {
-                    method: 'DELETE',
-                    headers: {
-                        'Authorization': 'Bearer ' + token,
-                        'Accept': 'application/json',
-                        'ngrok-skip-browser-warning': 'true'
-                    }
-                });
+                const primaryUrl = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || window.BACKEND_URL || '')).replace(/\/+$/, '');
+                const baseCandidates = [];
+                if (primaryUrl && !primaryUrl.includes('localhost') && !primaryUrl.includes('127.0.0.1')) {
+                    baseCandidates.push(primaryUrl);
+                }
+                baseCandidates.push('https://api.intan-elyu.online');
+                if (primaryUrl && !baseCandidates.includes(primaryUrl)) {
+                    baseCandidates.push(primaryUrl);
+                }
+                baseCandidates.push('');
+
+                let serverDeleted = false;
+                for (const bUrl of baseCandidates) {
+                    try {
+                        const res = await fetch(bUrl + '/api/tourist/itineraries/' + id, {
+                            method: 'DELETE',
+                            headers: {
+                                'Authorization': 'Bearer ' + token,
+                                'Accept': 'application/json',
+                                'ngrok-skip-browser-warning': 'true'
+                            }
+                        });
+                        if (res.ok || res.status === 404) {
+                            serverDeleted = true;
+                            break;
+                        }
+                    } catch (candErr) {}
+                }
 
                 // Extra safety: re-prune in case any concurrent fetch refreshed cache
                 pruneTripFromLocalCaches(id);
 
-                if (res.ok || res.status === 404) {
+                if (serverDeleted) {
                     if (typeof showToast === 'function') showToast("Trip deleted successfully.");
-                } else if (res.status === 403) {
-                    if (typeof showToast === 'function') showToast("Unauthorized to delete this trip.", "error");
                 } else {
-                    if (typeof showToast === 'function') showToast("Trip deleted locally.");
+                    window.queuePendingServerDelete(id);
+                    if (typeof showToast === 'function') showToast("Trip deleted locally (sync queued).");
                 }
 
                 window.dispatchEvent(new CustomEvent('tripDeleted', { detail: { id: id } }));
             } catch (e) {
                 console.warn('Network error during trip deletion; pruned locally:', e);
+                window.queuePendingServerDelete(id);
                 pruneTripFromLocalCaches(id);
                 if (typeof showToast === 'function') showToast("Trip removed from device (offline).");
                 window.dispatchEvent(new CustomEvent('tripDeleted', { detail: { id: id } }));
@@ -2604,9 +2653,9 @@ $backRoute = 'itinerary';
             setTimeout(updateSavedTripsOfflineStatus, 100);
         }
 
-        // Immediately fetch and render saved trips
+        // Immediately fetch fresh saved trips from network and update cache
         if (typeof window.fetchSavedTrips === 'function') {
-            window.fetchSavedTrips(false);
+            window.fetchSavedTrips(true);
         }
 
     })();

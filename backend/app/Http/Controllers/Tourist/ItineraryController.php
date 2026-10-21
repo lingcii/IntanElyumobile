@@ -166,6 +166,17 @@ class ItineraryController extends Controller
             ->orderByDesc('created_at')
             ->get();
 
+        // Deduplicate any accidental duplicate itineraries created within close time windows
+        $seenSignatures = [];
+        $rawItineraries = $rawItineraries->filter(function ($it) use (&$seenSignatures) {
+            $sig = trim(strtolower((string)$it->title)) . '|' . ($it->trip_date ? $it->trip_date->format('Y-m-d') : '');
+            if (isset($seenSignatures[$sig])) {
+                return false;
+            }
+            $seenSignatures[$sig] = true;
+            return true;
+        })->values();
+
         $spotIds = [];
         foreach ($rawItineraries as $it) {
             foreach ($it->items as $item) {
@@ -232,6 +243,22 @@ class ItineraryController extends Controller
         ]);
 
         $user = $request->user();
+
+        // Prevent duplicate creation from rapid concurrent sync or accidental double-submissions
+        $recentDuplicate = Itinerary::where('user_id', $user->id)
+            ->where('title', trim($request->title))
+            ->where('created_at', '>=', now()->subSeconds(15))
+            ->first();
+
+        if ($recentDuplicate) {
+            $spotIds = $recentDuplicate->items->pluck('tourist_spot_id')->filter()->unique()->values()->all();
+            [$spotPublicVehicles, $spotPrivateVehicles, $spotAllVehicles] = $this->getSpotVehiclesMap($spotIds);
+            return response()->json([
+                'message' => 'Itinerary already saved.',
+                'itinerary_id' => $recentDuplicate->id,
+                'itinerary' => $this->formatItineraryResponse($recentDuplicate, $spotPublicVehicles, $spotPrivateVehicles, $spotAllVehicles)
+            ], 200);
+        }
 
         $itinerary = DB::transaction(function () use ($request, $user) {
             $rawTransport = trim((string)($request->transport_mode ?? ''));
@@ -587,8 +614,29 @@ class ItineraryController extends Controller
             return response()->json(['message' => 'Unauthorized to delete this trip.'], 403);
         }
 
+        $title = $itinerary->title;
+        $userId = $itinerary->user_id;
+        $createdAt = $itinerary->created_at;
+
         $itinerary->items()->delete();
         $itinerary->delete();
+
+        // Also clean up any accidental duplicate clone itineraries created within 60 seconds of this trip
+        if (!empty($title) && $createdAt) {
+            try {
+                $duplicates = Itinerary::where('user_id', $userId)
+                    ->where('title', $title)
+                    ->whereBetween('created_at', [
+                        $createdAt->copy()->subSeconds(60),
+                        $createdAt->copy()->addSeconds(60)
+                    ])
+                    ->get();
+                foreach ($duplicates as $dup) {
+                    $dup->items()->delete();
+                    $dup->delete();
+                }
+            } catch (\Throwable $e) {}
+        }
 
         // Cache invalidation — flush stale profile/rank caches
         Cache::forget("rank:user:{$user->id}");
