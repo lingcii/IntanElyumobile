@@ -1450,23 +1450,23 @@ if (is_dir($imgDir)) {
                                     proofImages = [item.proof_image];
                                 }
                             }
+                            const spotThumb = (typeof window.getDestImage === 'function') 
+                                ? window.getDestImage(item.destination, 120) 
+                                : ((item.destination && (item.destination.image || item.destination.photo_url)) || 'assets/img/no_image.svg');
+
                             if (proofImages.length > 0) {
-                                let pUrl = proofImages[0];
-                                if (!pUrl.startsWith('http') && !pUrl.startsWith('data:') && !pUrl.startsWith('blob:')) {
-                                    let b = (window.backendUrl || '').replace(/\/+$/, '');
-                                    pUrl = b + '/' + pUrl.replace(/^\//, '');
-                                }
-                                const cleanImgName = pUrl.split('/').pop().replace(/[?#].*$/, '');
-                                let fallbackUrl = (window.backendUrl || '').replace(/\/+$/, '') + '/api/image/proof_images/' + cleanImgName;
+                                let pUrl = (typeof window.resolveProofImageUrl === 'function') ? window.resolveProofImageUrl(proofImages[0]) : proofImages[0];
+                                let fallbackUrl = (typeof window.getProofImageFallbackUrl === 'function') ? window.getProofImageFallbackUrl(proofImages[0]) : 'assets/img/no_image.svg';
                                 const destEscaped = destName.replace(/'/g, "\\'");
-                                const jsonUrlsAttr = JSON.stringify(proofImages).replace(/"/g, '&quot;');
+                                const resolvedAll = proofImages.map(u => (typeof window.resolveProofImageUrl === 'function' ? window.resolveProofImageUrl(u) : u));
+                                const jsonUrlsAttr = JSON.stringify(resolvedAll).replace(/"/g, '&quot;');
                                 proofImgHtml = `<div style="position:relative; flex-shrink:0;">
-                                    <img src="${pUrl}" onerror="if(this.dataset.triedFallback!=='1'){this.dataset.triedFallback='1';this.src='${fallbackUrl}';}" onclick="event.stopPropagation(); if(typeof window.viewProofPhotoModal==='function') window.viewProofPhotoModal(${jsonUrlsAttr}, '${destEscaped}', '${item.is_visited ? 'Verified Visit Proof' : 'Pending Verification'}');" alt="Proof" title="Tap to view proof photo" style="width:28px; height:28px; border-radius:8px; object-fit:cover; border:1px solid ${item.is_visited ? 'rgba(52,199,89,0.5)' : (item.proof_status === 'rejected' ? 'rgba(239,68,68,0.5)' : 'rgba(255,149,0,0.5)')}; flex-shrink:0; cursor:pointer;">
+                                    <img src="${pUrl}" onerror="if(this.dataset.triedFallback!=='1'){this.dataset.triedFallback='1';this.src='${fallbackUrl}';}else{this.onerror=null;this.src='assets/img/no_image.svg';}" onclick="event.stopPropagation(); if(typeof window.viewProofPhotoModal==='function') window.viewProofPhotoModal(${jsonUrlsAttr}, '${destEscaped}', '${item.is_visited ? 'Verified Visit Proof' : 'Pending Verification'}');" alt="Proof" title="Tap to view proof photo" style="width:28px; height:28px; border-radius:8px; object-fit:cover; border:1px solid ${item.is_visited ? 'rgba(52,199,89,0.5)' : (item.proof_status === 'rejected' ? 'rgba(239,68,68,0.5)' : 'rgba(255,149,0,0.5)')}; flex-shrink:0; cursor:pointer;">
                                     ${proofImages.length > 1 ? `<span style="position:absolute; bottom:0; right:0; background:rgba(0,0,0,0.75); color:#fff; font-size:6.5px; font-weight:800; padding:0 2px; border-radius:2px;">+${proofImages.length - 1}</span>` : ''}
                                 </div>`;
                             } else if (isQueued && queuedItem && queuedItem.previewUrl) {
                                 const destEscaped = destName.replace(/'/g, "\\'");
-                                proofImgHtml = `<img src="${queuedItem.previewUrl}" onclick="event.stopPropagation(); if(typeof window.viewProofPhotoModal==='function') window.viewProofPhotoModal('${queuedItem.previewUrl}', '${destEscaped}', 'Offline Proof (Queued on Device)');" alt="Proof" title="Tap to view offline proof photo" style="width:28px; height:28px; border-radius:8px; object-fit:cover; border:1.5px solid #f59e0b; flex-shrink:0; cursor:pointer;">`;
+                                proofImgHtml = `<img src="${queuedItem.previewUrl}" onerror="this.onerror=null; this.src='assets/img/no_image.svg';" onclick="event.stopPropagation(); if(typeof window.viewProofPhotoModal==='function') window.viewProofPhotoModal('${queuedItem.previewUrl}', '${destEscaped}', 'Offline Proof (Queued on Device)');" alt="Proof" title="Tap to view offline proof photo" style="width:28px; height:28px; border-radius:8px; object-fit:cover; border:1.5px solid #f59e0b; flex-shrink:0; cursor:pointer;">`;
                             }
 
                             let proofBadge = '';
@@ -1489,8 +1489,9 @@ if (is_dir($imgDir)) {
                             destinationsHtml += `
                             <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px; padding:8px 12px; background:rgba(0,0,0,0.12); border:none; border-radius:12px;">
                                 <div style="width:22px; height:22px; border-radius:50%; background:linear-gradient(135deg, #38bdf8, #2563eb); color:#ffffff; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:900; flex-shrink:0; box-shadow:none;">${index + 1}</div>
-                                ${proofImgHtml}
+                                <img src="${spotThumb}" alt="${destName}" style="width:28px; height:28px; border-radius:8px; object-fit:cover; border:1px solid rgba(255,255,255,0.2); flex-shrink:0;" onerror="this.onerror=null; this.src='assets/img/no_image.svg';">
                                 <div style="flex:1; font-size:13px; color:#ffffff; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${destName}</div>
+                                ${proofImgHtml}
                                 ${proofBadge}
                             </div>
                         `;

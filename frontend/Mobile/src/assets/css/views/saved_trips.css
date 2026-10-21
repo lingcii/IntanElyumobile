@@ -353,3 +353,24 @@ body[data-view="saved_trips"] .mobile-header .header-icon i {
     margin-left: 0;
 }
 
+/* Stop Destination Thumbnail */
+.saved-trip-spot-thumb {
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+    overflow: hidden;
+    flex-shrink: 0;
+    background: rgba(0, 0, 0, 0.25);
+    position: relative;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    transition: transform 0.2s ease;
+}
+
+.saved-trip-spot-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
