@@ -363,15 +363,17 @@ include __DIR__ . '/../components/header.php';
                         });
                     }
 
-                    // Sync localStorage with verified server data:
+                    // Sync localStorage with verified server data scoped strictly to current user:
                     // If the server confirms completed today, retain; otherwise clear stale lock
                     ['puzzle', 'memory_match', 'word_scramble', 'trivia'].forEach(gameType => {
-                        const key = 'game_done_' + gameType;
+                        const key = getGameDoneKey(gameType);
                         if (serverCompletedToday[gameType]) {
                             localStorage.setItem(key, todayLocalStr);
                         } else {
                             localStorage.removeItem(key);
                         }
+                        // Always purge legacy un-scoped key to prevent cross-user session leakage
+                        localStorage.removeItem('game_done_' + gameType);
                     });
 
                     updateAllGamesFinishedUI();
@@ -560,14 +562,25 @@ include __DIR__ . '/../components/header.php';
             }
         }
 
+        function getGameDoneKey(gameType) {
+            try {
+                const u = JSON.parse(localStorage.getItem('auth_user') || '{}');
+                const uid = u.id || u.user_id || '';
+                if (uid) return `game_done_${gameType}_user_${uid}`;
+            } catch (e) { }
+            const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('api_token') || 'guest';
+            return `game_done_${gameType}_${token.substring(0, 10)}`;
+        }
+
         function isGameDoneToday(gameType) {
             if (window._practiceModes && window._practiceModes[gameType]) {
                 return false;
             }
             try {
                 const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('api_token');
-                if (!token) return false;
-                return localStorage.getItem('game_done_' + gameType) === new Date().toDateString();
+                if (!token || token === 'guest_token' || token.startsWith('offline_') || token.startsWith('guest_')) return false;
+                const key = getGameDoneKey(gameType);
+                return localStorage.getItem(key) === new Date().toDateString();
             } catch (e) {
                 return false;
             }
@@ -1350,12 +1363,14 @@ include __DIR__ . '/../components/header.php';
                 // Ambient offline game queueing if solving while on a walk outside
                 if (!navigator.onLine || window.isAppOnline === false) {
                     try {
-                        let queue = JSON.parse(localStorage.getItem('intan_elyu_offline_game_claims') || '[]');
+                        const queueKey = 'intan_elyu_offline_game_claims_' + (getGameDoneKey('claim').replace('game_done_claim_', ''));
+                        let queue = JSON.parse(localStorage.getItem(queueKey) || '[]');
                         if (!queue.some(q => q.gameType === gameType)) {
                             queue.push({ gameType: gameType, timestamp: Date.now() });
-                            localStorage.setItem('intan_elyu_offline_game_claims', JSON.stringify(queue));
+                            localStorage.setItem(queueKey, JSON.stringify(queue));
                         }
-                        localStorage.setItem('game_done_' + gameType, new Date().toDateString());
+                        localStorage.setItem(getGameDoneKey(gameType), new Date().toDateString());
+                        localStorage.removeItem('game_done_' + gameType);
                     } catch (e) { }
                     updateAllGamesFinishedUI();
                     openGameSuccess("Game completed! Your points will sync automatically when back online.");
@@ -1387,9 +1402,10 @@ include __DIR__ . '/../components/header.php';
                 });
                 const d = await r.json();
                 if (r.ok && d.status === 'success') {
-                    // Mark as completed today for local checks
+                    // Mark as completed today for local checks scoped to current user
                     try {
-                        localStorage.setItem('game_done_' + gameType, new Date().toDateString());
+                        localStorage.setItem(getGameDoneKey(gameType), new Date().toDateString());
+                        localStorage.removeItem('game_done_' + gameType);
                         window.leaderboardNeedsRefresh = true;
                         Object.keys(localStorage).forEach(k => {
                             if (k.startsWith('leaderboard_data_')) localStorage.removeItem(k);
@@ -1399,7 +1415,10 @@ include __DIR__ . '/../components/header.php';
                     openGameSuccess(d.message);
                 } else {
                     if (r.status === 429) {
-                        try { localStorage.setItem('game_done_' + gameType, new Date().toDateString()); } catch (e) { }
+                        try {
+                            localStorage.setItem(getGameDoneKey(gameType), new Date().toDateString());
+                            localStorage.removeItem('game_done_' + gameType);
+                        } catch (e) { }
                         updateAllGamesFinishedUI();
                     }
                     const title = (r.status === 429) ? "Already Done!" : (r.status >= 500 ? "Server Error" : "Notice");
@@ -1408,12 +1427,14 @@ include __DIR__ . '/../components/header.php';
             } catch (e) {
                 console.error("Points claim error, saving offline:", e);
                 try {
-                    let queue = JSON.parse(localStorage.getItem('intan_elyu_offline_game_claims') || '[]');
+                    const queueKey = 'intan_elyu_offline_game_claims_' + (getGameDoneKey('claim').replace('game_done_claim_', ''));
+                    let queue = JSON.parse(localStorage.getItem(queueKey) || '[]');
                     if (!queue.some(q => q.gameType === gameType)) {
                         queue.push({ gameType: gameType, timestamp: Date.now() });
-                        localStorage.setItem('intan_elyu_offline_game_claims', JSON.stringify(queue));
+                        localStorage.setItem(queueKey, JSON.stringify(queue));
                     }
-                    localStorage.setItem('game_done_' + gameType, new Date().toDateString());
+                    localStorage.setItem(getGameDoneKey(gameType), new Date().toDateString());
+                    localStorage.removeItem('game_done_' + gameType);
                     updateAllGamesFinishedUI();
                     openGameSuccess("Game completed! Your points will sync automatically when back online.");
                     return;

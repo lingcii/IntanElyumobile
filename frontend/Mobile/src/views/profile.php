@@ -480,8 +480,15 @@ $activeTab = 'profile';
 
         // Also merge any freshly claimed vouchers from window._touristRedemptions (e.g. from Discounts view)
         if (Array.isArray(window._touristRedemptions) && window._touristRedemptions.length > 0) {
+            const authUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
+            const curId = Number(authUser.id || authUser.user_id || 0);
+            const validRedemptions = window._touristRedemptions.filter(r => {
+                if (!r) return false;
+                const rUserId = Number(r.user_id || 0);
+                return !rUserId || !curId || rUserId === curId;
+            });
             const existingCodes = new Set(rawVouchers.map(v => (v.voucher_code || v.code || v.redemption_code || '').toUpperCase().trim()).filter(Boolean));
-            window._touristRedemptions.forEach(r => {
+            validRedemptions.forEach(r => {
                 const rCode = (r.voucher_code || r.code || r.redemption_code || '').toUpperCase().trim();
                 if (rCode && !existingCodes.has(rCode)) {
                     rawVouchers.unshift(r);
@@ -796,7 +803,12 @@ $activeTab = 'profile';
             if (cachedPtsRaw) {
                 const parsed = JSON.parse(cachedPtsRaw);
                 const data = parsed.data || parsed;
-                if (data && typeof window.renderPointsAndVouchersData === 'function') {
+                const authUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
+                const curId = Number(authUser.id || authUser.user_id || 0);
+                const dataUid = Number(data && (data.user_id || (data.user && data.user.id)) || 0);
+                if (curId > 0 && dataUid > 0 && curId !== dataUid) {
+                    localStorage.removeItem(ptsCacheKey);
+                } else if (data && typeof window.renderPointsAndVouchersData === 'function') {
                     window.renderPointsAndVouchersData(data);
                 }
             }
