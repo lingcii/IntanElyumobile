@@ -1417,9 +1417,16 @@ if (is_dir($imgDir)) {
             const queuedTrips = (window.OfflineTripManager && typeof window.OfflineTripManager.getQueuedTrips === 'function')
                 ? window.OfflineTripManager.getQueuedTrips()
                 : [];
-            const serverItineraries = (itinData && itinData.itineraries) ? itinData.itineraries : [];
-            const allItineraries = [...queuedTrips, ...serverItineraries];
-            const itineraries = allItineraries.filter(t => t.status !== 'completed');
+            const isDeletedFn = (typeof window.isTripDeleted === 'function') ? window.isTripDeleted : (t => false);
+            const allItineraries = [...queuedTrips, ...serverItineraries].filter(t => !isDeletedFn(t));
+            const seenSig = {};
+            const itineraries = allItineraries.filter(t => {
+                if (!t || t.status === 'completed') return false;
+                const sig = String(t.title || '').trim().toLowerCase() + '|' + (t.trip_date || '');
+                if (seenSig[sig]) return false;
+                seenSig[sig] = true;
+                return true;
+            });
             if (itineraries.length > 0) {
                 let tripsHtml = '';
                 itineraries.slice(0, 3).forEach(trip => {
@@ -3032,14 +3039,22 @@ if (is_dir($imgDir)) {
             return;
         }
 
+        if (typeof window.markTripAsDeleted === 'function') {
+            window.markTripAsDeleted(id);
+            if (String(id).startsWith('offline_edit_')) {
+                window.markTripAsDeleted(String(id).replace('offline_edit_', ''));
+            }
+        }
+
         const pruneTripFromLocalCaches = (tripId) => {
             if (!tripId) return;
             const targetStr = String(tripId).trim();
 
             const filterOut = (list) => {
                 if (!Array.isArray(list)) return [];
+                const isDel = (typeof window.isTripDeleted === 'function') ? window.isTripDeleted : (t => false);
                 return list.filter(t => {
-                    if (!t) return false;
+                    if (!t || isDel(t)) return false;
                     const idStr = String(t.id || '');
                     const tripIdStr = String(t.trip_id || '');
                     const localIdStr = String(t.local_id || '');
@@ -3080,23 +3095,7 @@ if (is_dir($imgDir)) {
                 for (let i = localStorage.length - 1; i >= 0; i--) {
                     const k = localStorage.key(i);
                     if (k && (k.startsWith('saved_trips_') || k.startsWith('dashboard_trips_') || k.startsWith('dashboard_saved_trips_'))) {
-                        try {
-                            const raw = localStorage.getItem(k);
-                            if (raw) {
-                                const parsed = JSON.parse(raw);
-                                if (parsed && Array.isArray(parsed.data)) {
-                                    parsed.data = filterOut(parsed.data);
-                                    localStorage.setItem(k, JSON.stringify(parsed));
-                                } else if (Array.isArray(parsed)) {
-                                    localStorage.setItem(k, JSON.stringify(filterOut(parsed)));
-                                } else if (parsed && Array.isArray(parsed.itineraries)) {
-                                    parsed.itineraries = filterOut(parsed.itineraries);
-                                    localStorage.setItem(k, JSON.stringify(parsed));
-                                }
-                            }
-                        } catch (e) {
-                            localStorage.removeItem(k);
-                        }
+                        localStorage.removeItem(k);
                     }
                 }
             } catch(e) {}

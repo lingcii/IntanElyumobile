@@ -587,13 +587,66 @@ window.OfflineCheckinManager = {
     }
 };
 
-window.OfflineCheckinManager.init();
+// ══════════════════════════════════════════════════════════════════════════
+// PERSISTENT DELETED TRIPS BLACKLIST & PENDING SERVER DELETIONS
+// ══════════════════════════════════════════════════════════════════════════
+window.getDeletedTripIds = function () {
+    try {
+        return (JSON.parse(localStorage.getItem('intan_elyu_deleted_trip_ids') || '[]') || []).map(String);
+    } catch (e) {
+        return [];
+    }
+};
+
+window.markTripAsDeleted = function (tripId) {
+    if (!tripId) return;
+    try {
+        const deleted = window.getDeletedTripIds();
+        const sId = String(tripId).trim();
+        if (!deleted.includes(sId)) {
+            deleted.push(sId);
+            if (deleted.length > 250) deleted.shift();
+            localStorage.setItem('intan_elyu_deleted_trip_ids', JSON.stringify(deleted));
+        }
+    } catch (e) { }
+};
+
+window.isTripDeleted = function (trip) {
+    if (!trip) return true;
+    const deleted = window.getDeletedTripIds();
+    if (!deleted || deleted.length === 0) return false;
+    const ids = [
+        String(trip.id || ''),
+        String(trip.trip_id || ''),
+        String(trip.local_id || ''),
+        String(trip.update_id || '')
+    ];
+    for (const id of ids) {
+        if (id && deleted.includes(id)) return true;
+        if (id && id.startsWith('offline_edit_') && deleted.includes(id.replace('offline_edit_', ''))) return true;
+    }
+    return false;
+};
+
+window.queuePendingServerDelete = function (tripId) {
+    if (!tripId || String(tripId).startsWith('offline_')) return;
+    try {
+        const sId = String(tripId).trim();
+        let pending = JSON.parse(localStorage.getItem('intan_elyu_pending_delete_trips') || '[]');
+        if (!Array.isArray(pending)) pending = [];
+        if (!pending.map(String).includes(sId)) {
+            pending.push(sId);
+            localStorage.setItem('intan_elyu_pending_delete_trips', JSON.stringify(pending));
+        }
+    } catch (e) { }
+};
 
 // ══════════════════════════════════════════════════════════════════════════
 // OFFLINE PLANNING STRATEGY: OFFLINE TRIP & ITINERARY MANAGER
 // ══════════════════════════════════════════════════════════════════════════
 window.OfflineTripManager = {
     STORAGE_KEY: 'intan_elyu_offline_saved_trips',
+    _isSyncing: false,
 
     getQueuedTrips: function () {
         try {
@@ -607,6 +660,19 @@ window.OfflineTripManager = {
         try {
             const trips = this.getQueuedTrips();
             const updateId = tripData.update_id ? String(tripData.update_id) : null;
+
+            // Prevent duplicate queued trips with identical title and destinations
+            const destStr = JSON.stringify(tripData.destinations || []);
+            const existingDuplicate = trips.findIndex(t => t && t.title === tripData.title && JSON.stringify(t.destinations || []) === destStr);
+            if (existingDuplicate !== -1 && !updateId) {
+                trips[existingDuplicate] = {
+                    ...trips[existingDuplicate],
+                    ...tripData,
+                    updated_at: new Date().toISOString()
+                };
+                localStorage.setItem(this.STORAGE_KEY, JSON.stringify(trips));
+                return trips[existingDuplicate];
+            }
 
             // 1. If updating an already-queued offline trip (e.g. offline_1729...)
             if (updateId && updateId.startsWith('offline_')) {
@@ -779,89 +845,136 @@ window.OfflineTripManager = {
 
     syncQueuedTrips: async function () {
         if (!navigator.onLine) return 0;
-        const trips = this.getQueuedTrips();
-        if (!trips || trips.length === 0) return 0;
+        if (this._isSyncing) return 0;
+        this._isSyncing = true;
 
-        const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
-        if (!token) return 0;
+        try {
+            const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+            if (!token) return 0;
 
-        const primaryUrl = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || window.BACKEND_URL || '')).replace(/\/+$/, '');
-        const baseCandidates = [];
-        if (primaryUrl && !primaryUrl.includes('localhost') && !primaryUrl.includes('127.0.0.1')) {
-            baseCandidates.push(primaryUrl);
-        }
-        baseCandidates.push('https://api.intan-elyu.online');
-        if (primaryUrl && !baseCandidates.includes(primaryUrl)) {
-            baseCandidates.push(primaryUrl);
-        }
-        baseCandidates.push('');
+            const primaryUrl = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || window.BACKEND_URL || '')).replace(/\/+$/, '');
+            const baseCandidates = [];
+            if (primaryUrl && !primaryUrl.includes('localhost') && !primaryUrl.includes('127.0.0.1')) {
+                baseCandidates.push(primaryUrl);
+            }
+            baseCandidates.push('https://api.intan-elyu.online');
+            if (primaryUrl && !baseCandidates.includes(primaryUrl)) {
+                baseCandidates.push(primaryUrl);
+            }
+            baseCandidates.push('');
 
-        let syncedCount = 0;
-
-        for (const trip of trips) {
+            // Process pending server deletions first
             try {
-                const payload = {
-                    title: trip.title,
-                    trip_date: trip.trip_date || null,
-                    budget: trip.budget || null,
-                    destinations: trip.destinations || [],
-                    route_type: trip.route_type || 'Recommended',
-                    transport_mode: trip.transport_mode || 'No Vehicle Selected',
-                    leg_transports: trip.leg_transports || []
-                };
-
-                let tripSuccess = false;
-                for (const bUrl of baseCandidates) {
-                    try {
-                        const endpoint = (trip.is_offline_update && trip.update_id)
-                            ? `${bUrl}/api/tourist/itineraries/${trip.update_id}`
-                            : `${bUrl}/api/tourist/itineraries`;
-                        const method = (trip.is_offline_update && trip.update_id) ? 'PUT' : 'POST';
-                        const controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
-                        const timeoutId = controller ? setTimeout(() => controller.abort(), 10000) : null;
-                        const res = await fetch(endpoint, {
-                            method: method,
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Accept': 'application/json',
-                                'Authorization': 'Bearer ' + token
-                            },
-                            body: JSON.stringify(payload),
-                            signal: controller ? controller.signal : undefined
-                        });
-                        if (timeoutId) clearTimeout(timeoutId);
-                        if (res.ok) {
-                            this.removeQueuedTrip(trip.id);
-                            syncedCount++;
-                            tripSuccess = true;
-                            break;
+                let pendingDeletes = JSON.parse(localStorage.getItem('intan_elyu_pending_delete_trips') || '[]');
+                if (Array.isArray(pendingDeletes) && pendingDeletes.length > 0) {
+                    const remainingDeletes = [];
+                    for (const delId of pendingDeletes) {
+                        let delDone = false;
+                        for (const bUrl of baseCandidates) {
+                            try {
+                                const dRes = await fetch(`${bUrl}/api/tourist/itineraries/${delId}`, {
+                                    method: 'DELETE',
+                                    headers: {
+                                        'Authorization': 'Bearer ' + token,
+                                        'Accept': 'application/json',
+                                        'ngrok-skip-browser-warning': 'true'
+                                    }
+                                });
+                                if (dRes.ok || dRes.status === 404) {
+                                    delDone = true;
+                                    break;
+                                }
+                            } catch(e) {}
                         }
-                    } catch (candErr) {
-                        // continue to next base URL candidate
+                        if (!delDone) remainingDeletes.push(delId);
                     }
+                    localStorage.setItem('intan_elyu_pending_delete_trips', JSON.stringify(remainingDeletes));
                 }
-            } catch (err) {
-                console.warn('Could not sync trip:', trip.title, err);
-            }
-        }
+            } catch(e) {}
 
-        if (syncedCount > 0) {
-            const tokenKey = token.substring(0, 10);
-            localStorage.removeItem('saved_trips_' + tokenKey);
-            localStorage.removeItem('dashboard_trips_' + tokenKey);
-            localStorage.removeItem('dashboard_saved_trips_' + tokenKey);
-            if (typeof window._cachedSavedTrips !== 'undefined') {
-                window._cachedSavedTrips = null;
+            const trips = this.getQueuedTrips();
+            if (!trips || trips.length === 0) return 0;
+
+            const deletedIds = (typeof window.getDeletedTripIds === 'function') ? window.getDeletedTripIds() : [];
+            let syncedCount = 0;
+
+            for (const trip of trips) {
+                // If trip was deleted while offline or queued, do NOT sync! Purge it from queue immediately.
+                if (!trip || (deletedIds.length > 0 && (
+                    deletedIds.includes(String(trip.id || '')) ||
+                    deletedIds.includes(String(trip.local_id || '')) ||
+                    deletedIds.includes(String(trip.update_id || ''))
+                ))) {
+                    this.removeQueuedTrip(trip ? trip.id : null);
+                    continue;
+                }
+
+                try {
+                    const payload = {
+                        title: trip.title,
+                        trip_date: trip.trip_date || null,
+                        budget: trip.budget || null,
+                        destinations: trip.destinations || [],
+                        route_type: trip.route_type || 'Recommended',
+                        transport_mode: trip.transport_mode || 'No Vehicle Selected',
+                        leg_transports: trip.leg_transports || []
+                    };
+
+                    let tripSuccess = false;
+                    for (const bUrl of baseCandidates) {
+                        try {
+                            const endpoint = (trip.is_offline_update && trip.update_id)
+                                ? `${bUrl}/api/tourist/itineraries/${trip.update_id}`
+                                : `${bUrl}/api/tourist/itineraries`;
+                            const method = (trip.is_offline_update && trip.update_id) ? 'PUT' : 'POST';
+                            const controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+                            const timeoutId = controller ? setTimeout(() => controller.abort(), 10000) : null;
+                            const res = await fetch(endpoint, {
+                                method: method,
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Accept': 'application/json',
+                                    'Authorization': 'Bearer ' + token
+                                },
+                                body: JSON.stringify(payload),
+                                signal: controller ? controller.signal : undefined
+                            });
+                            if (timeoutId) clearTimeout(timeoutId);
+                            if (res.ok) {
+                                this.removeQueuedTrip(trip.id);
+                                syncedCount++;
+                                tripSuccess = true;
+                                break;
+                            }
+                        } catch (candErr) {
+                            // continue to next base URL candidate
+                        }
+                    }
+                } catch (err) {
+                    console.warn('Could not sync trip:', trip.title, err);
+                }
             }
-            window.dispatchEvent(new CustomEvent('tripsSynced'));
-            if (typeof window.fetchSavedTrips === 'function') {
-                window.fetchSavedTrips(true);
+
+            if (syncedCount > 0) {
+                const tokenKey = token.substring(0, 10);
+                localStorage.removeItem('saved_trips_' + tokenKey);
+                localStorage.removeItem('dashboard_trips_' + tokenKey);
+                localStorage.removeItem('dashboard_saved_trips_' + tokenKey);
+                if (typeof window._cachedSavedTrips !== 'undefined') {
+                    window._cachedSavedTrips = null;
+                }
+                window.dispatchEvent(new CustomEvent('tripsSynced'));
+                if (typeof window.fetchSavedTrips === 'function') {
+                    window.fetchSavedTrips(true);
+                }
+                if (typeof window.loadSavedTrips === 'function') {
+                    window.loadSavedTrips(true);
+                }
             }
-            if (typeof window.loadSavedTrips === 'function') {
-                window.loadSavedTrips(true);
-            }
+            return syncedCount;
+        } finally {
+            this._isSyncing = false;
         }
-        return syncedCount;
     }
 };
 
