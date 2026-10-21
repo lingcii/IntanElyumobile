@@ -3,9 +3,9 @@ credentials-file: C:\Users\JAMES VERGEL\.cloudflared\85cd9abd-8a80-41b9-822f-395
 
 ingress:
   - hostname: app.intan-elyu.online
-    service: http://localhost:3000
+    service: http://127.0.0.1:3000
 
   - hostname: api.intan-elyu.online
-    service: http://localhost:8000
+    service: http://127.0.0.1:8000
 
   - service: http_status:404
