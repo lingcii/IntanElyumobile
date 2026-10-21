@@ -250,11 +250,11 @@ $gdriveMirrorUrl = getenv('APK_GDRIVE_MIRROR_URL') ?: '';
           <p class="hero-qr-caption">
             Scan with another device's camera, or tap the button below to download directly to this phone.
           </p>
-          <a href="index.php?action=download_apk" download="intan-elyu.apk" class="btn-hero-dl">
+          <a href="index.php?action=download_apk&v=<?= urlencode($appVersion) ?>&t=<?= time() ?>" download="intan-elyu.apk" class="btn-hero-dl">
             <i class="fa-brands fa-android"></i> Direct Download APK
           </a>
           <div class="hero-mirror-row">
-            <a href="index.php?action=download_apk&redirect=1" target="_blank"
+            <a href="<?= htmlspecialchars($r2ApkUrl) ?>" target="_blank"
               rel="noopener" class="hero-mirror-link" title="Download via Cloudflare R2 mirror">
               <i class="fa-solid fa-cloud-arrow-down"></i> Cloud Mirror (R2)
             </a>
@@ -1054,7 +1054,7 @@ $gdriveMirrorUrl = getenv('APK_GDRIVE_MIRROR_URL') ?: '';
         <span class="dock-sub">Official Tourism App</span>
       </div>
     </a>
-    <a href="index.php?action=download_apk" download="intan-elyu.apk" class="btn-dock-dl">
+    <a href="index.php?action=download_apk&v=<?= urlencode($appVersion) ?>&t=<?= time() ?>" download="intan-elyu.apk" class="btn-dock-dl">
       <i class="fa-brands fa-android"></i> Direct Download APK
     </a>
   </div>
