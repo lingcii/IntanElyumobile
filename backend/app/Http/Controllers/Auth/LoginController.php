@@ -67,6 +67,7 @@ class LoginController extends Controller
                 'completed_activities' => (int) ($user->completed_activities ?? 0),
                 'places_visited'  => (int) ($user->completed_activities ?? 0),
                 'avatar'          => $user->avatar,
+                'gender'          => $user->gender,
             ],
         ]);
     }
@@ -218,6 +219,7 @@ class LoginController extends Controller
                 'completed_activities' => (int) ($user->completed_activities ?? 0),
                 'places_visited'  => (int) ($user->completed_activities ?? 0),
                 'avatar'          => $user->avatar,
+                'gender'          => $user->gender,
             ],
         ]);
     }

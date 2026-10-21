@@ -624,6 +624,19 @@ body.keyboard-open .auth-bottom {
     opacity: 1 !important;
 }
 
+select.auth-input {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    cursor: pointer;
+}
+
+select.auth-input option {
+    background-color: #ffffff;
+    color: #0f172a;
+    font-size: 13.5px;
+}
+
 /* Override Browser Autofill Styles for Light Mode */
 .auth-input:-webkit-autofill,
 .auth-input:-webkit-autofill:hover,

@@ -33,8 +33,12 @@ class RegisterController extends Controller
             'first_name' => 'nullable|string|min:2|max:50',
             'last_name'  => 'nullable|string|min:2|max:50',
             'name'       => 'nullable|string|min:4|max:100',
+            'gender'     => 'required|string|in:Male,Female,Non-binary,Other,Prefer not to say',
             'email'      => 'required|email|unique:users,email',
             'password'   => 'required|string|min:8|confirmed',
+        ], [
+            'gender.required' => 'Sex or gender is required for official tourist registration and MTO records.',
+            'gender.in'       => 'Please select a valid sex or gender option.',
         ]);
 
         $firstName = trim($request->first_name ?? '');
@@ -80,6 +84,7 @@ class RegisterController extends Controller
             'name'      => $trimmedName,
             'email'     => $emailKey,
             'password'  => Hash::make($request->password),
+            'gender'    => $request->gender,
             'role'      => 'tourist',
             'status'    => 'active',
             'api_token' => $token,
@@ -99,6 +104,7 @@ class RegisterController extends Controller
                 'tourist_id'     => method_exists($user, 'getTouristNumber') ? $user->getTouristNumber() : 1,
                 'name'           => $user->name,
                 'email'          => $user->email,
+                'gender'         => $user->gender,
                 'role'           => $user->role,
                 'points'         => 0,
                 'xp'             => 0,
