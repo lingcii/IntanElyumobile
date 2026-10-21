@@ -85,8 +85,10 @@
         // Immediate check: If Google OAuth return is detected, hide splash and abort immediately!
         const isOAuth = Boolean(
             window._isProcessingGoogleOAuth || 
-            (window.location.hash && (window.location.hash.includes('access_token=') || window.location.hash.includes('id_token='))) ||
-            (window.location.search && (window.location.search.includes('access_token=') || window.location.search.includes('id_token='))) ||
+            window._googleOAuthActiveProcessing ||
+            window._handledDirectToken ||
+            (window.location.hash && (window.location.hash.includes('access_token=') || window.location.hash.includes('id_token=') || window.location.hash.includes('token='))) ||
+            (window.location.search && (window.location.search.includes('access_token=') || window.location.search.includes('id_token=') || window.location.search.includes('token='))) ||
             (window.sessionStorage && sessionStorage.getItem('intan_elyu_google_oauth_pending') === 'true')
         );
 
@@ -115,10 +117,13 @@
         setTimeout(() => {
             const rawHash = window.location.hash || '';
             const rawSearch = window.location.search || '';
-            if (window._isProcessingGoogleOAuth || rawHash.includes('access_token=') || rawHash.includes('id_token=') || rawSearch.includes('access_token=') || rawSearch.includes('id_token=')) {
+            if (window._isProcessingGoogleOAuth || window._googleOAuthActiveProcessing || window._handledDirectToken || rawHash.includes('access_token=') || rawHash.includes('id_token=') || rawHash.includes('token=') || rawSearch.includes('access_token=') || rawSearch.includes('id_token=') || rawSearch.includes('token=')) {
                 // OAuth redirect in progress, let main.js handle it
                 return;
             }
+
+            if (window._splashNavigated) return;
+            window._splashNavigated = true;
 
             const splashMain = document.getElementById('splash-main');
             const token = localStorage.getItem('intan_elyu_token');

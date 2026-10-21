@@ -2436,6 +2436,26 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
         const directUser = searchParams.get('user');
 
         if (directToken) {
+            // Prevent duplicate parallel or repeated executions with the same token
+            if (window._handledDirectToken === directToken || window._googleOAuthActiveProcessing) {
+                return;
+            }
+            window._handledDirectToken = directToken;
+            window._googleOAuthActiveProcessing = true;
+            window._isProcessingGoogleOAuth = true;
+
+            // Auto-close Capacitor Browser if returning from OAuth
+            if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Browser && typeof window.Capacitor.Plugins.Browser.close === 'function') {
+                window.Capacitor.Plugins.Browser.close().catch(function () {});
+            }
+
+            // Immediately hide and suppress splash screen elements if still in DOM
+            const splashMain = document.getElementById('splash-main');
+            if (splashMain) {
+                splashMain.style.display = 'none';
+                try { splashMain.remove(); } catch (e) { }
+            }
+
             localStorage.setItem('intan_elyu_token', directToken);
             if (directUser) {
                 try {
@@ -2664,10 +2684,10 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                         </div>
                         `;
                     }
-                    window.location.href = deepLink;
-                    setTimeout(() => {
+                    if (!window._deepLinkDispatched) {
+                        window._deepLinkDispatched = true;
                         window.location.href = deepLink;
-                    }, 800);
+                    }
                     return;
                 }
 
@@ -2788,17 +2808,11 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
             type = 'info';
         }
 
-        let container = document.getElementById('toast-container');
-        if (!container) {
-            container = document.createElement('div');
-            container.id = 'toast-container';
-            document.body.appendChild(container);
-        }
-
         let msgStr = String(message || '').trim();
-        const lowerMsg = msgStr.toLowerCase();
+        if (!msgStr) return;
 
         // Universal Network / Fetch Interceptor: Replace raw browser errors with user-friendly notices
+        const lowerMsg = msgStr.toLowerCase();
         if (lowerMsg.includes('failed to fetch') || lowerMsg.includes('networkerror') || lowerMsg.includes('load failed') || lowerMsg.includes('network request failed')) {
             const isAuth = !!document.getElementById('login-form') || !!document.getElementById('btn-login') || (typeof window !== 'undefined' && window.location && window.location.pathname.includes('auth'));
             if (isAuth) {
@@ -2808,6 +2822,26 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
             }
             type = 'warning';
             duration = Math.max(duration, 4500);
+        }
+
+        // Deduplication & Debounce: Prevent duplicate identical toasts within 2.5 seconds
+        const now = Date.now();
+        if (window._lastToastMsg === msgStr && (now - (window._lastToastTime || 0)) < 2500) {
+            return;
+        }
+        window._lastToastMsg = msgStr;
+        window._lastToastTime = now;
+
+        let container = document.getElementById('toast-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'toast-container';
+            document.body.appendChild(container);
+        } else {
+            // Cap visible toasts to max 2 to prevent screen cluttering
+            while (container.children.length >= 2) {
+                container.firstElementChild.remove();
+            }
         }
 
         // Determine icon and color variant

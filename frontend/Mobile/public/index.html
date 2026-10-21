@@ -834,6 +834,9 @@
         }
 
         function showLoginSuccessModal(user) {
+            if (window._loginModalActive) return;
+            window._loginModalActive = true;
+
             const modal = document.getElementById('login-success-modal');
             const badge = document.getElementById('modal-badge');
             const spinner = document.getElementById('modal-spinner-svg');
