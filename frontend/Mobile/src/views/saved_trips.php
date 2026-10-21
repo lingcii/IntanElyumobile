@@ -148,6 +148,104 @@ $backRoute = 'itinerary';
     </div>
 </div>
 
+<!-- Edit Trip & Companions Modal (Direct In-Place Editing) -->
+<div id="edit-trip-details-modal"
+    style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.78); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); z-index:999999; justify-content:center; align-items:center; padding:16px;">
+    <div style="background:linear-gradient(135deg, rgba(30, 58, 138, 0.98) 0%, rgba(63, 125, 183, 0.96) 60%, rgba(2, 132, 199, 0.96) 100%); border:none; outline:none; border-radius:24px; padding:24px 20px; width:100%; max-width:390px; box-shadow:0 20px 50px rgba(10, 25, 60, 0.55); max-height:90vh; overflow-y:auto;" class="hide-scrollbar">
+        
+        <!-- Header -->
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+            <h3 style="margin:0; color:#ffffff; font-size:18px; font-weight:800; display:flex; align-items:center; gap:8px;">
+                <i class="fa-solid fa-pen-to-square" style="color:#00f2fe; font-size:17px;"></i> Edit Trip & Companions
+            </h3>
+            <button type="button" onclick="window.closeEditTripDetailsModal()"
+                style="background:rgba(255,255,255,0.18); border:none; outline:none; color:#ffffff; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer;">
+                <i class="fa-solid fa-xmark" style="font-size:14px;"></i>
+            </button>
+        </div>
+
+        <input type="hidden" id="quick-edit-trip-id" value="">
+
+        <!-- Trip Name -->
+        <label style="font-size:12px; font-weight:700; color:#ffffff; margin-bottom:6px; display:block;">Trip Name</label>
+        <input type="text" id="quick-edit-trip-title" placeholder="Trip Title"
+            style="width:100%; padding:12px 14px; border-radius:14px; border:none; outline:none; background:rgba(255,255,255,0.18); color:#ffffff; margin-bottom:14px; font-family:inherit; font-size:14px; font-weight:600; box-sizing:border-box;">
+
+        <!-- Trip Date -->
+        <label style="font-size:12px; font-weight:700; color:#ffffff; margin-bottom:6px; display:block;">Trip Date</label>
+        <input type="date" id="quick-edit-trip-date"
+            style="width:100%; padding:12px 14px; border-radius:14px; border:none; outline:none; background:rgba(255,255,255,0.18); color:#ffffff; margin-bottom:14px; font-family:inherit; font-size:14px; font-weight:600; box-sizing:border-box;">
+
+        <!-- Trip Type (Solo vs With Companions) -->
+        <label style="font-size:12px; font-weight:700; color:#ffffff; margin-bottom:8px; display:block;">Travel Companions</label>
+        <div style="display:flex; gap:10px; margin-bottom:14px;">
+            <button type="button" id="quick-edit-type-solo-btn" onclick="window.setQuickEditTripType('solo')"
+                style="flex:1; padding:12px; border-radius:14px; background:rgba(56,189,248,0.25); border:1.5px solid #38bdf8; color:#ffffff; cursor:pointer; text-align:center; transition:all 0.2s; font-family:inherit;">
+                <i class="fa-solid fa-user" style="color:#38bdf8; margin-right:6px;"></i>
+                <span style="font-size:13px; font-weight:800;">Solo Trip</span>
+            </button>
+            <button type="button" id="quick-edit-type-group-btn" onclick="window.setQuickEditTripType('group')"
+                style="flex:1; padding:12px; border-radius:14px; background:rgba(255,255,255,0.12); border:1.5px solid transparent; color:#ffffff; cursor:pointer; text-align:center; transition:all 0.2s; font-family:inherit;">
+                <i class="fa-solid fa-users" style="color:#94a3b8; margin-right:6px;"></i>
+                <span style="font-size:13px; font-weight:800;">With Companions</span>
+            </button>
+        </div>
+        <input type="hidden" id="quick-edit-trip-type" value="solo">
+
+        <!-- Stepper Box for Companions -->
+        <div id="quick-edit-companion-box" style="display:none; background:rgba(255,255,255,0.12); border:1px solid rgba(56,189,248,0.3); border-radius:16px; padding:14px; margin-bottom:16px;">
+            <div style="font-size:11.5px; color:#ffffff; opacity:0.95; font-weight:700; margin-bottom:12px; display:flex; align-items:center; gap:6px;">
+                <i class="fa-solid fa-circle-info" style="color:#00f2fe;"></i> Companions traveling with you:
+            </div>
+            <!-- Male Companions -->
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <div style="width:28px; height:28px; border-radius:8px; background:rgba(59,130,246,0.3); display:flex; align-items:center; justify-content:center; color:#93c5fd;">
+                        <i class="fa-solid fa-mars" style="font-size:13px;"></i>
+                    </div>
+                    <span style="font-size:13px; font-weight:700; color:#ffffff;">Male Companions</span>
+                </div>
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <button type="button" onclick="window.adjustQuickEditCompanions('males', -1)" style="width:32px; height:32px; border-radius:50%; background:rgba(255,255,255,0.2); border:none; outline:none; color:#ffffff; font-size:15px; font-weight:800; cursor:pointer;">−</button>
+                    <span id="quick-edit-males-count" style="font-size:15px; font-weight:800; color:#ffffff; min-width:24px; text-align:center;">0</span>
+                    <button type="button" onclick="window.adjustQuickEditCompanions('males', 1)" style="width:32px; height:32px; border-radius:50%; background:rgba(56,189,248,0.45); border:none; outline:none; color:#ffffff; font-size:15px; font-weight:800; cursor:pointer;">+</button>
+                </div>
+            </div>
+            <!-- Female Companions -->
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <div style="width:28px; height:28px; border-radius:8px; background:rgba(236,72,153,0.3); display:flex; align-items:center; justify-content:center; color:#f472b6;">
+                        <i class="fa-solid fa-venus" style="font-size:13px;"></i>
+                    </div>
+                    <span style="font-size:13px; font-weight:700; color:#ffffff;">Female Companions</span>
+                </div>
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <button type="button" onclick="window.adjustQuickEditCompanions('females', -1)" style="width:32px; height:32px; border-radius:50%; background:rgba(255,255,255,0.2); border:none; outline:none; color:#ffffff; font-size:15px; font-weight:800; cursor:pointer;">−</button>
+                    <span id="quick-edit-females-count" style="font-size:15px; font-weight:800; color:#ffffff; min-width:24px; text-align:center;">0</span>
+                    <button type="button" onclick="window.adjustQuickEditCompanions('females', 1)" style="width:32px; height:32px; border-radius:50%; background:rgba(236,72,153,0.45); border:none; outline:none; color:#ffffff; font-size:15px; font-weight:800; cursor:pointer;">+</button>
+                </div>
+            </div>
+            <!-- Live Party Size Summary -->
+            <div style="padding-top:10px; border-top:1px solid rgba(255,255,255,0.18); font-size:11.5px; color:#ffffff; display:flex; align-items:center; justify-content:space-between;">
+                <span>Total Party Size:</span>
+                <span id="quick-edit-party-summary" style="color:#fef08a; font-weight:800;">1 Pax (Solo)</span>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div style="display:flex; flex-direction:column; gap:10px;">
+            <button type="button" id="btn-save-quick-edit" onclick="window.submitQuickEditTripDetails()"
+                style="width:100%; padding:14px; border-radius:14px; border:none; outline:none; background:linear-gradient(135deg, #10b981 0%, #059669 100%); color:#ffffff; font-size:14px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;">
+                <i class="fa-solid fa-check"></i> Save Changes
+            </button>
+            <button type="button" onclick="window.openPlannerFromQuickEdit()"
+                style="width:100%; padding:11px; border-radius:14px; border:none; outline:none; background:rgba(255,255,255,0.18); color:#ffffff; font-size:12.5px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px;">
+                <i class="fa-solid fa-route" style="color:#38bdf8;"></i> Edit Stops in Trip Planner
+            </button>
+        </div>
+    </div>
+</div>
+
 <script>
     (function () {
         var backendUrl = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
@@ -2093,6 +2191,76 @@ $backRoute = 'itinerary';
             }
         };
 
+        window.closeEditTripDetailsModal = function () {
+            const modal = document.getElementById('edit-trip-details-modal');
+            if (modal) modal.style.display = 'none';
+        };
+
+        window.setQuickEditTripType = function (type) {
+            const hiddenInput = document.getElementById('quick-edit-trip-type');
+            if (hiddenInput) hiddenInput.value = type;
+
+            const soloBtn = document.getElementById('quick-edit-type-solo-btn');
+            const groupBtn = document.getElementById('quick-edit-type-group-btn');
+            const compBox = document.getElementById('quick-edit-companion-box');
+
+            if (type === 'group') {
+                if (groupBtn) {
+                    groupBtn.style.background = 'rgba(56,189,248,0.25)';
+                    groupBtn.style.border = '1.5px solid #38bdf8';
+                    const icon = groupBtn.querySelector('i');
+                    if (icon) icon.style.color = '#38bdf8';
+                }
+                if (soloBtn) {
+                    soloBtn.style.background = 'rgba(255,255,255,0.12)';
+                    soloBtn.style.border = '1.5px solid transparent';
+                    const icon = soloBtn.querySelector('i');
+                    if (icon) icon.style.color = '#94a3b8';
+                }
+                if (compBox) compBox.style.display = 'block';
+            } else {
+                if (soloBtn) {
+                    soloBtn.style.background = 'rgba(56,189,248,0.25)';
+                    soloBtn.style.border = '1.5px solid #38bdf8';
+                    const icon = soloBtn.querySelector('i');
+                    if (icon) icon.style.color = '#38bdf8';
+                }
+                if (groupBtn) {
+                    groupBtn.style.background = 'rgba(255,255,255,0.12)';
+                    groupBtn.style.border = '1.5px solid transparent';
+                    const icon = groupBtn.querySelector('i');
+                    if (icon) icon.style.color = '#94a3b8';
+                }
+                if (compBox) compBox.style.display = 'none';
+            }
+            window.updateQuickEditPartySummary();
+        };
+
+        window.adjustQuickEditCompanions = function (gender, delta) {
+            const elId = gender === 'males' ? 'quick-edit-males-count' : 'quick-edit-females-count';
+            const countEl = document.getElementById(elId);
+            if (!countEl) return;
+            let current = parseInt(countEl.textContent || '0', 10);
+            if (isNaN(current)) current = 0;
+            current = Math.max(0, current + delta);
+            countEl.textContent = String(current);
+            window.updateQuickEditPartySummary();
+        };
+
+        window.updateQuickEditPartySummary = function () {
+            const summaryEl = document.getElementById('quick-edit-party-summary');
+            if (!summaryEl) return;
+            const type = document.getElementById('quick-edit-trip-type')?.value || 'solo';
+            if (type === 'group') {
+                const m = parseInt(document.getElementById('quick-edit-males-count')?.textContent || '0', 10) || 0;
+                const f = parseInt(document.getElementById('quick-edit-females-count')?.textContent || '0', 10) || 0;
+                const total = 1 + m + f;
+                summaryEl.textContent = `${total} Pax (You + ${m}M, ${f}F)`;
+            } else {
+                summaryEl.textContent = '1 Pax (Solo Traveler)';
+            }
+        };
+
         window.editSavedTrip = function (tripId) {
             let trip = (window._cachedSavedTrips || []).find(t => String(t.id) === String(tripId));
             if (!trip) {
@@ -2114,6 +2282,152 @@ $backRoute = 'itinerary';
                 if (typeof showToast === 'function') showToast("Could not load trip details for editing.");
                 return;
             }
+
+            window._currentEditingTrip = trip;
+
+            let modal = document.getElementById('edit-trip-details-modal');
+            if (modal && modal.parentElement !== document.body) {
+                document.body.appendChild(modal);
+            }
+
+            const idInput = document.getElementById('quick-edit-trip-id');
+            const titleInput = document.getElementById('quick-edit-trip-title');
+            const dateInput = document.getElementById('quick-edit-trip-date');
+
+            if (idInput) idInput.value = trip.id;
+            if (titleInput) titleInput.value = trip.title || '';
+            if (dateInput) {
+                dateInput.value = trip.trip_date ? String(trip.trip_date).split(/[T ]/)[0] : '';
+            }
+
+            const isGroup = (trip.trip_type === 'group' || (trip.total_pax && parseInt(trip.total_pax, 10) > 1));
+            window.setQuickEditTripType(isGroup ? 'group' : 'solo');
+
+            const mEl = document.getElementById('quick-edit-males-count');
+            const fEl = document.getElementById('quick-edit-females-count');
+            if (mEl) mEl.textContent = String(trip.companion_males || 0);
+            if (fEl) fEl.textContent = String(trip.companion_females || 0);
+
+            window.updateQuickEditPartySummary();
+
+            if (modal) modal.style.display = 'flex';
+        };
+
+        window.submitQuickEditTripDetails = async function () {
+            const idInput = document.getElementById('quick-edit-trip-id');
+            const tripId = idInput ? idInput.value : '';
+            if (!tripId) return;
+
+            const title = (document.getElementById('quick-edit-trip-title')?.value || '').trim() || 'My Trip';
+            const date = document.getElementById('quick-edit-trip-date')?.value || null;
+            const tripType = document.getElementById('quick-edit-trip-type')?.value || 'solo';
+            const males = tripType === 'group' ? Math.max(0, parseInt(document.getElementById('quick-edit-males-count')?.textContent || '0', 10)) : 0;
+            const females = tripType === 'group' ? Math.max(0, parseInt(document.getElementById('quick-edit-females-count')?.textContent || '0', 10)) : 0;
+            const totalPax = tripType === 'group' ? (1 + males + females) : 1;
+
+            const saveBtn = document.getElementById('btn-save-quick-edit');
+            if (saveBtn) {
+                saveBtn.disabled = true;
+                saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+            }
+
+            const activeBackend = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
+            const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+
+            const payload = {
+                title: title,
+                trip_date: date,
+                trip_type: tripType,
+                companion_males: males,
+                companion_females: females,
+                total_pax: totalPax
+            };
+
+            let saveSuccess = false;
+            if (navigator.onLine && token) {
+                try {
+                    const res = await fetch(`${activeBackend}/api/tourist/itineraries/${tripId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'Authorization': 'Bearer ' + token
+                        },
+                        body: JSON.stringify(payload)
+                    });
+                    if (res.ok) {
+                        saveSuccess = true;
+                    }
+                } catch (e) {
+                    console.warn("Server update trip error, persisting locally:", e);
+                }
+            }
+
+            // Update in-memory cached trips
+            if (Array.isArray(window._cachedSavedTrips)) {
+                window._cachedSavedTrips = window._cachedSavedTrips.map(t => {
+                    if (String(t.id) === String(tripId)) {
+                        return {
+                            ...t,
+                            title: title,
+                            trip_date: date,
+                            trip_type: tripType,
+                            companion_males: males,
+                            companion_females: females,
+                            total_pax: totalPax
+                        };
+                    }
+                    return t;
+                });
+            }
+
+            // Invalidate/update localStorage caches
+            const tokenKey = token ? token.substring(0, 10) : 'default';
+            ['saved_trips_' + tokenKey, 'intan_elyu_saved_trips', 'intan_elyu_offline_saved_trips_backup'].forEach(k => {
+                try {
+                    const raw = localStorage.getItem(k);
+                    if (raw) {
+                        const parsed = JSON.parse(raw);
+                        const arr = Array.isArray(parsed) ? parsed : (parsed.data || parsed.itineraries || []);
+                        if (Array.isArray(arr)) {
+                            const updated = arr.map(t => {
+                                if (String(t.id) === String(tripId)) {
+                                    return {
+                                        ...t,
+                                        title: title,
+                                        trip_date: date,
+                                        trip_type: tripType,
+                                        companion_males: males,
+                                        companion_females: females,
+                                        total_pax: totalPax
+                                    };
+                                }
+                                return t;
+                            });
+                            localStorage.setItem(k, JSON.stringify(Array.isArray(parsed) ? updated : { ...parsed, data: updated }));
+                        }
+                    }
+                } catch (e) { }
+            });
+
+            if (saveBtn) {
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = '<i class="fa-solid fa-check"></i> Save Changes';
+            }
+
+            window.closeEditTripDetailsModal();
+            if (typeof showToast === 'function') {
+                showToast("Trip & companions updated! 🎉", "success");
+            }
+            if (typeof renderSavedTrips === 'function') {
+                renderSavedTrips(window._cachedSavedTrips);
+            }
+        };
+
+        window.openPlannerFromQuickEdit = function () {
+            window.closeEditTripDetailsModal();
+            const trip = window._currentEditingTrip;
+            if (!trip) return;
 
             // Backup existing draft itinerary spots if user was building a plan before editing
             const existingDraftRaw = localStorage.getItem('intan_elyu_draft_itinerary');
@@ -2153,6 +2467,7 @@ $backRoute = 'itinerary';
                 const rawModes = trip.transport_mode.split(/[\+,]/).map(s => s.trim().toLowerCase()).filter(Boolean);
                 localStorage.setItem('intan_elyu_draft_trip_transports', JSON.stringify(rawModes.length > 0 ? rawModes : [trip.transport_mode]));
             }
+
             let mapSpotsMap = {};
             try {
                 const rawMap = localStorage.getItem('public_map_data');
