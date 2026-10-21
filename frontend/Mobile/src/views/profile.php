@@ -244,7 +244,7 @@ $activeTab = 'profile';
 
 <script>
     function getProfileAuthToken() {
-        return localStorage.getItem('api_token') || localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token') || '';
+        return localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('api_token') || '';
     }
     function getProfileBackendUrl() {
         return (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
@@ -351,6 +351,15 @@ $activeTab = 'profile';
     window.renderProfileData = function (data) {
         if (!data) return;
         const u = data.user || {};
+        const authUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
+        const curId = Number(authUser.id || authUser.user_id || 0);
+
+        // Security check: If data.user belongs to another user ID, do NOT render or save it!
+        if (curId > 0 && u.id && Number(u.id) !== curId) {
+            console.warn('Profile data belongs to a different user, skipping render:', u.id, 'vs', curId);
+            return;
+        }
+
         const elPoints = document.getElementById('stat-points') || document.getElementById('stat-xp');
         const elPlaces = document.getElementById('stat-places');
         const elRank = document.getElementById('stat-rank');
@@ -374,13 +383,15 @@ $activeTab = 'profile';
             }
         }
 
-        if (u && u.id) {
+        if (u && u.id && (!curId || curId === Number(u.id))) {
             try {
                 const stored = JSON.parse(localStorage.getItem('auth_user') || '{}');
                 Object.assign(stored, u);
                 if (data.places_visited !== undefined) stored.places_visited = data.places_visited;
                 if (data.my_rank !== undefined) stored.my_rank = data.my_rank;
                 localStorage.setItem('auth_user', JSON.stringify(stored));
+                localStorage.setItem('auth_user_backup', JSON.stringify(stored));
+                localStorage.setItem('intan_elyu_user', JSON.stringify(stored));
             } catch (e) { }
         }
 
@@ -767,7 +778,12 @@ $activeTab = 'profile';
             if (cachedProfileRaw) {
                 const parsed = JSON.parse(cachedProfileRaw);
                 const data = parsed.data || parsed;
-                if (data && typeof window.renderProfileData === 'function') {
+                const authUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
+                const curId = Number(authUser.id || authUser.user_id || 0);
+                const cachedUid = Number(data && data.user && (data.user.id || data.user.user_id) || 0);
+                if (curId > 0 && cachedUid > 0 && curId !== cachedUid) {
+                    localStorage.removeItem(profileCacheKey);
+                } else if (data && typeof window.renderProfileData === 'function') {
                     window.renderProfileData(data);
                 }
             }

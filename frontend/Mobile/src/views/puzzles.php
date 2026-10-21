@@ -327,7 +327,7 @@ include __DIR__ . '/../components/header.php';
 
 
             try {
-                const token = localStorage.getItem('api_token') || localStorage.getItem('intan_elyu_token');
+                const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('api_token');
                 const _baseUrl = (window.backendUrl || 'https://api.intan-elyu.online').replace(/\/+$/, '');
                 const r = await fetch(_baseUrl + '/api/tourist/points/balance', {
                     headers: { 'Authorization': 'Bearer ' + token }
@@ -460,7 +460,7 @@ include __DIR__ . '/../components/header.php';
 
         async function fetchDatabasePuzzleSpots() {
             try {
-                const token = localStorage.getItem('api_token') || localStorage.getItem('intan_elyu_token');
+                const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('api_token');
                 const headers = { 'Accept': 'application/json' };
                 if (token) headers['Authorization'] = 'Bearer ' + token;
 
@@ -565,7 +565,7 @@ include __DIR__ . '/../components/header.php';
                 return false;
             }
             try {
-                const token = localStorage.getItem('api_token') || localStorage.getItem('intan_elyu_token');
+                const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('api_token');
                 if (!token) return false;
                 return localStorage.getItem('game_done_' + gameType) === new Date().toDateString();
             } catch (e) {
@@ -1362,7 +1362,7 @@ include __DIR__ . '/../components/header.php';
                     return;
                 }
 
-                const token = localStorage.getItem('api_token') || localStorage.getItem('intan_elyu_token');
+                const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('api_token');
                 const _baseUrl = (window.backendUrl || 'https://api.intan-elyu.online').replace(/\/+$/, '');
 
                 // If generic minigame endpoint, call minigame API
@@ -1551,7 +1551,7 @@ include __DIR__ . '/../components/header.php';
             try {
                 let queue = JSON.parse(localStorage.getItem('intan_elyu_offline_game_claims') || '[]');
                 if (!queue.length) return;
-                const token = localStorage.getItem('api_token') || localStorage.getItem('intan_elyu_token');
+                const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('api_token');
                 if (!token) return;
                 const _baseUrl = (window.backendUrl || 'https://api.intan-elyu.online').replace(/\/+$/, '');
 

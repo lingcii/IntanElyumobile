@@ -282,8 +282,16 @@
             handleLogout();
         } else {
             if (confirm("Are you sure you want to log out?")) {
-                localStorage.removeItem('intan_elyu_token');
-                localStorage.removeItem('auth_user');
+                if (typeof window.purgeAllUserSessionCaches === 'function') {
+                    window.purgeAllUserSessionCaches();
+                } else {
+                    localStorage.removeItem('intan_elyu_token');
+                    localStorage.removeItem('Intan_Elyu_Token');
+                    localStorage.removeItem('api_token');
+                    localStorage.removeItem('auth_user');
+                    localStorage.removeItem('auth_user_backup');
+                    localStorage.removeItem('intan_elyu_user');
+                }
                 window.location.href = '?view=auth';
             }
         }

@@ -62,6 +62,42 @@ try {
             localStorage.removeItem(k);
         }
     }
+
+    // Synchronize user auth tokens and purge stale cross-user caches
+    const mainTok = localStorage.getItem('intan_elyu_token');
+    const authUser = (function () {
+        try { return JSON.parse(localStorage.getItem('auth_user') || 'null'); } catch(e) { return null; }
+    })();
+    const curId = authUser ? Number(authUser.id || authUser.user_id || 0) : 0;
+
+    if (mainTok && mainTok !== 'guest_token' && mainTok !== 'offline_guest_token' && !mainTok.startsWith('guest_') && !mainTok.startsWith('offline_')) {
+        localStorage.setItem('Intan_Elyu_Token', mainTok);
+        localStorage.setItem('api_token', mainTok);
+
+        // Reconcile intan_elyu_user if it had a mismatched user
+        try {
+            const altUser = JSON.parse(localStorage.getItem('intan_elyu_user') || 'null');
+            if (altUser && curId > 0 && Number(altUser.id || altUser.user_id || 0) !== curId) {
+                localStorage.setItem('intan_elyu_user', JSON.stringify(authUser));
+            }
+        } catch(e) {}
+
+        // Discard any profile_data_ caches belonging to another user
+        for (let i = localStorage.length - 1; i >= 0; i--) {
+            const k = localStorage.key(i);
+            if (!k) continue;
+            if (k.startsWith('profile_data_')) {
+                try {
+                    const parsed = JSON.parse(localStorage.getItem(k));
+                    const data = parsed && (parsed.data || parsed);
+                    const uid = Number(data && data.user && (data.user.id || data.user.user_id) || 0);
+                    if (curId > 0 && uid > 0 && uid !== curId) {
+                        localStorage.removeItem(k);
+                    }
+                } catch(e) {}
+            }
+        }
+    }
 } catch (e) {}
 
 window.safeJsonParse = function (str, fallback = {}) {
@@ -1172,7 +1208,7 @@ window.OfflineGameClaimsManager = {
         const queue = this.getQueue();
         if (!queue || queue.length === 0) return 0;
 
-        const token = localStorage.getItem('api_token') || localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+        const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('api_token');
         if (!token) return 0;
 
         const bUrl = (window.backendUrl || window.BACKEND_URL || 'https://api.intan-elyu.online').replace(/\/+$/, '');
@@ -3235,15 +3271,22 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                     k.startsWith('intan_elyu_claimed_vouchers') ||
                     k.startsWith('intan_elyu_cached_vouchers') ||
                     k.startsWith('profile_data_') ||
+                    k.startsWith('points_balance_') ||
                     k.startsWith('dashboard_data_') ||
+                    k.startsWith('dashboard_rank_') ||
                     k.startsWith('dashboard_trips_') ||
                     k.startsWith('saved_trips_') ||
                     k.startsWith('saved_places_') ||
                     k.startsWith('leaderboard_data_') ||
                     k.startsWith('intan_cache_') ||
+                    k === 'api_token' ||
                     k === 'intan_elyu_token' ||
                     k === 'Intan_Elyu_Token' ||
+                    k === 'intan_elyu_real_token_backup' ||
                     k === 'auth_user' ||
+                    k === 'auth_user_backup' ||
+                    k === 'intan_elyu_user' ||
+                    k === 'my_rank' ||
                     k === 'intan_elyu_guest' ||
                     k === 'intan_elyu_offline_guest' ||
                     k === 'intan_elyu_offline_mode'
@@ -3254,12 +3297,25 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
             keysToRemove.forEach(k => localStorage.removeItem(k));
             sessionStorage.removeItem('elyu_show_offline_bypass_notice');
         } catch (e) {
+            localStorage.removeItem('api_token');
             localStorage.removeItem('intan_elyu_token');
             localStorage.removeItem('Intan_Elyu_Token');
             localStorage.removeItem('auth_user');
+            localStorage.removeItem('auth_user_backup');
+            localStorage.removeItem('intan_elyu_user');
             localStorage.removeItem('intan_elyu_claimed_vouchers');
             localStorage.removeItem('intan_elyu_cached_vouchers');
         }
+
+        window._cachedMeData = null;
+        window._cachedMyRank = null;
+        window._cachedRawLeadersList = [];
+        window.myUserData = null;
+        window._userPointsBalance = null;
+        window._cachedCompletedTrips = [];
+        window.profileNeedsRefresh = true;
+        window.leaderboardNeedsRefresh = true;
+        window.dashboardNeedsRefresh = true;
 
         if (window._touristRedemptions) window._touristRedemptions = [];
         if (window._cachedActiveVouchers) window._cachedActiveVouchers = [];
