@@ -37,3 +37,6 @@ graphify-out/
 # Runtime image proxy cache
 frontend/Mobile/src/assets/img/upload_image/*
 !frontend/Mobile/src/assets/img/upload_image/.gitkeep
+
+# Temporary / local tool artifacts
+.freebuff/
