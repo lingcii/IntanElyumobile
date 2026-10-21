@@ -141,8 +141,8 @@ try {
     <div style="background:linear-gradient(145deg, rgba(30, 41, 59, 0.98) 0%, rgba(15, 23, 42, 0.99) 100%); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border:none !important; outline:none !important; border-radius:24px; padding:22px; width:100%; max-width:400px; max-height:90vh; overflow-y:auto; box-shadow:none !important;"
         class="hide-scrollbar">
         <h3 id="save-trip-modal-title"
-            style="margin-top:0; color:#ffffff; font-size:20px; font-weight:800; display:flex; align-items:center; gap:8px;">
-            <i class="fa-solid fa-cloud-arrow-up" style="color:#38bdf8; font-size:18px;"></i> Save Your Trip
+            style="margin-top:0; color:#ffffff; font-size:20px; font-weight:800;">
+            Save Your Trip
         </h3>
         <p style="font-size:13px; color:rgba(255, 255, 255, 0.9); margin-bottom:18px; line-height:1.4;">Give your
             awesome adventure a name so you can pull it up later!</p>
@@ -155,18 +155,15 @@ try {
         <!-- Custom Designed Calendar Date Picker -->
         <label
             style="font-size:13px; color:#ffffff; margin-bottom:6px; display:flex; align-items:center; justify-content:space-between; font-weight:700;">
-            <span><i class="fa-regular fa-calendar-days" style="color:#38bdf8; margin-right:5px;"></i> Trip Date
-                (Optional)</span>
+            <span>Trip Date (Optional)</span>
             <span id="calendar-clear-link" onclick="window.customClearDate(event)"
                 style="display:none; font-size:11px; color:#ef4444; cursor:pointer; font-weight:700;">Clear</span>
         </label>
 
         <div id="custom-date-trigger" onclick="window.toggleCustomCalendar(event)"
-            style="position:relative; width:100%; padding:11px 16px; border-radius:14px; border:none !important; outline:none !important; background:rgba(255,255,255,0.12); color:white; margin-bottom:16px; font-size:14px; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:space-between; transition:all 0.25s ease; user-select:none; box-shadow:none !important;">
-            <div style="display:flex; align-items:center; gap:10px;">
-                <i class="fa-solid fa-calendar-day" style="color:#38bdf8; font-size:14px;"></i>
-                <span id="custom-date-display" style="color:rgba(255,255,255,0.85); font-weight:600;">Select trip
-                    date</span>
+            style="position:relative; width:100%; padding:12px 16px; border-radius:14px; border:none !important; outline:none !important; background:rgba(255,255,255,0.12); color:white; margin-bottom:16px; font-size:14px; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:space-between; transition:all 0.25s ease; user-select:none; box-shadow:none !important;">
+            <div>
+                <span id="custom-date-display" style="color:rgba(255,255,255,0.85); font-weight:600;">Select trip date</span>
             </div>
             <i class="fa-solid fa-chevron-down" id="custom-date-arrow"
                 style="font-size:11px; color:rgba(255,255,255,0.8); transition:transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);"></i>
@@ -221,9 +218,9 @@ try {
             </div>
         </div>
 
-        <!-- Travel Group / Companions Section (MTO Tourist Arrival Count) -->
+        <!-- Travel Group / Companions Section -->
         <label style="font-size:13px; color:#ffffff; margin-bottom:8px; display:flex; align-items:center; justify-content:space-between; font-weight:700;">
-            <span><i class="fa-solid fa-users" style="color:#38bdf8; margin-right:6px;"></i> Travel Group Type</span>
+            <span>Travel Group Type</span>
             <span id="trip-pax-count-badge" style="font-size:11px; background:rgba(56,189,248,0.2); color:#38bdf8; font-weight:800; padding:2px 8px; border-radius:100px;">1 Traveler (Solo)</span>
         </label>
 
@@ -244,40 +241,40 @@ try {
             </label>
         </div>
 
-        <!-- Collapsible Companion Demographic Stepper Box (MTO Sex/Gender Disaggregation) -->
+        <!-- Collapsible Companion Stepper Box -->
         <div id="companion-stepper-box" style="display:none; background:rgba(255,255,255,0.06); border:1px solid rgba(56,189,248,0.25); border-radius:16px; padding:14px 16px; margin-bottom:16px;">
-            <div style="font-size:11.5px; color:#93c5fd; font-weight:700; margin-bottom:12px; display:flex; align-items:center; gap:6px;">
-                <i class="fa-solid fa-circle-info" style="font-size:12px;"></i> Companions who don't have the app (counted for MTO):
+            <div style="font-size:12px; color:#93c5fd; font-weight:700; margin-bottom:12px;">
+                Additional Travelers:
             </div>
             
             <div style="display:flex; flex-direction:column; gap:10px;">
-                <!-- Male Companions -->
+                <!-- Male -->
                 <div style="display:flex; align-items:center; justify-content:space-between;">
-                    <div style="display:flex; align-items:center; gap:8px;">
-                        <div style="width:28px; height:28px; border-radius:8px; background:rgba(59,130,246,0.2); display:flex; align-items:center; justify-content:center; color:#60a5fa;">
-                            <i class="fa-solid fa-mars" style="font-size:13px;"></i>
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <div style="width:30px; height:30px; border-radius:8px; background:#2563eb; display:flex; align-items:center; justify-content:center; color:#ffffff; box-shadow:0 2px 6px rgba(37,99,235,0.4);">
+                            <i class="fa-solid fa-mars" style="font-size:14px;"></i>
                         </div>
-                        <span style="font-size:13px; font-weight:700; color:#ffffff;">Male Companions</span>
+                        <span style="font-size:13px; font-weight:700; color:#ffffff;">Male</span>
                     </div>
                     <div style="display:flex; align-items:center; gap:8px;">
-                        <button type="button" onclick="window.adjustCompanionCount('males', -1)" style="width:30px; height:30px; border-radius:50%; background:rgba(255,255,255,0.15); border:none; outline:none; color:#ffffff; font-size:14px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background 0.2s;">−</button>
+                        <button type="button" onclick="window.adjustCompanionCount('males', -1)" style="width:32px; height:32px; border-radius:50%; background:#334155; border:none; outline:none; color:#ffffff; font-size:15px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:transform 0.1s; box-shadow:0 2px 4px rgba(0,0,0,0.3);">−</button>
                         <span id="companion-males-count" style="font-size:15px; font-weight:800; color:#ffffff; min-width:24px; text-align:center;">0</span>
-                        <button type="button" onclick="window.adjustCompanionCount('males', 1)" style="width:30px; height:30px; border-radius:50%; background:rgba(56,189,248,0.3); border:none; outline:none; color:#ffffff; font-size:14px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background 0.2s;">+</button>
+                        <button type="button" onclick="window.adjustCompanionCount('males', 1)" style="width:32px; height:32px; border-radius:50%; background:#0284c7; border:none; outline:none; color:#ffffff; font-size:15px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:transform 0.1s; box-shadow:0 2px 6px rgba(2,132,199,0.4);">+</button>
                     </div>
                 </div>
 
-                <!-- Female Companions -->
+                <!-- Female -->
                 <div style="display:flex; align-items:center; justify-content:space-between;">
-                    <div style="display:flex; align-items:center; gap:8px;">
-                        <div style="width:28px; height:28px; border-radius:8px; background:rgba(236,72,153,0.2); display:flex; align-items:center; justify-content:center; color:#f472b6;">
-                            <i class="fa-solid fa-venus" style="font-size:13px;"></i>
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <div style="width:30px; height:30px; border-radius:8px; background:#db2777; display:flex; align-items:center; justify-content:center; color:#ffffff; box-shadow:0 2px 6px rgba(219,39,119,0.4);">
+                            <i class="fa-solid fa-venus" style="font-size:14px;"></i>
                         </div>
-                        <span style="font-size:13px; font-weight:700; color:#ffffff;">Female Companions</span>
+                        <span style="font-size:13px; font-weight:700; color:#ffffff;">Female</span>
                     </div>
                     <div style="display:flex; align-items:center; gap:8px;">
-                        <button type="button" onclick="window.adjustCompanionCount('females', -1)" style="width:30px; height:30px; border-radius:50%; background:rgba(255,255,255,0.15); border:none; outline:none; color:#ffffff; font-size:14px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background 0.2s;">−</button>
+                        <button type="button" onclick="window.adjustCompanionCount('females', -1)" style="width:32px; height:32px; border-radius:50%; background:#334155; border:none; outline:none; color:#ffffff; font-size:15px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:transform 0.1s; box-shadow:0 2px 4px rgba(0,0,0,0.3);">−</button>
                         <span id="companion-females-count" style="font-size:15px; font-weight:800; color:#ffffff; min-width:24px; text-align:center;">0</span>
-                        <button type="button" onclick="window.adjustCompanionCount('females', 1)" style="width:30px; height:30px; border-radius:50%; background:rgba(236,72,153,0.3); border:none; outline:none; color:#ffffff; font-size:14px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background 0.2s;">+</button>
+                        <button type="button" onclick="window.adjustCompanionCount('females', 1)" style="width:32px; height:32px; border-radius:50%; background:#db2777; border:none; outline:none; color:#ffffff; font-size:15px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:transform 0.1s; box-shadow:0 2px 6px rgba(219,39,119,0.4);">+</button>
                     </div>
                 </div>
             </div>
@@ -297,32 +294,22 @@ try {
             onpointerdown="this.style.transform='scale(0.98)'; this.style.background='rgba(255,255,255,0.14)';"
             onpointerup="this.style.transform='scale(1)'; this.style.background='rgba(255,255,255,0.08)';"
             onpointerleave="this.style.transform='scale(1)'; this.style.background='rgba(255,255,255,0.08)';">
-            <div style="display:flex; align-items:center; gap:12px; min-width:0;">
-                <div id="save-p2p-transit-icon"
-                    style="width:40px; height:40px; border-radius:12px; background:#ffffff !important; display:flex; align-items:center; justify-content:center; flex-shrink:0; box-shadow:0 2px 8px rgba(0,0,0,0.15);">
-                    <i class="fa-solid fa-car" style="color:#1e3a8a !important; font-size:16px;"></i>
-                </div>
-                <div style="min-width:0;">
-                    <div
-                        style="font-size:10px; font-weight:800; color:#38bdf8; text-transform:uppercase; letter-spacing:0.6px; margin-bottom:2px;">
-                        Transport Mode</div>
-                    <div id="save-p2p-transit-label"
-                        style="font-size:13px; font-weight:800; color:#ffffff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                        Own Car</div>
-                    <div id="save-p2p-legs-count" style="font-size:11px; color:rgba(255,255,255,0.75); margin-top:1px;">
-                        Tap to view destination summary</div>
-                </div>
+            <div style="min-width:0;">
+                <div
+                    style="font-size:10px; font-weight:800; color:#38bdf8; text-transform:uppercase; letter-spacing:0.6px; margin-bottom:2px;">
+                    Transport Mode</div>
+                <div id="save-p2p-transit-label"
+                    style="font-size:13px; font-weight:800; color:#ffffff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                    Own Car</div>
+                <div id="save-p2p-legs-count" style="font-size:11px; color:rgba(255,255,255,0.75); margin-top:1px;">
+                    Tap to view destination summary</div>
             </div>
-            <div style="display:flex; align-items:center; gap:8px;">
-                <div style="text-align:right; flex-shrink:0;">
-                    <div
-                        style="font-size:10px; color:rgba(255,255,255,0.65); font-weight:700; text-transform:uppercase;">
-                        Transit Total</div>
-                    <div id="save-p2p-transit-cost"
-                        style="font-size:16px; font-weight:800; color:#00f2fe; margin-top:2px;">₱0.00</div>
-                </div>
-                <i class="fa-solid fa-chevron-right"
-                    style="color:rgba(255,255,255,0.55); font-size:12px; margin-left:2px;"></i>
+            <div style="text-align:right; flex-shrink:0;">
+                <div
+                    style="font-size:10px; color:rgba(255,255,255,0.65); font-weight:700; text-transform:uppercase;">
+                    Transit Total</div>
+                <div id="save-p2p-transit-cost"
+                    style="font-size:16px; font-weight:800; color:#00f2fe; margin-top:2px;">₱0.00</div>
             </div>
         </div>
 

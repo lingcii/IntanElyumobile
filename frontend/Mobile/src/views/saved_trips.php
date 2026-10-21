@@ -194,35 +194,35 @@ $backRoute = 'itinerary';
 
         <!-- Stepper Box for Companions -->
         <div id="quick-edit-companion-box" style="display:none; background:rgba(255,255,255,0.12); border:1px solid rgba(56,189,248,0.3); border-radius:16px; padding:14px; margin-bottom:16px;">
-            <div style="font-size:11.5px; color:#ffffff; opacity:0.95; font-weight:700; margin-bottom:12px; display:flex; align-items:center; gap:6px;">
-                <i class="fa-solid fa-circle-info" style="color:#00f2fe;"></i> Companions traveling with you:
+            <div style="font-size:12px; color:#ffffff; opacity:0.95; font-weight:700; margin-bottom:12px;">
+                Additional Travelers:
             </div>
-            <!-- Male Companions -->
+            <!-- Male -->
             <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
-                <div style="display:flex; align-items:center; gap:8px;">
-                    <div style="width:28px; height:28px; border-radius:8px; background:rgba(59,130,246,0.3); display:flex; align-items:center; justify-content:center; color:#93c5fd;">
-                        <i class="fa-solid fa-mars" style="font-size:13px;"></i>
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <div style="width:30px; height:30px; border-radius:8px; background:#2563eb; display:flex; align-items:center; justify-content:center; color:#ffffff; box-shadow:0 2px 6px rgba(37,99,235,0.4);">
+                        <i class="fa-solid fa-mars" style="font-size:14px;"></i>
                     </div>
-                    <span style="font-size:13px; font-weight:700; color:#ffffff;">Male Companions</span>
+                    <span style="font-size:13px; font-weight:700; color:#ffffff;">Male</span>
                 </div>
                 <div style="display:flex; align-items:center; gap:8px;">
-                    <button type="button" onclick="window.adjustQuickEditCompanions('males', -1)" style="width:32px; height:32px; border-radius:50%; background:rgba(255,255,255,0.2); border:none; outline:none; color:#ffffff; font-size:15px; font-weight:800; cursor:pointer;">−</button>
+                    <button type="button" onclick="window.adjustQuickEditCompanions('males', -1)" style="width:32px; height:32px; border-radius:50%; background:#334155; border:none; outline:none; color:#ffffff; font-size:15px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 4px rgba(0,0,0,0.3);">−</button>
                     <span id="quick-edit-males-count" style="font-size:15px; font-weight:800; color:#ffffff; min-width:24px; text-align:center;">0</span>
-                    <button type="button" onclick="window.adjustQuickEditCompanions('males', 1)" style="width:32px; height:32px; border-radius:50%; background:rgba(56,189,248,0.45); border:none; outline:none; color:#ffffff; font-size:15px; font-weight:800; cursor:pointer;">+</button>
+                    <button type="button" onclick="window.adjustQuickEditCompanions('males', 1)" style="width:32px; height:32px; border-radius:50%; background:#0284c7; border:none; outline:none; color:#ffffff; font-size:15px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 6px rgba(2,132,199,0.4);">+</button>
                 </div>
             </div>
-            <!-- Female Companions -->
+            <!-- Female -->
             <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
-                <div style="display:flex; align-items:center; gap:8px;">
-                    <div style="width:28px; height:28px; border-radius:8px; background:rgba(236,72,153,0.3); display:flex; align-items:center; justify-content:center; color:#f472b6;">
-                        <i class="fa-solid fa-venus" style="font-size:13px;"></i>
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <div style="width:30px; height:30px; border-radius:8px; background:#db2777; display:flex; align-items:center; justify-content:center; color:#ffffff; box-shadow:0 2px 6px rgba(219,39,119,0.4);">
+                        <i class="fa-solid fa-venus" style="font-size:14px;"></i>
                     </div>
-                    <span style="font-size:13px; font-weight:700; color:#ffffff;">Female Companions</span>
+                    <span style="font-size:13px; font-weight:700; color:#ffffff;">Female</span>
                 </div>
                 <div style="display:flex; align-items:center; gap:8px;">
-                    <button type="button" onclick="window.adjustQuickEditCompanions('females', -1)" style="width:32px; height:32px; border-radius:50%; background:rgba(255,255,255,0.2); border:none; outline:none; color:#ffffff; font-size:15px; font-weight:800; cursor:pointer;">−</button>
+                    <button type="button" onclick="window.adjustQuickEditCompanions('females', -1)" style="width:32px; height:32px; border-radius:50%; background:#334155; border:none; outline:none; color:#ffffff; font-size:15px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 4px rgba(0,0,0,0.3);">−</button>
                     <span id="quick-edit-females-count" style="font-size:15px; font-weight:800; color:#ffffff; min-width:24px; text-align:center;">0</span>
-                    <button type="button" onclick="window.adjustQuickEditCompanions('females', 1)" style="width:32px; height:32px; border-radius:50%; background:rgba(236,72,153,0.45); border:none; outline:none; color:#ffffff; font-size:15px; font-weight:800; cursor:pointer;">+</button>
+                    <button type="button" onclick="window.adjustQuickEditCompanions('females', 1)" style="width:32px; height:32px; border-radius:50%; background:#db2777; border:none; outline:none; color:#ffffff; font-size:15px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 6px rgba(219,39,119,0.4);">+</button>
                 </div>
             </div>
             <!-- Live Party Size Summary -->
