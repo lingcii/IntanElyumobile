@@ -141,6 +141,18 @@
                             oninput="validateRegisterFormInline()">
                     </div>
                     <div class="input-group">
+                        <i class="fa-solid fa-venus-mars"></i>
+                        <select id="reg-gender" class="auth-input" required onchange="validateRegisterFormInline(); this.style.color = this.value ? '#0f172a' : '#64748b';" style="appearance:none; -webkit-appearance:none; cursor:pointer; color:#64748b;">
+                            <option value="" disabled selected>Select Sex / Gender *</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Non-binary">Non-binary</option>
+                            <option value="Prefer not to say">Prefer not to say</option>
+                            <option value="Other">Other</option>
+                        </select>
+                        <i class="fa-solid fa-chevron-down" style="position:absolute; right:14px; top:50%; transform:translateY(-50%); pointer-events:none; color:#64748b; font-size:11px;"></i>
+                    </div>
+                    <div class="input-group">
                         <i class="fa-solid fa-mobile-screen"></i>
                         <input type="email" id="reg-email" class="auth-input" placeholder="Email Address" required
                             oninput="validateRegisterFormInline()">
@@ -1428,11 +1440,17 @@
         const pwd = document.getElementById('reg-password')?.value || '';
         const firstName = (document.getElementById('reg-first-name')?.value || '').trim();
         const lastName = (document.getElementById('reg-last-name')?.value || '').trim();
+        const gender = (document.getElementById('reg-gender')?.value || '').trim();
         const email = (document.getElementById('reg-email')?.value || '').trim();
         const chk = document.getElementById('reg-privacy-checkbox');
 
-        if (!firstName || !lastName || !email || !pwd) {
-            if (typeof showToast === 'function') showToast('Please fill in all registration fields.');
+        if (!firstName || !lastName || !gender || !email || !pwd) {
+            if (!gender) {
+                if (typeof showToast === 'function') showToast('Please select your sex or gender.');
+                document.getElementById('reg-gender')?.focus();
+            } else {
+                if (typeof showToast === 'function') showToast('Please fill in all registration fields.');
+            }
             return;
         }
 
@@ -1572,6 +1590,7 @@
         const pwd = document.getElementById('reg-password')?.value || '';
         const firstName = (document.getElementById('reg-first-name')?.value || '').trim();
         const lastName = (document.getElementById('reg-last-name')?.value || '').trim();
+        const gender = (document.getElementById('reg-gender')?.value || '').trim();
         const name = `${firstName} ${lastName}`.trim();
         const email = (document.getElementById('reg-email')?.value || '').trim();
 
@@ -1614,6 +1633,7 @@
                     first_name: firstName,
                     last_name: lastName,
                     name: name,
+                    gender: gender,
                     email: email,
                     password: pwd,
                     password_confirmation: pwd

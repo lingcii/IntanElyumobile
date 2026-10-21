@@ -414,6 +414,18 @@
                             <input type="text" id="reg-last-name" class="auth-input" placeholder="Last Name" required>
                         </div>
                         <div class="input-group">
+                            <i class="fa-solid fa-venus-mars"></i>
+                            <select id="reg-gender" class="auth-input" required onchange="this.style.color = this.value ? '#0f172a' : '#64748b';" style="appearance:none; -webkit-appearance:none; cursor:pointer; color:#64748b;">
+                                <option value="" disabled selected>Select Sex / Gender *</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Non-binary">Non-binary</option>
+                                <option value="Prefer not to say">Prefer not to say</option>
+                                <option value="Other">Other</option>
+                            </select>
+                            <i class="fa-solid fa-chevron-down" style="position:absolute; right:14px; top:50%; transform:translateY(-50%); pointer-events:none; color:#64748b; font-size:11px;"></i>
+                        </div>
+                        <div class="input-group">
                             <i class="fa-solid fa-mobile-screen"></i>
                             <input type="email" id="reg-email" class="auth-input" placeholder="Email Address" required>
                         </div>
