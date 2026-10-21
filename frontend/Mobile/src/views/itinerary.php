@@ -137,239 +137,263 @@ try {
 
 <!-- Save Trip Modal -->
 <div id="save-trip-modal"
-    style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.65); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); z-index:99999; justify-content:center; align-items:center; padding:16px;">
-    <div style="background:linear-gradient(145deg, rgba(30, 41, 59, 0.98) 0%, rgba(15, 23, 42, 0.99) 100%); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border:none !important; outline:none !important; border-radius:24px; padding:22px; width:100%; max-width:400px; max-height:90vh; overflow-y:auto; box-shadow:none !important;"
+    style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6, 11, 25, 0.78); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); z-index:99999; justify-content:center; align-items:center; padding:16px; box-sizing:border-box;">
+    <div style="background:#ffffff !important; border:none !important; outline:none !important; border-radius:24px; width:100%; max-width:400px; max-height:90vh; display:flex; flex-direction:column; box-shadow:0 20px 50px rgba(10, 25, 60, 0.45) !important; overflow:hidden;"
         class="hide-scrollbar">
-        <h3 id="save-trip-modal-title"
-            style="margin-top:0; color:#ffffff; font-size:20px; font-weight:800;">
-            Save Your Trip
-        </h3>
-        <p style="font-size:13px; color:rgba(255, 255, 255, 0.9); margin-bottom:18px; line-height:1.4;">Give your
-            awesome adventure a name so you can pull it up later!</p>
 
-        <label style="font-size:13px; color:#ffffff; margin-bottom:6px; display:block; font-weight:700;">Trip
-            Name</label>
-        <input type="text" id="trip-title" placeholder="e.g. La Union Weekend"
-            style="width:100%; padding:12px 16px; border-radius:14px; border:none !important; outline:none !important; background:rgba(255,255,255,0.12); color:#ffffff; -webkit-text-fill-color:#ffffff; margin-bottom:16px; font-family:inherit; font-size:14px; font-weight:600; box-sizing:border-box; box-shadow:none !important;">
-
-        <!-- Custom Designed Calendar Date Picker -->
-        <label
-            style="font-size:13px; color:#ffffff; margin-bottom:6px; display:flex; align-items:center; justify-content:space-between; font-weight:700;">
-            <span>Trip Date (Optional)</span>
-            <span id="calendar-clear-link" onclick="window.customClearDate(event)"
-                style="display:none; font-size:11px; color:#ef4444; cursor:pointer; font-weight:700;">Clear</span>
-        </label>
-
-        <div id="custom-date-trigger" onclick="window.toggleCustomCalendar(event)"
-            style="position:relative; width:100%; padding:12px 16px; border-radius:14px; border:none !important; outline:none !important; background:rgba(255,255,255,0.12); color:white; margin-bottom:16px; font-size:14px; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:space-between; transition:all 0.25s ease; user-select:none; box-shadow:none !important;">
-            <div>
-                <span id="custom-date-display" style="color:rgba(255,255,255,0.85); font-weight:600;">Select trip date</span>
+        <!-- Modal Header (Royal Blue Banner) -->
+        <div class="save-trip-modal-header"
+            style="background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%) !important; padding:18px 20px 16px 20px; color:#ffffff; flex-shrink:0; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.1);">
+            <div style="min-width:0; flex:1;">
+                <h3 id="save-trip-modal-title"
+                    style="margin:0; color:#ffffff; font-size:18px; font-weight:800; letter-spacing:-0.2px;">
+                    Save Your Trip
+                </h3>
+                <p style="margin:3px 0 0; font-size:12px; color:rgba(255,255,255,0.85); line-height:1.35;">
+                    Name your adventure and set trip details
+                </p>
             </div>
-            <i class="fa-solid fa-chevron-down" id="custom-date-arrow"
-                style="font-size:11px; color:rgba(255,255,255,0.8); transition:transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);"></i>
-        </div>
-        <input type="hidden" id="trip-date" value="">
-
-        <!-- Floating Sleek Custom Calendar Card with Smooth Slide Animation -->
-        <div id="custom-calendar-dropdown">
-            <!-- Month & Year Navigation -->
-            <div
-                style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; padding:0 4px;">
-                <button type="button" onclick="window.changeCalendarMonth(-1)"
-                    style="background:rgba(255,255,255,0.12); border:none !important; outline:none !important; color:white; width:32px; height:32px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background 0.2s; box-shadow:none !important;">
-                    <i class="fa-solid fa-chevron-left" style="font-size:11px;"></i>
-                </button>
-                <div id="calendar-month-year"
-                    style="font-size:14.5px; font-weight:800; color:#ffffff; letter-spacing:0.3px;"></div>
-                <button type="button" onclick="window.changeCalendarMonth(1)"
-                    style="background:rgba(255,255,255,0.12); border:none !important; outline:none !important; color:white; width:32px; height:32px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background 0.2s; box-shadow:none !important;">
-                    <i class="fa-solid fa-chevron-right" style="font-size:11px;"></i>
-                </button>
-            </div>
-
-            <!-- Day of Week Headers -->
-            <div style="display:grid; grid-template-columns:repeat(7, 1fr); text-align:center; margin-bottom:6px;">
-                <span style="font-size:11px; font-weight:700; color:#f87171;">Su</span>
-                <span style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.85);">Mo</span>
-                <span style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.85);">Tu</span>
-                <span style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.85);">We</span>
-                <span style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.85);">Th</span>
-                <span style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.85);">Fr</span>
-                <span style="font-size:11px; font-weight:700; color:#38bdf8;">Sa</span>
-            </div>
-
-            <!-- Days Grid -->
-            <div id="calendar-days-grid"
-                style="display:grid; grid-template-columns:repeat(7, 1fr); gap:3px; text-align:center;">
-                <!-- Generated dynamically via JS -->
-            </div>
-
-            <!-- Footer Quick Actions -->
-            <div
-                style="display:flex; justify-content:space-between; align-items:center; margin-top:12px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.12);">
-                <button type="button" onclick="window.selectTodayDate()"
-                    style="background:rgba(255,255,255,0.15); border:none !important; outline:none !important; color:#ffffff; font-size:11px; font-weight:700; padding:6px 14px; border-radius:100px; cursor:pointer; box-shadow:none !important;">
-                    Today
-                </button>
-                <button type="button" onclick="window.toggleCustomCalendar(null, false)"
-                    style="background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); border:none !important; outline:none !important; color:#ffffff; font-size:11px; font-weight:800; padding:6px 16px; border-radius:100px; cursor:pointer; box-shadow:none !important;">
-                    Done
-                </button>
-            </div>
+            <button type="button" onclick="closeSaveModal()"
+                style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 8px rgba(0,0,0,0.18) !important; flex-shrink:0; margin-left:12px; transition:transform 0.15s ease;"
+                onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">
+                <i class="fa-solid fa-xmark" style="color:#1e3a8a !important; font-size:14px;"></i>
+            </button>
         </div>
 
-        <!-- Travel Group / Companions Section -->
-        <label style="font-size:13px; color:#ffffff; margin-bottom:8px; display:flex; align-items:center; justify-content:space-between; font-weight:700;">
-            <span>Travel Group Type</span>
-            <span id="trip-pax-count-badge" style="font-size:11px; background:rgba(56,189,248,0.2); color:#38bdf8; font-weight:800; padding:2px 8px; border-radius:100px;">1 Traveler (Solo)</span>
-        </label>
+        <!-- Modal Middle (White Scrollable Content Area) -->
+        <div class="save-trip-modal-body hide-scrollbar"
+            style="background:#ffffff !important; color:#0f172a; padding:18px 20px 20px 20px; flex:1; overflow-y:auto; display:flex; flex-direction:column; box-sizing:border-box;">
 
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:14px;">
-            <label id="opt-trip-solo" onclick="window.setTripType('solo')" style="display:flex; align-items:center; gap:8px; padding:10px 14px; border-radius:14px; background:rgba(56,189,248,0.2); border:1.5px solid #38bdf8; cursor:pointer; transition:all 0.2s ease;">
-                <input type="radio" name="trip_companion_type" id="radio-trip-solo" value="solo" checked style="accent-color:#38bdf8; cursor:pointer; width:16px; height:16px;">
-                <div>
-                    <div style="color:#ffffff; font-size:13px; font-weight:800;">Solo Trip</div>
-                    <div style="color:rgba(255,255,255,0.7); font-size:10px;">Just myself</div>
-                </div>
+            <label style="font-size:12.5px; color:#1e293b; margin-bottom:6px; display:block; font-weight:700;">Trip Name</label>
+            <input type="text" id="trip-title" placeholder="e.g. La Union Weekend"
+                style="width:100%; padding:12px 14px; border-radius:14px; border:1.5px solid #e2e8f0 !important; outline:none !important; background:#f8fafc; color:#0f172a; -webkit-text-fill-color:#0f172a; margin-bottom:16px; font-family:inherit; font-size:14px; font-weight:600; box-sizing:border-box; box-shadow:none !important; transition:border-color 0.2s;"
+                onfocus="this.style.borderColor='#0284c7'" onblur="this.style.borderColor='#e2e8f0'">
+
+            <!-- Custom Designed Calendar Date Picker -->
+            <label
+                style="font-size:12.5px; color:#1e293b; margin-bottom:6px; display:flex; align-items:center; justify-content:space-between; font-weight:700;">
+                <span>Trip Date (Optional)</span>
+                <span id="calendar-clear-link" onclick="window.customClearDate(event)"
+                    style="display:none; font-size:11px; color:#ef4444; cursor:pointer; font-weight:700;">Clear</span>
             </label>
-            <label id="opt-trip-group" onclick="window.setTripType('group')" style="display:flex; align-items:center; gap:8px; padding:10px 14px; border-radius:14px; background:rgba(255,255,255,0.08); border:1.5px solid rgba(255,255,255,0.15); cursor:pointer; transition:all 0.2s ease;">
-                <input type="radio" name="trip_companion_type" id="radio-trip-group" value="group" style="accent-color:#38bdf8; cursor:pointer; width:16px; height:16px;">
+
+            <div id="custom-date-trigger" onclick="window.toggleCustomCalendar(event)"
+                style="position:relative; width:100%; padding:12px 14px; border-radius:14px; border:1.5px solid #e2e8f0 !important; outline:none !important; background:#f8fafc; color:#0f172a; margin-bottom:16px; font-size:14px; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:space-between; transition:all 0.2s ease; user-select:none; box-sizing:border-box; box-shadow:none !important;">
                 <div>
-                    <div style="color:#ffffff; font-size:13px; font-weight:800;">With Companions</div>
-                    <div style="color:rgba(255,255,255,0.7); font-size:10px;">Friends / Family</div>
+                    <span id="custom-date-display" style="color:#64748b; font-weight:600;">Select trip date</span>
                 </div>
+                <i class="fa-solid fa-chevron-down" id="custom-date-arrow"
+                    style="font-size:11px; color:#64748b; transition:transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);"></i>
+            </div>
+            <input type="hidden" id="trip-date" value="">
+
+            <!-- Floating Sleek Custom Calendar Card with Smooth Slide Animation -->
+            <div id="custom-calendar-dropdown">
+                <!-- Month & Year Navigation -->
+                <div
+                    style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; padding:0 4px;">
+                    <button type="button" onclick="window.changeCalendarMonth(-1)"
+                        style="background:rgba(255,255,255,0.12); border:none !important; outline:none !important; color:white; width:32px; height:32px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background 0.2s; box-shadow:none !important;">
+                        <i class="fa-solid fa-chevron-left" style="font-size:11px;"></i>
+                    </button>
+                    <div id="calendar-month-year"
+                        style="font-size:14.5px; font-weight:800; color:#ffffff; letter-spacing:0.3px;"></div>
+                    <button type="button" onclick="window.changeCalendarMonth(1)"
+                        style="background:rgba(255,255,255,0.12); border:none !important; outline:none !important; color:white; width:32px; height:32px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background 0.2s; box-shadow:none !important;">
+                        <i class="fa-solid fa-chevron-right" style="font-size:11px;"></i>
+                    </button>
+                </div>
+
+                <!-- Day of Week Headers -->
+                <div style="display:grid; grid-template-columns:repeat(7, 1fr); text-align:center; margin-bottom:6px;">
+                    <span style="font-size:11px; font-weight:700; color:#f87171;">Su</span>
+                    <span style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.85);">Mo</span>
+                    <span style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.85);">Tu</span>
+                    <span style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.85);">We</span>
+                    <span style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.85);">Th</span>
+                    <span style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.85);">Fr</span>
+                    <span style="font-size:11px; font-weight:700; color:#38bdf8;">Sa</span>
+                </div>
+
+                <!-- Days Grid -->
+                <div id="calendar-days-grid"
+                    style="display:grid; grid-template-columns:repeat(7, 1fr); gap:3px; text-align:center;">
+                    <!-- Generated dynamically via JS -->
+                </div>
+
+                <!-- Footer Quick Actions -->
+                <div
+                    style="display:flex; justify-content:space-between; align-items:center; margin-top:12px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.12);">
+                    <button type="button" onclick="window.selectTodayDate()"
+                        style="background:rgba(255,255,255,0.15); border:none !important; outline:none !important; color:#ffffff; font-size:11px; font-weight:700; padding:6px 14px; border-radius:100px; cursor:pointer; box-shadow:none !important;">
+                        Today
+                    </button>
+                    <button type="button" onclick="window.toggleCustomCalendar(null, false)"
+                        style="background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); border:none !important; outline:none !important; color:#ffffff; font-size:11px; font-weight:800; padding:6px 16px; border-radius:100px; cursor:pointer; box-shadow:none !important;">
+                        Done
+                    </button>
+                </div>
+            </div>
+
+            <!-- Travel Group / Companions Section -->
+            <label style="font-size:12.5px; color:#1e293b; margin-bottom:8px; display:flex; align-items:center; justify-content:space-between; font-weight:700;">
+                <span>Travel Group Type</span>
+                <span id="trip-pax-count-badge" style="font-size:11px; background:#e0f2fe; color:#0369a1; font-weight:800; padding:2px 8px; border-radius:100px;">1 Traveler (Solo)</span>
             </label>
-        </div>
 
-        <!-- Collapsible Companion Stepper Box -->
-        <div id="companion-stepper-box" style="display:none; background:rgba(255,255,255,0.06); border:1px solid rgba(56,189,248,0.25); border-radius:16px; padding:14px 16px; margin-bottom:16px;">
-            <div style="font-size:12px; color:#93c5fd; font-weight:700; margin-bottom:12px;">
-                Additional Travelers:
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:14px;">
+                <label id="opt-trip-solo" onclick="window.setTripType('solo')" style="display:flex; align-items:center; gap:8px; padding:10px 14px; border-radius:14px; background:#f0f9ff; border:1.5px solid #0284c7; cursor:pointer; transition:all 0.2s ease;">
+                    <input type="radio" name="trip_companion_type" id="radio-trip-solo" value="solo" checked style="accent-color:#0284c7; cursor:pointer; width:16px; height:16px;">
+                    <div>
+                        <div style="color:#0f172a; font-size:13px; font-weight:800;">Solo Trip</div>
+                        <div style="color:#64748b; font-size:10px;">Just myself</div>
+                    </div>
+                </label>
+                <label id="opt-trip-group" onclick="window.setTripType('group')" style="display:flex; align-items:center; gap:8px; padding:10px 14px; border-radius:14px; background:#f8fafc; border:1.5px solid #e2e8f0; cursor:pointer; transition:all 0.2s ease;">
+                    <input type="radio" name="trip_companion_type" id="radio-trip-group" value="group" style="accent-color:#0284c7; cursor:pointer; width:16px; height:16px;">
+                    <div>
+                        <div style="color:#0f172a; font-size:13px; font-weight:800;">With Companions</div>
+                        <div style="color:#64748b; font-size:10px;">Friends / Family</div>
+                    </div>
+                </label>
             </div>
-            
-            <div style="display:flex; flex-direction:column; gap:10px;">
-                <!-- Male -->
-                <div style="display:flex; align-items:center; justify-content:space-between;">
-                    <div style="display:flex; align-items:center; gap:10px;">
-                        <div style="width:30px; height:30px; border-radius:8px; background:#2563eb; display:flex; align-items:center; justify-content:center; color:#ffffff; box-shadow:0 2px 6px rgba(37,99,235,0.4);">
-                            <i class="fa-solid fa-mars" style="font-size:14px;"></i>
+
+            <!-- Collapsible Companion Stepper Box -->
+            <div id="companion-stepper-box" style="display:none; background:#f8fafc; border:1px solid #e2e8f0; border-radius:16px; padding:14px 16px; margin-bottom:16px;">
+                <div style="font-size:12px; color:#475569; font-weight:700; margin-bottom:12px;">
+                    Additional Travelers:
+                </div>
+                
+                <div style="display:flex; flex-direction:column; gap:10px;">
+                    <!-- Male -->
+                    <div style="display:flex; align-items:center; justify-content:space-between;">
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <div style="width:30px; height:30px; border-radius:8px; background:#2563eb; display:flex; align-items:center; justify-content:center; color:#ffffff; box-shadow:0 2px 6px rgba(37,99,235,0.35);">
+                                <i class="fa-solid fa-mars" style="font-size:14px;"></i>
+                            </div>
+                            <span style="font-size:13px; font-weight:700; color:#1e293b;">Male</span>
                         </div>
-                        <span style="font-size:13px; font-weight:700; color:#ffffff;">Male</span>
-                    </div>
-                    <div style="display:flex; align-items:center; gap:8px;">
-                        <button type="button" onclick="window.adjustCompanionCount('males', -1)" style="width:32px; height:32px; border-radius:50%; background:#334155; border:none; outline:none; color:#ffffff; font-size:15px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:transform 0.1s; box-shadow:0 2px 4px rgba(0,0,0,0.3);">−</button>
-                        <span id="companion-males-count" style="font-size:15px; font-weight:800; color:#ffffff; min-width:24px; text-align:center;">0</span>
-                        <button type="button" onclick="window.adjustCompanionCount('males', 1)" style="width:32px; height:32px; border-radius:50%; background:#0284c7; border:none; outline:none; color:#ffffff; font-size:15px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:transform 0.1s; box-shadow:0 2px 6px rgba(2,132,199,0.4);">+</button>
-                    </div>
-                </div>
-
-                <!-- Female -->
-                <div style="display:flex; align-items:center; justify-content:space-between;">
-                    <div style="display:flex; align-items:center; gap:10px;">
-                        <div style="width:30px; height:30px; border-radius:8px; background:#db2777; display:flex; align-items:center; justify-content:center; color:#ffffff; box-shadow:0 2px 6px rgba(219,39,119,0.4);">
-                            <i class="fa-solid fa-venus" style="font-size:14px;"></i>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <button type="button" onclick="window.adjustCompanionCount('males', -1)" style="width:32px; height:32px; border-radius:50%; background:#334155; border:none; outline:none; color:#ffffff; font-size:15px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:transform 0.1s; box-shadow:0 2px 4px rgba(0,0,0,0.2);">−</button>
+                            <span id="companion-males-count" style="font-size:15px; font-weight:800; color:#0f172a; min-width:24px; text-align:center;">0</span>
+                            <button type="button" onclick="window.adjustCompanionCount('males', 1)" style="width:32px; height:32px; border-radius:50%; background:#0284c7; border:none; outline:none; color:#ffffff; font-size:15px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:transform 0.1s; box-shadow:0 2px 6px rgba(2,132,199,0.35);">+</button>
                         </div>
-                        <span style="font-size:13px; font-weight:700; color:#ffffff;">Female</span>
                     </div>
-                    <div style="display:flex; align-items:center; gap:8px;">
-                        <button type="button" onclick="window.adjustCompanionCount('females', -1)" style="width:32px; height:32px; border-radius:50%; background:#334155; border:none; outline:none; color:#ffffff; font-size:15px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:transform 0.1s; box-shadow:0 2px 4px rgba(0,0,0,0.3);">−</button>
-                        <span id="companion-females-count" style="font-size:15px; font-weight:800; color:#ffffff; min-width:24px; text-align:center;">0</span>
-                        <button type="button" onclick="window.adjustCompanionCount('females', 1)" style="width:32px; height:32px; border-radius:50%; background:#db2777; border:none; outline:none; color:#ffffff; font-size:15px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:transform 0.1s; box-shadow:0 2px 6px rgba(219,39,119,0.4);">+</button>
+
+                    <!-- Female -->
+                    <div style="display:flex; align-items:center; justify-content:space-between;">
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <div style="width:30px; height:30px; border-radius:8px; background:#db2777; display:flex; align-items:center; justify-content:center; color:#ffffff; box-shadow:0 2px 6px rgba(219,39,119,0.35);">
+                                <i class="fa-solid fa-venus" style="font-size:14px;"></i>
+                            </div>
+                            <span style="font-size:13px; font-weight:700; color:#1e293b;">Female</span>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <button type="button" onclick="window.adjustCompanionCount('females', -1)" style="width:32px; height:32px; border-radius:50%; background:#334155; border:none; outline:none; color:#ffffff; font-size:15px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:transform 0.1s; box-shadow:0 2px 4px rgba(0,0,0,0.2);">−</button>
+                            <span id="companion-females-count" style="font-size:15px; font-weight:800; color:#0f172a; min-width:24px; text-align:center;">0</span>
+                            <button type="button" onclick="window.adjustCompanionCount('females', 1)" style="width:32px; height:32px; border-radius:50%; background:#db2777; border:none; outline:none; color:#ffffff; font-size:15px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:transform 0.1s; box-shadow:0 2px 6px rgba(219,39,119,0.35);">+</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Group Headcount Summary -->
+                <div id="companion-summary-note" style="margin-top:12px; padding-top:10px; border-top:1px solid #e2e8f0; font-size:11px; color:#64748b; display:flex; align-items:center; justify-content:space-between;">
+                    <span>Total Party:</span>
+                    <span id="companion-summary-text" style="color:#0284c7; font-weight:800;">1 Traveler (You)</span>
+                </div>
+            </div>
+
+            <!-- Point-to-Point Route & Transit Summary Card (Tap to view opensheet) -->
+            <input type="hidden" id="trip-transport" value="">
+            <div id="save-p2p-transit-summary" onclick="window.openTransitSummaryOpensheet()" role="button" tabindex="0"
+                title="Tap to view per-destination transit summary"
+                style="background:#f8fafc; border-radius:16px; padding:14px 16px; margin-bottom:16px; display:flex; align-items:center; justify-content:space-between; gap:12px; border:1.5px solid #e2e8f0; cursor:pointer; user-select:none; transition:background 0.2s ease, transform 0.15s ease;"
+                onpointerdown="this.style.transform='scale(0.98)'; this.style.background='#f1f5f9';"
+                onpointerup="this.style.transform='scale(1)'; this.style.background='#f8fafc';"
+                onpointerleave="this.style.transform='scale(1)'; this.style.background='#f8fafc';">
+                <div style="min-width:0;">
+                    <div
+                        style="font-size:10px; font-weight:800; color:#0284c7; text-transform:uppercase; letter-spacing:0.6px; margin-bottom:2px;">
+                        Transport Mode</div>
+                    <div id="save-p2p-transit-label"
+                        style="font-size:13.5px; font-weight:800; color:#0f172a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                        Own Car</div>
+                    <div id="save-p2p-legs-count" style="font-size:11px; color:#64748b; margin-top:1px;">
+                        Tap to view destination summary</div>
+                </div>
+                <div style="text-align:right; flex-shrink:0;">
+                    <div
+                        style="font-size:10px; color:#64748b; font-weight:700; text-transform:uppercase;">
+                        Transit Total</div>
+                    <div id="save-p2p-transit-cost"
+                        style="font-size:16px; font-weight:800; color:#0284c7; margin-top:2px;">₱0.00</div>
+                </div>
+            </div>
+
+            <script>
+                // Backward compatibility stubs
+                window.selectNoVehicleMode = function () {
+                    document.getElementById('trip-transport').value = 'no_vehicle';
+                    if (window.calculateModalBudget) window.calculateModalBudget();
+                };
+                window.selectTransportMode = function () {
+                    if (window.calculateModalBudget) window.calculateModalBudget();
+                };
+            </script>
+
+            <div style="position:relative; margin-bottom:12px;">
+                <span
+                    style="position:absolute; left:16px; top:12px; color:#0284c7; font-weight:800; font-size:15px;">₱</span>
+                <input type="tel" id="trip-budget" placeholder="Set a budget (optional)"
+                    oninput="this.value=this.value.replace(/\D/g,'');if(this.value.length>5)this.value=this.value.slice(0,5);window.calculateModalBudget()"
+                    style="width:100%; padding:12px 16px 12px 34px; border-radius:14px; border:1.5px solid #e2e8f0 !important; outline:none !important; background:#f8fafc; color:#0f172a; -webkit-text-fill-color:#0f172a; font-family:inherit; font-size:14px; font-weight:600; box-sizing:border-box; box-shadow:none !important; transition:border-color 0.2s;"
+                    onfocus="this.style.borderColor='#0284c7'" onblur="this.style.borderColor='#e2e8f0'">
+            </div>
+
+            <div id="save-budget-details"
+                style="display:block; background:#f8fafc; border:1px solid #e2e8f0 !important; outline:none !important; padding:14px 16px; border-radius:16px; margin-bottom:4px; box-shadow:0 2px 8px rgba(0,0,0,0.04) !important;">
+                <div style="display:flex; align-items:center; gap:14px;">
+                    <div id="modal-donut-wrapper"
+                        style="position:relative; flex-shrink:0; width:58px; height:58px; overflow:hidden; display:flex; align-items:center; justify-content:center; opacity:1; transform:scale(1); transition: width 0.45s cubic-bezier(0.34,1.56,0.64,1), opacity 0.4s ease, transform 0.45s cubic-bezier(0.34,1.56,0.64,1);">
+                        <div class="donut-chart" id="modal-budget-donut"
+                            style="position:absolute; left:0; top:0; border-radius:50%; width:58px; height:58px; transform:scaleX(-1);">
+                        </div>
+                        <span id="modal-donut-pct"
+                            style="position:relative; font-size:12px; font-weight:900; color:#0f172a; white-space:nowrap;">MET!</span>
+                    </div>
+                    <div style="flex:1; min-width:0; display:flex; flex-direction:column; gap:6px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span
+                                style="font-size:10px; color:#64748b; font-weight:800; text-transform:uppercase; letter-spacing:0.5px;">Estimated
+                                Cost</span>
+                            <h4 style="margin:0; font-size:15px; color:#0f172a; font-weight:900;" id="save-estimated-cost">
+                                ₱0.00</h4>
+                        </div>
+                        <div id="save-budget-remaining-row"
+                            style="display:none; justify-content:space-between; align-items:center; padding-top:6px; border-top:1px solid #e2e8f0;">
+                            <span
+                                style="font-size:10.5px; font-weight:800; text-transform:uppercase; letter-spacing:0.3px; white-space:nowrap;"
+                                id="save-budget-remaining-label">Remaining</span>
+                            <span style="font-size:13.5px; font-weight:900; white-space:nowrap;"
+                                id="save-budget-remaining-val">—</span>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Group Headcount Summary -->
-            <div id="companion-summary-note" style="margin-top:12px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.1); font-size:11px; color:#cbd5e1; display:flex; align-items:center; justify-content:space-between;">
-                <span>Total Party:</span>
-                <span id="companion-summary-text" style="color:#38bdf8; font-weight:800;">1 Traveler (You)</span>
-            </div>
         </div>
 
-        <!-- Point-to-Point Route & Transit Summary Card (Tap to view opensheet) -->
-        <input type="hidden" id="trip-transport" value="">
-        <div id="save-p2p-transit-summary" onclick="window.openTransitSummaryOpensheet()" role="button" tabindex="0"
-            title="Tap to view per-destination transit summary"
-            style="background:rgba(255,255,255,0.08); border-radius:16px; padding:14px 16px; margin-bottom:16px; display:flex; align-items:center; justify-content:space-between; gap:12px; border:1px solid rgba(255,255,255,0.14); cursor:pointer; user-select:none; transition:background 0.2s ease, transform 0.15s ease;"
-            onpointerdown="this.style.transform='scale(0.98)'; this.style.background='rgba(255,255,255,0.14)';"
-            onpointerup="this.style.transform='scale(1)'; this.style.background='rgba(255,255,255,0.08)';"
-            onpointerleave="this.style.transform='scale(1)'; this.style.background='rgba(255,255,255,0.08)';">
-            <div style="min-width:0;">
-                <div
-                    style="font-size:10px; font-weight:800; color:#38bdf8; text-transform:uppercase; letter-spacing:0.6px; margin-bottom:2px;">
-                    Transport Mode</div>
-                <div id="save-p2p-transit-label"
-                    style="font-size:13px; font-weight:800; color:#ffffff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                    Own Car</div>
-                <div id="save-p2p-legs-count" style="font-size:11px; color:rgba(255,255,255,0.75); margin-top:1px;">
-                    Tap to view destination summary</div>
-            </div>
-            <div style="text-align:right; flex-shrink:0;">
-                <div
-                    style="font-size:10px; color:rgba(255,255,255,0.65); font-weight:700; text-transform:uppercase;">
-                    Transit Total</div>
-                <div id="save-p2p-transit-cost"
-                    style="font-size:16px; font-weight:800; color:#00f2fe; margin-top:2px;">₱0.00</div>
-            </div>
-        </div>
-
-        <script>
-            // Backward compatibility stubs
-            window.selectNoVehicleMode = function () {
-                document.getElementById('trip-transport').value = 'no_vehicle';
-                if (window.calculateModalBudget) window.calculateModalBudget();
-            };
-            window.selectTransportMode = function () {
-                if (window.calculateModalBudget) window.calculateModalBudget();
-            };
-        </script>
-
-        <div style="position:relative; margin-bottom:12px;">
-            <span
-                style="position:absolute; left:16px; top:14px; color:#38bdf8; font-weight:800; font-size:15px;">₱</span>
-            <input type="tel" id="trip-budget" placeholder="Set a budget (optional)"
-                oninput="this.value=this.value.replace(/\D/g,'');if(this.value.length>5)this.value=this.value.slice(0,5);window.calculateModalBudget()"
-                style="width:100%; padding:12px 16px 12px 34px; border-radius:14px; border:none !important; outline:none !important; background:rgba(255,255,255,0.12); color:#ffffff; -webkit-text-fill-color:#ffffff; font-family:inherit; font-size:14px; font-weight:600; box-sizing:border-box; box-shadow:none !important;">
-        </div>
-
-        <div id="save-budget-details"
-            style="display:block; background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.12) !important; outline:none !important; padding:14px 16px; border-radius:16px; margin-bottom:20px; box-shadow:0 4px 16px rgba(0,0,0,0.15) !important;">
-            <div style="display:flex; align-items:center; gap:14px;">
-                <div id="modal-donut-wrapper"
-                    style="position:relative; flex-shrink:0; width:58px; height:58px; overflow:hidden; display:flex; align-items:center; justify-content:center; opacity:1; transform:scale(1); transition: width 0.45s cubic-bezier(0.34,1.56,0.64,1), opacity 0.4s ease, transform 0.45s cubic-bezier(0.34,1.56,0.64,1);">
-                    <div class="donut-chart" id="modal-budget-donut"
-                        style="position:absolute; left:0; top:0; border-radius:50%; width:58px; height:58px; transform:scaleX(-1);">
-                    </div>
-                    <span id="modal-donut-pct"
-                        style="position:relative; font-size:12px; font-weight:900; color:#ffffff; white-space:nowrap; text-shadow:0 1px 4px rgba(0,0,0,0.6);">MET!</span>
-                </div>
-                <div style="flex:1; min-width:0; display:flex; flex-direction:column; gap:6px;">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <span
-                            style="font-size:10px; color:rgba(255,255,255,0.7); font-weight:800; text-transform:uppercase; letter-spacing:0.5px;">Estimated
-                            Cost</span>
-                        <h4 style="margin:0; font-size:15px; color:#ffffff; font-weight:900;" id="save-estimated-cost">
-                            ₱0.00</h4>
-                    </div>
-                    <div id="save-budget-remaining-row"
-                        style="display:none; justify-content:space-between; align-items:center; padding-top:6px; border-top:1px solid rgba(255,255,255,0.08);">
-                        <span
-                            style="font-size:10.5px; font-weight:800; text-transform:uppercase; letter-spacing:0.3px; white-space:nowrap;"
-                            id="save-budget-remaining-label">Remaining</span>
-                        <span style="font-size:13.5px; font-weight:900; white-space:nowrap;"
-                            id="save-budget-remaining-val">—</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div style="display:flex; gap:12px; margin-top:20px;">
+        <!-- Modal Footer (Cancel and Save Trip buttons) -->
+        <div class="save-trip-modal-footer"
+            style="padding:14px 20px 16px 20px; background:#ffffff; border-top:1px solid #e2e8f0; flex-shrink:0; display:flex; gap:12px; align-items:center; box-sizing:border-box;">
             <button class="btn-primary"
-                style="flex:1; background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; padding:12px; border-radius:14px; font-weight:800; font-size:14px; cursor:pointer; box-shadow:0 2px 8px rgba(0,0,0,0.15) !important; transition:transform 0.15s ease;"
-                onclick="closeSaveModal()">Cancel</button>
+                style="flex:1; background:#f1f5f9 !important; border:1px solid #cbd5e1 !important; outline:none !important; color:#475569 !important; padding:12px; border-radius:14px; font-weight:800; font-size:14px; cursor:pointer; box-shadow:none !important; transition:transform 0.15s ease;"
+                onclick="closeSaveModal()"
+                onpointerdown="this.style.transform='scale(0.97)'" onpointerup="this.style.transform='scale(1)'">Cancel</button>
             <button class="btn-primary"
-                style="flex:1; background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); border:none !important; outline:none !important; color:#ffffff; padding:12px; border-radius:14px; font-weight:800; font-size:14px; box-shadow:0 2px 10px rgba(2, 132, 199, 0.35) !important; cursor:pointer; transition:transform 0.15s ease;"
-                onclick="submitItinerary()" id="btn-submit-trip">Save Trip</button>
+                style="flex:1; background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); border:none !important; outline:none !important; color:#ffffff; padding:12px; border-radius:14px; font-weight:800; font-size:14px; box-shadow:0 3px 12px rgba(2, 132, 199, 0.35) !important; cursor:pointer; transition:transform 0.15s ease;"
+                onclick="submitItinerary()" id="btn-submit-trip"
+                onpointerdown="this.style.transform='scale(0.97)'" onpointerup="this.style.transform='scale(1)'">Save Trip</button>
         </div>
     </div>
 </div>
@@ -3912,7 +3936,7 @@ try {
             // Leading days from previous month
             for (let i = firstDayIndex - 1; i >= 0; i--) {
                 const prevDay = prevMonthDays - i;
-                html += `<div style="padding:7px 0; font-size:12px; color:rgba(255,255,255,0.2); pointer-events:none; border-radius:10px;">${prevDay}</div>`;
+                html += `<div style="padding:7px 0; font-size:12px; color:#cbd5e1; pointer-events:none; border-radius:10px;">${prevDay}</div>`;
             }
 
             // Days of current month
@@ -3922,21 +3946,21 @@ try {
                 const isToday = (dayStr === todayStr);
 
                 let bg = 'transparent';
-                let color = 'rgba(255,255,255,0.9)';
+                let color = '#1e293b';
                 let border = 'none';
                 let shadow = 'none';
                 let weight = '600';
 
                 if (isSelected) {
-                    bg = 'linear-gradient(135deg, #00f2fe 0%, #0284c7 100%)';
+                    bg = 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)';
                     color = '#ffffff';
                     weight = '800';
                     border = 'none';
                     shadow = 'none';
                 } else if (isToday) {
-                    bg = 'rgba(255, 255, 255, 0.18)';
-                    border = 'none';
-                    color = '#00f2fe';
+                    bg = '#e0f2fe';
+                    border = '1px solid #7dd3fc';
+                    color = '#0284c7';
                     weight = '700';
                     shadow = 'none';
                 }
@@ -3944,7 +3968,7 @@ try {
                 html += `
                     <div onclick="window.selectCalendarDate('${dayStr}')" style="padding:7px 0; font-size:13px; font-weight:${weight}; cursor:pointer; border-radius:11px; background:${bg}; color:${color}; border:none !important; outline:none !important; box-shadow:none !important; transition:all 0.15s ease; position:relative; display:flex; align-items:center; justify-content:center;">
                         ${day}
-                        ${isToday && !isSelected ? '<span style="position:absolute; bottom:2px; width:4px; height:4px; border-radius:50%; background:#00f2fe;"></span>' : ''}
+                        ${isToday && !isSelected ? '<span style="position:absolute; bottom:2px; width:4px; height:4px; border-radius:50%; background:#0284c7;"></span>' : ''}
                     </div>
                 `;
             }
@@ -3953,7 +3977,7 @@ try {
             const totalRendered = firstDayIndex + totalDays;
             const remainingCells = (totalRendered <= 35 ? 35 : 42) - totalRendered;
             for (let j = 1; j <= remainingCells; j++) {
-                html += `<div style="padding:7px 0; font-size:12px; color:rgba(255,255,255,0.2); pointer-events:none; border-radius:10px;">${j}</div>`;
+                html += `<div style="padding:7px 0; font-size:12px; color:#cbd5e1; pointer-events:none; border-radius:10px;">${j}</div>`;
             }
 
             gridEl.innerHTML = html;
@@ -3987,7 +4011,7 @@ try {
                 const dateObj = new Date(y, m - 1, d);
                 const formatted = dateObj.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
                 displayEl.textContent = formatted;
-                displayEl.style.color = '#ffffff';
+                displayEl.style.color = '#0f172a';
                 displayEl.style.fontWeight = '700';
             }
             if (clearLink) clearLink.style.display = dateStr ? 'inline' : 'none';
@@ -4007,7 +4031,7 @@ try {
             if (hiddenInput) hiddenInput.value = '';
             if (displayEl) {
                 displayEl.textContent = 'Select trip date';
-                displayEl.style.color = 'rgba(255,255,255,0.85)';
+                displayEl.style.color = '#64748b';
                 displayEl.style.fontWeight = '600';
             }
             if (clearLink) clearLink.style.display = 'none';
@@ -4039,11 +4063,17 @@ try {
                 dropdown.offsetHeight;
                 dropdown.classList.add('calendar-open');
                 if (arrow) arrow.style.transform = 'rotate(180deg)';
-                if (trigger) trigger.style.background = 'rgba(255, 255, 255, 0.18)';
+                if (trigger) {
+                    trigger.style.borderColor = '#0284c7';
+                    trigger.style.boxShadow = '0 0 0 3px rgba(2, 132, 199, 0.15)';
+                }
             } else {
                 dropdown.classList.remove('calendar-open');
                 if (arrow) arrow.style.transform = 'rotate(0deg)';
-                if (trigger) trigger.style.background = 'rgba(255, 255, 255, 0.12)';
+                if (trigger) {
+                    trigger.style.borderColor = '#cbd5e1';
+                    trigger.style.boxShadow = 'none';
+                }
                 setTimeout(() => {
                     if (!dropdown.classList.contains('calendar-open')) {
                         dropdown.style.display = 'none';
@@ -4064,12 +4094,14 @@ try {
             if (radioGroup) radioGroup.checked = isGroup;
 
             if (optSolo) {
-                optSolo.style.background = isGroup ? 'rgba(255,255,255,0.08)' : 'rgba(56,189,248,0.2)';
-                optSolo.style.border = isGroup ? '1.5px solid rgba(255,255,255,0.15)' : '1.5px solid #38bdf8';
+                optSolo.style.background = isGroup ? '#f8fafc' : 'rgba(2, 132, 199, 0.08)';
+                optSolo.style.border = isGroup ? '1.5px solid #cbd5e1' : '1.5px solid #0284c7';
+                optSolo.style.color = isGroup ? '#475569' : '#0284c7';
             }
             if (optGroup) {
-                optGroup.style.background = isGroup ? 'rgba(56,189,248,0.2)' : 'rgba(255,255,255,0.08)';
-                optGroup.style.border = isGroup ? '1.5px solid #38bdf8' : '1.5px solid rgba(255,255,255,0.15)';
+                optGroup.style.background = isGroup ? 'rgba(2, 132, 199, 0.08)' : '#f8fafc';
+                optGroup.style.border = isGroup ? '1.5px solid #0284c7' : '1.5px solid #cbd5e1';
+                optGroup.style.color = isGroup ? '#0284c7' : '#475569';
             }
             if (box) {
                 box.style.display = isGroup ? 'block' : 'none';
@@ -4203,7 +4235,7 @@ try {
                 let targetDateStr = '';
                 if (editingId) {
                     if (modalTitleEl) {
-                        modalTitleEl.innerHTML = '<i class="fa-solid fa-pen-to-square" style="color:#38bdf8; font-size:18px;"></i> Edit Your Trip';
+                        modalTitleEl.innerHTML = '<i class="fa-solid fa-pen-to-square" style="color:#ffffff; font-size:18px;"></i> Edit Your Trip';
                     }
                     if (submitBtn) {
                         submitBtn.textContent = 'Update Trip';
@@ -4236,7 +4268,7 @@ try {
                             }
                             if ('value' in display) display.value = formatted;
                             display.textContent = formatted;
-                            display.style.color = targetDateStr ? '#ffffff' : 'rgba(255,255,255,0.85)';
+                            display.style.color = targetDateStr ? '#0f172a' : '#64748b';
                             display.style.fontWeight = targetDateStr ? '700' : '600';
                         }
                         const clearLink = document.getElementById('calendar-clear-link');
@@ -4270,7 +4302,7 @@ try {
                         window.setTripType('solo');
                     }
                     if (modalTitleEl) {
-                        modalTitleEl.innerHTML = '<i class="fa-solid fa-cloud-arrow-up" style="color:#38bdf8; font-size:18px;"></i> Save Your Trip';
+                        modalTitleEl.innerHTML = '<i class="fa-solid fa-cloud-arrow-up" style="color:#ffffff; font-size:18px;"></i> Save Your Trip';
                     }
                     if (submitBtn) {
                         submitBtn.textContent = 'Save Trip';
