@@ -1143,6 +1143,10 @@
                     k.startsWith('intan_cache_') ||
                     k.startsWith('intan_elyu_claimed_vouchers') ||
                     k.startsWith('intan_elyu_cached_vouchers') ||
+                    k.startsWith('game_done_') ||
+                    k.startsWith('intan_elyu_offline_game_claims') ||
+                    k.startsWith('intan_elyu_offline_checkins') ||
+                    k.startsWith('intan_elyu_offline_visited_spots') ||
                     k === 'api_token' ||
                     k === 'intan_elyu_token' ||
                     k === 'Intan_Elyu_Token' ||
@@ -1176,6 +1180,10 @@
         window._cachedRawLeadersList = [];
         window.myUserData = null;
         window._userPointsBalance = null;
+        window._touristRedemptions = null;
+        window._cachedActiveVouchers = null;
+        window._cachedHistoryVouchers = null;
+        window._practiceModes = {};
         window._cachedCompletedTrips = [];
         window.profileNeedsRefresh = true;
         window.leaderboardNeedsRefresh = true;

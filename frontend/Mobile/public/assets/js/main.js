@@ -3279,6 +3279,10 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                     k.startsWith('saved_places_') ||
                     k.startsWith('leaderboard_data_') ||
                     k.startsWith('intan_cache_') ||
+                    k.startsWith('game_done_') ||
+                    k.startsWith('intan_elyu_offline_game_claims') ||
+                    k.startsWith('intan_elyu_offline_checkins') ||
+                    k.startsWith('intan_elyu_offline_visited_spots') ||
                     k === 'api_token' ||
                     k === 'intan_elyu_token' ||
                     k === 'Intan_Elyu_Token' ||
@@ -3317,9 +3321,10 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
         window.leaderboardNeedsRefresh = true;
         window.dashboardNeedsRefresh = true;
 
-        if (window._touristRedemptions) window._touristRedemptions = [];
-        if (window._cachedActiveVouchers) window._cachedActiveVouchers = [];
-        if (window._cachedHistoryVouchers) window._cachedHistoryVouchers = [];
+        window._touristRedemptions = null;
+        window._cachedActiveVouchers = null;
+        window._cachedHistoryVouchers = null;
+        window._practiceModes = {};
 
         setTimeout(() => {
             // Direct cleanly to Auth (Sign In / Register) screen

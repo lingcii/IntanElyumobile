@@ -302,7 +302,11 @@ $activeTab = 'leaderboard';
             const myRealEmail = String(authUser.email || '').trim().toLowerCase();
 
             // Invalidate cachedMeData if it belongs to a previous user
-            if (cachedMeData && ((myRealId > 0 && Number(cachedMeData.id || cachedMeData.user_id || 0) !== myRealId) || (myRealEmail && cachedMeData.email && String(cachedMeData.email).trim().toLowerCase() !== myRealEmail))) {
+            if (cachedMeData && (
+                (myRealId > 0 && Number(cachedMeData.id || cachedMeData.user_id || 0) !== myRealId) ||
+                (myRealEmail && cachedMeData.email && String(cachedMeData.email).trim().toLowerCase() !== myRealEmail) ||
+                (!myRealId && !myRealEmail)
+            )) {
                 cachedMeData = null;
                 window._cachedMeData = null;
                 cachedMyRank = null;
@@ -332,8 +336,12 @@ $activeTab = 'leaderboard';
                 };
                 window._cachedMeData = cachedMeData;
             }
-            const myPts = cachedMeData ? parseInt(cachedMeData.points ?? cachedMeData.pts ?? cachedMeData.total_points ?? cachedMeData.claimable_points ?? 0) : parseInt(authUser.points || 0);
-            const myActivities = cachedMeData ? parseInt(cachedMeData.completed_activities ?? cachedMeData.activities ?? cachedMeData.total_activities ?? cachedMeData.places_visited ?? 0) : parseInt(authUser.completed_activities || authUser.places_visited || 0);
+            const isMeMatches = Boolean(cachedMeData && (
+                (myRealId > 0 && Number(cachedMeData.id || cachedMeData.user_id || 0) === myRealId) ||
+                (myRealEmail && cachedMeData.email && String(cachedMeData.email).trim().toLowerCase() === myRealEmail)
+            ));
+            const myPts = isMeMatches ? parseInt(cachedMeData.points ?? cachedMeData.pts ?? cachedMeData.total_points ?? cachedMeData.claimable_points ?? 0) : parseInt(authUser.points || authUser.xp || 0);
+            const myActivities = isMeMatches ? parseInt(cachedMeData.completed_activities ?? cachedMeData.activities ?? cachedMeData.total_activities ?? cachedMeData.places_visited ?? 0) : parseInt(authUser.completed_activities || authUser.places_visited || 0);
             const hasEarnedRank = Boolean((cachedMyRank && cachedMyRank < 999) || myPts > 0 || myActivities > 0);
             const myRankNum = (cachedMyRank && cachedMyRank < 999) ? cachedMyRank : (hasEarnedRank ? (rawLeadersList.length > 0 ? (rawLeadersList.length + '+') : '★') : '—');
             const myRawName = String((cachedMeData && (cachedMeData.name || cachedMeData.full_name)) || (authUser && (authUser.name || authUser.full_name)) || 'Explorer').trim() || 'Explorer';
@@ -751,9 +759,12 @@ $activeTab = 'leaderboard';
             const meId = Number(data.me.id || data.me.user_id || 0);
             const meEmail = String(data.me.email || '').trim().toLowerCase();
             // Strictly check that data.me matches our current logged-in user
-            if ((myRealId > 0 && meId === myRealId) || (myRealEmail && meEmail && myRealEmail === meEmail) || (!myRealId && !meId)) {
+            if ((myRealId > 0 && meId > 0 && meId === myRealId) || (myRealEmail && meEmail && myRealEmail === meEmail)) {
                 cachedMeData = data.me;
                 window._cachedMeData = data.me;
+            } else {
+                cachedMeData = null;
+                window._cachedMeData = null;
             }
         }
         if (data.my_rank !== undefined && data.my_rank !== null) {
@@ -767,18 +778,14 @@ $activeTab = 'leaderboard';
         // Safe self-matching: strictly match by valid positive ID or real email (never generic name)
         const myId = Number(authUser.id || authUser.user_id || 0);
         const myEmail = String(authUser.email || '').trim().toLowerCase();
-        const myName = String(authUser.name || authUser.full_name || '').trim().toLowerCase();
-        const isGenericName = ['tourist', 'explorer', 'guest', 'guest explorer', 'you'].includes(myName);
 
         let userFoundInLeaders = false;
         if (rawLeadersList && rawLeadersList.length > 0) {
             const foundIndex = rawLeadersList.findIndex((u, idx) => {
                 const uId = Number(u.id || u.user_id || 0);
                 const uEmail = String(u.email || '').trim().toLowerCase();
-                const uName = String(u.name || u.full_name || u.real_name || '').trim().toLowerCase();
                 if (myId > 0 && uId > 0 && myId === uId) return true;
                 if (myEmail && myEmail.includes('@') && uEmail && myEmail === uEmail) return true;
-                if (!isGenericName && myName && uName && myName === uName && myName.length > 3) return true;
                 return false;
             });
             if (foundIndex !== -1) {
@@ -937,9 +944,7 @@ $activeTab = 'leaderboard';
                 try {
                     const tokenSuffix = token ? token.substring(0, 10) : 'public';
                     localStorage.setItem(`leaderboard_data_v26_${sortMode}_${tokenSuffix}`, JSON.stringify(fetchedData));
-                    localStorage.setItem(`leaderboard_data_offline_fallback_${sortMode}`, JSON.stringify(fetchedData));
                     localStorage.setItem(`leaderboard_data_v26_${tokenSuffix}`, JSON.stringify(fetchedData));
-                    localStorage.setItem('leaderboard_data_offline_fallback', JSON.stringify(fetchedData));
                 } catch (e) { }
                 if (force && typeof showToast === 'function') {
                     showToast('Leaderboard rankings synced!', 'success', 3000);
