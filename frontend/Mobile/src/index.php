@@ -213,18 +213,12 @@ if (!$isApk) {
             }
 
             if (isMobile) {
+                var target = (/Android/i.test(navigator.userAgent)) ? intentUrl : appUrl;
                 try {
-                    if (/Android/i.test(navigator.userAgent)) {
-                        window.location.replace(intentUrl);
-                    } else {
-                        window.location.replace(appUrl);
-                    }
+                    window.location.replace(target);
                 } catch(e) {
-                    window.location.href = appUrl;
+                    window.location.href = target;
                 }
-                setTimeout(function() {
-                    window.location.href = (/Android/i.test(navigator.userAgent)) ? intentUrl : appUrl;
-                }, 500);
             } else {
                 window.location.replace("index.php?view=auth&app=true&" + cleanParams);
             }

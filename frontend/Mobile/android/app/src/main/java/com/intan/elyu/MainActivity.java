@@ -232,6 +232,9 @@ public class MainActivity extends BridgeActivity {
         handleIntent(getIntent());
     }
 
+    private String lastHandledUri = null;
+    private long lastHandledUriTime = 0;
+
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
@@ -243,6 +246,13 @@ public class MainActivity extends BridgeActivity {
         if (intent == null || intent.getData() == null) return;
         Uri data = intent.getData();
         String uriStr = data.toString();
+        
+        long now = System.currentTimeMillis();
+        if (uriStr.equals(lastHandledUri) && (now - lastHandledUriTime) < 3000) {
+            return;
+        }
+        lastHandledUri = uriStr;
+        lastHandledUriTime = now;
         
         try {
             if (this.bridge != null && this.bridge.getWebView() != null) {

@@ -880,6 +880,9 @@
     };
 
     window.showLoginSuccessModal = function (user) {
+        if (window._loginModalActive) return;
+        window._loginModalActive = true;
+
         const modal = document.getElementById('login-success-modal');
         const badge = document.getElementById('modal-badge');
         const spinner = document.getElementById('modal-spinner-svg');
@@ -1124,6 +1127,9 @@
 
     window.handleLogin = async function (e) {
         e.preventDefault();
+        if (window._isLoggingIn) return;
+        window._isLoggingIn = true;
+
         const btn = document.getElementById('btn-login');
         btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
         btn.disabled = true;
@@ -1164,6 +1170,7 @@
             }
 
             // Not matched or new account while offline: show modal with Explore in Offline Mode option
+            window._isLoggingIn = false;
             if (typeof window.showOfflineAuthModal === 'function') {
                 window.showOfflineAuthModal(email);
             } else if (typeof showToast === 'function') {
@@ -1248,6 +1255,7 @@
                 }
                 if (typeof showToast === 'function') showToast(cleanMsg, 'error', 4500);
             }
+            window._isLoggingIn = false;
             btn.innerHTML = '<i class="fa-solid fa-arrow-right"></i>';
             btn.disabled = false;
         }
