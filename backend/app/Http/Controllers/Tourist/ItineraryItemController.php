@@ -146,10 +146,25 @@ class ItineraryItemController extends Controller
                 ], 403);
             }
 
-            // Record location verification
+            // Record location verification with companion headcount
+            $itin = $item->itinerary;
+            $males = $request->has('companion_males') ? max(0, (int)$request->companion_males) : (int)($item->companion_males ?? $itin?->companion_males ?? 0);
+            $females = $request->has('companion_females') ? max(0, (int)$request->companion_females) : (int)($item->companion_females ?? $itin?->companion_females ?? 0);
+            $totalPax = $request->has('total_pax') ? max(1, (int)$request->total_pax) : max(1, (int)($item->total_pax ?? $itin?->total_pax ?? (1 + $males + $females)));
+
             $item->update([
-                'visited_at' => $effectiveTime,
+                'visited_at'        => $effectiveTime,
+                'companion_males'   => $males,
+                'companion_females' => $females,
+                'total_pax'         => $totalPax,
             ]);
+
+            // Increment spot visits by totalPax so companions who didn't use the app are counted
+            try {
+                if ($spot) {
+                    $spot->increment('visits', $totalPax);
+                }
+            } catch (\Throwable $e) {}
 
             try {
                 $shouldUpdatePing = !$user->last_gps_ping_at || ($effectiveTime->gte(Carbon::parse($user->last_gps_ping_at)));
@@ -380,7 +395,22 @@ class ItineraryItemController extends Controller
                 }
             }
 
+            $itin = $item->itinerary;
+            $males = $request->has('companion_males') ? max(0, (int)$request->companion_males) : (int)($item->companion_males ?? $itin?->companion_males ?? 0);
+            $females = $request->has('companion_females') ? max(0, (int)$request->companion_females) : (int)($item->companion_females ?? $itin?->companion_females ?? 0);
+            $totalPax = $request->has('total_pax') ? max(1, (int)$request->total_pax) : max(1, (int)($item->total_pax ?? $itin?->total_pax ?? (1 + $males + $females)));
+
+            $itemData['companion_males']   = $males;
+            $itemData['companion_females'] = $females;
+            $itemData['total_pax']         = $totalPax;
+
             $item->update($itemData);
+
+            try {
+                if ($spot) {
+                    $spot->increment('visits', $totalPax);
+                }
+            } catch (\Throwable $e) {}
 
             try {
                 $shouldUpdatePing = !$user->last_gps_ping_at || ($effectiveTime->gte(Carbon::parse($user->last_gps_ping_at)));

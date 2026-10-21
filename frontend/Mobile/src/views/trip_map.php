@@ -1570,6 +1570,11 @@ include_once __DIR__ . '/../components/testimony_modal.php';
             const doSubmitCheckin = async (lat, lng) => {
                 window.applyLocationCheckinLocally(itemId);
 
+                const parentTrip = (window._cachedTrip || window._activeTrip || (window._cachedSavedTrips || []).find(t => (t.items || []).some(i => String(i.id) === String(itemId))));
+                const tPax = parentTrip ? (parentTrip.total_pax || 1) : 1;
+                const cMales = parentTrip ? (parentTrip.companion_males || 0) : 0;
+                const cFemales = parentTrip ? (parentTrip.companion_females || 0) : 0;
+
                 if (isOfflineItem) {
                     if (window.OfflineCheckinManager) {
                         await window.OfflineCheckinManager.queueOfflineCheckin({
@@ -1578,11 +1583,14 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                             spotName: spotName || 'Destination',
                             lat: lat,
                             lng: lng,
+                            total_pax: tPax,
+                            companion_males: cMales,
+                            companion_females: cFemales,
                             capturedAt: new Date().toISOString()
                         });
                     }
                     if (typeof showToast === 'function') {
-                        showToast(`📍 Checked in offline at ${spotName}! Auto-syncs when online.`, 'success');
+                        showToast(`📍 Checked in party of ${tPax} offline at ${spotName}! Auto-syncs when online.`, 'success');
                     }
                     if (window.confetti) {
                         try { window.confetti({ particleCount: 70, spread: 60, origin: { y: 0.7 } }); } catch (e) { }
@@ -1597,6 +1605,9 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                 const formData = new FormData();
                 formData.append('lat', lat);
                 formData.append('lng', lng);
+                formData.append('total_pax', tPax);
+                formData.append('companion_males', cMales);
+                formData.append('companion_females', cFemales);
                 formData.append('captured_at', new Date().toISOString());
 
                 const controller = new AbortController();
