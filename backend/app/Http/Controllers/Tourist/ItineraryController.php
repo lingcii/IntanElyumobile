@@ -97,6 +97,9 @@ class ItineraryController extends Controller
             'proof_images'         => $item->proof_images ?? [],
             'proof_status'         => $item->proof_status ?? ($item->proof_image ? ($item->is_visited ? 'approved' : 'pending') : null),
             'rejection_reason'     => $item->rejection_reason,
+            'companion_males'      => (int) ($item->companion_males ?? 0),
+            'companion_females'    => (int) ($item->companion_females ?? 0),
+            'total_pax'            => (int) ($item->total_pax ?? 1),
             'visited_at'           => $item->visited_at,
             'transport_mode'   => $item->transport_mode,
             'leg_cost'         => (float) ($item->leg_cost ?? 0),
@@ -143,10 +146,14 @@ class ItineraryController extends Controller
             'trip_date'      => $itinerary->trip_date?->format('Y-m-d'),
             'budget'         => $itinerary->budget,
             'total_cost'     => $itinerary->total_cost,
-            'status'         => $itinerary->status,
-            'route_type'     => $itinerary->route_type,
-            'transport_mode' => $itinerary->transport_mode,
-            'items'          => $items,
+            'status'            => $itinerary->status,
+            'route_type'        => $itinerary->route_type,
+            'transport_mode'    => $itinerary->transport_mode,
+            'trip_type'         => $itinerary->trip_type ?? 'solo',
+            'companion_males'   => (int) ($itinerary->companion_males ?? 0),
+            'companion_females' => (int) ($itinerary->companion_females ?? 0),
+            'total_pax'         => (int) ($itinerary->total_pax ?? 1),
+            'items'             => $items,
         ];
     }
 
@@ -237,9 +244,13 @@ class ItineraryController extends Controller
             'destinations.*' => 'integer|exists:tourist_spots,id',
             'trip_date'      => 'nullable|date',
             'budget'         => 'nullable|numeric|min:0',
-            'route_type'     => 'nullable|string|max:255',
-            'transport_mode' => 'nullable|string|max:255',
-            'leg_transports' => 'nullable|array',
+            'route_type'        => 'nullable|string|max:255',
+            'transport_mode'    => 'nullable|string|max:255',
+            'trip_type'         => 'nullable|string|in:solo,group,With Companions,Solo Trip',
+            'companion_males'   => 'nullable|integer|min:0',
+            'companion_females' => 'nullable|integer|min:0',
+            'total_pax'         => 'nullable|integer|min:1',
+            'leg_transports'    => 'nullable|array',
         ]);
 
         $user = $request->user();
@@ -289,15 +300,24 @@ class ItineraryController extends Controller
                 $totalEstimatedCost = (float) ($spots->sum('entrance_fee') + $spots->sum('environmental_fee'));
             }
 
+            $tripType = in_array(strtolower((string)($request->trip_type ?? 'solo')), ['group', 'with companions', 'companions']) ? 'group' : 'solo';
+            $companionMales = ($tripType === 'group') ? max(0, (int)($request->companion_males ?? 0)) : 0;
+            $companionFemales = ($tripType === 'group') ? max(0, (int)($request->companion_females ?? 0)) : 0;
+            $totalPax = ($tripType === 'group') ? max(1, (int)($request->total_pax ?? (1 + $companionMales + $companionFemales))) : 1;
+
             $itinerary = Itinerary::create([
-                'user_id'        => $user->id,
-                'title'          => $request->title,
-                'trip_date'      => $request->trip_date,
-                'budget'         => $request->budget,
-                'total_cost'     => $totalEstimatedCost,
-                'status'         => 'pending',
-                'route_type'     => $request->route_type,
-                'transport_mode' => $savedTransportMode,
+                'user_id'           => $user->id,
+                'title'             => $request->title,
+                'trip_date'         => $request->trip_date,
+                'budget'            => $request->budget,
+                'total_cost'        => $totalEstimatedCost,
+                'status'            => 'pending',
+                'route_type'        => $request->route_type,
+                'transport_mode'    => $savedTransportMode,
+                'trip_type'         => $tripType,
+                'companion_males'   => $companionMales,
+                'companion_females' => $companionFemales,
+                'total_pax'         => $totalPax,
             ]);
 
             // Create itinerary items preserving order with Point-to-Point transportation
@@ -334,12 +354,15 @@ class ItineraryController extends Controller
                 }
 
                 ItineraryItem::create([
-                    'itinerary_id'    => $itinerary->id,
-                    'tourist_spot_id' => $spotId,
-                    'order_index'     => $idx + 1,
-                    'transport_mode'  => $legMode,
-                    'leg_cost'        => $legCost,
-                    'leg_distance_km' => $legDist,
+                    'itinerary_id'      => $itinerary->id,
+                    'tourist_spot_id'   => $spotId,
+                    'order_index'       => $idx + 1,
+                    'transport_mode'    => $legMode,
+                    'companion_males'   => $companionMales,
+                    'companion_females' => $companionFemales,
+                    'total_pax'         => $totalPax,
+                    'leg_cost'          => $legCost,
+                    'leg_distance_km'   => $legDist,
                 ]);
             }
 
@@ -383,7 +406,8 @@ class ItineraryController extends Controller
                 if ($item->tourist_spot_id) {
                     $spot = TouristSpot::find($item->tourist_spot_id);
                     if ($spot) {
-                        $spot->increment('visits');
+                        $paxIncrement = max(1, (int) ($item->total_pax ?? $itinerary->total_pax ?? 1));
+                        $spot->increment('visits', $paxIncrement);
                     }
                 }
             }
@@ -476,17 +500,21 @@ class ItineraryController extends Controller
         $itinerary = Itinerary::where('user_id', $user->id)->findOrFail($id);
 
         $request->validate([
-            'title'          => 'sometimes|string|max:255',
-            'trip_date'      => 'nullable|date',
-            'budget'         => 'nullable|numeric|min:0',
-            'route_type'     => 'nullable|string|max:255',
-            'transport_mode' => 'nullable|string|max:255',
-            'destinations'   => 'nullable|array',
-            'destinations.*' => 'integer|exists:tourist_spots,id',
-            'leg_transports' => 'nullable|array',
+            'title'             => 'sometimes|string|max:255',
+            'trip_date'         => 'nullable|date',
+            'budget'            => 'nullable|numeric|min:0',
+            'route_type'        => 'nullable|string|max:255',
+            'transport_mode'    => 'nullable|string|max:255',
+            'trip_type'         => 'nullable|string|in:solo,group,With Companions,Solo Trip',
+            'companion_males'   => 'nullable|integer|min:0',
+            'companion_females' => 'nullable|integer|min:0',
+            'total_pax'         => 'nullable|integer|min:1',
+            'destinations'      => 'nullable|array',
+            'destinations.*'    => 'integer|exists:tourist_spots,id',
+            'leg_transports'    => 'nullable|array',
         ]);
 
-        $updateData = $request->only(['title', 'trip_date', 'budget', 'route_type', 'transport_mode']);
+        $updateData = $request->only(['title', 'trip_date', 'budget', 'route_type', 'transport_mode', 'trip_type', 'companion_males', 'companion_females', 'total_pax']);
         if (isset($updateData['trip_date']) && $updateData['trip_date'] === '') {
             $updateData['trip_date'] = null;
         }
@@ -497,6 +525,21 @@ class ItineraryController extends Controller
             $rawT = trim((string)($updateData['transport_mode'] ?? ''));
             $isNoVeh = empty($rawT) || stripos($rawT, 'no_vehicle') !== false || stripos($rawT, 'no vehicle') !== false;
             $updateData['transport_mode'] = $isNoVeh ? 'No Vehicle Selected' : $rawT;
+        }
+        if (array_key_exists('trip_type', $updateData)) {
+            $isGrp = in_array(strtolower((string)$updateData['trip_type']), ['group', 'with companions', 'companions']);
+            $updateData['trip_type'] = $isGrp ? 'group' : 'solo';
+            if (!$isGrp) {
+                $updateData['companion_males'] = 0;
+                $updateData['companion_females'] = 0;
+                $updateData['total_pax'] = 1;
+            } else {
+                $m = max(0, (int)($updateData['companion_males'] ?? $itinerary->companion_males ?? 0));
+                $f = max(0, (int)($updateData['companion_females'] ?? $itinerary->companion_females ?? 0));
+                $updateData['companion_males'] = $m;
+                $updateData['companion_females'] = $f;
+                $updateData['total_pax'] = max(1, (int)($updateData['total_pax'] ?? (1 + $m + $f)));
+            }
         }
         $itinerary->update($updateData);
 
@@ -560,19 +603,25 @@ class ItineraryController extends Controller
 
                 if ($existingItems->has($spotId)) {
                     $existingItems->get($spotId)->update([
-                        'order_index'     => $idx + 1,
-                        'transport_mode'  => $legMode,
-                        'leg_cost'        => $legCost,
-                        'leg_distance_km' => $legDist,
+                        'order_index'       => $idx + 1,
+                        'transport_mode'    => $legMode,
+                        'companion_males'   => $itinerary->companion_males ?? 0,
+                        'companion_females' => $itinerary->companion_females ?? 0,
+                        'total_pax'         => $itinerary->total_pax ?? 1,
+                        'leg_cost'          => $legCost,
+                        'leg_distance_km'   => $legDist,
                     ]);
                 } else {
                     ItineraryItem::create([
-                        'itinerary_id'    => $itinerary->id,
-                        'tourist_spot_id' => $spotId,
-                        'order_index'     => $idx + 1,
-                        'transport_mode'  => $legMode,
-                        'leg_cost'        => $legCost,
-                        'leg_distance_km' => $legDist,
+                        'itinerary_id'      => $itinerary->id,
+                        'tourist_spot_id'   => $spotId,
+                        'order_index'       => $idx + 1,
+                        'transport_mode'    => $legMode,
+                        'companion_males'   => $itinerary->companion_males ?? 0,
+                        'companion_females' => $itinerary->companion_females ?? 0,
+                        'total_pax'         => $itinerary->total_pax ?? 1,
+                        'leg_cost'          => $legCost,
+                        'leg_distance_km'   => $legDist,
                     ]);
                 }
             }

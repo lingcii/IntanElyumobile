@@ -630,6 +630,18 @@ $backRoute = 'itinerary';
 
                         const transportBadge = getSavedTripTransportBadge(trip.transport_mode);
                         const safeTitle = trip.title ? trip.title.replace(/"/g, '&quot;').replace(/'/g, "\\'") : 'Saved Trip';
+
+                        const tripType = trip.trip_type || (trip.total_pax > 1 ? 'group' : 'solo');
+                        const totalPax = parseInt(trip.total_pax || 1, 10);
+                        const males = parseInt(trip.companion_males || 0, 10);
+                        const females = parseInt(trip.companion_females || 0, 10);
+                        let paxBadge = '';
+                        if (tripType === 'group' || totalPax > 1) {
+                            paxBadge = `<span style="background:rgba(56,189,248,0.22); border:1px solid rgba(56,189,248,0.38); color:#ffffff; padding:3px 10px; border-radius:100px; font-weight:800; font-size:11.5px; display:inline-flex; align-items:center; gap:5px;" title="Party of ${totalPax} (${males} Males, ${females} Females)"><i class="fa-solid fa-users" style="color:#38bdf8;"></i> ${totalPax} Pax ${males > 0 || females > 0 ? `(${males}M, ${females}F)` : ''}</span>`;
+                        } else {
+                            paxBadge = `<span style="background:rgba(255,255,255,0.18); color:#ffffff; padding:3px 9px; border-radius:100px; font-weight:700; font-size:11.5px; display:inline-flex; align-items:center; gap:4px;" title="Solo Traveler"><i class="fa-solid fa-user" style="font-size:10px; color:#38bdf8;"></i> Solo</span>`;
+                        }
+
                         html += `
                     <div class="trip-swipe-container" data-trip-id="${trip.id}" data-trip-title="${safeTitle}" style="position:relative; overflow:hidden; border-radius:24px; -webkit-mask-image:-webkit-radial-gradient(white, black); mask-image:radial-gradient(white, black); isolation:isolate; contain:paint; margin-bottom:20px; touch-action:pan-y;">
                         <!-- Red Delete Action Button (Slides smoothly in tandem from right wall) -->
@@ -650,6 +662,7 @@ $backRoute = 'itinerary';
                             <div style="font-size: 12.5px; color: #ffffff; opacity: 0.95; margin: 0 0 16px 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                                 <span style="display:inline-flex; align-items:center; gap:5px; font-weight:700;"><i class="fa-regular fa-calendar" style="color: #ffffff;"></i>${trip.trip_date ? new Date(trip.trip_date).toLocaleDateString() : 'No date set'}</span> 
                                 ${transportBadge}
+                                ${paxBadge}
                                 ${trip.is_offline_queued ? `<span style="background: rgba(245, 158, 11, 0.28); border: 1px solid rgba(245, 158, 11, 0.5); color: #fef08a; padding: 3px 10px; border-radius: 100px; font-weight: 800; font-size: 11px; display: inline-flex; align-items: center; gap: 4px;"><i class="fa-solid fa-cloud-arrow-up"></i> Queued (Offline)</span>` : ''}
                                 ${trip.budget ? `<span style="background: rgba(255,255,255,0.22); border: none !important; outline: none !important; color: #ffffff; padding: 3px 10px; border-radius: 100px; font-weight: 700; font-size: 12px; display: inline-flex; align-items: center; gap: 4px;"><i class="fa-solid fa-coins" style="font-size:10px; color:#fbbf24;"></i>Budget: ₱${parseFloat(trip.budget).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}${budgetIndicator}</span>` : ''}
                             </div>
@@ -1737,6 +1750,11 @@ $backRoute = 'itinerary';
                 token.startsWith('offline_');
 
             const doSubmitCheckin = async (lat, lng) => {
+                const parentTrip = (window._cachedSavedTrips || []).find(t => (t.items || []).some(i => String(i.id) === String(itemId)));
+                const tPax = parentTrip ? (parentTrip.total_pax || 1) : 1;
+                const cMales = parentTrip ? (parentTrip.companion_males || 0) : 0;
+                const cFemales = parentTrip ? (parentTrip.companion_females || 0) : 0;
+
                 // Optimistically update location check-in state locally
                 window.applyLocationCheckinLocally(itemId);
 
@@ -1748,11 +1766,14 @@ $backRoute = 'itinerary';
                             spotName: spotName || 'Destination',
                             lat: lat,
                             lng: lng,
+                            total_pax: tPax,
+                            companion_males: cMales,
+                            companion_females: cFemales,
                             capturedAt: new Date().toISOString()
                         });
                     }
                     if (typeof showToast === 'function') {
-                        showToast(`📍 Checked in offline at ${spotName}! Auto-syncs when online.`, 'success');
+                        showToast(`📍 Checked in party of ${tPax} offline at ${spotName}! Auto-syncs when online.`, 'success');
                     }
                     if (window.confetti) {
                         try { window.confetti({ particleCount: 70, spread: 60, origin: { y: 0.7 } }); } catch (e) { }
@@ -1767,6 +1788,9 @@ $backRoute = 'itinerary';
                 const formData = new FormData();
                 formData.append('lat', lat);
                 formData.append('lng', lng);
+                formData.append('total_pax', tPax);
+                formData.append('companion_males', cMales);
+                formData.append('companion_females', cFemales);
                 formData.append('captured_at', new Date().toISOString());
 
                 const controller = new AbortController();
@@ -2120,6 +2144,10 @@ $backRoute = 'itinerary';
             sessionStorage.setItem('editing_trip_date', trip.trip_date || '');
             sessionStorage.setItem('editing_trip_budget', (trip.budget !== null && trip.budget !== undefined) ? trip.budget : '');
             sessionStorage.setItem('editing_trip_transport', trip.transport_mode || '');
+            sessionStorage.setItem('editing_trip_type', trip.trip_type || 'solo');
+            sessionStorage.setItem('editing_companion_males', String(trip.companion_males || 0));
+            sessionStorage.setItem('editing_companion_females', String(trip.companion_females || 0));
+            sessionStorage.setItem('editing_total_pax', String(trip.total_pax || 1));
             if (trip.transport_mode) {
                 localStorage.setItem('intan_elyu_draft_trip_transport', trip.transport_mode);
                 const rawModes = trip.transport_mode.split(/[\+,]/).map(s => s.trim().toLowerCase()).filter(Boolean);

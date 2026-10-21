@@ -12,6 +12,9 @@ class ItineraryItem extends Model
         'tourist_spot_id',
         'order_index',
         'is_visited',
+        'companion_males',
+        'companion_females',
+        'total_pax',
         'proof_image',
         'visited_at',
         'proof_status',
@@ -24,12 +27,15 @@ class ItineraryItem extends Model
     ];
 
     protected $casts = [
-        'order_index'     => 'integer',
-        'is_visited'      => 'boolean',
-        'visited_at'      => 'datetime',
-        'reviewed_at'     => 'datetime',
-        'leg_cost'        => 'decimal:2',
-        'leg_distance_km' => 'decimal:2',
+        'order_index'       => 'integer',
+        'is_visited'        => 'boolean',
+        'companion_males'   => 'integer',
+        'companion_females' => 'integer',
+        'total_pax'         => 'integer',
+        'visited_at'        => 'datetime',
+        'reviewed_at'       => 'datetime',
+        'leg_cost'          => 'decimal:2',
+        'leg_distance_km'   => 'decimal:2',
     ];
 
     protected $appends = [

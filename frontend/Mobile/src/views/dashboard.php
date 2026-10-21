@@ -1541,6 +1541,9 @@ if (is_dir($imgDir)) {
                                             const displayName = tMap[rawT] || rawT.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
                                             return `<span style="color:rgba(255,255,255,0.4);">&bull;</span><span><i class="fa-solid ${tIco[rawT] || 'fa-car'}" style="margin-right:4px; color:#38bdf8;"></i>${displayName}</span>`;
                                         })() : ''}
+                                        ${trip.trip_type === 'group' || (trip.total_pax && trip.total_pax > 1) 
+                                            ? `<span style="color:rgba(255,255,255,0.4);">&bull;</span><span><i class="fa-solid fa-users" style="margin-right:4px; color:#38bdf8;"></i>${trip.total_pax} Pax${(trip.companion_males || trip.companion_females) ? ` (${trip.companion_males || 0}M, ${trip.companion_females || 0}F)` : ''}</span>`
+                                            : `<span style="color:rgba(255,255,255,0.4);">&bull;</span><span><i class="fa-solid fa-user" style="margin-right:4px; color:#38bdf8;"></i>Solo</span>`}
                                     </span>
                                 </div>
                                 <i class="fa-solid fa-chevron-right toggle-icon" style="color: rgba(255,255,255,0.7); font-size: 14px; margin-right:4px; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);"></i>

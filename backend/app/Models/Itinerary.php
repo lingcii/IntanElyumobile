@@ -17,13 +17,20 @@ class Itinerary extends Model
         'total_cost',
         'route_type',
         'transport_mode',
+        'trip_type',
+        'companion_males',
+        'companion_females',
+        'total_pax',
     ];
 
     protected $casts = [
-        'user_id'    => 'integer',
-        'trip_date'  => 'date',
-        'budget'     => 'decimal:2',
-        'total_cost' => 'decimal:2',
+        'user_id'           => 'integer',
+        'trip_date'         => 'date',
+        'budget'            => 'decimal:2',
+        'total_cost'        => 'decimal:2',
+        'companion_males'   => 'integer',
+        'companion_females' => 'integer',
+        'total_pax'         => 'integer',
     ];
 
     protected static function booted(): void

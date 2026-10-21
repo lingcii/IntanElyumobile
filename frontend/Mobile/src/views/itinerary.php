@@ -221,6 +221,74 @@ try {
             </div>
         </div>
 
+        <!-- Travel Group / Companions Section (MTO Tourist Arrival Count) -->
+        <label style="font-size:13px; color:#ffffff; margin-bottom:8px; display:flex; align-items:center; justify-content:space-between; font-weight:700;">
+            <span><i class="fa-solid fa-users" style="color:#38bdf8; margin-right:6px;"></i> Travel Group Type</span>
+            <span id="trip-pax-count-badge" style="font-size:11px; background:rgba(56,189,248,0.2); color:#38bdf8; font-weight:800; padding:2px 8px; border-radius:100px;">1 Traveler (Solo)</span>
+        </label>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:14px;">
+            <label id="opt-trip-solo" onclick="window.setTripType('solo')" style="display:flex; align-items:center; gap:8px; padding:10px 14px; border-radius:14px; background:rgba(56,189,248,0.2); border:1.5px solid #38bdf8; cursor:pointer; transition:all 0.2s ease;">
+                <input type="radio" name="trip_companion_type" id="radio-trip-solo" value="solo" checked style="accent-color:#38bdf8; cursor:pointer; width:16px; height:16px;">
+                <div>
+                    <div style="color:#ffffff; font-size:13px; font-weight:800;">Solo Trip</div>
+                    <div style="color:rgba(255,255,255,0.7); font-size:10px;">Just myself</div>
+                </div>
+            </label>
+            <label id="opt-trip-group" onclick="window.setTripType('group')" style="display:flex; align-items:center; gap:8px; padding:10px 14px; border-radius:14px; background:rgba(255,255,255,0.08); border:1.5px solid rgba(255,255,255,0.15); cursor:pointer; transition:all 0.2s ease;">
+                <input type="radio" name="trip_companion_type" id="radio-trip-group" value="group" style="accent-color:#38bdf8; cursor:pointer; width:16px; height:16px;">
+                <div>
+                    <div style="color:#ffffff; font-size:13px; font-weight:800;">With Companions</div>
+                    <div style="color:rgba(255,255,255,0.7); font-size:10px;">Friends / Family</div>
+                </div>
+            </label>
+        </div>
+
+        <!-- Collapsible Companion Demographic Stepper Box (MTO Sex/Gender Disaggregation) -->
+        <div id="companion-stepper-box" style="display:none; background:rgba(255,255,255,0.06); border:1px solid rgba(56,189,248,0.25); border-radius:16px; padding:14px 16px; margin-bottom:16px;">
+            <div style="font-size:11.5px; color:#93c5fd; font-weight:700; margin-bottom:12px; display:flex; align-items:center; gap:6px;">
+                <i class="fa-solid fa-circle-info" style="font-size:12px;"></i> Companions who don't have the app (counted for MTO):
+            </div>
+            
+            <div style="display:flex; flex-direction:column; gap:10px;">
+                <!-- Male Companions -->
+                <div style="display:flex; align-items:center; justify-content:space-between;">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <div style="width:28px; height:28px; border-radius:8px; background:rgba(59,130,246,0.2); display:flex; align-items:center; justify-content:center; color:#60a5fa;">
+                            <i class="fa-solid fa-mars" style="font-size:13px;"></i>
+                        </div>
+                        <span style="font-size:13px; font-weight:700; color:#ffffff;">Male Companions</span>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <button type="button" onclick="window.adjustCompanionCount('males', -1)" style="width:30px; height:30px; border-radius:50%; background:rgba(255,255,255,0.15); border:none; outline:none; color:#ffffff; font-size:14px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background 0.2s;">−</button>
+                        <span id="companion-males-count" style="font-size:15px; font-weight:800; color:#ffffff; min-width:24px; text-align:center;">0</span>
+                        <button type="button" onclick="window.adjustCompanionCount('males', 1)" style="width:30px; height:30px; border-radius:50%; background:rgba(56,189,248,0.3); border:none; outline:none; color:#ffffff; font-size:14px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background 0.2s;">+</button>
+                    </div>
+                </div>
+
+                <!-- Female Companions -->
+                <div style="display:flex; align-items:center; justify-content:space-between;">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <div style="width:28px; height:28px; border-radius:8px; background:rgba(236,72,153,0.2); display:flex; align-items:center; justify-content:center; color:#f472b6;">
+                            <i class="fa-solid fa-venus" style="font-size:13px;"></i>
+                        </div>
+                        <span style="font-size:13px; font-weight:700; color:#ffffff;">Female Companions</span>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <button type="button" onclick="window.adjustCompanionCount('females', -1)" style="width:30px; height:30px; border-radius:50%; background:rgba(255,255,255,0.15); border:none; outline:none; color:#ffffff; font-size:14px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background 0.2s;">−</button>
+                        <span id="companion-females-count" style="font-size:15px; font-weight:800; color:#ffffff; min-width:24px; text-align:center;">0</span>
+                        <button type="button" onclick="window.adjustCompanionCount('females', 1)" style="width:30px; height:30px; border-radius:50%; background:rgba(236,72,153,0.3); border:none; outline:none; color:#ffffff; font-size:14px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background 0.2s;">+</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Group Headcount Summary -->
+            <div id="companion-summary-note" style="margin-top:12px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.1); font-size:11px; color:#cbd5e1; display:flex; align-items:center; justify-content:space-between;">
+                <span>Total Party:</span>
+                <span id="companion-summary-text" style="color:#38bdf8; font-weight:800;">1 Traveler (You)</span>
+            </div>
+        </div>
+
         <!-- Point-to-Point Route & Transit Summary Card (Tap to view opensheet) -->
         <input type="hidden" id="trip-transport" value="">
         <div id="save-p2p-transit-summary" onclick="window.openTransitSummaryOpensheet()" role="button" tabindex="0"
@@ -3997,6 +4065,61 @@ try {
             }
         };
 
+        window.setTripType = function (type) {
+            const isGroup = type === 'group';
+            const radioSolo = document.getElementById('radio-trip-solo');
+            const radioGroup = document.getElementById('radio-trip-group');
+            const optSolo = document.getElementById('opt-trip-solo');
+            const optGroup = document.getElementById('opt-trip-group');
+            const box = document.getElementById('companion-stepper-box');
+
+            if (radioSolo) radioSolo.checked = !isGroup;
+            if (radioGroup) radioGroup.checked = isGroup;
+
+            if (optSolo) {
+                optSolo.style.background = isGroup ? 'rgba(255,255,255,0.08)' : 'rgba(56,189,248,0.2)';
+                optSolo.style.border = isGroup ? '1.5px solid rgba(255,255,255,0.15)' : '1.5px solid #38bdf8';
+            }
+            if (optGroup) {
+                optGroup.style.background = isGroup ? 'rgba(56,189,248,0.2)' : 'rgba(255,255,255,0.08)';
+                optGroup.style.border = isGroup ? '1.5px solid #38bdf8' : '1.5px solid rgba(255,255,255,0.15)';
+            }
+            if (box) {
+                box.style.display = isGroup ? 'block' : 'none';
+            }
+            window.updateCompanionHeadcountSummary();
+        };
+
+        window.adjustCompanionCount = function (gender, delta) {
+            const countEl = document.getElementById(`companion-${gender}-count`);
+            if (!countEl) return;
+            let current = parseInt(countEl.textContent || '0', 10);
+            if (isNaN(current)) current = 0;
+            current = Math.max(0, current + delta);
+            countEl.textContent = current;
+            window.updateCompanionHeadcountSummary();
+        };
+
+        window.updateCompanionHeadcountSummary = function () {
+            const isGroup = document.querySelector('input[name="trip_companion_type"]:checked')?.value === 'group';
+            const males = isGroup ? Math.max(0, parseInt(document.getElementById('companion-males-count')?.textContent || '0', 10)) : 0;
+            const females = isGroup ? Math.max(0, parseInt(document.getElementById('companion-females-count')?.textContent || '0', 10)) : 0;
+            const totalPax = isGroup ? (1 + males + females) : 1;
+
+            const badge = document.getElementById('trip-pax-count-badge');
+            if (badge) {
+                badge.textContent = `${totalPax} Traveler${totalPax > 1 ? 's' : ''}${isGroup ? '' : ' (Solo)'}`;
+            }
+            const summaryText = document.getElementById('companion-summary-text');
+            if (summaryText) {
+                if (!isGroup || (males === 0 && females === 0)) {
+                    summaryText.textContent = '1 Traveler (You)';
+                } else {
+                    summaryText.textContent = `${totalPax} Travelers (You + ${males}M, ${females}F)`;
+                }
+            }
+        };
+
         window.resetSaveModalInputs = function () {
             const titleInput = document.getElementById('trip-title');
             if (titleInput) titleInput.value = '';
@@ -4020,11 +4143,22 @@ try {
             const wrapper = document.getElementById('transport-slider-wrapper');
             if (wrapper) wrapper.style.display = 'none';
 
+            if (typeof window.setTripType === 'function') window.setTripType('solo');
+            const compM = document.getElementById('companion-males-count');
+            const compF = document.getElementById('companion-females-count');
+            if (compM) compM.textContent = '0';
+            if (compF) compF.textContent = '0';
+            if (typeof window.updateCompanionHeadcountSummary === 'function') window.updateCompanionHeadcountSummary();
+
             sessionStorage.removeItem('editing_itinerary_id');
             sessionStorage.removeItem('editing_trip_title');
             sessionStorage.removeItem('editing_trip_date');
             sessionStorage.removeItem('editing_trip_budget');
             sessionStorage.removeItem('editing_trip_transport');
+            sessionStorage.removeItem('editing_trip_type');
+            sessionStorage.removeItem('editing_companion_males');
+            sessionStorage.removeItem('editing_companion_females');
+            sessionStorage.removeItem('editing_total_pax');
             sessionStorage.removeItem('editing_transport_initialized');
         };
 
@@ -4130,7 +4264,24 @@ try {
                         const isNoVeh = savedTransport.toLowerCase().includes('no_vehicle') || savedTransport.toLowerCase().includes('no vehicle');
                         if (transEl) transEl.value = isNoVeh ? '' : savedTransport;
                     }
+
+                    const savedTripType = sessionStorage.getItem('editing_trip_type') || 'solo';
+                    const savedMales = parseInt(sessionStorage.getItem('editing_companion_males') || '0', 10);
+                    const savedFemales = parseInt(sessionStorage.getItem('editing_companion_females') || '0', 10);
+                    if (typeof window.setTripType === 'function') {
+                        window.setTripType(savedTripType);
+                    }
+                    const mEl = document.getElementById('companion-males-count');
+                    const fEl = document.getElementById('companion-females-count');
+                    if (mEl) mEl.textContent = isNaN(savedMales) ? '0' : savedMales;
+                    if (fEl) fEl.textContent = isNaN(savedFemales) ? '0' : savedFemales;
+                    if (typeof window.updateCompanionHeadcountSummary === 'function') {
+                        window.updateCompanionHeadcountSummary();
+                    }
                 } else {
+                    if (typeof window.setTripType === 'function') {
+                        window.setTripType('solo');
+                    }
                     if (modalTitleEl) {
                         modalTitleEl.innerHTML = '<i class="fa-solid fa-cloud-arrow-up" style="color:#38bdf8; font-size:18px;"></i> Save Your Trip';
                     }
@@ -4250,6 +4401,11 @@ try {
                     };
                 });
 
+                const tripType = document.querySelector('input[name="trip_companion_type"]:checked')?.value || 'solo';
+                const compMales = tripType === 'group' ? Math.max(0, parseInt(document.getElementById('companion-males-count')?.textContent || '0', 10)) : 0;
+                const compFemales = tripType === 'group' ? Math.max(0, parseInt(document.getElementById('companion-females-count')?.textContent || '0', 10)) : 0;
+                const totalPax = tripType === 'group' ? (1 + compMales + compFemales) : 1;
+
                 tripPayload = {
                     title: title,
                     trip_date: date || null,
@@ -4257,6 +4413,10 @@ try {
                     destinations: destinations,
                     route_type: activeRouteType,
                     transport_mode: effectiveTransport,
+                    trip_type: tripType,
+                    companion_males: compMales,
+                    companion_females: compFemales,
+                    total_pax: totalPax,
                     leg_transports: legTransports,
                     update_id: editingId || null,
                     items: draft.map((place, idx) => ({
@@ -4265,6 +4425,9 @@ try {
                         destination: place,
                         transport_type: effectiveTransport,
                         transport_mode: (legTransports && legTransports[idx] && legTransports[idx].transport_mode) ? legTransports[idx].transport_mode : effectiveTransport,
+                        companion_males: compMales,
+                        companion_females: compFemales,
+                        total_pax: totalPax,
                         is_visited: false,
                         proof_image: null,
                         proof_status: null
@@ -4287,6 +4450,10 @@ try {
                     sessionStorage.removeItem('editing_trip_date');
                     sessionStorage.removeItem('editing_trip_budget');
                     sessionStorage.removeItem('editing_trip_transport');
+                    sessionStorage.removeItem('editing_trip_type');
+                    sessionStorage.removeItem('editing_companion_males');
+                    sessionStorage.removeItem('editing_companion_females');
+                    sessionStorage.removeItem('editing_total_pax');
                     sessionStorage.removeItem('editing_transport_initialized');
                     localStorage.removeItem('intan_elyu_draft_leg_vehicles');
                     window.resetSaveModalInputs();
@@ -4312,6 +4479,10 @@ try {
                         destinations: destinations,
                         route_type: activeRouteType,
                         transport_mode: effectiveTransport,
+                        trip_type: tripType,
+                        companion_males: compMales,
+                        companion_females: compFemales,
+                        total_pax: totalPax,
                         leg_transports: legTransports
                     })
                 });
