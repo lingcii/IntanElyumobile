@@ -59,8 +59,8 @@ if (strpos($path, 'intan-elyu.apk') !== false || strpos($path, '.apk') !== false
         header('Content-Disposition: attachment; filename="intan-elyu.apk"');
         header('Content-Transfer-Encoding: binary');
         header('Expires: 0');
-        header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
-        header('Pragma: public');
+        header('Cache-Control: no-cache, no-store, must-revalidate, max-age=0');
+        header('Pragma: no-cache');
         header('Content-Length: ' . $fileSize);
         header('Accept-Ranges: bytes');
 

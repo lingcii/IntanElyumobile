@@ -33,6 +33,12 @@ include_once __DIR__ . '/../components/testimony_modal.php';
             <i id="trip-info-vehicle-icon" class="fa-solid fa-car" style="color:#f59e0b;"></i>
             <span id="trip-info-vehicle-name">Own Car</span>
         </div>
+        <div id="trip-info-pax-divider" style="width:1px; height:12px; background:rgba(255,255,255,0.25);"></div>
+        <div id="trip-info-pax-badge"
+            style="display:flex; align-items:center; gap:6px; color:#ffffff; font-size:12px; font-weight:800; background:rgba(255,255,255,0.18); border:none !important; outline:none !important; border-radius:100px; padding:4px 10px;">
+            <i id="trip-info-pax-icon" class="fa-solid fa-users" style="color:#38bdf8;"></i>
+            <span id="trip-info-pax-text">1 Pax</span>
+        </div>
     </div>
 
     <!-- Conveyor Cards Carousel Scroll Container -->
@@ -631,6 +637,23 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                     // Resolve selected vehicle dynamically from trip / session / storage
                     const vehicleInfo = resolveTripVehicle(trip, tripId);
                     applyVehicleToUI(vehicleInfo);
+
+                    // Update companion headcount badge in floating summary pill
+                    const paxTextEl = document.getElementById('trip-info-pax-text');
+                    const paxIconEl = document.getElementById('trip-info-pax-icon');
+                    if (paxTextEl) {
+                        const isGroup = trip.trip_type === 'group' || (trip.total_pax && trip.total_pax > 1);
+                        const totalPax = parseInt(trip.total_pax || 1, 10);
+                        const males = parseInt(trip.companion_males || 0, 10);
+                        const females = parseInt(trip.companion_females || 0, 10);
+                        if (isGroup) {
+                            paxTextEl.textContent = `${totalPax} Pax${(males > 0 || females > 0) ? ` (${males}M, ${females}F)` : ''}`;
+                            if (paxIconEl) paxIconEl.className = 'fa-solid fa-users';
+                        } else {
+                            paxTextEl.textContent = 'Solo';
+                            if (paxIconEl) paxIconEl.className = 'fa-solid fa-user';
+                        }
+                    }
 
                     const conveyorWrapper = document.getElementById('trip-conveyor-wrapper');
                     if (conveyorWrapper) conveyorWrapper.style.display = 'flex';
