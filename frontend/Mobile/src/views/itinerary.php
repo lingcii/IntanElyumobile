@@ -135,21 +135,21 @@ try {
 
 </div>
 
-<!-- Save Trip Modal -->
+<!-- Save Trip Modal (matches Notifications modal design) -->
 <div id="save-trip-modal"
-    style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6, 11, 25, 0.78); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); z-index:99999; justify-content:center; align-items:center; padding:16px; box-sizing:border-box;">
-    <div style="background:#ffffff !important; border:none !important; outline:none !important; border-radius:24px; width:100%; max-width:400px; max-height:90vh; display:flex; flex-direction:column; box-shadow:0 20px 50px rgba(10, 25, 60, 0.45) !important; overflow:hidden;"
+    style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(10, 25, 60, 0.45); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); z-index:99999; justify-content:center; align-items:center; padding:16px; box-sizing:border-box;">
+    <div style="background:#ffffff !important; border:none !important; outline:none !important; border-radius:22px; width:100%; max-width:400px; max-height:88dvh; display:flex; flex-direction:column; box-shadow:0 16px 40px rgba(10, 25, 60, 0.45) !important; overflow:hidden;"
         class="hide-scrollbar">
 
         <!-- Modal Header (Royal Blue Banner) -->
         <div class="save-trip-modal-header"
-            style="background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%) !important; padding:18px 20px 16px 20px; color:#ffffff; flex-shrink:0; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.1);">
+            style="background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%) !important; padding:14px 16px; color:#ffffff; flex-shrink:0; display:flex; align-items:center; justify-content:space-between; border:none !important; outline:none !important;">
             <div style="min-width:0; flex:1;">
                 <h3 id="save-trip-modal-title"
-                    style="margin:0; color:#ffffff; font-size:18px; font-weight:800; letter-spacing:-0.2px;">
-                    Save Your Trip
+                    style="margin:0; color:#ffffff; font-size:16px; font-weight:800; letter-spacing:-0.3px; display:flex; align-items:center; gap:8px;">
+                    <i class="fa-solid fa-cloud-arrow-up" style="color:#00f2fe; font-size:15px;"></i> Save Your Trip
                 </h3>
-                <p style="margin:3px 0 0; font-size:12px; color:rgba(255,255,255,0.85); line-height:1.35;">
+                <p style="margin:2px 0 0; font-size:11.5px; color:rgba(255,255,255,0.85); line-height:1.35;">
                     Name your adventure and set trip details
                 </p>
             </div>
@@ -383,17 +383,17 @@ try {
 
         </div>
 
-        <!-- Modal Footer (Cancel and Save Trip buttons) -->
+        <!-- Modal Footer (Locked Bottom Banner matching Notifications modal) -->
         <div class="save-trip-modal-footer"
-            style="padding:14px 20px 16px 20px; background:#ffffff; border-top:1px solid #e2e8f0; flex-shrink:0; display:flex; gap:12px; align-items:center; box-sizing:border-box;">
-            <button class="btn-primary"
-                style="flex:1; background:#f1f5f9 !important; border:1px solid #cbd5e1 !important; outline:none !important; color:#475569 !important; padding:12px; border-radius:14px; font-weight:800; font-size:14px; cursor:pointer; box-shadow:none !important; transition:transform 0.15s ease;"
+            style="padding:12px 16px max(12px, env(safe-area-inset-bottom)) 16px; background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%) !important; border:none !important; outline:none !important; flex-shrink:0; display:flex; justify-content:space-between; gap:12px; align-items:center; box-sizing:border-box;">
+            <button type="button"
+                style="flex:1; background:#ffffff !important; border:none !important; outline:none !important; color:#ef4444 !important; font-size:12.5px; font-weight:800; padding:10px 18px; border-radius:100px; box-shadow:0 2px 8px rgba(0, 0, 0, 0.15) !important; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:6px; transition:transform 0.15s ease;"
                 onclick="closeSaveModal()"
-                onpointerdown="this.style.transform='scale(0.97)'" onpointerup="this.style.transform='scale(1)'">Cancel</button>
-            <button class="btn-primary"
-                style="flex:1; background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); border:none !important; outline:none !important; color:#ffffff; padding:12px; border-radius:14px; font-weight:800; font-size:14px; box-shadow:0 3px 12px rgba(2, 132, 199, 0.35) !important; cursor:pointer; transition:transform 0.15s ease;"
+                onpointerdown="this.style.transform='scale(0.94)'" onpointerup="this.style.transform='scale(1)'">Cancel</button>
+            <button type="button"
+                style="flex:1.4; background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; font-size:12.5px; font-weight:800; padding:10px 22px; border-radius:100px; box-shadow:0 2px 8px rgba(0, 0, 0, 0.15) !important; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:6px; transition:transform 0.15s ease;"
                 onclick="submitItinerary()" id="btn-submit-trip"
-                onpointerdown="this.style.transform='scale(0.97)'" onpointerup="this.style.transform='scale(1)'">Save Trip</button>
+                onpointerdown="this.style.transform='scale(0.94)'" onpointerup="this.style.transform='scale(1)'">Save Trip</button>
         </div>
     </div>
 </div>
@@ -4235,7 +4235,7 @@ try {
                 let targetDateStr = '';
                 if (editingId) {
                     if (modalTitleEl) {
-                        modalTitleEl.innerHTML = '<i class="fa-solid fa-pen-to-square" style="color:#ffffff; font-size:18px;"></i> Edit Your Trip';
+                        modalTitleEl.innerHTML = '<i class="fa-solid fa-pen-to-square" style="color:#00f2fe; font-size:16px;"></i> Edit Your Trip';
                     }
                     if (submitBtn) {
                         submitBtn.textContent = 'Update Trip';
@@ -4302,7 +4302,7 @@ try {
                         window.setTripType('solo');
                     }
                     if (modalTitleEl) {
-                        modalTitleEl.innerHTML = '<i class="fa-solid fa-cloud-arrow-up" style="color:#ffffff; font-size:18px;"></i> Save Your Trip';
+                        modalTitleEl.innerHTML = '<i class="fa-solid fa-cloud-arrow-up" style="color:#00f2fe; font-size:16px;"></i> Save Your Trip';
                     }
                     if (submitBtn) {
                         submitBtn.textContent = 'Save Trip';

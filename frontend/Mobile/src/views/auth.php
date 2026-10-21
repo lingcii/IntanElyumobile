@@ -453,26 +453,21 @@
 <div id="privacy-policy-modal" class="auth-2fa-overlay" style="display: none;"
     onclick="if(event.target===this) closePrivacyPolicyModal(event);">
     <div class="privacy-modal-card">
-        <button type="button" class="privacy-modal-close" onclick="closePrivacyPolicyModal(event)" aria-label="Close">
-            <i class="fa-solid fa-xmark"></i>
-        </button>
-
         <div class="privacy-modal-header">
-            <div class="privacy-modal-icon-ring">
-                <i class="fa-solid fa-shield-halved"></i>
-            </div>
-            <div>
+            <div class="privacy-modal-header-content">
                 <h3 class="privacy-modal-title">Terms &amp; Privacy Policy</h3>
-                <span class="privacy-modal-badge"><i class="fa-solid fa-shield-halved"></i> RA 10173 Compliant</span>
+                <span class="privacy-modal-badge">RA 10173 Compliant</span>
             </div>
+            <button type="button" class="privacy-modal-close" onclick="closePrivacyPolicyModal(event)" aria-label="Close">
+                &times;
+            </button>
         </div>
 
         <div id="privacy-modal-scroll-body" class="privacy-modal-scroll-body">
             <div class="policy-welcome-banner">
-                <i class="fa-solid fa-circle-info policy-welcome-icon"></i>
-                <p style="margin: 0; font-size: 12px; color: rgba(255, 255, 255, 0.95); line-height: 1.55;">
-                    Welcome to <strong style="color: #ffffff;">Intan Elyu Tourism Management System</strong>. In strict
-                    compliance with the <strong style="color: #38bdf8;">Data Privacy Act of 2012 (Republic Act No.
+                <p>
+                    Welcome to <strong>Intan Elyu Tourism Management System</strong>. In strict
+                    compliance with the <strong>Data Privacy Act of 2012 (Republic Act No.
                         10173)</strong>, please review our terms of service and personal data protection practices
                     before activating your account:
                 </p>
@@ -480,7 +475,6 @@
 
             <div class="policy-item-card">
                 <div class="policy-item-header">
-                    <div class="policy-icon-badge"><i class="fa-solid fa-user-check"></i></div>
                     <span class="policy-item-title">1. Account &amp; Registration</span>
                 </div>
                 <p class="policy-item-desc">By registering, you confirm that personal details provided (Full Name,
@@ -489,7 +483,6 @@
 
             <div class="policy-item-card">
                 <div class="policy-item-header">
-                    <div class="policy-icon-badge"><i class="fa-solid fa-lock"></i></div>
                     <span class="policy-item-title">2. Information &amp; Encryption</span>
                 </div>
                 <p class="policy-item-desc">We store your name, email, and Bcrypt-encrypted password hashes to
@@ -499,7 +492,6 @@
 
             <div class="policy-item-card">
                 <div class="policy-item-header">
-                    <div class="policy-icon-badge"><i class="fa-solid fa-location-dot"></i></div>
                     <span class="policy-item-title">3. Location &amp; Fair Play Points</span>
                 </div>
                 <p class="policy-item-desc">Device location is accessed strictly during active tourist spot check-ins to
@@ -508,7 +500,6 @@
 
             <div class="policy-item-card">
                 <div class="policy-item-header">
-                    <div class="policy-icon-badge"><i class="fa-solid fa-shield-halved"></i></div>
                     <span class="policy-item-title">4. 2-Factor Email Security (2FA)</span>
                 </div>
                 <p class="policy-item-desc">After accepting these terms, a 6-digit verification code will be dispatched
@@ -517,7 +508,6 @@
 
             <div class="policy-item-card">
                 <div class="policy-item-header">
-                    <div class="policy-icon-badge"><i class="fa-solid fa-leaf"></i></div>
                     <span class="policy-item-title">5. Responsible Tourism</span>
                 </div>
                 <p class="policy-item-desc">As a registered tourist on Intan Elyu, you agree to respect local La Union
@@ -526,7 +516,6 @@
 
             <div class="policy-item-card">
                 <div class="policy-item-header">
-                    <div class="policy-icon-badge"><i class="fa-solid fa-user-shield"></i></div>
                     <span class="policy-item-title">6. Data Subject Rights (RA 10173)</span>
                 </div>
                 <p class="policy-item-desc">Under Republic Act No. 10173, you retain the Right to be Informed, Right to
@@ -535,23 +524,23 @@
             </div>
         </div>
 
-        <label class="privacy-acceptance-box" for="chk-accept-privacy" id="box-chk-accept-privacy"
-            style="cursor: pointer;">
-            <input type="checkbox" id="chk-accept-privacy" class="custom-terms-checkbox" style="cursor: pointer;">
-            <span id="lbl-chk-accept-privacy"
-                style="cursor: pointer; margin: 0; line-height: 1.35; font-size: 11.5px; font-weight: 600; color: #ffffff;">
-                I have read, understood, and accept the Terms &amp; Privacy Policy.
-            </span>
-        </label>
+        <div class="privacy-modal-footer">
+            <div class="privacy-acceptance-box" id="box-chk-accept-privacy" onclick="togglePrivacyCheckboxDirect(event)">
+                <input type="checkbox" id="chk-accept-privacy" class="custom-terms-checkbox" onclick="event.stopPropagation(); togglePrivacyCheckboxDirect(event);">
+                <label for="chk-accept-privacy" id="lbl-chk-accept-privacy" onclick="event.stopPropagation(); togglePrivacyCheckboxDirect(event);">
+                    I have read, understood, and accept the Terms &amp; Privacy Policy.
+                </label>
+            </div>
 
-        <div class="privacy-modal-actions">
-            <button type="button" onclick="declinePrivacyPolicy(event)" class="btn-privacy-decline">
-                Decline
-            </button>
-            <button type="button" id="btn-accept-policy-proceed" onclick="acceptPolicyAndProceed(event)"
-                class="btn-privacy-accept">
-                Accept
-            </button>
+            <div class="privacy-modal-actions">
+                <button type="button" onclick="declinePrivacyPolicy(event)" class="btn-privacy-decline">
+                    Decline
+                </button>
+                <button type="button" id="btn-accept-policy-proceed" onclick="acceptPolicyAndProceed(event)"
+                    class="btn-privacy-accept">
+                    Accept
+                </button>
+            </div>
         </div>
     </div>
 </div>
@@ -1493,16 +1482,24 @@
         if (!modal) return;
 
         const chk = document.getElementById('chk-accept-privacy');
-        const box = document.querySelector('.privacy-acceptance-box');
+        const box = document.getElementById('box-chk-accept-privacy');
         const scrollBody = document.getElementById('privacy-modal-scroll-body');
 
-        // Always reset modal acceptance checkbox to unchecked on open
+        // Check if registration checkbox is already checked
+        const regChk = document.getElementById('reg-privacy-checkbox');
+        const isAccepted = !!(regChk && regChk.checked);
+
         if (chk) {
-            chk.checked = false;
+            chk.checked = isAccepted;
             chk.disabled = false;
         }
         if (box) {
             box.classList.remove('shake-attention');
+            if (isAccepted) {
+                box.classList.add('is-checked');
+            } else {
+                box.classList.remove('is-checked');
+            }
         }
 
         if (scrollBody) {
@@ -1512,9 +1509,6 @@
         modal.style.display = 'flex';
         requestAnimationFrame(() => {
             modal.classList.add('active');
-            if (scrollBody) {
-                scrollBody.scrollTop = 0;
-            }
         });
     };
 
@@ -1548,12 +1542,21 @@
         window.closePrivacyPolicyModal();
     };
 
-    window.togglePrivacyCheckboxFromBox = function (e) {
-        // Handled natively by label for="chk-accept-privacy"
+    window.togglePrivacyCheckboxDirect = function (e) {
         const chk = document.getElementById('chk-accept-privacy');
-        const box = document.querySelector('.privacy-acceptance-box');
-        if (box && chk && chk.checked) {
-            box.classList.remove('shake-attention');
+        const box = document.getElementById('box-chk-accept-privacy');
+        if (chk) {
+            if (e && e.target !== chk) {
+                chk.checked = !chk.checked;
+            }
+            if (box) {
+                box.classList.remove('shake-attention');
+                if (chk.checked) {
+                    box.classList.add('is-checked');
+                } else {
+                    box.classList.remove('is-checked');
+                }
+            }
         }
     };
 
@@ -1563,24 +1566,23 @@
             e.stopPropagation();
         }
         const chk = document.getElementById('chk-accept-privacy');
-        if (!chk || !chk.checked) {
-            if (typeof showToast === 'function') {
-                showToast('Please check the box to accept the Terms & Privacy Policy first.');
-            }
-            const box = document.querySelector('.privacy-acceptance-box');
-            if (box) {
-                box.classList.remove('shake-attention');
-                void box.offsetWidth;
-                box.classList.add('shake-attention');
-            }
-            return;
+        if (chk) {
+            chk.checked = true;
+        }
+        const box = document.getElementById('box-chk-accept-privacy');
+        if (box) {
+            box.classList.add('is-checked');
         }
 
-        // Only check the register checkbox when user explicitly clicked ACCEPT with the box checked!
+        // Check the register terms checkbox on the auth form
         const regChk = document.getElementById('reg-privacy-checkbox');
         if (regChk) {
             regChk.checked = true;
             regChk.dispatchEvent(new Event('change'));
+        }
+
+        if (typeof showToast === 'function') {
+            showToast('Terms & Privacy Policy accepted.', 'success', 2000);
         }
 
         window.closePrivacyPolicyModal();

@@ -148,101 +148,114 @@ $backRoute = 'itinerary';
     </div>
 </div>
 
-<!-- Edit Trip & Companions Modal (Direct In-Place Editing) -->
+<!-- Edit Trip Modal (Direct In-Place Editing, Notifications style) -->
 <div id="edit-trip-details-modal"
-    style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.78); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); z-index:999999; justify-content:center; align-items:center; padding:16px;">
-    <div style="background:linear-gradient(135deg, rgba(30, 58, 138, 0.98) 0%, rgba(63, 125, 183, 0.96) 60%, rgba(2, 132, 199, 0.96) 100%); border:none; outline:none; border-radius:24px; padding:24px 20px; width:100%; max-width:390px; box-shadow:0 20px 50px rgba(10, 25, 60, 0.55); max-height:90vh; overflow-y:auto;" class="hide-scrollbar">
+    style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(10,25,60,0.45); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); z-index:999999; justify-content:center; align-items:center; padding:16px; box-sizing:border-box;">
+    <div style="background:#ffffff !important; border:none !important; outline:none !important; border-radius:22px; width:100%; max-width:390px; max-height:86dvh; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 16px 40px rgba(10,25,60,0.45) !important;" class="hide-scrollbar">
         
-        <!-- Header -->
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
-            <h3 style="margin:0; color:#ffffff; font-size:18px; font-weight:800; display:flex; align-items:center; gap:8px;">
-                <i class="fa-solid fa-pen-to-square" style="color:#00f2fe; font-size:17px;"></i> Edit Trip & Companions
+        <!-- Header Banner (Locked top) -->
+        <div style="background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%) !important; padding:14px 16px; color:#ffffff; flex-shrink:0; display:flex; align-items:center; justify-content:space-between; border:none !important;">
+            <h3 style="margin:0; color:#ffffff; font-size:16px; font-weight:800; letter-spacing:-0.3px;">
+                Edit Trip
             </h3>
             <button type="button" onclick="window.closeEditTripDetailsModal()"
-                style="background:rgba(255,255,255,0.18); border:none; outline:none; color:#ffffff; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer;">
-                <i class="fa-solid fa-xmark" style="font-size:14px;"></i>
+                style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 8px rgba(0,0,0,0.18) !important; flex-shrink:0; transition:transform 0.15s ease;"
+                onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">
+                <i class="fa-solid fa-xmark" style="color:#1e3a8a !important; font-size:14px;"></i>
             </button>
         </div>
 
         <input type="hidden" id="quick-edit-trip-id" value="">
 
-        <!-- Trip Name -->
-        <label style="font-size:12px; font-weight:700; color:#ffffff; margin-bottom:6px; display:block;">Trip Name</label>
-        <input type="text" id="quick-edit-trip-title" placeholder="Trip Title"
-            style="width:100%; padding:12px 14px; border-radius:14px; border:none; outline:none; background:rgba(255,255,255,0.18); color:#ffffff; margin-bottom:14px; font-family:inherit; font-size:14px; font-weight:600; box-sizing:border-box;">
+        <!-- Scrollable Middle Body (White Background) -->
+        <div style="background:#ffffff !important; color:#0f172a; padding:16px; flex:1; min-height:0; overflow-y:auto; display:flex; flex-direction:column; box-sizing:border-box;" class="hide-scrollbar">
 
-        <!-- Trip Date -->
-        <label style="font-size:12px; font-weight:700; color:#ffffff; margin-bottom:6px; display:block;">Trip Date</label>
-        <input type="date" id="quick-edit-trip-date"
-            style="width:100%; padding:12px 14px; border-radius:14px; border:none; outline:none; background:rgba(255,255,255,0.18); color:#ffffff; margin-bottom:14px; font-family:inherit; font-size:14px; font-weight:600; box-sizing:border-box;">
+            <!-- Trip Name -->
+            <label style="font-size:12.5px; font-weight:700; color:#1e293b; margin-bottom:6px; display:block;">Trip Name</label>
+            <input type="text" id="quick-edit-trip-title" placeholder="Trip Title"
+                style="width:100%; padding:12px 14px; border-radius:14px; border:1.5px solid #e2e8f0 !important; outline:none !important; background:#f8fafc; color:#0f172a; -webkit-text-fill-color:#0f172a; margin-bottom:14px; font-family:inherit; font-size:14px; font-weight:600; box-sizing:border-box;"
+                onfocus="this.style.borderColor='#0284c7'" onblur="this.style.borderColor='#e2e8f0'">
 
-        <!-- Trip Type (Solo vs With Companions) -->
-        <label style="font-size:12px; font-weight:700; color:#ffffff; margin-bottom:8px; display:block;">Travel Companions</label>
-        <div style="display:flex; gap:10px; margin-bottom:14px;">
-            <button type="button" id="quick-edit-type-solo-btn" onclick="window.setQuickEditTripType('solo')"
-                style="flex:1; padding:12px; border-radius:14px; background:rgba(56,189,248,0.25); border:1.5px solid #38bdf8; color:#ffffff; cursor:pointer; text-align:center; transition:all 0.2s; font-family:inherit;">
-                <i class="fa-solid fa-user" style="color:#38bdf8; margin-right:6px;"></i>
-                <span style="font-size:13px; font-weight:800;">Solo Trip</span>
-            </button>
-            <button type="button" id="quick-edit-type-group-btn" onclick="window.setQuickEditTripType('group')"
-                style="flex:1; padding:12px; border-radius:14px; background:rgba(255,255,255,0.12); border:1.5px solid transparent; color:#ffffff; cursor:pointer; text-align:center; transition:all 0.2s; font-family:inherit;">
-                <i class="fa-solid fa-users" style="color:#94a3b8; margin-right:6px;"></i>
-                <span style="font-size:13px; font-weight:800;">With Companions</span>
-            </button>
-        </div>
-        <input type="hidden" id="quick-edit-trip-type" value="solo">
+            <!-- Trip Date -->
+            <label style="font-size:12.5px; font-weight:700; color:#1e293b; margin-bottom:6px; display:block;">Trip Date</label>
+            <input type="date" id="quick-edit-trip-date"
+                style="width:100%; padding:12px 14px; border-radius:14px; border:1.5px solid #e2e8f0 !important; outline:none !important; background:#f8fafc; color:#0f172a; -webkit-text-fill-color:#0f172a; margin-bottom:14px; font-family:inherit; font-size:14px; font-weight:600; box-sizing:border-box;"
+                onfocus="this.style.borderColor='#0284c7'" onblur="this.style.borderColor='#e2e8f0'">
 
-        <!-- Stepper Box for Companions -->
-        <div id="quick-edit-companion-box" style="display:none; background:rgba(255,255,255,0.12); border:1px solid rgba(56,189,248,0.3); border-radius:16px; padding:14px; margin-bottom:16px;">
-            <div style="font-size:12px; color:#ffffff; opacity:0.95; font-weight:700; margin-bottom:12px;">
-                Additional Travelers:
+            <!-- Trip Type (Solo vs With Companions) -->
+            <label style="font-size:12.5px; font-weight:700; color:#1e293b; margin-bottom:8px; display:block;">Travel Companions</label>
+            <div style="display:flex; gap:10px; margin-bottom:14px;">
+                <button type="button" id="quick-edit-type-solo-btn" onclick="window.setQuickEditTripType('solo')"
+                    style="flex:1; padding:12px; border-radius:14px; background:#eff6ff; border:1.5px solid #2563eb; color:#1e3a8a; cursor:pointer; text-align:center; transition:all 0.2s; font-family:inherit;"
+                    onpointerdown="this.style.transform='scale(0.97)'" onpointerup="this.style.transform='scale(1)'">
+                    <i class="fa-solid fa-user" style="color:#2563eb; margin-right:6px;"></i>
+                    <span style="font-size:13px; font-weight:800;">Solo Trip</span>
+                </button>
+                <button type="button" id="quick-edit-type-group-btn" onclick="window.setQuickEditTripType('group')"
+                    style="flex:1; padding:12px; border-radius:14px; background:#f8fafc; border:1.5px solid #e2e8f0; color:#64748b; cursor:pointer; text-align:center; transition:all 0.2s; font-family:inherit;"
+                    onpointerdown="this.style.transform='scale(0.97)'" onpointerup="this.style.transform='scale(1)'">
+                    <i class="fa-solid fa-users" style="color:#94a3b8; margin-right:6px;"></i>
+                    <span style="font-size:13px; font-weight:800;">With Companions</span>
+                </button>
             </div>
-            <!-- Male -->
-            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
-                <div style="display:flex; align-items:center; gap:10px;">
-                    <div style="width:30px; height:30px; border-radius:8px; background:#2563eb; display:flex; align-items:center; justify-content:center; color:#ffffff; box-shadow:0 2px 6px rgba(37,99,235,0.4);">
-                        <i class="fa-solid fa-mars" style="font-size:14px;"></i>
+            <input type="hidden" id="quick-edit-trip-type" value="solo">
+
+            <!-- Stepper Box for Companions -->
+            <div id="quick-edit-companion-box" style="display:none; background:#f8fafc; border:1px solid #e2e8f0; border-radius:16px; padding:14px; margin-bottom:14px;">
+                <div style="font-size:12px; color:#475569; font-weight:700; margin-bottom:12px;">
+                    Additional Travelers:
+                </div>
+                <!-- Male -->
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <div style="width:30px; height:30px; border-radius:8px; background:#2563eb; display:flex; align-items:center; justify-content:center; color:#ffffff; box-shadow:0 2px 6px rgba(37,99,235,0.35);">
+                            <i class="fa-solid fa-mars" style="font-size:14px;"></i>
+                        </div>
+                        <span style="font-size:13px; font-weight:700; color:#1e293b;">Male</span>
                     </div>
-                    <span style="font-size:13px; font-weight:700; color:#ffffff;">Male</span>
-                </div>
-                <div style="display:flex; align-items:center; gap:8px;">
-                    <button type="button" onclick="window.adjustQuickEditCompanions('males', -1)" style="width:32px; height:32px; border-radius:50%; background:#334155; border:none; outline:none; color:#ffffff; font-size:15px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 4px rgba(0,0,0,0.3);">−</button>
-                    <span id="quick-edit-males-count" style="font-size:15px; font-weight:800; color:#ffffff; min-width:24px; text-align:center;">0</span>
-                    <button type="button" onclick="window.adjustQuickEditCompanions('males', 1)" style="width:32px; height:32px; border-radius:50%; background:#0284c7; border:none; outline:none; color:#ffffff; font-size:15px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 6px rgba(2,132,199,0.4);">+</button>
-                </div>
-            </div>
-            <!-- Female -->
-            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
-                <div style="display:flex; align-items:center; gap:10px;">
-                    <div style="width:30px; height:30px; border-radius:8px; background:#db2777; display:flex; align-items:center; justify-content:center; color:#ffffff; box-shadow:0 2px 6px rgba(219,39,119,0.4);">
-                        <i class="fa-solid fa-venus" style="font-size:14px;"></i>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <button type="button" onclick="window.adjustQuickEditCompanions('males', -1)" style="width:32px; height:32px; border-radius:50%; background:#334155; border:none; outline:none; color:#ffffff; font-size:15px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 4px rgba(0,0,0,0.2);">−</button>
+                        <span id="quick-edit-males-count" style="font-size:15px; font-weight:800; color:#0f172a; min-width:24px; text-align:center;">0</span>
+                        <button type="button" onclick="window.adjustQuickEditCompanions('males', 1)" style="width:32px; height:32px; border-radius:50%; background:#0284c7; border:none; outline:none; color:#ffffff; font-size:15px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 6px rgba(2,132,199,0.35);">+</button>
                     </div>
-                    <span style="font-size:13px; font-weight:700; color:#ffffff;">Female</span>
                 </div>
-                <div style="display:flex; align-items:center; gap:8px;">
-                    <button type="button" onclick="window.adjustQuickEditCompanions('females', -1)" style="width:32px; height:32px; border-radius:50%; background:#334155; border:none; outline:none; color:#ffffff; font-size:15px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 4px rgba(0,0,0,0.3);">−</button>
-                    <span id="quick-edit-females-count" style="font-size:15px; font-weight:800; color:#ffffff; min-width:24px; text-align:center;">0</span>
-                    <button type="button" onclick="window.adjustQuickEditCompanions('females', 1)" style="width:32px; height:32px; border-radius:50%; background:#db2777; border:none; outline:none; color:#ffffff; font-size:15px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 6px rgba(219,39,119,0.4);">+</button>
+                <!-- Female -->
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <div style="width:30px; height:30px; border-radius:8px; background:#db2777; display:flex; align-items:center; justify-content:center; color:#ffffff; box-shadow:0 2px 6px rgba(219,39,119,0.35);">
+                            <i class="fa-solid fa-venus" style="font-size:14px;"></i>
+                        </div>
+                        <span style="font-size:13px; font-weight:700; color:#1e293b;">Female</span>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <button type="button" onclick="window.adjustQuickEditCompanions('females', -1)" style="width:32px; height:32px; border-radius:50%; background:#334155; border:none; outline:none; color:#ffffff; font-size:15px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 4px rgba(0,0,0,0.2);">−</button>
+                        <span id="quick-edit-females-count" style="font-size:15px; font-weight:800; color:#0f172a; min-width:24px; text-align:center;">0</span>
+                        <button type="button" onclick="window.adjustQuickEditCompanions('females', 1)" style="width:32px; height:32px; border-radius:50%; background:#db2777; border:none; outline:none; color:#ffffff; font-size:15px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 6px rgba(219,39,119,0.35);">+</button>
+                    </div>
                 </div>
-            </div>
-            <!-- Live Party Size Summary -->
-            <div style="padding-top:10px; border-top:1px solid rgba(255,255,255,0.18); font-size:11.5px; color:#ffffff; display:flex; align-items:center; justify-content:space-between;">
-                <span>Total Party Size:</span>
-                <span id="quick-edit-party-summary" style="color:#fef08a; font-weight:800;">1 Pax (Solo)</span>
+                <!-- Live Party Size Summary -->
+                <div style="padding-top:10px; border-top:1px solid #e2e8f0; font-size:11.5px; color:#64748b; display:flex; align-items:center; justify-content:space-between;">
+                    <span>Total Party Size:</span>
+                    <span id="quick-edit-party-summary" style="color:#0284c7; font-weight:800;">1 Pax (Solo)</span>
+                </div>
             </div>
         </div>
 
-        <!-- Action Buttons -->
-        <div style="display:flex; flex-direction:column; gap:10px;">
+        <!-- Locked Bottom Footer Banner (Matching Notifications modal) -->
+        <div style="background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%) !important; padding:12px 16px max(12px, env(safe-area-inset-bottom)) 16px; flex-shrink:0; display:flex; flex-direction:column; gap:10px; border:none !important;">
             <button type="button" id="btn-save-quick-edit" onclick="window.submitQuickEditTripDetails()"
-                style="width:100%; padding:14px; border-radius:14px; border:none; outline:none; background:linear-gradient(135deg, #10b981 0%, #059669 100%); color:#ffffff; font-size:14px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;">
-                <i class="fa-solid fa-check"></i> Save Changes
+                style="width:100%; height:42px; border-radius:100px; border:none !important; outline:none !important; background:#ffffff !important; color:#1e3a8a !important; font-size:13.5px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 2px 8px rgba(0,0,0,0.15) !important; transition:transform 0.15s ease;"
+                onpointerdown="this.style.transform='scale(0.96)'" onpointerup="this.style.transform='scale(1)'">
+                Save Changes
             </button>
             <button type="button" onclick="window.openPlannerFromQuickEdit()"
-                style="width:100%; padding:11px; border-radius:14px; border:none; outline:none; background:rgba(255,255,255,0.18); color:#ffffff; font-size:12.5px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px;">
-                <i class="fa-solid fa-route" style="color:#38bdf8;"></i> Edit Stops in Trip Planner
+                style="width:100%; height:36px; border-radius:100px; border:1px solid rgba(255,255,255,0.25) !important; outline:none !important; background:rgba(255,255,255,0.14) !important; color:#ffffff !important; font-size:12px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; transition:transform 0.15s ease;"
+                onpointerdown="this.style.transform='scale(0.96)'" onpointerup="this.style.transform='scale(1)'">
+                <i class="fa-solid fa-route" style="color:#00f2fe; font-size:12px;"></i> Edit Stops in Trip Planner
             </button>
         </div>
+    </div>
+</div>
     </div>
 </div>
 
@@ -1276,10 +1289,8 @@ $backRoute = 'itinerary';
                     setTimeout(() => {
                         if (typeof window.fetchSavedTrips === 'function') {
                             window.fetchSavedTrips(true);
-                        } else {
-                            window.location.reload();
                         }
-                    }, 600);
+                    }, 400);
                 } else {
                     if (typeof showToast === 'function') showToast(data.message || 'Failed to complete trip.');
                     if (btn) {
@@ -2206,28 +2217,32 @@ $backRoute = 'itinerary';
 
             if (type === 'group') {
                 if (groupBtn) {
-                    groupBtn.style.background = 'rgba(56,189,248,0.25)';
-                    groupBtn.style.border = '1.5px solid #38bdf8';
+                    groupBtn.style.background = '#eff6ff';
+                    groupBtn.style.border = '1.5px solid #2563eb';
+                    groupBtn.style.color = '#1e3a8a';
                     const icon = groupBtn.querySelector('i');
-                    if (icon) icon.style.color = '#38bdf8';
+                    if (icon) icon.style.color = '#2563eb';
                 }
                 if (soloBtn) {
-                    soloBtn.style.background = 'rgba(255,255,255,0.12)';
-                    soloBtn.style.border = '1.5px solid transparent';
+                    soloBtn.style.background = '#f8fafc';
+                    soloBtn.style.border = '1.5px solid #e2e8f0';
+                    soloBtn.style.color = '#64748b';
                     const icon = soloBtn.querySelector('i');
                     if (icon) icon.style.color = '#94a3b8';
                 }
                 if (compBox) compBox.style.display = 'block';
             } else {
                 if (soloBtn) {
-                    soloBtn.style.background = 'rgba(56,189,248,0.25)';
-                    soloBtn.style.border = '1.5px solid #38bdf8';
+                    soloBtn.style.background = '#eff6ff';
+                    soloBtn.style.border = '1.5px solid #2563eb';
+                    soloBtn.style.color = '#1e3a8a';
                     const icon = soloBtn.querySelector('i');
-                    if (icon) icon.style.color = '#38bdf8';
+                    if (icon) icon.style.color = '#2563eb';
                 }
                 if (groupBtn) {
-                    groupBtn.style.background = 'rgba(255,255,255,0.12)';
-                    groupBtn.style.border = '1.5px solid transparent';
+                    groupBtn.style.background = '#f8fafc';
+                    groupBtn.style.border = '1.5px solid #e2e8f0';
+                    groupBtn.style.color = '#64748b';
                     const icon = groupBtn.querySelector('i');
                     if (icon) icon.style.color = '#94a3b8';
                 }
@@ -2412,15 +2427,20 @@ $backRoute = 'itinerary';
 
             if (saveBtn) {
                 saveBtn.disabled = false;
-                saveBtn.innerHTML = '<i class="fa-solid fa-check"></i> Save Changes';
+                saveBtn.innerHTML = 'Save Changes';
             }
 
             window.closeEditTripDetailsModal();
             if (typeof showToast === 'function') {
-                showToast("Trip & companions updated! 🎉", "success");
+                showToast("Trip updated! 🎉", "success");
             }
+            // Immediate optimistic UI update
             if (typeof renderSavedTrips === 'function') {
                 renderSavedTrips(window._cachedSavedTrips);
+            }
+            // Silent asynchronous SWR revalidation (no full page reload)
+            if (typeof window.fetchSavedTrips === 'function') {
+                window.fetchSavedTrips(true);
             }
         };
 
