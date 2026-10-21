@@ -174,7 +174,9 @@
                 );
 
                 if (isRealTourist) {
-                    // Valid real logged-in tourist account
+                    // Valid real logged-in tourist account - keep tokens synchronized
+                    localStorage.setItem('Intan_Elyu_Token', token);
+                    localStorage.setItem('api_token', token);
                     if (splashMain) splashMain.classList.add('exit');
                     setTimeout(() => {
                         navigateTo('dashboard');
@@ -182,6 +184,11 @@
                 } else {
                     // Auth page is always the first one to show when opening the app!
                     localStorage.removeItem('intan_elyu_token');
+                    localStorage.removeItem('Intan_Elyu_Token');
+                    localStorage.removeItem('api_token');
+                    localStorage.removeItem('auth_user');
+                    localStorage.removeItem('auth_user_backup');
+                    localStorage.removeItem('intan_elyu_user');
                     localStorage.removeItem('intan_elyu_guest');
                     localStorage.removeItem('intan_elyu_offline_guest');
                     try { sessionStorage.removeItem('intan_elyu_guest_session_active'); } catch(e) {}

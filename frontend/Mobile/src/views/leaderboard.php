@@ -183,7 +183,7 @@ $activeTab = 'leaderboard';
 
         // Check cache for this specific sort mode
         try {
-            const token = localStorage.getItem('api_token') || localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+            const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('api_token');
             const cacheKey = `leaderboard_data_v26_${mode}_` + (token ? token.substring(0, 10) : 'public');
             const stored = localStorage.getItem(cacheKey);
             if (stored) {
@@ -208,7 +208,18 @@ $activeTab = 'leaderboard';
 
         if (banner) {
             banner.style.display = 'flex';
-            const authUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
+            const authUser = JSON.parse(localStorage.getItem('auth_user') || localStorage.getItem('intan_elyu_user') || '{}');
+            const myRealId = Number(authUser.id || authUser.user_id || 0);
+            const myRealEmail = String(authUser.email || '').trim().toLowerCase();
+
+            // Invalidate cachedMeData if it belongs to a previous user
+            if (cachedMeData && ((myRealId > 0 && Number(cachedMeData.id || cachedMeData.user_id || 0) !== myRealId) || (myRealEmail && cachedMeData.email && String(cachedMeData.email).trim().toLowerCase() !== myRealEmail))) {
+                cachedMeData = null;
+                window._cachedMeData = null;
+                cachedMyRank = null;
+                window._cachedMyRank = null;
+            }
+
             const myRawName = String((cachedMeData && (cachedMeData.name || cachedMeData.full_name)) || (authUser && (authUser.name || authUser.full_name)) || 'Explorer').trim() || 'Explorer';
             const titleEl = document.getElementById('my-explorer-title');
             const avatarEl = document.getElementById('my-standing-avatar');
@@ -289,6 +300,14 @@ $activeTab = 'leaderboard';
             const authUser = JSON.parse(localStorage.getItem('auth_user') || localStorage.getItem('intan_elyu_user') || '{}');
             const myRealId = Number(authUser.id || authUser.user_id || 0);
             const myRealEmail = String(authUser.email || '').trim().toLowerCase();
+
+            // Invalidate cachedMeData if it belongs to a previous user
+            if (cachedMeData && ((myRealId > 0 && Number(cachedMeData.id || cachedMeData.user_id || 0) !== myRealId) || (myRealEmail && cachedMeData.email && String(cachedMeData.email).trim().toLowerCase() !== myRealEmail))) {
+                cachedMeData = null;
+                window._cachedMeData = null;
+                cachedMyRank = null;
+                window._cachedMyRank = null;
+            }
 
             if (!cachedMeData && authUser && (authUser.id || authUser.name || authUser.email)) {
                 const userPts = parseInt(authUser.points || authUser.xp || 0);
@@ -476,7 +495,7 @@ $activeTab = 'leaderboard';
             (myRealEmail && myRealEmail.includes('@') && String(user.email || '').trim().toLowerCase() === myRealEmail)
         );
 
-        window.showUserProfile(displayName, avatarUrl, pts, rank, activities, location, bio, isMe);
+        window.showUserProfile(displayName, avatarUrl, pts, rank, activities, location, bio, isMe, user);
     };
 
     function generatePodiumPlace(user, rank, userIndex = 0) {
@@ -595,24 +614,21 @@ $activeTab = 'leaderboard';
         </div>`;
     }
 
-    window.showUserProfile = function (name, avatar, pts, rank, activities, location, bio, isMe = false) {
+    window.showUserProfile = function (name, avatar, pts, rank, activities, location, bio, isMe = false, userObj = null) {
+        const authUser = JSON.parse(localStorage.getItem('auth_user') || localStorage.getItem('intan_elyu_user') || '{}');
+        const myRealId = Number(authUser.id || authUser.user_id || 0);
+        const myRealEmail = String(authUser.email || '').trim().toLowerCase();
+
         // Determine if the viewed profile is the current logged-in user
         const isSelf = Boolean(
             isMe === true ||
-            (window.myUserData && window.myUserData.name && name === window.myUserData.name) ||
-            (window.myUserData && name === 'Unranked Explorer') ||
-            (name && (name.includes('(You)') || name.includes('Your Standing'))) ||
-            (cachedMeData && (
-                (cachedMeData.name && name === cachedMeData.name) ||
-                (cachedMeData.full_name && name === cachedMeData.full_name) ||
-                (cachedMeData.username && name === cachedMeData.username) ||
-                (cachedMeData.id && String(rank).includes(String(cachedMyRank)))
-            ))
+            (userObj && myRealId > 0 && (Number(userObj.id || userObj.user_id || 0) === myRealId)) ||
+            (userObj && myRealEmail && String(userObj.email || '').trim().toLowerCase() === myRealEmail) ||
+            (name && (name.includes('(You)') || name.includes('Your Standing')))
         );
 
         let displayPts = Number(pts || 0);
         if (isSelf) {
-            const authUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
             const knownPts = cachedMeData ? parseInt(cachedMeData.points ?? cachedMeData.pts ?? cachedMeData.total_points ?? 0) : parseInt(authUser.points || 0);
             if (knownPts > displayPts) {
                 displayPts = knownPts;
@@ -633,7 +649,7 @@ $activeTab = 'leaderboard';
 
         // When viewing self, fetch fresh live balance to guarantee accuracy
         if (isSelf) {
-            const token = localStorage.getItem('api_token') || localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+            const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('api_token');
             if (token) {
                 const backendUrl = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
                 fetch(backendUrl + '/api/tourist/points/balance', {
@@ -722,15 +738,23 @@ $activeTab = 'leaderboard';
 
     function applyLeaderboardData(data) {
         if (!data) return;
-        const authUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
+        const authUser = JSON.parse(localStorage.getItem('auth_user') || localStorage.getItem('intan_elyu_user') || '{}');
+        const myRealId = Number(authUser.id || authUser.user_id || 0);
+        const myRealEmail = String(authUser.email || '').trim().toLowerCase();
+
         const list = data.users || data.leaders || data.tourists || data.data || data.leaderboard || (Array.isArray(data) ? data : []);
         if (Array.isArray(list) && list.length > 0) {
             rawLeadersList = list.slice(0, 10);
             window._cachedRawLeadersList = rawLeadersList;
         }
         if (data.me) {
-            cachedMeData = data.me;
-            window._cachedMeData = data.me;
+            const meId = Number(data.me.id || data.me.user_id || 0);
+            const meEmail = String(data.me.email || '').trim().toLowerCase();
+            // Strictly check that data.me matches our current logged-in user
+            if ((myRealId > 0 && meId === myRealId) || (myRealEmail && meEmail && myRealEmail === meEmail) || (!myRealId && !meId)) {
+                cachedMeData = data.me;
+                window._cachedMeData = data.me;
+            }
         }
         if (data.my_rank !== undefined && data.my_rank !== null) {
             cachedMyRank = parseInt(data.my_rank);
@@ -809,14 +833,12 @@ $activeTab = 'leaderboard';
     // Immediate hydration from real cached standings, then fetch real live data if online
     (function hydrateAndFetchLeaderboard() {
         try {
-            const token = localStorage.getItem('api_token') || localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+            const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('api_token');
             const tokenSuffix = token ? token.substring(0, 10) : 'public';
             const cacheKeyMode = 'leaderboard_data_v26_' + currentSortMode + '_' + tokenSuffix;
             const cacheKeyLegacy = 'leaderboard_data_v26_' + tokenSuffix;
             const storedRaw = localStorage.getItem(cacheKeyMode) || 
-                              localStorage.getItem(cacheKeyLegacy) || 
-                              localStorage.getItem('leaderboard_data_offline_fallback_' + currentSortMode) || 
-                              localStorage.getItem('leaderboard_data_offline_fallback');
+                              localStorage.getItem(cacheKeyLegacy);
             if (storedRaw) {
                 const parsed = JSON.parse(storedRaw);
                 const d = parsed.data || parsed;
@@ -869,7 +891,7 @@ $activeTab = 'leaderboard';
         }
 
         try {
-            const token = localStorage.getItem('api_token') || localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+            const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('api_token');
             const reqHeaders = { 'Accept': 'application/json' };
             if (token) reqHeaders['Authorization'] = 'Bearer ' + token;
 

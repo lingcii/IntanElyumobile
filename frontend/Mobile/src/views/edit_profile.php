@@ -787,7 +787,7 @@ $backRoute = 'profile';
             if (avatarFile) formData.append('avatar', avatarFile);
 
             try {
-                const token = localStorage.getItem('api_token') || localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+                const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('api_token');
                 const bUrl = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
                 const res = await fetch(bUrl + '/api/tourist/profile', {
                     method: 'POST',

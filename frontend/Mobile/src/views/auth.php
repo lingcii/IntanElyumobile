@@ -1125,6 +1125,63 @@
         window.togglePasswordVisibility(inputId, iconElement);
     }
 
+    window.purgeAllUserSessionCaches = function () {
+        try {
+            const keysToRemove = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const k = localStorage.key(i);
+                if (!k) continue;
+                if (
+                    k.startsWith('profile_data_') ||
+                    k.startsWith('leaderboard_data_') ||
+                    k.startsWith('points_balance_') ||
+                    k.startsWith('dashboard_data_') ||
+                    k.startsWith('dashboard_rank_') ||
+                    k.startsWith('dashboard_trips_') ||
+                    k.startsWith('saved_trips_') ||
+                    k.startsWith('saved_places_') ||
+                    k.startsWith('intan_cache_') ||
+                    k.startsWith('intan_elyu_claimed_vouchers') ||
+                    k.startsWith('intan_elyu_cached_vouchers') ||
+                    k === 'api_token' ||
+                    k === 'intan_elyu_token' ||
+                    k === 'Intan_Elyu_Token' ||
+                    k === 'intan_elyu_real_token_backup' ||
+                    k === 'auth_user' ||
+                    k === 'auth_user_backup' ||
+                    k === 'intan_elyu_user' ||
+                    k === 'my_rank' ||
+                    k === 'intan_elyu_guest' ||
+                    k === 'intan_elyu_offline_guest' ||
+                    k === 'intan_elyu_offline_mode'
+                ) {
+                    keysToRemove.push(k);
+                }
+            }
+            keysToRemove.forEach(k => localStorage.removeItem(k));
+            sessionStorage.removeItem('elyu_show_offline_bypass_notice');
+        } catch (e) {
+            try {
+                localStorage.removeItem('api_token');
+                localStorage.removeItem('intan_elyu_token');
+                localStorage.removeItem('Intan_Elyu_Token');
+                localStorage.removeItem('auth_user');
+                localStorage.removeItem('auth_user_backup');
+                localStorage.removeItem('intan_elyu_user');
+            } catch (err) { }
+        }
+
+        window._cachedMeData = null;
+        window._cachedMyRank = null;
+        window._cachedRawLeadersList = [];
+        window.myUserData = null;
+        window._userPointsBalance = null;
+        window._cachedCompletedTrips = [];
+        window.profileNeedsRefresh = true;
+        window.leaderboardNeedsRefresh = true;
+        window.dashboardNeedsRefresh = true;
+    };
+
     window.handleLogin = async function (e) {
         e.preventDefault();
         if (window._isLoggingIn) return;
@@ -1209,19 +1266,22 @@
                 localStorage.removeItem('intan_elyu_remember_me');
             }
 
-            // Clear legacy unscoped voucher caches from previous session
-            try {
-                localStorage.removeItem('intan_elyu_claimed_vouchers');
-                localStorage.removeItem('intan_elyu_cached_vouchers');
-            } catch (e) { }
+            // Purge previous user session caches and tokens before storing new authenticated session
+            window.purgeAllUserSessionCaches();
 
-            localStorage.removeItem('intan_elyu_guest');
-            localStorage.removeItem('intan_elyu_offline_guest');
-            localStorage.removeItem('intan_elyu_offline_mode');
             localStorage.setItem('auth_user', JSON.stringify(data.user));
             localStorage.setItem('auth_user_backup', JSON.stringify(data.user));
+            localStorage.setItem('intan_elyu_user', JSON.stringify(data.user));
             localStorage.setItem('intan_elyu_token', data.token);
+            localStorage.setItem('Intan_Elyu_Token', data.token);
+            localStorage.setItem('api_token', data.token);
             localStorage.setItem('intan_elyu_real_token_backup', data.token);
+            if (window.AppStorage) {
+                try {
+                    window.AppStorage.setItem('auth_user', data.user);
+                    window.AppStorage.setItem('intan_elyu_token', data.token);
+                } catch (e) { }
+            }
 
             showLoginSuccessModal(data.user);
         } catch (error) {
@@ -1745,12 +1805,20 @@
                 }
 
                 window._pending2FALogin = null;
-                try {
-                    localStorage.removeItem('intan_elyu_claimed_vouchers');
-                    localStorage.removeItem('intan_elyu_cached_vouchers');
-                } catch (e) { }
+                window.purgeAllUserSessionCaches();
                 localStorage.setItem('auth_user', JSON.stringify(data.user));
+                localStorage.setItem('auth_user_backup', JSON.stringify(data.user));
+                localStorage.setItem('intan_elyu_user', JSON.stringify(data.user));
                 localStorage.setItem('intan_elyu_token', data.token);
+                localStorage.setItem('Intan_Elyu_Token', data.token);
+                localStorage.setItem('api_token', data.token);
+                localStorage.setItem('intan_elyu_real_token_backup', data.token);
+                if (window.AppStorage) {
+                    try {
+                        window.AppStorage.setItem('auth_user', data.user);
+                        window.AppStorage.setItem('intan_elyu_token', data.token);
+                    } catch (e) { }
+                }
 
                 showLoginSuccessModal(data.user);
             } catch (error) {
@@ -1782,8 +1850,20 @@
                 throw new Error(data.message || 'Invalid verification code');
             }
 
+            window.purgeAllUserSessionCaches();
             localStorage.setItem('auth_user', JSON.stringify(data.user));
+            localStorage.setItem('auth_user_backup', JSON.stringify(data.user));
+            localStorage.setItem('intan_elyu_user', JSON.stringify(data.user));
             localStorage.setItem('intan_elyu_token', data.token);
+            localStorage.setItem('Intan_Elyu_Token', data.token);
+            localStorage.setItem('api_token', data.token);
+            localStorage.setItem('intan_elyu_real_token_backup', data.token);
+            if (window.AppStorage) {
+                try {
+                    window.AppStorage.setItem('auth_user', data.user);
+                    window.AppStorage.setItem('intan_elyu_token', data.token);
+                } catch (e) { }
+            }
 
             showLoginSuccessModal(data.user);
         } catch (error) {
@@ -2325,16 +2405,21 @@
                 throw new Error(data.message || data.error || 'Google login failed');
             }
 
+            window.purgeAllUserSessionCaches();
             localStorage.setItem('auth_user', JSON.stringify(data.user));
+            localStorage.setItem('auth_user_backup', JSON.stringify(data.user));
+            localStorage.setItem('intan_elyu_user', JSON.stringify(data.user));
             localStorage.setItem('intan_elyu_token', data.token);
+            localStorage.setItem('Intan_Elyu_Token', data.token);
+            localStorage.setItem('api_token', data.token);
+            localStorage.setItem('intan_elyu_real_token_backup', data.token);
             if (window.AppStorage) {
-                window.AppStorage.setItem('auth_user', data.user);
-                window.AppStorage.setItem('intan_elyu_token', data.token);
+                try {
+                    window.AppStorage.setItem('auth_user', data.user);
+                    window.AppStorage.setItem('intan_elyu_token', data.token);
+                } catch (e) { }
             }
 
-            // Clear offline flags on successful cloud authentication
-            localStorage.removeItem('intan_elyu_offline_mode');
-            localStorage.removeItem('intan_elyu_offline_guest');
             try {
                 sessionStorage.removeItem('intan_elyu_google_oauth_pending');
                 sessionStorage.removeItem('elyu_show_offline_bypass_notice');
