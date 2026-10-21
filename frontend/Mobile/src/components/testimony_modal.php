@@ -5,7 +5,7 @@
         <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
             <div>
                 <h3 id="testimony-modal-title" style="margin:0 0 2px; color:#ffffff; font-size:17px; font-weight:800; letter-spacing:-0.3px;">Review Destination</h3>
-                <p id="testimony-modal-subtitle" style="margin:0; font-size:11px; color:rgba(255,255,255,0.85); line-height:1.35;">Share your site testimony and policy recommendations to help local tourism.</p>
+                <p id="testimony-modal-subtitle" style="margin:0; font-size:11px; color:rgba(255,255,255,0.85); line-height:1.35;">Share your site feedback and policy recommendations to help local tourism.</p>
             </div>
             <button type="button" onclick="window.closeWriteTestimonyModal()" style="background:rgba(255,255,255,0.15); border:none !important; outline:none !important; color:#ffffff; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; margin-left:8px;">
                 <i class="fa-solid fa-xmark" style="font-size:13px;"></i>
@@ -84,10 +84,10 @@
                 </div>
             </div>
 
-            <!-- Testimony description -->
+            <!-- Feedback description -->
             <div style="margin-bottom:7px;">
-                <label style="font-size:10.5px; font-weight:800; color:#ffffff; text-transform:uppercase; letter-spacing:0.4px; display:block; margin-bottom:3px;">Your Testimony:</label>
-                <textarea id="testimony-comment" placeholder="Describe your experience during this site visit..." style="width:100%; height:52px; background:rgba(255,255,255,0.15); border:none !important; outline:none !important; border-radius:10px; padding:8px 10px; color:#ffffff !important; -webkit-text-fill-color:#ffffff !important; font-size:12px; font-weight:500; font-family:inherit; resize:none; box-sizing:border-box; line-height:1.4; overflow:hidden !important; scrollbar-width:none; -ms-overflow-style:none;" required></textarea>
+                <label style="font-size:10.5px; font-weight:800; color:#ffffff; text-transform:uppercase; letter-spacing:0.4px; display:block; margin-bottom:3px;">Your Feedback:</label>
+                <textarea id="testimony-comment" placeholder="Describe your experience and feedback during this site visit..." style="width:100%; height:52px; background:rgba(255,255,255,0.15); border:none !important; outline:none !important; border-radius:10px; padding:8px 10px; color:#ffffff !important; -webkit-text-fill-color:#ffffff !important; font-size:12px; font-weight:500; font-family:inherit; resize:none; box-sizing:border-box; line-height:1.4; overflow:hidden !important; scrollbar-width:none; -ms-overflow-style:none;" required></textarea>
             </div>
 
             <!-- Policy Recommendation (No Scrollbar) -->
@@ -216,7 +216,7 @@ window.openWriteTestimonyModal = function(spotId, btnEl) {
     if (isAlreadyReviewed) {
         // Repeated Review state: NO ADDITIONAL REWARDS
         if (titleEl) titleEl.textContent = 'Update Destination Review';
-        if (subEl) subEl.textContent = 'Modify your site testimony and policy recommendations for this destination.';
+        if (subEl) subEl.textContent = 'Modify your site feedback and policy recommendations for this destination.';
         if (bannerEl) {
             bannerEl.style.background = 'rgba(255, 255, 255, 0.14)';
             bannerEl.style.border = '1px solid rgba(255, 255, 255, 0.22)';
@@ -245,7 +245,7 @@ window.openWriteTestimonyModal = function(spotId, btnEl) {
     } else {
         // First Review state: EARN REWARDS based on classification (Existing 50, Emerging 100, Potential 75)
         if (titleEl) titleEl.textContent = 'Review Destination';
-        if (subEl) subEl.textContent = `Share your site testimony for this ${classMeta.label.toLowerCase()} destination to help local tourism.`;
+        if (subEl) subEl.textContent = `Share your site feedback for this ${classMeta.label.toLowerCase()} destination to help local tourism.`;
         if (bannerEl) {
             bannerEl.style.background = 'rgba(255, 255, 255, 0.14)';
             bannerEl.style.border = '1px solid rgba(255, 255, 255, 0.22)';

@@ -226,6 +226,13 @@ if (is_dir($imgDir)) {
                 if (tabTrending) tabTrending.classList.add('active');
                 if (tabAll) tabAll.classList.remove('active');
                 if (input) input.placeholder = "Search trending sites, municipality...";
+                if (currentSort === 'popular') {
+                    currentSort = 'rating';
+                    document.querySelectorAll('#trending-sort-bar .sort-chip').forEach(c => {
+                        if (c.dataset.sort === 'rating') c.classList.add('active');
+                        else c.classList.remove('active');
+                    });
+                }
             } else {
                 if (wrap) wrap.classList.remove('mode-trending');
                 if (tabAll) tabAll.classList.add('active');
@@ -391,9 +398,13 @@ if (is_dir($imgDir)) {
             // Sorting
             filtered.sort((a, b) => {
                 if (currentSort === 'popular') {
-                    return (parseInt(b.visits) || 0) - (parseInt(a.visits) || 0);
+                    const vDiff = (parseInt(b.visits) || 0) - (parseInt(a.visits) || 0);
+                    if (vDiff !== 0) return vDiff;
+                    return (parseFloat(b.rating || b.reviews_avg_rating || 0)) - (parseFloat(a.rating || a.reviews_avg_rating || 0));
                 } else if (currentSort === 'rating') {
-                    return (parseFloat(b.rating) || 0) - (parseFloat(a.rating) || 0);
+                    const rDiff = (parseFloat(b.rating || b.reviews_avg_rating || 0)) - (parseFloat(a.rating || a.reviews_avg_rating || 0));
+                    if (Math.abs(rDiff) > 0.01) return rDiff;
+                    return (parseInt(b.visits) || 0) - (parseInt(a.visits) || 0);
                 } else if (currentSort === 'alpha') {
                     return (a.name || '').localeCompare(b.name || '');
                 }

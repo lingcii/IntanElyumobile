@@ -31,17 +31,16 @@ class VehicleController extends Controller
             }
         } catch (\Throwable $e) {
             $vehicleTypes = [
-                ['name' => 'MPUJ', 'category' => 'Public Vehicle'],
-                ['name' => 'TPUJ', 'category' => 'Public Vehicle'],
-                ['name' => 'PUB_Aircon', 'category' => 'Public Vehicle'],
-                ['name' => 'PUB_Ordinary', 'category' => 'Public Vehicle'],
-                ['name' => 'PUB_Regular', 'category' => 'Public Vehicle'],
-                ['name' => 'Tricycle', 'category' => 'Public Vehicle'],
-                ['name' => 'UVE', 'category' => 'Public Vehicle'],
-                ['name' => 'TAXI', 'category' => 'Public Vehicle'],
+                ['name' => 'Aircon Bus', 'category' => 'Public Vehicle'],
                 ['name' => 'Car', 'category' => 'Private Vehicle'],
-                ['name' => 'Van', 'category' => 'Private Vehicle'],
+                ['name' => 'Modern Jeepney', 'category' => 'Public Vehicle'],
                 ['name' => 'Motorcycle', 'category' => 'Private Vehicle'],
+                ['name' => 'Regular Bus', 'category' => 'Public Vehicle'],
+                ['name' => 'Taxi', 'category' => 'Public Vehicle'],
+                ['name' => 'Traditional Jeepney', 'category' => 'Public Vehicle'],
+                ['name' => 'Tricycle', 'category' => 'Public Vehicle'],
+                ['name' => 'UV Express', 'category' => 'Public Vehicle'],
+                ['name' => 'Van', 'category' => 'Private Vehicle'],
             ];
         }
 

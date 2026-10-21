@@ -744,7 +744,7 @@ try {
                             <i class="fa-solid fa-bus-simple"></i>
                         </div>
                         <div style="flex:1; min-width:0;">
-                            <div style="font-weight:800; font-size:13.5px; color:#ffffff;">Modern Jeepney (MPUJ)</div>
+                            <div style="font-weight:800; font-size:13.5px; color:#ffffff;">Modern Jeepney</div>
                         </div>
                     </div>
                     <div style="text-align:right; flex-shrink:0; margin-left:8px;">
@@ -755,7 +755,7 @@ try {
                     </div>
                 </div>
 
-                <!-- Option 5: Traditional Jeepney (TPUJ) -->
+                <!-- Option 5: Traditional Jeepney -->
                 <div class="travel-starter-card" data-mode="tpuj" onclick="window.toggleStarterVehicleMode('tpuj')">
                     <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:0;">
                         <div class="starter-check-box"
@@ -767,7 +767,7 @@ try {
                             <i class="fa-solid fa-van-shuttle"></i>
                         </div>
                         <div style="flex:1; min-width:0;">
-                            <div style="font-weight:800; font-size:13.5px; color:#ffffff;">Traditional Jeepney (TPUJ)
+                            <div style="font-weight:800; font-size:13.5px; color:#ffffff;">Traditional Jeepney
                             </div>
                         </div>
                     </div>
@@ -838,7 +838,7 @@ try {
                             <i class="fa-solid fa-van-shuttle"></i>
                         </div>
                         <div style="flex:1; min-width:0;">
-                            <div style="font-weight:800; font-size:13.5px; color:#ffffff;">UV Express (UVE)</div>
+                            <div style="font-weight:800; font-size:13.5px; color:#ffffff;">UV Express</div>
                         </div>
                     </div>
                     <div style="text-align:right; flex-shrink:0; margin-left:8px;">
@@ -849,7 +849,7 @@ try {
                     </div>
                 </div>
 
-                <!-- Option 9: PUB Regular Bus -->
+                <!-- Option 9: Regular Bus -->
                 <div class="travel-starter-card" data-mode="pub_regular"
                     onclick="window.toggleStarterVehicleMode('pub_regular')">
                     <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:0;">
@@ -862,7 +862,7 @@ try {
                             <i class="fa-solid fa-bus"></i>
                         </div>
                         <div style="flex:1; min-width:0;">
-                            <div style="font-weight:800; font-size:13.5px; color:#ffffff;">PUB Regular (Ordinary Bus)
+                            <div style="font-weight:800; font-size:13.5px; color:#ffffff;">Regular Bus
                             </div>
                         </div>
                     </div>
@@ -874,7 +874,7 @@ try {
                     </div>
                 </div>
 
-                <!-- Option 10: PUB Aircon Bus -->
+                <!-- Option 10: Aircon Bus -->
                 <div class="travel-starter-card" data-mode="pub_aircon"
                     onclick="window.toggleStarterVehicleMode('pub_aircon')">
                     <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:0;">
@@ -887,7 +887,7 @@ try {
                             <i class="fa-solid fa-bus"></i>
                         </div>
                         <div style="flex:1; min-width:0;">
-                            <div style="font-weight:800; font-size:13.5px; color:#ffffff;">PUB Aircon (Aircon Bus)</div>
+                            <div style="font-weight:800; font-size:13.5px; color:#ffffff;">Aircon Bus</div>
                         </div>
                     </div>
                     <div style="text-align:right; flex-shrink:0; margin-left:8px;">
@@ -1259,13 +1259,13 @@ try {
                 'own_car': 'Own Car',
                 'motorcycle': 'Motorcycle',
                 'van': 'Van',
-                'mpuj': 'Modern Jeepney (MPUJ)',
-                'tpuj': 'Traditional Jeepney (TPUJ)',
-                'jeepney': 'Traditional Jeepney (TPUJ)',
+                'mpuj': 'Modern Jeepney',
+                'tpuj': 'Traditional Jeepney',
+                'jeepney': 'Traditional Jeepney',
                 'tricycle': 'Tricycle',
-                'pub_regular': 'PUB Regular (Ordinary Bus)',
-                'pub_aircon': 'PUB Aircon (Aircon Bus)',
-                'uve': 'UV Express (UVE)',
+                'pub_regular': 'Regular Bus',
+                'pub_aircon': 'Aircon Bus',
+                'uve': 'UV Express',
                 'taxi': 'Taxi'
             };
             return map[norm] || norm.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
@@ -5122,10 +5122,10 @@ try {
                 const isInterMunicipal = uniqueMunis.length > 1;
 
                 optionsList = [
-                    { val: 'mpuj', name: 'Modern Jeepney (MPUJ)', icon: 'fa-van-shuttle', available: true, key: 'mpuj' },
-                    { val: 'tpuj', name: 'Traditional Jeepney (TPUJ)', icon: 'fa-van-shuttle', available: true, key: 'tpuj' },
-                    { val: 'pub_aircon', name: 'Aircon Bus (PUB)', icon: 'fa-bus', available: true, key: 'pub_aircon' },
-                    { val: 'pub_ordinary', name: 'Ordinary Bus (PUB)', icon: 'fa-bus-simple', available: true, key: 'pub_regular' },
+                    { val: 'mpuj', name: 'Modern Jeepney', icon: 'fa-van-shuttle', available: true, key: 'mpuj' },
+                    { val: 'tpuj', name: 'Traditional Jeepney', icon: 'fa-van-shuttle', available: true, key: 'tpuj' },
+                    { val: 'pub_aircon', name: 'Aircon Bus', icon: 'fa-bus', available: true, key: 'pub_aircon' },
+                    { val: 'pub_ordinary', name: 'Regular Bus', icon: 'fa-bus-simple', available: true, key: 'pub_regular' },
                     {
                         val: 'tricycle',
                         name: 'Tricycle',

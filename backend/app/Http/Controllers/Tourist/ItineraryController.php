@@ -66,27 +66,45 @@ class ItineraryController extends Controller
         $hasExplicit = ($destId && isset($spotAllVehicles[$destId]) && !empty($spotAllVehicles[$destId]));
         $isDrivable = (bool) ($dest?->accessible_by_private_vehicle ?? 1);
 
+        $normalizeVehName = function ($v) {
+            $vUpper = strtoupper(trim((string) $v));
+            if ($vUpper === 'MPUJ' || $vUpper === 'MPUJ (MODERN JEEPNEY)') return 'Modern Jeepney';
+            if ($vUpper === 'TPUJ' || $vUpper === 'TPUJ (TRADITIONAL JEEPNEY)') return 'Traditional Jeepney';
+            if ($vUpper === 'PUB_REGULAR' || $vUpper === 'PUB_ORDINARY' || $vUpper === 'PUB REGULAR' || $vUpper === 'PUB ORDINARY') return 'Regular Bus';
+            if ($vUpper === 'PUB_AIRCON' || $vUpper === 'PUB AIRCON') return 'Aircon Bus';
+            if ($vUpper === 'UVE') return 'UV Express';
+            if ($vUpper === 'TAXI') return 'Taxi';
+            if ($vUpper === 'CAR' || $vUpper === 'OWN_CAR') return 'Car';
+            if ($vUpper === 'MOTORCYCLE') return 'Motorcycle';
+            if ($vUpper === 'TRICYCLE' || $vUpper === 'TRYCICLE') return 'Tricycle';
+            if ($vUpper === 'VAN') return 'Van';
+            return trim((string) $v);
+        };
+
         if ($hasExplicit) {
             $pubList = isset($spotPublicVehicles[$destId])
-                ? array_values(array_unique($spotPublicVehicles[$destId]))
+                ? array_values(array_unique(array_map($normalizeVehName, $spotPublicVehicles[$destId])))
                 : [];
             $privList = isset($spotPrivateVehicles[$destId])
-                ? array_values(array_unique($spotPrivateVehicles[$destId]))
+                ? array_values(array_unique(array_map($normalizeVehName, $spotPrivateVehicles[$destId])))
                 : [];
             $allList = isset($spotAllVehicles[$destId])
-                ? array_values(array_unique($spotAllVehicles[$destId]))
+                ? array_values(array_unique(array_map($normalizeVehName, $spotAllVehicles[$destId])))
                 : [];
         } else {
             if ($isDrivable) {
-                $privList = ['Car', 'Motorcycle', 'Van', 'Tricycle'];
-                $pubList = ['MPUJ', 'TPUJ', 'Tricycle', 'PUB_Regular', 'PUB_Aircon', 'UVE', 'TAXI'];
-                $allList = ['Car', 'Motorcycle', 'Van', 'MPUJ', 'TPUJ', 'Tricycle', 'PUB_Regular', 'PUB_Aircon', 'UVE', 'TAXI'];
+                $privList = ['Car', 'Motorcycle', 'Tricycle', 'Van'];
+                $pubList = ['Aircon Bus', 'Modern Jeepney', 'Regular Bus', 'Taxi', 'Traditional Jeepney', 'Tricycle', 'UV Express'];
+                $allList = ['Aircon Bus', 'Car', 'Modern Jeepney', 'Motorcycle', 'Regular Bus', 'Taxi', 'Traditional Jeepney', 'Tricycle', 'UV Express', 'Van'];
             } else {
                 $privList = ['Motorcycle', 'Tricycle'];
-                $pubList = ['Tricycle', 'Motorcycle'];
-                $allList = ['Tricycle', 'Motorcycle'];
+                $pubList = ['Motorcycle', 'Tricycle'];
+                $allList = ['Motorcycle', 'Tricycle'];
             }
         }
+        sort($pubList);
+        sort($privList);
+        sort($allList);
 
         return [
             'id'                   => $item->id,

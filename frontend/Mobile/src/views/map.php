@@ -26,6 +26,24 @@ if (is_dir($imgDir)) {
 <script>
     window.AVAILABLE_MUNI_IMAGES = <?= json_encode($municipalityImages) ?>;
 
+    window.formatVehicleDisplayName = function (name) {
+        if (!name) return '';
+        const s = String(name).trim();
+        const upper = s.toUpperCase().replace(/[- ]/g, '_');
+        if (upper === 'MPUJ' || upper === 'MPUJ_(MODERN_JEEPNEY)' || upper === 'MODERN_JEEPNEY') return 'Modern Jeepney';
+        if (upper === 'TPUJ' || upper === 'TPUJ_(TRADITIONAL_JEEPNEY)' || upper === 'TRADITIONAL_JEEPNEY') return 'Traditional Jeepney';
+        if (upper === 'PUB_REGULAR' || upper === 'PUB_ORDINARY' || upper === 'PUB_REG' || upper === 'REGULAR_BUS' || upper === 'ORDINARY_BUS' || upper === 'PUB_ORDINARY_(REGULAR_BUS)') return 'Regular Bus';
+        if (upper === 'PUB_AIRCON' || upper === 'PUB_AIRCON_(AIRCON_BUS)' || upper === 'AIRCON_BUS') return 'Aircon Bus';
+        if (upper === 'PUB') return 'Bus';
+        if (upper === 'UVE' || upper === 'UV_EXPRESS') return 'UV Express';
+        if (upper === 'TAXI') return 'Taxi';
+        if (upper === 'CAR' || upper === 'OWN_CAR' || upper === 'PRIVATE_CAR') return 'Car';
+        if (upper === 'MOTORCYCLE' || upper === 'MOTOR') return 'Motorcycle';
+        if (upper === 'TRICYCLE' || upper === 'TRYCICLE' || upper === 'TRIKE') return 'Tricycle';
+        if (upper === 'VAN' || upper === 'PRIVATE_VAN') return 'Van';
+        return s.replace(/_/g, ' ');
+    };
+
     window.getFareBoundaryEstimate = function (vehicleType, distanceKm, municipality = null, isPrivate = null) {
         if (!window.fareData) return null;
 
@@ -44,7 +62,7 @@ if (is_dir($imgDir)) {
                 isPassedBoundary: false,
                 isExceedingMax: false,
                 isPrivate: true,
-                boundaryLabel: 'Direct road access • No fare required',
+                boundaryLabel: 'Direct road access',
                 title: 'Personal / Own Vehicle'
             };
         }
@@ -58,7 +76,7 @@ if (is_dir($imgDir)) {
                 isPassedBoundary: false,
                 isExceedingMax: false,
                 isPrivate: true,
-                boundaryLabel: 'Direct road access • No fare required',
+                boundaryLabel: 'Direct road access',
                 title: 'Personal / Own Vehicle'
             };
         }
@@ -72,11 +90,11 @@ if (is_dir($imgDir)) {
                 isPassedBoundary: false,
                 isExceedingMax: false,
                 isPrivate: true,
-                boundaryLabel: 'Direct road access • No fare required',
+                boundaryLabel: 'Direct road access',
                 title: 'Personal / Own Vehicle'
             };
         }
-        if (normType === 'tricycle' && isPrivate === true) {
+        if ((normType === 'tricycle' || normType === 'trycicle') && isPrivate === true) {
             return {
                 fare: 0,
                 discountedFare: 0,
@@ -86,7 +104,7 @@ if (is_dir($imgDir)) {
                 isPassedBoundary: false,
                 isExceedingMax: false,
                 isPrivate: true,
-                boundaryLabel: 'Direct road access • No fare required',
+                boundaryLabel: 'Direct road access',
                 title: 'Personal / Own Vehicle'
             };
         }
@@ -730,7 +748,7 @@ if (is_dir($imgDir)) {
                             <div class="dest-support-header">
                                 <span
                                     style="font-size:12.5px; font-weight:800; color:#ffffff; display:flex; align-items:center; gap:6px;">
-                                    <i class="fa-solid fa-comments" style="color:#00f2fe;"></i> Tourist Testimonies
+                                    <i class="fa-solid fa-comments" style="color:#00f2fe;"></i> Tourist Feedback
                                 </span>
                                 <span class="dest-support-badge" id="sheet-testimonies-badge">Verified Reviews</span>
                             </div>
@@ -823,17 +841,14 @@ if (is_dir($imgDir)) {
         <!-- Body Below Header (Pure White Background) -->
         <div
             style="background:#ffffff !important; color:#1e293b; padding:16px 20px calc(24px + env(safe-area-inset-bottom)); flex:1; overflow-y:auto; display:flex; flex-direction:column; box-sizing:border-box;">
-            <!-- Distance & Boundary Step Info Banner -->
+            <!-- Distance Banner -->
             <div id="spot-veh-modal-dist-banner"
-                style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:14px; padding:10px 14px; margin-bottom:14px; display:flex; align-items:center; justify-content:space-between;">
+                style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:14px; padding:10px 14px; margin-bottom:14px; display:flex; align-items:center;">
                 <div style="display:flex; align-items:center; gap:8px;">
                     <i class="fa-solid fa-location-crosshairs" style="color:#1e3a8a; font-size:14px;"></i>
                     <span id="spot-veh-modal-dist-text"
                         style="font-size:12.5px; font-weight:700; color:#1e293b;">Calculating distance...</span>
                 </div>
-                <span
-                    style="font-size:10px; font-weight:800; text-transform:uppercase; background:rgba(0, 242, 254, 0.18); color:#0284c7; padding:3px 9px; border-radius:100px;">Fare
-                    Matrix</span>
             </div>
 
             <!-- Vehicles Grid / List (Royal Blue Cards) -->
@@ -4282,7 +4297,7 @@ if (is_dir($imgDir)) {
                 if (n.includes('van') || n.includes('uve')) return 'fa-van-shuttle';
                 if (n.includes('pub') || n.includes('bus')) return 'fa-bus';
                 if (n.includes('puj') || n.includes('jeep')) return 'fa-bus-simple';
-                if (n.includes('trike') || n.includes('tricycle')) return 'fa-bicycle';
+                if (n.includes('trike') || n.includes('tricycle') || n.includes('trycicle')) return 'fa-bicycle';
                 if (n.includes('taxi')) return 'fa-taxi';
                 return 'fa-car-side';
             };
@@ -4290,21 +4305,19 @@ if (is_dir($imgDir)) {
             let cardsHtml = '';
 
             // Group into Public & Private categories for clarity
-            // Private Vehicles: Car, Motorcycle, Van, Tricycle (Personal)
             const isPrivMatch = (name) => {
                 const s = String(name || '').toLowerCase().trim();
-                if (s.includes('taxi') || s.includes('puj') || s.includes('pub') || s.includes('jeep') || s.includes('bus') || s.includes('uve')) {
+                if (s.includes('taxi') || s.includes('puj') || s.includes('pub') || s.includes('jeep') || s.includes('bus') || s.includes('uve') || s.includes('modern') || s.includes('traditional')) {
                     return false;
                 }
                 return privVehicles.some(p => p.toLowerCase().trim() === s) ||
-                    ['car', 'motorcycle', 'motor', 'van', 'tricycle', 'trike'].some(k => s === k || s.includes(k));
+                    ['car', 'motorcycle', 'motor', 'van', 'tricycle', 'trycicle', 'trike'].some(k => s === k || s.includes(k));
             };
 
-            // Public Transport: Modern/Traditional Jeepneys, Buses, UV Express, Taxi
             const isPubMatch = (name) => {
                 const s = String(name || '').toLowerCase().trim();
                 return pubVehicles.some(p => p.toLowerCase().trim() === s) ||
-                    ['mpuj', 'tpuj', 'pub_aircon', 'pub_regular', 'pub', 'taxi', 'uve', 'jeepney'].some(k => s === k || s.includes(k));
+                    ['mpuj', 'tpuj', 'pub_aircon', 'pub_regular', 'pub_ordinary', 'pub', 'taxi', 'uve', 'jeepney', 'modern jeepney', 'traditional jeepney', 'aircon bus', 'regular bus', 'bus', 'tricycle', 'trycicle'].some(k => s === k || s.includes(k));
             };
 
             let privateAvailable = [];
@@ -4318,11 +4331,46 @@ if (is_dir($imgDir)) {
                 publicAvailable = allVehicles.filter(v => isPubMatch(v) && !privateAvailable.includes(v));
             }
 
-            const renderCard = (vehName, isPub) => {
-                const est = window.getFareBoundaryEstimate(vehName, distKm, dest.municipality, !isPub);
+            // Build unified vehicle list and normalize to friendly names
+            const vehicleList = [];
+            const seenKeys = new Set();
+
+            publicAvailable.forEach(v => {
+                const displayName = window.formatVehicleDisplayName(v);
+                const key = 'pub_' + displayName.toLowerCase();
+                if (!seenKeys.has(key)) {
+                    seenKeys.add(key);
+                    vehicleList.push({
+                        rawName: v,
+                        displayName: displayName,
+                        isPub: true
+                    });
+                }
+            });
+
+            privateAvailable.forEach(v => {
+                const displayName = window.formatVehicleDisplayName(v);
+                const key = 'priv_' + displayName.toLowerCase();
+                if (!seenKeys.has(key)) {
+                    seenKeys.add(key);
+                    vehicleList.push({
+                        rawName: v,
+                        displayName: displayName,
+                        isPub: false
+                    });
+                }
+            });
+
+            // Sort Available Vehicles Alphabetically (A to Z) by displayName
+            vehicleList.sort((a, b) => a.displayName.localeCompare(b.displayName));
+
+            const renderCard = (item) => {
+                const vehName = item.displayName;
+                const isPub = item.isPub;
+                const est = window.getFareBoundaryEstimate(item.rawName || vehName, distKm, dest.municipality, !isPub);
                 const isPrivateVeh = !isPub || (est && est.isPrivate);
                 const fareDisplay = est ? `₱${est.fare.toFixed(2)}` : 'Rate on inquiry';
-                const boundaryText = est?.boundaryLabel || (isPrivateVeh ? 'Direct road access • No fare required' : 'Boundary step calculated');
+                const boundaryText = (isPrivateVeh ? 'Direct road access' : (est?.boundaryLabel || 'Boundary step calculated')).replace(/•\s*No fare required/gi, '').trim();
                 const baseText = (!isPrivateVeh && est && est.baseFare > 0) ? `Base: ₱${est.baseFare.toFixed(2)}` : '';
 
                 return `
@@ -4343,13 +4391,8 @@ if (is_dir($imgDir)) {
                             </div>
                         </div>
                         <div style="text-align:right;">
-                            ${isPrivateVeh ? `
-                                <div style="font-size:11.5px; font-weight:800; color:#34d399; background:rgba(16, 185, 129, 0.22); padding:3px 10px; border-radius:100px; display:inline-flex; align-items:center; gap:5px; box-shadow:0 2px 6px rgba(0,0,0,0.15);">
-                                    <i class="fa-solid fa-check" style="font-size:9.5px;"></i> No fare required
-                                </div>
-                            ` : `
+                            ${isPrivateVeh ? '' : `
                                 <div style="font-size:15px; font-weight:900; color:#00f2fe; letter-spacing:-0.2px;">${fareDisplay}</div>
-                                <div style="font-size:9.5px; font-weight:700; color:rgba(255,255,255,0.75); margin-top:2px;">Standard Fare</div>
                             `}
                         </div>
                     </div>
@@ -4363,21 +4406,9 @@ if (is_dir($imgDir)) {
                 </div>`;
             };
 
-            if (publicAvailable.length > 0) {
-                cardsHtml += `
-                <div style="font-size:11px; font-weight:800; text-transform:uppercase; color:#1e3a8a; letter-spacing:0.6px; margin:6px 0 2px 2px; display:flex; align-items:center; gap:6px;">
-                    <i class="fa-solid fa-bus" style="font-size:11px; color:#1e3a8a;"></i> Public Vehicles (${publicAvailable.length})
-                </div>`;
-                publicAvailable.forEach(v => { cardsHtml += renderCard(v, true); });
-            }
-
-            if (privateAvailable.length > 0) {
-                cardsHtml += `
-                <div style="font-size:11px; font-weight:800; text-transform:uppercase; color:#1e3a8a; letter-spacing:0.6px; margin:10px 0 2px 2px; display:flex; align-items:center; gap:6px;">
-                    <i class="fa-solid fa-car" style="font-size:11px; color:#1e3a8a;"></i> Private Vehicles (${privateAvailable.length})
-                </div>`;
-                privateAvailable.forEach(v => { cardsHtml += renderCard(v, false); });
-            }
+            vehicleList.forEach(item => {
+                cardsHtml += renderCard(item);
+            });
 
             if (listEl) {
                 listEl.innerHTML = cardsHtml;
@@ -4529,31 +4560,31 @@ if (is_dir($imgDir)) {
                     faresHtml += createCard('Tricycle', 'fa-motorcycle', 'var(--secondary-color)', 'Fits narrow roads, best for local transfers', trikeFare, '24/7 (Night Rates 10PM+)', true);
                 }
 
-                // MPUJ (Modernized Jeepney) - Base ₱15
+                // Modern Jeepney - Base ₱15
                 const mpujFare = dbFare('mpuj') ?? Math.round(15 + (Math.max(0, distanceKm - 4) * 2.2));
-                faresHtml += createCard('MPUJ (Modern Jeepney)', 'fa-van-shuttle', '#10b981', 'Aircon modern public utility jeepney', mpujFare, '5:30 AM - 9:00 PM', true);
+                faresHtml += createCard('Modern Jeepney', 'fa-van-shuttle', '#10b981', 'Aircon modern public utility jeepney', mpujFare, '5:30 AM - 9:00 PM', true);
 
-                // TPUJ (Traditional Jeepney)
+                // Traditional Jeepney
                 if (distanceKm <= 35) {
                     const tpujFare = dbFare('tpuj') ?? dbFare('jeepney') ?? Math.round(13 + (Math.max(0, distanceKm - 4) * 1.8));
-                    faresHtml += createCard('TPUJ (Traditional Jeepney)', 'fa-van-shuttle', '#f59e0b', 'Traditional open-air jeepney route', tpujFare, '6:00 AM - 8:30 PM', true);
+                    faresHtml += createCard('Traditional Jeepney', 'fa-van-shuttle', '#f59e0b', 'Traditional open-air jeepney route', tpujFare, '6:00 AM - 8:30 PM', true);
                 }
 
-                // PUB Aircon (Aircon Bus) - Base ₱10.50
+                // Aircon Bus - Base ₱10.50
                 const pubAirconFare = dbFare('pub_aircon') ?? dbFare('bus') ?? Math.round(10.50 + (Math.max(0, distanceKm - 5) * 2.2));
-                faresHtml += createCard('PUB Aircon (Aircon Bus)', 'fa-bus', '#38bdf8', 'Aircon provincial bus across La Union', pubAirconFare, '4:00 AM - 11:00 PM', true);
+                faresHtml += createCard('Aircon Bus', 'fa-bus', '#38bdf8', 'Aircon provincial bus across La Union', pubAirconFare, '4:00 AM - 11:00 PM', true);
 
-                // PUB Ordinary (Regular Bus) - Base ₱11.00
+                // Regular Bus - Base ₱11.00
                 const pubOrdinaryFare = dbFare('pub_ordinary') ?? Math.round(11.00 + (Math.max(0, distanceKm - 5) * 2.0));
-                faresHtml += createCard('PUB Ordinary (Regular Bus)', 'fa-bus-simple', '#06b6d4', 'Standard regular provincial commuter bus', pubOrdinaryFare, '4:00 AM - 10:00 PM', true);
+                faresHtml += createCard('Regular Bus', 'fa-bus-simple', '#06b6d4', 'Standard regular provincial commuter bus', pubOrdinaryFare, '4:00 AM - 10:00 PM', true);
 
                 // Private Vehicles
                 if (distanceKm >= 2) {
                     const taxiFare = Math.round(40 + (distanceKm * 13));
                     faresHtml += createCard('Taxi', 'fa-taxi', '#f97316', 'Main roads / highways — metered fare', taxiFare, '24/7 Service', false);
                 }
-                faresHtml += createCard('Own Car', 'fa-car', '#34d399', 'Personal / own vehicle (No fare required)', 0, 'Anytime', false);
-                faresHtml += createCard('Motorcycle', 'fa-motorcycle', '#a855f7', 'Personal / own motorbike (No fare required)', 0, 'Anytime', false);
+                faresHtml += createCard('Car', 'fa-car', '#34d399', 'Personal / own vehicle', 0, 'Anytime', false);
+                faresHtml += createCard('Motorcycle', 'fa-motorcycle', '#a855f7', 'Personal / own motorbike', 0, 'Anytime', false);
             }
             const fareList = document.getElementById('fare-list');
             if (fareList) fareList.innerHTML = faresHtml;
@@ -4908,7 +4939,7 @@ if (is_dir($imgDir)) {
                         </div>
                         <div style="display:flex; justify-content:center; margin-top:6px;">
                             <button id="btn-toggle-testimonies" onclick="window.toggleAllTestimonies()" style="background:rgba(255,255,255,0.18); border:none !important; color:#ffffff; font-size:11px; font-weight:800; padding:8px 18px; border-radius:20px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; transition:all 0.2s cubic-bezier(0.16, 1, 0.3, 1);">
-                                <span id="toggle-testimonies-text">View All Testimonies (${d.data.length})</span>
+                                <span id="toggle-testimonies-text">View All Feedback (${d.data.length})</span>
                                 <i class="fa-solid fa-chevron-down" id="toggle-testimonies-chevron" style="transition:transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1); color:#ffffff;"></i>
                             </button>
                         </div>`;
@@ -4928,7 +4959,7 @@ if (is_dir($imgDir)) {
                     <div style="width:40px; height:40px; border-radius:50%; background:#ffffff; display:inline-flex; align-items:center; justify-content:center; color:#1e3a8a; font-size:16px; margin-bottom:8px; box-shadow:0 2px 6px rgba(0,0,0,0.18);">
                         <i class="fa-solid ${isOffline ? 'fa-cloud-arrow-down' : 'fa-comment-dots'}" style="color:#1e3a8a;"></i>
                     </div>
-                    <div style="font-size:13.5px; font-weight:800; color:#ffffff; margin-bottom:12px;">${isOffline ? 'Offline Reviews Mode' : 'No Testimonies Yet'}</div>
+                    <div style="font-size:13.5px; font-weight:800; color:#ffffff; margin-bottom:12px;">${isOffline ? 'Offline Reviews Mode' : 'No Feedback Yet'}</div>
                     <div style="display:inline-flex; align-items:center; gap:6px; font-size:10.5px; font-weight:700; color:#ffffff; background:rgba(255,255,255,0.18); padding:5px 12px; border-radius:20px;">
                         <i class="fa-solid fa-route" style="color:#ffffff;"></i> Review available in Trip Map & Visited Stops
                     </div>
@@ -5035,7 +5066,7 @@ if (is_dir($imgDir)) {
                 extraContainer.classList.remove('expanded');
 
                 const totalCount = extraContainer.dataset.totalCount || '';
-                if (btnText) btnText.textContent = 'View All Testimonies' + (totalCount ? ` (${totalCount})` : '');
+                if (btnText) btnText.textContent = 'View All Feedback' + (totalCount ? ` (${totalCount})` : '');
                 if (chevron) chevron.style.transform = 'rotate(0deg)';
 
                 setTimeout(() => {

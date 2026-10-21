@@ -17,7 +17,7 @@ class MapController extends Controller
      */
     public function publicMapData(): JsonResponse
     {
-        $spots = \Illuminate\Support\Facades\Cache::remember('map:public:spots', 120, function () {
+        $spots = \Illuminate\Support\Facades\Cache::remember('map:public:spots:v5', 120, function () {
             $spotPublicVehicles = [];
             $spotPrivateVehicles = [];
             $spotAllVehicles = [];
@@ -90,31 +90,49 @@ class MapController extends Controller
                         }
                     }
 
+                    $normalizeVehName = function ($v) {
+                        $vUpper = strtoupper(trim((string) $v));
+                        if ($vUpper === 'MPUJ' || $vUpper === 'MPUJ (MODERN JEEPNEY)') return 'Modern Jeepney';
+                        if ($vUpper === 'TPUJ' || $vUpper === 'TPUJ (TRADITIONAL JEEPNEY)') return 'Traditional Jeepney';
+                        if ($vUpper === 'PUB_REGULAR' || $vUpper === 'PUB_ORDINARY' || $vUpper === 'PUB REGULAR' || $vUpper === 'PUB ORDINARY') return 'Regular Bus';
+                        if ($vUpper === 'PUB_AIRCON' || $vUpper === 'PUB AIRCON') return 'Aircon Bus';
+                        if ($vUpper === 'UVE') return 'UV Express';
+                        if ($vUpper === 'TAXI') return 'Taxi';
+                        if ($vUpper === 'CAR' || $vUpper === 'OWN_CAR') return 'Car';
+                        if ($vUpper === 'MOTORCYCLE') return 'Motorcycle';
+                        if ($vUpper === 'TRICYCLE' || $vUpper === 'TRYCICLE') return 'Tricycle';
+                        if ($vUpper === 'VAN') return 'Van';
+                        return trim((string) $v);
+                    };
+
                     $hasExplicit = isset($spotAllVehicles[$spot->id]) && !empty($spotAllVehicles[$spot->id]);
                     $isDrivable = (bool) ($spot->accessible_by_private_vehicle ?? 1);
 
                     if ($hasExplicit) {
                         $pubList = isset($spotPublicVehicles[$spot->id])
-                            ? array_values(array_unique($spotPublicVehicles[$spot->id]))
+                            ? array_values(array_unique(array_map($normalizeVehName, $spotPublicVehicles[$spot->id])))
                             : [];
                         $privList = isset($spotPrivateVehicles[$spot->id])
-                            ? array_values(array_unique($spotPrivateVehicles[$spot->id]))
+                            ? array_values(array_unique(array_map($normalizeVehName, $spotPrivateVehicles[$spot->id])))
                             : [];
                         $allList = isset($spotAllVehicles[$spot->id])
-                            ? array_values(array_unique($spotAllVehicles[$spot->id]))
+                            ? array_values(array_unique(array_map($normalizeVehName, $spotAllVehicles[$spot->id])))
                             : [];
                     } else {
                         // Standard default vehicle access for spots without custom database assignments
                         if ($isDrivable) {
-                            $privList = ['Car', 'Motorcycle', 'Van', 'Tricycle'];
-                            $pubList = ['MPUJ', 'TPUJ', 'Tricycle', 'PUB_Regular', 'PUB_Aircon', 'UVE', 'TAXI'];
-                            $allList = ['Car', 'Motorcycle', 'Van', 'MPUJ', 'TPUJ', 'Tricycle', 'PUB_Regular', 'PUB_Aircon', 'UVE', 'TAXI'];
+                            $privList = ['Car', 'Motorcycle', 'Tricycle', 'Van'];
+                            $pubList = ['Aircon Bus', 'Modern Jeepney', 'Regular Bus', 'Taxi', 'Traditional Jeepney', 'Tricycle', 'UV Express'];
+                            $allList = ['Aircon Bus', 'Car', 'Modern Jeepney', 'Motorcycle', 'Regular Bus', 'Taxi', 'Traditional Jeepney', 'Tricycle', 'UV Express', 'Van'];
                         } else {
                             $privList = ['Motorcycle', 'Tricycle'];
-                            $pubList = ['Tricycle', 'Motorcycle'];
-                            $allList = ['Tricycle', 'Motorcycle'];
+                            $pubList = ['Motorcycle', 'Tricycle'];
+                            $allList = ['Motorcycle', 'Tricycle'];
                         }
                     }
+                    sort($pubList);
+                    sort($privList);
+                    sort($allList);
 
                     $feeTypes = $spot->fee_types;
                     if (is_string($feeTypes)) {
@@ -349,14 +367,14 @@ class MapController extends Controller
             return $result;
         });
 
-        $activeFareVehicleTypes = \Illuminate\Support\Facades\Cache::remember('public:active_fare_vehicle_types:v4', 300, function () {
+        $activeFareVehicleTypes = \Illuminate\Support\Facades\Cache::remember('public:active_fare_vehicle_types:v5', 300, function () use ($normalizeVehName) {
             try {
                 $dbTypes = \Illuminate\Support\Facades\DB::table('vehicle_types')
                     ->select('name', 'category')
                     ->orderBy('category', 'desc')
                     ->orderBy('name', 'asc')
                     ->get()
-                    ->map(fn($v) => ['name' => $v->name, 'category' => $v->category])
+                    ->map(fn($v) => ['name' => $normalizeVehName($v->name), 'category' => $v->category])
                     ->unique('name')
                     ->values()
                     ->toArray();
@@ -367,17 +385,16 @@ class MapController extends Controller
             } catch (\Throwable $e) {}
 
             return [
-                ['name' => 'MPUJ', 'category' => 'Public Vehicle'],
-                ['name' => 'TPUJ', 'category' => 'Public Vehicle'],
-                ['name' => 'PUB_Aircon', 'category' => 'Public Vehicle'],
-                ['name' => 'PUB_Ordinary', 'category' => 'Public Vehicle'],
-                ['name' => 'PUB_Regular', 'category' => 'Public Vehicle'],
-                ['name' => 'Tricycle', 'category' => 'Public Vehicle'],
-                ['name' => 'UVE', 'category' => 'Public Vehicle'],
-                ['name' => 'TAXI', 'category' => 'Public Vehicle'],
+                ['name' => 'Aircon Bus', 'category' => 'Public Vehicle'],
                 ['name' => 'Car', 'category' => 'Private Vehicle'],
-                ['name' => 'Van', 'category' => 'Private Vehicle'],
+                ['name' => 'Modern Jeepney', 'category' => 'Public Vehicle'],
                 ['name' => 'Motorcycle', 'category' => 'Private Vehicle'],
+                ['name' => 'Regular Bus', 'category' => 'Public Vehicle'],
+                ['name' => 'Taxi', 'category' => 'Public Vehicle'],
+                ['name' => 'Traditional Jeepney', 'category' => 'Public Vehicle'],
+                ['name' => 'Tricycle', 'category' => 'Public Vehicle'],
+                ['name' => 'UV Express', 'category' => 'Public Vehicle'],
+                ['name' => 'Van', 'category' => 'Private Vehicle'],
             ];
         });
 

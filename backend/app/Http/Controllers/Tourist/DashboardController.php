@@ -34,11 +34,12 @@ class DashboardController extends Controller
             } catch (\Throwable $e) {}
         }
 
-        // Trending: top spots by visits (default 5, configurable via ?limit=)
-        // Technique 2: Server-Side Caching — 2 minute TTL for trending spots
+        // Trending: top spots based primarily on rating (main) and visitor count (visits)
+        // Technique 2: Server-Side Caching — 30-second TTL for trending spots
         $trendingLimit = min((int) $request->query('limit', 5), 50);
         $trending = Cache::remember("trending:top:{$trendingLimit}", 30, function () use ($trendingLimit) {
             return TouristSpot::activeForTourists()
+                ->orderByDesc('rating')
                 ->orderByDesc('visits')
                 ->limit($trendingLimit)
                 ->get(['id', 'name', 'category', 'photo_url', 'latitude', 'longitude', 'visits', 'rating', 'description', 'entrance_fee', 'adult_fee', 'kids_fee', 'pwd_fee', 'senior_citizen_fee', 'entrance_fee_types', 'environmental_fee', 'fee_types', 'classification_status', 'municipality_id', 'status'])
