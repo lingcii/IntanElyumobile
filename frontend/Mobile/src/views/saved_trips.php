@@ -152,15 +152,70 @@ $backRoute = 'itinerary';
     (function () {
         var backendUrl = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
 
+        // Ensure proof image resolution and fallback helpers exist
+        if (typeof window.resolveProofImageUrl !== 'function') {
+            window.resolveProofImageUrl = function (rawUrl) {
+                if (!rawUrl || typeof rawUrl !== 'string') return '';
+                var url = rawUrl.trim();
+                if (!url) return '';
+                if (url.startsWith('data:') || url.startsWith('blob:')) return url;
+                var r2PublicBase = 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev';
+                var activeBackend = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
+                var proofMatch = url.match(/(proof_[a-z0-9_]+\.(?:jpg|jpeg|png|webp|gif))/i);
+                if (proofMatch && proofMatch[1]) return r2PublicBase + '/proof_images/' + proofMatch[1];
+                if (url.startsWith('http://') || url.startsWith('https://')) return url;
+                var clean = url.replace(/^\/+/, '');
+                if (clean.startsWith('storage/proof_images/')) return r2PublicBase + '/proof_images/' + clean.replace('storage/proof_images/', '');
+                if (clean.startsWith('proof_images/')) return r2PublicBase + '/proof_images/' + clean.replace('proof_images/', '');
+                if (clean.startsWith('api/')) return activeBackend + '/' + clean;
+                return r2PublicBase + '/proof_images/' + clean.split('/').pop().replace(/[?#].*$/, '');
+            };
+        }
+
+        if (typeof window.getProofImageFallbackUrl !== 'function') {
+            window.getProofImageFallbackUrl = function (rawUrl) {
+                if (!rawUrl || typeof rawUrl !== 'string') return 'assets/img/no_image.svg';
+                var url = rawUrl.trim();
+                if (url.startsWith('data:') || url.startsWith('blob:')) return url;
+                var activeBackend = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
+                var proofMatch = url.match(/(proof_[a-z0-9_]+\.(?:jpg|jpeg|png|webp|gif))/i);
+                if (proofMatch && proofMatch[1]) return activeBackend + '/api/image/proof_images/' + proofMatch[1];
+                var clean = url.replace(/^\/+/, '').split('/').pop().replace(/[?#].*$/, '');
+                if (clean) return activeBackend + '/api/image/proof_images/' + clean;
+                return 'assets/img/no_image.svg';
+            };
+        }
+
         window.getTouristSpotById = function (id) {
             if (!id) return null;
+            const sId = String(id);
+            if (window._cachedSpotsMap && window._cachedSpotsMap[sId]) {
+                return window._cachedSpotsMap[sId];
+            }
+            const sources = [window.destinations, window.allDestinations, window.spotsList];
+            for (const arr of sources) {
+                if (Array.isArray(arr)) {
+                    const found = arr.find(s => s && (String(s.id) === sId || String(s.tourist_spot_id) === sId));
+                    if (found) return found;
+                }
+            }
             try {
                 const rawMap = localStorage.getItem('public_map_data');
                 if (rawMap) {
                     const parsedMap = (typeof window.safeJsonParse === 'function') ? window.safeJsonParse(rawMap, null) : JSON.parse(rawMap);
                     const spotsArr = (parsedMap && parsedMap.data && parsedMap.data.destinations) ? parsedMap.data.destinations : (parsedMap && parsedMap.destinations ? parsedMap.destinations : []);
                     if (Array.isArray(spotsArr)) {
-                        return spotsArr.find(s => s && (String(s.id) === String(id) || String(s.tourist_spot_id) === String(id))) || null;
+                        const found = spotsArr.find(s => s && (String(s.id) === sId || String(s.tourist_spot_id) === sId));
+                        if (found) return found;
+                    }
+                }
+                const rawSpots = localStorage.getItem('intan_elyu_spots') || localStorage.getItem('all_destinations');
+                if (rawSpots) {
+                    const parsed = JSON.parse(rawSpots);
+                    const list = Array.isArray(parsed) ? parsed : (parsed.data || []);
+                    if (Array.isArray(list)) {
+                        const found = list.find(s => s && (String(s.id) === sId || String(s.tourist_spot_id) === sId));
+                        if (found) return found;
                     }
                 }
             } catch (e) { }
@@ -398,9 +453,74 @@ $backRoute = 'itinerary';
                 const updatesMap = {};
                 queuedUpdates.forEach(u => { updatesMap[String(u.update_id)] = u; });
 
+                // Harvest known local item proof photos & states so server re-fetches NEVER wipe them out
+                const localItemProofs = {};
+                const harvestProofsFromTrips = (trips) => {
+                    if (!Array.isArray(trips)) return;
+                    trips.forEach(t => {
+                        if (!t || !Array.isArray(t.items)) return;
+                        t.items.forEach(it => {
+                            if (!it || !it.id) return;
+                            const itId = String(it.id);
+                            const proofs = (Array.isArray(it.proof_images) && it.proof_images.length)
+                                ? it.proof_images
+                                : (it.proof_image ? [it.proof_image] : []);
+                            if (proofs.length > 0) {
+                                localItemProofs[itId] = {
+                                    proof_image: it.proof_image || proofs[0],
+                                    proof_images: proofs,
+                                    proof_status: it.proof_status || 'pending',
+                                    is_location_verified: Boolean(it.is_location_verified || it.visited_at),
+                                    visited_at: it.visited_at
+                                };
+                            }
+                        });
+                    });
+                };
+
+                // Check in-memory cached trips
+                harvestProofsFromTrips(window._cachedSavedTrips);
+
+                // Check offline checkin queue
+                if (window.OfflineCheckinManager && typeof window.OfflineCheckinManager.getQueuedCheckins === 'function') {
+                    try {
+                        const queuedCheckins = window.OfflineCheckinManager.getQueuedCheckins() || [];
+                        queuedCheckins.forEach(q => {
+                            if (q && q.itemId) {
+                                const qId = String(q.itemId);
+                                const qImg = q.previewUrl || q.image;
+                                if (qImg) {
+                                    const existing = localItemProofs[qId] ? localItemProofs[qId].proof_images : [];
+                                    const merged = (existing.length > 0) ? existing : [qImg];
+                                    localItemProofs[qId] = {
+                                        proof_image: merged[0],
+                                        proof_images: merged,
+                                        proof_status: 'pending',
+                                        is_location_verified: true,
+                                        visited_at: q.capturedAt || new Date().toISOString()
+                                    };
+                                }
+                            }
+                        });
+                    } catch (e) { }
+                }
+
+                // Check localStorage persistent backups
+                ['intan_elyu_offline_saved_trips_backup', 'intan_elyu_offline_saved_trips', 'intan_elyu_saved_trips'].forEach(k => {
+                    try {
+                        const raw = localStorage.getItem(k);
+                        if (raw) {
+                            const parsed = JSON.parse(raw);
+                            const arr = Array.isArray(parsed) ? parsed : (parsed.itineraries || parsed.data || []);
+                            harvestProofsFromTrips(arr);
+                        }
+                    } catch (e) { }
+                });
+
                 let serverTrips = (Array.isArray(itineraries) ? itineraries : []).map(t => {
+                    let tripObj = t;
                     if (updatesMap[String(t.id)]) {
-                        return {
+                        tripObj = {
                             ...t,
                             ...updatesMap[String(t.id)],
                             id: t.id,
@@ -408,7 +528,31 @@ $backRoute = 'itinerary';
                             is_offline_update: true
                         };
                     }
-                    return t;
+                    // Deep-merge local proofs into tripObj.items if server item has no proofs yet
+                    if (tripObj && Array.isArray(tripObj.items)) {
+                        tripObj.items = tripObj.items.map(it => {
+                            if (!it) return it;
+                            const itId = String(it.id);
+                            const saved = localItemProofs[itId];
+                            if (saved) {
+                                const currentProofs = (Array.isArray(it.proof_images) && it.proof_images.length)
+                                    ? it.proof_images
+                                    : (it.proof_image ? [it.proof_image] : []);
+                                if (currentProofs.length === 0) {
+                                    return {
+                                        ...it,
+                                        proof_image: saved.proof_image,
+                                        proof_images: saved.proof_images,
+                                        proof_status: it.proof_status || saved.proof_status || 'pending',
+                                        is_location_verified: Boolean(it.is_location_verified || saved.is_location_verified),
+                                        visited_at: it.visited_at || saved.visited_at
+                                    };
+                                }
+                            }
+                            return it;
+                        });
+                    }
+                    return tripObj;
                 });
 
                 const combinedTrips = [...queuedNewTrips, ...serverTrips].filter(t => !window.isTripDeleted(t));
@@ -522,6 +666,9 @@ $backRoute = 'itinerary';
                                 const dest = item.destination || (typeof window.getTouristSpotById === 'function' ? window.getTouristSpotById(item.tourist_spot_id) : null);
                                 const destName = (dest && (dest.name || dest.title)) ? String(dest.name || dest.title) : 'Destination';
                                 const destEscaped = destName.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                                const spotImgUrl = (typeof window.getDestImage === 'function')
+                                    ? window.getDestImage(dest, 300)
+                                    : ((dest && (dest.image || dest.photo_url)) || 'assets/img/no_image.svg');
                                 
                                 // Resolve all proof images into an array
                                 let proofImages = [];
@@ -537,13 +684,19 @@ $backRoute = 'itinerary';
                                     }
                                 }
 
+                                const queuedItem = window.OfflineCheckinManager ? window.OfflineCheckinManager.getQueuedItem(item.id) : null;
+                                const isQueued = Boolean(queuedItem);
+
+                                // If proofImages is empty but queuedItem has an image, include it so the proof is visible
+                                if (proofImages.length === 0 && isQueued && queuedItem && (queuedItem.previewUrl || queuedItem.image)) {
+                                    proofImages = [queuedItem.previewUrl || queuedItem.image];
+                                }
+
                                 const hasProof = (proofImages.length > 0);
                                 const isLocVerified = Boolean(item.visited_at || item.is_location_verified);
                                 const proofStatus = item.proof_status || (hasProof ? (item.is_visited ? 'approved' : 'pending') : null);
                                 const isApproved = Boolean(item.is_visited || proofStatus === 'approved');
                                 const isRejected = (proofStatus === 'rejected');
-                                const queuedItem = window.OfflineCheckinManager ? window.OfflineCheckinManager.getQueuedItem(item.id) : null;
-                                const isQueued = Boolean(queuedItem);
                                 const isPendingProof = !isApproved && !isRejected && !isQueued && hasProof && (proofStatus === 'pending');
                                 const isNextStop = (!isApproved && !isPendingProof && !isQueued && index === firstUnvisitedIdx);
                                 if (!isApproved && !isQueued) unvisitedCount++;
@@ -551,22 +704,19 @@ $backRoute = 'itinerary';
                                 // Build multi-photo gallery strip
                                 let photosStripHtml = '';
                                 if (proofImages.length > 0) {
-                                    const jsonUrlsAttr = JSON.stringify(proofImages).replace(/"/g, '&quot;');
+                                    const resolvedUrls = proofImages.map(u => (typeof window.resolveProofImageUrl === 'function' ? window.resolveProofImageUrl(u) : u));
+                                    const jsonUrlsAttr = JSON.stringify(resolvedUrls).replace(/"/g, '&quot;');
                                     const thumbs = proofImages.map((pUrl, pIdx) => {
-                                        let displayUrl = pUrl;
-                                        const activeBackend = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
-                                        if (!displayUrl.startsWith('http') && !displayUrl.startsWith('data:') && !displayUrl.startsWith('blob:')) {
-                                            displayUrl = activeBackend + '/' + displayUrl.replace(/^\//, '');
-                                        }
-                                        const cleanImgName = pUrl.split('/').pop().replace(/[?#].*$/, '');
-                                        let fallbackUrl = activeBackend + '/api/image/proof_images/' + cleanImgName;
+                                        const displayUrl = (typeof window.resolveProofImageUrl === 'function') ? window.resolveProofImageUrl(pUrl) : pUrl;
+                                        const fallbackUrl = (typeof window.getProofImageFallbackUrl === 'function') ? window.getProofImageFallbackUrl(pUrl) : 'assets/img/no_image.svg';
                                         return `
                                             <div style="position:relative; flex-shrink:0;">
                                                 <img src="${displayUrl}" 
-                                                    onerror="if(this.dataset.triedFallback!=='1'){this.dataset.triedFallback='1';this.src='${fallbackUrl}';}" 
-                                                    onclick="event.stopPropagation(); window.viewProofPhotoModal(${jsonUrlsAttr}, '${destEscaped}', 'Photo Proof (${pIdx + 1} of ${proofImages.length})', ${pIdx});" 
+                                                    onerror="if(this.dataset.triedFallback!=='1'){this.dataset.triedFallback='1';this.src='${fallbackUrl}';}else{this.onerror=null;this.src='assets/img/no_image.svg';}" 
+                                                    onclick="event.stopPropagation(); if(typeof window.viewProofPhotoModal==='function') window.viewProofPhotoModal(${jsonUrlsAttr}, '${destEscaped}', 'Photo Proof (${pIdx + 1} of ${proofImages.length})', ${pIdx});" 
                                                     alt="Proof Photo ${pIdx + 1}" 
                                                     title="Tap to view proof photo" 
+                                                    loading="lazy"
                                                     style="width:52px; height:52px; border-radius:12px; object-fit:cover; border:1.5px solid rgba(255,255,255,0.25); box-shadow:0 4px 12px rgba(0,0,0,0.3); cursor:pointer; display:block;">
                                                 ${proofImages.length > 1 ? `<span style="position:absolute; bottom:2px; right:2px; background:rgba(0,0,0,0.7); color:#fff; font-size:8px; font-weight:800; padding:1px 4px; border-radius:4px;">${pIdx + 1}</span>` : ''}
                                             </div>
@@ -583,9 +733,9 @@ $backRoute = 'itinerary';
 
                                 let queuedThumbnailHtml = '';
                                 if (isQueued && queuedItem) {
-                                    const qSrc = queuedItem.previewUrl || '';
+                                    const qSrc = queuedItem.previewUrl || queuedItem.image || '';
                                     if (qSrc) {
-                                        queuedThumbnailHtml = `<img src="${qSrc}" onclick="event.stopPropagation(); if(typeof window.viewProofPhotoModal==='function') window.viewProofPhotoModal('${qSrc}', '${destEscaped}', 'Offline Proof (Queued on Device)');" alt="Proof" title="Tap to view offline proof photo" style="width:52px; height:52px; border-radius:12px; object-fit:cover; border:2px solid #f59e0b !important; outline:none !important; box-shadow:0 4px 12px rgba(0,0,0,0.3); flex-shrink:0; cursor:pointer;">`;
+                                        queuedThumbnailHtml = `<img src="${qSrc}" onerror="this.onerror=null; this.src='assets/img/no_image.svg';" onclick="event.stopPropagation(); if(typeof window.viewProofPhotoModal==='function') window.viewProofPhotoModal('${qSrc}', '${destEscaped}', 'Offline Proof (Queued on Device)');" alt="Proof" title="Tap to view offline proof photo" style="width:52px; height:52px; border-radius:12px; object-fit:cover; border:2px solid #f59e0b !important; outline:none !important; box-shadow:0 4px 12px rgba(0,0,0,0.3); flex-shrink:0; cursor:pointer;">`;
                                     } else {
                                         queuedThumbnailHtml = `<div style="width:52px; height:52px; border-radius:12px; background:rgba(245,158,11,0.2); border:1.5px dashed #f59e0b; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#fbbf24; flex-shrink:0;"><i class="fa-solid fa-camera" style="font-size:16px;"></i><span style="font-size:8px; font-weight:800; margin-top:2px;">OFFLINE</span></div>`;
                                     }
@@ -646,11 +796,23 @@ $backRoute = 'itinerary';
                                 html += `
                                 <div class="timeline-item ${isApproved ? 'completed' : (isPendingProof ? 'pending' : (isNextStop ? 'is-next-stop' : ''))}" style="margin-bottom: 12px;">
                                     <div class="timeline-dot"></div>
-                                    <div class="timeline-content" style="padding:14px; background: rgba(255,255,255,0.12); border: none !important; outline: none !important; border-radius: 16px; display:flex; flex-direction:column; gap:8px;">
-                                        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                                            <h4 style="margin:0; font-size:15px; font-weight:800; color:#ffffff;">${dest ? dest.name : 'Unknown Destination'}</h4>
-                                            ${isNextStop ? `<span style="padding: 2px 8px; border-radius: 100px; font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: linear-gradient(135deg, #00f2fe, #0284c7); border: none !important; outline: none !important;"><i class="fa-solid fa-location-dot" style="font-size:8px;"></i> Next Stop</span>` : ''}
-                                            ${(dest && dest.classification_status) ? `<span style="padding: 2px 8px; border-radius: 100px; font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#0284c7' : (dest.classification_status === 'EMERGE' ? '#ef4444' : '#10b981')}; border: none !important; outline: none !important;">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</span>` : ''}
+                                    <div class="timeline-content" style="padding:14px; background: rgba(255,255,255,0.12); border: none !important; outline: none !important; border-radius: 16px; display:flex; flex-direction:column; gap:10px;">
+                                        <div style="display:flex; gap:12px; align-items:flex-start;">
+                                            <div class="saved-trip-spot-thumb" style="width:56px; height:56px; border-radius:14px; overflow:hidden; flex-shrink:0; background:rgba(0,0,0,0.25); position:relative; box-shadow:0 3px 10px rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.18);">
+                                                <img src="${spotImgUrl}" alt="${destEscaped}" loading="lazy" style="width:100%; height:100%; object-fit:cover; display:block;" onerror="this.onerror=null; this.src='assets/img/no_image.svg';">
+                                            </div>
+                                            <div style="flex:1; min-width:0;">
+                                                <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                                                    <h4 style="margin:0; font-size:15px; font-weight:800; color:#ffffff; line-height:1.25;">${destName}</h4>
+                                                    ${isNextStop ? `<span style="padding: 2px 8px; border-radius: 100px; font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: linear-gradient(135deg, #00f2fe, #0284c7); border: none !important; outline: none !important;"><i class="fa-solid fa-location-dot" style="font-size:8px;"></i> Next Stop</span>` : ''}
+                                                    ${(dest && dest.classification_status) ? `<span style="padding: 2px 7px; border-radius: 100px; font-size: 8.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#0284c7' : (dest.classification_status === 'EMERGE' ? '#ef4444' : '#10b981')}; border: none !important; outline: none !important;">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</span>` : ''}
+                                                </div>
+                                                ${dest && (dest.municipality || dest.location) ? `
+                                                    <div style="font-size:11.5px; color:rgba(255,255,255,0.8); display:flex; align-items:center; gap:4px; margin-top:3px;">
+                                                        <i class="fa-solid fa-location-dot" style="color:#00f2fe; font-size:10px; flex-shrink:0;"></i>
+                                                        <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${dest.municipality ? dest.municipality + ', La Union' : dest.location}</span>
+                                                    </div>` : ''}
+                                            </div>
                                         </div>
                                         ${(dest && (dest.accessible_by_private_vehicle === 0 || dest.accessible_by_private_vehicle === false)) ? `<div style="background:rgba(239, 68, 68, 0.15); border:none !important; outline:none !important; border-radius:10px; padding:8px 12px; display:flex; gap:8px; align-items:flex-start; margin-top:4px;"><i class="fa-solid fa-triangle-exclamation" style="color:#ef4444; font-size:13px; margin-top:2px;"></i><div><h5 style="margin:0 0 2px 0; font-size:11px; font-weight:800; color:#ef4444; text-transform:uppercase;">Inaccessible by Private Car</h5><p style="margin:0; font-size:10px; color:#ffffff; opacity:0.9; line-height:1.3;">Prepare to hike or use specialized local transport.</p></div></div>` : ''}
 

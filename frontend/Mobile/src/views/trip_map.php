@@ -443,20 +443,16 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                 }
 
                 const destEscaped = (dest && dest.name) ? dest.name.replace(/'/g, "\\'") : 'Destination';
-                const jsonUrlsAttr = JSON.stringify(proofImages).replace(/"/g, '&quot;');
+                const resolvedAll = proofImages.map(u => (typeof window.resolveProofImageUrl === 'function' ? window.resolveProofImageUrl(u) : u));
+                const jsonUrlsAttr = JSON.stringify(resolvedAll).replace(/"/g, '&quot;');
 
                 let proofThumbnailStrip = '';
                 if (proofImages.length > 0) {
-                    const activeBackend = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
                     proofThumbnailStrip = `<div style="display:inline-flex; align-items:center; gap:4px; flex-shrink:0;">
                         ${proofImages.slice(0, 3).map((imgUrl, pIdx) => {
-                            let pUrl = imgUrl;
-                            if (!pUrl.startsWith('http') && !pUrl.startsWith('data:') && !pUrl.startsWith('blob:')) {
-                                pUrl = activeBackend + '/' + pUrl.replace(/^\//, '');
-                            }
-                            const cleanImgName = pUrl.split('/').pop().replace(/[?#].*$/, '');
-                            let fallbackUrl = activeBackend + '/api/image/proof_images/' + cleanImgName;
-                            return `<img src="${pUrl}" onerror="if(this.dataset.triedFallback!=='1'){this.dataset.triedFallback='1';this.src='${fallbackUrl}';}" onclick="event.stopPropagation(); if(typeof window.viewProofPhotoModal==='function') window.viewProofPhotoModal(${jsonUrlsAttr}, '${destEscaped}', '${isVisited ? 'Verified Visit Proof' : 'Uploaded Proof'}');" alt="Proof" title="Tap to view proof photo" style="width:30px; height:30px; border-radius:7px; object-fit:cover; border:1px solid rgba(255,255,255,0.3); flex-shrink:0; cursor:pointer;">`;
+                            let pUrl = (typeof window.resolveProofImageUrl === 'function') ? window.resolveProofImageUrl(imgUrl) : imgUrl;
+                            let fallbackUrl = (typeof window.getProofImageFallbackUrl === 'function') ? window.getProofImageFallbackUrl(imgUrl) : 'assets/img/no_image.svg';
+                            return `<img src="${pUrl}" onerror="if(this.dataset.triedFallback!=='1'){this.dataset.triedFallback='1';this.src='${fallbackUrl}';}else{this.onerror=null;this.src='assets/img/no_image.svg';}" onclick="event.stopPropagation(); if(typeof window.viewProofPhotoModal==='function') window.viewProofPhotoModal(${jsonUrlsAttr}, '${destEscaped}', '${isVisited ? 'Verified Visit Proof' : 'Uploaded Proof'}');" alt="Proof" title="Tap to view proof photo" style="width:30px; height:30px; border-radius:7px; object-fit:cover; border:1px solid rgba(255,255,255,0.3); flex-shrink:0; cursor:pointer;">`;
                         }).join('')}
                         ${proofImages.length > 3 ? `<span onclick="event.stopPropagation(); if(typeof window.viewProofPhotoModal==='function') window.viewProofPhotoModal(${jsonUrlsAttr}, '${destEscaped}', '${isVisited ? 'Verified Visit Proof' : 'Uploaded Proof'}');" style="background:rgba(0,0,0,0.7); color:#fff; font-size:8px; font-weight:800; padding:2px 4px; border-radius:4px; cursor:pointer;">+${proofImages.length - 3}</span>` : ''}
                     </div>`;
@@ -464,9 +460,9 @@ include_once __DIR__ . '/../components/testimony_modal.php';
 
                 let queuedThumbnail = '';
                 if (isQueued && queuedItem) {
-                    const qSrc = queuedItem.previewUrl || '';
+                    const qSrc = queuedItem.previewUrl || queuedItem.image || '';
                     if (qSrc) {
-                        queuedThumbnail = `<img src="${qSrc}" onclick="event.stopPropagation(); if(typeof window.viewProofPhotoModal==='function') window.viewProofPhotoModal('${qSrc}', '${destEscaped}', 'Offline Proof (Queued on Device)');" alt="Proof" title="Tap to view offline proof photo" style="width:30px; height:30px; border-radius:7px; object-fit:cover; border:1.5px solid #f59e0b !important; box-shadow:none !important; flex-shrink:0; cursor:pointer;">`;
+                        queuedThumbnail = `<img src="${qSrc}" onerror="this.onerror=null; this.src='assets/img/no_image.svg';" onclick="event.stopPropagation(); if(typeof window.viewProofPhotoModal==='function') window.viewProofPhotoModal('${qSrc}', '${destEscaped}', 'Offline Proof (Queued on Device)');" alt="Proof" title="Tap to view offline proof photo" style="width:30px; height:30px; border-radius:7px; object-fit:cover; border:1.5px solid #f59e0b !important; box-shadow:none !important; flex-shrink:0; cursor:pointer;">`;
                     } else {
                         queuedThumbnail = `<div style="width:30px; height:30px; border-radius:7px; background:rgba(245,158,11,0.2); border:1px dashed #f59e0b; display:flex; align-items:center; justify-content:center; color:#fbbf24; flex-shrink:0;"><i class="fa-solid fa-camera" style="font-size:11px;"></i></div>`;
                     }
