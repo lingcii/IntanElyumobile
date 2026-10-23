@@ -1970,6 +1970,14 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
     }
     const isGuestUser = !isRealAuthToken;
 
+    if (isGuestUser && (targetView === 'puzzles' || targetView === 'gamezone')) {
+        if (typeof showToast === 'function') {
+            showToast('GameZone is restricted in Guest Mode. Please log in first to play and earn rewards!', 'warning', 4500);
+        }
+        navigateTo('auth');
+        return;
+    }
+
     if (isGuestUser && targetView === 'edit_profile') {
         if (typeof showToast === 'function') {
             showToast('Please sign in to customize and edit your profile.', 'info', 4500);
@@ -4133,6 +4141,80 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
     };
 
     /**
+     * Resolves a proof image path or filename to a direct Cloudflare R2 bucket or API URL.
+     * Prevents broken local relative links and ensures fast CDN delivery.
+     * @param {string} rawUrl - Image URL or filename
+     * @returns {string} Fully qualified image URL
+     */
+    window.resolveProofImageUrl = function (rawUrl) {
+        if (!rawUrl || typeof rawUrl !== 'string') return '';
+        var url = rawUrl.trim();
+        if (!url) return '';
+        if (url.startsWith('data:') || url.startsWith('blob:')) return url;
+
+        var r2PublicBase = 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev';
+        var activeBackend = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
+
+        // 1. Check for proof_xxx filename pattern -> route to Cloudflare R2 Bucket
+        var proofMatch = url.match(/(proof_[a-z0-9_]+\.(?:jpg|jpeg|png|webp|gif))/i);
+        if (proofMatch && proofMatch[1]) {
+            return r2PublicBase + '/proof_images/' + proofMatch[1];
+        }
+
+        // 2. Full HTTP URLs
+        if (url.startsWith('http://') || url.startsWith('https://')) {
+            if (url.includes('localhost') || url.includes('127.0.0.1') || /192\.168\.\d+\.\d+/.test(url) || /10\.\d+\.\d+\.\d+/.test(url) || /172\.(1[6-9]|2\d|3[01])\.\d+\.\d+/.test(url)) {
+                var clean = url.split('/').pop().replace(/[?#].*$/, '');
+                var localProofMatch = clean.match(/(proof_[a-z0-9_]+\.(?:jpg|jpeg|png|webp|gif))/i);
+                if (localProofMatch && localProofMatch[1]) {
+                    return r2PublicBase + '/proof_images/' + localProofMatch[1];
+                }
+                return activeBackend + '/api/image/proof_images/' + clean;
+            }
+            return url;
+        }
+
+        // 3. Relative storage / API paths
+        var cleanPath = url.replace(/^\/+/, '');
+        if (cleanPath.startsWith('storage/proof_images/')) {
+            var sFname = cleanPath.replace('storage/proof_images/', '');
+            return r2PublicBase + '/proof_images/' + sFname;
+        }
+        if (cleanPath.startsWith('proof_images/')) {
+            var pFname = cleanPath.replace('proof_images/', '');
+            return r2PublicBase + '/proof_images/' + pFname;
+        }
+        if (cleanPath.startsWith('api/')) {
+            return activeBackend + '/' + cleanPath;
+        }
+
+        var bareName = cleanPath.split('/').pop().replace(/[?#].*$/, '');
+        return r2PublicBase + '/proof_images/' + bareName;
+    };
+
+    /**
+     * Fallback URL for proof images when primary Cloudflare R2 fails.
+     * @param {string} rawUrl
+     * @returns {string}
+     */
+    window.getProofImageFallbackUrl = function (rawUrl) {
+        if (!rawUrl || typeof rawUrl !== 'string') return 'assets/img/no_image.svg';
+        var url = rawUrl.trim();
+        if (url.startsWith('data:') || url.startsWith('blob:')) return url;
+
+        var activeBackend = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
+        var proofMatch = url.match(/(proof_[a-z0-9_]+\.(?:jpg|jpeg|png|webp|gif))/i);
+        if (proofMatch && proofMatch[1]) {
+            return activeBackend + '/api/image/proof_images/' + proofMatch[1];
+        }
+        var clean = url.replace(/^\/+/, '').split('/').pop().replace(/[?#].*$/, '');
+        if (clean) {
+            return activeBackend + '/api/image/proof_images/' + clean;
+        }
+        return 'assets/img/no_image.svg';
+    };
+
+    /**
      * Global Lightbox Proof Photo Viewer Modal (Supports single photo or multiple photos gallery)
      */
     window.viewProofPhotoModal = function (urlOrUrls, title = 'Visit Proof', subtitle = '', initialIndex = 0) {
@@ -4150,6 +4232,11 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
             }
         }
         if (!urls.length) return;
+
+        // Resolve all URLs using resolveProofImageUrl so they load reliably
+        urls = urls.map(function (u) {
+            return (typeof window.resolveProofImageUrl === 'function') ? window.resolveProofImageUrl(u) : u;
+        });
 
         var currentIndex = Math.max(0, Math.min(initialIndex || 0, urls.length - 1));
         var existing = document.getElementById('elyu-proof-viewer-modal');
@@ -4172,11 +4259,11 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
             var navControls = '';
             if (total > 1) {
                 navControls = `
-                    <button type="button" class="proof-nav-btn prev" style="position:absolute; left:10px; top:50%; transform:translateY(-50%); width:36px; height:36px; border-radius:50%; background:rgba(15,23,42,0.75); color:#fff; border:1px solid rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; cursor:pointer; z-index:10; backdrop-filter:blur(8px);">
-                        <i class="fa-solid fa-chevron-left"></i>
+                    <button type="button" class="proof-nav-btn prev" style="position:absolute; left:10px; top:50%; transform:translateY(-50%); width:38px; height:38px; border-radius:50%; background:rgba(15,23,42,0.8); color:#fff; border:1px solid rgba(255,255,255,0.25); display:flex; align-items:center; justify-content:center; cursor:pointer; z-index:10; backdrop-filter:blur(8px);">
+                        <i class="fa-solid fa-chevron-left" style="font-size:14px;"></i>
                     </button>
-                    <button type="button" class="proof-nav-btn next" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); width:36px; height:36px; border-radius:50%; background:rgba(15,23,42,0.75); color:#fff; border:1px solid rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; cursor:pointer; z-index:10; backdrop-filter:blur(8px);">
-                        <i class="fa-solid fa-chevron-right"></i>
+                    <button type="button" class="proof-nav-btn next" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); width:38px; height:38px; border-radius:50%; background:rgba(15,23,42,0.8); color:#fff; border:1px solid rgba(255,255,255,0.25); display:flex; align-items:center; justify-content:center; cursor:pointer; z-index:10; backdrop-filter:blur(8px);">
+                        <i class="fa-solid fa-chevron-right" style="font-size:14px;"></i>
                     </button>
                 `;
             }
@@ -4185,13 +4272,16 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
             if (total > 1) {
                 var thumbsHtml = urls.map(function (u, idx) {
                     var isSelected = (idx === currentIndex);
-                    return `<img src="${u}" data-idx="${idx}" class="proof-thumb-item" style="width:40px; height:40px; border-radius:8px; object-fit:cover; border:${isSelected ? '2px solid #00f2fe' : '1px solid rgba(255,255,255,0.2)'}; opacity:${isSelected ? '1' : '0.6'}; cursor:pointer; flex-shrink:0;">`;
+                    var fallback = (typeof window.getProofImageFallbackUrl === 'function') ? window.getProofImageFallbackUrl(u) : 'assets/img/no_image.svg';
+                    return `<img src="${u}" data-idx="${idx}" onerror="if(this.dataset.triedFallback!=='1'){this.dataset.triedFallback='1';this.src='${fallback}';}else{this.onerror=null;this.src='assets/img/no_image.svg';}" class="proof-thumb-item" style="width:44px; height:44px; border-radius:10px; object-fit:cover; border:${isSelected ? '2px solid #00f2fe' : '1px solid rgba(255,255,255,0.2)'}; opacity:${isSelected ? '1' : '0.6'}; cursor:pointer; flex-shrink:0; transition:all 0.2s ease;">`;
                 }).join('');
-                thumbStrip = `<div style="display:flex; gap:8px; overflow-x:auto; padding:6px 0; justify-content:center; max-width:100%;">${thumbsHtml}</div>`;
+                thumbStrip = `<div style="display:flex; gap:8px; overflow-x:auto; padding:6px 0; justify-content:center; max-width:100%; -webkit-overflow-scrolling:touch;">${thumbsHtml}</div>`;
             }
 
+            var currentFallback = (typeof window.getProofImageFallbackUrl === 'function') ? window.getProofImageFallbackUrl(currentUrl) : 'assets/img/no_image.svg';
+
             modal.innerHTML = `
-                <div style="position:relative; width:100%; max-width:440px; background:linear-gradient(135deg, rgba(30, 58, 138, 0.96), rgba(15, 23, 42, 0.98)); border-radius:24px; padding:20px; box-shadow:0 20px 50px rgba(0,0,0,0.6); display:flex; flex-direction:column; gap:14px; border:1px solid rgba(255,255,255,0.12);" onclick="event.stopPropagation();">
+                <div style="position:relative; width:100%; max-width:440px; background:linear-gradient(135deg, rgba(30, 58, 138, 0.98), rgba(15, 23, 42, 0.99)); border-radius:24px; padding:20px; box-shadow:0 20px 50px rgba(0,0,0,0.6); display:flex; flex-direction:column; gap:14px; border:1px solid rgba(255,255,255,0.15);" onclick="event.stopPropagation();">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
                         <div>
                             <h3 style="margin:0; font-size:16px; font-weight:800; color:#ffffff; display:flex; align-items:center; gap:8px;">
@@ -4199,12 +4289,12 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                             </h3>
                             ${subtitle ? `<span style="font-size:11px; color:#cbd5e1; font-weight:600; display:block; margin-top:2px;">${subtitle}</span>` : ''}
                         </div>
-                        <button type="button" class="close-viewer-btn" onclick="document.getElementById('elyu-proof-viewer-modal')?.remove();" style="width:34px; height:34px; border-radius:50%; background:rgba(255,255,255,0.15); border:none; outline:none; color:#ffffff; display:flex; align-items:center; justify-content:center; cursor:pointer;">
+                        <button type="button" class="close-viewer-btn" onclick="document.getElementById('elyu-proof-viewer-modal')?.remove();" style="width:34px; height:34px; border-radius:50%; background:rgba(255,255,255,0.18); border:none; outline:none; color:#ffffff; display:flex; align-items:center; justify-content:center; cursor:pointer;">
                             <i class="fa-solid fa-xmark"></i>
                         </button>
                     </div>
                     <div style="position:relative; width:100%; max-height:60vh; min-height:220px; border-radius:16px; overflow:hidden; background:#000; display:flex; align-items:center; justify-content:center;">
-                        <img src="${currentUrl}" alt="Visit Proof" style="width:100%; height:auto; max-height:60vh; object-fit:contain; display:block;">
+                        <img src="${currentUrl}" onerror="if(this.dataset.triedFallback!=='1'){this.dataset.triedFallback='1';this.src='${currentFallback}';}else{this.onerror=null;this.src='assets/img/no_image.svg';}" alt="Visit Proof" style="width:100%; height:auto; max-height:60vh; object-fit:contain; display:block;">
                         ${navControls}
                     </div>
                     ${thumbStrip}

@@ -1970,6 +1970,14 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
     }
     const isGuestUser = !isRealAuthToken;
 
+    if (isGuestUser && (targetView === 'puzzles' || targetView === 'gamezone')) {
+        if (typeof showToast === 'function') {
+            showToast('GameZone is restricted in Guest Mode. Please log in first to play and earn rewards!', 'warning', 4500);
+        }
+        navigateTo('auth');
+        return;
+    }
+
     if (isGuestUser && targetView === 'edit_profile') {
         if (typeof showToast === 'function') {
             showToast('Please sign in to customize and edit your profile.', 'info', 4500);

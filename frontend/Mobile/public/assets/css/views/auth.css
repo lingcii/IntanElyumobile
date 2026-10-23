@@ -1242,11 +1242,17 @@ select.auth-input option {
 }
 
 /* Privacy Modal Overlay Card (matches Notifications modal design) */
-#privacy-policy-modal,
-#gender-select-modal {
+#privacy-policy-modal {
     background: rgba(10, 25, 60, 0.45) !important;
     backdrop-filter: blur(10px) !important;
     -webkit-backdrop-filter: blur(10px) !important;
+    z-index: 999999 !important;
+}
+
+#gender-select-modal {
+    background: rgba(15, 23, 42, 0.96) !important;
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
     z-index: 999999 !important;
 }
 
@@ -1302,13 +1308,13 @@ select.auth-input option {
 /* Gender Selection Modal Card */
 .gender-modal-card {
     background: #ffffff !important;
-    border: none !important;
+    border: 1px solid #e2e8f0 !important;
     outline: none !important;
     border-radius: 24px;
     padding: 0 !important;
     max-width: 360px;
     width: 90%;
-    box-shadow: 0 16px 40px rgba(10, 25, 60, 0.45) !important;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45) !important;
     position: relative;
     text-align: left;
     transform: scale(0.92) translateY(16px);
@@ -1322,8 +1328,8 @@ select.auth-input option {
 }
 
 .gender-modal-header {
-    background: linear-gradient(180deg, #1e3a8a 0%, #193375 100%) !important;
-    padding: 14px 18px;
+    background: #1e3a8a !important;
+    padding: 15px 18px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -1381,11 +1387,11 @@ select.auth-input option {
 }
 
 .gender-modal-body {
-    padding: 12px 14px 18px 14px;
+    padding: 14px 16px 20px 16px;
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    background: #ffffff;
+    gap: 9px;
+    background: #ffffff !important;
 }
 
 .gender-option-item {
@@ -1394,8 +1400,8 @@ select.auth-input option {
     gap: 12px;
     padding: 12px 14px;
     border-radius: 14px;
-    background: #f8fafc;
-    border: 1.5px solid #e2e8f0;
+    background: #ffffff !important;
+    border: 1.5px solid #e2e8f0 !important;
     cursor: pointer;
     transition: all 0.2s ease;
     touch-action: manipulation;
@@ -1405,15 +1411,15 @@ select.auth-input option {
 
 .gender-option-item:hover,
 .gender-option-item:active {
-    background: #eff6ff;
-    border-color: #93c5fd;
+    background: #eff6ff !important;
+    border-color: #93c5fd !important;
     transform: translateY(-1px);
 }
 
 .gender-option-item.selected {
-    background: #eff6ff;
-    border-color: #2563eb;
-    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.12);
+    background: #eff6ff !important;
+    border-color: #2563eb !important;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.12) !important;
 }
 
 .gender-option-icon {
@@ -1428,28 +1434,28 @@ select.auth-input option {
 }
 
 .gender-option-icon.icon-male {
-    background: rgba(59, 130, 246, 0.12);
-    color: #2563eb;
+    background: #dbeafe !important;
+    color: #1d4ed8 !important;
 }
 
 .gender-option-icon.icon-female {
-    background: rgba(236, 72, 153, 0.12);
-    color: #db2777;
+    background: #fce7f3 !important;
+    color: #db2777 !important;
 }
 
 .gender-option-icon.icon-nonbinary {
-    background: rgba(139, 92, 246, 0.12);
-    color: #7c3aed;
+    background: #ede9fe !important;
+    color: #7c3aed !important;
 }
 
 .gender-option-icon.icon-prefer {
-    background: rgba(100, 116, 139, 0.12);
-    color: #475569;
+    background: #f1f5f9 !important;
+    color: #475569 !important;
 }
 
 .gender-option-icon.icon-other {
-    background: rgba(2, 132, 199, 0.12);
-    color: #0284c7;
+    background: #e0f2fe !important;
+    color: #0284c7 !important;
 }
 
 .gender-option-info {
@@ -1742,13 +1748,18 @@ select.auth-input option {
 }
 
 .btn-privacy-decline:active,
-.btn-privacy-accept:not(:disabled):active {
+.btn-privacy-accept:not(:disabled):not(.is-disabled):active {
     transform: scale(0.94);
 }
 
+.btn-privacy-accept.is-disabled,
 .btn-privacy-accept:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
+    opacity: 0.45 !important;
+    box-shadow: none !important;
+    filter: grayscale(0.6) !important;
+    cursor: not-allowed !important;
+    transform: none !important;
+    transition: opacity 0.2s ease, filter 0.2s ease, transform 0.15s ease !important;
 }
 
 /* Mobile Frame on Desktop / Web Browsers */

@@ -309,6 +309,32 @@ include __DIR__ . '/../components/header.php';
                 Got it!
             </button>
         </div>
+    <!-- Guest Restriction Overlay -->
+    <div id="gamezone-guest-restriction-overlay"
+        style="display: none; position: fixed; inset: 0; z-index: 10000; background: rgba(15, 23, 42, 0.96) !important; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); align-items: center; justify-content: center; padding: 24px; box-sizing: border-box;">
+        <div style="background: #ffffff !important; border: 1.5px solid #e2e8f0; border-radius: 24px; padding: 30px 24px 26px 24px; max-width: 360px; width: 100%; text-align: center; box-shadow: 0 20px 45px rgba(0,0,0,0.45); box-sizing: border-box;">
+            <div style="width: 72px; height: 72px; border-radius: 50%; background: #eff6ff; color: #1e3a8a; display: inline-flex; align-items: center; justify-content: center; font-size: 32px; margin-bottom: 18px; box-shadow: 0 4px 14px rgba(30, 58, 138, 0.18);">
+                <i class="fa-solid fa-lock" style="color: #1e3a8a;"></i>
+            </div>
+            <h3 style="margin: 0 0 10px 0; font-size: 20px; font-weight: 800; color: #0f172a; letter-spacing: -0.3px;">
+                GameZone Restricted
+            </h3>
+            <p style="margin: 0 0 24px 0; font-size: 13.5px; color: #64748b; line-height: 1.55; font-weight: 500;">
+                Playing mini-games and claiming rewards is restricted in Guest Mode. Please log in or create an account first!
+            </p>
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                <button type="button" onclick="navigateTo('auth')"
+                    style="width: 100%; padding: 13px 20px; border-radius: 100px; background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%) !important; color: #ffffff !important; border: none !important; outline: none !important; font-size: 14px; font-weight: 800; cursor: pointer; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35); transition: transform 0.15s ease;"
+                    onpointerdown="this.style.transform='scale(0.96)'" onpointerup="this.style.transform='scale(1)'">
+                    <i class="fa-solid fa-arrow-right-to-bracket" style="margin-right: 8px;"></i> Log In / Register
+                </button>
+                <button type="button" onclick="navigateTo('dashboard')"
+                    style="width: 100%; padding: 12px 20px; border-radius: 100px; background: #f1f5f9 !important; color: #475569 !important; border: 1px solid #cbd5e1 !important; outline: none !important; font-size: 13.5px; font-weight: 700; cursor: pointer; transition: transform 0.15s ease;"
+                    onpointerdown="this.style.transform='scale(0.96)'" onpointerup="this.style.transform='scale(1)'">
+                    Back to Dashboard
+                </button>
+            </div>
+        </div>
     </div>
 
 </div>
@@ -316,6 +342,24 @@ include __DIR__ . '/../components/header.php';
 
 <script>
     (function () {
+        // Guest mode restriction check
+        const _authToken = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('api_token') || '';
+        const _isGuest = !_authToken || 
+            _authToken === 'guest_token' || 
+            _authToken === 'offline_guest_token' || 
+            _authToken.startsWith('guest_') || 
+            _authToken.startsWith('offline_') || 
+            localStorage.getItem('intan_elyu_guest') === 'true' || 
+            localStorage.getItem('intan_elyu_offline_guest') === 'true';
+
+        if (_isGuest) {
+            const guestOverlay = document.getElementById('gamezone-guest-restriction-overlay');
+            if (guestOverlay) {
+                guestOverlay.style.setProperty('display', 'flex', 'important');
+            }
+            return; // Halt any game loading or logic for guest users
+        }
+
         // Load points balance
         async function loadGamePoints() {
             try {

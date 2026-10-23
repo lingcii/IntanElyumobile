@@ -403,12 +403,11 @@ try {
                 <label style="font-size:12.5px; color:#1e293b !important; margin:0; font-weight:700;">
                     Personal Trip Budget <span style="font-size:11px; color:#64748b; font-weight:500;">(Optional)</span>
                 </label>
-                <span style="font-size:11px; color:#0284c7; font-weight:600;">Plan your spending</span>
             </div>
             <div style="position:relative; margin-bottom:12px;">
                 <span
                     style="position:absolute; left:16px; top:12px; color:#0284c7; font-weight:800; font-size:15px;">₱</span>
-                <input type="tel" id="trip-budget" placeholder="Enter budget (optional)"
+                <input type="tel" id="trip-budget" placeholder="Enter budget"
                     oninput="this.value=this.value.replace(/\D/g,'');if(this.value.length>5)this.value=this.value.slice(0,5);window.calculateModalBudget()"
                     style="width:100%; padding:12px 16px 12px 34px; border-radius:14px; border:1.5px solid #cbd5e1 !important; outline:none !important; background:#ffffff !important; color:#0f172a !important; -webkit-text-fill-color:#0f172a !important; font-family:inherit; font-size:14px; font-weight:600; box-sizing:border-box; box-shadow:none !important; transition:border-color 0.2s;"
                     onfocus="this.style.borderColor='#0284c7'" onblur="this.style.borderColor='#cbd5e1'">

@@ -532,7 +532,7 @@
                     Decline
                 </button>
                 <button type="button" id="btn-accept-policy-proceed" onclick="window.acceptPolicyAndProceed(event)"
-                    class="btn-privacy-accept" style="pointer-events: auto !important; cursor: pointer; touch-action: manipulation;">
+                    class="btn-privacy-accept is-disabled" style="pointer-events: auto !important; cursor: pointer; touch-action: manipulation;">
                     Accept
                 </button>
             </div>
@@ -541,10 +541,10 @@
 </div>
 
 <!-- Sex / Gender Selection Droplist Modal -->
-<div id="gender-select-modal" class="auth-2fa-overlay" style="display: none;"
+<div id="gender-select-modal" class="auth-2fa-overlay" style="display: none; background: rgba(15, 23, 42, 0.96) !important;"
     onclick="if(event.target===this) window.closeGenderModal(event);">
-    <div class="gender-modal-card">
-        <div class="gender-modal-header">
+    <div class="gender-modal-card" style="background: #ffffff !important;">
+        <div class="gender-modal-header" style="background: #1e3a8a !important;">
             <div class="gender-modal-header-content">
                 <span class="gender-modal-badge"><i class="fa-solid fa-venus-mars"></i> Personalization</span>
                 <h3 class="gender-modal-title">Select Sex / Gender</h3>
@@ -553,39 +553,39 @@
                 &times;
             </button>
         </div>
-        <div class="gender-modal-body">
-            <div class="gender-option-item" data-value="Male" onclick="window.selectGenderOption('Male')">
-                <div class="gender-option-icon icon-male"><i class="fa-solid fa-mars"></i></div>
+        <div class="gender-modal-body" style="background: #ffffff !important;">
+            <div class="gender-option-item" data-value="Male" onclick="window.selectGenderOption('Male')" style="background: #ffffff !important;">
+                <div class="gender-option-icon icon-male" style="background: #dbeafe !important; color: #1d4ed8 !important;"><i class="fa-solid fa-mars"></i></div>
                 <div class="gender-option-info">
-                    <span class="gender-option-name">Male</span>
+                    <span class="gender-option-name" style="color: #0f172a !important;">Male</span>
                 </div>
                 <i class="fa-solid fa-circle-check gender-check-icon"></i>
             </div>
-            <div class="gender-option-item" data-value="Female" onclick="window.selectGenderOption('Female')">
-                <div class="gender-option-icon icon-female"><i class="fa-solid fa-venus"></i></div>
+            <div class="gender-option-item" data-value="Female" onclick="window.selectGenderOption('Female')" style="background: #ffffff !important;">
+                <div class="gender-option-icon icon-female" style="background: #fce7f3 !important; color: #db2777 !important;"><i class="fa-solid fa-venus"></i></div>
                 <div class="gender-option-info">
-                    <span class="gender-option-name">Female</span>
+                    <span class="gender-option-name" style="color: #0f172a !important;">Female</span>
                 </div>
                 <i class="fa-solid fa-circle-check gender-check-icon"></i>
             </div>
-            <div class="gender-option-item" data-value="Non-binary" onclick="window.selectGenderOption('Non-binary')">
-                <div class="gender-option-icon icon-nonbinary"><i class="fa-solid fa-genderless"></i></div>
+            <div class="gender-option-item" data-value="Non-binary" onclick="window.selectGenderOption('Non-binary')" style="background: #ffffff !important;">
+                <div class="gender-option-icon icon-nonbinary" style="background: #ede9fe !important; color: #7c3aed !important;"><i class="fa-solid fa-genderless"></i></div>
                 <div class="gender-option-info">
-                    <span class="gender-option-name">Non-binary</span>
+                    <span class="gender-option-name" style="color: #0f172a !important;">Non-binary</span>
                 </div>
                 <i class="fa-solid fa-circle-check gender-check-icon"></i>
             </div>
-            <div class="gender-option-item" data-value="Prefer not to say" onclick="window.selectGenderOption('Prefer not to say')">
-                <div class="gender-option-icon icon-prefer"><i class="fa-solid fa-user-shield"></i></div>
+            <div class="gender-option-item" data-value="Prefer not to say" onclick="window.selectGenderOption('Prefer not to say')" style="background: #ffffff !important;">
+                <div class="gender-option-icon icon-prefer" style="background: #f1f5f9 !important; color: #475569 !important;"><i class="fa-solid fa-user-shield"></i></div>
                 <div class="gender-option-info">
-                    <span class="gender-option-name">Prefer not to say</span>
+                    <span class="gender-option-name" style="color: #0f172a !important;">Prefer not to say</span>
                 </div>
                 <i class="fa-solid fa-circle-check gender-check-icon"></i>
             </div>
-            <div class="gender-option-item" data-value="Other" onclick="window.selectGenderOption('Other')">
-                <div class="gender-option-icon icon-other"><i class="fa-solid fa-asterisk"></i></div>
+            <div class="gender-option-item" data-value="Other" onclick="window.selectGenderOption('Other')" style="background: #ffffff !important;">
+                <div class="gender-option-icon icon-other" style="background: #e0f2fe !important; color: #0284c7 !important;"><i class="fa-solid fa-asterisk"></i></div>
                 <div class="gender-option-info">
-                    <span class="gender-option-name">Other</span>
+                    <span class="gender-option-name" style="color: #0f172a !important;">Other</span>
                 </div>
                 <i class="fa-solid fa-circle-check gender-check-icon"></i>
             </div>
@@ -1523,13 +1523,25 @@
     window.syncPrivacyCheckbox = function (isChecked) {
         const box = document.getElementById('box-chk-accept-privacy');
         const chk = document.getElementById('chk-accept-privacy');
-        if (chk) chk.checked = isChecked;
+        const acceptBtn = document.getElementById('btn-accept-policy-proceed');
+
+        if (chk) chk.checked = !!isChecked;
+
         if (box) {
             box.classList.remove('shake-attention');
             if (isChecked) {
                 box.classList.add('is-checked');
             } else {
                 box.classList.remove('is-checked');
+            }
+        }
+
+        if (acceptBtn) {
+            if (isChecked) {
+                acceptBtn.classList.remove('is-disabled');
+                acceptBtn.removeAttribute('disabled');
+            } else {
+                acceptBtn.classList.add('is-disabled');
             }
         }
     };
@@ -1613,7 +1625,20 @@
             try { e.preventDefault(); } catch (err) { }
             try { e.stopPropagation(); } catch (err) { }
         }
-        window.syncPrivacyCheckbox(true);
+
+        const chk = document.getElementById('chk-accept-privacy');
+        if (!chk || !chk.checked) {
+            const box = document.getElementById('box-chk-accept-privacy');
+            if (box) {
+                box.classList.remove('shake-attention');
+                void box.offsetWidth; // Force CSS reflow
+                box.classList.add('shake-attention');
+            }
+            if (typeof showToast === 'function') {
+                showToast('Please check the box to accept the Terms & Privacy Policy first.', 'warning', 2500);
+            }
+            return;
+        }
 
         // Check the register terms checkbox on the auth form
         const regChk = document.getElementById('reg-privacy-checkbox');
