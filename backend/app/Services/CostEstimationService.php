@@ -142,13 +142,19 @@ class CostEstimationService
 
     /**
      * Check if a given travel date (or current date) falls within La Union Peak Tourism Season.
-     * Peak Season Months:
-     * - March to May (Summer Beach & Water Tourism)
-     * - October to January (Surfing Season & Holidays)
-     * - Weekends (Saturday & Sunday surge)
+     * Checks database configured tourism_seasons with graceful fallback.
      */
-    public function isPeakSeason(?string $dateString = null): bool
+    public function isPeakSeason(?string $dateString = null, ?string $municipality = null): bool
     {
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('tourism_seasons')) {
+                $active = \App\Models\TourismSeason::getActiveSeasonsForDate($dateString, $municipality);
+                if ($active->isNotEmpty()) {
+                    return true;
+                }
+            }
+        } catch (\Throwable $e) {}
+
         try {
             $date = $dateString ? \Carbon\Carbon::parse($dateString) : now();
         } catch (\Throwable $e) {
@@ -162,11 +168,20 @@ class CostEstimationService
     }
 
     /**
-     * Get the dynamic peak multiplier for pricing (1.25x during peak season).
+     * Get the dynamic peak multiplier for pricing (from database active seasons or 1.20x default).
      */
-    public function getPeakMultiplier(?string $dateString = null): float
+    public function getPeakMultiplier(?string $dateString = null, ?string $municipality = null): float
     {
-        return $this->isPeakSeason($dateString) ? 1.25 : 1.00;
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('tourism_seasons')) {
+                $active = \App\Models\TourismSeason::getActiveSeasonsForDate($dateString, $municipality);
+                if ($active->isNotEmpty()) {
+                    return (float) $active->max('cost_multiplier');
+                }
+            }
+        } catch (\Throwable $e) {}
+
+        return $this->isPeakSeason($dateString, $municipality) ? 1.20 : 1.00;
     }
 
     /**

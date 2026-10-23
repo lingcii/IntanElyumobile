@@ -1104,6 +1104,8 @@ Route::prefix('public')->group(function () {
     Route::get('/vouchers', [\App\Http\Controllers\VoucherController::class, 'index']);
     Route::get('/weather', [WeatherController::class, 'getWeather']);
     Route::get('/amenities', [MapController::class, 'publicAmenities']);
+    Route::get('/seasons/status', [\App\Http\Controllers\SeasonController::class, 'getStatus']);
+    Route::get('/seasons', [\App\Http\Controllers\SeasonController::class, 'index']);
 });
 Route::get('/amenities', [MapController::class, 'publicAmenities']);
 Route::get('/fares', [MapController::class, 'publicFares']);
@@ -1111,6 +1113,8 @@ Route::get('/fare-data', [MapController::class, 'publicFares']);
 Route::get('/vehicles', [VehicleController::class, 'index']);
 Route::get('/vouchers', [\App\Http\Controllers\VoucherController::class, 'index']);
 Route::get('/weather', [WeatherController::class, 'getWeather']);
+Route::get('/seasons/status', [\App\Http\Controllers\SeasonController::class, 'getStatus']);
+Route::get('/seasons', [\App\Http\Controllers\SeasonController::class, 'index']);
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  TOURIST (mobile app — Bearer token auth)

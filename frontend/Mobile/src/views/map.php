@@ -1001,6 +1001,35 @@ if (is_dir($imgDir)) {
                 }).catch(e => console.error("Fares fetch error:", e));
             }
 
+            // Load and cache active Tourism Season & Surge status
+            const SEASONS_CACHE_KEY = 'intan_elyu_season_status';
+            const SEASONS_CACHE_TTL = 3600000; // 1 hour
+            let cachedSeasons = null;
+            try {
+                const rawS = localStorage.getItem(SEASONS_CACHE_KEY);
+                if (rawS) {
+                    const parsedS = JSON.parse(rawS);
+                    if (parsedS && parsedS.data) {
+                        cachedSeasons = parsedS;
+                        window.currentSeasonStatus = parsedS.data;
+                    }
+                }
+            } catch (e) { }
+
+            const shouldRevalidateSeasons = !cachedSeasons || !cachedSeasons.timestamp || (Date.now() - cachedSeasons.timestamp > SEASONS_CACHE_TTL);
+            if (shouldRevalidateSeasons) {
+                fetch(_backendBase + '/api/seasons/status', {
+                    headers: { 'Accept': 'application/json' }
+                }).then(r => r.json()).then(d => {
+                    if (d && d.status === 'success' && d.data) {
+                        window.currentSeasonStatus = d.data;
+                        try {
+                            localStorage.setItem(SEASONS_CACHE_KEY, JSON.stringify({ data: d.data, timestamp: Date.now() }));
+                        } catch (e) { }
+                    }
+                }).catch(e => console.warn("Seasons status fetch error:", e));
+            }
+
             const style = {
                 "version": 8,
                 "glyphs": "https://fonts.openmaptiles.org/{fontstack}/{range}.pbf",
@@ -4509,17 +4538,28 @@ if (is_dir($imgDir)) {
             const destData = window.currentDestinationForRoute || {};
             const tightRoads = destData.accessible_by_private_vehicle === false || destData.accessible_by_private_vehicle === 0;
 
-            // Peak season check (October to May)
+            // Peak season status (from centralized backend API or local cached state)
+            const seasonData = window.currentSeasonStatus || (function() {
+                try {
+                    const c = JSON.parse(localStorage.getItem('intan_elyu_season_status') || '{}');
+                    return c.data || c || {};
+                } catch(e) { return {}; }
+            })();
+
             const currentMonth = new Date().getMonth(); // 0-indexed: 9=Oct, 4=May
-            const isPeak = (currentMonth >= 9 || currentMonth <= 4);
-            const peakSurcharge = isPeak ? 1.2 : 1.0;
+            const fallbackIsPeak = (currentMonth >= 9 || currentMonth <= 4);
+            const isPeak = (typeof seasonData.is_peak === 'boolean') ? seasonData.is_peak : fallbackIsPeak;
+            const peakSurcharge = seasonData.fare_multiplier || (isPeak ? 1.20 : 1.0);
+            const surchargePercent = seasonData.effective_surcharge_percent || (isPeak ? 20 : 0);
+            const seasonNotice = seasonData.notice || `☀️ Peak Season Active: Fares include +${Math.round(surchargePercent)}% LGU seasonal surcharge`;
 
             let faresHtml = '';
 
             if (isPeak) {
                 faresHtml += `
-            <div style="background: rgba(245, 158, 11, 0.15); border: none !important; outline: none !important; border-radius: 14px; padding: 10px 14px; font-size: 11px; font-weight: 700; color: #fbbf24; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-                ☀️ <span>Peak Season Active (Oct-May): Fares include +20% surcharge</span>
+            <div style="background: rgba(245, 158, 11, 0.15); border: 1.5px solid rgba(245, 158, 11, 0.35); outline: none !important; border-radius: 14px; padding: 11px 14px; font-size: 11.5px; font-weight: 700; color: #fbbf24; margin-bottom: 12px; display: flex; align-items: center; gap: 9px; line-height: 1.4;">
+                <i class="fa-solid fa-sun" style="color: #f59e0b; font-size: 15px; flex-shrink: 0;"></i>
+                <span>${seasonNotice}</span>
             </div>`;
             }
 
@@ -4541,7 +4581,10 @@ if (is_dir($imgDir)) {
                     </div>
                 </div>
                 <div style="display:flex; align-items:center; gap:8px;">
-                    <div style="background:${finalFare === 0 ? 'rgba(52,211,153,0.18)' : 'rgba(56,189,248,0.16)'}; border:none !important; outline:none !important; padding:6px 12px; border-radius:10px; font-weight:800; color:${finalFare === 0 ? '#34d399' : '#38bdf8'}; font-size:${finalFare === 0 ? '12px' : '15px'}; flex-shrink:0;">${finalFare === 0 ? '₱0.00' : '₱' + finalFare}</div>
+                    <div style="display:flex; flex-direction:column; align-items:flex-end;">
+                        <div style="background:${finalFare === 0 ? 'rgba(52,211,153,0.18)' : 'rgba(56,189,248,0.16)'}; border:none !important; outline:none !important; padding:6px 12px; border-radius:10px; font-weight:800; color:${finalFare === 0 ? '#34d399' : '#38bdf8'}; font-size:${finalFare === 0 ? '12px' : '15px'}; flex-shrink:0;">${finalFare === 0 ? '₱0.00' : '₱' + finalFare}</div>
+                        ${isPeak && finalFare > 0 && baseFare > 0 ? `<span style="font-size:9.5px; color:#fbbf24; font-weight:700; margin-top:3px;">Base ₱${baseFare} • +${Math.round(surchargePercent)}%</span>` : ''}
+                    </div>
                     <div class="vehicle-check" style="width:22px;height:22px;border-radius:50%;border:none !important;outline:none !important;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;transition:all 0.15s;"><i class="fa-solid fa-check" style="opacity:0;transition:opacity 0.15s;"></i></div>
                 </div>
             </div>`;

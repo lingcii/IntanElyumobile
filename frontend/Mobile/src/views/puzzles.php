@@ -284,24 +284,49 @@ include __DIR__ . '/../components/header.php';
     <div id="game-success-modal" onclick="if(event.target===this) closeGameSuccess();"
         style="display: none; position: fixed; inset: 0; z-index: 10000; background: rgba(10, 25, 60, 0.72); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); align-items: center; justify-content: center; padding: 20px; box-sizing: border-box;">
         <div
-            style="background: #ffffff !important; border: 1.5px solid #e2e8f0; border-radius: 24px; width: 100%; max-width: 340px; padding: 28px 20px 24px 20px; text-align: center; box-shadow: 0 20px 45px rgba(0, 0, 0, 0.28); position: relative; animation: popInGameModal 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards; box-sizing: border-box;">
+            style="background: #ffffff !important; border: 1.5px solid #e2e8f0; border-radius: 24px; width: 100%; max-width: 340px; padding: 26px 20px 22px 20px; text-align: center; box-shadow: 0 20px 45px rgba(0, 0, 0, 0.28); position: relative; animation: popInGameModal 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards; box-sizing: border-box;">
             
             <div
-                style="width: 60px; height: 60px; border-radius: 50%; background: #dcfce7 !important; border: none !important; outline: none !important; display: flex; align-items: center; justify-content: center; font-size: 28px; color: #16a34a !important; margin: 0 auto 16px; box-shadow: 0 4px 14px rgba(22, 163, 74, 0.2);">
+                style="width: 58px; height: 58px; border-radius: 50%; background: #dcfce7 !important; border: none !important; outline: none !important; display: flex; align-items: center; justify-content: center; font-size: 28px; color: #16a34a !important; margin: 0 auto 12px; box-shadow: 0 4px 14px rgba(22, 163, 74, 0.2);">
                 <i class="fa-solid fa-circle-check" style="color: #16a34a !important;"></i>
             </div>
             
-            <h3 style="margin: 0 0 8px; font-size: 20px; font-weight: 800; color: #0f172a; line-height: 1.3;">Awesome Job!</h3>
+            <h3 id="success-modal-title" style="margin: 0 0 10px; font-size: 20px; font-weight: 800; color: #0f172a; line-height: 1.3;">Awesome Job!</h3>
+
+            <!-- Points Awarded Badge -->
+            <div id="success-points-chip"
+                style="display: inline-flex; align-items: center; gap: 8px; background: #ecfdf5; border: 1.5px solid #a7f3d0; border-radius: 100px; padding: 6px 18px; margin: 0 auto 12px auto; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.15);">
+                <i class="fa-solid fa-star" style="color: #f59e0b; font-size: 14px;"></i>
+                <span id="success-points-awarded-val" style="font-size: 16px; font-weight: 800; color: #047857; letter-spacing: -0.3px;">+100 PTS</span>
+            </div>
             
             <p id="success-points-msg"
-                style="margin: 0 0 22px; font-size: 13.5px; color: #64748b; line-height: 1.5; font-weight: 500;">
+                style="margin: 0 0 14px; font-size: 13.5px; color: #475569; line-height: 1.5; font-weight: 600;">
                 You solved the game and earned Points!
             </p>
+
+            <!-- Come Back Tomorrow Notice Card -->
+            <div id="success-comeback-card"
+                style="background: #eff6ff; border: 1.5px solid #bfdbfe; border-radius: 14px; padding: 12px 14px; margin: 0 0 14px 0; display: flex; align-items: center; justify-content: center; gap: 10px; text-align: left;">
+                <div style="width: 32px; height: 32px; border-radius: 10px; background: #2563eb; color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25);">
+                    <i class="fa-solid fa-calendar-check"></i>
+                </div>
+                <div>
+                    <div style="font-size: 12.5px; font-weight: 800; color: #1e3a8a; line-height: 1.3;">Daily Reward Claimed!</div>
+                    <div style="font-size: 11.5px; font-weight: 600; color: #2563eb; line-height: 1.35;">Please come back tomorrow for more reward points!</div>
+                </div>
+            </div>
+
+            <!-- Total Points Balance Footer -->
+            <div style="font-size: 12px; color: #64748b; font-weight: 600; margin-bottom: 18px; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                <span>Total Balance:</span>
+                <span id="success-total-points-val" style="font-size: 14.5px; font-weight: 800; color: #203f8d;">-- PTS</span>
+            </div>
             
             <button type="button" onclick="closeGameSuccess()"
                 style="width: 100%; padding: 13px 20px; border-radius: 14px; background: linear-gradient(135deg, #16a34a 0%, #15803d 100%) !important; border: none; color: #ffffff !important; font-size: 14px; font-weight: 800; cursor: pointer; box-shadow: 0 4px 14px rgba(22, 163, 74, 0.35); transition: all 0.15s ease;"
                 onpointerdown="this.style.transform='scale(0.97)'" onpointerup="this.style.transform='scale(1)'">
-                Awesome!
+                Awesome! Got It
             </button>
         </div>
     </div>
@@ -310,19 +335,24 @@ include __DIR__ . '/../components/header.php';
     <div id="game-alert-modal" onclick="if(event.target===this) closeGameAlert();"
         style="display: none; position: fixed; inset: 0; z-index: 10001; background: rgba(10, 25, 60, 0.72); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); align-items: center; justify-content: center; padding: 20px; box-sizing: border-box;">
         <div
-            style="background: #ffffff !important; border: 1.5px solid #e2e8f0; border-radius: 24px; width: 100%; max-width: 340px; padding: 28px 20px 24px 20px; text-align: center; box-shadow: 0 20px 45px rgba(0, 0, 0, 0.28); position: relative; animation: popInGameModal 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards; box-sizing: border-box;">
+            style="background: #ffffff !important; border: 1.5px solid #e2e8f0; border-radius: 24px; width: 100%; max-width: 340px; padding: 26px 20px 22px 20px; text-align: center; box-shadow: 0 20px 45px rgba(0, 0, 0, 0.28); position: relative; animation: popInGameModal 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards; box-sizing: border-box;">
             
             <div
-                style="width: 60px; height: 60px; border-radius: 50%; background: #fef3c7 !important; border: none !important; outline: none !important; display: flex; align-items: center; justify-content: center; font-size: 28px; color: #d97706 !important; margin: 0 auto 16px; box-shadow: 0 4px 14px rgba(217, 119, 6, 0.2);">
+                style="width: 58px; height: 58px; border-radius: 50%; background: #fef3c7 !important; border: none !important; outline: none !important; display: flex; align-items: center; justify-content: center; font-size: 28px; color: #d97706 !important; margin: 0 auto 12px; box-shadow: 0 4px 14px rgba(217, 119, 6, 0.2);">
                 <i class="fa-solid fa-clock" style="color: #d97706 !important;"></i>
             </div>
             
-            <h3 style="margin: 0 0 8px; font-size: 20px; font-weight: 800; color: #0f172a; line-height: 1.3;">Already Done!</h3>
+            <h3 id="alert-modal-title" style="margin: 0 0 10px; font-size: 20px; font-weight: 800; color: #0f172a; line-height: 1.3;">Already Done!</h3>
             
             <p id="alert-points-msg"
-                style="margin: 0 0 22px; font-size: 13.5px; color: #64748b; line-height: 1.5; font-weight: 500;">
-                You already completed this game today!
+                style="margin: 0 0 14px; font-size: 13.5px; color: #475569; line-height: 1.5; font-weight: 500;">
+                You already completed this game today! Please come back tomorrow.
             </p>
+
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 10px 12px; margin-bottom: 18px; font-size: 12px; color: #64748b; font-weight: 600;">
+                <i class="fa-solid fa-circle-info" style="color: #0284c7; margin-right: 6px;"></i>
+                Daily rewards reset every day at midnight!
+            </div>
             
             <button type="button" onclick="closeGameAlert()"
                 style="width: 100%; padding: 13px 20px; border-radius: 14px; background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%) !important; border: none; color: #ffffff !important; font-size: 14px; font-weight: 800; cursor: pointer; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35); transition: all 0.15s ease;"
@@ -394,11 +424,10 @@ include __DIR__ . '/../components/header.php';
         async function loadGamePoints() {
             try {
                 const _cachedAuth = JSON.parse(localStorage.getItem('auth_user') || '{}');
-                const fallbackPts = _cachedAuth.points ?? _cachedAuth.xp ?? 0;
+                const fallbackPts = Math.max(Number(_cachedAuth.points ?? 0), Number(_cachedAuth.xp ?? 0));
                 const ptsEl = document.getElementById('game-points-val');
                 if (ptsEl && fallbackPts !== undefined) ptsEl.textContent = Number(fallbackPts).toLocaleString();
             } catch (e) { }
-
 
             try {
                 const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('api_token');
@@ -409,12 +438,22 @@ include __DIR__ . '/../components/header.php';
                 const d = await r.json();
                 if (d.status === 'success') {
                     const ptsEl = document.getElementById('game-points-val');
-                    const userPoints = d.points ?? d.xp ?? 0;
+                    const userPoints = Math.max(Number(d.points ?? 0), Number(d.xp ?? 0));
                     if (ptsEl) ptsEl.textContent = Number(userPoints).toLocaleString();
+
+                    // Update auth_user in localStorage so other pages have the latest points
+                    try {
+                        const authUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
+                        authUser.points = userPoints;
+                        authUser.xp = userPoints;
+                        localStorage.setItem('auth_user', JSON.stringify(authUser));
+                    } catch (e) { }
+
                     if (window.updateProfilePointsDisplay) {
                         window.updateProfilePointsDisplay(userPoints);
                     }
-                    // Reconcile today's completed games with actual server history using local date matching
+
+                    // Reconcile today's completed games with server state
                     const todayLocalStr = new Date().toDateString();
                     const serverCompletedToday = {
                         puzzle: false,
@@ -422,6 +461,10 @@ include __DIR__ . '/../components/header.php';
                         word_scramble: false,
                         trivia: false
                     };
+
+                    if (d.today_completed && typeof d.today_completed === 'object') {
+                        Object.assign(serverCompletedToday, d.today_completed);
+                    }
 
                     if (d.history && Array.isArray(d.history)) {
                         d.history.forEach(item => {
@@ -437,16 +480,17 @@ include __DIR__ . '/../components/header.php';
                         });
                     }
 
-                    // Sync localStorage with verified server data scoped strictly to current user:
-                    // If the server confirms completed today, retain; otherwise clear stale lock
+                    // Retain daily completion if server verified OR if completed locally today
                     ['puzzle', 'memory_match', 'word_scramble', 'trivia'].forEach(gameType => {
                         const key = getGameDoneKey(gameType);
-                        if (serverCompletedToday[gameType]) {
+                        const localVal = localStorage.getItem(key);
+                        if (serverCompletedToday[gameType] || localVal === todayLocalStr) {
                             localStorage.setItem(key, todayLocalStr);
-                        } else {
+                        } else if (localVal && localVal !== todayLocalStr) {
+                            // Only clear stale locks from prior days
                             localStorage.removeItem(key);
                         }
-                        // Always purge legacy un-scoped key to prevent cross-user session leakage
+                        // Purge legacy un-scoped key
                         localStorage.removeItem('game_done_' + gameType);
                     });
 
@@ -1022,13 +1066,13 @@ include __DIR__ . '/../components/header.php';
         async function submitTriviaAnswers() {
             const unanswered = triviaData.some(q => q.selected === null);
             if (unanswered) {
-                alert("Please answer all questions before submitting!");
+                openGameAlert("Please answer all questions before submitting!", "Notice");
                 return;
             }
 
             const allCorrect = triviaData.every(q => q.selected === q.correct);
             if (!allCorrect) {
-                alert("Some answers are incorrect. Try again! hint: Think surfing in San Juan, waterfalls in San Gabriel, and native Ilokano speakers.");
+                openGameAlert("Some answers are incorrect. Try again! Hint: Think surfing in San Juan, watchtowers in Luna, and native Ilokano speakers.", "Not Quite Right");
                 return;
             }
 
@@ -1447,12 +1491,73 @@ include __DIR__ . '/../components/header.php';
         // ----------------------------------------------------
         // GENERAL API & SUCCESS MODAL HELPERS
         // ----------------------------------------------------
+        function animateHeaderPointsIncrease(awardedPts, targetTotal) {
+            const el = document.getElementById('game-points-val');
+            if (!el) return;
+            const currentVal = parseInt(el.textContent.replace(/,/g, ''), 10) || 0;
+            const finalVal = (typeof targetTotal === 'number' && targetTotal > 0) ? targetTotal : (currentVal + (awardedPts || 0));
+
+            if (finalVal === currentVal) {
+                el.textContent = Number(finalVal).toLocaleString();
+                return;
+            }
+
+            let start = null;
+            const duration = 650;
+            const diff = finalVal - currentVal;
+
+            function step(timestamp) {
+                if (!start) start = timestamp;
+                const progress = Math.min((timestamp - start) / duration, 1);
+                // easeOutCubic
+                const eased = 1 - Math.pow(1 - progress, 3);
+                const currentStepVal = Math.round(currentVal + diff * eased);
+                el.textContent = Number(currentStepVal).toLocaleString();
+                if (progress < 1) {
+                    window.requestAnimationFrame(step);
+                } else {
+                    el.textContent = Number(finalVal).toLocaleString();
+                }
+            }
+            window.requestAnimationFrame(step);
+
+            // Pop bounce & highlight animation
+            el.style.transition = 'transform 0.22s cubic-bezier(0.175, 0.885, 0.32, 1.275), color 0.22s ease';
+            el.style.transform = 'scale(1.22)';
+            el.style.color = '#38bdf8';
+            setTimeout(() => {
+                el.style.transform = 'scale(1)';
+                el.style.color = '#ffffff';
+            }, 360);
+        }
+
         async function claimMiniGamePoints(gameType) {
             try {
                 if (window._practiceModes && window._practiceModes[gameType]) {
-                    openGameSuccess("Awesome practice run! You have already claimed today's daily points. Come back tomorrow for new reward points!");
+                    openGameSuccess({
+                        title: "Practice Completed!",
+                        message: "Awesome practice run! You have already claimed today's daily points. Come back tomorrow for new reward points!",
+                        awardedPts: 0,
+                        isPractice: true,
+                        comeBackTomorrow: true
+                    });
                     return;
                 }
+
+                const defaultPointsMap = {
+                    'puzzle': 100,
+                    'memory_match': 75,
+                    'word_scramble': 75,
+                    'trivia': 50
+                };
+                const expectedPts = defaultPointsMap[gameType] || 50;
+
+                // Mark completed today in localStorage immediately
+                const todayStr = new Date().toDateString();
+                const gameKey = getGameDoneKey(gameType);
+                localStorage.setItem(gameKey, todayStr);
+                localStorage.removeItem('game_done_' + gameType);
+                updateAllGamesFinishedUI();
 
                 // Ambient offline game queueing if solving while on a walk outside
                 if (!navigator.onLine || window.isAppOnline === false) {
@@ -1463,18 +1568,34 @@ include __DIR__ . '/../components/header.php';
                             queue.push({ gameType: gameType, timestamp: Date.now() });
                             localStorage.setItem(queueKey, JSON.stringify(queue));
                         }
-                        localStorage.setItem(getGameDoneKey(gameType), new Date().toDateString());
-                        localStorage.removeItem('game_done_' + gameType);
                     } catch (e) { }
+
+                    let optimisticTotal = expectedPts;
+                    try {
+                        const authUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
+                        const curPts = Math.max(Number(authUser.points ?? 0), Number(authUser.xp ?? 0));
+                        optimisticTotal = curPts + expectedPts;
+                        authUser.points = optimisticTotal;
+                        authUser.xp = optimisticTotal;
+                        localStorage.setItem('auth_user', JSON.stringify(authUser));
+                    } catch (e) { }
+
+                    animateHeaderPointsIncrease(expectedPts, optimisticTotal);
                     updateAllGamesFinishedUI();
-                    openGameSuccess("Game completed! Your points will sync automatically when back online.");
+
+                    openGameSuccess({
+                        title: "Game Completed!",
+                        awardedPts: expectedPts,
+                        newTotalPoints: optimisticTotal,
+                        message: `Game completed offline! You earned +${expectedPts} Points. Your points will sync automatically when back online.`,
+                        comeBackTomorrow: true
+                    });
                     return;
                 }
 
                 const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('api_token');
                 const _baseUrl = (window.backendUrl || 'https://api.intan-elyu.online').replace(/\/+$/, '');
 
-                // If generic minigame endpoint, call minigame API
                 let endpoint = '/api/tourist/points/minigame';
                 let bodyObj = { game_type: gameType };
 
@@ -1495,18 +1616,39 @@ include __DIR__ . '/../components/header.php';
                     body: JSON.stringify(bodyObj)
                 });
                 const d = await r.json();
+
                 if (r.ok && d.status === 'success') {
-                    // Mark as completed today for local checks scoped to current user
+                    const awardedPts = Number(d.points_awarded ?? d.xp_awarded ?? expectedPts);
+                    const newTotalPoints = Number(d.points ?? d.xp ?? 0);
+
+                    // Update auth_user in localStorage so other tabs / views sync
                     try {
-                        localStorage.setItem(getGameDoneKey(gameType), new Date().toDateString());
-                        localStorage.removeItem('game_done_' + gameType);
+                        const authUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
+                        const curPts = Math.max(Number(authUser.points ?? 0), Number(authUser.xp ?? 0));
+                        const finalPts = newTotalPoints > 0 ? newTotalPoints : (curPts + awardedPts);
+                        authUser.points = finalPts;
+                        authUser.xp = finalPts;
+                        localStorage.setItem('auth_user', JSON.stringify(authUser));
                         window.leaderboardNeedsRefresh = true;
                         Object.keys(localStorage).forEach(k => {
                             if (k.startsWith('leaderboard_data_')) localStorage.removeItem(k);
                         });
                     } catch (e) { }
+
+                    // Trigger smooth counter animation in header
+                    animateHeaderPointsIncrease(awardedPts, newTotalPoints);
+
+                    // Update UI banners to show finished mode
                     updateAllGamesFinishedUI();
-                    openGameSuccess(d.message);
+
+                    // Open enhanced success modal
+                    openGameSuccess({
+                        title: "Awesome Job!",
+                        awardedPts: awardedPts,
+                        newTotalPoints: newTotalPoints,
+                        message: d.message || `Congratulations! You earned ${awardedPts} Points!`,
+                        comeBackTomorrow: true
+                    });
                 } else {
                     if (r.status === 429) {
                         try {
@@ -1530,28 +1672,90 @@ include __DIR__ . '/../components/header.php';
                     localStorage.setItem(getGameDoneKey(gameType), new Date().toDateString());
                     localStorage.removeItem('game_done_' + gameType);
                     updateAllGamesFinishedUI();
-                    openGameSuccess("Game completed! Your points will sync automatically when back online.");
+                    openGameSuccess({
+                        title: "Game Completed!",
+                        awardedPts: 50,
+                        message: "Game completed! Your points will sync automatically when back online. Come back tomorrow!",
+                        comeBackTomorrow: true
+                    });
                     return;
                 } catch (queueErr) { }
                 openGameAlert("Connection issue. Please try again.", "Error");
             }
         }
 
-        function openGameSuccess(message) {
+        function openGameSuccess(opts) {
             const modal = document.getElementById('game-success-modal');
-            if (modal) {
-                if (modal.parentElement !== document.body) {
-                    document.body.appendChild(modal);
-                }
-                const msgEl = document.getElementById('success-points-msg');
-                if (msgEl) {
-                    msgEl.textContent = message || "You've successfully completed the game and earned points!";
-                }
-                modal.style.display = 'flex';
-                document.body.classList.add('modal-blurred');
-                document.documentElement.classList.add('modal-blurred');
-                loadGamePoints();
+            if (!modal) return;
+
+            if (modal.parentElement !== document.body) {
+                document.body.appendChild(modal);
             }
+
+            let message = '';
+            let awardedPts = 0;
+            let newTotalPoints = null;
+            let comeBackTomorrow = true;
+            let isPractice = false;
+            let title = "Awesome Job!";
+
+            if (typeof opts === 'string') {
+                message = opts;
+            } else if (opts && typeof opts === 'object') {
+                message = opts.message || '';
+                awardedPts = opts.awardedPts ?? 0;
+                newTotalPoints = opts.newTotalPoints ?? null;
+                comeBackTomorrow = opts.comeBackTomorrow !== false;
+                isPractice = opts.isPractice === true;
+                if (opts.title) title = opts.title;
+            }
+
+            const titleEl = document.getElementById('success-modal-title');
+            if (titleEl) titleEl.textContent = title;
+
+            const chipEl = document.getElementById('success-points-chip');
+            const awardedValEl = document.getElementById('success-points-awarded-val');
+            if (chipEl && awardedValEl) {
+                if (awardedPts > 0) {
+                    chipEl.style.display = 'inline-flex';
+                    awardedValEl.textContent = `+${awardedPts} PTS`;
+                } else if (isPractice) {
+                    chipEl.style.display = 'inline-flex';
+                    awardedValEl.textContent = 'Practice Mode';
+                } else {
+                    chipEl.style.display = 'none';
+                }
+            }
+
+            const msgEl = document.getElementById('success-points-msg');
+            if (msgEl) {
+                msgEl.textContent = message || "You've successfully completed the game and earned points!";
+            }
+
+            const comebackCard = document.getElementById('success-comeback-card');
+            if (comebackCard) {
+                comebackCard.style.display = comeBackTomorrow ? 'flex' : 'none';
+            }
+
+            const totalPtsEl = document.getElementById('success-total-points-val');
+            if (totalPtsEl) {
+                if (newTotalPoints !== null && newTotalPoints !== undefined && newTotalPoints > 0) {
+                    totalPtsEl.textContent = Number(newTotalPoints).toLocaleString() + ' PTS';
+                } else {
+                    try {
+                        const auth = JSON.parse(localStorage.getItem('auth_user') || '{}');
+                        const curPts = Math.max(Number(auth.points ?? 0), Number(auth.xp ?? 0));
+                        totalPtsEl.textContent = Number(curPts).toLocaleString() + ' PTS';
+                    } catch (e) {
+                        totalPtsEl.textContent = '-- PTS';
+                    }
+                }
+            }
+
+            modal.style.display = 'flex';
+            document.body.classList.add('modal-blurred');
+            document.documentElement.classList.add('modal-blurred');
+            loadGamePoints();
         }
 
         function closeGameSuccess() {
@@ -1568,10 +1772,10 @@ include __DIR__ . '/../components/header.php';
                 if (modal.parentElement !== document.body) {
                     document.body.appendChild(modal);
                 }
-                const titleEl = modal.querySelector('h3, h2');
+                const titleEl = document.getElementById('alert-modal-title') || modal.querySelector('h3, h2');
                 if (titleEl) titleEl.textContent = title;
                 const msgEl = document.getElementById('alert-points-msg');
-                if (msgEl) msgEl.textContent = message || "You already completed this game today!";
+                if (msgEl) msgEl.textContent = message || "You already completed this game today! Please come back tomorrow.";
                 modal.style.display = 'flex';
                 document.body.classList.add('modal-blurred');
                 document.documentElement.classList.add('modal-blurred');
