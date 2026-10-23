@@ -126,6 +126,11 @@ $hideBottomNav = true; // Hide bottom nav for full immersive view
         window.triggerCheckIn = async function () {
             if (!spotId || !userLat || !userLng) return;
 
+            if (typeof window.isGuestUser === 'function' && window.isGuestUser()) {
+                window.promptGuestLogin('check-in');
+                return;
+            }
+
             document.getElementById('btn-scan').innerHTML = '<i class="fa-solid fa-spinner spinning"></i>';
 
             // Immediate offline fallback if disconnected

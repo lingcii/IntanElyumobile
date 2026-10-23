@@ -2522,7 +2522,7 @@ try {
                 // Fare display
                 let fareMarkup = '';
                 if (isMaintenance) {
-                    fareMarkup = `<span style="font-size:14px; font-weight:800; color:rgba(255,255,255,0.6);">₱0.00</span>`;
+                    fareMarkup = `<span style="font-size:13px; font-weight:700; color:rgba(255,255,255,0.6);">—</span>`;
                 } else if (cost === 0) {
                     fareMarkup = `<span style="font-size:13.5px; font-weight:800; color:#34d399;">₱0.00</span> <span style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.72);">(Free)</span>`;
                 } else {
@@ -3117,8 +3117,8 @@ try {
                     : { mode: 'own_car', name: 'Own Car', icon: 'fa-car', cost: 0 };
 
                 const startDistText = startEta ? `${startEta.distanceText} &bull; ~${startEta.durationText}` : 'Start Leg';
-                const fareBadge = leg0Info.is_maintenance
-                    ? `<span class="leg-fare-tag" style="color:#ffffff; background:rgba(0,0,0,0.25); font-weight:800;">₱0.00</span>`
+                const fareBadge = (leg0Info.is_maintenance || leg0Info.name === 'Unavailable')
+                    ? ''
                     : ((leg0Info.cost > 0)
                         ? `<span class="leg-fare-tag">₱${leg0Info.cost.toFixed(2)}</span>`
                         : `<span class="leg-fare-tag" style="color:#059669; background:rgba(16,185,129,0.1);">₱0</span>`);
@@ -3133,8 +3133,8 @@ try {
                 const leg0LeadingIcon = leg0Info.is_maintenance
                     ? `<i class="fa-solid fa-ban" style="color:#ffffff; font-size:11px; flex-shrink:0;"></i>`
                     : (leg0Info.icon ? `<i class="fa-solid ${leg0Info.icon}" style="color:${leg0IconColor}; font-size:11px; flex-shrink:0;"></i>` : '');
-                const leg0TrailingIcon = leg0Info.is_maintenance
-                    ? `<span style="font-size:9.5px; opacity:0.85; margin-left:2px; font-weight:700;">(Maintenance)</span>`
+                const leg0TrailingIcon = (leg0Info.is_maintenance || leg0Info.name === 'Unavailable')
+                    ? ''
                     : `<i class="fa-solid fa-chevron-right leg-action-edit" style="flex-shrink:0;"></i>`;
 
                 startingLegHtml = `
@@ -3223,8 +3223,8 @@ try {
                             : { mode: 'mpuj', name: 'Modern Jeepney', icon: 'fa-van-shuttle', cost: 0 };
 
                         const legDistText = legEta ? `${legEta.distanceText} &bull; ~${legEta.durationText}` : 'Leg Route';
-                        const fareBadge = legInfo.is_maintenance
-                            ? `<span class="leg-fare-tag" style="color:#ffffff; background:rgba(0,0,0,0.25); font-weight:800;">₱0.00</span>`
+                        const fareBadge = (legInfo.is_maintenance || legInfo.name === 'Unavailable')
+                            ? ''
                             : ((legInfo.cost > 0)
                                 ? `<span class="leg-fare-tag">₱${legInfo.cost.toFixed(2)}</span>`
                                 : `<span class="leg-fare-tag" style="color:#059669; background:rgba(16,185,129,0.1);">₱0</span>`);
@@ -3239,8 +3239,8 @@ try {
                         const legLeadingIcon = legInfo.is_maintenance
                             ? `<i class="fa-solid fa-ban" style="color:#ffffff; font-size:11px; flex-shrink:0;"></i>`
                             : (legInfo.icon ? `<i class="fa-solid ${legInfo.icon}" style="color:${legIconColor}; font-size:11px; flex-shrink:0;"></i>` : '');
-                        const legTrailingIcon = legInfo.is_maintenance
-                            ? `<span style="font-size:9.5px; opacity:0.85; margin-left:2px; font-weight:700;">(Maintenance)</span>`
+                        const legTrailingIcon = (legInfo.is_maintenance || legInfo.name === 'Unavailable')
+                            ? ''
                             : `<i class="fa-solid fa-chevron-right leg-action-edit" style="flex-shrink:0;"></i>`;
 
                         html += `
@@ -4488,13 +4488,46 @@ try {
             btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> ${editingId ? 'Updating...' : 'Saving...'}`;
             btn.disabled = true;
 
-            const destinations = draft.map(place => parseInt(place.id || place.tourist_spot_id || 0)).filter(id => id > 0);
+            const extractTrueSpotId = function (place) {
+                if (!place) return 0;
+                // Prefer explicit tourist spot foreign keys first
+                if (place.tourist_spot_id && parseInt(place.tourist_spot_id, 10) > 0) {
+                    return parseInt(place.tourist_spot_id, 10);
+                }
+                if (place.destination_id && parseInt(place.destination_id, 10) > 0) {
+                    return parseInt(place.destination_id, 10);
+                }
+                if (place.destination && (place.destination.tourist_spot_id || place.destination.id)) {
+                    const dId = parseInt(place.destination.tourist_spot_id || place.destination.id, 10);
+                    if (dId > 0) return dId;
+                }
+                if (place.id) {
+                    const parsed = parseInt(place.id, 10);
+                    if (!isNaN(parsed) && parsed > 0) return parsed;
+                }
+                return 0;
+            };
+
+            const destinations = draft.map(place => extractTrueSpotId(place)).filter(id => id > 0);
 
             let tripPayload = null;
             try {
                 const activeRouteType = document.querySelector('.btn-route-type.active')?.innerText || ((window.currentRouteType === 'alternative' || window.currentRouteType === 'alternate') ? 'Alternative' : 'Recommended');
                 const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
-                if (!token && navigator.onLine) {
+                const isGuest = (typeof window.isGuestUser === 'function')
+                    ? window.isGuestUser()
+                    : (!token ||
+                        token === 'guest_token' ||
+                        token === 'offline_guest_token' ||
+                        token.startsWith('guest_') ||
+                        token.startsWith('offline_') ||
+                        localStorage.getItem('intan_elyu_guest') === 'true' ||
+                        localStorage.getItem('intan_elyu_offline_guest') === 'true');
+
+                const isOffline = (typeof navigator.onLine === 'boolean') ? !navigator.onLine : (window.isAppOnline === false);
+                const isOfflineTripId = Boolean(editingId && String(editingId).startsWith('offline_'));
+
+                if (!token && !isGuest && navigator.onLine) {
                     btn.innerHTML = editingId ? 'Update Trip' : 'Save Trip';
                     btn.disabled = false;
                     showToast("Session expired. Please log in to save your trip.");
@@ -4512,7 +4545,7 @@ try {
                         : { mode: effectiveTransport, cost: 0, distance_km: 0 };
                     return {
                         leg_index: idx + 1,
-                        to_spot_id: parseInt(place.id || place.tourist_spot_id || 0),
+                        to_spot_id: extractTrueSpotId(place),
                         transport_mode: legInfo.mode || legInfo.transport_mode || effectiveTransport,
                         leg_cost: parseFloat(legInfo.cost || legInfo.leg_cost || 0),
                         leg_distance_km: parseFloat(legInfo.distance_km || 0)
@@ -4539,7 +4572,7 @@ try {
                     update_id: editingId || null,
                     items: draft.map((place, idx) => ({
                         id: 'offline_item_' + Date.now() + '_' + (idx + 1),
-                        tourist_spot_id: parseInt(place.id || place.tourist_spot_id || 0),
+                        tourist_spot_id: extractTrueSpotId(place),
                         destination: place,
                         transport_type: effectiveTransport,
                         transport_mode: (legTransports && legTransports[idx] && legTransports[idx].transport_mode) ? legTransports[idx].transport_mode : effectiveTransport,
@@ -4552,11 +4585,32 @@ try {
                     }))
                 };
 
-                // Fast offline trip queueing
-                if ((!navigator.onLine || window.isAppOnline === false) && tripPayload && window.OfflineTripManager) {
+                // Fast offline trip queueing or Guest mode local device save
+                if ((isGuest || isOffline || isOfflineTripId) && tripPayload && window.OfflineTripManager) {
                     const queued = window.OfflineTripManager.queueOfflineTrip(tripPayload);
                     const queuedId = queued ? (queued.local_id || queued.id) : ('offline_' + Date.now());
-                    showToast(editingId ? "📍 Offline Mode: Trip changes saved on device for auto-sync!" : "📍 Offline Mode: Trip saved on device for auto-sync!", "info", 5000);
+
+                    // Also synchronize local storage backup so saved_trips displays the trip instantly
+                    try {
+                        let localSaved = JSON.parse(localStorage.getItem('intan_elyu_saved_trips') || '[]');
+                        if (!Array.isArray(localSaved)) localSaved = [];
+                        const exIdx = localSaved.findIndex(t => t && (String(t.id) === String(queuedId) || String(t.local_id) === String(queuedId)));
+                        const tripObj = { ...tripPayload, id: queuedId, local_id: queuedId, is_offline_queued: true, created_at: new Date().toISOString() };
+                        if (exIdx >= 0) {
+                            localSaved[exIdx] = { ...localSaved[exIdx], ...tripObj };
+                        } else {
+                            localSaved.unshift(tripObj);
+                        }
+                        localStorage.setItem('intan_elyu_saved_trips', JSON.stringify(localSaved));
+                        localStorage.setItem('intan_elyu_offline_saved_trips_backup', JSON.stringify(localSaved));
+                    } catch (e) { }
+
+                    if (isGuest) {
+                        showToast(editingId ? "Trip updated on device! Create an account anytime to sync to cloud." : "Trip saved on device! Log in or register anytime to sync.", "success", 4000);
+                    } else {
+                        showToast(editingId ? "📍 Offline Mode: Trip changes saved on device for auto-sync!" : "📍 Offline Mode: Trip saved on device for auto-sync!", "info", 5000);
+                    }
+
                     sessionStorage.setItem('just_saved_trip_id', queuedId);
                     sessionStorage.setItem('active_trip_transport_' + queuedId, effectiveTransport);
                     localStorage.setItem('selected_trip_vehicle_' + queuedId, effectiveTransport);
@@ -4606,11 +4660,13 @@ try {
                 });
 
                 if (response.status === 401) {
-                    localStorage.removeItem('intan_elyu_token');
-                    localStorage.removeItem('Intan_Elyu_Token');
-                    showToast("Session expired. Please log in again.");
-                    navigateTo('auth');
-                    return;
+                    if (!isGuest) {
+                        localStorage.removeItem('intan_elyu_token');
+                        localStorage.removeItem('Intan_Elyu_Token');
+                        showToast("Session expired. Please log in again.");
+                        navigateTo('auth');
+                        return;
+                    }
                 }
 
                 const data = await response.json();

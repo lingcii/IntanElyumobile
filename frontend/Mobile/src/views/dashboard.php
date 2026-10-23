@@ -1452,6 +1452,22 @@ if (is_dir($imgDir)) {
             const tripsContainer = document.getElementById('saved-trips-container');
             if (!tripsContainer) return;
 
+            let serverItineraries = [];
+            if (Array.isArray(itinData)) {
+                serverItineraries = itinData;
+            } else if (itinData && Array.isArray(itinData.itineraries)) {
+                serverItineraries = itinData.itineraries;
+            } else if (itinData && Array.isArray(itinData.data)) {
+                serverItineraries = itinData.data;
+            } else {
+                try {
+                    const localSaved = JSON.parse(localStorage.getItem('intan_elyu_saved_trips') || '[]');
+                    if (Array.isArray(localSaved) && localSaved.length > 0) {
+                        serverItineraries = localSaved;
+                    }
+                } catch (e) { }
+            }
+
             const queuedTrips = (window.OfflineTripManager && typeof window.OfflineTripManager.getQueuedTrips === 'function')
                 ? window.OfflineTripManager.getQueuedTrips()
                 : [];
@@ -2305,21 +2321,47 @@ if (is_dir($imgDir)) {
         isGuest = !isRealUserSession;
 
         if (isGuest) {
-            // Instantly clear trips loading state for guest
-            const guestTripsEl = document.getElementById('saved-trips-container');
-            if (guestTripsEl) {
-                guestTripsEl.innerHTML = `
-                    <div class="dash-empty-state">
-                        <div class="dash-empty-icon-wrap" style="background: #ffffff !important; color: #1e3a8a !important; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15) !important;">
-                            <i class="fa-solid fa-route" style="color: #1e3a8a !important;"></i>
+            // Check if guest has local or queued trips on this device
+            try {
+                const localTrips = JSON.parse(localStorage.getItem('intan_elyu_saved_trips') || '[]');
+                const queued = (window.OfflineTripManager && typeof window.OfflineTripManager.getQueuedTrips === 'function')
+                    ? window.OfflineTripManager.getQueuedTrips()
+                    : [];
+                if ((Array.isArray(localTrips) && localTrips.length > 0) || queued.length > 0) {
+                    renderSavedTrips(localTrips);
+                } else {
+                    const guestTripsEl = document.getElementById('saved-trips-container');
+                    if (guestTripsEl) {
+                        guestTripsEl.innerHTML = `
+                            <div class="dash-empty-state">
+                                <div class="dash-empty-icon-wrap" style="background: #ffffff !important; color: #1e3a8a !important; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15) !important;">
+                                    <i class="fa-solid fa-route" style="color: #1e3a8a !important;"></i>
+                                </div>
+                                <div class="dash-empty-title">No Saved Trips Yet</div>
+                                <div class="dash-empty-desc">Create custom itineraries and explore recommended routes for your La Union adventure.</div>
+                                <button type="button" onclick="navigateTo('itinerary')" class="dash-empty-btn">
+                                    <i class="fa-solid fa-plus"></i> Plan a Trip
+                                </button>
+                            </div>
+                        `;
+                    }
+                }
+            } catch (e) {
+                const guestTripsEl = document.getElementById('saved-trips-container');
+                if (guestTripsEl) {
+                    guestTripsEl.innerHTML = `
+                        <div class="dash-empty-state">
+                            <div class="dash-empty-icon-wrap" style="background: #ffffff !important; color: #1e3a8a !important; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15) !important;">
+                                <i class="fa-solid fa-route" style="color: #1e3a8a !important;"></i>
+                            </div>
+                            <div class="dash-empty-title">No Saved Trips Yet</div>
+                            <div class="dash-empty-desc">Create custom itineraries and explore recommended routes for your La Union adventure.</div>
+                            <button type="button" onclick="navigateTo('itinerary')" class="dash-empty-btn">
+                                <i class="fa-solid fa-plus"></i> Plan a Trip
+                            </button>
                         </div>
-                        <div class="dash-empty-title">No Saved Trips Yet</div>
-                        <div class="dash-empty-desc">Create custom itineraries and explore recommended routes for your La Union adventure.</div>
-                        <button type="button" onclick="navigateTo('itinerary')" class="dash-empty-btn">
-                            <i class="fa-solid fa-plus"></i> Plan a Trip
-                        </button>
-                    </div>
-                `;
+                    `;
+                }
             }
 
             // Instantly clear saved places loading state for guest

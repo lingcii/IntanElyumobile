@@ -268,18 +268,34 @@ window.OfflineCheckinManager = {
         } catch (e) { }
     },
 
-    isItemQueued: function (itemId) {
-        if (!itemId) return false;
+    isItemQueued: function (itemId, spotId = null) {
+        if (!itemId && !spotId) return false;
         const q = this.getQueue();
-        const target = String(itemId);
-        return q.some(entry => String(entry.itemId) === target || String(entry.spotId) === target);
+        const target = itemId ? String(itemId) : '';
+        const targetSpot = spotId ? String(spotId) : '';
+        return q.some(entry => {
+            if (!entry) return false;
+            const eItem = String(entry.itemId || '');
+            const eSpot = String(entry.spotId || '');
+            if (target && (eItem === target || eSpot === target)) return true;
+            if (targetSpot && (eSpot === targetSpot || eItem === targetSpot)) return true;
+            return false;
+        });
     },
 
-    getQueuedItem: function (itemId) {
-        if (!itemId) return null;
+    getQueuedItem: function (itemId, spotId = null) {
+        if (!itemId && !spotId) return null;
         const q = this.getQueue();
-        const target = String(itemId);
-        return q.find(entry => String(entry.itemId) === target || String(entry.spotId) === target) || null;
+        const target = itemId ? String(itemId) : '';
+        const targetSpot = spotId ? String(spotId) : '';
+        return q.find(entry => {
+            if (!entry) return false;
+            const eItem = String(entry.itemId || '');
+            const eSpot = String(entry.spotId || '');
+            if (target && (eItem === target || eSpot === target)) return true;
+            if (targetSpot && (eSpot === targetSpot || eItem === targetSpot)) return true;
+            return false;
+        }) || null;
     },
 
     createThumbnail: function (blobOrFile, maxDim = 120, quality = 0.6) {
@@ -338,10 +354,10 @@ window.OfflineCheckinManager = {
         const capturedAt = data.capturedAt || new Date().toISOString();
 
         let hasPhoto = false;
-        let previewUrl = null;
+        let previewUrl = data.previewUrl || null;
         const photoData = data.image || data.imageFile || data.photo || null;
 
-        if (photoData) {
+        if (!previewUrl && photoData) {
             try {
                 previewUrl = await this.createThumbnail(photoData, 120, 0.65);
             } catch (thumbErr) {
@@ -380,7 +396,25 @@ window.OfflineCheckinManager = {
         };
 
         const queue = this.getQueue();
-        queue.push(entry);
+        const existingIdx = queue.findIndex(q => {
+            if (!q) return false;
+            if (entry.itemId && q.itemId && String(q.itemId) === String(entry.itemId)) return true;
+            if (entry.spotId && q.spotId && String(q.spotId) === String(entry.spotId)) return true;
+            return false;
+        });
+
+        if (existingIdx !== -1) {
+            queue[existingIdx] = {
+                ...queue[existingIdx],
+                ...entry,
+                hasPhoto: entry.hasPhoto || queue[existingIdx].hasPhoto,
+                previewUrl: entry.previewUrl || queue[existingIdx].previewUrl,
+                lat: entry.lat || queue[existingIdx].lat,
+                lng: entry.lng || queue[existingIdx].lng
+            };
+        } else {
+            queue.push(entry);
+        }
         this.saveQueue(queue);
 
         // Optimistically record locally in visited spots cache
@@ -411,7 +445,7 @@ window.OfflineCheckinManager = {
         if (!navigator.onLine) return;
 
         const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
-        if (!token) return;
+        if (!token || (typeof window.isGuestUser === 'function' && window.isGuestUser())) return;
 
         const queue = this.getQueue();
         if (queue.length === 0) return;
@@ -514,7 +548,7 @@ window.OfflineCheckinManager = {
                     const finalStatus = data.status || 'pending';
                     const isApproved = finalStatus === 'approved' || finalStatus === 'success';
 
-                    if (item.itemId) {
+                    if (item.itemId || item.spotId) {
                         try {
                             const tokenKey = token.substring(0, 10);
                             ['saved_trips_' + tokenKey, 'dashboard_saved_trips_' + tokenKey, 'dashboard_trips_' + tokenKey].forEach(cacheKey => {
@@ -525,7 +559,14 @@ window.OfflineCheckinManager = {
                                 if (Array.isArray(list)) {
                                     list.forEach(trip => {
                                         if (trip.items && Array.isArray(trip.items)) {
-                                            const match = trip.items.find(i => String(i.id) === String(item.itemId));
+                                            const match = trip.items.find(i => {
+                                                if (!i) return false;
+                                                const itId = String(i.id || '');
+                                                const itSpot = String(i.tourist_spot_id || i.destination_id || (i.destination ? i.destination.id : ''));
+                                                if (item.itemId && (itId === String(item.itemId) || itSpot === String(item.itemId))) return true;
+                                                if (item.spotId && (itSpot === String(item.spotId) || itId === String(item.spotId))) return true;
+                                                return false;
+                                            });
                                             if (match) {
                                                 match.proof_status = finalStatus;
                                                 if (returnedPhoto) match.proof_image = returnedPhoto;
@@ -541,6 +582,16 @@ window.OfflineCheckinManager = {
                                     }
                                 }
                             });
+                            if (typeof window.savePersistentItemState === 'function') {
+                                window.savePersistentItemState(item.itemId || item.spotId, {
+                                    proof_image: returnedPhoto,
+                                    proof_images: returnedPhoto ? [returnedPhoto] : [],
+                                    proof_status: finalStatus,
+                                    is_location_verified: true,
+                                    is_visited: isApproved,
+                                    spot_id: item.spotId
+                                });
+                            }
                         } catch (cacheErr) {
                             console.warn('Could not update local cached trip after sync:', cacheErr);
                         }
@@ -678,6 +729,201 @@ window.queuePendingServerDelete = function (tripId) {
 };
 
 // ══════════════════════════════════════════════════════════════════════════
+// GUEST USER STATE & AUTH PROMPT UTILITIES
+// ══════════════════════════════════════════════════════════════════════════
+window.isGuestUser = function () {
+    try {
+        const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+        return !token ||
+            token === 'guest_token' ||
+            token === 'offline_guest_token' ||
+            token.startsWith('guest_') ||
+            token.startsWith('offline_') ||
+            localStorage.getItem('intan_elyu_guest') === 'true' ||
+            localStorage.getItem('intan_elyu_offline_guest') === 'true';
+    } catch (e) {
+        return false;
+    }
+};
+
+window.promptGuestLogin = function (action = 'check-in') {
+    let modal = document.getElementById('guest-auth-prompt-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'guest-auth-prompt-modal';
+        modal.style.cssText = 'display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(10, 25, 60, 0.55); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); z-index:9999999; justify-content:center; align-items:center; padding:20px; box-sizing:border-box;';
+        modal.innerHTML = `
+            <style>
+                @keyframes popInGuestCard {
+                    0% { opacity: 0; transform: scale(0.92) translateY(12px); }
+                    100% { opacity: 1; transform: scale(1) translateY(0); }
+                }
+                #guest-auth-prompt-modal .guest-card {
+                    background: #ffffff !important;
+                    border-radius: 26px;
+                    width: 100%;
+                    max-width: 380px;
+                    overflow: hidden;
+                    box-shadow: 0 20px 48px rgba(10, 25, 60, 0.35);
+                    border: 1px solid rgba(226, 232, 240, 0.9);
+                    animation: popInGuestCard 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+                    display: flex;
+                    flex-direction: column;
+                }
+            </style>
+            <div class="guest-card" onclick="event.stopPropagation()">
+                <!-- Header Banner -->
+                <div style="background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%); padding: 18px 20px; color: #ffffff; display: flex; align-items: center; justify-content: space-between;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <div style="width: 34px; height: 34px; border-radius: 10px; background: rgba(255,255,255,0.16); display: flex; align-items: center; justify-content: center; color: #38bdf8; font-size: 16px;">
+                            <i class="fa-solid fa-lock"></i>
+                        </div>
+                        <div>
+                            <h3 style="margin: 0; font-size: 16px; font-weight: 800; color: #ffffff; letter-spacing: -0.3px;">Account Required</h3>
+                            <span style="font-size: 11px; color: #bfdbfe; font-weight: 600;">Sign in to unlock all features</span>
+                        </div>
+                    </div>
+                    <button type="button" onclick="window.closeGuestAuthModal()" style="background: rgba(255,255,255,0.18); border: none; color: #ffffff; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 13px;">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <!-- Body Content -->
+                <div style="padding: 22px 20px; text-align: center;">
+                    <div style="width: 64px; height: 64px; border-radius: 20px; background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border: 1.5px solid #bfdbfe; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px auto; color: #0284c7; font-size: 28px; box-shadow: 0 8px 20px rgba(2, 132, 199, 0.15);">
+                        <i id="guest-auth-icon" class="fa-solid fa-location-crosshairs"></i>
+                    </div>
+
+                    <h4 id="guest-auth-title" style="margin: 0 0 8px 0; font-size: 18px; font-weight: 800; color: #0f172a; letter-spacing: -0.4px;">Check-in & Photo Upload</h4>
+                    <p id="guest-auth-desc" style="margin: 0 0 18px 0; font-size: 13px; color: #475569; line-height: 1.5; font-weight: 500;">
+                        You are currently in <strong>Guest Mode</strong>. While you can plan and customize trips freely, checking in and uploading photo proof requires a registered account.
+                    </p>
+
+                    <!-- Feature Perks Card -->
+                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 12px 14px; text-align: left; margin-bottom: 20px; display: flex; flex-direction: column; gap: 9px;">
+                        <div style="display: flex; align-items: center; gap: 10px; font-size: 12px; color: #334155; font-weight: 700;">
+                            <i class="fa-solid fa-award" style="color: #f59e0b; width: 16px; text-align: center;"></i>
+                            <span>Earn travel XP, points & leaderboard rank</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px; font-size: 12px; color: #334155; font-weight: 700;">
+                            <i class="fa-solid fa-camera-retro" style="color: #0284c7; width: 16px; text-align: center;"></i>
+                            <span>Verify your visits with photo stamps</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px; font-size: 12px; color: #334155; font-weight: 700;">
+                            <i class="fa-solid fa-cloud-arrow-up" style="color: #10b981; width: 16px; text-align: center;"></i>
+                            <span>All your planned trips sync automatically</span>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div style="display: flex; flex-direction: column; gap: 9px;">
+                        <button type="button" onclick="window.proceedToAuthFromGuest()" style="width: 100%; padding: 14px; background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #ffffff; border: none; outline: none; border-radius: 14px; font-size: 14px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35); transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
+                            <i class="fa-solid fa-arrow-right-to-bracket"></i> Log In or Register
+                        </button>
+                        <button type="button" onclick="window.closeGuestAuthModal()" style="width: 100%; padding: 12px; background: #ffffff; color: #64748b; border: 1.5px solid #cbd5e1; outline: none; border-radius: 14px; font-size: 13px; font-weight: 700; cursor: pointer; transition: background 0.15s ease;">
+                            Continue as Guest
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    }
+
+    const isPhoto = action === 'photo' || action === 'upload' || action === 'proof';
+    const iconEl = document.getElementById('guest-auth-icon');
+    const titleEl = document.getElementById('guest-auth-title');
+    const descEl = document.getElementById('guest-auth-desc');
+
+    if (iconEl) {
+        iconEl.className = isPhoto ? 'fa-solid fa-camera' : 'fa-solid fa-location-crosshairs';
+    }
+    if (titleEl) {
+        titleEl.textContent = isPhoto ? 'Photo Upload Requires Login' : 'Check-in Requires Login';
+    }
+    if (descEl) {
+        descEl.innerHTML = isPhoto
+            ? 'Guests can plan and navigate trips freely! To <strong>upload photo proof</strong> and verify your visits, please log in or create an account.'
+            : 'Guests can plan and navigate trips freely! To <strong>check in at destinations</strong> and earn travel XP, please log in or create an account.';
+    }
+
+    modal.style.display = 'flex';
+};
+
+window.closeGuestAuthModal = function () {
+    const modal = document.getElementById('guest-auth-prompt-modal');
+    if (modal) modal.style.display = 'none';
+};
+
+window.proceedToAuthFromGuest = function () {
+    window.closeGuestAuthModal();
+    if (typeof navigateTo === 'function') {
+        navigateTo('auth');
+    }
+};
+
+window.syncAllOfflineTripData = async function (btnEl = null) {
+    if (!navigator.onLine) {
+        if (typeof showToast === 'function') {
+            showToast("You are currently offline. Connect to internet to sync.", "warning", 3500);
+        }
+        return false;
+    }
+
+    const origHtml = btnEl ? btnEl.innerHTML : '';
+    if (btnEl) {
+        btnEl.disabled = true;
+        btnEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="margin-right:4px;"></i> Syncing...';
+    }
+
+    try {
+        let totalCount = 0;
+        // 1. Sync queued offline trips / trip updates
+        if (window.OfflineTripManager && typeof window.OfflineTripManager.syncQueuedTrips === 'function') {
+            const tCount = await window.OfflineTripManager.syncQueuedTrips();
+            totalCount += (tCount || 0);
+        }
+        // 2. Sync queued offline check-ins & photo proofs
+        if (window.OfflineCheckinManager && typeof window.OfflineCheckinManager.processQueue === 'function') {
+            const cCount = await window.OfflineCheckinManager.processQueue();
+            totalCount += (cCount || 0);
+        }
+        // 3. Sync offline completed trips
+        if (window.OfflineCompletedTripsManager && typeof window.OfflineCompletedTripsManager.processQueue === 'function') {
+            const compCount = await window.OfflineCompletedTripsManager.processQueue();
+            totalCount += (compCount || 0);
+        }
+
+        if (typeof showToast === 'function') {
+            showToast(totalCount > 0 ? `Successfully synced ${totalCount} offline items to cloud!` : "Offline data synced with cloud!", "success", 4000);
+        }
+
+        window.dispatchEvent(new CustomEvent('tripsSynced'));
+        window.dispatchEvent(new CustomEvent('checkins-synced'));
+
+        if (typeof window.fetchSavedTrips === 'function') {
+            window.fetchSavedTrips(true);
+        }
+        if (typeof window.loadTripData === 'function') {
+            window.loadTripData();
+        }
+
+        return true;
+    } catch (err) {
+        console.error("Full offline sync failed:", err);
+        if (typeof showToast === 'function') {
+            showToast("Sync failed. Check connection and try again.", "error", 4000);
+        }
+        return false;
+    } finally {
+        if (btnEl) {
+            btnEl.disabled = false;
+            btnEl.innerHTML = origHtml;
+        }
+    }
+};
+
+// ══════════════════════════════════════════════════════════════════════════
 // OFFLINE PLANNING STRATEGY: OFFLINE TRIP & ITINERARY MANAGER
 // ══════════════════════════════════════════════════════════════════════════
 window.OfflineTripManager = {
@@ -807,7 +1053,7 @@ window.OfflineTripManager = {
         if (!trip) return false;
 
         const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
-        if (!token) return false;
+        if (!token || (typeof window.isGuestUser === 'function' && window.isGuestUser())) return false;
 
         const primaryUrl = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || window.BACKEND_URL || '')).replace(/\/+$/, '');
         const baseCandidates = [];
@@ -820,11 +1066,17 @@ window.OfflineTripManager = {
         }
         baseCandidates.push('');
 
+        const cleanDests = (trip.destinations || []).map(id => {
+            if (typeof id === 'object' && id) return parseInt(id.tourist_spot_id || id.destination_id || id.id || 0, 10);
+            const p = parseInt(id, 10);
+            return isNaN(p) ? 0 : p;
+        }).filter(id => id > 0);
+
         const payload = {
             title: trip.title,
             trip_date: trip.trip_date || null,
             budget: trip.budget || null,
-            destinations: trip.destinations || [],
+            destinations: cleanDests,
             route_type: trip.route_type || 'Recommended',
             transport_mode: trip.transport_mode || 'No Vehicle Selected',
             leg_transports: trip.leg_transports || []
@@ -886,7 +1138,7 @@ window.OfflineTripManager = {
 
         try {
             const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
-            if (!token) return 0;
+            if (!token || (typeof window.isGuestUser === 'function' && window.isGuestUser())) return 0;
 
             const primaryUrl = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || window.BACKEND_URL || '')).replace(/\/+$/, '');
             const baseCandidates = [];
@@ -946,11 +1198,17 @@ window.OfflineTripManager = {
                 }
 
                 try {
+                    const cleanDests = (trip.destinations || []).map(id => {
+                        if (typeof id === 'object' && id) return parseInt(id.tourist_spot_id || id.destination_id || id.id || 0, 10);
+                        const p = parseInt(id, 10);
+                        return isNaN(p) ? 0 : p;
+                    }).filter(id => id > 0);
+
                     const payload = {
                         title: trip.title,
                         trip_date: trip.trip_date || null,
                         budget: trip.budget || null,
-                        destinations: trip.destinations || [],
+                        destinations: cleanDests,
                         route_type: trip.route_type || 'Recommended',
                         transport_mode: trip.transport_mode || 'No Vehicle Selected',
                         leg_transports: trip.leg_transports || []

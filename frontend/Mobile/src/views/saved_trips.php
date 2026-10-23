@@ -748,9 +748,9 @@ $backRoute = 'itinerary';
                     if (Array.isArray(queuedCheckins)) {
                         queuedCheckins.forEach(q => {
                             if (!q) return;
-                            const targetKey = String(q.itemId || q.spotId || '');
                             const qImg = q.previewUrl || q.image;
-                            if (targetKey) {
+                            const keys = [q.itemId, q.spotId].filter(Boolean).map(String);
+                            keys.forEach(targetKey => {
                                 const existing = (localItemProofs[targetKey] && localItemProofs[targetKey].proof_images) ? localItemProofs[targetKey].proof_images : [];
                                 const merged = qImg ? ((existing.length > 0) ? existing : [qImg]) : existing;
                                 localItemProofs[targetKey] = {
@@ -758,9 +758,10 @@ $backRoute = 'itinerary';
                                     proof_images: merged,
                                     proof_status: 'pending',
                                     is_location_verified: true,
-                                    visited_at: q.capturedAt || new Date().toISOString()
+                                    visited_at: q.capturedAt || new Date().toISOString(),
+                                    is_queued: true
                                 };
-                            }
+                            });
                         });
                     }
                 } catch (e) { }
@@ -806,7 +807,8 @@ $backRoute = 'itinerary';
                                     proof_images: mergedProofs || [],
                                     proof_status: (it.proof_status && it.proof_status !== 'pending' && it.proof_status !== null) ? it.proof_status : (saved.proof_status || 'pending'),
                                     is_location_verified: Boolean(it.is_location_verified || saved.is_location_verified || it.visited_at || saved.visited_at),
-                                    visited_at: it.visited_at || saved.visited_at
+                                    visited_at: it.visited_at || saved.visited_at,
+                                    is_offline_queued: Boolean(saved.is_queued)
                                 };
                             }
                             return it;
@@ -941,6 +943,7 @@ $backRoute = 'itinerary';
                                 <div class="timeline-inner">
                                     <div class="timeline">`;
                         let unvisitedCount = 0;
+                        let hasQueuedCheckins = false;
                         const isTripCompleted = (trip.status === 'completed');
                         if (trip.items && trip.items.length) {
                             const sortedTripItems = [...trip.items].sort((a, b) => (a.order_index || 0) - (b.order_index || 0));
@@ -968,8 +971,12 @@ $backRoute = 'itinerary';
                                     }
                                 }
 
-                                const queuedItem = window.OfflineCheckinManager ? window.OfflineCheckinManager.getQueuedItem(item.id) : null;
-                                const isQueued = Boolean(queuedItem);
+                                const spotIdVal = item.tourist_spot_id || item.destination_id || (item.destination ? item.destination.id : null);
+                                const queuedItem = window.OfflineCheckinManager ? window.OfflineCheckinManager.getQueuedItem(item.id, spotIdVal) : null;
+                                const isQueued = Boolean(queuedItem || item.is_offline_queued);
+                                if (isQueued) {
+                                    hasQueuedCheckins = true;
+                                }
 
                                 // If proofImages is empty but queuedItem has an image, include it so the proof is visible
                                 if (proofImages.length === 0 && isQueued && queuedItem && (queuedItem.previewUrl || queuedItem.image)) {
@@ -1042,8 +1049,7 @@ $backRoute = 'itinerary';
                                         <div style="display:flex; align-items:center; gap:8px; margin:${index === 0 ? '0 0 10px 18px' : '4px 0 10px 18px'};">
                                             <span style="padding:3px 10px; border-radius:100px; font-size:10.5px; font-weight:700; background:#ef4444; color:#ffffff; display:inline-flex; align-items:center; gap:5px; border:none !important; outline:none !important; box-shadow:0 2px 6px rgba(239,68,68,0.3);">
                                                 <i class="fa-solid fa-ban" style="color:#ffffff; font-size:10px;"></i>
-                                                <span>Unavailable (Maintenance)</span>
-                                                <span style="color:#ffffff; font-weight:800; opacity:0.9;">&bull; ₱0.00</span>
+                                                <span>Unavailable</span>
                                             </span>
                                         </div>`;
                                     } else {
@@ -1205,8 +1211,8 @@ $backRoute = 'itinerary';
                             <i class="fa-solid fa-chevron-down" id="chevron-${trip.id}" style="margin-right:6px; transition:transform 0.3s ease;"></i> Details
                         </button>`;
 
-                        // If trip is queued offline, show prominent "Sync Now" button
-                        if (trip.is_offline_queued) {
+                        // If trip is queued offline, or has queued offline check-ins / photos, show prominent "Sync Now" button
+                        if (trip.is_offline_queued || hasQueuedCheckins) {
                             html += `
                             <button type="button" class="btn-primary" id="btn-sync-${trip.id}" onclick="event.stopPropagation(); window.syncSingleOfflineTrip('${trip.id}', this)" style="flex:1; min-width:115px; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border: none !important; outline: none !important; color: #ffffff; padding: 13px 14px; border-radius: 14px; font-weight: 800; font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35);">
                                 <i class="fa-solid fa-cloud-arrow-up"></i> Sync Now
@@ -1311,32 +1317,40 @@ $backRoute = 'itinerary';
             }
 
             try {
-                let synced = false;
+                let syncedAny = false;
+                // 1. Sync trip if it's queued offline
                 if (window.OfflineTripManager && typeof window.OfflineTripManager.syncSingleTrip === 'function') {
-                    synced = await window.OfflineTripManager.syncSingleTrip(tripId);
-                } else if (window.OfflineTripManager && typeof window.OfflineTripManager.syncQueuedTrips === 'function') {
-                    const count = await window.OfflineTripManager.syncQueuedTrips();
-                    synced = (count > 0);
+                    const ok = await window.OfflineTripManager.syncSingleTrip(tripId);
+                    if (ok) syncedAny = true;
+                }
+                // 2. Sync queued checkins and photo proofs
+                if (window.OfflineCheckinManager && typeof window.OfflineCheckinManager.processQueue === 'function') {
+                    const chkCount = await window.OfflineCheckinManager.processQueue();
+                    if (chkCount && chkCount > 0) syncedAny = true;
+                }
+                // 3. Sync offline completed trips if any
+                if (window.OfflineCompletedTripsManager && typeof window.OfflineCompletedTripsManager.processQueue === 'function') {
+                    const compCount = await window.OfflineCompletedTripsManager.processQueue();
+                    if (compCount && compCount > 0) syncedAny = true;
                 }
 
-                if (synced) {
-                    if (typeof showToast === 'function') {
-                        showToast("Trip successfully synced to cloud!", "success", 4000);
-                    }
-                    if (typeof window.fetchSavedTrips === 'function') {
-                        await window.fetchSavedTrips(true);
-                    }
-                } else {
-                    throw new Error("Sync returned false");
+                if (typeof showToast === 'function') {
+                    showToast(syncedAny ? "Trip data successfully synced to cloud!" : "Trip is up to date with cloud!", "success", 4000);
+                }
+                window.dispatchEvent(new CustomEvent('tripsSynced'));
+                window.dispatchEvent(new CustomEvent('checkins-synced'));
+                if (typeof window.fetchSavedTrips === 'function') {
+                    await window.fetchSavedTrips(true);
                 }
             } catch (err) {
                 console.error("Manual trip sync failed:", err);
+                if (typeof showToast === 'function') {
+                    showToast("Could not sync trip. Please check your internet connection.", "error", 4000);
+                }
+            } finally {
                 if (btnElement) {
                     btnElement.disabled = false;
                     btnElement.innerHTML = origHtml || '<i class="fa-solid fa-cloud-arrow-up"></i> Sync Now';
-                }
-                if (typeof showToast === 'function') {
-                    showToast("Could not sync trip. Please check your internet connection.", "error", 4000);
                 }
             }
         };
@@ -1487,6 +1501,11 @@ $backRoute = 'itinerary';
         window._currentProofSpotName = null;
 
         window.openProofUploadModal = function (itemId, spotName = '') {
+            if (typeof window.isGuestUser === 'function' && window.isGuestUser()) {
+                window.promptGuestLogin('photo');
+                return;
+            }
+
             document.body.classList.add('modal-blurred');
             window._currentProofItemId = itemId;
             window._currentProofSpotName = spotName;
@@ -1878,6 +1897,12 @@ $backRoute = 'itinerary';
         };
 
         window.submitProofPhotos = async function () {
+            if (typeof window.isGuestUser === 'function' && window.isGuestUser()) {
+                window.closeProofUploadModal();
+                window.promptGuestLogin('photo');
+                return;
+            }
+
             const itemId = window._currentProofItemId;
             if (!itemId) return;
 
@@ -1900,6 +1925,11 @@ $backRoute = 'itinerary';
             // Optimistically update memory and DOM right now!
             window.applyPhotoProofUpdateLocally(itemId, previewUrls, 'pending');
 
+            const parentTrip = (window._cachedSavedTrips || []).find(t => (t.items || []).some(i => String(i.id) === String(itemId)));
+            const targetItem = parentTrip ? (parentTrip.items || []).find(i => String(i.id) === String(itemId)) : null;
+            const spotId = targetItem ? (targetItem.tourist_spot_id || targetItem.destination_id || (targetItem.destination ? targetItem.destination.id : null)) : null;
+            const tripId = parentTrip ? parentTrip.id : null;
+
             const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
             const isOfflineItem = !itemId || 
                 String(itemId).startsWith('offline_') || 
@@ -1916,10 +1946,13 @@ $backRoute = 'itinerary';
                     await window.OfflineCheckinManager.queueOfflineCheckin({
                         type: 'itinerary',
                         itemId: itemId,
+                        spotId: spotId,
+                        itineraryId: tripId,
                         spotName: spotName,
                         lat: window.myLat || 16.6159,
                         lng: window.myLng || 120.3209,
                         image: firstFile,
+                        previewUrl: previewUrls[0] || null,
                         capturedAt: new Date().toISOString()
                     });
                 }
@@ -1949,10 +1982,13 @@ $backRoute = 'itinerary';
                     await window.OfflineCheckinManager.queueOfflineCheckin({
                         type: 'itinerary',
                         itemId: itemId,
+                        spotId: spotId,
+                        itineraryId: tripId,
                         spotName: spotName,
                         lat: window.myLat || 16.6159,
                         lng: window.myLng || 120.3209,
                         image: firstFile,
+                        previewUrl: previewUrls[0] || null,
                         capturedAt: new Date().toISOString()
                     });
                     window.closeProofUploadModal();
@@ -2016,6 +2052,12 @@ $backRoute = 'itinerary';
             if (!itemId) return;
 
             const originalHtml = btnEl ? btnEl.innerHTML : '';
+
+            if (typeof window.isGuestUser === 'function' && window.isGuestUser()) {
+                window.promptGuestLogin('check-in');
+                return;
+            }
+
             if (btnEl) {
                 btnEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Checking in...';
                 btnEl.disabled = true;
@@ -2033,6 +2075,9 @@ $backRoute = 'itinerary';
 
             const doSubmitCheckin = async (lat, lng) => {
                 const parentTrip = (window._cachedSavedTrips || []).find(t => (t.items || []).some(i => String(i.id) === String(itemId)));
+                const targetItem = parentTrip ? (parentTrip.items || []).find(i => String(i.id) === String(itemId)) : null;
+                const spotId = targetItem ? (targetItem.tourist_spot_id || targetItem.destination_id || (targetItem.destination ? targetItem.destination.id : null)) : null;
+                const tripId = parentTrip ? parentTrip.id : null;
                 const tPax = parentTrip ? (parentTrip.total_pax || 1) : 1;
                 const cMales = parentTrip ? (parentTrip.companion_males || 0) : 0;
                 const cFemales = parentTrip ? (parentTrip.companion_females || 0) : 0;
@@ -2045,6 +2090,8 @@ $backRoute = 'itinerary';
                         await window.OfflineCheckinManager.queueOfflineCheckin({
                             type: 'itinerary',
                             itemId: itemId,
+                            spotId: spotId,
+                            itineraryId: tripId,
                             spotName: spotName || 'Destination',
                             lat: lat,
                             lng: lng,
@@ -2117,6 +2164,8 @@ $backRoute = 'itinerary';
                         await window.OfflineCheckinManager.queueOfflineCheckin({
                             type: 'itinerary',
                             itemId: itemId,
+                            spotId: spotId,
+                            itineraryId: tripId,
                             spotName: spotName || 'Destination',
                             lat: lat,
                             lng: lng,
@@ -2699,8 +2748,9 @@ $backRoute = 'itinerary';
                 }
 
                 if (dest) {
-                    const spotId = dest.id || i.tourist_spot_id || i.destination_id;
-                    const mapSpot = (spotId && mapSpotsMap[String(spotId)]) ? mapSpotsMap[String(spotId)] : {};
+                    const spotId = i.tourist_spot_id || i.destination_id || (dest && dest !== i ? (dest.tourist_spot_id || dest.id) : null);
+                    const finalSpotId = spotId || (dest !== i ? dest.id : null);
+                    const mapSpot = (finalSpotId && mapSpotsMap[String(finalSpotId)]) ? mapSpotsMap[String(finalSpotId)] : {};
                     const accVeh = (Array.isArray(dest.accessible_vehicles) && dest.accessible_vehicles.length > 0)
                         ? dest.accessible_vehicles
                         : (Array.isArray(mapSpot.accessible_vehicles) ? mapSpot.accessible_vehicles : (dest.accessible_vehicles || []));
@@ -2722,7 +2772,8 @@ $backRoute = 'itinerary';
 
                     return {
                         ...dest,
-                        id: spotId || dest.id,
+                        id: finalSpotId,
+                        tourist_spot_id: finalSpotId,
                         is_maintenance: (dest.is_maintenance !== undefined) ? dest.is_maintenance : mapSpot.is_maintenance,
                         status: dest.status || mapSpot.status,
                         lat: dest.latitude || dest.lat || mapSpot.lat,

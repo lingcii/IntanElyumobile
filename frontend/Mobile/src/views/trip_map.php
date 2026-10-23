@@ -17,6 +17,19 @@ include_once __DIR__ . '/../components/testimony_modal.php';
         <i class="fa-solid fa-cloud-slash"></i> Offline Navigation &bull; Geodesic Mode
     </div>
 
+    <!-- Online Mode: Unsynced Offline Data Available Banner with Sync Now Button -->
+    <div id="trip-sync-banner"
+        style="display: none; align-self: center; background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border: 1.5px solid #f59e0b; border-radius: 100px; padding: 4px 6px 4px 14px; color: #92400e; font-size: 11.5px; font-weight: 800; gap: 8px; align-items: center; pointer-events: auto; box-shadow: 0 4px 14px rgba(245, 158, 11, 0.25); max-width: calc(100vw - 32px); box-sizing: border-box;">
+        <div style="display:flex; align-items:center; gap:6px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+            <i class="fa-solid fa-cloud-arrow-up" style="color:#d97706; font-size:12px;"></i>
+            <span id="trip-sync-banner-text">Offline check-in saved on device</span>
+        </div>
+        <button type="button" id="trip-sync-banner-btn" onclick="event.stopPropagation(); window.syncAllOfflineTripData(this);"
+            style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border: none; outline: none; color: #ffffff; padding: 5px 12px; border-radius: 100px; font-size: 11px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 2px 6px rgba(217, 119, 6, 0.35); flex-shrink: 0;">
+            <i class="fa-solid fa-rotate"></i> Sync Now
+        </button>
+    </div>
+
     <!-- Trip Overview Summary Header Pill -->
     <div id="trip-summary-pill"
         style="align-self: center; background: #ffffff !important; border: 1.5px solid #e2e8f0 !important; border-radius: 100px; padding: 6px 14px; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 10px 25px rgba(15, 23, 42, 0.12), 0 2px 6px rgba(15, 23, 42, 0.05); pointer-events: auto; max-width: calc(100vw - 32px); box-sizing: border-box;">
@@ -379,7 +392,8 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                     const isVisited = Boolean(item.is_visited || item.proof_status === 'approved');
                     const isPending = Boolean(item.proof_image && (item.proof_status === 'pending' || !item.proof_status));
                     const isRejected = (item.proof_status === 'rejected');
-                    const isQueued = Boolean(window.OfflineCheckinManager && window.OfflineCheckinManager.isItemQueued(item.id));
+                    const spotIdVal = item.tourist_spot_id || item.destination_id || (item.destination ? item.destination.id : null);
+                    const isQueued = Boolean((window.OfflineCheckinManager && window.OfflineCheckinManager.isItemQueued(item.id, spotIdVal)) || item.is_offline_queued);
                     const isActive = idx === activeIndex;
                     if (isActive) {
                         card.classList.add('active');
@@ -438,8 +452,9 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                 const isVisited = Boolean(item.is_visited || item.proof_status === 'approved');
                 const isRejected = (item.proof_status === 'rejected');
                 const isLocationVerified = Boolean(item.is_location_verified || item.visited_at);
-                const queuedItem = window.OfflineCheckinManager ? window.OfflineCheckinManager.getQueuedItem(item.id) : null;
-                const isQueued = Boolean(queuedItem);
+                const spotIdVal = item.tourist_spot_id || item.destination_id || (item.destination ? item.destination.id : null);
+                const queuedItem = window.OfflineCheckinManager ? window.OfflineCheckinManager.getQueuedItem(item.id, spotIdVal) : null;
+                const isQueued = Boolean(queuedItem || item.is_offline_queued);
                 const isActive = idx === activeIndex;
 
                 let proofImages = [];
@@ -453,6 +468,9 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                     } catch (e) {
                         proofImages = [item.proof_image];
                     }
+                }
+                if (proofImages.length === 0 && isQueued && queuedItem && (queuedItem.previewUrl || queuedItem.image)) {
+                    proofImages = [queuedItem.previewUrl || queuedItem.image];
                 }
                 const hasProof = Boolean(proofImages.length > 0);
                 const isPendingApproval = Boolean(isLocationVerified && hasProof && (item.proof_status === 'pending' || !item.proof_status) && !isVisited);
@@ -504,9 +522,16 @@ include_once __DIR__ . '/../components/testimony_modal.php';
 
                 let actionBtnHtml = '';
                 if (isQueued) {
+                    const isOnlineNow = navigator.onLine && window.isAppOnline !== false;
                     actionBtnHtml = `<div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
                         ${queuedThumbnail}
-                        <span style="background:#fef3c7; border:1px solid #fde68a; color:#b45309; font-weight:800; font-size:10.5px; padding:3px 8px; border-radius:100px; display:inline-flex; align-items:center; gap:4px; white-space:nowrap;"><i class="fa-solid fa-cloud-arrow-up"></i> Queued</span>
+                        ${isOnlineNow && !(typeof window.isGuestUser === 'function' && window.isGuestUser()) ? `
+                            <button type="button" onclick="event.stopPropagation(); window.syncAllOfflineTripData(this);" title="Tap to sync this check-in to cloud" style="background:linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color:#fff; border:none; padding:4px 10px; border-radius:100px; font-size:10.5px; font-weight:800; display:inline-flex; align-items:center; gap:4px; cursor:pointer; box-shadow:0 2px 6px rgba(245,158,11,0.3); white-space:nowrap;">
+                                <i class="fa-solid fa-cloud-arrow-up"></i> Sync
+                            </button>
+                        ` : `
+                            <span style="background:#fef3c7; border:1px solid #fde68a; color:#b45309; font-weight:800; font-size:10.5px; padding:3px 8px; border-radius:100px; display:inline-flex; align-items:center; gap:4px; white-space:nowrap;"><i class="fa-solid fa-cloud-arrow-up"></i> Queued</span>
+                        `}
                     </div>`;
                 } else if (isVisited) {
                     const sId = item.tourist_spot_id || (item.destination ? item.destination.id : '');
@@ -564,7 +589,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                     if (isSpotMaint) {
                         legTransitHtml = `<div style="display:flex; align-items:center; gap:6px; margin-bottom:8px; flex-wrap:wrap;">
                         <span style="background:#fef2f2; border:1px solid #fecaca; color:#dc2626; padding:3px 9px; border-radius:100px; font-size:10.5px; font-weight:800; display:inline-flex; align-items:center; gap:4px;">
-                            <i class="fa-solid fa-ban" style="color:#ef4444; font-size:9.5px;"></i> Unavailable (Maintenance) &bull; ₱0.00
+                            <i class="fa-solid fa-ban" style="color:#ef4444; font-size:9.5px;"></i> Unavailable
                         </span>
                     </div>`;
                     } else {
@@ -635,6 +660,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
         }
 
         function loadTripData() {
+            window.loadTripData = loadTripData;
             const urlParams = new URLSearchParams(window.location.search);
             const tripId = urlParams.get('trip_id') || sessionStorage.getItem('active_trip_id') || window.currentTripId;
             window.currentTripId = tripId;
@@ -647,29 +673,77 @@ include_once __DIR__ . '/../components/testimony_modal.php';
             const applyTripToMap = (trip) => {
                 if (!document.getElementById('trip-map')) return; // Page was unmounted
 
-                // Deep-merge persistent verified item states into trip.items
+                // Deep-merge persistent verified item states AND offline queued checkins/photos into trip.items
                 try {
                     const persistentStates = (typeof window.getPersistentItemStates === 'function') 
                         ? window.getPersistentItemStates() 
                         : JSON.parse(localStorage.getItem('intan_elyu_verified_item_states') || '{}');
+                    const queuedCheckins = (window.OfflineCheckinManager && typeof window.OfflineCheckinManager.getQueue === 'function')
+                        ? window.OfflineCheckinManager.getQueue()
+                        : JSON.parse(localStorage.getItem('intan_elyu_offline_checkins') || '[]');
+
                     if (trip && Array.isArray(trip.items)) {
                         trip.items = trip.items.map(it => {
                             if (!it) return it;
                             const itKey = String(it.id || '');
-                            const spotKey = 'spot_' + (it.tourist_spot_id || it.destination_id || (it.destination ? it.destination.id : ''));
-                            const override = persistentStates[itKey] || persistentStates[spotKey];
-                            if (!override) return it;
+                            const sId = it.tourist_spot_id || it.destination_id || (it.destination ? it.destination.id : '');
+                            const spotKey = sId ? String(sId) : '';
+
+                            // Check offline queued check-in / photo
+                            const queuedEntry = queuedCheckins.find(q => {
+                                if (!q) return false;
+                                const qItem = String(q.itemId || '');
+                                const qSpot = String(q.spotId || '');
+                                return (itKey && (qItem === itKey || qSpot === itKey)) ||
+                                       (spotKey && (qSpot === spotKey || qItem === spotKey));
+                            });
+
+                            const override = persistentStates[itKey] || (spotKey ? persistentStates['spot_' + spotKey] : null) || (spotKey ? persistentStates[spotKey] : null);
+
+                            const isLocVerified = Boolean(
+                                it.is_location_verified || 
+                                it.visited_at || 
+                                (override && (override.is_location_verified || override.visited_at)) || 
+                                queuedEntry
+                            );
+
+                            const visitedAt = it.visited_at || (override && override.visited_at) || (queuedEntry && queuedEntry.capturedAt) || null;
+
+                            let proofImgs = [];
+                            if (Array.isArray(it.proof_images) && it.proof_images.length > 0) {
+                                proofImgs = it.proof_images;
+                            } else if (it.proof_image) {
+                                proofImgs = [it.proof_image];
+                            }
+                            if (proofImgs.length === 0 && override) {
+                                if (Array.isArray(override.proof_images) && override.proof_images.length > 0) {
+                                    proofImgs = override.proof_images;
+                                } else if (override.proof_image) {
+                                    proofImgs = [override.proof_image];
+                                }
+                            }
+                            if (proofImgs.length === 0 && queuedEntry && (queuedEntry.previewUrl || queuedEntry.image)) {
+                                proofImgs = [queuedEntry.previewUrl || queuedEntry.image];
+                            }
+
+                            let pStatus = (it.proof_status && it.proof_status !== 'pending' && it.proof_status !== null)
+                                ? it.proof_status
+                                : ((override && override.proof_status) || it.proof_status || (queuedEntry ? 'pending' : (proofImgs.length > 0 ? 'pending' : null)));
+
                             return {
                                 ...it,
-                                is_location_verified: Boolean(it.is_location_verified || it.visited_at || override.is_location_verified || override.visited_at),
-                                visited_at: it.visited_at || override.visited_at || null,
-                                proof_image: (Array.isArray(it.proof_images) && it.proof_images.length > 0) ? it.proof_image : (override.proof_image || it.proof_image),
-                                proof_images: (Array.isArray(it.proof_images) && it.proof_images.length > 0) ? it.proof_images : (override.proof_images || it.proof_images || []),
-                                proof_status: (it.proof_status && it.proof_status !== 'pending' && it.proof_status !== null) ? it.proof_status : (override.proof_status || it.proof_status || (override.proof_image ? 'pending' : null))
+                                is_location_verified: isLocVerified,
+                                visited_at: visitedAt,
+                                proof_image: proofImgs[0] || null,
+                                proof_images: proofImgs,
+                                proof_status: pStatus,
+                                is_offline_queued: Boolean(queuedEntry)
                             };
                         });
                     }
-                } catch (e) { }
+                } catch (e) {
+                    console.warn("Could not merge offline states in applyTripToMap:", e);
+                }
 
                 window.currentTrip = trip;
                 const headerTitleEl = document.querySelector('.header-title');
@@ -813,7 +887,8 @@ include_once __DIR__ . '/../components/testimony_modal.php';
             window.tripMarkers = [];
 
             const activeIndex = items.findIndex(i => {
-                const isQueued = window.OfflineCheckinManager && window.OfflineCheckinManager.isItemQueued(i.id);
+                const sId = i.tourist_spot_id || i.destination_id || (i.destination ? i.destination.id : null);
+                const isQueued = Boolean((window.OfflineCheckinManager && window.OfflineCheckinManager.isItemQueued(i.id, sId)) || i.is_offline_queued);
                 return !(i.is_visited || i.proof_status === 'approved' || isQueued);
             });
 
@@ -838,7 +913,8 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                         const isPending = Boolean(isLocationVerified && hasProof && (item.proof_status === 'pending' || !item.proof_status) && !isVisited);
                         const isLocOnly = Boolean(isLocationVerified && !hasProof && !isVisited);
                         const isPhotoOnly = Boolean(!isLocationVerified && hasProof && !isVisited);
-                        const isQueued = Boolean(window.OfflineCheckinManager && window.OfflineCheckinManager.isItemQueued(item.id));
+                        const sId = item.tourist_spot_id || item.destination_id || (item.destination ? item.destination.id : null);
+                        const isQueued = Boolean((window.OfflineCheckinManager && window.OfflineCheckinManager.isItemQueued(item.id, sId)) || item.is_offline_queued);
 
                         if (isQueued) {
                             // QUEUED OFFLINE - Amber Cloud / Clock
@@ -1177,6 +1253,11 @@ include_once __DIR__ . '/../components/testimony_modal.php';
         window._currentProofSpotName = null;
 
         window.openProofUploadModal = function (itemId, spotName = '') {
+            if (typeof window.isGuestUser === 'function' && window.isGuestUser()) {
+                window.promptGuestLogin('photo');
+                return;
+            }
+
             document.body.classList.add('modal-blurred');
             window._currentProofItemId = itemId;
             window._currentProofSpotName = spotName;
@@ -1532,6 +1613,12 @@ include_once __DIR__ . '/../components/testimony_modal.php';
         };
 
         window.submitProofPhotos = async function () {
+            if (typeof window.isGuestUser === 'function' && window.isGuestUser()) {
+                window.closeProofUploadModal();
+                window.promptGuestLogin('photo');
+                return;
+            }
+
             const itemId = window._currentProofItemId;
             if (!itemId) return;
 
@@ -1553,6 +1640,10 @@ include_once __DIR__ . '/../components/testimony_modal.php';
             // Optimistically update memory and DOM right now!
             window.applyPhotoProofUpdateLocally(itemId, previewUrls, 'pending');
 
+            const matchingItem = (window.currentTripItems || []).find(it => String(it.id) === String(itemId));
+            const spotId = matchingItem ? (matchingItem.tourist_spot_id || matchingItem.destination_id || (matchingItem.destination ? matchingItem.destination.id : null)) : null;
+            const tripId = window.currentTripId || (window.currentTrip ? window.currentTrip.id : null);
+
             const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
             const isOfflineItem = !itemId || 
                 String(itemId).startsWith('offline_') || 
@@ -1568,10 +1659,13 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                     await window.OfflineCheckinManager.queueOfflineCheckin({
                         type: 'itinerary',
                         itemId: itemId,
+                        spotId: spotId,
+                        itineraryId: tripId,
                         spotName: spotName,
                         lat: window.myLat || 16.6159,
                         lng: window.myLng || 120.3209,
                         image: firstFile,
+                        previewUrl: previewUrls[0] || null,
                         capturedAt: new Date().toISOString()
                     });
                 }
@@ -1596,10 +1690,13 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                     await window.OfflineCheckinManager.queueOfflineCheckin({
                         type: 'itinerary',
                         itemId: itemId,
+                        spotId: spotId,
+                        itineraryId: tripId,
                         spotName: spotName,
                         lat: window.myLat || 16.6159,
                         lng: window.myLng || 120.3209,
                         image: firstFile,
+                        previewUrl: previewUrls[0] || null,
                         capturedAt: new Date().toISOString()
                     });
                     window.closeProofUploadModal();
@@ -1659,6 +1756,12 @@ include_once __DIR__ . '/../components/testimony_modal.php';
             if (!itemId) return;
 
             const originalHtml = btnEl ? btnEl.innerHTML : '';
+
+            if (typeof window.isGuestUser === 'function' && window.isGuestUser()) {
+                window.promptGuestLogin('check-in');
+                return;
+            }
+
             if (btnEl) {
                 btnEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Checking in...';
                 btnEl.disabled = true;
@@ -1678,6 +1781,9 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                 window.applyLocationCheckinLocally(itemId);
 
                 const parentTrip = (window._cachedTrip || window._activeTrip || (window._cachedSavedTrips || []).find(t => (t.items || []).some(i => String(i.id) === String(itemId))));
+                const targetItem = (window.currentTripItems || []).find(it => String(it.id) === String(itemId));
+                const spotId = targetItem ? (targetItem.tourist_spot_id || targetItem.destination_id || (targetItem.destination ? targetItem.destination.id : null)) : null;
+                const tripId = window.currentTripId || (parentTrip ? parentTrip.id : null);
                 const tPax = parentTrip ? (parentTrip.total_pax || 1) : 1;
                 const cMales = parentTrip ? (parentTrip.companion_males || 0) : 0;
                 const cFemales = parentTrip ? (parentTrip.companion_females || 0) : 0;
@@ -1687,6 +1793,8 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                         await window.OfflineCheckinManager.queueOfflineCheckin({
                             type: 'itinerary',
                             itemId: itemId,
+                            spotId: spotId,
+                            itineraryId: tripId,
                             spotName: spotName || 'Destination',
                             lat: lat,
                             lng: lng,
@@ -1759,6 +1867,8 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                         await window.OfflineCheckinManager.queueOfflineCheckin({
                             type: 'itinerary',
                             itemId: itemId,
+                            spotId: spotId,
+                            itineraryId: tripId,
                             spotName: spotName || 'Destination',
                             lat: lat,
                             lng: lng,
@@ -1921,7 +2031,32 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                     localStorage.removeItem('intan_elyu_offline_guest');
                 } catch(e) {}
             }
+            updateTripSyncBanner(isOffline);
         }
+
+        function updateTripSyncBanner(isOffline) {
+            var syncBanner = document.getElementById('trip-sync-banner');
+            if (!syncBanner) return;
+            if (isOffline) {
+                syncBanner.style.setProperty('display', 'none', 'important');
+                return;
+            }
+            var queue = (window.OfflineCheckinManager && typeof window.OfflineCheckinManager.getQueue === 'function') 
+                ? window.OfflineCheckinManager.getQueue() : [];
+            var queuedTrips = (window.OfflineTripManager && typeof window.OfflineTripManager.getQueuedTrips === 'function')
+                ? window.OfflineTripManager.getQueuedTrips() : [];
+            var count = queue.length + queuedTrips.length;
+            if (count > 0 && !(typeof window.isGuestUser === 'function' && window.isGuestUser())) {
+                var textEl = document.getElementById('trip-sync-banner-text');
+                if (textEl) {
+                    textEl.textContent = count === 1 ? '1 offline check-in ready to sync' : `${count} offline updates ready to sync`;
+                }
+                syncBanner.style.setProperty('display', 'inline-flex', 'important');
+            } else {
+                syncBanner.style.setProperty('display', 'none', 'important');
+            }
+        }
+
         window.addEventListener('online', () => {
             updateTripOfflineStatus();
             if (typeof window.enforceAllOfflineBadgesHidden === 'function') window.enforceAllOfflineBadgesHidden();
@@ -1932,7 +2067,10 @@ include_once __DIR__ . '/../components/testimony_modal.php';
             if (typeof window.enforceAllOfflineBadgesHidden === 'function') window.enforceAllOfflineBadgesHidden();
         });
         window.addEventListener('appOffline', updateTripOfflineStatus);
-        setTimeout(updateTripOfflineStatus, 100);
+        window.addEventListener('checkins-synced', () => updateTripOfflineStatus());
+        window.addEventListener('tripsSynced', () => updateTripOfflineStatus());
+        window.addEventListener('offline-checkin-queued', () => updateTripOfflineStatus());
+        setTimeout(updateTripOfflineStatus, 150);
 
         initTripMap();
     })();

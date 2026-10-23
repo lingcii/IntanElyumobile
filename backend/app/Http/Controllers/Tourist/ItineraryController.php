@@ -243,6 +243,48 @@ class ItineraryController extends Controller
     }
 
     /**
+     * Resolve and sanitize destination IDs before validation.
+     * Maps any passed itinerary_item IDs or destination objects/names to valid tourist_spot IDs.
+     */
+    private function sanitizeDestinationIds(array $rawDestinations): array
+    {
+        $cleaned = [];
+        foreach ($rawDestinations as $d) {
+            if (is_array($d)) {
+                $d = $d['tourist_spot_id'] ?? $d['destination_id'] ?? $d['id'] ?? null;
+            }
+            if (is_numeric($d)) {
+                $id = (int)$d;
+                if ($id > 0) {
+                    if (TouristSpot::where('id', $id)->exists()) {
+                        $cleaned[] = $id;
+                    } else {
+                        // Check if this ID is an itinerary_items.id that references a valid tourist_spot
+                        $itItem = \App\Models\ItineraryItem::find($id);
+                        if ($itItem && $itItem->tourist_spot_id && TouristSpot::where('id', $itItem->tourist_spot_id)->exists()) {
+                            $cleaned[] = (int)$itItem->tourist_spot_id;
+                        }
+                    }
+                }
+            } elseif (is_string($d) && trim($d) !== '') {
+                $trimmed = trim($d);
+                if (is_numeric($trimmed) && (int)$trimmed > 0) {
+                    $id = (int)$trimmed;
+                    if (TouristSpot::where('id', $id)->exists()) {
+                        $cleaned[] = $id;
+                    }
+                } else {
+                    $foundSpot = TouristSpot::where('name', $trimmed)->first();
+                    if ($foundSpot) {
+                        $cleaned[] = (int)$foundSpot->id;
+                    }
+                }
+            }
+        }
+        return array_values(array_unique($cleaned));
+    }
+
+    /**
      * POST /api/tourist/itineraries
      * Save a draft plan as a named itinerary.
      *
@@ -256,6 +298,13 @@ class ItineraryController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
+        if ($request->has('destinations') && is_array($request->destinations)) {
+            $cleaned = $this->sanitizeDestinationIds($request->destinations);
+            if (!empty($cleaned)) {
+                $request->merge(['destinations' => $cleaned]);
+            }
+        }
+
         $request->validate([
             'title'          => 'required|string|max:255',
             'destinations'   => 'required|array|min:1',
@@ -269,6 +318,9 @@ class ItineraryController extends Controller
             'companion_females' => 'nullable|integer|min:0',
             'total_pax'         => 'nullable|integer|min:1',
             'leg_transports'    => 'nullable|array',
+        ], [
+            'destinations.*.exists' => 'One or more selected destinations is invalid or no longer available.',
+            'destinations.min'      => 'Please select at least one destination for your trip.'
         ]);
 
         $user = $request->user();
@@ -517,6 +569,13 @@ class ItineraryController extends Controller
         $user = $request->user();
         $itinerary = Itinerary::where('user_id', $user->id)->findOrFail($id);
 
+        if ($request->has('destinations') && is_array($request->destinations)) {
+            $cleaned = $this->sanitizeDestinationIds($request->destinations);
+            if (!empty($cleaned)) {
+                $request->merge(['destinations' => $cleaned]);
+            }
+        }
+
         $request->validate([
             'title'             => 'sometimes|string|max:255',
             'trip_date'         => 'nullable|date',
@@ -530,6 +589,9 @@ class ItineraryController extends Controller
             'destinations'      => 'nullable|array',
             'destinations.*'    => 'integer|exists:tourist_spots,id',
             'leg_transports'    => 'nullable|array',
+        ], [
+            'destinations.*.exists' => 'One or more selected destinations is invalid or no longer available.',
+            'destinations.min'      => 'Please select at least one destination for your trip.'
         ]);
 
         $updateData = $request->only(['title', 'trip_date', 'budget', 'route_type', 'transport_mode', 'trip_type', 'companion_males', 'companion_females', 'total_pax']);

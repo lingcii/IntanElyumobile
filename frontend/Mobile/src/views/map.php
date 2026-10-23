@@ -5127,6 +5127,16 @@ if (is_dir($imgDir)) {
 
             const btn = document.getElementById('btn-checkin-spot');
             const origHtml = btn ? btn.innerHTML : '';
+
+            if (typeof window.isGuestUser === 'function' && window.isGuestUser()) {
+                if (btn) {
+                    btn.innerHTML = origHtml;
+                    btn.disabled = false;
+                }
+                window.promptGuestLogin('check-in');
+                return;
+            }
+
             if (btn) {
                 btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Checking in...';
                 btn.disabled = true;
