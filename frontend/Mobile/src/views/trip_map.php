@@ -49,78 +49,96 @@ include_once __DIR__ . '/../components/testimony_modal.php';
     </div>
 </div>
 
-<!-- Multi-Photo Proof Upload Modal (Independent Process) -->
-<div id="proof-upload-modal"
-    style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.78); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); z-index:999999; justify-content:center; align-items:center; padding:16px;">
+<!-- Dedicated Multi-Photo Proof Upload Modal -->
+<div id="proof-upload-modal" onclick="if(event.target===this) window.closeProofUploadModal();"
+    style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(10,25,60,0.72); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); z-index:99999; justify-content:center; align-items:center; padding:16px; box-sizing:border-box;">
     <div
-        style="background:linear-gradient(135deg, rgba(30, 58, 138, 0.98) 0%, rgba(63, 125, 183, 0.96) 60%, rgba(2, 132, 199, 0.96) 100%); border:none; outline:none; border-radius:24px; padding:24px 20px; width:100%; max-width:380px; box-shadow:0 20px 50px rgba(10,25,60,0.55); text-align:center; max-height:90vh; overflow-y:auto;">
+        style="background:#ffffff; border:none; outline:none; border-radius:26px; width:100%; max-width:420px; box-shadow:0 20px 50px rgba(0,0,0,0.35); text-align:center; max-height:90vh; overflow:hidden; display:flex; flex-direction:column; box-sizing:border-box; animation:popInProofModal 0.24s cubic-bezier(0.16, 1, 0.3, 1) forwards;">
         
-        <!-- Header -->
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <!-- Header Banner -->
+        <div style="flex-shrink:0; background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%); padding:18px 20px; display:flex; justify-content:space-between; align-items:center; border-top-left-radius:26px; border-top-right-radius:26px; box-sizing:border-box;">
             <div style="text-align:left;">
                 <h3 id="proof-spot-title" style="margin:0; color:#ffffff; font-size:18px; font-weight:800; display:flex; align-items:center; gap:8px;">
-                    <i class="fa-solid fa-camera" style="color:#00f2fe; font-size:17px;"></i> Upload Photo Proof
+                    <i class="fa-solid fa-camera" style="color:#38bdf8; font-size:17px;"></i> Upload Photo Proof
                 </h3>
-                <span style="font-size:11px; color:#ffffff; opacity:0.9; font-weight:600;">Multiple photos allowed (up to 5)</span>
+                <span id="proof-spot-subtitle" style="font-size:12px; color:rgba(255,255,255,0.85); font-weight:600; display:block; margin-top:3px;">Select up to 5 photos</span>
             </div>
             <button type="button" onclick="window.closeProofUploadModal()"
-                style="background:rgba(255,255,255,0.18); border:none; outline:none; color:#ffffff; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer;">
-                <i class="fa-solid fa-xmark" style="font-size:14px;"></i>
+                style="background:rgba(255,255,255,0.18); border:none; outline:none; color:#ffffff; width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; transition:all 0.15s ease;"
+                onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">
+                <i class="fa-solid fa-xmark" style="font-size:15px;"></i>
             </button>
         </div>
 
-        <p style="font-size:12px; color:#ffffff; opacity:0.95; line-height:1.45; text-align:left; margin-bottom:14px;">
-            Capture selfies or photos at the destination. Staff will verify your submission to complete your visit and award <strong style="color:#fde047;">+50 Points</strong>.
-        </p>
+        <!-- Middle Scrollable Area (White) -->
+        <div style="background:#ffffff !important; padding:20px; flex:1; overflow-y:auto; text-align:left; box-sizing:border-box;">
+            <p style="font-size:13px; color:#475569; margin:0 0 16px 0; line-height:1.5; font-weight:500;">
+                Take or select selfies and photos at this destination to earn <strong style="color:#0284c7; font-weight:800;">+50 Points</strong>.
+            </p>
 
-        <input type="file" id="proof-upload-input" accept="image/*" multiple style="display:none;" onchange="window.handleProofPhotosSelected(this)">
+            <input type="hidden" id="proof-upload-item-id">
+            <input type="file" id="proof-upload-input" accept="image/*" multiple style="display:none;" onchange="window.handleProofPhotosSelected(this)">
 
-        <!-- Add Photo Action Buttons -->
-        <div style="display:flex; gap:10px; margin-bottom:14px;">
-            <button type="button" onclick="window.addProofPhotoFromSource('camera')"
-                style="flex:1; padding:12px 10px; background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); border:none; outline:none; border-radius:14px; color:#ffffff; font-weight:800; font-size:12.5px; display:flex; align-items:center; justify-content:center; gap:6px; cursor:pointer; box-shadow:none;">
-                <i class="fa-solid fa-camera" style="font-size:15px;"></i> Take Photo
-            </button>
-            <button type="button" onclick="window.addProofPhotoFromSource('gallery')"
-                style="flex:1; padding:12px 10px; background:rgba(255,255,255,0.18); border:none; outline:none; border-radius:14px; color:#ffffff; font-weight:800; font-size:12.5px; display:flex; align-items:center; justify-content:center; gap:6px; cursor:pointer;">
-                <i class="fa-solid fa-images" style="color:#00f2fe; font-size:15px;"></i> Add from Gallery
-            </button>
-        </div>
-
-        <!-- Selected Photos Area -->
-        <div style="margin-bottom:16px; text-align:left;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                <label style="font-size:11px; font-weight:800; color:#ffffff; text-transform:uppercase; letter-spacing:0.5px;">
-                    Selected Photos
-                </label>
-                <span id="proof-count-badge" style="font-size:11px; font-weight:700; color:#00f2fe;">0 / 5 photos</span>
+            <!-- Add Photo Action Buttons -->
+            <div style="display:flex; gap:10px; margin-bottom:16px;">
+                <button type="button" onclick="window.addProofPhotoFromSource('camera')"
+                    style="flex:1; padding:12px 10px; background:linear-gradient(135deg, #0284c7 0%, #0369a1 100%); border:none; outline:none; border-radius:14px; color:#ffffff; font-weight:800; font-size:13px; display:flex; align-items:center; justify-content:center; gap:7px; cursor:pointer; box-shadow:0 3px 10px rgba(2, 132, 199, 0.28); transition:all 0.15s ease;"
+                    onpointerdown="this.style.transform='scale(0.97)'" onpointerup="this.style.transform='scale(1)'">
+                    <i class="fa-solid fa-camera" style="font-size:15px;"></i> Take Photo
+                </button>
+                <button type="button" onclick="window.addProofPhotoFromSource('gallery')"
+                    style="flex:1; padding:12px 10px; background:#f1f5f9; border:1.5px solid #e2e8f0; outline:none; border-radius:14px; color:#1e3a8a; font-weight:800; font-size:13px; display:flex; align-items:center; justify-content:center; gap:7px; cursor:pointer; transition:all 0.15s ease;"
+                    onpointerdown="this.style.transform='scale(0.97)'" onpointerup="this.style.transform='scale(1)'">
+                    <i class="fa-solid fa-images" style="color:#0284c7; font-size:15px;"></i> Add from Gallery
+                </button>
             </div>
 
-            <!-- Empty State Prompt -->
-            <div id="proof-empty-prompt" onclick="window.addProofPhotoFromSource('gallery')"
-                style="border:2px dashed rgba(255,255,255,0.35); border-radius:16px; padding:24px 16px; text-align:center; cursor:pointer; background:rgba(15,23,42,0.35); transition:all 0.2s ease;">
-                <i class="fa-solid fa-cloud-arrow-up" style="font-size:26px; color:#00f2fe; margin-bottom:6px; display:block;"></i>
-                <p style="margin:0; font-size:12.5px; font-weight:800; color:#ffffff;">Tap to select photos</p>
-                <p style="margin:4px 0 0 0; font-size:11px; color:rgba(255,255,255,0.75);">You can choose multiple photos</p>
-            </div>
+            <!-- Selected Photos Area -->
+            <div style="margin-bottom:8px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                    <label style="font-size:11.5px; font-weight:800; color:#334155; text-transform:uppercase; letter-spacing:0.5px;">
+                        Selected Photos
+                    </label>
+                    <span id="proof-count-badge" style="font-size:11.5px; font-weight:800; color:#0284c7; background:#e0f2fe; padding:3px 10px; border-radius:100px;">0 / 5 photos</span>
+                </div>
 
-            <!-- Thumbnails Grid -->
-            <div id="proof-thumbnails-grid" style="display:none; grid-template-columns:repeat(3, 1fr); gap:10px;"></div>
+                <!-- Empty State Prompt -->
+                <div id="proof-empty-prompt" onclick="window.addProofPhotoFromSource('gallery')"
+                    style="border:2px dashed #94a3b8; border-radius:16px; padding:24px 16px; text-align:center; cursor:pointer; background:#f8fafc; transition:all 0.2s ease;">
+                    <i class="fa-solid fa-cloud-arrow-up" style="font-size:28px; color:#0284c7; margin-bottom:6px; display:block;"></i>
+                    <p style="margin:0; font-size:13px; font-weight:800; color:#1e293b;">Tap to select photos</p>
+                    <p style="margin:4px 0 0 0; font-size:11.5px; color:#64748b; font-weight:500;">You can choose multiple photos</p>
+                </div>
+
+                <!-- Thumbnails Grid -->
+                <div id="proof-thumbnails-grid" style="display:none; grid-template-columns:repeat(3, 1fr); gap:10px;"></div>
+            </div>
         </div>
 
-        <!-- Submit & Cancel Buttons -->
-        <div style="display:flex; flex-direction:column; gap:8px;">
-            <button type="button" id="btn-submit-proof-photos" class="btn-primary"
-                style="width:100%; padding:14px; font-size:14px; font-weight:800; background:linear-gradient(135deg, #10b981 0%, #059669 100%); border:none; outline:none; color:#ffffff; border-radius:14px; cursor:pointer;"
-                onclick="window.submitProofPhotos()">
-                <i class="fa-solid fa-cloud-arrow-up" style="margin-right:6px;"></i> Submit Photo Proof
-            </button>
-            <button type="button"
-                style="width:100%; padding:11px; border-radius:14px; border:none; outline:none; background:rgba(255,255,255,0.15); color:#ffffff; font-size:12.5px; font-weight:700; cursor:pointer;"
-                onclick="window.closeProofUploadModal()">Cancel</button>
+        <!-- Footer Banner (Cancel on Left, Submit on Right) -->
+        <div style="flex-shrink:0; background:#f8fafc; border-top:1px solid #e2e8f0; padding:16px 20px; border-bottom-left-radius:26px; border-bottom-right-radius:26px; box-sizing:border-box;">
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; align-items:center;">
+                <button type="button"
+                    style="width:100%; padding:13px 16px; border-radius:14px; border:1.5px solid #cbd5e1; outline:none; background:#ffffff; color:#475569; font-size:14px; font-weight:800; cursor:pointer; transition:all 0.15s ease;"
+                    onpointerdown="this.style.transform='scale(0.97)'" onpointerup="this.style.transform='scale(1)'"
+                    onclick="window.closeProofUploadModal()">Cancel</button>
+                <button type="button" id="btn-submit-proof-photos" class="btn-primary"
+                    style="width:100%; padding:13px 16px; font-size:14px; font-weight:800; background:linear-gradient(135deg, #10b981 0%, #059669 100%); border:none; outline:none; color:#ffffff; border-radius:14px; cursor:pointer; box-shadow:0 4px 14px rgba(16, 185, 129, 0.35); transition:all 0.15s ease;"
+                    onpointerdown="this.style.transform='scale(0.97)'" onpointerup="this.style.transform='scale(1)'"
+                    onclick="window.submitProofPhotos()">
+                    <i class="fa-solid fa-cloud-arrow-up" style="margin-right:6px;"></i> Submit
+                </button>
+            </div>
         </div>
     </div>
 </div>
+
+<style>
+@keyframes popInProofModal {
+    0% { opacity: 0; transform: scale(0.92); }
+    100% { opacity: 1; transform: scale(1); }
+}
+</style>
 
 
 
@@ -622,6 +640,31 @@ include_once __DIR__ . '/../components/testimony_modal.php';
 
             const applyTripToMap = (trip) => {
                 if (!document.getElementById('trip-map')) return; // Page was unmounted
+
+                // Deep-merge persistent verified item states into trip.items
+                try {
+                    const persistentStates = (typeof window.getPersistentItemStates === 'function') 
+                        ? window.getPersistentItemStates() 
+                        : JSON.parse(localStorage.getItem('intan_elyu_verified_item_states') || '{}');
+                    if (trip && Array.isArray(trip.items)) {
+                        trip.items = trip.items.map(it => {
+                            if (!it) return it;
+                            const itKey = String(it.id || '');
+                            const spotKey = 'spot_' + (it.tourist_spot_id || it.destination_id || (it.destination ? it.destination.id : ''));
+                            const override = persistentStates[itKey] || persistentStates[spotKey];
+                            if (!override) return it;
+                            return {
+                                ...it,
+                                is_location_verified: Boolean(it.is_location_verified || it.visited_at || override.is_location_verified || override.visited_at),
+                                visited_at: it.visited_at || override.visited_at || null,
+                                proof_image: (Array.isArray(it.proof_images) && it.proof_images.length > 0) ? it.proof_image : (override.proof_image || it.proof_image),
+                                proof_images: (Array.isArray(it.proof_images) && it.proof_images.length > 0) ? it.proof_images : (override.proof_images || it.proof_images || []),
+                                proof_status: (it.proof_status && it.proof_status !== 'pending' && it.proof_status !== null) ? it.proof_status : (override.proof_status || it.proof_status || (override.proof_image ? 'pending' : null))
+                            };
+                        });
+                    }
+                } catch (e) { }
+
                 window.currentTrip = trip;
                 const headerTitleEl = document.querySelector('.header-title');
                 if (headerTitleEl) headerTitleEl.textContent = trip.title;
@@ -1128,13 +1171,14 @@ include_once __DIR__ . '/../components/testimony_modal.php';
         window._currentProofSpotName = null;
 
         window.openProofUploadModal = function (itemId, spotName = '') {
+            document.body.classList.add('modal-blurred');
             window._currentProofItemId = itemId;
             window._currentProofSpotName = spotName;
             window.selectedProofPhotos = [];
 
             const titleEl = document.getElementById('proof-spot-title');
             if (titleEl) {
-                titleEl.innerHTML = `<i class="fa-solid fa-camera" style="color:#00f2fe; font-size:17px;"></i> ${spotName || 'Upload Photo Proof'}`;
+                titleEl.innerHTML = `<i class="fa-solid fa-camera" style="color:#38bdf8; font-size:17px;"></i> ${spotName || 'Upload Photo Proof'}`;
             }
 
             const input = document.getElementById('proof-upload-input');
@@ -1147,6 +1191,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
         };
 
         window.closeProofUploadModal = function () {
+            document.body.classList.remove('modal-blurred');
             const modal = document.getElementById('proof-upload-modal');
             if (modal) modal.style.display = 'none';
             window.selectedProofPhotos = [];
@@ -1155,7 +1200,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
 
             const btn = document.getElementById('btn-submit-proof-photos');
             if (btn) {
-                btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up" style="margin-right:6px;"></i> Submit Photo Proof';
+                btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up" style="margin-right:6px;"></i> Submit';
                 btn.disabled = false;
             }
         };
@@ -1224,7 +1269,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
             }
 
             if (submitBtn) {
-                submitBtn.innerHTML = `<i class="fa-solid fa-cloud-arrow-up" style="margin-right:6px;"></i> Submit Photo Proof ${total > 0 ? `(${total})` : ''}`;
+                submitBtn.innerHTML = `<i class="fa-solid fa-cloud-arrow-up" style="margin-right:6px;"></i> Submit ${total > 0 ? `(${total})` : ''}`;
             }
 
             if (total === 0) {
@@ -1243,13 +1288,13 @@ include_once __DIR__ . '/../components/testimony_modal.php';
 
                 window.selectedProofPhotos.forEach((item, index) => {
                     html += `
-                        <div style="position:relative; aspect-ratio:1/1; border-radius:14px; overflow:hidden; background:#000; box-shadow:0 4px 12px rgba(0,0,0,0.3); border:1.5px solid rgba(255,255,255,0.2);">
+                        <div style="position:relative; aspect-ratio:1/1; border-radius:14px; overflow:hidden; background:#0f172a; box-shadow:0 3px 8px rgba(0,0,0,0.15); border:1.5px solid #e2e8f0;">
                             <img src="${item.dataUrl}" alt="Photo ${index + 1}" style="width:100%; height:100%; object-fit:cover; display:block;">
                             <span style="position:absolute; bottom:4px; left:4px; background:rgba(0,0,0,0.7); color:#fff; font-size:9px; font-weight:800; padding:2px 6px; border-radius:6px;">
                                 ${index + 1}
                             </span>
                             <button type="button" onclick="event.stopPropagation(); window.removeProofPhotoAtIndex(${index})" title="Remove Photo"
-                                style="position:absolute; top:4px; right:4px; width:26px; height:26px; border-radius:50%; background:rgba(239,68,68,0.9); color:#fff; border:none; outline:none; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.4);">
+                                style="position:absolute; top:4px; right:4px; width:26px; height:26px; border-radius:50%; background:rgba(239,68,68,0.95); color:#fff; border:none; outline:none; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.25);">
                                 <i class="fa-solid fa-xmark" style="font-size:12px;"></i>
                             </button>
                         </div>
@@ -1259,9 +1304,9 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                 if (total < 5) {
                     html += `
                         <div onclick="window.addProofPhotoFromSource('gallery')"
-                            style="aspect-ratio:1/1; border:2px dashed rgba(255,255,255,0.4); border-radius:14px; display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer; background:rgba(255,255,255,0.08); transition:background 0.2s ease;">
-                            <i class="fa-solid fa-plus" style="font-size:20px; color:#ffffff; opacity:0.8; margin-bottom:4px;"></i>
-                            <span style="font-size:10px; font-weight:800; color:#ffffff; opacity:0.8;">Add More</span>
+                            style="aspect-ratio:1/1; border:2px dashed #94a3b8; border-radius:14px; display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer; background:#f8fafc; transition:all 0.2s ease;">
+                            <i class="fa-solid fa-plus" style="font-size:20px; color:#0284c7; margin-bottom:4px;"></i>
+                            <span style="font-size:11px; font-weight:700; color:#475569;">Add Photo</span>
                         </div>
                     `;
                 }
@@ -1361,11 +1406,38 @@ include_once __DIR__ . '/../components/testimony_modal.php';
             window.renderProofThumbnailsGrid();
         };
 
+        if (typeof window.savePersistentItemState !== 'function') {
+            window.savePersistentItemState = function (itemId, stateUpdates) {
+                if (!itemId) return;
+                try {
+                    const states = JSON.parse(localStorage.getItem('intan_elyu_verified_item_states') || '{}');
+                    const key = String(itemId);
+                    const existing = states[key] || {};
+                    states[key] = {
+                        ...existing,
+                        ...stateUpdates,
+                        updated_at: Date.now()
+                    };
+                    if (stateUpdates && stateUpdates.spot_id) {
+                        states['spot_' + stateUpdates.spot_id] = states[key];
+                    }
+                    localStorage.setItem('intan_elyu_verified_item_states', JSON.stringify(states));
+                } catch (e) { }
+            };
+        }
+
         window.applyPhotoProofUpdateLocally = function (itemId, proofUrls, proofStatus = 'pending') {
             if (!itemId) return;
             const targetIdStr = String(itemId);
             const urls = Array.isArray(proofUrls) ? proofUrls : (proofUrls ? [proofUrls] : []);
             if (urls.length === 0) return;
+
+            // Persist locally so status and uploaded photos survive page refresh
+            window.savePersistentItemState(itemId, {
+                proof_image: urls[0],
+                proof_images: urls,
+                proof_status: proofStatus
+            });
 
             if (window.currentTrip && Array.isArray(window.currentTrip.items)) {
                 window.currentTrip.items = window.currentTrip.items.map(it => {
@@ -1425,6 +1497,12 @@ include_once __DIR__ . '/../components/testimony_modal.php';
             if (!itemId) return;
             const targetIdStr = String(itemId);
             const nowIso = new Date().toISOString();
+
+            // Persist locally so status and uploaded photos survive page refresh
+            window.savePersistentItemState(itemId, {
+                is_location_verified: true,
+                visited_at: nowIso
+            });
 
             if (window.currentTrip && Array.isArray(window.currentTrip.items)) {
                 window.currentTrip.items = window.currentTrip.items.map(it => {
@@ -1525,7 +1603,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                 } else {
                     if (typeof showToast === 'function') showToast(reason || 'Upload failed. Please try again.');
                     if (btn) {
-                        btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up" style="margin-right:6px;"></i> Submit Photo Proof';
+                        btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up" style="margin-right:6px;"></i> Submit';
                         btn.disabled = false;
                     }
                 }

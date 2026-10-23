@@ -189,6 +189,34 @@
 </style>
 
 <script>
+    // Immediately port #logout-confirm-modal to document.body so it is never trapped under parent stacking contexts
+    (function initLogoutModalPort() {
+        function portModal() {
+            const m = document.getElementById('logout-confirm-modal');
+            if (m && m.parentElement !== document.body) {
+                document.body.appendChild(m);
+            }
+        }
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', portModal);
+        } else {
+            portModal();
+        }
+    })();
+
+    if (!window.closeLogoutModal) {
+        window.closeLogoutModal = function () {
+            const modal = document.getElementById('logout-confirm-modal');
+            if (modal) modal.style.display = 'none';
+            document.body.classList.remove('modal-blurred', 'logout-open');
+            document.documentElement.classList.remove('modal-blurred', 'logout-open');
+            const bottomNav = document.getElementById('bottom-navigation');
+            if (bottomNav && !document.body.classList.contains('sheet-open')) {
+                bottomNav.classList.remove('nav-hidden');
+            }
+        };
+    }
+
     function updateSidebarUserProfile() {
         try {
             const user = window.safeJsonParse ? window.safeJsonParse(localStorage.getItem('auth_user'), {}) : (JSON.parse(localStorage.getItem('auth_user') || '{}'));
@@ -269,11 +297,9 @@
     function logoutUser() {
         const sidebar = document.getElementById('sidebar-menu');
         const overlay = document.getElementById('sidebar-overlay');
-        const bottomNav = document.getElementById('bottom-navigation');
         if (sidebar && overlay) {
             sidebar.style.left = '-280px';
             overlay.style.opacity = '0';
-            if (bottomNav) bottomNav.classList.remove('nav-hidden');
             setTimeout(() => { overlay.style.display = 'none'; }, 300);
         }
         if (typeof window.showLogoutConfirmationModal === 'function') {

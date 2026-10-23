@@ -3,7 +3,17 @@
  * Intan Elyu Mobile — Clean Pure White Theme with Royal Blue Cards
  * ============================================================ */
 
-/* Full Page White Background */
+/* Full Page White Background with Universal Invisible Scrollbars */
+html:has(body[data-view="saved_trips"]),
+body[data-view="saved_trips"],
+html:has(.saved-trips-page-container),
+body:has(.saved-trips-page-container),
+body[data-view="saved_trips"] *,
+body:has(.saved-trips-page-container) * {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+}
+
 html:has(body[data-view="saved_trips"]),
 body[data-view="saved_trips"],
 html:has(.saved-trips-page-container),
@@ -11,8 +21,27 @@ body:has(.saved-trips-page-container) {
     background: #ffffff !important;
     background-color: #ffffff !important;
     color: #0f172a !important;
-    scrollbar-width: none !important;
-    -ms-overflow-style: none !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+}
+
+html:has(body[data-view="saved_trips"])::-webkit-scrollbar,
+body[data-view="saved_trips"]::-webkit-scrollbar,
+html:has(.saved-trips-page-container)::-webkit-scrollbar,
+body:has(.saved-trips-page-container)::-webkit-scrollbar,
+body[data-view="saved_trips"] *::-webkit-scrollbar,
+body:has(.saved-trips-page-container) *::-webkit-scrollbar,
+body[data-view="saved_trips"] #app-container::-webkit-scrollbar,
+body[data-view="saved_trips"] #main-content::-webkit-scrollbar,
+.saved-trips-page-container::-webkit-scrollbar,
+#saved-trips-list::-webkit-scrollbar,
+.timeline-collapsible::-webkit-scrollbar,
+.timeline-inner::-webkit-scrollbar,
+.timeline::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    background: transparent !important;
 }
 
 body[data-view="saved_trips"] #app-container,
@@ -21,6 +50,8 @@ body:has(.saved-trips-page-container) #app-container,
 body:has(.saved-trips-page-container) #main-content {
     background: #ffffff !important;
     background-color: #ffffff !important;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
 }
 
 body[data-view="saved_trips"] .mobile-header {
@@ -49,11 +80,16 @@ body[data-view="saved_trips"] .mobile-header .header-icon i {
     color: #1e3a8a !important;
 }
 
-/* Main Container: Pure White Background */
+/* Main Container: Pure White Background & Invisible Scrollbar */
 .saved-trips-page-container {
     width: 100%;
     min-height: 100vh;
     min-height: 100dvh;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    touch-action: pan-y !important;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
     padding-top: var(--page-top-padding, calc(max(env(safe-area-inset-top, 0px), 36px) + 52px)) !important;
     padding-left: var(--page-inline-padding, clamp(12px, 3.8vw, 18px)) !important;
     padding-right: var(--page-inline-padding, clamp(12px, 3.8vw, 18px)) !important;
@@ -63,6 +99,13 @@ body[data-view="saved_trips"] .mobile-header .header-icon i {
     background-color: #ffffff !important;
     color: #0f172a !important;
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+}
+
+#saved-trips-list {
+    width: 100%;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+    touch-action: pan-y !important;
 }
 
 /* Headings & Section Titles */
@@ -317,40 +360,6 @@ body[data-view="saved_trips"] .mobile-header .header-icon i {
     box-shadow: 0 16px 40px rgba(10, 25, 60, 0.45) !important;
     color: #ffffff !important;
     border-radius: 26px !important;
-}
-
-/* Timeline and Start Collapsible Controls */
-.timeline-collapsible {
-    display: grid;
-    grid-template-rows: 0fr;
-    opacity: 0;
-    transition: grid-template-rows 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.3s ease, margin-top 0.4s ease;
-}
-
-.timeline-collapsible.expanded {
-    grid-template-rows: 1fr;
-    opacity: 1;
-    margin-top: 16px;
-}
-
-.timeline-inner {
-    overflow: hidden;
-}
-
-.start-collapsible {
-    display: flex;
-    flex: 1.2;
-    width: auto;
-    max-width: none;
-    opacity: 1;
-    overflow: visible;
-    transition: all 0.25s ease;
-}
-
-.start-collapsible.expanded {
-    max-width: none;
-    opacity: 1;
-    margin-left: 0;
 }
 
 /* Stop Destination Thumbnail */

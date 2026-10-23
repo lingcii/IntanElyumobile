@@ -44,6 +44,29 @@ class ItineraryItem extends Model
     ];
 
     /**
+     * Format a proof image URL or filename to route through the reliable /api/image streaming endpoint.
+     * Prevents clients from failing to resolve *.r2.dev domains due to local ISP DNS restrictions.
+     */
+    public static function formatProofUrl(?string $url): ?string
+    {
+        if (empty($url)) {
+            return null;
+        }
+
+        $trimmed = trim($url);
+        if (str_starts_with($trimmed, 'data:') || str_starts_with($trimmed, 'blob:')) {
+            return $trimmed;
+        }
+
+        // Extract proof_xxx filename pattern
+        if (preg_match('#proof_[a-z0-9_]+\.(?:jpg|jpeg|png|webp|gif)#i', $trimmed, $m)) {
+            return url('/api/image/proof_images/' . $m[0]);
+        }
+
+        return $trimmed;
+    }
+
+    /**
      * Get the primary proof image URL string.
      * Backwards-compatible with consumers expecting a single string URL.
      */
@@ -53,14 +76,15 @@ class ItineraryItem extends Model
             return null;
         }
 
+        $url = $value;
         if (is_string($value) && str_starts_with(trim($value), '[') && str_ends_with(trim($value), ']')) {
             $decoded = json_decode($value, true);
             if (is_array($decoded) && count($decoded) > 0) {
-                return $decoded[0];
+                $url = $decoded[0];
             }
         }
 
-        return $value;
+        return static::formatProofUrl($url);
     }
 
     /**
@@ -75,14 +99,15 @@ class ItineraryItem extends Model
             return [];
         }
 
+        $list = [$raw];
         if (is_string($raw) && str_starts_with(trim($raw), '[') && str_ends_with(trim($raw), ']')) {
             $decoded = json_decode($raw, true);
             if (is_array($decoded)) {
-                return array_values(array_filter($decoded));
+                $list = array_values(array_filter($decoded));
             }
         }
 
-        return [$raw];
+        return array_values(array_filter(array_map([static::class, 'formatProofUrl'], $list)));
     }
 
     /**

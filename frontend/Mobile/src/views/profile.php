@@ -505,7 +505,7 @@ $activeTab = 'profile';
             const isRedeemed = ['redeemed', 'used', 'completed'].includes(st);
             let isExpired = st === 'expired';
             if (!isExpired && v.expires_at && (v.expiration_type === 'date' || v.expiration_type === 'fixed_date')) {
-                const expDate = new Date(v.expires_at);
+                const expDate = new Date(String(v.expires_at).replace(' ', 'T'));
                 if (!isNaN(expDate.getTime()) && expDate < new Date()) {
                     isExpired = true;
                 }
@@ -553,7 +553,7 @@ $activeTab = 'profile';
             const raw = v.expires_at || v.valid_until || v.expiry_date;
             if (!raw) return 'No Expiration';
             try {
-                const d = new Date(raw);
+                const d = new Date(String(raw).replace(' ', 'T'));
                 if (isNaN(d.getTime())) return String(raw);
                 return d.toLocaleDateString('en-US', {
                     month: 'short',
@@ -881,7 +881,10 @@ $activeTab = 'profile';
             if (barrier) barrier.style.display = 'none';
             if (normal) normal.style.display = 'block';
             hydrateProfileFromCache();
-            if (!isOffline) fetchProfileData();
+            if (!isOffline) {
+                fetchProfileData();
+                fetchPointsAndVouchers();
+            }
         }
     }
     window.updateProfileAccessBarrier = updateProfileAccessBarrier;
@@ -1155,17 +1158,58 @@ $activeTab = 'profile';
         if (costText) costText.textContent = `${voucher.pointsCost || voucher.required_points || 100} Points`;
 
         if (redeemBtn) {
-            if (voucher.is_upcoming) {
-                redeemBtn.disabled = true;
-                redeemBtn.style.cursor = 'not-allowed';
-                redeemBtn.style.opacity = '0.7';
-                redeemBtn.textContent = `Starts on ${voucher.valid_from_formatted || 'Soon'}`;
-                redeemBtn.onclick = null;
+            const cost = parseInt(voucher.pointsCost || voucher.required_points || 100);
+            const userPts = window._userPointsBalance || 0;
+            const canAfford = userPts >= cost;
+            const rawExp = voucher.expires_at || voucher.valid_until || voucher.expiry_date;
+            const isExpired = voucher.is_expired || (rawExp && new Date(String(rawExp).replace(' ', 'T')).getTime() < Date.now());
+            const isOutOfStock = voucher.remaining_quantity !== null && voucher.remaining_quantity !== undefined && Number(voucher.remaining_quantity) <= 0;
+
+            redeemBtn.disabled = false;
+            redeemBtn.style.cursor = 'pointer';
+            redeemBtn.style.opacity = '1';
+
+            if (isExpired) {
+                redeemBtn.style.background = '#fef2f2 !important';
+                redeemBtn.style.color = '#dc2626 !important';
+                redeemBtn.innerHTML = '<i class="fa-solid fa-lock" style="color:#dc2626 !important;"></i> <span style="color:#dc2626 !important; font-weight:800;">Voucher Expired (Details)</span>';
+                redeemBtn.onclick = function() {
+                    const expFormatted = window.formatVoucherExpiry ? window.formatVoucherExpiry(voucher) : (voucher.expires_at || 'past date');
+                    if (typeof showToast === 'function') {
+                        showToast(`This voucher expired on ${expFormatted} and is no longer available for redemption.`, 'warning', 4500);
+                    }
+                };
+            } else if (isOutOfStock) {
+                redeemBtn.style.background = '#fff7ed !important';
+                redeemBtn.style.color = '#ea580c !important';
+                redeemBtn.innerHTML = '<i class="fa-solid fa-ban" style="color:#ea580c !important;"></i> <span style="color:#ea580c !important; font-weight:800;">Out of Stock (Details)</span>';
+                redeemBtn.onclick = function() {
+                    if (typeof showToast === 'function') {
+                        showToast('This reward is currently out of stock (all promotional allocations claimed). Please check back soon!', 'warning', 4500);
+                    }
+                };
+            } else if (voucher.is_upcoming) {
+                redeemBtn.style.background = '#f0f9ff !important';
+                redeemBtn.style.color = '#0284c7 !important';
+                redeemBtn.innerHTML = `<i class="fa-regular fa-clock" style="color:#0284c7 !important;"></i> <span style="color:#0284c7 !important; font-weight:800;">Starts on ${voucher.valid_from_formatted || 'Soon'}</span>`;
+                redeemBtn.onclick = function() {
+                    if (typeof showToast === 'function') {
+                        showToast(`This voucher promotion begins on ${voucher.valid_from_formatted || 'a later date'}. Save up points to claim it then!`, 'info', 4500);
+                    }
+                };
+            } else if (!canAfford) {
+                redeemBtn.style.background = '#ffffff !important';
+                redeemBtn.style.color = '#1e3a8a !important';
+                redeemBtn.innerHTML = `<i class="fa-solid fa-coins" style="color:#f59e0b !important;"></i> <span style="color:#1e3a8a !important; font-weight:900;">Need ${(cost - userPts).toLocaleString()} More Points (${cost} Pts)</span>`;
+                redeemBtn.onclick = function() {
+                    if (typeof showToast === 'function') {
+                        showToast(`You have ${userPts.toLocaleString()} Points, but this reward requires ${cost.toLocaleString()} Points. Complete check-ins to earn more!`, 'warning', 5000);
+                    }
+                };
             } else {
-                redeemBtn.disabled = false;
-                redeemBtn.style.cursor = 'pointer';
-                redeemBtn.style.opacity = '1';
-                redeemBtn.textContent = `Redeem for ${voucher.pointsCost || voucher.required_points || 100} Points`;
+                redeemBtn.style.background = '#ffffff !important';
+                redeemBtn.style.color = '#1e3a8a !important';
+                redeemBtn.innerHTML = `<i class="fa-solid fa-gift" style="color:#1e3a8a !important;"></i> <span style="color:#1e3a8a !important; font-weight:900;">Redeem for ${cost.toLocaleString()} Points</span>`;
                 redeemBtn.onclick = function () {
                     window.closeRewardDetailsModal();
                     if (typeof voucher.id === 'string' && voucher.id.includes('_')) {
@@ -1255,9 +1299,32 @@ $activeTab = 'profile';
     window.openFullVouchersModal = function (initialTab = 'all') {
         const modal = window.ensureProfileModalOnBody('full-vouchers-modal');
         if (!modal) return;
+
+        // If in-memory cache is empty, attempt immediate hydration from localStorage
+        if (!window._cachedActiveVouchers || window._cachedActiveVouchers.length === 0) {
+            try {
+                const token = getProfileAuthToken();
+                if (token) {
+                    const ptsCacheKey = 'points_balance_' + token.substring(0, 10);
+                    const cached = localStorage.getItem(ptsCacheKey);
+                    if (cached) {
+                        const parsed = JSON.parse(cached);
+                        const d = parsed.data || parsed;
+                        if (d && typeof window.renderPointsAndVouchersData === 'function') {
+                            window.renderPointsAndVouchersData(d);
+                        }
+                    }
+                }
+            } catch (e) { }
+        }
+
         window._currentVouchersTab = initialTab || 'all';
         window.switchFullVouchersTab(window._currentVouchersTab);
         modal.style.display = 'flex';
+
+        if (typeof fetchPointsAndVouchers === 'function') {
+            fetchPointsAndVouchers(false);
+        }
     };
 
     window.closeFullVouchersModal = function () {
@@ -1466,6 +1533,7 @@ $activeTab = 'profile';
         const ptsEl = document.getElementById('full-deals-user-points');
         if (ptsEl) ptsEl.textContent = pts.toLocaleString();
 
+        window._currentFilteredDeals = null;
         const availableDeals = window._profileAvailableVouchers || [];
         window.renderFullDealsList(availableDeals);
 
@@ -1485,6 +1553,7 @@ $activeTab = 'profile';
         const q = (query || '').toLowerCase().trim();
         const availableDeals = window._profileAvailableVouchers || [];
         if (!q) {
+            window._currentFilteredDeals = null;
             window.renderFullDealsList(availableDeals);
             return;
         }
@@ -1494,6 +1563,7 @@ $activeTab = 'profile';
             const desc = (v.description || '').toLowerCase();
             return title.includes(q) || partner.includes(q) || desc.includes(q);
         });
+        window._currentFilteredDeals = filtered;
         window.renderFullDealsList(filtered);
     };
 
@@ -1504,10 +1574,10 @@ $activeTab = 'profile';
         if (!Array.isArray(deals) || deals.length === 0) {
             container.innerHTML = `
             <div style="text-align:center; padding:38px 16px; background:#f8fafc; border-radius:18px;">
-                <div style="width:52px; height:52px; border-radius:50%; background:#eff6ff; display:flex; align-items:center; justify-content:center; margin:0 auto 12px; color:#1e3a8a; font-size:20px;">
+                <div style="width:48px; height:48px; border-radius:50%; background:#eff6ff; display:flex; align-items:center; justify-content:center; margin:0 auto 12px; color:#1e3a8a; font-size:18px;">
                     <i class="fa-solid fa-gift"></i>
                 </div>
-                <strong style="display:block; color:#1e293b; font-size:15px; margin-bottom:4px;">No Deals Available</strong>
+                <strong style="display:block; color:#1e293b; font-size:14px; margin-bottom:4px;">No Deals Available</strong>
                 <p style="margin:0; font-size:12px; color:#64748b; line-height:1.45;">You have claimed all available deals, or no rewards match your search.</p>
             </div>`;
             return;
@@ -1520,27 +1590,27 @@ $activeTab = 'profile';
             const canAfford = userPts >= ptsCost;
 
             html += `
-            <div onclick="window.showFullDealsRewardModal(${idx})" role="button" tabindex="0" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:18px; padding:14px; margin-bottom:12px; display:flex; align-items:center; gap:12px; box-shadow:0 2px 8px rgba(0,0,0,0.04); cursor:pointer; transition:transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
-                <div style="width:48px; height:48px; border-radius:14px; background:#f1f5f9; border:1px solid #e2e8f0; display:flex; align-items:center; justify-content:center; overflow:hidden; flex-shrink:0;">
-                    <img src="${v.image || 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/logo/LUPTO.png'}" alt="${v.title}" style="width:100%; height:100%; object-fit:contain; padding:4px;" onerror="this.onerror=null; this.src='https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/logo/LOGO.png';">
+            <div onclick="window.showFullDealsRewardModal(${idx})" role="button" tabindex="0" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:11px 13px; margin-bottom:10px; display:flex; align-items:center; gap:10px; box-shadow:0 2px 8px rgba(0,0,0,0.04); cursor:pointer; transition:transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
+                <div style="width:36px; height:36px; border-radius:10px; background:#f1f5f9; border:1px solid #e2e8f0; display:flex; align-items:center; justify-content:center; overflow:hidden; flex-shrink:0;">
+                    <img src="${v.image || 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/logo/LUPTO.png'}" alt="${v.title}" style="width:100%; height:100%; object-fit:contain; padding:3px;" onerror="this.onerror=null; this.src='https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/logo/LOGO.png';">
                 </div>
                 <div style="flex:1; min-width:0; text-align:left;">
-                    <div style="display:flex; align-items:center; gap:6px; margin-bottom:2px;">
-                        <strong style="font-size:14px; font-weight:800; color:#1e293b; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${v.title}</strong>
-                        <span style="font-size:9px; font-weight:800; color:#1e3a8a; background:#eff6ff; padding:2px 6px; border-radius:4px; flex-shrink:0;">${v.badge || 'PROMO'}</span>
-                        ${v.id_needed ? `<span style="font-size:8.5px; font-weight:800; color:#ef4444; background:#fef2f2; padding:2px 5px; border-radius:4px; flex-shrink:0;"><i class="fa-solid fa-id-card"></i> ID</span>` : ''}
+                    <div style="display:flex; align-items:center; gap:5px; margin-bottom:2px;">
+                        <strong style="font-size:13.5px; font-weight:800; color:#1e293b; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${v.title}</strong>
+                        <span style="font-size:8.5px; font-weight:800; color:#1e3a8a; background:#eff6ff; padding:2px 5px; border-radius:4px; flex-shrink:0;">${v.badge || 'PROMO'}</span>
+                        ${v.id_needed ? `<span style="font-size:8px; font-weight:800; color:#ef4444; background:#fef2f2; padding:1px 4px; border-radius:3px; flex-shrink:0;"><i class="fa-solid fa-id-card"></i> ID</span>` : ''}
                     </div>
-                    <div style="font-size:12px; color:#64748b; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${v.partner || v.merchant || 'La Union Merchant'}</div>
-                    <div style="display:flex; align-items:center; gap:8px; margin-top:4px;">
-                        <span style="font-size:11.5px; font-weight:800; color:#1e3a8a; display:inline-flex; align-items:center; gap:4px;">
-                            <i class="fa-solid fa-coins" style="color:#f59e0b;"></i> ${ptsCost.toLocaleString()} Points
+                    <div style="font-size:11.5px; color:#64748b; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${v.partner || v.merchant || 'La Union Merchant'}</div>
+                    <div style="display:flex; align-items:center; gap:8px; margin-top:3px;">
+                        <span style="font-size:11px; font-weight:800; color:#1e3a8a; display:inline-flex; align-items:center; gap:3px;">
+                            <i class="fa-solid fa-coins" style="color:#f59e0b; font-size:10px;"></i> ${ptsCost.toLocaleString()} Pts
                         </span>
-                        <span style="font-size:10.5px; font-weight:700; color:${canAfford ? '#15803d' : '#dc2626'};">
+                        <span style="font-size:10px; font-weight:700; color:${canAfford ? '#15803d' : '#dc2626'};">
                             ${canAfford ? '✓ Eligible' : 'Need more pts'}
                         </span>
                     </div>
                 </div>
-                <button type="button" onclick="event.stopPropagation(); window.showFullDealsRewardModal(${idx})" style="background:${canAfford ? '#1e3a8a' : '#94a3b8'} !important; color:#ffffff !important; border:none !important; outline:none !important; padding:8px 14px; border-radius:100px; font-size:11.5px; font-weight:800; cursor:pointer; flex-shrink:0; white-space:nowrap;">
+                <button type="button" onclick="event.stopPropagation(); window.showFullDealsRewardModal(${idx})" style="background:${canAfford ? '#1e3a8a' : '#64748b'} !important; color:#ffffff !important; border:none !important; outline:none !important; padding:5px 11px; border-radius:100px; font-size:10.5px; font-weight:800; cursor:pointer; flex-shrink:0; white-space:nowrap; box-shadow:0 1px 4px rgba(0,0,0,0.12) !important;">
                     View Deal
                 </button>
             </div>`;
@@ -1550,7 +1620,7 @@ $activeTab = 'profile';
     };
 
     window.showFullDealsRewardModal = function (idx) {
-        const deals = window._profileAvailableVouchers || [];
+        const deals = window._currentFilteredDeals || window._profileAvailableVouchers || [];
         const reward = deals[idx];
         if (!reward) return;
         window.showRewardDetailsModal(reward);
@@ -1617,10 +1687,12 @@ $activeTab = 'profile';
 
         const statusLower = (voucher.status || '').toLowerCase();
         const isRedeemed = statusLower === 'redeemed' || statusLower === 'used';
+        const rawExp = voucher.expires_at || voucher.valid_until || voucher.expiry_date;
+        const isExpired = (statusLower === 'expired') || (rawExp && new Date(String(rawExp).replace(' ', 'T')).getTime() < Date.now());
 
         if (statusBadge) {
             if (isRedeemed) {
-                statusBadge.innerHTML = '<i class="fa-solid fa-ban"></i> Voucher Already Redeemed';
+                statusBadge.innerHTML = '<i class="fa-solid fa-ban"></i> Voucher Already Redeemed & Verified';
                 statusBadge.style.background = '#fee2e2';
                 statusBadge.style.color = '#dc2626';
                 statusBadge.style.border = '1px solid #fca5a5';
@@ -1629,7 +1701,22 @@ $activeTab = 'profile';
                     imgEl.style.opacity = '0.35';
                 }
                 if (noticeEl) {
-                    noticeEl.textContent = 'This voucher has already been redeemed and verified at checkout. It can no longer be used.';
+                    noticeEl.textContent = 'This voucher has already been redeemed and verified at merchant checkout. It can no longer be used.';
+                    noticeEl.style.color = '#dc2626';
+                    noticeEl.style.fontWeight = '700';
+                }
+            } else if (isExpired) {
+                const expFormatted = window.formatVoucherExpiry ? window.formatVoucherExpiry(voucher) : (voucher.expires_at || 'past date');
+                statusBadge.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Voucher Expired';
+                statusBadge.style.background = '#fee2e2';
+                statusBadge.style.color = '#dc2626';
+                statusBadge.style.border = '1px solid #fca5a5';
+                if (imgEl) {
+                    imgEl.style.filter = 'grayscale(1)';
+                    imgEl.style.opacity = '0.35';
+                }
+                if (noticeEl) {
+                    noticeEl.textContent = `This voucher expired on ${expFormatted} and can no longer be redeemed or scanned.`;
                     noticeEl.style.color = '#dc2626';
                     noticeEl.style.fontWeight = '700';
                 }
@@ -2060,19 +2147,16 @@ $activeTab = 'profile';
         <!-- User Points Balance Banner inside Deals Modal -->
         <div style="background:linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); padding:12px 18px; border-bottom:1px solid #bfdbfe; display:flex; justify-content:space-between; align-items:center; flex-shrink:0;">
             <div style="display:flex; align-items:center; gap:8px;">
-                <div style="width:32px; height:32px; border-radius:10px; background:#1e3a8a; display:flex; align-items:center; justify-content:center; color:#fbbf24; font-size:14px;">
+                <div style="width:30px; height:30px; border-radius:10px; background:#1e3a8a; display:flex; align-items:center; justify-content:center; color:#fbbf24; font-size:13px;">
                     <i class="fa-solid fa-coins"></i>
                 </div>
                 <div>
                     <div style="font-size:10px; font-weight:800; color:#1e3a8a; text-transform:uppercase; letter-spacing:0.5px;">Your Available Points</div>
-                    <div style="font-size:16px; font-weight:900; color:#1e3a8a; line-height:1.2;">
+                    <div style="font-size:15px; font-weight:900; color:#1e3a8a; line-height:1.2;">
                         <span id="full-deals-user-points">0</span> <span style="font-size:12px; font-weight:700; color:#64748b;">Points</span>
                     </div>
                 </div>
             </div>
-            <span style="font-size:11px; font-weight:800; color:#0284c7; background:#ffffff; padding:4px 10px; border-radius:100px; border:1px solid #bfdbfe;">
-                Redeem instantly
-            </span>
         </div>
 
         <!-- Search Input -->
@@ -2080,8 +2164,9 @@ $activeTab = 'profile';
             <div style="position:relative; display:flex; align-items:center;">
                 <i class="fa-solid fa-magnifying-glass" style="position:absolute; left:12px; color:#94a3b8; font-size:13px;"></i>
                 <input type="text" id="deals-search-input" oninput="window.handleDealsModalSearch(this.value)" placeholder="Search rewards, merchants..."
-                    style="width:100%; padding:9px 12px 9px 34px; border:1.5px solid #e2e8f0; border-radius:12px; font-size:12.5px; font-weight:600; color:#1e293b; background:#f8fafc; outline:none; transition:border-color 0.2s ease;"
-                    onfocus="this.style.borderColor='#1e3a8a'" onblur="this.style.borderColor='#e2e8f0'">
+                    style="width:100%; padding:9px 12px 9px 34px; border:1.5px solid #e2e8f0; border-radius:12px; font-size:12.5px; font-weight:600; color:#1e293b; background:#f8fafc; outline:none !important; -webkit-tap-highlight-color:transparent !important; box-shadow:none !important; -webkit-box-shadow:none !important; transition:border-color 0.2s ease;"
+                    onfocus="this.style.outline='none'; this.style.boxShadow='none'; this.style.borderColor='#1e3a8a';"
+                    onblur="this.style.outline='none'; this.style.boxShadow='none'; this.style.borderColor='#e2e8f0';">
             </div>
         </div>
 

@@ -91,10 +91,12 @@ class LoginController extends Controller
             ->where('id', $user->id)
             ->update(['last_activity' => now(), 'api_token' => $token]);
 
+        $vouchers = \App\Http\Controllers\Tourist\PointsController::getUserVouchers($user->id);
+
         return response()->json([
-            'success' => true,
-            'token'   => $token,
-            'user'    => [
+            'success'  => true,
+            'token'    => $token,
+            'user'     => [
                 'id'                   => $user->id,
                 'tourist_number'       => method_exists($user, 'getTouristNumber') ? $user->getTouristNumber() : $user->id,
                 'tourist_id'           => method_exists($user, 'getTouristNumber') ? $user->getTouristNumber() : $user->id,
@@ -111,6 +113,7 @@ class LoginController extends Controller
                 'avatar'               => $user->avatar,
                 'gender'               => $user->gender,
             ],
+            'vouchers' => $vouchers,
         ]);
     }
 
@@ -314,10 +317,12 @@ class LoginController extends Controller
             ->where('id', $user->id)
             ->update(['last_activity' => now(), 'api_token' => $token]);
 
+        $vouchers = \App\Http\Controllers\Tourist\PointsController::getUserVouchers($user->id);
+
         return response()->json([
-            'success' => true,
-            'token'   => $token,
-            'user'    => [
+            'success'  => true,
+            'token'    => $token,
+            'user'     => [
                 'id'              => $user->id,
                 'tourist_number'  => method_exists($user, 'getTouristNumber') ? $user->getTouristNumber() : $user->id,
                 'tourist_id'      => method_exists($user, 'getTouristNumber') ? $user->getTouristNumber() : $user->id,
@@ -333,6 +338,7 @@ class LoginController extends Controller
                 'avatar'          => $user->avatar,
                 'gender'          => $user->gender,
             ],
+            'vouchers' => $vouchers,
         ]);
     }
 

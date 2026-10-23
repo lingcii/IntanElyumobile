@@ -182,90 +182,123 @@ $backRoute = 'dashboard';
 </div>
 
 <!-- Two-Factor Authentication Modal -->
-<div id="two-factor-modal" class="profile-modal-overlay">
+<div id="two-factor-modal" class="profile-modal-overlay" onclick="if(event.target===this) close2FAModal();">
     <div class="profile-modal-card"
-        style="background: #ffffff !important; border: 1.5px solid #e2e8f0 !important; border-radius: 26px; padding: 28px 22px 24px 22px; max-width: 400px; width: 92%; text-align: center; box-shadow: 0 20px 50px rgba(15, 23, 42, 0.45); color: #0f172a !important; box-sizing: border-box;">
-        <button class="profile-modal-close" onclick="close2FAModal()"
-            style="background: #f1f5f9 !important; color: #475569 !important; border: 1px solid #cbd5e1 !important; box-shadow: none !important;">
-            <i class="fa-solid fa-xmark"></i>
-        </button>
-
-        <div
-            style="width: 68px; height: 68px; border-radius: 50%; background: #eff6ff !important; color: #1e3a8a !important; display: flex; align-items: center; justify-content: center; margin: 0 auto 14px auto; box-shadow: 0 4px 14px rgba(30, 58, 138, 0.15);">
-            <i class="fa-solid fa-shield-halved" style="font-size: 30px; color: #1e3a8a;"></i>
+        style="background: #ffffff !important; border: none !important; outline: none !important; border-radius: 24px; padding: 0 !important; max-width: 385px; width: 92%; max-height: 88vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 20px 50px rgba(15, 23, 42, 0.45); color: #0f172a !important; box-sizing: border-box; text-align: center; position: relative;">
+        
+        <!-- Modal Top Header Banner (Royal Blue) with Exit Button on Right -->
+        <div style="background: linear-gradient(180deg, #1e3a8a 0%, #193375 100%) !important; padding: 14px 18px; flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; border: none !important; outline: none !important;">
+            <div style="text-align: left;">
+                <h4 style="margin: 0; font-size: 16px; font-weight: 800; color: #ffffff; display: flex; align-items: center; gap: 8px; letter-spacing: -0.2px;">
+                    <i class="fa-solid fa-shield-halved" style="color: #00f2fe; font-size: 15px;"></i> Two-Factor Security
+                </h4>
+                <p style="margin: 2px 0 0 0; font-size: 11px; color: rgba(255, 255, 255, 0.85); font-weight: 600;">
+                    Account Protection
+                </p>
+            </div>
+            <button type="button" onclick="close2FAModal()" aria-label="Close"
+                style="background: #ffffff !important; border: none !important; outline: none !important; color: #1e3a8a !important; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18) !important; flex-shrink: 0; margin-left: 12px; transition: transform 0.15s ease;"
+                onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">
+                <i class="fa-solid fa-xmark" style="color: #1e3a8a !important; font-size: 14px;"></i>
+            </button>
         </div>
 
-        <h3 style="font-size: 19px; font-weight: 800; color: #0f172a; margin: 0 0 6px 0; letter-spacing: -0.3px;">Two-Factor Authentication</h3>
-
-        <!-- View 1: When 2FA is Active -->
-        <div id="2fa-view-active" style="display: none;">
-            <p style="font-size: 13px; color: #64748b; line-height: 1.5; margin: 0 0 16px 0;">
-                Your account is protected with email verification codes. Device logins require OTP verification.
-            </p>
+        <!-- Middle Body Area (Pure White Background) -->
+        <div class="hide-scrollbar" style="background: #ffffff !important; flex: 1; min-height: 0; overflow-y: auto; padding: 22px 20px 18px 20px; text-align: center; color: #0f172a !important; box-sizing: border-box;">
             <div
-                style="background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 16px; padding: 14px; margin-bottom: 18px; text-align: left;">
+                style="width: 64px; height: 64px; border-radius: 50%; background: #eff6ff !important; color: #1e3a8a !important; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px auto; box-shadow: 0 4px 14px rgba(30, 58, 138, 0.12); border: 1.5px solid #dbeafe;">
+                <i class="fa-solid fa-shield-halved" style="font-size: 28px; color: #1e3a8a;"></i>
+            </div>
+
+            <h3 style="font-size: 18px; font-weight: 800; color: #0f172a; margin: 0 0 6px 0; letter-spacing: -0.3px;">Two-Factor Authentication</h3>
+
+            <!-- View 1: When 2FA is Active -->
+            <div id="2fa-view-active" style="display: none;">
+                <p style="font-size: 13px; color: #64748b; line-height: 1.5; margin: 0 0 16px 0;">
+                    Your account is protected with email verification codes. Device logins require OTP verification.
+                </p>
                 <div
-                    style="display: flex; align-items: center; gap: 8px; color: #16a34a; font-weight: 800; font-size: 13px; margin-bottom: 4px;">
-                    <i class="fa-solid fa-circle-check"></i> Security Status: Active
-                </div>
-                <div style="font-size: 11.5px; color: #475569; font-weight: 600;">
-                    Verification Channel: Registered Email Address
+                    style="background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 16px; padding: 14px; text-align: left;">
+                    <div
+                        style="display: flex; align-items: center; gap: 8px; color: #16a34a; font-weight: 800; font-size: 13px; margin-bottom: 4px;">
+                        <i class="fa-solid fa-circle-check"></i> Security Status: Active
+                    </div>
+                    <div style="font-size: 11.5px; color: #475569; font-weight: 600;">
+                        Verification Channel: Registered Email Address
+                    </div>
                 </div>
             </div>
-            <button type="button" onclick="handleDisable2FA()"
-                style="width: 100%; padding: 12px 18px; border-radius: 100px; background: #fff1f2; border: 1.5px solid #fecdd3; color: #e11d48; font-weight: 800; font-size: 13px; cursor: pointer; transition: all 0.2s;"
-                onpointerdown="this.style.transform='scale(0.97)'" onpointerup="this.style.transform='scale(1)'">
-                <i class="fa-solid fa-shield-xmark" style="margin-right: 6px;"></i> Disable 2FA Security
-            </button>
+
+            <!-- View 2: When 2FA is Disabled (Initial state) -->
+            <div id="2fa-view-disabled" style="display: block;">
+                <p style="font-size: 13px; color: #64748b; line-height: 1.5; margin: 0 0 16px 0;">
+                    Add an extra layer of security to your tourist account. When logging in, you will be prompted for a 6-digit security code sent to your email.
+                </p>
+                <div
+                    style="background: #fffbeb; border: 1.5px solid #fde68a; border-radius: 16px; padding: 12px 14px; text-align: left; font-size: 12px; color: #b45309; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-shield-halved" style="font-size: 15px;"></i>
+                    <span>2FA is currently disabled for your account.</span>
+                </div>
+            </div>
+
+            <!-- View 3: Awaiting OTP Verification -->
+            <div id="2fa-view-verify" style="display: none;">
+                <p style="font-size: 13px; color: #64748b; line-height: 1.5; margin: 0 0 14px 0;">
+                    Enter the 6-digit verification code sent to your email to confirm activation.
+                </p>
+                <div
+                    style="background: #f0f9ff; border: 1.5px solid #bae6fd; border-radius: 14px; padding: 10px 14px; margin-bottom: 16px; font-size: 12px; color: #0284c7; font-weight: 700; text-align: left; display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-paper-plane"></i>
+                    <span id="settings-2fa-verify-msg">A 6-digit code has been sent to your email.</span>
+                </div>
+                <form id="settings-2fa-form" onsubmit="handleVerify2FA(event); return false;">
+                    <div id="settings-2fa-boxes" style="display: flex; justify-content: center; gap: 8px; margin-bottom: 16px;">
+                        <input type="text" class="settings-2fa-otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code" oninput="handleSettings2FAOtpInput(this, 0)" onkeydown="handleSettings2FAOtpKeydown(this, event, 0)" onpaste="handleSettings2FAOtpPaste(event)" onfocus="this.style.borderColor='#0284c7'" onblur="this.style.borderColor='#cbd5e1'" style="width: 44px; height: 50px; text-align: center; font-size: 22px; font-weight: 800; border-radius: 12px; border: 1.5px solid #cbd5e1; background: #f8fafc; color: #0f172a; outline: none; transition: all 0.2s;">
+                        <input type="text" class="settings-2fa-otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" oninput="handleSettings2FAOtpInput(this, 1)" onkeydown="handleSettings2FAOtpKeydown(this, event, 1)" onpaste="handleSettings2FAOtpPaste(event)" onfocus="this.style.borderColor='#0284c7'" onblur="this.style.borderColor='#cbd5e1'" style="width: 44px; height: 50px; text-align: center; font-size: 22px; font-weight: 800; border-radius: 12px; border: 1.5px solid #cbd5e1; background: #f8fafc; color: #0f172a; outline: none; transition: all 0.2s;">
+                        <input type="text" class="settings-2fa-otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" oninput="handleSettings2FAOtpInput(this, 2)" onkeydown="handleSettings2FAOtpKeydown(this, event, 2)" onpaste="handleSettings2FAOtpPaste(event)" onfocus="this.style.borderColor='#0284c7'" onblur="this.style.borderColor='#cbd5e1'" style="width: 44px; height: 50px; text-align: center; font-size: 22px; font-weight: 800; border-radius: 12px; border: 1.5px solid #cbd5e1; background: #f8fafc; color: #0f172a; outline: none; transition: all 0.2s;">
+                        <input type="text" class="settings-2fa-otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" oninput="handleSettings2FAOtpInput(this, 3)" onkeydown="handleSettings2FAOtpKeydown(this, event, 3)" onpaste="handleSettings2FAOtpPaste(event)" onfocus="this.style.borderColor='#0284c7'" onblur="this.style.borderColor='#cbd5e1'" style="width: 44px; height: 50px; text-align: center; font-size: 22px; font-weight: 800; border-radius: 12px; border: 1.5px solid #cbd5e1; background: #f8fafc; color: #0f172a; outline: none; transition: all 0.2s;">
+                        <input type="text" class="settings-2fa-otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" oninput="handleSettings2FAOtpInput(this, 4)" onkeydown="handleSettings2FAOtpKeydown(this, event, 4)" onpaste="handleSettings2FAOtpPaste(event)" onfocus="this.style.borderColor='#0284c7'" onblur="this.style.borderColor='#cbd5e1'" style="width: 44px; height: 50px; text-align: center; font-size: 22px; font-weight: 800; border-radius: 12px; border: 1.5px solid #cbd5e1; background: #f8fafc; color: #0f172a; outline: none; transition: all 0.2s;">
+                        <input type="text" class="settings-2fa-otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" oninput="handleSettings2FAOtpInput(this, 5)" onkeydown="handleSettings2FAOtpKeydown(this, event, 5)" onpaste="handleSettings2FAOtpPaste(event)" onfocus="this.style.borderColor='#0284c7'" onblur="this.style.borderColor='#cbd5e1'" style="width: 44px; height: 50px; text-align: center; font-size: 22px; font-weight: 800; border-radius: 12px; border: 1.5px solid #cbd5e1; background: #f8fafc; color: #0f172a; outline: none; transition: all 0.2s;">
+                    </div>
+                    <div style="margin-bottom: 6px; font-size: 12px; color: #64748b; font-weight: 600;">
+                        Didn't get code? 
+                        <span id="settings-2fa-resend-btn" onclick="handleInitiate2FA()" style="color: #0284c7; font-weight: 800; cursor: pointer; text-decoration: underline;">Resend</span>
+                        <span id="settings-2fa-timer" style="display: none; color: #94a3b8; font-weight: 700;"></span>
+                    </div>
+                </form>
+            </div>
         </div>
 
-        <!-- View 2: When 2FA is Disabled (Initial state) -->
-        <div id="2fa-view-disabled" style="display: block;">
-            <p style="font-size: 13px; color: #64748b; line-height: 1.5; margin: 0 0 16px 0;">
-                Add an extra layer of security to your tourist account. When logging in, you will be prompted for a 6-digit security code sent to your email.
-            </p>
-            <div
-                style="background: #fffbeb; border: 1.5px solid #fde68a; border-radius: 16px; padding: 12px 14px; margin-bottom: 18px; text-align: left; font-size: 12px; color: #b45309; font-weight: 700; display: flex; align-items: center; gap: 8px;">
-                <i class="fa-solid fa-shield-halved" style="font-size: 15px;"></i>
-                <span>2FA is currently disabled for your account.</span>
-            </div>
-            <button type="button" id="btn-settings-enable-2fa" onclick="handleInitiate2FA()"
-                style="width: 100%; padding: 13px 20px; border-radius: 100px; background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%); border: none; color: #ffffff; font-weight: 800; font-size: 14px; cursor: pointer; box-shadow: 0 4px 14px rgba(37,99,235,0.35); transition: transform 0.15s ease;"
-                onpointerdown="this.style.transform='scale(0.97)'" onpointerup="this.style.transform='scale(1)'">
-                <i class="fa-solid fa-lock" style="margin-right: 6px;"></i> Enable 2FA Security
-            </button>
-        </div>
-
-        <!-- View 3: Awaiting OTP Verification -->
-        <div id="2fa-view-verify" style="display: none;">
-            <p style="font-size: 13px; color: #64748b; line-height: 1.5; margin: 0 0 14px 0;">
-                Enter the 6-digit verification code sent to your email to confirm activation.
-            </p>
-            <div
-                style="background: #f0f9ff; border: 1.5px solid #bae6fd; border-radius: 14px; padding: 10px 14px; margin-bottom: 16px; font-size: 12px; color: #0284c7; font-weight: 700; text-align: left; display: flex; align-items: center; gap: 8px;">
-                <i class="fa-solid fa-paper-plane"></i>
-                <span id="settings-2fa-verify-msg">A 6-digit code has been sent to your email.</span>
-            </div>
-            <form onsubmit="handleVerify2FA(event)">
-                <div id="settings-2fa-boxes" style="display: flex; justify-content: center; gap: 8px; margin-bottom: 16px;">
-                    <input type="text" class="settings-2fa-otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code" oninput="handleSettings2FAOtpInput(this, 0)" onkeydown="handleSettings2FAOtpKeydown(this, event, 0)" onpaste="handleSettings2FAOtpPaste(event)" onfocus="this.style.borderColor='#0284c7'" onblur="this.style.borderColor='#cbd5e1'" style="width: 44px; height: 50px; text-align: center; font-size: 22px; font-weight: 800; border-radius: 12px; border: 1.5px solid #cbd5e1; background: #f8fafc; color: #0f172a; outline: none; transition: all 0.2s;">
-                    <input type="text" class="settings-2fa-otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" oninput="handleSettings2FAOtpInput(this, 1)" onkeydown="handleSettings2FAOtpKeydown(this, event, 1)" onpaste="handleSettings2FAOtpPaste(event)" onfocus="this.style.borderColor='#0284c7'" onblur="this.style.borderColor='#cbd5e1'" style="width: 44px; height: 50px; text-align: center; font-size: 22px; font-weight: 800; border-radius: 12px; border: 1.5px solid #cbd5e1; background: #f8fafc; color: #0f172a; outline: none; transition: all 0.2s;">
-                    <input type="text" class="settings-2fa-otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" oninput="handleSettings2FAOtpInput(this, 2)" onkeydown="handleSettings2FAOtpKeydown(this, event, 2)" onpaste="handleSettings2FAOtpPaste(event)" onfocus="this.style.borderColor='#0284c7'" onblur="this.style.borderColor='#cbd5e1'" style="width: 44px; height: 50px; text-align: center; font-size: 22px; font-weight: 800; border-radius: 12px; border: 1.5px solid #cbd5e1; background: #f8fafc; color: #0f172a; outline: none; transition: all 0.2s;">
-                    <input type="text" class="settings-2fa-otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" oninput="handleSettings2FAOtpInput(this, 3)" onkeydown="handleSettings2FAOtpKeydown(this, event, 3)" onpaste="handleSettings2FAOtpPaste(event)" onfocus="this.style.borderColor='#0284c7'" onblur="this.style.borderColor='#cbd5e1'" style="width: 44px; height: 50px; text-align: center; font-size: 22px; font-weight: 800; border-radius: 12px; border: 1.5px solid #cbd5e1; background: #f8fafc; color: #0f172a; outline: none; transition: all 0.2s;">
-                    <input type="text" class="settings-2fa-otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" oninput="handleSettings2FAOtpInput(this, 4)" onkeydown="handleSettings2FAOtpKeydown(this, event, 4)" onpaste="handleSettings2FAOtpPaste(event)" onfocus="this.style.borderColor='#0284c7'" onblur="this.style.borderColor='#cbd5e1'" style="width: 44px; height: 50px; text-align: center; font-size: 22px; font-weight: 800; border-radius: 12px; border: 1.5px solid #cbd5e1; background: #f8fafc; color: #0f172a; outline: none; transition: all 0.2s;">
-                    <input type="text" class="settings-2fa-otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" oninput="handleSettings2FAOtpInput(this, 5)" onkeydown="handleSettings2FAOtpKeydown(this, event, 5)" onpaste="handleSettings2FAOtpPaste(event)" onfocus="this.style.borderColor='#0284c7'" onblur="this.style.borderColor='#cbd5e1'" style="width: 44px; height: 50px; text-align: center; font-size: 22px; font-weight: 800; border-radius: 12px; border: 1.5px solid #cbd5e1; background: #f8fafc; color: #0f172a; outline: none; transition: all 0.2s;">
-                </div>
-                <div style="margin-bottom: 16px; font-size: 12px; color: #64748b; font-weight: 600;">
-                    Didn't get code? 
-                    <span id="settings-2fa-resend-btn" onclick="handleInitiate2FA()" style="color: #0284c7; font-weight: 800; cursor: pointer; text-decoration: underline;">Resend</span>
-                    <span id="settings-2fa-timer" style="display: none; color: #94a3b8; font-weight: 700;"></span>
-                </div>
-                <button type="submit" id="btn-settings-verify-2fa"
-                    style="width: 100%; padding: 13px 20px; border-radius: 100px; background: linear-gradient(135deg, #16a34a 0%, #15803d 100%); border: none; color: #ffffff; font-weight: 800; font-size: 14px; cursor: pointer; box-shadow: 0 4px 14px rgba(22,163,74,0.35); display: flex; align-items: center; justify-content: center; gap: 8px; transition: transform 0.15s ease;"
-                    onpointerdown="this.style.transform='scale(0.97)'" onpointerup="this.style.transform='scale(1)'">
-                    <i class="fa-solid fa-circle-check"></i> Verify &amp; Activate 2FA
+        <!-- Locked Bottom Footer Banner (Royal Blue) for Action Buttons -->
+        <div id="two-factor-modal-footer"
+            style="background: linear-gradient(180deg, #1e3a8a 0%, #193375 100%) !important; flex-shrink: 0; padding: 14px 18px; border: none !important; outline: none !important; display: flex; flex-direction: column; gap: 8px; box-sizing: border-box;">
+            
+            <!-- Footer Action 1: When 2FA is Disabled (Enable 2FA Security Button) -->
+            <div id="2fa-footer-disabled" style="display: block;">
+                <button type="button" id="btn-settings-enable-2fa" onclick="handleInitiate2FA()"
+                    style="width: 100%; padding: 13px 20px; border: none !important; outline: none !important; border-radius: 100px; background: #ffffff !important; color: #1e3a8a !important; font-size: 14px; font-weight: 900; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18) !important; transition: transform 0.15s ease;"
+                    onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
+                    <i class="fa-solid fa-lock" style="color: #1e3a8a !important;"></i> Enable 2FA Security
                 </button>
-            </form>
+            </div>
+
+            <!-- Footer Action 2: When 2FA is Awaiting Verification (Verify & Activate 2FA Button) -->
+            <div id="2fa-footer-verify" style="display: none;">
+                <button type="button" id="btn-settings-verify-2fa" onclick="handleVerify2FA(event)"
+                    style="width: 100%; padding: 13px 20px; border: none !important; outline: none !important; border-radius: 100px; background: #ffffff !important; color: #16a34a !important; font-size: 14px; font-weight: 900; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18) !important; transition: transform 0.15s ease;"
+                    onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
+                    <i class="fa-solid fa-circle-check" style="color: #16a34a !important;"></i> Verify &amp; Activate 2FA
+                </button>
+            </div>
+
+            <!-- Footer Action 3: When 2FA is Active (Disable 2FA Security Button) -->
+            <div id="2fa-footer-active" style="display: none;">
+                <button type="button" onclick="handleDisable2FA()"
+                    style="width: 100%; padding: 12px 18px; border: 1.5px solid #fecdd3 !important; outline: none !important; border-radius: 100px; background: #fff1f2 !important; color: #e11d48 !important; font-size: 13.5px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important; transition: transform 0.15s ease;"
+                    onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
+                    <i class="fa-solid fa-shield-xmark" style="color: #e11d48 !important;"></i> Disable 2FA Security
+                </button>
+            </div>
         </div>
 
     </div>
@@ -324,6 +357,10 @@ $backRoute = 'dashboard';
         };
 
         window.open2FAModal = function () {
+            const isVerifying = document.getElementById('2fa-view-verify') && document.getElementById('2fa-view-verify').style.display === 'block';
+            if (!isVerifying) {
+                update2FAState(is2FAActive);
+            }
             document.getElementById('two-factor-modal').classList.add('active');
         };
         window.close2FAModal = function () {
@@ -401,6 +438,13 @@ $backRoute = 'dashboard';
                 document.getElementById('2fa-view-active').style.display = 'none';
                 document.getElementById('2fa-view-verify').style.display = 'block';
 
+                const fDisabled = document.getElementById('2fa-footer-disabled');
+                const fActive = document.getElementById('2fa-footer-active');
+                const fVerify = document.getElementById('2fa-footer-verify');
+                if (fDisabled) fDisabled.style.display = 'none';
+                if (fActive) fActive.style.display = 'none';
+                if (fVerify) fVerify.style.display = 'block';
+
                 const msgEl = document.getElementById('settings-2fa-verify-msg');
                 if (msgEl && data.email) {
                     msgEl.textContent = `A 6-digit code has been sent to ${data.email}.`;
@@ -438,7 +482,7 @@ $backRoute = 'dashboard';
                 if (resendBtn) resendBtn.style.pointerEvents = 'auto';
             } finally {
                 if (btn) {
-                    btn.innerHTML = '<i class="fa-solid fa-lock" style="margin-right: 6px;"></i> Enable 2FA Security';
+                    btn.innerHTML = '<i class="fa-solid fa-lock" style="color: #1e3a8a !important; margin-right: 6px;"></i> Enable 2FA Security';
                     btn.disabled = false;
                 }
             }
@@ -501,7 +545,7 @@ $backRoute = 'dashboard';
                 if (boxes[0]) boxes[0].focus();
             } finally {
                 if (btn) {
-                    btn.innerHTML = '<i class="fa-solid fa-circle-check"></i> Verify &amp; Activate 2FA';
+                    btn.innerHTML = '<i class="fa-solid fa-circle-check" style="color: #16a34a !important; margin-right: 6px;"></i> Verify &amp; Activate 2FA';
                     btn.disabled = false;
                 }
             }
@@ -564,6 +608,20 @@ $backRoute = 'dashboard';
                 } else {
                     viewActive.style.display = 'none';
                     viewDisabled.style.display = 'block';
+                }
+            }
+
+            const fActive = document.getElementById('2fa-footer-active');
+            const fDisabled = document.getElementById('2fa-footer-disabled');
+            const fVerify = document.getElementById('2fa-footer-verify');
+            if (fVerify) fVerify.style.display = 'none';
+            if (fActive && fDisabled) {
+                if (isActive) {
+                    fActive.style.display = 'block';
+                    fDisabled.style.display = 'none';
+                } else {
+                    fActive.style.display = 'none';
+                    fDisabled.style.display = 'block';
                 }
             }
         }

@@ -447,45 +447,66 @@
 
 <!-- Two-Factor Authentication Login Verification Modal -->
 <div id="auth-login-2fa-modal" class="auth-2fa-overlay" style="display: none;" onclick="if(event.target===this) closeAuthLogin2FAModal();">
-    <div class="auth-2fa-card" style="background: #ffffff !important; border: 1.5px solid #e2e8f0 !important; color: #0f172a !important; border-radius: 26px; padding: 28px 22px 24px 22px; max-width: 380px; width: 90%; text-align: center; box-shadow: 0 20px 50px rgba(15, 23, 42, 0.45); box-sizing: border-box;">
-        <button type="button" class="auth-2fa-close" onclick="closeAuthLogin2FAModal()" style="background: #f1f5f9 !important; color: #475569 !important; border: 1px solid #cbd5e1 !important; box-shadow: none !important;">
-            <i class="fa-solid fa-xmark"></i>
-        </button>
-
-        <div class="auth-2fa-icon-ring" style="background: #eff6ff !important; color: #1e3a8a !important; border: none !important; box-shadow: 0 4px 14px rgba(30, 58, 138, 0.15) !important;">
-            <i class="fa-solid fa-shield-halved" style="color: #1e3a8a !important; font-size: 28px;"></i>
+    <div class="auth-2fa-card"
+        style="background: #ffffff !important; border: none !important; outline: none !important; color: #0f172a !important; border-radius: 24px; padding: 0 !important; max-width: 385px; width: 92%; max-height: 88vh; display: flex; flex-direction: column; overflow: hidden; text-align: center; box-shadow: 0 20px 50px rgba(15, 23, 42, 0.45); box-sizing: border-box; position: relative;">
+        
+        <!-- Modal Top Header Banner (Royal Blue) with Exit Button on Right -->
+        <div style="background: linear-gradient(180deg, #1e3a8a 0%, #193375 100%) !important; padding: 14px 18px; flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; border: none !important; outline: none !important;">
+            <div style="text-align: left;">
+                <h4 style="margin: 0; font-size: 16px; font-weight: 800; color: #ffffff; display: flex; align-items: center; gap: 8px; letter-spacing: -0.2px;">
+                    <i class="fa-solid fa-shield-halved" style="color: #00f2fe; font-size: 15px;"></i> Two-Factor Verification
+                </h4>
+                <p style="margin: 2px 0 0 0; font-size: 11px; color: rgba(255, 255, 255, 0.85); font-weight: 600;">
+                    Account Security Check
+                </p>
+            </div>
+            <button type="button" onclick="closeAuthLogin2FAModal()" aria-label="Close"
+                style="background: #ffffff !important; border: none !important; outline: none !important; color: #1e3a8a !important; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18) !important; flex-shrink: 0; margin-left: 12px; transition: transform 0.15s ease;"
+                onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">
+                <i class="fa-solid fa-xmark" style="color: #1e3a8a !important; font-size: 14px;"></i>
+            </button>
         </div>
 
-        <h3 class="auth-2fa-title" style="color: #0f172a !important; text-shadow: none !important; font-size: 20px; font-weight: 800; margin-bottom: 6px;">Two-Factor Verification</h3>
+        <!-- Middle Body Area (Pure White Background) -->
+        <div class="hide-scrollbar" style="background: #ffffff !important; flex: 1; min-height: 0; overflow-y: auto; padding: 22px 20px 18px 20px; text-align: center; color: #0f172a !important; box-sizing: border-box;">
+            <div class="auth-2fa-icon-ring"
+                style="width: 64px; height: 64px; border-radius: 50%; background: #eff6ff !important; color: #1e3a8a !important; border: 1.5px solid #dbeafe !important; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px auto; box-shadow: 0 4px 14px rgba(30, 58, 138, 0.12) !important;">
+                <i class="fa-solid fa-shield-halved" style="color: #1e3a8a !important; font-size: 28px;"></i>
+            </div>
 
-        <p class="auth-2fa-desc" style="color: #64748b !important; font-size: 13px; margin-bottom: 16px; line-height: 1.5;">
-            Enter the 6-digit security code sent to:<br>
-            <strong id="auth-2fa-target-email" style="color: #0284c7; font-size: 13.5px; font-weight: 800;">your email</strong>
-        </p>
+            <h3 class="auth-2fa-title" style="color: #0f172a !important; text-shadow: none !important; font-size: 18px; font-weight: 800; margin: 0 0 6px 0; letter-spacing: -0.3px;">Security Code Required</h3>
 
-        <!-- 6 Segmented Digit Input Boxes -->
-        <div id="auth-login-2fa-boxes" style="display: flex; justify-content: center; gap: 8px; margin-bottom: 18px;">
-            <input type="text" class="auth-login-2fa-otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code" oninput="handleLogin2FAOtpInput(this, 0)" onkeydown="handleLogin2FAOtpKeydown(this, event, 0)" onpaste="handleLogin2FAOtpPaste(event)" onfocus="this.style.borderColor='#0284c7'" onblur="this.style.borderColor='#cbd5e1'" style="width: 44px; height: 50px; text-align: center; font-size: 22px; font-weight: 800; border-radius: 12px; border: 1.5px solid #cbd5e1; background: #f8fafc; color: #0f172a; outline: none; transition: all 0.2s;">
-            <input type="text" class="auth-login-2fa-otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" oninput="handleLogin2FAOtpInput(this, 1)" onkeydown="handleLogin2FAOtpKeydown(this, event, 1)" onpaste="handleLogin2FAOtpPaste(event)" onfocus="this.style.borderColor='#0284c7'" onblur="this.style.borderColor='#cbd5e1'" style="width: 44px; height: 50px; text-align: center; font-size: 22px; font-weight: 800; border-radius: 12px; border: 1.5px solid #cbd5e1; background: #f8fafc; color: #0f172a; outline: none; transition: all 0.2s;">
-            <input type="text" class="auth-login-2fa-otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" oninput="handleLogin2FAOtpInput(this, 2)" onkeydown="handleLogin2FAOtpKeydown(this, event, 2)" onpaste="handleLogin2FAOtpPaste(event)" onfocus="this.style.borderColor='#0284c7'" onblur="this.style.borderColor='#cbd5e1'" style="width: 44px; height: 50px; text-align: center; font-size: 22px; font-weight: 800; border-radius: 12px; border: 1.5px solid #cbd5e1; background: #f8fafc; color: #0f172a; outline: none; transition: all 0.2s;">
-            <input type="text" class="auth-login-2fa-otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" oninput="handleLogin2FAOtpInput(this, 3)" onkeydown="handleLogin2FAOtpKeydown(this, event, 3)" onpaste="handleLogin2FAOtpPaste(event)" onfocus="this.style.borderColor='#0284c7'" onblur="this.style.borderColor='#cbd5e1'" style="width: 44px; height: 50px; text-align: center; font-size: 22px; font-weight: 800; border-radius: 12px; border: 1.5px solid #cbd5e1; background: #f8fafc; color: #0f172a; outline: none; transition: all 0.2s;">
-            <input type="text" class="auth-login-2fa-otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" oninput="handleLogin2FAOtpInput(this, 4)" onkeydown="handleLogin2FAOtpKeydown(this, event, 4)" onpaste="handleLogin2FAOtpPaste(event)" onfocus="this.style.borderColor='#0284c7'" onblur="this.style.borderColor='#cbd5e1'" style="width: 44px; height: 50px; text-align: center; font-size: 22px; font-weight: 800; border-radius: 12px; border: 1.5px solid #cbd5e1; background: #f8fafc; color: #0f172a; outline: none; transition: all 0.2s;">
-            <input type="text" class="auth-login-2fa-otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" oninput="handleLogin2FAOtpInput(this, 5)" onkeydown="handleLogin2FAOtpKeydown(this, event, 5)" onpaste="handleLogin2FAOtpPaste(event)" onfocus="this.style.borderColor='#0284c7'" onblur="this.style.borderColor='#cbd5e1'" style="width: 44px; height: 50px; text-align: center; font-size: 22px; font-weight: 800; border-radius: 12px; border: 1.5px solid #cbd5e1; background: #f8fafc; color: #0f172a; outline: none; transition: all 0.2s;">
+            <p class="auth-2fa-desc" style="color: #64748b !important; font-size: 13px; margin-bottom: 16px; line-height: 1.5;">
+                Enter the 6-digit security code sent to:<br>
+                <strong id="auth-2fa-target-email" style="color: #0284c7; font-size: 13.5px; font-weight: 800;">your email</strong>
+            </p>
+
+            <!-- 6 Segmented Digit Input Boxes -->
+            <div id="auth-login-2fa-boxes" style="display: flex; justify-content: center; gap: 8px; margin-bottom: 16px;">
+                <input type="text" class="auth-login-2fa-otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code" oninput="handleLogin2FAOtpInput(this, 0)" onkeydown="handleLogin2FAOtpKeydown(this, event, 0)" onpaste="handleLogin2FAOtpPaste(event)" onfocus="this.style.borderColor='#0284c7'" onblur="this.style.borderColor='#cbd5e1'" style="width: 44px; height: 50px; text-align: center; font-size: 22px; font-weight: 800; border-radius: 12px; border: 1.5px solid #cbd5e1; background: #f8fafc; color: #0f172a; outline: none; transition: all 0.2s;">
+                <input type="text" class="auth-login-2fa-otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" oninput="handleLogin2FAOtpInput(this, 1)" onkeydown="handleLogin2FAOtpKeydown(this, event, 1)" onpaste="handleLogin2FAOtpPaste(event)" onfocus="this.style.borderColor='#0284c7'" onblur="this.style.borderColor='#cbd5e1'" style="width: 44px; height: 50px; text-align: center; font-size: 22px; font-weight: 800; border-radius: 12px; border: 1.5px solid #cbd5e1; background: #f8fafc; color: #0f172a; outline: none; transition: all 0.2s;">
+                <input type="text" class="auth-login-2fa-otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" oninput="handleLogin2FAOtpInput(this, 2)" onkeydown="handleLogin2FAOtpKeydown(this, event, 2)" onpaste="handleLogin2FAOtpPaste(event)" onfocus="this.style.borderColor='#0284c7'" onblur="this.style.borderColor='#cbd5e1'" style="width: 44px; height: 50px; text-align: center; font-size: 22px; font-weight: 800; border-radius: 12px; border: 1.5px solid #cbd5e1; background: #f8fafc; color: #0f172a; outline: none; transition: all 0.2s;">
+                <input type="text" class="auth-login-2fa-otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" oninput="handleLogin2FAOtpInput(this, 3)" onkeydown="handleLogin2FAOtpKeydown(this, event, 3)" onpaste="handleLogin2FAOtpPaste(event)" onfocus="this.style.borderColor='#0284c7'" onblur="this.style.borderColor='#cbd5e1'" style="width: 44px; height: 50px; text-align: center; font-size: 22px; font-weight: 800; border-radius: 12px; border: 1.5px solid #cbd5e1; background: #f8fafc; color: #0f172a; outline: none; transition: all 0.2s;">
+                <input type="text" class="auth-login-2fa-otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" oninput="handleLogin2FAOtpInput(this, 4)" onkeydown="handleLogin2FAOtpKeydown(this, event, 4)" onpaste="handleLogin2FAOtpPaste(event)" onfocus="this.style.borderColor='#0284c7'" onblur="this.style.borderColor='#cbd5e1'" style="width: 44px; height: 50px; text-align: center; font-size: 22px; font-weight: 800; border-radius: 12px; border: 1.5px solid #cbd5e1; background: #f8fafc; color: #0f172a; outline: none; transition: all 0.2s;">
+                <input type="text" class="auth-login-2fa-otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" oninput="handleLogin2FAOtpInput(this, 5)" onkeydown="handleLogin2FAOtpKeydown(this, event, 5)" onpaste="handleLogin2FAOtpPaste(event)" onfocus="this.style.borderColor='#0284c7'" onblur="this.style.borderColor='#cbd5e1'" style="width: 44px; height: 50px; text-align: center; font-size: 22px; font-weight: 800; border-radius: 12px; border: 1.5px solid #cbd5e1; background: #f8fafc; color: #0f172a; outline: none; transition: all 0.2s;">
+            </div>
+
+            <div style="margin-bottom: 6px; font-size: 12px; color: #64748b; font-weight: 600;">
+                Didn't receive the code? 
+                <span id="auth-2fa-resend-btn" onclick="resendLogin2FACode()" style="color: #0284c7; font-weight: 800; cursor: pointer; text-decoration: underline;">Resend Code</span>
+                <span id="auth-2fa-timer" style="display: none; color: #94a3b8; font-weight: 700;"></span>
+            </div>
         </div>
 
-        <div style="margin-bottom: 18px; font-size: 12px; color: #64748b; font-weight: 600;">
-            Didn't receive the code? 
-            <span id="auth-2fa-resend-btn" onclick="resendLogin2FACode()" style="color: #0284c7; font-weight: 800; cursor: pointer; text-decoration: underline;">Resend Code</span>
-            <span id="auth-2fa-timer" style="display: none; color: #94a3b8; font-weight: 700;"></span>
+        <!-- Locked Bottom Footer Banner (Royal Blue) for Verify Action -->
+        <div id="auth-login-2fa-footer"
+            style="background: linear-gradient(180deg, #1e3a8a 0%, #193375 100%) !important; flex-shrink: 0; padding: 14px 18px; border: none !important; outline: none !important; display: flex; flex-direction: column; gap: 8px; box-sizing: border-box;">
+            <button type="button" id="btn-submit-login-2fa" onclick="submitLogin2FA()"
+                style="width: 100%; padding: 13px 20px; border: none !important; outline: none !important; border-radius: 100px; background: #ffffff !important; color: #1e3a8a !important; font-size: 14px; font-weight: 900; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18) !important; transition: transform 0.15s ease;"
+                onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
+                <i class="fa-solid fa-lock-open" style="color: #1e3a8a !important;"></i> Verify &amp; Log In
+            </button>
         </div>
-
-        <button type="button" id="btn-submit-login-2fa" onclick="submitLogin2FA()" class="auth-2fa-btn-primary" style="background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%) !important; color: #ffffff !important; border: none !important; width: 100%; padding: 13px 20px; border-radius: 100px; font-size: 14px; font-weight: 800; cursor: pointer; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35); display: flex; align-items: center; justify-content: center; gap: 8px; transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.97)'" onpointerup="this.style.transform='scale(1)'">
-            <i class="fa-solid fa-lock-open"></i> Verify &amp; Log In
-        </button>
-
-        <button type="button" onclick="closeAuthLogin2FAModal()" style="margin-top: 10px; background: transparent; border: none; color: #64748b; font-size: 13px; font-weight: 700; cursor: pointer; padding: 6px 12px;">
-            Cancel &amp; Return
-        </button>
     </div>
 </div>
 
@@ -971,6 +992,10 @@
                 } catch (e) { }
             }
 
+            if (typeof window.seedUserVouchersAndPoints === 'function') {
+                window.seedUserVouchersAndPoints(data.token, data.user, data.vouchers);
+            }
+
             window.showLoginSuccessModal(data.user);
         } catch (error) {
             console.error('2FA Verification Error:', error);
@@ -987,7 +1012,7 @@
             if (boxes[0]) boxes[0].focus();
         } finally {
             if (btn) {
-                btn.innerHTML = '<i class="fa-solid fa-lock-open"></i> Verify &amp; Log In';
+                btn.innerHTML = '<i class="fa-solid fa-lock-open" style="color: #1e3a8a !important;"></i> Verify &amp; Log In';
                 btn.disabled = false;
             }
         }
@@ -1352,6 +1377,65 @@
         window.dashboardNeedsRefresh = true;
     };
 
+    window.seedUserVouchersAndPoints = function (token, user, vouchers) {
+        if (!token) return;
+        try {
+            const ptsCacheKey = 'points_balance_' + token.substring(0, 10);
+            const userVouchers = Array.isArray(vouchers) ? vouchers : [];
+            const userPoints = (user && (user.points !== undefined ? user.points : user.xp)) || 0;
+            const voucherPayload = {
+                status: 'success',
+                points: userPoints,
+                xp: (user && user.xp) || 0,
+                level: (user && user.level) || 1,
+                user_id: user ? (user.id || user.user_id) : null,
+                vouchers: userVouchers
+            };
+            localStorage.setItem(ptsCacheKey, JSON.stringify(voucherPayload));
+
+            // Populate in-memory globals
+            window._userPointsBalance = userPoints;
+            window._touristRedemptions = userVouchers;
+
+            const activeVouchers = [];
+            const historyVouchers = [];
+            userVouchers.forEach(v => {
+                const st = (v.status || '').toLowerCase().trim();
+                const isRedeemed = ['redeemed', 'used', 'completed'].includes(st);
+                let isExpired = st === 'expired';
+                if (!isExpired && v.expires_at && (v.expiration_type === 'date' || v.expiration_type === 'fixed_date')) {
+                    const expDate = new Date(String(v.expires_at).replace(' ', 'T'));
+                    if (!isNaN(expDate.getTime()) && expDate < new Date()) {
+                        isExpired = true;
+                    }
+                }
+                if (isRedeemed || isExpired) {
+                    historyVouchers.push(v);
+                } else {
+                    activeVouchers.push(v);
+                }
+            });
+            window._cachedActiveVouchers = activeVouchers;
+            window._cachedHistoryVouchers = historyVouchers;
+
+            // Seed scoped claimed vouchers for discount & profile matching
+            const uid = String(user ? (user.id || user.user_id) : 'guest');
+            const claimedSet = new Set();
+            userVouchers.forEach(v => {
+                if (v.voucher_id) {
+                    claimedSet.add(String(v.voucher_id));
+                    claimedSet.add('db_' + v.voucher_id);
+                }
+                if (v.id) claimedSet.add(String(v.id));
+                const c = v.voucher_code || v.code || v.redemption_code;
+                if (c) claimedSet.add(String(c).toUpperCase().trim());
+            });
+            localStorage.setItem('intan_elyu_claimed_vouchers_' + uid, JSON.stringify(Array.from(claimedSet)));
+        } catch (e) {
+            console.warn('seedUserVouchersAndPoints error:', e);
+        }
+    };
+
     window.handleLogin = async function (e) {
         e.preventDefault();
         if (window._isLoggingIn) return;
@@ -1458,6 +1542,10 @@
                     window.AppStorage.setItem('auth_user', data.user);
                     window.AppStorage.setItem('intan_elyu_token', data.token);
                 } catch (e) { }
+            }
+
+            if (typeof window.seedUserVouchersAndPoints === 'function') {
+                window.seedUserVouchersAndPoints(data.token, data.user, data.vouchers);
             }
 
             showLoginSuccessModal(data.user);
@@ -2120,6 +2208,10 @@
                     } catch (e) { }
                 }
 
+                if (typeof window.seedUserVouchersAndPoints === 'function') {
+                    window.seedUserVouchersAndPoints(data.token, data.user, data.vouchers);
+                }
+
                 showLoginSuccessModal(data.user);
             } catch (error) {
                 console.error('2FA Login Verification Error:', error);
@@ -2163,6 +2255,10 @@
                     window.AppStorage.setItem('auth_user', data.user);
                     window.AppStorage.setItem('intan_elyu_token', data.token);
                 } catch (e) { }
+            }
+
+            if (typeof window.seedUserVouchersAndPoints === 'function') {
+                window.seedUserVouchersAndPoints(data.token, data.user, data.vouchers);
             }
 
             showLoginSuccessModal(data.user);
@@ -2724,6 +2820,10 @@
                 sessionStorage.removeItem('intan_elyu_google_oauth_pending');
                 sessionStorage.removeItem('elyu_show_offline_bypass_notice');
             } catch (e) { }
+
+            if (typeof window.seedUserVouchersAndPoints === 'function') {
+                window.seedUserVouchersAndPoints(data.token, data.user, data.vouchers);
+            }
 
             showLoginSuccessModal(data.user);
         } catch (error) {

@@ -48,94 +48,7 @@ class PointsController extends Controller
             $history = collect();
         }
 
-        $vouchers = collect();
-        try {
-            $pointRedemptions = collect();
-            if (\Illuminate\Support\Facades\Schema::hasTable('point_redemptions')) {
-                $pointRedemptions = PointRedemption::where('user_id', $user->id)->latest()->get();
-            }
-
-            $voucherRedemptions = collect();
-            if (\Illuminate\Support\Facades\Schema::hasTable('voucher_redemptions')) {
-                $rawRedemptions = \Illuminate\Support\Facades\DB::table('voucher_redemptions')
-                    ->leftJoin('vouchers', 'voucher_redemptions.voucher_id', '=', 'vouchers.id')
-                    ->where('voucher_redemptions.user_id', $user->id)
-                    ->select(
-                        'voucher_redemptions.id',
-                        'voucher_redemptions.voucher_id',
-                        \Illuminate\Support\Facades\DB::raw('COALESCE(vouchers.voucher_name, voucher_redemptions.reward_name_snapshot, "Voucher") as type'),
-                        'voucher_redemptions.points_used as points_cost',
-                        'voucher_redemptions.redemption_code as voucher_code',
-                        'voucher_redemptions.status',
-                        'voucher_redemptions.redeemed_at',
-                        'voucher_redemptions.created_at',
-                        'vouchers.partner_establishment',
-                        'vouchers.description',
-                        'vouchers.discount_value',
-                        'vouchers.discount_type',
-                        'vouchers.image',
-                        'vouchers.terms_and_conditions',
-                        'vouchers.expires_at',
-                        'vouchers.expiration_type'
-                    )
-                    ->latest('voucher_redemptions.created_at')
-                    ->get();
-
-                $voucherRedemptions = $rawRedemptions->map(function ($r) {
-                    $category = 'Food & Dining';
-                    $text = strtolower(($r->type ?? '') . ' ' . ($r->partner_establishment ?? '') . ' ' . ($r->description ?? '') . ' ' . ($r->terms_and_conditions ?? ''));
-                    if (str_contains($text, 'surf') || str_contains($text, 'activity') || str_contains($text, 'tour') || str_contains($text, 'hike') || str_contains($text, 'rental') || str_contains($text, 'lesson')) {
-                        $category = 'Activities';
-                    } elseif (str_contains($text, 'hotel') || str_contains($text, 'resort') || str_contains($text, 'stay') || str_contains($text, 'room') || str_contains($text, 'inn') || str_contains($text, 'villa')) {
-                        $category = 'Accommodations';
-                    } elseif (str_contains($text, 'pasalubong') || str_contains($text, 'souvenir') || str_contains($text, 'native') || str_contains($text, 'wine') || str_contains($text, 'craft') || str_contains($text, 'pass')) {
-                        $category = 'Souvenirs';
-                    }
-                    $r->category = $category;
-                    return $r;
-                });
-            }
-
-            // Merge both collections so no user vouchers are dropped
-            $merged = collect($voucherRedemptions);
-            $seenCodes = $voucherRedemptions->pluck('voucher_code')->filter()->map(fn($c) => strtoupper(trim($c)))->all();
-
-            foreach ($pointRedemptions as $pr) {
-                $code = strtoupper(trim($pr->voucher_code ?? ''));
-                if ($code && in_array($code, $seenCodes)) {
-                    continue;
-                }
-                $type = $pr->type ?? 'Voucher';
-                $category = 'Souvenirs';
-                if ($type === 'environmental_fee') {
-                    $category = 'Activities';
-                }
-                $merged->push((object) [
-                    'id' => $pr->id,
-                    'voucher_id' => null,
-                    'type' => $type,
-                    'points_cost' => (int) ($pr->points_cost ?? 0),
-                    'voucher_code' => $pr->voucher_code,
-                    'status' => $pr->status ?? 'active',
-                    'redeemed_at' => null,
-                    'created_at' => $pr->created_at ? $pr->created_at->toIso8601String() : now()->toIso8601String(),
-                    'partner_establishment' => 'LUPTO Eco Tourism',
-                    'description' => $type === 'pasalubong_discount' ? '₱50 Pasalubong Discount' : ($type === 'environmental_fee' ? 'Waived Environmental Fee' : 'Tourist Voucher'),
-                    'discount_value' => '50.00',
-                    'discount_type' => 'fixed',
-                    'image' => null,
-                    'terms_and_conditions' => null,
-                    'expires_at' => null,
-                    'expiration_type' => 'until_unusable',
-                    'category' => $category
-                ]);
-            }
-
-            $vouchers = $merged->sortByDesc('created_at')->values();
-        } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::warning('PointsController getBalance vouchers error: ' . $e->getMessage());
-            $vouchers = collect();
-        }
+        $vouchers = self::getUserVouchers($user->id);
 
         $level = (int) floor(max(0, $userXp) / 1000) + 1;
 
@@ -465,4 +378,105 @@ class PointsController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Get all active and redeemed vouchers for a given user.
+     * Reusable across PointsController, LoginController, etc.
+     */
+    public static function getUserVouchers($userId)
+    {
+        $vouchers = collect();
+        if (!$userId) {
+            return $vouchers;
+        }
+
+        try {
+            $pointRedemptions = collect();
+            if (\Illuminate\Support\Facades\Schema::hasTable('point_redemptions')) {
+                $pointRedemptions = PointRedemption::where('user_id', $userId)->latest()->get();
+            }
+
+            $voucherRedemptions = collect();
+            if (\Illuminate\Support\Facades\Schema::hasTable('voucher_redemptions')) {
+                $rawRedemptions = \Illuminate\Support\Facades\DB::table('voucher_redemptions')
+                    ->leftJoin('vouchers', 'voucher_redemptions.voucher_id', '=', 'vouchers.id')
+                    ->where('voucher_redemptions.user_id', $userId)
+                    ->select(
+                        'voucher_redemptions.id',
+                        'voucher_redemptions.voucher_id',
+                        \Illuminate\Support\Facades\DB::raw('COALESCE(vouchers.voucher_name, voucher_redemptions.reward_name_snapshot, "Voucher") as type'),
+                        'voucher_redemptions.points_used as points_cost',
+                        'voucher_redemptions.redemption_code as voucher_code',
+                        'voucher_redemptions.status',
+                        'voucher_redemptions.redeemed_at',
+                        'voucher_redemptions.created_at',
+                        'vouchers.partner_establishment',
+                        'vouchers.description',
+                        'vouchers.discount_value',
+                        'vouchers.discount_type',
+                        'vouchers.image',
+                        'vouchers.terms_and_conditions',
+                        'vouchers.expires_at',
+                        'vouchers.expiration_type'
+                    )
+                    ->latest('voucher_redemptions.created_at')
+                    ->get();
+
+                $voucherRedemptions = $rawRedemptions->map(function ($r) {
+                    $category = 'Food & Dining';
+                    $text = strtolower(($r->type ?? '') . ' ' . ($r->partner_establishment ?? '') . ' ' . ($r->description ?? '') . ' ' . ($r->terms_and_conditions ?? ''));
+                    if (str_contains($text, 'surf') || str_contains($text, 'activity') || str_contains($text, 'tour') || str_contains($text, 'hike') || str_contains($text, 'rental') || str_contains($text, 'lesson')) {
+                        $category = 'Activities';
+                    } elseif (str_contains($text, 'hotel') || str_contains($text, 'resort') || str_contains($text, 'stay') || str_contains($text, 'room') || str_contains($text, 'inn') || str_contains($text, 'villa')) {
+                        $category = 'Accommodations';
+                    } elseif (str_contains($text, 'pasalubong') || str_contains($text, 'souvenir') || str_contains($text, 'native') || str_contains($text, 'wine') || str_contains($text, 'craft') || str_contains($text, 'pass')) {
+                        $category = 'Souvenirs';
+                    }
+                    $r->category = $category;
+                    return $r;
+                });
+            }
+
+            // Merge both collections so no user vouchers are dropped
+            $merged = collect($voucherRedemptions);
+            $seenCodes = $voucherRedemptions->pluck('voucher_code')->filter()->map(fn($c) => strtoupper(trim($c)))->all();
+
+            foreach ($pointRedemptions as $pr) {
+                $code = strtoupper(trim($pr->voucher_code ?? ''));
+                if ($code && in_array($code, $seenCodes)) {
+                    continue;
+                }
+                $type = $pr->type ?? 'Voucher';
+                $category = 'Souvenirs';
+                if ($type === 'environmental_fee') {
+                    $category = 'Activities';
+                }
+                $merged->push((object) [
+                    'id' => $pr->id,
+                    'voucher_id' => null,
+                    'type' => $type,
+                    'points_cost' => (int) ($pr->points_cost ?? 0),
+                    'voucher_code' => $pr->voucher_code,
+                    'status' => $pr->status ?? 'active',
+                    'redeemed_at' => null,
+                    'created_at' => $pr->created_at ? $pr->created_at->toIso8601String() : now()->toIso8601String(),
+                    'partner_establishment' => 'LUPTO Eco Tourism',
+                    'description' => $type === 'pasalubong_discount' ? '₱50 Pasalubong Discount' : ($type === 'environmental_fee' ? 'Waived Environmental Fee' : 'Tourist Voucher'),
+                    'discount_value' => '50.00',
+                    'discount_type' => 'fixed',
+                    'image' => null,
+                    'terms_and_conditions' => null,
+                    'expires_at' => null,
+                    'expiration_type' => 'until_unusable',
+                    'category' => $category
+                ]);
+            }
+
+            return $merged->sortByDesc('created_at')->values();
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('PointsController getUserVouchers error: ' . $e->getMessage());
+            return collect();
+        }
+    }
 }
+

@@ -1307,3 +1307,22 @@
     box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.18) !important;
 }
 
+/* Universal Search Input Focus Styles (Remove green/cyan outline on all devices) */
+#deals-search-input,
+#deals-search-input:focus,
+#deals-search-input:focus-visible,
+#voucher-search-input,
+#voucher-search-input:focus,
+#voucher-search-input:focus-visible,
+.merch-page-container input[type="text"]:focus,
+.merch-page-container input[type="text"]:focus-visible {
+    outline: none !important;
+    outline-width: 0 !important;
+    outline-style: none !important;
+    outline-color: transparent !important;
+    -webkit-tap-highlight-color: transparent !important;
+    box-shadow: none !important;
+    -webkit-box-shadow: none !important;
+    border-color: #1e3a8a !important;
+}
+

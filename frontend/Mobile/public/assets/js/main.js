@@ -2470,8 +2470,12 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
             { id: 'active-voucher-qr-modal', fn: window.closeActiveVoucherQrModal },
             { id: 'trip-details-modal', fn: window.closeTripDetailsModal },
             { id: 'voucher-modal', fn: window.closeVoucherModal },
+            { id: 'weather-modal', fn: window.closeWeatherModal },
             { id: 'logout-confirm-modal', fn: window.closeLogoutModal },
-            { id: 'push-notification-modal', fn: window.closePushNotificationModal }
+            { id: 'push-notification-modal', fn: window.closePushNotificationModal },
+            { id: 'game-confirm-modal', fn: window.closeGameConfirm },
+            { id: 'game-success-modal', fn: window.closeGameSuccess },
+            { id: 'game-alert-modal', fn: window.closeGameAlert }
         ];
 
         for (const item of knownModalClosers) {
@@ -3216,11 +3220,28 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
     window.closeLogoutModal = function () {
         const modal = document.getElementById('logout-confirm-modal');
         if (modal) modal.style.display = 'none';
+        document.body.classList.remove('modal-blurred', 'logout-open');
+        document.documentElement.classList.remove('modal-blurred', 'logout-open');
+        const bottomNav = document.getElementById('bottom-navigation');
+        const currentView = document.body.getAttribute('data-view') || '';
+        const noNavViews = ['splash', 'auth', 'about', 'terms', 'edit_profile', 'help', 'trip_map', 'saved_trips', 'saved_places', 'trending', 'reset-password', 'puzzles', 'discount', 'settings', 'user_manual', 'download'];
+        if (bottomNav && !noNavViews.includes(currentView) && !document.body.classList.contains('sheet-open')) {
+            bottomNav.classList.remove('nav-hidden');
+        }
     };
 
     window.showLogoutConfirmationModal = function () {
         const modal = document.getElementById('logout-confirm-modal');
         if (modal) {
+            // Port to document.body so it is never trapped by any transformed/animated container stacking context
+            if (modal.parentElement !== document.body) {
+                document.body.appendChild(modal);
+            }
+
+            // Apply modal-blurred and logout-open to blur and disable navigation bar
+            document.body.classList.add('modal-blurred', 'logout-open');
+            document.documentElement.classList.add('modal-blurred', 'logout-open');
+
             const hasPending = (function () {
                 try {
                     const c1 = JSON.parse(localStorage.getItem('intan_elyu_offline_checkins_queue') || '[]').length;
@@ -4152,22 +4173,21 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
         if (!url) return '';
         if (url.startsWith('data:') || url.startsWith('blob:')) return url;
 
-        var r2PublicBase = 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev';
         var activeBackend = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
 
-        // 1. Check for proof_xxx filename pattern -> route to Cloudflare R2 Bucket
+        // 1. Check for proof_xxx filename pattern -> route to reliable backend streaming endpoint
         var proofMatch = url.match(/(proof_[a-z0-9_]+\.(?:jpg|jpeg|png|webp|gif))/i);
         if (proofMatch && proofMatch[1]) {
-            return r2PublicBase + '/proof_images/' + proofMatch[1];
+            return activeBackend + '/api/image/proof_images/' + proofMatch[1];
         }
 
         // 2. Full HTTP URLs
         if (url.startsWith('http://') || url.startsWith('https://')) {
-            if (url.includes('localhost') || url.includes('127.0.0.1') || /192\.168\.\d+\.\d+/.test(url) || /10\.\d+\.\d+\.\d+/.test(url) || /172\.(1[6-9]|2\d|3[01])\.\d+\.\d+/.test(url)) {
+            if (url.includes('r2.dev') || url.includes('localhost') || url.includes('127.0.0.1') || /192\.168\.\d+\.\d+/.test(url) || /10\.\d+\.\d+\.\d+/.test(url) || /172\.(1[6-9]|2\d|3[01])\.\d+\.\d+/.test(url)) {
                 var clean = url.split('/').pop().replace(/[?#].*$/, '');
                 var localProofMatch = clean.match(/(proof_[a-z0-9_]+\.(?:jpg|jpeg|png|webp|gif))/i);
                 if (localProofMatch && localProofMatch[1]) {
-                    return r2PublicBase + '/proof_images/' + localProofMatch[1];
+                    return activeBackend + '/api/image/proof_images/' + localProofMatch[1];
                 }
                 return activeBackend + '/api/image/proof_images/' + clean;
             }
@@ -4178,18 +4198,18 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
         var cleanPath = url.replace(/^\/+/, '');
         if (cleanPath.startsWith('storage/proof_images/')) {
             var sFname = cleanPath.replace('storage/proof_images/', '');
-            return r2PublicBase + '/proof_images/' + sFname;
+            return activeBackend + '/api/image/proof_images/' + sFname;
         }
         if (cleanPath.startsWith('proof_images/')) {
             var pFname = cleanPath.replace('proof_images/', '');
-            return r2PublicBase + '/proof_images/' + pFname;
+            return activeBackend + '/api/image/proof_images/' + pFname;
         }
         if (cleanPath.startsWith('api/')) {
             return activeBackend + '/' + cleanPath;
         }
 
         var bareName = cleanPath.split('/').pop().replace(/[?#].*$/, '');
-        return r2PublicBase + '/proof_images/' + bareName;
+        return activeBackend + '/api/image/proof_images/' + bareName;
     };
 
     /**

@@ -78,11 +78,44 @@ $serveFileHandler = function ($file) {
         basename($cleanFile),
     ]));
 
+    // Direct binary stream from Cloudflare R2 / S3 storage disk (bypasses ISP DNS blocking of *.r2.dev)
+    try {
+        $storage = \Illuminate\Support\Facades\Storage::disk('r2');
+        foreach ($r2Paths as $r2Path) {
+            if ($storage->exists($r2Path)) {
+                $mime = $storage->mimeType($r2Path) ?: (preg_match('#\.(webp)$#i', $r2Path) ? 'image/webp' : (preg_match('#\.(png)$#i', $r2Path) ? 'image/png' : 'image/jpeg'));
+                $stream = $storage->readStream($r2Path);
+                if ($stream) {
+                    return response()->stream(function () use ($stream) {
+                        fpassthru($stream);
+                        if (is_resource($stream)) {
+                            fclose($stream);
+                        }
+                    }, 200, [
+                        'Content-Type' => $mime,
+                        'Cache-Control' => 'public, max-age=604800, immutable',
+                        'Access-Control-Allow-Origin' => '*',
+                    ]);
+                }
+            }
+        }
+    } catch (\Throwable $e) {
+        \Illuminate\Support\Facades\Log::warning("Cloudflare R2 streaming failed: " . $e->getMessage());
+    }
+
     if (in_array($disk, ['r2', 's3'])) {
         foreach ($r2Paths as $r2Path) {
             try {
                 if (\Illuminate\Support\Facades\Storage::disk($disk)->exists($r2Path)) {
-                    return redirect(\Illuminate\Support\Facades\Storage::disk($disk)->url($r2Path));
+                    $mime = \Illuminate\Support\Facades\Storage::disk($disk)->mimeType($r2Path) ?: 'image/jpeg';
+                    $content = \Illuminate\Support\Facades\Storage::disk($disk)->get($r2Path);
+                    if ($content) {
+                        return response($content, 200, [
+                            'Content-Type' => $mime,
+                            'Cache-Control' => 'public, max-age=604800, immutable',
+                            'Access-Control-Allow-Origin' => '*',
+                        ]);
+                    }
                 }
             } catch (\Throwable $e) {
             }

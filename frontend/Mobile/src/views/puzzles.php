@@ -163,7 +163,7 @@ include __DIR__ . '/../components/header.php';
         </div>
 
         <div id="memory-controls" style="display: flex; justify-content: center;">
-            <button onclick="initMemoryGame()"
+            <button onclick="promptResetMemory()"
                 style="background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline: none !important; color: #fff; padding: 10px 20px; border-radius: 14px; font-weight: 800; font-size: 13px; cursor: pointer; box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important;">
                 <i class="fa-solid fa-arrows-rotate"></i> Reset Game
             </button>
@@ -246,26 +246,34 @@ include __DIR__ . '/../components/header.php';
     </div>
 
     <!-- Confirm Modal popup -->
-    <div id="game-confirm-modal"
-        style="display: none; position: fixed; inset: 0; z-index: 10002; background: rgba(15,23,42,0.65); align-items: center; justify-content: center; padding: 24px; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);">
+    <div id="game-confirm-modal" onclick="if(event.target===this) closeGameConfirm();"
+        style="display: none; position: fixed; inset: 0; z-index: 10002; background: rgba(10, 25, 60, 0.72); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); align-items: center; justify-content: center; padding: 20px; box-sizing: border-box;">
         <div
-            style="background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline: none !important; border-radius: 24px; width: 100%; max-width: 350px; padding: 28px 20px; text-align: center; box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important; transform: scale(0.9); animation: modalEnter 0.3s forwards cubic-bezier(0.34, 1.56, 0.64, 1);">
+            style="background: #ffffff !important; border: 1.5px solid #e2e8f0; border-radius: 24px; width: 100%; max-width: 340px; padding: 26px 20px 22px 20px; text-align: center; box-shadow: 0 20px 45px rgba(0, 0, 0, 0.28); position: relative; animation: popInGameModal 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards; box-sizing: border-box;">
+            
             <div id="confirm-modal-icon-bg"
-                style="width: 64px; height: 64px; border-radius: 50%; background: #ffffff !important; border: none !important; outline: none !important; display: flex; align-items: center; justify-content: center; font-size: 26px; color: #203f8d !important; margin: 0 auto 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
-                <i id="confirm-modal-icon" class="fa-solid fa-arrows-rotate" style="color: #203f8d !important;"></i>
+                style="width: 58px; height: 58px; border-radius: 50%; background: #eff6ff !important; border: none !important; outline: none !important; display: flex; align-items: center; justify-content: center; font-size: 24px; color: #1e3a8a !important; margin: 0 auto 16px; box-shadow: 0 4px 14px rgba(30, 58, 138, 0.15);">
+                <i id="confirm-modal-icon" class="fa-solid fa-arrows-rotate" style="color: #1e3a8a !important;"></i>
             </div>
-            <h2 id="confirm-modal-title" style="margin: 0 0 10px; font-size: 20px; font-weight: 800; color: #fff;">Reset
-                Puzzle?</h2>
+            
+            <h3 id="confirm-modal-title" style="margin: 0 0 8px; font-size: 19px; font-weight: 800; color: #0f172a; line-height: 1.3;">
+                Reset Puzzle?
+            </h3>
+            
             <p id="confirm-modal-msg"
-                style="margin: 0 0 24px; font-size: 13px; color: rgba(255,255,255,0.9); line-height: 1.5;">Are you sure
-                you want to reset puzzle?</p>
-            <div style="display: flex; gap: 10px;">
-                <button onclick="closeGameConfirm()"
-                    style="flex: 1; border: none !important; outline: none !important; background: rgba(255,255,255,0.18); color: #ffffff; padding: 12px; border-radius: 12px; font-weight: 700; font-size: 13px; cursor: pointer;">
-                    Cancel
+                style="margin: 0 0 22px; font-size: 13.5px; color: #64748b; line-height: 1.5; font-weight: 500;">
+                Are you sure you want to reset puzzle?
+            </p>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <button type="button" id="confirm-modal-cancel-btn" onclick="closeGameConfirm()"
+                    style="padding: 12px 16px; border-radius: 14px; background: #f1f5f9; border: 1.5px solid #e2e8f0; color: #475569; font-size: 14px; font-weight: 800; cursor: pointer; transition: all 0.15s ease;"
+                    onpointerdown="this.style.transform='scale(0.97)'" onpointerup="this.style.transform='scale(1)'">
+                    No
                 </button>
-                <button id="confirm-modal-action-btn" onclick="executeGameConfirm()"
-                    style="flex: 1; border: none !important; outline: none !important; background: #ffffff; color: #203f8d; padding: 12px; border-radius: 12px; font-weight: 800; font-size: 13px; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.12);">
+                <button type="button" id="confirm-modal-action-btn" onclick="executeGameConfirm()"
+                    style="padding: 12px 16px; border-radius: 14px; background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%) !important; border: none; color: #ffffff !important; font-size: 14px; font-weight: 800; cursor: pointer; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35); transition: all 0.15s ease;"
+                    onpointerdown="this.style.transform='scale(0.97)'" onpointerup="this.style.transform='scale(1)'">
                     Yes, Reset
                 </button>
             </div>
@@ -273,42 +281,64 @@ include __DIR__ . '/../components/header.php';
     </div>
 
     <!-- Success Modal popup -->
-    <div id="game-success-modal"
-        style="display: none; position: fixed; inset: 0; z-index: 10000; background: rgba(15,23,42,0.65); align-items: center; justify-content: center; padding: 24px; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);">
+    <div id="game-success-modal" onclick="if(event.target===this) closeGameSuccess();"
+        style="display: none; position: fixed; inset: 0; z-index: 10000; background: rgba(10, 25, 60, 0.72); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); align-items: center; justify-content: center; padding: 20px; box-sizing: border-box;">
         <div
-            style="background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline: none !important; border-radius: 24px; width: 100%; max-width: 350px; padding: 30px 20px; text-align: center; box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important; transform: scale(0.9); animation: modalEnter 0.3s forwards cubic-bezier(0.34, 1.56, 0.64, 1);">
+            style="background: #ffffff !important; border: 1.5px solid #e2e8f0; border-radius: 24px; width: 100%; max-width: 340px; padding: 28px 20px 24px 20px; text-align: center; box-shadow: 0 20px 45px rgba(0, 0, 0, 0.28); position: relative; animation: popInGameModal 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards; box-sizing: border-box;">
+            
             <div
-                style="width: 72px; height: 72px; border-radius: 50%; background: #ffffff !important; border: none !important; outline: none !important; display: flex; align-items: center; justify-content: center; font-size: 32px; color: #16a34a !important; margin: 0 auto 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
+                style="width: 60px; height: 60px; border-radius: 50%; background: #dcfce7 !important; border: none !important; outline: none !important; display: flex; align-items: center; justify-content: center; font-size: 28px; color: #16a34a !important; margin: 0 auto 16px; box-shadow: 0 4px 14px rgba(22, 163, 74, 0.2);">
                 <i class="fa-solid fa-circle-check" style="color: #16a34a !important;"></i>
             </div>
-            <h2 style="margin: 0 0 10px; font-size: 22px; font-weight: 800; color: #fff;">Awesome Job!</h2>
+            
+            <h3 style="margin: 0 0 8px; font-size: 20px; font-weight: 800; color: #0f172a; line-height: 1.3;">Awesome Job!</h3>
+            
             <p id="success-points-msg"
-                style="margin: 0 0 24px; font-size: 14px; color: rgba(255,255,255,0.9); line-height: 1.5;">You solved
-                the game and earned Points!</p>
-            <button onclick="closeGameSuccess()"
-                style="width: 100%; border: none !important; outline: none !important; background: #ffffff; color: #203f8d; padding: 12px; border-radius: 12px; font-weight: 800; font-size: 14px; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.12);">
+                style="margin: 0 0 22px; font-size: 13.5px; color: #64748b; line-height: 1.5; font-weight: 500;">
+                You solved the game and earned Points!
+            </p>
+            
+            <button type="button" onclick="closeGameSuccess()"
+                style="width: 100%; padding: 13px 20px; border-radius: 14px; background: linear-gradient(135deg, #16a34a 0%, #15803d 100%) !important; border: none; color: #ffffff !important; font-size: 14px; font-weight: 800; cursor: pointer; box-shadow: 0 4px 14px rgba(22, 163, 74, 0.35); transition: all 0.15s ease;"
+                onpointerdown="this.style.transform='scale(0.97)'" onpointerup="this.style.transform='scale(1)'">
                 Awesome!
             </button>
         </div>
     </div>
 
-    <div id="game-alert-modal"
-        style="display: none; position: fixed; inset: 0; z-index: 10001; background: rgba(15,23,42,0.65); align-items: center; justify-content: center; padding: 24px; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);">
+    <!-- Alert Modal popup -->
+    <div id="game-alert-modal" onclick="if(event.target===this) closeGameAlert();"
+        style="display: none; position: fixed; inset: 0; z-index: 10001; background: rgba(10, 25, 60, 0.72); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); align-items: center; justify-content: center; padding: 20px; box-sizing: border-box;">
         <div
-            style="background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline: none !important; border-radius: 24px; width: 100%; max-width: 350px; padding: 30px 20px; text-align: center; box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important; transform: scale(0.9); animation: modalEnter 0.3s forwards cubic-bezier(0.34, 1.56, 0.64, 1);">
+            style="background: #ffffff !important; border: 1.5px solid #e2e8f0; border-radius: 24px; width: 100%; max-width: 340px; padding: 28px 20px 24px 20px; text-align: center; box-shadow: 0 20px 45px rgba(0, 0, 0, 0.28); position: relative; animation: popInGameModal 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards; box-sizing: border-box;">
+            
             <div
-                style="width: 72px; height: 72px; border-radius: 50%; background: #ffffff !important; border: none !important; outline: none !important; display: flex; align-items: center; justify-content: center; font-size: 32px; color: #d97706 !important; margin: 0 auto 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
+                style="width: 60px; height: 60px; border-radius: 50%; background: #fef3c7 !important; border: none !important; outline: none !important; display: flex; align-items: center; justify-content: center; font-size: 28px; color: #d97706 !important; margin: 0 auto 16px; box-shadow: 0 4px 14px rgba(217, 119, 6, 0.2);">
                 <i class="fa-solid fa-clock" style="color: #d97706 !important;"></i>
             </div>
-            <h2 style="margin: 0 0 10px; font-size: 22px; font-weight: 800; color: #fff;">Already Done!</h2>
+            
+            <h3 style="margin: 0 0 8px; font-size: 20px; font-weight: 800; color: #0f172a; line-height: 1.3;">Already Done!</h3>
+            
             <p id="alert-points-msg"
-                style="margin: 0 0 24px; font-size: 14px; color: rgba(255,255,255,0.9); line-height: 1.5;">You already
-                completed this game today!</p>
-            <button onclick="closeGameAlert()"
-                style="width: 100%; border: none !important; outline: none !important; background: #ffffff; color: #203f8d; padding: 12px; border-radius: 12px; font-weight: 800; font-size: 14px; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.12);">
+                style="margin: 0 0 22px; font-size: 13.5px; color: #64748b; line-height: 1.5; font-weight: 500;">
+                You already completed this game today!
+            </p>
+            
+            <button type="button" onclick="closeGameAlert()"
+                style="width: 100%; padding: 13px 20px; border-radius: 14px; background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%) !important; border: none; color: #ffffff !important; font-size: 14px; font-weight: 800; cursor: pointer; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35); transition: all 0.15s ease;"
+                onpointerdown="this.style.transform='scale(0.97)'" onpointerup="this.style.transform='scale(1)'">
                 Got it!
             </button>
         </div>
+    </div>
+
+    <style>
+    @keyframes popInGameModal {
+        0% { opacity: 0; transform: scale(0.92); }
+        100% { opacity: 1; transform: scale(1); }
+    }
+    </style>
+
     <!-- Guest Restriction Overlay -->
     <div id="gamezone-guest-restriction-overlay"
         style="display: none; position: fixed; inset: 0; z-index: 10000; background: rgba(15, 23, 42, 0.96) !important; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); align-items: center; justify-content: center; padding: 24px; box-sizing: border-box;">
@@ -588,7 +618,7 @@ include __DIR__ . '/../components/header.php';
                     const j = Math.floor(Math.random() * (i + 1));
                     [tiles[i], tiles[j]] = [tiles[j], tiles[i]];
                 }
-            } while (!isSolvable(tiles));
+            } while (!isSolvable(tiles) || tiles.every((v, i) => v === correctLayout[i]));
         }
 
         window._practiceModes = window._practiceModes || {};
@@ -778,10 +808,10 @@ include __DIR__ . '/../components/header.php';
                 title: 'Reset Puzzle?',
                 message: 'Are you sure you want to reset puzzle?',
                 icon: 'fa-arrows-rotate',
-                iconColor: '#38bdf8',
-                iconBg: 'rgba(56,189,248,0.15)',
+                iconColor: '#1e3a8a',
+                iconBg: '#eff6ff',
                 confirmText: 'Yes, Reset',
-                confirmBg: '#38bdf8',
+                confirmBg: 'linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%)',
                 onConfirm: resetPuzzle
             });
         }
@@ -800,11 +830,31 @@ include __DIR__ . '/../components/header.php';
                 title: 'Change Puzzle?',
                 message: 'Are you sure you want to change puzzle? A new image will be loaded.',
                 icon: 'fa-shuffle',
-                iconColor: '#38bdf8',
-                iconBg: 'rgba(56,189,248,0.15)',
+                iconColor: '#1e3a8a',
+                iconBg: '#eff6ff',
                 confirmText: 'Yes, Change',
-                confirmBg: '#38bdf8',
+                confirmBg: 'linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%)',
                 onConfirm: changePuzzle
+            });
+        }
+
+        function promptResetMemory() {
+            if (isGameDoneToday('memory_match')) {
+                return;
+            }
+            if (memoryFlips === 0 && matchedPairsCount === 0) {
+                initMemoryGame();
+                return;
+            }
+            openGameConfirm({
+                title: 'Reset Memory Game?',
+                message: 'Are you sure you want to reset your memory cards match?',
+                icon: 'fa-arrows-rotate',
+                iconColor: '#1e3a8a',
+                iconBg: '#eff6ff',
+                confirmText: 'Yes, Reset',
+                confirmBg: 'linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%)',
+                onConfirm: initMemoryGame
             });
         }
 
@@ -1490,11 +1540,16 @@ include __DIR__ . '/../components/header.php';
         function openGameSuccess(message) {
             const modal = document.getElementById('game-success-modal');
             if (modal) {
+                if (modal.parentElement !== document.body) {
+                    document.body.appendChild(modal);
+                }
                 const msgEl = document.getElementById('success-points-msg');
                 if (msgEl) {
                     msgEl.textContent = message || "You've successfully completed the game and earned points!";
                 }
                 modal.style.display = 'flex';
+                document.body.classList.add('modal-blurred');
+                document.documentElement.classList.add('modal-blurred');
                 loadGamePoints();
             }
         }
@@ -1502,17 +1557,24 @@ include __DIR__ . '/../components/header.php';
         function closeGameSuccess() {
             const modal = document.getElementById('game-success-modal');
             if (modal) modal.style.display = 'none';
+            document.body.classList.remove('modal-blurred');
+            document.documentElement.classList.remove('modal-blurred');
             updateAllGamesFinishedUI();
         }
 
         function openGameAlert(message, title = "Already Done!") {
             const modal = document.getElementById('game-alert-modal');
             if (modal) {
-                const titleEl = modal.querySelector('h2');
+                if (modal.parentElement !== document.body) {
+                    document.body.appendChild(modal);
+                }
+                const titleEl = modal.querySelector('h3, h2');
                 if (titleEl) titleEl.textContent = title;
                 const msgEl = document.getElementById('alert-points-msg');
                 if (msgEl) msgEl.textContent = message || "You already completed this game today!";
                 modal.style.display = 'flex';
+                document.body.classList.add('modal-blurred');
+                document.documentElement.classList.add('modal-blurred');
                 document.body.style.overflow = 'hidden';
             }
         }
@@ -1520,12 +1582,18 @@ include __DIR__ . '/../components/header.php';
         function closeGameAlert() {
             const modal = document.getElementById('game-alert-modal');
             if (modal) modal.style.display = 'none';
+            document.body.classList.remove('modal-blurred');
+            document.documentElement.classList.remove('modal-blurred');
             document.body.style.overflow = '';
         }
 
-        function openGameConfirm({ title, message, icon = 'fa-arrows-rotate', iconColor = '#38bdf8', iconBg = 'rgba(56,189,248,0.15)', confirmText = 'Confirm', confirmBg = '#38bdf8', onConfirm }) {
+        function openGameConfirm({ title, message, icon = 'fa-arrows-rotate', iconColor = '#1e3a8a', iconBg = '#eff6ff', confirmText = 'Yes, Reset', confirmBg = 'linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%)', onConfirm }) {
             const modal = document.getElementById('game-confirm-modal');
             if (!modal) return;
+
+            if (modal.parentElement !== document.body) {
+                document.body.appendChild(modal);
+            }
 
             const titleEl = document.getElementById('confirm-modal-title');
             const msgEl = document.getElementById('confirm-modal-msg');
@@ -1541,20 +1609,18 @@ include __DIR__ . '/../components/header.php';
             }
             if (iconBgEl) {
                 iconBgEl.style.background = iconBg;
-                iconBgEl.style.borderColor = iconColor;
+                iconBgEl.style.color = iconColor;
             }
             if (actionBtn) {
-                actionBtn.textContent = confirmText;
-                actionBtn.style.background = confirmBg;
-                if (confirmBg === '#38bdf8' || confirmBg.includes('#38bdf8')) {
-                    actionBtn.style.color = '#0f172a';
-                } else {
-                    actionBtn.style.color = '#fff';
-                }
+                actionBtn.textContent = confirmText || 'Yes, Reset';
+                actionBtn.style.background = confirmBg || 'linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%)';
+                actionBtn.style.color = '#ffffff';
             }
 
             pendingConfirmAction = onConfirm;
             modal.style.display = 'flex';
+            document.body.classList.add('modal-blurred');
+            document.documentElement.classList.add('modal-blurred');
             document.body.style.overflow = 'hidden';
         }
 
@@ -1562,6 +1628,8 @@ include __DIR__ . '/../components/header.php';
             const modal = document.getElementById('game-confirm-modal');
             if (modal) modal.style.display = 'none';
             pendingConfirmAction = null;
+            document.body.classList.remove('modal-blurred');
+            document.documentElement.classList.remove('modal-blurred');
             document.body.style.overflow = '';
         }
 
@@ -1598,10 +1666,12 @@ include __DIR__ . '/../components/header.php';
         window.resetPuzzle = resetPuzzle;
         window.promptChangePuzzle = promptChangePuzzle;
         window.changePuzzle = changePuzzle;
+        window.promptResetMemory = promptResetMemory;
         window.openGameConfirm = openGameConfirm;
         window.closeGameConfirm = closeGameConfirm;
         window.executeGameConfirm = executeGameConfirm;
         window.closeGameSuccess = closeGameSuccess;
+        window.closeGameAlert = closeGameAlert;
         window.submitTriviaAnswers = submitTriviaAnswers;
         window.initMemoryGame = initMemoryGame;
         window.initScrambleGame = initScrambleGame;
@@ -1614,14 +1684,32 @@ include __DIR__ . '/../components/header.php';
         async function syncOfflineGameClaims() {
             if (!navigator.onLine) return;
             try {
-                let queue = JSON.parse(localStorage.getItem('intan_elyu_offline_game_claims') || '[]');
-                if (!queue.length) return;
                 const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('api_token');
                 if (!token) return;
                 const _baseUrl = (window.backendUrl || 'https://api.intan-elyu.online').replace(/\/+$/, '');
 
-                for (let i = 0; i < queue.length; i++) {
-                    const item = queue[i];
+                const claimKeys = Object.keys(localStorage).filter(k => k.startsWith('intan_elyu_offline_game_claims'));
+                let allItems = [];
+                claimKeys.forEach(k => {
+                    try {
+                        const parsed = JSON.parse(localStorage.getItem(k) || '[]');
+                        if (Array.isArray(parsed)) allItems.push(...parsed);
+                    } catch(e) {}
+                });
+
+                if (!allItems.length) return;
+
+                const uniqueClaims = [];
+                const seenTypes = new Set();
+                for (const item of allItems) {
+                    if (item && item.gameType && !seenTypes.has(item.gameType)) {
+                        seenTypes.add(item.gameType);
+                        uniqueClaims.push(item);
+                    }
+                }
+
+                for (let i = 0; i < uniqueClaims.length; i++) {
+                    const item = uniqueClaims[i];
                     let endpoint = '/api/tourist/points/minigame';
                     let bodyObj = { game_type: item.gameType };
                     if (item.gameType === 'puzzle') {
@@ -1638,7 +1726,7 @@ include __DIR__ . '/../components/header.php';
                         body: JSON.stringify(bodyObj)
                     });
                 }
-                localStorage.removeItem('intan_elyu_offline_game_claims');
+                claimKeys.forEach(k => localStorage.removeItem(k));
                 loadGamePoints();
             } catch (e) { }
         }

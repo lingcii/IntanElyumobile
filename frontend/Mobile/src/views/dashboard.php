@@ -152,50 +152,57 @@ if (is_dir($imgDir)) {
         </div>
     </div>
 
-    <!-- Weather Forecast Modal -->
+    <!-- Weather Forecast Open Sheet / Modal -->
     <div id="weather-modal" onclick="if(event.target===this) window.closeWeatherModal()"
-        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.65); backdrop-filter:blur(10px); z-index:99999; justify-content:center; align-items:flex-end;">
-        <div
-            style="background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%); border: none; outline: none; border-radius:28px 28px 0 0; width:100%; max-width:500px; max-height:85vh; overflow-y:auto; padding:24px 20px; box-shadow: 0 -8px 24px rgba(10, 25, 60, 0.3); animation:slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-                <div>
-                    <h3
-                        style="margin:0; font-size:18px; font-weight:800; color:#fff; display:flex; align-items:center; gap:8px;">
-                        <span>🌤️ Weather Forecast</span>
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.72); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); z-index:100005 !important; justify-content:center; align-items:flex-end; box-sizing:border-box;">
+        <div class="weather-modal-card"
+            style="background: #ffffff !important; border: none !important; outline: none !important; border-radius: 28px 28px 0 0; width: 100%; max-width: 480px; max-height: 85vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 -12px 40px rgba(10, 25, 60, 0.45); animation: weatherSheetUp 0.32s cubic-bezier(0.16, 1, 0.3, 1); box-sizing: border-box;">
+            
+            <!-- Modal Top Header Banner (Royal Blue) with Exit Button on Right -->
+            <div style="background: linear-gradient(180deg, #1e3a8a 0%, #193375 100%) !important; padding: 16px 20px; flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; border: none !important; outline: none !important;">
+                <div style="text-align: left; min-width: 0;">
+                    <h3 style="margin: 0; font-size: 16.5px; font-weight: 800; color: #ffffff; display: flex; align-items: center; gap: 8px; letter-spacing: -0.2px;">
+                        <i class="fa-solid fa-cloud-sun" style="color: #00f2fe; font-size: 16px;"></i> Weather Forecast
                     </h3>
-                    <p style="margin:2px 0 0 0; font-size:12px; color:rgba(255,255,255,0.9);" id="modal-weather-loc">San
-                        Fernando, La Union</p>
+                    <p style="margin: 3px 0 0 0; font-size: 11.5px; color: rgba(255, 255, 255, 0.85); font-weight: 600; display: flex; align-items: center; gap: 5px;">
+                        <i class="fa-solid fa-location-dot" style="color: #38bdf8; font-size: 10px;"></i>
+                        <span id="modal-weather-loc">San Fernando, La Union</span>
+                    </p>
                 </div>
-                <button onclick="window.closeWeatherModal()"
-                    style="background:#ffffff !important; border:none; color:#1e3a8a !important; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
-                    <i class="fa-solid fa-xmark" style="color:#1e3a8a !important;"></i>
+                <button type="button" onclick="window.closeWeatherModal()" aria-label="Close"
+                    style="background: #ffffff !important; border: none !important; outline: none !important; color: #1e3a8a !important; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18) !important; flex-shrink: 0; margin-left: 12px; transition: transform 0.15s ease;"
+                    onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">
+                    <i class="fa-solid fa-xmark" style="color: #1e3a8a !important; font-size: 14px;"></i>
                 </button>
             </div>
 
-            <!-- Current Detailed Weather Card -->
-            <div
-                style="background:rgba(0,0,0,0.14); border:none; border-radius:22px; padding:18px; margin-bottom:20px; display:flex; align-items:center; justify-content:space-between;">
-                <div>
-                    <div style="font-size:38px; font-weight:900; color:#fff; letter-spacing:-1px;" id="modal-temp">29°C
+            <!-- Middle Body Area (Pure White Background) -->
+            <div class="hide-scrollbar"
+                style="background: #ffffff !important; flex: 1; min-height: 0; overflow-y: auto; padding: 20px 20px max(24px, env(safe-area-inset-bottom)) 20px; color: #0f172a !important; box-sizing: border-box;">
+                
+                <!-- Current Detailed Weather Card (Sky Blue Gradient Card in White Middle) -->
+                <div
+                    style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%) !important; border: 1.5px solid #bae6fd; border-radius: 20px; padding: 18px 20px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 4px 14px rgba(2, 132, 199, 0.08);">
+                    <div>
+                        <div style="font-size: 40px; font-weight: 900; color: #0369a1; letter-spacing: -1.5px; line-height: 1;" id="modal-temp">29°C</div>
+                        <div style="font-size: 14.5px; font-weight: 800; color: #0284c7; margin-top: 6px;" id="modal-condition">Partly Cloudy</div>
+                        <div style="font-size: 11.5px; color: #64748b; font-weight: 600; margin-top: 4px; line-height: 1.4;" id="modal-feels">Feels like 31°C · Humidity 75% · Wind 12km/h</div>
                     </div>
-                    <div style="font-size:14px; font-weight:800; color:#ffffff; margin-top:2px;" id="modal-condition">
-                        Partly Cloudy</div>
-                    <div style="font-size:12px; color:rgba(255,255,255,0.9); margin-top:6px;" id="modal-feels">Feels
-                        like 31°C</div>
+                    <div style="text-align: center; flex-shrink: 0; margin-left: 12px;">
+                        <div style="font-size: 54px; line-height: 1;" id="modal-icon">⛅</div>
+                    </div>
                 </div>
-                <div style="text-align:center;">
-                    <div style="font-size:52px;" id="modal-icon">⛅</div>
-                </div>
-            </div>
 
-            <!-- 5-Day Forecast Grid -->
-            <h4
-                style="margin:0 0 12px 0; font-size:14px; font-weight:800; color:#f8fafc; display:flex; align-items:center; gap:6px;">
-                <i class="fa-solid fa-calendar-days" style="color:#38bdf8;"></i> 5-Day Forecast
-            </h4>
-            <div id="weather-forecast-container" style="display:flex; flex-direction:column; gap:10px;">
-                <div style="padding:20px; text-align:center; color:rgba(255,255,255,0.5); font-size:13px;">
-                    <i class="fa-solid fa-spinner fa-spin" style="margin-right:6px;"></i> Loading 5-day forecast...
+                <!-- 5-Day Forecast Grid Title -->
+                <h4 style="margin: 0 0 12px 0; font-size: 14px; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 7px; letter-spacing: -0.2px;">
+                    <i class="fa-solid fa-calendar-days" style="color: #0284c7;"></i> 5-Day Forecast
+                </h4>
+
+                <!-- 5-Day Forecast Grid -->
+                <div id="weather-forecast-container" style="display: flex; flex-direction: column; gap: 10px;">
+                    <div style="padding: 24px; text-align: center; color: #94a3b8; font-size: 13px; font-weight: 600;">
+                        <i class="fa-solid fa-spinner fa-spin" style="margin-right: 6px; color: #0284c7;"></i> Loading 5-day forecast...
+                    </div>
                 </div>
             </div>
         </div>
@@ -995,17 +1002,17 @@ if (is_dir($imgDir)) {
 
         if (forecastContainer && data.forecast && data.forecast.length > 0) {
             forecastContainer.innerHTML = data.forecast.map(item => `
-                <div style="background:rgba(0,0,0,0.12); border:none; border-radius:16px; padding:12px 16px; display:flex; align-items:center; justify-content:space-between;">
-                    <div style="display:flex; align-items:center; gap:14px;">
-                        <span style="font-size:26px; width:32px; text-align:center; display:inline-block;">${window.renderWeatherIconHtml(item.icon, item.fa_icon)}</span>
+                <div style="background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 16px; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; transition: transform 0.15s ease;">
+                    <div style="display: flex; align-items: center; gap: 14px;">
+                        <span style="font-size: 26px; width: 34px; text-align: center; display: inline-block;">${window.renderWeatherIconHtml(item.icon, item.fa_icon)}</span>
                         <div>
-                            <div style="font-size:14px; font-weight:800; color:#fff;">${item.day}</div>
-                            <div style="font-size:11px; color:rgba(255,255,255,0.9);">${item.condition}</div>
+                            <div style="font-size: 14px; font-weight: 800; color: #0f172a;">${item.day}</div>
+                            <div style="font-size: 11.5px; color: #64748b; font-weight: 600;">${item.condition}</div>
                         </div>
                     </div>
-                    <div style="text-align:right;">
-                        <div style="font-size:14px; font-weight:800; color:#fff;">${item.temp_max}° <span style="font-size:12px; color:rgba(255,255,255,0.8); font-weight:500;">/ ${item.temp_min}°C</span></div>
-                        <div style="font-size:10px; color:#ffffff; font-weight:700; margin-top:2px;"><i class="fa-solid fa-droplet" style="font-size:9px; color:#38bdf8;"></i> ${item.rain_prob}% rain</div>
+                    <div style="text-align: right;">
+                        <div style="font-size: 14px; font-weight: 800; color: #0f172a;">${item.temp_max}° <span style="font-size: 12px; color: #94a3b8; font-weight: 600;">/ ${item.temp_min}°C</span></div>
+                        <div style="font-size: 11px; color: #0284c7; font-weight: 700; margin-top: 2px;"><i class="fa-solid fa-droplet" style="font-size: 9px; color: #0284c7;"></i> ${item.rain_prob}% rain</div>
                     </div>
                 </div>
             `).join('');
@@ -1174,13 +1181,44 @@ if (is_dir($imgDir)) {
 
     window.openWeatherModal = function () {
         const modal = document.getElementById('weather-modal');
-        if (modal) modal.style.display = 'flex';
+        if (!modal) return;
+
+        // Port directly to document.body so it is never trapped by any container stacking context
+        if (modal.parentElement !== document.body) {
+            document.body.appendChild(modal);
+        }
+
+        // Hide navigation bar and keep it behind/hidden
+        document.body.classList.add('sheet-open');
+        const bottomNav = document.getElementById('bottom-navigation');
+        if (bottomNav) {
+            bottomNav.classList.add('nav-hidden');
+            bottomNav.style.display = 'none';
+        }
+
+        modal.style.display = 'flex';
     };
 
     window.closeWeatherModal = function () {
         const modal = document.getElementById('weather-modal');
         if (modal) modal.style.display = 'none';
+
+        // Restore navigation bar
+        document.body.classList.remove('sheet-open');
+        const bottomNav = document.getElementById('bottom-navigation');
+        if (bottomNav) {
+            bottomNav.classList.remove('nav-hidden');
+            bottomNav.style.display = '';
+        }
     };
+
+    // Immediately port weather modal to document.body so it stays above bottom navigation
+    try {
+        const initialWModal = document.getElementById('weather-modal');
+        if (initialWModal && initialWModal.parentElement !== document.body) {
+            document.body.appendChild(initialWModal);
+        }
+    } catch (e) { }
 
     window.changeWeatherLocation = function (valStr) {
         if (valStr === 'GPS_CURRENT') {
