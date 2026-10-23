@@ -116,9 +116,10 @@
                         </svg>
                         <span>Sign in with Google</span>
                     </button>
-                    <button type="button" id="btn-offline-mode" class="btn-offline-guest" onclick="window.enterOfflineMode(event)">
-                        <i class="fa-solid fa-compass" style="color: #38bdf8; font-size: 13.5px;"></i>
-                        <span>Continue as Guest</span>
+                    <button type="button" id="btn-offline-mode" class="btn-offline-guest" onclick="window.enterOfflineMode(event)"
+                        style="background: #ffffff !important; color: #0f172a !important; border: 1.5px solid #cbd5e1 !important; box-shadow: 0 4px 14px rgba(0,0,0,0.08) !important;">
+                        <i class="fa-solid fa-compass" style="color: #0284c7; font-size: 14px;"></i>
+                        <span style="color: #0f172a; font-weight: 700;">Continue as Guest</span>
                     </button>
                     <p class="auth-switch-prompt">
                         Don't have an account? <a href="#" onclick="toggleAuthMode(true); return false;"
@@ -140,17 +141,11 @@
                         <input type="text" id="reg-last-name" class="auth-input" placeholder="Last Name" required
                             oninput="validateRegisterFormInline()">
                     </div>
-                    <div class="input-group">
+                    <div class="input-group" id="reg-gender-trigger" onclick="openGenderModal(event)" style="cursor: pointer;">
                         <i class="fa-solid fa-venus-mars"></i>
-                        <select id="reg-gender" class="auth-input" required onchange="validateRegisterFormInline(); this.style.color = this.value ? '#0f172a' : '#64748b';" style="appearance:none; -webkit-appearance:none; cursor:pointer; color:#64748b;">
-                            <option value="" disabled selected>Select Sex / Gender *</option>
-                            <option value="Male">Male</option>
-                            <option value="Female">Female</option>
-                            <option value="Non-binary">Non-binary</option>
-                            <option value="Prefer not to say">Prefer not to say</option>
-                            <option value="Other">Other</option>
-                        </select>
-                        <i class="fa-solid fa-chevron-down select-arrow"></i>
+                        <input type="text" id="reg-gender-display" class="auth-input" placeholder="Select Sex / Gender *" readonly style="cursor: pointer; background: transparent; caret-color: transparent; -webkit-user-select: none; user-select: none;" onclick="openGenderModal(event)">
+                        <input type="hidden" id="reg-gender" value="">
+                        <i class="fa-solid fa-chevron-down select-arrow" id="reg-gender-arrow"></i>
                     </div>
                     <div class="input-group">
                         <i class="fa-solid fa-mobile-screen"></i>
@@ -194,13 +189,12 @@
                         </div>
                     </div>
 
-                    <div class="terms-agreement-row">
-                        <input type="checkbox" id="reg-privacy-checkbox" class="custom-terms-checkbox">
-                        <div class="terms-agreement-text">
-                            <label for="reg-privacy-checkbox" id="reg-privacy-label" class="terms-agreement-label">I
-                                agree to the</label>
+                    <div class="terms-agreement-row" style="position: relative; z-index: 10; pointer-events: auto !important;">
+                        <input type="checkbox" id="reg-privacy-checkbox" class="custom-terms-checkbox" style="pointer-events: auto !important; cursor: pointer;">
+                        <div class="terms-agreement-text" style="pointer-events: auto !important;">
+                            <label for="reg-privacy-checkbox" id="reg-privacy-label" class="terms-agreement-label" style="pointer-events: auto !important; cursor: pointer;">I agree to the</label>
                             <button type="button" id="link-terms-privacy" onclick="openPrivacyPolicyModal(event)"
-                                class="terms-policy-btn">Terms &amp; Privacy Policy</button><span
+                                class="terms-policy-btn" style="position: relative; z-index: 12; pointer-events: auto !important; cursor: pointer; touch-action: manipulation;">Terms &amp; Privacy Policy</button><span
                                 class="terms-period">.</span>
                         </div>
                     </div>
@@ -232,9 +226,10 @@
                         </svg>
                         <span>Sign up with Google</span>
                     </button>
-                    <button type="button" class="btn-offline-guest" onclick="window.enterOfflineMode(event)">
-                        <i class="fa-solid fa-compass" style="color: #38bdf8; font-size: 13.5px;"></i>
-                        <span>Continue as Guest</span>
+                    <button type="button" class="btn-offline-guest" onclick="window.enterOfflineMode(event)"
+                        style="background: #ffffff !important; color: #0f172a !important; border: 1.5px solid #cbd5e1 !important; box-shadow: 0 4px 14px rgba(0,0,0,0.08) !important;">
+                        <i class="fa-solid fa-compass" style="color: #0284c7; font-size: 14px;"></i>
+                        <span style="color: #0f172a; font-weight: 700;">Continue as Guest</span>
                     </button>
                     <p class="auth-switch-prompt">
                         Already have an account? <a href="#" onclick="toggleAuthMode(false); return false;"
@@ -524,22 +519,75 @@
             </div>
         </div>
 
-        <div class="privacy-modal-footer">
-            <div class="privacy-acceptance-box" id="box-chk-accept-privacy" onclick="togglePrivacyCheckboxDirect(event)">
-                <input type="checkbox" id="chk-accept-privacy" class="custom-terms-checkbox" onclick="event.stopPropagation(); togglePrivacyCheckboxDirect(event);">
-                <label for="chk-accept-privacy" id="lbl-chk-accept-privacy" onclick="event.stopPropagation(); togglePrivacyCheckboxDirect(event);">
+        <div class="privacy-modal-footer" style="pointer-events: auto !important;">
+            <div class="privacy-acceptance-box" id="box-chk-accept-privacy" onclick="window.togglePrivacyCheckboxDirect(event)" style="cursor: pointer; pointer-events: auto !important; touch-action: manipulation;">
+                <input type="checkbox" id="chk-accept-privacy" class="custom-terms-checkbox" onchange="window.syncPrivacyCheckbox(this.checked)" style="pointer-events: auto !important; cursor: pointer;">
+                <label for="chk-accept-privacy" id="lbl-chk-accept-privacy" style="cursor: pointer; pointer-events: auto !important;">
                     I have read, understood, and accept the Terms &amp; Privacy Policy.
                 </label>
             </div>
 
-            <div class="privacy-modal-actions">
-                <button type="button" onclick="declinePrivacyPolicy(event)" class="btn-privacy-decline">
+            <div class="privacy-modal-actions" style="pointer-events: auto !important;">
+                <button type="button" onclick="window.declinePrivacyPolicy(event)" class="btn-privacy-decline" style="pointer-events: auto !important; cursor: pointer; touch-action: manipulation;">
                     Decline
                 </button>
-                <button type="button" id="btn-accept-policy-proceed" onclick="acceptPolicyAndProceed(event)"
-                    class="btn-privacy-accept">
+                <button type="button" id="btn-accept-policy-proceed" onclick="window.acceptPolicyAndProceed(event)"
+                    class="btn-privacy-accept" style="pointer-events: auto !important; cursor: pointer; touch-action: manipulation;">
                     Accept
                 </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Sex / Gender Selection Droplist Modal -->
+<div id="gender-select-modal" class="auth-2fa-overlay" style="display: none;"
+    onclick="if(event.target===this) window.closeGenderModal(event);">
+    <div class="gender-modal-card">
+        <div class="gender-modal-header">
+            <div class="gender-modal-header-content">
+                <span class="gender-modal-badge"><i class="fa-solid fa-venus-mars"></i> Personalization</span>
+                <h3 class="gender-modal-title">Select Sex / Gender</h3>
+            </div>
+            <button type="button" class="gender-modal-close" onclick="window.closeGenderModal(event)" aria-label="Close">
+                &times;
+            </button>
+        </div>
+        <div class="gender-modal-body">
+            <div class="gender-option-item" data-value="Male" onclick="window.selectGenderOption('Male')">
+                <div class="gender-option-icon icon-male"><i class="fa-solid fa-mars"></i></div>
+                <div class="gender-option-info">
+                    <span class="gender-option-name">Male</span>
+                </div>
+                <i class="fa-solid fa-circle-check gender-check-icon"></i>
+            </div>
+            <div class="gender-option-item" data-value="Female" onclick="window.selectGenderOption('Female')">
+                <div class="gender-option-icon icon-female"><i class="fa-solid fa-venus"></i></div>
+                <div class="gender-option-info">
+                    <span class="gender-option-name">Female</span>
+                </div>
+                <i class="fa-solid fa-circle-check gender-check-icon"></i>
+            </div>
+            <div class="gender-option-item" data-value="Non-binary" onclick="window.selectGenderOption('Non-binary')">
+                <div class="gender-option-icon icon-nonbinary"><i class="fa-solid fa-genderless"></i></div>
+                <div class="gender-option-info">
+                    <span class="gender-option-name">Non-binary</span>
+                </div>
+                <i class="fa-solid fa-circle-check gender-check-icon"></i>
+            </div>
+            <div class="gender-option-item" data-value="Prefer not to say" onclick="window.selectGenderOption('Prefer not to say')">
+                <div class="gender-option-icon icon-prefer"><i class="fa-solid fa-user-shield"></i></div>
+                <div class="gender-option-info">
+                    <span class="gender-option-name">Prefer not to say</span>
+                </div>
+                <i class="fa-solid fa-circle-check gender-check-icon"></i>
+            </div>
+            <div class="gender-option-item" data-value="Other" onclick="window.selectGenderOption('Other')">
+                <div class="gender-option-icon icon-other"><i class="fa-solid fa-asterisk"></i></div>
+                <div class="gender-option-info">
+                    <span class="gender-option-name">Other</span>
+                </div>
+                <i class="fa-solid fa-circle-check gender-check-icon"></i>
             </div>
         </div>
     </div>
@@ -1018,7 +1066,7 @@
                               window._authFromSidebar === true;
 
         // Dismiss all lingering overlays and backdrops so they can NEVER block touch events
-        ['sidebar-overlay', 'global-oauth-overlay', 'offline-auth-modal', 'login-success-modal', 'auth-cancel-modal', 'privacy-policy-modal'].forEach(id => {
+        ['sidebar-overlay', 'global-oauth-overlay', 'offline-auth-modal', 'login-success-modal', 'auth-cancel-modal', 'privacy-policy-modal', 'gender-select-modal'].forEach(id => {
             const el = document.getElementById(id);
             if (el) {
                 if (id === 'sidebar-overlay') {
@@ -1472,66 +1520,84 @@
         await window.submitRegistrationAndTrigger2FA();
     };
 
+    window.syncPrivacyCheckbox = function (isChecked) {
+        const box = document.getElementById('box-chk-accept-privacy');
+        const chk = document.getElementById('chk-accept-privacy');
+        if (chk) chk.checked = isChecked;
+        if (box) {
+            box.classList.remove('shake-attention');
+            if (isChecked) {
+                box.classList.add('is-checked');
+            } else {
+                box.classList.remove('is-checked');
+            }
+        }
+    };
+
+    window.togglePrivacyCheckboxDirect = function (e) {
+        const chk = document.getElementById('chk-accept-privacy');
+        if (!chk) return;
+        if (e && e.target === chk) {
+            // Already toggled natively
+            window.syncPrivacyCheckbox(chk.checked);
+            return;
+        }
+        chk.checked = !chk.checked;
+        window.syncPrivacyCheckbox(chk.checked);
+    };
+
     window.openPrivacyPolicyModal = function (e) {
         if (e) {
-            e.preventDefault();
-            e.stopPropagation();
+            try { e.preventDefault(); } catch (err) { }
+            try { e.stopPropagation(); } catch (err) { }
         }
 
         const modal = document.getElementById('privacy-policy-modal');
         if (!modal) return;
 
-        const chk = document.getElementById('chk-accept-privacy');
-        const box = document.getElementById('box-chk-accept-privacy');
         const scrollBody = document.getElementById('privacy-modal-scroll-body');
 
         // Check if registration checkbox is already checked
         const regChk = document.getElementById('reg-privacy-checkbox');
         const isAccepted = !!(regChk && regChk.checked);
 
-        if (chk) {
-            chk.checked = isAccepted;
-            chk.disabled = false;
-        }
-        if (box) {
-            box.classList.remove('shake-attention');
-            if (isAccepted) {
-                box.classList.add('is-checked');
-            } else {
-                box.classList.remove('is-checked');
-            }
-        }
+        window.syncPrivacyCheckbox(isAccepted);
 
         if (scrollBody) {
             scrollBody.scrollTop = 0;
         }
 
         modal.style.display = 'flex';
+        modal.style.pointerEvents = 'auto';
         requestAnimationFrame(() => {
             modal.classList.add('active');
+            modal.style.pointerEvents = 'auto';
         });
     };
 
     window.closePrivacyPolicyModal = function (e) {
         if (e) {
-            e.preventDefault();
-            e.stopPropagation();
+            try { e.preventDefault(); } catch (err) { }
+            try { e.stopPropagation(); } catch (err) { }
         }
         const modal = document.getElementById('privacy-policy-modal');
         const scrollBody = document.getElementById('privacy-modal-scroll-body');
-        if (modal) modal.classList.remove('active');
+        if (modal) {
+            modal.classList.remove('active');
+            setTimeout(() => {
+                modal.style.display = 'none';
+                modal.style.pointerEvents = 'none';
+            }, 250);
+        }
         if (scrollBody) {
             scrollBody.scrollTop = 0;
         }
-        setTimeout(() => {
-            if (modal) modal.style.display = 'none';
-        }, 280);
     };
 
     window.declinePrivacyPolicy = function (e) {
         if (e) {
-            e.preventDefault();
-            e.stopPropagation();
+            try { e.preventDefault(); } catch (err) { }
+            try { e.stopPropagation(); } catch (err) { }
         }
         // Explicitly keep register terms unchecked if declined
         const regChk = document.getElementById('reg-privacy-checkbox');
@@ -1542,37 +1608,12 @@
         window.closePrivacyPolicyModal();
     };
 
-    window.togglePrivacyCheckboxDirect = function (e) {
-        const chk = document.getElementById('chk-accept-privacy');
-        const box = document.getElementById('box-chk-accept-privacy');
-        if (chk) {
-            if (e && e.target !== chk) {
-                chk.checked = !chk.checked;
-            }
-            if (box) {
-                box.classList.remove('shake-attention');
-                if (chk.checked) {
-                    box.classList.add('is-checked');
-                } else {
-                    box.classList.remove('is-checked');
-                }
-            }
-        }
-    };
-
     window.acceptPolicyAndProceed = async function (e) {
         if (e) {
-            e.preventDefault();
-            e.stopPropagation();
+            try { e.preventDefault(); } catch (err) { }
+            try { e.stopPropagation(); } catch (err) { }
         }
-        const chk = document.getElementById('chk-accept-privacy');
-        if (chk) {
-            chk.checked = true;
-        }
-        const box = document.getElementById('box-chk-accept-privacy');
-        if (box) {
-            box.classList.add('is-checked');
-        }
+        window.syncPrivacyCheckbox(true);
 
         // Check the register terms checkbox on the auth form
         const regChk = document.getElementById('reg-privacy-checkbox');
@@ -1587,6 +1628,90 @@
 
         window.closePrivacyPolicyModal();
     };
+
+    // Sex / Gender Custom Droplist Modal Functions
+    window.openGenderModal = function (e) {
+        if (e) {
+            try { e.preventDefault(); } catch (err) { }
+            try { e.stopPropagation(); } catch (err) { }
+        }
+        const modal = document.getElementById('gender-select-modal');
+        const arrow = document.getElementById('reg-gender-arrow');
+        if (!modal) return;
+
+        const currentVal = (document.getElementById('reg-gender')?.value || '').trim();
+        document.querySelectorAll('#gender-select-modal .gender-option-item').forEach(item => {
+            if (item.getAttribute('data-value') === currentVal) {
+                item.classList.add('selected');
+            } else {
+                item.classList.remove('selected');
+            }
+        });
+
+        if (arrow) arrow.style.transform = 'translateY(-50%) rotate(180deg)';
+
+        modal.style.display = 'flex';
+        modal.style.pointerEvents = 'auto';
+        requestAnimationFrame(() => {
+            modal.classList.add('active');
+            modal.style.pointerEvents = 'auto';
+        });
+    };
+
+    window.closeGenderModal = function (e) {
+        if (e) {
+            try { e.preventDefault(); } catch (err) { }
+            try { e.stopPropagation(); } catch (err) { }
+        }
+        const modal = document.getElementById('gender-select-modal');
+        const arrow = document.getElementById('reg-gender-arrow');
+        if (arrow) arrow.style.transform = 'translateY(-50%) rotate(0deg)';
+        if (modal) {
+            modal.classList.remove('active');
+            setTimeout(() => {
+                modal.style.display = 'none';
+                modal.style.pointerEvents = 'none';
+            }, 250);
+        }
+    };
+
+    window.selectGenderOption = function (val) {
+        const hidden = document.getElementById('reg-gender');
+        const display = document.getElementById('reg-gender-display');
+        if (hidden) hidden.value = val;
+        if (display) {
+            display.value = val;
+            display.style.color = '#0f172a';
+            display.style.fontWeight = '600';
+        }
+        document.querySelectorAll('#gender-select-modal .gender-option-item').forEach(item => {
+            if (item.getAttribute('data-value') === val) {
+                item.classList.add('selected');
+            } else {
+                item.classList.remove('selected');
+            }
+        });
+        if (typeof validateRegisterFormInline === 'function') {
+            validateRegisterFormInline();
+        }
+        window.closeGenderModal();
+    };
+
+    // Ensure direct click listener is bound as well as inline onclick
+    document.addEventListener('DOMContentLoaded', () => {
+        const linkTerms = document.getElementById('link-terms-privacy');
+        if (linkTerms) {
+            linkTerms.addEventListener('click', (ev) => {
+                window.openPrivacyPolicyModal(ev);
+            });
+        }
+        const genderTrigger = document.getElementById('reg-gender-trigger');
+        if (genderTrigger) {
+            genderTrigger.addEventListener('click', (ev) => {
+                window.openGenderModal(ev);
+            });
+        }
+    });
 
     window.submitRegistrationAndTrigger2FA = async function () {
         const pwd = document.getElementById('reg-password')?.value || '';

@@ -1064,33 +1064,26 @@
 
 /* Custom Calendar Date Picker Dropdown inside Save Trip Modal */
 #custom-calendar-dropdown {
-    overflow: hidden;
-    max-height: 0;
-    opacity: 0;
-    transform: translateY(-8px) scale(0.98);
-    transition: max-height 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease, transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), margin 0.25s ease, padding 0.25s ease, border-color 0.25s ease !important;
+    display: none;
     background: #ffffff !important;
-    border: 1.5px solid transparent !important;
+    border: 1.5px solid #0284c7 !important;
     outline: none !important;
-    box-shadow: none !important;
+    box-shadow: 0 10px 25px rgba(2, 132, 199, 0.12) !important;
     border-radius: 18px !important;
-    padding: 0 14px !important;
-    margin-top: 0 !important;
-    margin-bottom: 0 !important;
-    pointer-events: none;
-    box-sizing: border-box;
-}
-
-#custom-calendar-dropdown.calendar-open {
-    max-height: 480px !important;
-    opacity: 1 !important;
-    transform: translateY(0) scale(1) !important;
-    border: 1.5px solid #e2e8f0 !important;
-    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08) !important;
     padding: 14px 14px 12px 14px !important;
     margin-top: -8px !important;
     margin-bottom: 16px !important;
     pointer-events: auto !important;
+    box-sizing: border-box;
+    overflow: visible !important;
+    max-height: none !important;
+}
+
+#custom-calendar-dropdown.calendar-open {
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: none !important;
 }
 
 .calendar-day-cell {

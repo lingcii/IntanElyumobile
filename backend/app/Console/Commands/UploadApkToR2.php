@@ -47,13 +47,22 @@ class UploadApkToR2 extends Command
             $baseDir . '/frontend/Mobile/android/app/build/outputs/apk/debug/app-debug.apk',
         ]);
 
-        $selectedApk = null;
+        $existingApks = [];
         foreach ($candidatePaths as $candidate) {
             if (file_exists($candidate) && filesize($candidate) > 10 * 1024 * 1024) {
-                $selectedApk = $candidate;
-                break;
+                $existingApks[] = [
+                    'path' => $candidate,
+                    'mtime' => filemtime($candidate),
+                ];
             }
         }
+
+        // Sort by most recent modification time
+        usort($existingApks, function ($a, $b) {
+            return $b['mtime'] <=> $a['mtime'];
+        });
+
+        $selectedApk = !empty($existingApks) ? $existingApks[0]['path'] : null;
 
         if (!$selectedApk || !file_exists($selectedApk)) {
             $this->error("❌ Could not find any valid APK file (>10MB). Looked in:");

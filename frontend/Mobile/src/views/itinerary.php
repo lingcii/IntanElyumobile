@@ -158,7 +158,8 @@ try {
         .save-trip-modal-body input[type="tel"] {
             color: #0f172a !important;
             -webkit-text-fill-color: #0f172a !important;
-            background: #f8fafc !important;
+            background: #ffffff !important;
+            border-color: #cbd5e1 !important;
             font-weight: 600 !important;
         }
         #save-trip-modal input::placeholder,
@@ -169,25 +170,37 @@ try {
         .save-trip-modal-body input::-webkit-input-placeholder,
         .save-trip-modal-body input::-moz-placeholder,
         .save-trip-modal-body input:-ms-input-placeholder {
-            color: #94a3b8 !important;
-            -webkit-text-fill-color: #94a3b8 !important;
+            color: #64748b !important;
+            -webkit-text-fill-color: #64748b !important;
             opacity: 1 !important;
             font-weight: 500 !important;
         }
         #modal-donut-pct {
             color: #0f172a !important;
         }
+        #custom-calendar-dropdown {
+            background: #ffffff !important;
+            border: 1.5px solid #0284c7 !important;
+            box-shadow: 0 10px 25px rgba(2, 132, 199, 0.12) !important;
+            border-radius: 18px !important;
+            overflow: visible !important;
+            max-height: none !important;
+        }
+        .calendar-day-cell {
+            color: #0f172a !important;
+            font-weight: 700 !important;
+        }
     </style>
     <div style="background:#ffffff !important; border:none !important; outline:none !important; border-radius:22px; width:100%; max-width:400px; max-height:88dvh; display:flex; flex-direction:column; box-shadow:0 16px 40px rgba(10, 25, 60, 0.45) !important; overflow:hidden;"
         class="hide-scrollbar">
 
-        <!-- Modal Header (Royal Blue Banner) -->
+        <!-- Modal Header (Royal Blue Banner without icon) -->
         <div class="save-trip-modal-header"
             style="background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%) !important; padding:14px 16px; color:#ffffff; flex-shrink:0; display:flex; align-items:center; justify-content:space-between; border:none !important; outline:none !important;">
             <div style="min-width:0; flex:1;">
                 <h3 id="save-trip-modal-title"
-                    style="margin:0; color:#ffffff; font-size:16px; font-weight:800; letter-spacing:-0.3px; display:flex; align-items:center; gap:8px;">
-                    <i class="fa-solid fa-cloud-arrow-up" style="color:#00f2fe; font-size:15px;"></i> Save Your Trip
+                    style="margin:0; color:#ffffff; font-size:16px; font-weight:800; letter-spacing:-0.3px; display:flex; align-items:center;">
+                    Save Your Trip
                 </h3>
                 <p style="margin:2px 0 0; font-size:11.5px; color:rgba(255,255,255,0.85); line-height:1.35;">
                     Name your adventure and set trip details
@@ -205,9 +218,9 @@ try {
             style="background:#ffffff !important; color:#0f172a; padding:18px 20px 20px 20px; flex:1; overflow-y:auto; display:flex; flex-direction:column; box-sizing:border-box;">
 
             <label style="font-size:12.5px; color:#1e293b !important; margin-bottom:6px; display:block; font-weight:700;">Trip Name</label>
-            <input type="text" id="trip-title" placeholder="e.g. La Union Weekend"
-                style="width:100%; padding:12px 14px; border-radius:14px; border:1.5px solid #e2e8f0 !important; outline:none !important; background:#f8fafc !important; color:#0f172a !important; -webkit-text-fill-color:#0f172a !important; margin-bottom:16px; font-family:inherit; font-size:14px; font-weight:600; box-sizing:border-box; box-shadow:none !important; transition:border-color 0.2s;"
-                onfocus="this.style.borderColor='#0284c7'" onblur="this.style.borderColor='#e2e8f0'">
+            <input type="text" id="trip-title" placeholder="Enter your trip name"
+                style="width:100%; padding:12px 14px; border-radius:14px; border:1.5px solid #cbd5e1 !important; outline:none !important; background:#ffffff !important; color:#0f172a !important; -webkit-text-fill-color:#0f172a !important; margin-bottom:16px; font-family:inherit; font-size:14px; font-weight:600; box-sizing:border-box; box-shadow:none !important; transition:border-color 0.2s;"
+                onfocus="this.style.borderColor='#0284c7'" onblur="this.style.borderColor='#cbd5e1'">
 
             <!-- Custom Designed Calendar Date Picker -->
             <label
@@ -218,7 +231,7 @@ try {
             </label>
 
             <div id="custom-date-trigger" onclick="window.toggleCustomCalendar(event)"
-                style="position:relative; width:100%; padding:12px 14px; border-radius:14px; border:1.5px solid #e2e8f0 !important; outline:none !important; background:#f8fafc; color:#0f172a; margin-bottom:16px; font-size:14px; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:space-between; transition:all 0.2s ease; user-select:none; box-sizing:border-box; box-shadow:none !important;">
+                style="position:relative; width:100%; padding:12px 14px; border-radius:14px; border:1.5px solid #cbd5e1 !important; outline:none !important; background:#ffffff; color:#0f172a; margin-bottom:16px; font-size:14px; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:space-between; transition:all 0.2s ease; user-select:none; box-sizing:border-box; box-shadow:none !important;">
                 <div>
                     <span id="custom-date-display" style="color:#64748b; font-weight:600;">Select trip date</span>
                 </div>
@@ -227,20 +240,20 @@ try {
             </div>
             <input type="hidden" id="trip-date" value="">
 
-            <!-- Floating Sleek Custom Calendar Card with Smooth Slide Animation -->
-            <div id="custom-calendar-dropdown" style="display:none;" onclick="event.stopPropagation()">
+            <!-- Floating Sleek Custom Calendar Card with Crystal-Clear Contrast -->
+            <div id="custom-calendar-dropdown" style="display:none; background:#ffffff !important; border:1.5px solid #0284c7 !important; border-radius:18px !important; padding:14px !important; margin-top:-8px !important; margin-bottom:16px !important; box-shadow:0 10px 25px rgba(2, 132, 199, 0.12) !important; box-sizing:border-box;" onclick="event.stopPropagation()">
                 <!-- Month & Year Navigation -->
                 <div
                     style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; padding:0 4px;">
                     <button type="button" onclick="window.changeCalendarMonth(-1, event)"
-                        style="background:#f1f5f9; border:1px solid #e2e8f0 !important; outline:none !important; color:#0f172a; width:34px; height:34px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.2s; box-shadow:none !important;"
+                        style="background:#f1f5f9; border:1px solid #cbd5e1 !important; outline:none !important; color:#0f172a; width:34px; height:34px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.2s; box-shadow:none !important;"
                         onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'">
                         <i class="fa-solid fa-chevron-left" style="font-size:11px; color:#0f172a;"></i>
                     </button>
                     <div id="calendar-month-year"
                         style="font-size:15px; font-weight:800; color:#0f172a !important; letter-spacing:0.2px;"></div>
                     <button type="button" onclick="window.changeCalendarMonth(1, event)"
-                        style="background:#f1f5f9; border:1px solid #e2e8f0 !important; outline:none !important; color:#0f172a; width:34px; height:34px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.2s; box-shadow:none !important;"
+                        style="background:#f1f5f9; border:1px solid #cbd5e1 !important; outline:none !important; color:#0f172a; width:34px; height:34px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.2s; box-shadow:none !important;"
                         onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'">
                         <i class="fa-solid fa-chevron-right" style="font-size:11px; color:#0f172a;"></i>
                     </button>
@@ -249,11 +262,11 @@ try {
                 <!-- Day of Week Headers -->
                 <div style="display:grid; grid-template-columns:repeat(7, 1fr); text-align:center; margin-bottom:8px;">
                     <span style="font-size:11.5px; font-weight:800; color:#ef4444 !important;">Su</span>
-                    <span style="font-size:11.5px; font-weight:700; color:#64748b !important;">Mo</span>
-                    <span style="font-size:11.5px; font-weight:700; color:#64748b !important;">Tu</span>
-                    <span style="font-size:11.5px; font-weight:700; color:#64748b !important;">We</span>
-                    <span style="font-size:11.5px; font-weight:700; color:#64748b !important;">Th</span>
-                    <span style="font-size:11.5px; font-weight:700; color:#64748b !important;">Fr</span>
+                    <span style="font-size:11.5px; font-weight:700; color:#475569 !important;">Mo</span>
+                    <span style="font-size:11.5px; font-weight:700; color:#475569 !important;">Tu</span>
+                    <span style="font-size:11.5px; font-weight:700; color:#475569 !important;">We</span>
+                    <span style="font-size:11.5px; font-weight:700; color:#475569 !important;">Th</span>
+                    <span style="font-size:11.5px; font-weight:700; color:#475569 !important;">Fr</span>
                     <span style="font-size:11.5px; font-weight:800; color:#0284c7 !important;">Sa</span>
                 </div>
 
@@ -385,13 +398,20 @@ try {
                 };
             </script>
 
+            <!-- Personal Trip Budget Input (Optional) -->
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
+                <label style="font-size:12.5px; color:#1e293b !important; margin:0; font-weight:700;">
+                    Personal Trip Budget <span style="font-size:11px; color:#64748b; font-weight:500;">(Optional)</span>
+                </label>
+                <span style="font-size:11px; color:#0284c7; font-weight:600;">Plan your spending</span>
+            </div>
             <div style="position:relative; margin-bottom:12px;">
                 <span
                     style="position:absolute; left:16px; top:12px; color:#0284c7; font-weight:800; font-size:15px;">₱</span>
-                <input type="tel" id="trip-budget" placeholder="Set a budget (optional)"
+                <input type="tel" id="trip-budget" placeholder="Enter budget (optional)"
                     oninput="this.value=this.value.replace(/\D/g,'');if(this.value.length>5)this.value=this.value.slice(0,5);window.calculateModalBudget()"
-                    style="width:100%; padding:12px 16px 12px 34px; border-radius:14px; border:1.5px solid #e2e8f0 !important; outline:none !important; background:#f8fafc !important; color:#0f172a !important; -webkit-text-fill-color:#0f172a !important; font-family:inherit; font-size:14px; font-weight:600; box-sizing:border-box; box-shadow:none !important; transition:border-color 0.2s;"
-                    onfocus="this.style.borderColor='#0284c7'" onblur="this.style.borderColor='#e2e8f0'">
+                    style="width:100%; padding:12px 16px 12px 34px; border-radius:14px; border:1.5px solid #cbd5e1 !important; outline:none !important; background:#ffffff !important; color:#0f172a !important; -webkit-text-fill-color:#0f172a !important; font-family:inherit; font-size:14px; font-weight:600; box-sizing:border-box; box-shadow:none !important; transition:border-color 0.2s;"
+                    onfocus="this.style.borderColor='#0284c7'" onblur="this.style.borderColor='#cbd5e1'">
             </div>
 
             <div id="save-budget-details"
@@ -4105,8 +4125,6 @@ try {
             if (shouldOpen) {
                 window.renderCalendarGrid();
                 dropdown.style.display = 'block';
-                // Trigger reflow for smooth height slide transition
-                dropdown.offsetHeight;
                 dropdown.classList.add('calendar-open');
                 if (arrow) arrow.style.transform = 'rotate(180deg)';
                 if (trigger) {
@@ -4115,19 +4133,15 @@ try {
                 }
                 setTimeout(() => {
                     dropdown.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                }, 60);
+                }, 50);
             } else {
                 dropdown.classList.remove('calendar-open');
+                dropdown.style.display = 'none';
                 if (arrow) arrow.style.transform = 'rotate(0deg)';
                 if (trigger) {
-                    trigger.style.borderColor = '#e2e8f0';
+                    trigger.style.borderColor = '#cbd5e1';
                     trigger.style.boxShadow = 'none';
                 }
-                setTimeout(() => {
-                    if (!dropdown.classList.contains('calendar-open')) {
-                        dropdown.style.display = 'none';
-                    }
-                }, 350);
             }
         };
 
@@ -4308,7 +4322,7 @@ try {
                 let targetDateStr = '';
                 if (editingId) {
                     if (modalTitleEl) {
-                        modalTitleEl.innerHTML = '<i class="fa-solid fa-pen-to-square" style="color:#00f2fe; font-size:16px;"></i> Edit Your Trip';
+                        modalTitleEl.textContent = 'Edit Your Trip';
                     }
                     if (submitBtn) {
                         submitBtn.textContent = 'Update Trip';
@@ -4356,7 +4370,7 @@ try {
                         window.setTripType('solo');
                     }
                     if (modalTitleEl) {
-                        modalTitleEl.innerHTML = '<i class="fa-solid fa-cloud-arrow-up" style="color:#00f2fe; font-size:16px;"></i> Save Your Trip';
+                        modalTitleEl.textContent = 'Save Your Trip';
                     }
                     if (submitBtn) {
                         submitBtn.textContent = 'Save Trip';

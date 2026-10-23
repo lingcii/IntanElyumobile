@@ -686,23 +686,24 @@ select.auth-input option {
     top: 50% !important;
     transform: translateY(-50%) !important;
     color: #64748b !important;
-    font-size: 11.5px !important;
-    width: 18px !important;
-    height: 18px !important;
+    font-size: 13px !important;
+    width: 20px !important;
+    height: 20px !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
     text-align: center !important;
     pointer-events: none !important;
-    z-index: 4 !important;
+    z-index: 5 !important;
     margin: 0 !important;
     padding: 0 !important;
     background: transparent !important;
     border: none !important;
-    transition: color 0.2s ease, transform 0.2s ease !important;
+    transition: color 0.2s ease, transform 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
-.input-group:focus-within > i.select-arrow {
+.input-group:focus-within > i.select-arrow,
+.input-group:hover > i.select-arrow {
     color: #1d4ed8 !important;
 }
 
@@ -1241,10 +1242,36 @@ select.auth-input option {
 }
 
 /* Privacy Modal Overlay Card (matches Notifications modal design) */
-#privacy-policy-modal {
+#privacy-policy-modal,
+#gender-select-modal {
     background: rgba(10, 25, 60, 0.45) !important;
     backdrop-filter: blur(10px) !important;
     -webkit-backdrop-filter: blur(10px) !important;
+    z-index: 999999 !important;
+}
+
+#privacy-policy-modal.active,
+#gender-select-modal.active,
+.auth-2fa-overlay.active {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+}
+
+#privacy-policy-modal .privacy-modal-card,
+#privacy-policy-modal .privacy-modal-header,
+#privacy-policy-modal .privacy-modal-close,
+#privacy-policy-modal .privacy-modal-scroll-body,
+#privacy-policy-modal .privacy-modal-footer,
+#privacy-policy-modal .privacy-acceptance-box,
+#privacy-policy-modal .privacy-modal-actions,
+#privacy-policy-modal .btn-privacy-decline,
+#privacy-policy-modal .btn-privacy-accept,
+#gender-select-modal .gender-modal-card,
+#gender-select-modal .gender-modal-header,
+#gender-select-modal .gender-modal-close,
+#gender-select-modal .gender-modal-body,
+#gender-select-modal .gender-option-item {
+    pointer-events: auto !important;
 }
 
 .privacy-modal-card {
@@ -1265,10 +1292,189 @@ select.auth-input option {
     transition: transform 0.34s cubic-bezier(0.175, 0.885, 0.32, 1.15);
     color: #ffffff;
     overflow: hidden !important;
+    pointer-events: auto !important;
 }
 
 .auth-2fa-overlay.active .privacy-modal-card {
     transform: scale(1) translateY(0);
+}
+
+/* Gender Selection Modal Card */
+.gender-modal-card {
+    background: #ffffff !important;
+    border: none !important;
+    outline: none !important;
+    border-radius: 24px;
+    padding: 0 !important;
+    max-width: 360px;
+    width: 90%;
+    box-shadow: 0 16px 40px rgba(10, 25, 60, 0.45) !important;
+    position: relative;
+    text-align: left;
+    transform: scale(0.92) translateY(16px);
+    transition: transform 0.34s cubic-bezier(0.175, 0.885, 0.32, 1.15);
+    overflow: hidden !important;
+    pointer-events: auto !important;
+}
+
+.auth-2fa-overlay.active .gender-modal-card {
+    transform: scale(1) translateY(0);
+}
+
+.gender-modal-header {
+    background: linear-gradient(180deg, #1e3a8a 0%, #193375 100%) !important;
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    border: none !important;
+}
+
+.gender-modal-header-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.gender-modal-badge {
+    font-size: 10px;
+    color: #00f2fe !important;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.gender-modal-title {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 800;
+    color: #ffffff !important;
+    letter-spacing: -0.3px;
+}
+
+.gender-modal-close {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #ffffff !important;
+    border: none !important;
+    outline: none !important;
+    color: #1e3a8a !important;
+    font-size: 20px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18) !important;
+    transition: transform 0.15s ease;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.gender-modal-close:active {
+    transform: scale(0.92);
+}
+
+.gender-modal-body {
+    padding: 12px 14px 18px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background: #ffffff;
+}
+
+.gender-option-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: 14px;
+    background: #f8fafc;
+    border: 1.5px solid #e2e8f0;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+}
+
+.gender-option-item:hover,
+.gender-option-item:active {
+    background: #eff6ff;
+    border-color: #93c5fd;
+    transform: translateY(-1px);
+}
+
+.gender-option-item.selected {
+    background: #eff6ff;
+    border-color: #2563eb;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.12);
+}
+
+.gender-option-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+}
+
+.gender-option-icon.icon-male {
+    background: rgba(59, 130, 246, 0.12);
+    color: #2563eb;
+}
+
+.gender-option-icon.icon-female {
+    background: rgba(236, 72, 153, 0.12);
+    color: #db2777;
+}
+
+.gender-option-icon.icon-nonbinary {
+    background: rgba(139, 92, 246, 0.12);
+    color: #7c3aed;
+}
+
+.gender-option-icon.icon-prefer {
+    background: rgba(100, 116, 139, 0.12);
+    color: #475569;
+}
+
+.gender-option-icon.icon-other {
+    background: rgba(2, 132, 199, 0.12);
+    color: #0284c7;
+}
+
+.gender-option-info {
+    flex: 1;
+    display: flex;
+    align-items: center;
+}
+
+.gender-option-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.gender-check-icon {
+    font-size: 18px;
+    color: #2563eb;
+    opacity: 0;
+    transform: scale(0.6);
+    transition: all 0.2s ease;
+}
+
+.gender-option-item.selected .gender-check-icon {
+    opacity: 1;
+    transform: scale(1);
 }
 
 /* Header Banner */
@@ -1606,21 +1812,23 @@ body[data-offline="true"] .auth-offline-badge {
 .btn-offline-guest {
     width: 100%;
     margin-top: 9px;
-    padding: 10.5px;
+    padding: 11px;
     border-radius: 100px;
-    border: 1px solid rgba(56, 189, 248, 0.35);
-    background: rgba(56, 189, 248, 0.08);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    color: #ffffff;
-    font-size: 13px;
+    border: 1.5px solid #cbd5e1 !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+    font-size: 13.5px;
     font-weight: 700;
     display: flex !important; /* Always visible for instant guest exploration */
     align-items: center;
     justify-content: center;
     gap: 9px;
     cursor: pointer;
-    transition: background 0.2s, transform 0.1s, border-color 0.2s;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08) !important;
+    transition: background 0.2s, transform 0.15s, box-shadow 0.2s, border-color 0.2s;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    pointer-events: auto !important;
 }
 
 .btn-offline-guest,
@@ -1628,12 +1836,30 @@ body.is-offline .btn-offline-guest,
 .is-offline .btn-offline-guest,
 body[data-offline="true"] .btn-offline-guest {
     display: flex !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+}
+
+.btn-offline-guest:hover {
+    background: #f8fafc !important;
+    border-color: #94a3b8 !important;
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.12) !important;
 }
 
 .btn-offline-guest:active {
     transform: scale(0.98);
-    background: rgba(56, 189, 248, 0.16);
-    border-color: rgba(56, 189, 248, 0.6);
+    background: #f1f5f9 !important;
+    border-color: #cbd5e1 !important;
+}
+
+.btn-offline-guest i {
+    color: #0284c7 !important;
+    font-size: 14px !important;
+}
+
+.btn-offline-guest span {
+    color: #0f172a !important;
+    font-weight: 700 !important;
 }
 
 /* Offline Action Modal */
