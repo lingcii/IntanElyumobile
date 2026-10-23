@@ -620,7 +620,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                         }
 
                         const cNum = parseFloat(item.leg_cost || 0);
-                        const cStr = (cNum > 0) ? `&bull; ₱${cNum.toFixed(2)}` : (legParts.length === 1 && ['own_car', 'motorcycle', 'walking'].includes(legParts[0]) ? '&bull; ₱0' : '');
+                        const cStr = (cNum > 0) ? `&bull; ₱${cNum.toFixed(2)}` : '';
 
                         legTransitHtml = `<div style="display:flex; align-items:center; gap:6px; margin-bottom:8px; flex-wrap:wrap;">
                         <span style="background:#f8fafc; border:1px solid #e2e8f0; color:#334155; padding:3px 9px; border-radius:100px; font-size:10.5px; font-weight:700; display:inline-flex; align-items:center; gap:5px;">
@@ -1777,18 +1777,36 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                 token.startsWith('guest_') ||
                 token.startsWith('offline_');
 
+            const getDistance = (lat1, lon1, lat2, lon2) => {
+                const R = 6371e3;
+                const φ1 = lat1 * Math.PI / 180;
+                const φ2 = lat2 * Math.PI / 180;
+                const Δφ = (lat2 - lat1) * Math.PI / 180;
+                const Δλ = (lon2 - lon1) * Math.PI / 180;
+                const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+                return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            };
+
+            const parentTrip = (window._cachedTrip || window._activeTrip || (window._cachedSavedTrips || []).find(t => (t.items || []).some(i => String(i.id) === String(itemId))));
+            const targetItem = (window.currentTripItems || []).find(it => String(it.id) === String(itemId));
+            const spotId = targetItem ? (targetItem.tourist_spot_id || targetItem.destination_id || (targetItem.destination ? targetItem.destination.id : null)) : null;
+            const tripId = window.currentTripId || (parentTrip ? parentTrip.id : null);
+            const tPax = parentTrip ? (parentTrip.total_pax || 1) : 1;
+            const cMales = parentTrip ? (parentTrip.companion_males || 0) : 0;
+            const cFemales = parentTrip ? (parentTrip.companion_females || 0) : 0;
+
+            let sLat = (spotLat != null && !isNaN(spotLat)) ? parseFloat(spotLat) : null;
+            let sLng = (spotLng != null && !isNaN(spotLng)) ? parseFloat(spotLng) : null;
+            if ((sLat === null || sLng === null) && targetItem && targetItem.destination) {
+                if (targetItem.destination.latitude != null) sLat = parseFloat(targetItem.destination.latitude);
+                if (targetItem.destination.longitude != null) sLng = parseFloat(targetItem.destination.longitude);
+            }
+
             const doSubmitCheckin = async (lat, lng) => {
-                window.applyLocationCheckinLocally(itemId);
-
-                const parentTrip = (window._cachedTrip || window._activeTrip || (window._cachedSavedTrips || []).find(t => (t.items || []).some(i => String(i.id) === String(itemId))));
-                const targetItem = (window.currentTripItems || []).find(it => String(it.id) === String(itemId));
-                const spotId = targetItem ? (targetItem.tourist_spot_id || targetItem.destination_id || (targetItem.destination ? targetItem.destination.id : null)) : null;
-                const tripId = window.currentTripId || (parentTrip ? parentTrip.id : null);
-                const tPax = parentTrip ? (parentTrip.total_pax || 1) : 1;
-                const cMales = parentTrip ? (parentTrip.companion_males || 0) : 0;
-                const cFemales = parentTrip ? (parentTrip.companion_females || 0) : 0;
-
                 if (isOfflineItem) {
+                    // Only apply locally once 200m check passed
+                    window.applyLocationCheckinLocally(itemId);
+
                     if (window.OfflineCheckinManager) {
                         await window.OfflineCheckinManager.queueOfflineCheckin({
                             type: 'itinerary',
@@ -1853,7 +1871,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                         }
                     } else {
                         if (typeof showToast === 'function') {
-                            showToast(data.message || 'Check-in failed. Please ensure you are at the destination.', 'error');
+                            showToast(data.message || 'Check-in failed. Please ensure you are within 200m of the destination.', 'error');
                         }
                     }
                     if (btnEl) {
@@ -1864,6 +1882,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                     clearTimeout(timeoutId);
                     console.warn('Location check-in error, queuing offline:', err);
                     if (window.OfflineCheckinManager) {
+                        window.applyLocationCheckinLocally(itemId);
                         await window.OfflineCheckinManager.queueOfflineCheckin({
                             type: 'itinerary',
                             itemId: itemId,
@@ -1887,39 +1906,39 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                 }
             };
 
-            const getDistance = (lat1, lon1, lat2, lon2) => {
-                const R = 6371e3;
-                const φ1 = lat1 * Math.PI / 180;
-                const φ2 = lat2 * Math.PI / 180;
-                const Δφ = (lat2 - lat1) * Math.PI / 180;
-                const Δλ = (lon2 - lon1) * Math.PI / 180;
-                const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
-                return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-            };
-
             const checkAndProceed = (lat, lng) => {
-                if (spotLat != null && spotLng != null && !isNaN(spotLat) && !isNaN(spotLng)) {
-                    const dist = getDistance(lat, lng, parseFloat(spotLat), parseFloat(spotLng));
-                    if (dist > 300) {
+                // STRICT 200M RADIUS CHECK (Applies to both offline and online)
+                if (sLat != null && sLng != null && !isNaN(sLat) && !isNaN(sLng)) {
+                    const dist = getDistance(lat, lng, sLat, sLng);
+                    if (dist > 200) {
                         const distM = Math.round(dist);
                         const distKm = (dist / 1000).toFixed(1);
                         const displayDist = dist >= 1000 ? `${distKm} km` : `${distM} meters`;
                         if (typeof showToast === 'function') {
-                            showToast(`⚠️ You are ${displayDist} away from ${spotName}. Must be within 300m to check in.`, 'warning');
+                            showToast(`⚠️ You are ${displayDist} away from ${spotName || 'the tourist site'}. You must be within 200m of the tourist site to check in! 📍`, 'warning', 4500);
                         }
                         if (btnEl) {
                             btnEl.innerHTML = originalHtml;
                             btnEl.disabled = false;
                         }
-                        return;
+                        return; // BLOCKED! Neither offline nor online checkin is allowed outside 200m!
                     }
                 }
                 doSubmitCheckin(lat, lng);
             };
 
-            if (window.myLat && window.myLng) {
-                checkAndProceed(window.myLat, window.myLng);
-            } else if (navigator.geolocation) {
+            const handleGpsErr = (err) => {
+                console.warn('Geolocation error during check-in:', err);
+                if (typeof showToast === 'function') {
+                    showToast('📍 Unable to acquire accurate GPS location. Please turn on Location/GPS and try again.', 'error');
+                }
+                if (btnEl) {
+                    btnEl.innerHTML = originalHtml;
+                    btnEl.disabled = false;
+                }
+            };
+
+            if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(
                     (pos) => {
                         window.myLat = pos.coords.latitude;
@@ -1927,15 +1946,18 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                         checkAndProceed(pos.coords.latitude, pos.coords.longitude);
                     },
                     (err) => {
-                        console.warn('Geolocation error:', err);
-                        const fallbackLat = 16.6159;
-                        const fallbackLng = 120.3209;
-                        checkAndProceed(fallbackLat, fallbackLng);
+                        if (window.myLat && window.myLng) {
+                            checkAndProceed(window.myLat, window.myLng);
+                        } else {
+                            handleGpsErr(err);
+                        }
                     },
-                    { enableHighAccuracy: true, timeout: 6000 }
+                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
                 );
+            } else if (window.myLat && window.myLng) {
+                checkAndProceed(window.myLat, window.myLng);
             } else {
-                doSubmitCheckin(16.6159, 120.3209);
+                handleGpsErr('No geolocation support');
             }
         };
 

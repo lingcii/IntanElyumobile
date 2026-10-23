@@ -15,9 +15,9 @@ class ItineraryItemController extends Controller
     private const XP_PER_VISIT = 50;
 
     /**
-     * Maximum allowed distance (in meters) for a valid GPS check-in.
+     * Maximum allowed distance (in meters) for a valid GPS check-in (200m radius).
      */
-    private const MAX_DISTANCE_METERS = 300;
+    private const MAX_DISTANCE_METERS = 200;
 
     /**
      * Helper to store multiple proof photos, compressing to WebP and uploading to R2 / local.
@@ -366,9 +366,9 @@ class ItineraryItemController extends Controller
                 (float) $spot->longitude
             );
 
-            if ($distanceMeters > self::MAX_DISTANCE_METERS && !$hasIncomingPhotos && !$request->filled('captured_at')) {
+            if ($distanceMeters > self::MAX_DISTANCE_METERS) {
                 return response()->json([
-                    'message'  => "You're too far from {$spot->name}. Get closer to check in! 📍",
+                    'message'  => "You're too far from {$spot->name}. Get within " . self::MAX_DISTANCE_METERS . "m to check in! 📍",
                     'distance' => round($distanceMeters) . 'm away',
                     'required' => self::MAX_DISTANCE_METERS . 'm',
                 ], 403);
@@ -407,6 +407,7 @@ class ItineraryItemController extends Controller
             $itemData['total_pax']         = $totalPax;
 
             $item->update($itemData);
+            $item->refresh();
 
             try {
                 if ($spot) {

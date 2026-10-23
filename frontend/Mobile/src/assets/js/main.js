@@ -350,6 +350,23 @@ window.OfflineCheckinManager = {
     },
 
     queueOfflineCheckin: async function (data) {
+        // Enforce 200m radius if destination coordinates are provided and this is a location checkin
+        const destLat = data.destLat ?? data.dest_lat ?? null;
+        const destLng = data.destLng ?? data.dest_lng ?? null;
+        if (destLat != null && destLng != null && data.lat != null && data.lng != null && !data.isPhotoUploadOnly) {
+            const dLat = (parseFloat(destLat) - parseFloat(data.lat)) * Math.PI / 180;
+            const dLng = (parseFloat(destLng) - parseFloat(data.lng)) * Math.PI / 180;
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                      Math.cos(parseFloat(data.lat) * Math.PI / 180) * Math.cos(parseFloat(destLat) * Math.PI / 180) *
+                      Math.sin(dLng / 2) * Math.sin(dLng / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            const dist = 6371000 * c;
+            if (dist > 200) {
+                console.warn(`[OfflineCheckinManager] Check-in blocked: tourist is ${Math.round(dist)}m away (> 200m radius)`);
+                throw new Error(`You are ${Math.round(dist)}m away from ${data.spotName || 'the destination'}. You must be within 200m to check in! 📍`);
+            }
+        }
+
         const id = 'chk_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
         const capturedAt = data.capturedAt || new Date().toISOString();
 
@@ -482,44 +499,111 @@ window.OfflineCheckinManager = {
                     }
                 }
 
+                let resolvedItemId = item.itemId;
+
+                // If itemId starts with offline_, attempt to resolve real numeric item ID from cached trips using spotId
+                if ((!resolvedItemId || String(resolvedItemId).startsWith('offline_')) && item.spotId) {
+                    try {
+                        const tokenKey = (token || '').substring(0, 10);
+                        ['saved_trips_' + tokenKey, 'dashboard_saved_trips_' + tokenKey, 'dashboard_trips_' + tokenKey].forEach(k => {
+                            const raw = localStorage.getItem(k);
+                            if (!raw) return;
+                            const parsed = JSON.parse(raw);
+                            const list = Array.isArray(parsed) ? parsed : (parsed.itineraries || parsed.data || []);
+                            if (Array.isArray(list)) {
+                                list.forEach(t => {
+                                    if (t.items && Array.isArray(t.items)) {
+                                        const match = t.items.find(i => {
+                                            const sId = String(i.tourist_spot_id || i.destination_id || (i.destination && i.destination.id) || '');
+                                            return sId === String(item.spotId) && i.id && !String(i.id).startsWith('offline_');
+                                        });
+                                        if (match) {
+                                            resolvedItemId = match.id;
+                                            item.itemId = match.id;
+                                        }
+                                    }
+                                });
+                            }
+                        });
+                    } catch (e) { }
+                }
+
+                // If item is an offline itinerary item that hasn't received a server ID yet, defer until next sync cycle
+                if (item.type === 'itinerary' && String(resolvedItemId || '').startsWith('offline_')) {
+                    continue;
+                }
+
                 let targetUrl = '';
-                if (item.type === 'itinerary' && item.itemId) {
-                    targetUrl = `${baseUrl}/api/tourist/itineraries/items/${item.itemId}/visit`;
+                if (item.type === 'itinerary' && resolvedItemId && !String(resolvedItemId).startsWith('offline_')) {
+                    targetUrl = (item.isPhotoUploadOnly && photoBlob)
+                        ? `${baseUrl}/api/tourist/itineraries/items/${resolvedItemId}/proof`
+                        : `${baseUrl}/api/tourist/itineraries/items/${resolvedItemId}/visit`;
                 } else if (item.type === 'destination' && item.spotId) {
                     targetUrl = `${baseUrl}/api/tourist/destinations/${item.spotId}/check-in`;
                 } else if (item.type === 'ar' && item.spotId) {
                     targetUrl = `${baseUrl}/api/tourist/points/ar-checkin`;
                     formData.append('spot_id', String(item.spotId));
                     formData.append('destination_id', String(item.spotId));
-                } else if (item.itemId) {
-                    targetUrl = `${baseUrl}/api/tourist/itineraries/items/${item.itemId}/visit`;
+                } else if (resolvedItemId && !String(resolvedItemId).startsWith('offline_')) {
+                    targetUrl = (item.isPhotoUploadOnly && photoBlob)
+                        ? `${baseUrl}/api/tourist/itineraries/items/${resolvedItemId}/proof`
+                        : `${baseUrl}/api/tourist/itineraries/items/${resolvedItemId}/visit`;
                 }
 
                 if (!targetUrl) {
-                    await this.removeQueuedCheckin(item.id);
+                    if (!item.hasPhoto) {
+                        await this.removeQueuedCheckin(item.id);
+                    }
                     continue;
                 }
 
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 20000);
 
-                const response = await fetch(targetUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Accept': 'application/json',
-                        'Authorization': 'Bearer ' + token,
-                        'ngrok-skip-browser-warning': 'true'
-                    },
-                    body: formData,
-                    signal: controller.signal
-                });
+                let response = null;
+                try {
+                    response = await fetch(targetUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Authorization': 'Bearer ' + token,
+                            'ngrok-skip-browser-warning': 'true'
+                        },
+                        body: formData,
+                        signal: controller.signal
+                    });
+                } catch (netErr) {
+                    clearTimeout(timeoutId);
+                    throw netErr;
+                }
                 clearTimeout(timeoutId);
 
                 let data = await response.json().catch(() => ({}));
-                let isResolved = response.ok || response.status === 409 || data.already_recorded || (data.status && ['pending', 'approved', 'success'].includes(data.status));
+                let isResolved = response.ok || response.status === 409 || data.already_recorded || (data.status && ['pending', 'approved', 'success'].includes(data.status)) || Boolean(data.proof_status);
+
+                // If /visit was rejected due to distance (403) or 422, but item has a photo proof, upload directly to /proof!
+                if (!isResolved && photoBlob && resolvedItemId && !String(resolvedItemId).startsWith('offline_')) {
+                    try {
+                        const proofUrl = `${baseUrl}/api/tourist/itineraries/items/${resolvedItemId}/proof`;
+                        const resProof = await fetch(proofUrl, {
+                            method: 'POST',
+                            headers: {
+                                'Accept': 'application/json',
+                                'Authorization': 'Bearer ' + token,
+                                'ngrok-skip-browser-warning': 'true'
+                            },
+                            body: formData
+                        });
+                        const proofData = await resProof.json().catch(() => ({}));
+                        if (resProof.ok || proofData.proof_status || proofData.success) {
+                            isResolved = true;
+                            data = proofData;
+                        }
+                    } catch (fbProofErr) { }
+                }
 
                 // If itinerary item check-in 404s (e.g. temporary offline item ID) and spotId is known, fallback to destination check-in
-                if (!isResolved && response.status === 404 && item.spotId) {
+                if (!isResolved && response && response.status === 404 && item.spotId) {
                     try {
                         const fallbackUrl = `${baseUrl}/api/tourist/destinations/${item.spotId}/check-in`;
                         const res2 = await fetch(fallbackUrl, {
@@ -536,7 +620,7 @@ window.OfflineCheckinManager = {
                             isResolved = true;
                             data = data2;
                         }
-                    } catch (fbErr) {}
+                    } catch (fbErr) { }
                 }
 
                 // Treat 200, 201, 409 (already recorded), or explicit already_recorded flag as successfully resolved
@@ -545,7 +629,7 @@ window.OfflineCheckinManager = {
 
                     // Optimistically update cached itinerary trips so user immediately sees their photo & pending review status
                     const returnedPhoto = data.proof_image || item.previewUrl || null;
-                    const finalStatus = data.status || 'pending';
+                    const finalStatus = data.proof_status || data.status || 'pending';
                     const isApproved = finalStatus === 'approved' || finalStatus === 'success';
 
                     if (item.itemId || item.spotId) {
@@ -598,10 +682,11 @@ window.OfflineCheckinManager = {
                     }
 
                     await this.removeQueuedCheckin(item.id);
-                } else if (response.status >= 400 && response.status < 500 && response.status !== 408) {
-                    // Client permanent errors (e.g. 404 item deleted, 422 permanent invalid)
+                    window.dispatchEvent(new CustomEvent('offline-checkin-synced', { detail: { id: item.id, spotId: item.spotId, itemId: item.itemId, data } }));
+                } else if (response && response.status >= 400 && response.status < 500 && response.status !== 408) {
                     item.attempts = (item.attempts || 0) + 1;
-                    if (item.attempts >= 3) {
+                    // Do NOT prune checkins with photos until at least 10 attempts
+                    if (item.attempts >= 10 && !item.hasPhoto) {
                         await this.removeQueuedCheckin(item.id);
                     } else {
                         const curQ = this.getQueue();

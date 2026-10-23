@@ -557,23 +557,13 @@ try {
                 style="width:36px; height:4px; background:rgba(255,255,255,0.35); border-radius:99px; margin:0 auto 12px auto;">
             </div>
             <div style="display:flex; align-items:center; justify-content:space-between;">
-                <div style="display:flex; align-items:center; gap:10px;">
-                    <div
-                        style="width:36px; height:36px; border-radius:10px; background:#ffffff !important; display:flex; align-items:center; justify-content:center; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.18);">
-                        <i class="fa-solid fa-route" style="color:#1e3a8a !important; font-size:15px;"></i>
-                    </div>
-                    <div>
-                        <div style="display:flex; align-items:center; gap:6px;">
-                            <h3
-                                style="margin:0; font-size:16px; font-weight:800; color:#ffffff; letter-spacing:-0.2px;">
-                                Choose Leg Transports</h3>
-                            <span
-                                style="font-size:9.5px; font-weight:800; background:rgba(255, 255, 255, 0.2); color:#ffffff; padding:2px 8px; border-radius:100px; text-transform:uppercase; letter-spacing:0.4px;">Multi-Select</span>
-                        </div>
-                        <div id="leg-modal-subtitle"
-                            style="font-size:11.5px; color:rgba(255,255,255,0.85); font-weight:600; margin-top:2px;">
-                            Leg Route Details
-                        </div>
+                <div>
+                    <h3
+                        style="margin:0; font-size:16.5px; font-weight:800; color:#ffffff; letter-spacing:-0.2px;">
+                        Choose Leg Transports</h3>
+                    <div id="leg-modal-subtitle"
+                        style="font-size:11.5px; color:rgba(255,255,255,0.85); font-weight:600; margin-top:3px;">
+                        Leg Route Details
                     </div>
                 </div>
                 <button type="button" onclick="window.closeLegTransportModal()"
@@ -592,9 +582,8 @@ try {
             <div id="leg-modal-selection-bar"
                 style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; background:#f8fafc; padding:8px 12px; border-radius:12px; border:1px solid #e2e8f0;">
                 <span
-                    style="font-size:12px; font-weight:700; color:#1e3a8a; display:flex; align-items:center; gap:6px;">
-                    <i class="fa-solid fa-check-double" style="color:#1e3a8a; font-size:12px;"></i> Select multiple
-                    vehicles if needed:
+                    style="font-size:12px; font-weight:700; color:#1e3a8a; display:flex; align-items:center;">
+                    Select multiple vehicles if needed:
                 </span>
                 <span id="leg-modal-selection-count"
                     style="font-size:10.5px; font-weight:800; background:rgba(30, 58, 138, 0.08); color:#1e3a8a; padding:3px 10px; border-radius:100px;">
@@ -654,22 +643,12 @@ try {
                 style="width:36px; height:4px; background:rgba(255,255,255,0.35); border-radius:99px; margin:0 auto 12px auto;">
             </div>
             <div style="display:flex; align-items:center; justify-content:space-between;">
-                <div style="display:flex; align-items:center; gap:10px;">
-                    <div
-                        style="width:36px; height:36px; border-radius:10px; background:#ffffff !important; display:flex; align-items:center; justify-content:center; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.18);">
-                        <i class="fa-solid fa-car-side" style="color:#1e3a8a !important; font-size:15px;"></i>
-                    </div>
-                    <div>
-                        <div style="display:flex; align-items:center; gap:6px;">
-                            <h3
-                                style="margin:0; font-size:16px; font-weight:800; color:#ffffff; letter-spacing:-0.2px;">
-                                Choose Your Vehicle</h3>
-                            <span
-                                style="font-size:9.5px; font-weight:800; background:rgba(255, 255, 255, 0.2); color:#ffffff; padding:2px 8px; border-radius:100px; text-transform:uppercase; letter-spacing:0.4px;">Multi-Select</span>
-                        </div>
-                        <div style="font-size:11.5px; color:rgba(255,255,255,0.85); font-weight:600; margin-top:2px;">
-                            Select one or more vehicles for your trip
-                        </div>
+                <div>
+                    <h3
+                        style="margin:0; font-size:16.5px; font-weight:800; color:#ffffff; letter-spacing:-0.2px;">
+                        Choose Your Vehicle</h3>
+                    <div style="font-size:11.5px; color:rgba(255,255,255,0.85); font-weight:600; margin-top:3px;">
+                        Select one or more vehicles for your trip
                     </div>
                 </div>
                 <button type="button" onclick="window.closeTravelModeStarterModal()"
@@ -688,9 +667,8 @@ try {
             <div id="starter-modal-selection-bar"
                 style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; background:#f8fafc; padding:8px 12px; border-radius:12px; border:1px solid #e2e8f0;">
                 <span
-                    style="font-size:12px; font-weight:700; color:#1e3a8a; display:flex; align-items:center; gap:6px;">
-                    <i class="fa-solid fa-check-double" style="color:#1e3a8a; font-size:12px;"></i> Select multiple
-                    vehicles if needed:
+                    style="font-size:12px; font-weight:700; color:#1e3a8a; display:flex; align-items:center;">
+                    Select multiple vehicles if needed:
                 </span>
                 <span id="starter-modal-selection-count"
                     style="font-size:10.5px; font-weight:800; background:rgba(30, 58, 138, 0.08); color:#1e3a8a; padding:3px 10px; border-radius:100px;">
@@ -2239,7 +2217,10 @@ try {
                     return window.normalizeVehicleKey(m) === optNorm;
                 }) && opt.isAvail;
 
-                const costStr = (opt.cost > 0) ? `₱${opt.cost.toFixed(2)}` : '₱0';
+                const isPrivate = (opt.category === 'Private') || ['own_car', 'motorcycle', 'private_van', 'van', 'private_car', 'car', 'walking'].includes(optNorm);
+                const costStr = (opt.cost > 0)
+                    ? `₱${opt.cost.toFixed(2)}`
+                    : (isPrivate ? '' : '₱0');
                 const costColor = '#ffffff';
                 const disabledClass = !opt.isAvail ? 'disabled-leg-option' : '';
                 const clickHandler = opt.isAvail
@@ -2267,9 +2248,7 @@ try {
                         </div>
                     </div>
                     <div style="text-align:right; flex-shrink:0; margin-left:8px;">
-                        <div style="font-size:14.5px; font-weight:900; color:${opt.isAvail ? costColor : '#94a3b8'}; letter-spacing:-0.2px;">
-                            ${opt.isAvail ? costStr : '—'}
-                        </div>
+                        ${(opt.isAvail && costStr) ? `<div style="font-size:14.5px; font-weight:900; color:${costColor}; letter-spacing:-0.2px;">${costStr}</div>` : (!opt.isAvail ? `<div style="font-size:14.5px; font-weight:900; color:#94a3b8; letter-spacing:-0.2px;">—</div>` : '')}
                         ${isSelected ? '<span style="font-size:9.5px; color:#ffffff; font-weight:800;"><i class="fa-solid fa-check"></i> Selected</span>' : ''}
                     </div>
                 </div>`;
@@ -3121,7 +3100,7 @@ try {
                     ? ''
                     : ((leg0Info.cost > 0)
                         ? `<span class="leg-fare-tag">₱${leg0Info.cost.toFixed(2)}</span>`
-                        : `<span class="leg-fare-tag" style="color:#059669; background:rgba(16,185,129,0.1);">₱0</span>`);
+                        : '');
 
                 const leg0ChipClass = leg0Info.is_maintenance ? 'p2p-leg-chip leg-maintenance' : 'p2p-leg-chip';
                 const leg0IconColor = leg0Info.is_maintenance ? '#ffffff' : '#0284c7';
@@ -3157,15 +3136,11 @@ try {
             html += `
         <div class="starting-point-item" onclick="window.routeToMyLocation()">
             <div class="starting-point-card" style="background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; border:none !important; outline:none !important; border-radius:20px !important; padding:16px 18px !important; box-shadow:none !important; display:flex; align-items:center; justify-content:space-between; gap:14px; cursor:pointer;">
-                <div class="starting-point-icon-box" style="width:46px; height:46px; border-radius:50%; background:linear-gradient(135deg, rgba(56,189,248,0.25) 0%, rgba(37,99,235,0.35) 100%) !important; border:none !important; outline:none !important; display:flex; align-items:center; justify-content:center; position:relative; flex-shrink:0; box-shadow:none !important;">
-                    <i class="fa-solid fa-location-crosshairs" style="color:#00f2fe; font-size:20px;"></i>
-                </div>
                 <div class="starting-point-info" style="flex:1; min-width:0;">
                     <div class="starting-point-label" style="font-size:10.5px; font-weight:800; color:#00f2fe; text-transform:uppercase; letter-spacing:0.7px; display:inline-flex; align-items:center; gap:5px; margin-bottom:3px;">
                         <i class="fa-solid fa-satellite-dish" style="font-size:9px;"></i> Starting Point
                     </div>
-                    <h3 class="starting-point-title" style="margin:0 0 3px 0; font-size:15.5px; font-weight:800; color:#ffffff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; letter-spacing:-0.2px;">Your Current Location</h3>
-                    <div class="starting-point-status" id="itinerary-starting-status" style="font-size:11.5px; color:rgba(226,232,240,0.9); display:flex; align-items:center; gap:5px; font-weight:600;">${startingStatus}</div>
+                    <h3 class="starting-point-title" style="margin:0; font-size:16px; font-weight:800; color:#ffffff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; letter-spacing:-0.2px;">Your Current Location</h3>
                 </div>
                 <button type="button" onclick="event.stopPropagation(); window.routeToMyLocation();" class="starting-point-locate-btn" style="position:relative !important; width:auto !important; height:auto !important; min-width:auto !important; max-width:none !important; background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%) !important; border:none !important; outline:none !important; color:#ffffff !important; font-size:12px; font-weight:800; padding:8px 16px; border-radius:100px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; flex-shrink:0; box-shadow:none !important; transition:transform 0.15s ease;">
                     <i class="fa-solid fa-location-arrow" style="font-size:11px;"></i> Locate
@@ -3196,14 +3171,12 @@ try {
                             const eta = hasCachedOSRM ? window._cachedNextStopOSRM : window.getDistanceAndETA(lat, lng);
                             if (eta) {
                                 nextStopEtaHtml = `
-                            <div class="next-stop-distance-chip" id="itinerary-next-eta" style="background:#ffffff !important; color:#1e3a8a !important; border:none !important; outline:none !important; border-radius:100px !important; padding:5px 13px !important; font-size:11px !important; font-weight:700 !important; display:inline-flex !important; align-items:center !important; gap:7px !important; margin-top:8px !important; box-shadow:0 2px 6px rgba(0,0,0,0.12) !important;">
-                                <i class="fa-solid fa-route" style="color:#0284c7 !important; font-size:11px;"></i> 
+                            <div class="next-stop-distance-chip" id="itinerary-next-eta" style="background:#ffffff !important; color:#1e3a8a !important; border:none !important; outline:none !important; border-radius:100px !important; padding:5px 13px !important; font-size:11px !important; font-weight:700 !important; display:inline-flex !important; align-items:center !important; margin-top:8px !important; box-shadow:0 2px 6px rgba(0,0,0,0.12) !important;">
                                 <span style="color:#1e3a8a !important; font-weight:700; font-size:11px;">${eta.distanceText} away &bull; ~${eta.durationText} drive from your location</span>
                             </div>`;
                             } else {
                                 nextStopEtaHtml = `
-                            <div class="next-stop-distance-chip" id="itinerary-next-eta" style="background:#ffffff !important; color:#1e3a8a !important; border:none !important; outline:none !important; border-radius:100px !important; padding:5px 13px !important; font-size:11px !important; font-weight:700 !important; display:inline-flex !important; align-items:center !important; gap:7px !important; margin-top:8px !important; box-shadow:0 2px 6px rgba(0,0,0,0.12) !important;">
-                                <i class="fa-solid fa-location-arrow" style="color:#0284c7 !important; font-size:11px;"></i> 
+                            <div class="next-stop-distance-chip" id="itinerary-next-eta" style="background:#ffffff !important; color:#1e3a8a !important; border:none !important; outline:none !important; border-radius:100px !important; padding:5px 13px !important; font-size:11px !important; font-weight:700 !important; display:inline-flex !important; align-items:center !important; margin-top:8px !important; box-shadow:0 2px 6px rgba(0,0,0,0.12) !important;">
                                 <span style="color:#1e3a8a !important; font-weight:700; font-size:11px;">First destination on your itinerary route</span>
                             </div>`;
                             }
@@ -3227,7 +3200,7 @@ try {
                             ? ''
                             : ((legInfo.cost > 0)
                                 ? `<span class="leg-fare-tag">₱${legInfo.cost.toFixed(2)}</span>`
-                                : `<span class="leg-fare-tag" style="color:#059669; background:rgba(16,185,129,0.1);">₱0</span>`);
+                                : '');
 
                         const legChipClass = legInfo.is_maintenance ? 'p2p-leg-chip leg-maintenance' : 'p2p-leg-chip';
                         const legIconColor = legInfo.is_maintenance ? '#ffffff' : '#0284c7';
@@ -3284,14 +3257,8 @@ try {
                                     <img src="${r2ThumbUrl}" alt="${place.name}" loading="lazy" onerror="this.onerror=null; this.src='assets/img/no_image.svg';">
                                 </div>
                                 <div style="flex:1; min-width:0;">
-                                    <h3 class="place-name" style="margin:0 0 3px 0; font-size:16px; font-weight:800; color:#ffffff; letter-spacing:-0.2px; line-height:1.25; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${place.name}</h3>
-                                    <div style="font-size:12px; color:rgba(255,255,255,0.85); font-weight:600; margin-bottom:4px; display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
-                                        <div style="display:flex; align-items:center; gap:5px;">
-                                            <i class="fa-solid fa-tag" style="color:#38bdf8; font-size:10px;"></i>
-                                            <span>${place.category && place.category !== 'null' ? place.category : 'Tourist Destination'}</span>
-                                        </div>
-                                        ${place.classification_status ? `<span style="padding: 2px 7px; border-radius: 100px; font-size: 8.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: ${place.classification_status === 'EXIST' ? '#0284c7' : (place.classification_status === 'EMERGE' ? '#ef4444' : '#10b981')}; border: none !important; outline: none !important;">${place.classification_status === 'EXIST' ? 'EXISTING' : (place.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</span>` : ''}
-                                    </div>
+                                    <h3 class="place-name" style="margin:0 0 4px 0 !important; font-size:15.5px !important; font-weight:800; color:#ffffff; letter-spacing:-0.2px; line-height:1.25; white-space:normal !important; overflow:visible !important; text-overflow:clip !important; word-break:break-word;">${place.name}</h3>
+                                    ${place.classification_status ? `<div style="margin-bottom:4px;"><span style="padding: 2px 7px; border-radius: 100px; font-size: 8.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: ${place.classification_status === 'EXIST' ? '#0284c7' : (place.classification_status === 'EMERGE' ? '#ef4444' : '#10b981')}; border: none !important; outline: none !important;">${place.classification_status === 'EXIST' ? 'EXISTING' : (place.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</span></div>` : ''}
                                     <div class="place-details" style="font-size:12px; color:rgba(255,255,255,0.75); display:flex; align-items:center; gap:5px;">
                                         <i class="fa-solid fa-location-dot" style="color:#00f2fe; font-size:11px; flex-shrink:0;"></i>
                                         <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
@@ -3319,13 +3286,7 @@ try {
                                         </span>
                                     </div>`;
                             }
-                            if (acc.length > 0) {
-                                return `<div style="display:flex; gap:5px; flex-wrap:wrap; margin-top:8px;">
-                                        <span style="padding:2px 8px; border-radius:100px; font-size:10px; font-weight:700; background:rgba(56,189,248,0.18); color:#7dd3fc; border:none !important; outline:none !important; display:inline-flex; align-items:center; gap:4px;">
-                                            <i class="fa-solid fa-van-shuttle" style="font-size:9px; color:#38bdf8;"></i> ${acc.length} Available Vehicle${acc.length > 1 ? 's' : ''}
-                                        </span>
-                                    </div>`;
-                            }
+
                             return '';
                         })()}
                         </div>
@@ -3605,7 +3566,7 @@ try {
                         const hasCachedOSRM = window._cachedNextStopOSRM && window._cachedNextStopOSRM.spotKey === placeKey;
                         const eta = hasCachedOSRM ? window._cachedNextStopOSRM : window.getDistanceAndETA(pLat, pLng);
                         if (eta) {
-                            nextEtaEl.innerHTML = `<i class="fa-solid fa-route" style="color:#0284c7 !important; font-size:11px;"></i> <span style="color:#1e3a8a !important; font-weight:700; font-size:11px;">${eta.distanceText} away &bull; ~${eta.durationText} drive from your location</span>`;
+                            nextEtaEl.innerHTML = `<span style="color:#1e3a8a !important; font-weight:700; font-size:11px;">${eta.distanceText} away &bull; ~${eta.durationText} drive from your location</span>`;
                         }
                     }
                 }

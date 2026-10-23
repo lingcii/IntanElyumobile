@@ -1116,10 +1116,45 @@ Route::get('/weather', [WeatherController::class, 'getWeather']);
 Route::get('/seasons/status', [\App\Http\Controllers\SeasonController::class, 'getStatus']);
 Route::get('/seasons', [\App\Http\Controllers\SeasonController::class, 'index']);
 
+// Helper function for 200m radius distance calculation
+$validateSpotCheckinRadius = function (\Illuminate\Http\Request $request, $spot) {
+    if (!$spot || !$spot->latitude || !$spot->longitude) {
+        return null;
+    }
+    $lat = $request->input('lat') ?? $request->input('latitude');
+    $lng = $request->input('lng') ?? $request->input('longitude');
+    if ($lat === null || $lng === null || !is_numeric($lat) || !is_numeric($lng)) {
+        return [
+            'status' => 'error',
+            'message' => 'Valid GPS location (lat/lng) is required to verify your check-in! 📍',
+        ];
+    }
+    $earthRadius = 6371000;
+    $dLat = deg2rad((float)$spot->latitude - (float)$lat);
+    $dLon = deg2rad((float)$spot->longitude - (float)$lng);
+    $a = sin($dLat / 2) * sin($dLat / 2) +
+         cos(deg2rad((float)$lat)) * cos(deg2rad((float)$spot->latitude)) *
+         sin($dLon / 2) * sin($dLon / 2);
+    $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+    $distanceMeters = $earthRadius * $c;
+
+    if ($distanceMeters > 200) {
+        return [
+            'status' => 'error',
+            'message' => "You're too far from {$spot->name}. Get within 200m to check in! 📍",
+            'distance' => round($distanceMeters) . 'm away',
+            'distance_m' => round($distanceMeters),
+            'required' => '200m',
+            'required_m' => 200,
+        ];
+    }
+    return null;
+};
+
 // ─────────────────────────────────────────────────────────────────────────────
 //  TOURIST (mobile app — Bearer token auth)
 // ─────────────────────────────────────────────────────────────────────────────
-Route::prefix('tourist')->middleware('tourist.auth')->group(function () {
+Route::prefix('tourist')->middleware('tourist.auth')->group(function () use ($validateSpotCheckinRadius) {
     Route::get('/dashboard', [TouristDashboardController::class, 'index']);
     Route::get('/profile', [TouristProfileController::class, 'show']);
     Route::post('/profile', [TouristProfileController::class, 'update']);
@@ -1227,11 +1262,16 @@ Route::prefix('tourist')->middleware('tourist.auth')->group(function () {
     Route::post('/feedback', [FeedbackController::class, 'store']);
 
     // AR and Instant GPS Check-in
-    Route::post('/points/ar-checkin', function (\Illuminate\Http\Request $request) {
-        $spotId = $request->input('spot_id');
+    Route::post('/points/ar-checkin', function (\Illuminate\Http\Request $request) use ($validateSpotCheckinRadius) {
+        $spotId = $request->input('spot_id') ?? $request->input('destination_id');
         $spot = TouristSpot::activeForTourists()->find($spotId);
         if (!$spot) {
             return response()->json(['status' => 'error', 'message' => 'Tourist destination not found or not active.'], 404);
+        }
+
+        $radiusCheck = $validateSpotCheckinRadius($request, $spot);
+        if ($radiusCheck !== null) {
+            return response()->json($radiusCheck, 403);
         }
 
         // Increment spot visits count in database
@@ -1279,11 +1319,17 @@ Route::prefix('tourist')->middleware('tourist.auth')->group(function () {
     });
 
     // Direct Destination Check-in
-    Route::post('/destinations/{id}/check-in', function (\Illuminate\Http\Request $request, int $id) {
+    Route::post('/destinations/{id}/check-in', function (\Illuminate\Http\Request $request, int $id) use ($validateSpotCheckinRadius) {
         $spot = TouristSpot::activeForTourists()->find($id);
         if (!$spot) {
             return response()->json(['status' => 'error', 'message' => 'Tourist destination not found or not active.'], 404);
         }
+
+        $radiusCheck = $validateSpotCheckinRadius($request, $spot);
+        if ($radiusCheck !== null) {
+            return response()->json($radiusCheck, 403);
+        }
+
         $spot->increment('visits');
 
         $rewardPoints = \App\Models\Classification::getPointsForStatus($spot->classification_status);
@@ -1361,11 +1407,17 @@ Route::prefix('analytics')->group(function () {
 });
 
 // Top-level Public Check-in and Rating aliases
-Route::post('/public/destinations/{id}/check-in', function (\Illuminate\Http\Request $request, int $id) {
+Route::post('/public/destinations/{id}/check-in', function (\Illuminate\Http\Request $request, int $id) use ($validateSpotCheckinRadius) {
     $spot = TouristSpot::activeForTourists()->find($id);
     if (!$spot) {
         return response()->json(['status' => 'error', 'message' => 'Tourist destination not found or not active.'], 404);
     }
+
+    $radiusCheck = $validateSpotCheckinRadius($request, $spot);
+    if ($radiusCheck !== null) {
+        return response()->json($radiusCheck, 403);
+    }
+
     $spot->increment('visits');
     \Illuminate\Support\Facades\Cache::forget('map:public:spots');
     \Illuminate\Support\Facades\Cache::forget('trending:top:5');
@@ -1391,8 +1443,14 @@ Route::post('/public/destinations/{id}/check-in', function (\Illuminate\Http\Req
         'classification' => $canonical,
     ]);
 });
-Route::post('/destinations/{id}/check-in', function (\Illuminate\Http\Request $request, int $id) {
+Route::post('/destinations/{id}/check-in', function (\Illuminate\Http\Request $request, int $id) use ($validateSpotCheckinRadius) {
     $spot = TouristSpot::findOrFail($id);
+
+    $radiusCheck = $validateSpotCheckinRadius($request, $spot);
+    if ($radiusCheck !== null) {
+        return response()->json($radiusCheck, 403);
+    }
+
     $spot->increment('visits');
     \Illuminate\Support\Facades\Cache::forget('map:public:spots');
     \Illuminate\Support\Facades\Cache::forget('trending:top:5');
@@ -1418,11 +1476,17 @@ Route::post('/destinations/{id}/check-in', function (\Illuminate\Http\Request $r
         'classification' => $canonical,
     ]);
 });
-Route::post('/points/ar-checkin', function (\Illuminate\Http\Request $request) {
-    $spotId = $request->input('spot_id');
+Route::post('/points/ar-checkin', function (\Illuminate\Http\Request $request) use ($validateSpotCheckinRadius) {
+    $spotId = $request->input('spot_id') ?? $request->input('destination_id');
     $spot = TouristSpot::find($spotId);
     if (!$spot)
         return response()->json(['status' => 'error'], 404);
+
+    $radiusCheck = $validateSpotCheckinRadius($request, $spot);
+    if ($radiusCheck !== null) {
+        return response()->json($radiusCheck, 403);
+    }
+
     $spot->increment('visits');
     \Illuminate\Support\Facades\Cache::forget('map:public:spots');
     \Illuminate\Support\Facades\Cache::forget('trending:top:5');

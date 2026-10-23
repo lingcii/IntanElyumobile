@@ -542,6 +542,10 @@ $backRoute = 'itinerary';
                             const data = await response.json();
                             const itins = data.itineraries || [];
                             const persistentStates = (typeof window.getPersistentItemStates === 'function') ? window.getPersistentItemStates() : {};
+                            const queuedCheckins = (window.OfflineCheckinManager && typeof window.OfflineCheckinManager.getQueue === 'function')
+                                ? window.OfflineCheckinManager.getQueue()
+                                : [];
+
                             const mergedItins = itins.map(trip => {
                                 if (!trip || !Array.isArray(trip.items)) return trip;
                                 return {
@@ -549,16 +553,65 @@ $backRoute = 'itinerary';
                                     items: trip.items.map(it => {
                                         if (!it) return it;
                                         const itKey = String(it.id || '');
-                                        const spotKey = 'spot_' + (it.tourist_spot_id || it.destination_id || (it.destination ? it.destination.id : ''));
-                                        const override = persistentStates[itKey] || persistentStates[spotKey];
-                                        if (!override) return it;
+                                        const spotIdKey = String(it.tourist_spot_id || it.destination_id || (it.destination ? it.destination.id : ''));
+                                        const spotKey = 'spot_' + spotIdKey;
+                                        const override = persistentStates[itKey] || (spotIdKey ? persistentStates[spotKey] : null);
+
+                                        // Check queued check-in / photo upload in OfflineCheckinManager
+                                        const queued = queuedCheckins.find(q => {
+                                            if (!q) return false;
+                                            if (q.itemId && String(q.itemId) === itKey) return true;
+                                            if (q.spotId && spotIdKey && String(q.spotId) === spotIdKey) return true;
+                                            return false;
+                                        });
+
+                                        // Check in-memory cached trip item
+                                        let inMemoryItem = null;
+                                        if (Array.isArray(window._cachedSavedTrips)) {
+                                            for (const t of window._cachedSavedTrips) {
+                                                if (t && Array.isArray(t.items)) {
+                                                    const match = t.items.find(m => m && (String(m.id) === itKey || (spotIdKey && String(m.tourist_spot_id || m.destination_id || (m.destination ? m.destination.id : '')) === spotIdKey)));
+                                                    if (match && (match.proof_image || (Array.isArray(match.proof_images) && match.proof_images.length > 0))) {
+                                                        inMemoryItem = match;
+                                                        break;
+                                                    }
+                                                }
+                                            }
+                                        }
+
+                                        const serverProofs = (Array.isArray(it.proof_images) && it.proof_images.length > 0)
+                                            ? it.proof_images
+                                            : (it.proof_image ? [it.proof_image] : []);
+
+                                        const localProofs = (override && Array.isArray(override.proof_images) && override.proof_images.length > 0)
+                                            ? override.proof_images
+                                            : ((override && override.proof_image) ? [override.proof_image] : []);
+
+                                        const queuedProofs = (queued && (queued.previewUrl || queued.image))
+                                            ? [queued.previewUrl || queued.image]
+                                            : [];
+
+                                        const inMemProofs = (inMemoryItem && Array.isArray(inMemoryItem.proof_images) && inMemoryItem.proof_images.length > 0)
+                                            ? inMemoryItem.proof_images
+                                            : ((inMemoryItem && inMemoryItem.proof_image) ? [inMemoryItem.proof_image] : []);
+
+                                        // Server proofs take precedence if present; otherwise keep queued/local/in-memory proof so turning online never loses photos!
+                                        const activeProofs = serverProofs.length > 0
+                                            ? serverProofs
+                                            : (queuedProofs.length > 0 ? queuedProofs : (localProofs.length > 0 ? localProofs : inMemProofs));
+
+                                        const activeStatus = (serverProofs.length > 0 && it.proof_status)
+                                            ? it.proof_status
+                                            : (it.proof_status || (override ? override.proof_status : null) || (queued ? 'pending' : null) || (inMemoryItem ? inMemoryItem.proof_status : null) || (activeProofs.length > 0 ? 'pending' : null));
+
                                         return {
                                             ...it,
-                                            is_location_verified: Boolean(it.is_location_verified || it.visited_at || override.is_location_verified || override.visited_at),
-                                            visited_at: it.visited_at || override.visited_at || null,
-                                            proof_image: (Array.isArray(it.proof_images) && it.proof_images.length > 0) ? it.proof_image : (override.proof_image || it.proof_image),
-                                            proof_images: (Array.isArray(it.proof_images) && it.proof_images.length > 0) ? it.proof_images : (override.proof_images || it.proof_images || []),
-                                            proof_status: (it.proof_status && it.proof_status !== 'pending' && it.proof_status !== null) ? it.proof_status : (override.proof_status || it.proof_status || (override.proof_image ? 'pending' : null))
+                                            is_location_verified: Boolean(it.is_location_verified || it.visited_at || (override && (override.is_location_verified || override.visited_at)) || (queued && queued.status) || (inMemoryItem && inMemoryItem.is_location_verified)),
+                                            visited_at: it.visited_at || (override ? override.visited_at : null) || (queued ? queued.capturedAt : null) || (inMemoryItem ? inMemoryItem.visited_at : null),
+                                            proof_image: activeProofs.length > 0 ? activeProofs[0] : null,
+                                            proof_images: activeProofs,
+                                            proof_status: activeStatus,
+                                            is_offline_queued: Boolean(queued || (override && override.is_queued) || (inMemoryItem && inMemoryItem.is_offline_queued))
                                         };
                                     })
                                 };
@@ -1067,7 +1120,7 @@ $backRoute = 'itinerary';
                                         }
 
                                         const costNum = parseFloat(item.leg_cost || 0);
-                                        const costStr = (costNum > 0) ? `&bull; ₱${costNum.toFixed(2)}` : (legModes.length === 1 && ['own_car', 'motorcycle', 'walking'].includes(legModes[0]) ? '&bull; ₱0' : '');
+                                        const costStr = (costNum > 0) ? `&bull; ₱${costNum.toFixed(2)}` : '';
                                         const distNum = parseFloat(item.leg_distance_km || 0);
                                         const distStr = (distNum > 0) ? `&bull; ${distNum.toFixed(1)} km` : '';
 
@@ -1748,12 +1801,17 @@ $backRoute = 'itinerary';
             const urls = Array.isArray(proofUrls) ? proofUrls : (proofUrls ? [proofUrls] : []);
             if (urls.length === 0) return;
 
+            const parentTrip = (window._cachedSavedTrips || []).find(t => (t.items || []).some(i => String(i.id) === targetIdStr));
+            const targetItem = parentTrip ? (parentTrip.items || []).find(i => String(i.id) === targetIdStr) : null;
+            const spotId = targetItem ? (targetItem.tourist_spot_id || targetItem.destination_id || (targetItem.destination ? targetItem.destination.id : null)) : null;
+
             // Persist to dedicated override storage so page refresh NEVER loses the uploaded photo
             if (typeof window.savePersistentItemState === 'function') {
                 window.savePersistentItemState(itemId, {
                     proof_image: urls[0],
                     proof_images: urls,
-                    proof_status: proofStatus
+                    proof_status: proofStatus,
+                    spot_id: spotId
                 });
             }
 
@@ -2073,19 +2131,63 @@ $backRoute = 'itinerary';
                 token.startsWith('guest_') ||
                 token.startsWith('offline_');
 
-            const doSubmitCheckin = async (lat, lng) => {
-                const parentTrip = (window._cachedSavedTrips || []).find(t => (t.items || []).some(i => String(i.id) === String(itemId)));
-                const targetItem = parentTrip ? (parentTrip.items || []).find(i => String(i.id) === String(itemId)) : null;
-                const spotId = targetItem ? (targetItem.tourist_spot_id || targetItem.destination_id || (targetItem.destination ? targetItem.destination.id : null)) : null;
-                const tripId = parentTrip ? parentTrip.id : null;
-                const tPax = parentTrip ? (parentTrip.total_pax || 1) : 1;
-                const cMales = parentTrip ? (parentTrip.companion_males || 0) : 0;
-                const cFemales = parentTrip ? (parentTrip.companion_females || 0) : 0;
+            // Haversine formula (meters)
+            const getHaversineDist = (lat1, lon1, lat2, lon2) => {
+                const R = 6371e3;
+                const φ1 = lat1 * Math.PI / 180;
+                const φ2 = lat2 * Math.PI / 180;
+                const Δφ = (lat2 - lat1) * Math.PI / 180;
+                const Δλ = (lon2 - lon1) * Math.PI / 180;
+                const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+                return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            };
 
-                // Optimistically update location check-in state locally
-                window.applyLocationCheckinLocally(itemId);
+            const parentTrip = (window._cachedSavedTrips || []).find(t => (t.items || []).some(i => String(i.id) === String(itemId)));
+            const targetItem = parentTrip ? (parentTrip.items || []).find(i => String(i.id) === String(itemId)) : null;
+            const spotId = targetItem ? (targetItem.tourist_spot_id || targetItem.destination_id || (targetItem.destination ? targetItem.destination.id : null)) : null;
+            const tripId = parentTrip ? parentTrip.id : null;
+            const tPax = parentTrip ? (parentTrip.total_pax || 1) : 1;
+            const cMales = parentTrip ? (parentTrip.companion_males || 0) : 0;
+            const cFemales = parentTrip ? (parentTrip.companion_females || 0) : 0;
+
+            // Resolve spot coordinates accurately
+            let destLat = (spotLat !== null && !isNaN(spotLat)) ? parseFloat(spotLat) : null;
+            let destLng = (spotLng !== null && !isNaN(spotLng)) ? parseFloat(spotLng) : null;
+            if ((destLat === null || destLng === null) && targetItem && targetItem.destination) {
+                if (targetItem.destination.latitude != null) destLat = parseFloat(targetItem.destination.latitude);
+                if (targetItem.destination.longitude != null) destLng = parseFloat(targetItem.destination.longitude);
+            }
+            if ((destLat === null || destLng === null) && spotId && typeof window.getTouristSpotById === 'function') {
+                const sp = window.getTouristSpotById(spotId);
+                if (sp) {
+                    if (sp.latitude != null) destLat = parseFloat(sp.latitude);
+                    if (sp.longitude != null) destLng = parseFloat(sp.longitude);
+                }
+            }
+
+            const doSubmitCheckin = async (lat, lng) => {
+                // STRICT 200M RADIUS CHECK (Enforced both OFFLINE and ONLINE!)
+                if (destLat !== null && destLng !== null && !isNaN(destLat) && !isNaN(destLng)) {
+                    const dist = getHaversineDist(lat, lng, destLat, destLng);
+                    if (dist > 200) {
+                        const distM = Math.round(dist);
+                        const distKm = (dist / 1000).toFixed(1);
+                        const displayDist = dist >= 1000 ? `${distKm} km` : `${distM} meters`;
+                        if (typeof showToast === 'function') {
+                            showToast(`⚠️ You are ${displayDist} away from ${spotName || 'the tourist site'}. You must be within 200m of the tourist site to check in! 📍`, 'warning', 4500);
+                        }
+                        if (btnEl) {
+                            btnEl.innerHTML = originalHtml;
+                            btnEl.disabled = false;
+                        }
+                        return; // BLOCKED! Neither offline nor online checkin is allowed outside 200m!
+                    }
+                }
 
                 if (isOfflineItem) {
+                    // Only apply locally once 200m radius check has passed
+                    window.applyLocationCheckinLocally(itemId);
+
                     if (window.OfflineCheckinManager) {
                         await window.OfflineCheckinManager.queueOfflineCheckin({
                             type: 'itinerary',
@@ -2150,17 +2252,18 @@ $backRoute = 'itinerary';
                         }
                     } else {
                         if (typeof showToast === 'function') {
-                            showToast(data.message || 'Check-in failed. Please ensure you are at the destination.', 'error');
+                            showToast(data.message || 'Check-in failed. Please ensure you are within 200m of the destination.', 'error');
                         }
-                        if (btnEl) {
-                            btnEl.innerHTML = originalHtml;
-                            btnEl.disabled = false;
-                        }
+                    }
+                    if (btnEl) {
+                        btnEl.innerHTML = originalHtml;
+                        btnEl.disabled = false;
                     }
                 } catch (err) {
                     clearTimeout(timeoutId);
                     console.warn('Location check-in error, queuing offline:', err);
                     if (window.OfflineCheckinManager) {
+                        window.applyLocationCheckinLocally(itemId);
                         await window.OfflineCheckinManager.queueOfflineCheckin({
                             type: 'itinerary',
                             itemId: itemId,
@@ -2184,33 +2287,42 @@ $backRoute = 'itinerary';
                 }
             };
 
+            const handleGpsFailure = (err) => {
+                console.warn('GPS location acquisition error:', err);
+                if (typeof showToast === 'function') {
+                    showToast('📍 Unable to acquire accurate GPS location. Please turn on Location/GPS and try again.', 'error');
+                }
+                if (btnEl) {
+                    btnEl.innerHTML = originalHtml;
+                    btnEl.disabled = false;
+                }
+            };
+
             const options = { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 };
 
             if (typeof window.requestPreciseLocation === 'function') {
                 window.requestPreciseLocation(true).then(loc => {
                     if (loc && loc.lat && loc.lng) doSubmitCheckin(loc.lat, loc.lng);
-                    else throw new Error("No coords");
+                    else handleGpsFailure("No coords");
                 }).catch(() => {
-                    navigator.geolocation.getCurrentPosition(
-                        pos => doSubmitCheckin(pos.coords.latitude, pos.coords.longitude),
-                        err => {
-                            console.warn('GPS error, using fallback location:', err);
-                            if (typeof showToast === 'function') showToast('GPS timeout. Using approximate location...');
-                            doSubmitCheckin(window.myLat || 16.6159, window.myLng || 120.3209);
-                        },
-                        options
-                    );
+                    if (navigator.geolocation) {
+                        navigator.geolocation.getCurrentPosition(
+                            pos => doSubmitCheckin(pos.coords.latitude, pos.coords.longitude),
+                            handleGpsFailure,
+                            options
+                        );
+                    } else {
+                        handleGpsFailure("Geolocation unsupported");
+                    }
                 });
-            } else {
+            } else if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(
                     pos => doSubmitCheckin(pos.coords.latitude, pos.coords.longitude),
-                    err => {
-                        console.warn('GPS error, using fallback location:', err);
-                        if (typeof showToast === 'function') showToast('GPS timeout. Using approximate location...');
-                        doSubmitCheckin(window.myLat || 16.6159, window.myLng || 120.3209);
-                    },
+                    handleGpsFailure,
                     options
                 );
+            } else {
+                handleGpsFailure("Geolocation unsupported");
             }
         };
 
@@ -3366,6 +3478,16 @@ $backRoute = 'itinerary';
                 } catch (e) {
                     console.warn("Auto-sync error on reconnect:", e);
                 }
+
+                // Sync queued offline check-ins & photo proofs
+                try {
+                    if (window.OfflineCheckinManager && typeof window.OfflineCheckinManager.processQueue === 'function') {
+                        await window.OfflineCheckinManager.processQueue();
+                    }
+                } catch (chkErr) {
+                    console.warn("Auto-sync offline checkins error:", chkErr);
+                }
+
                 const currentView = (document.body ? document.body.getAttribute('data-view') : '') || (window.currentView || '');
                 if (currentView === 'saved_trips' || !currentView) {
                     if (typeof window.fetchSavedTrips === 'function') {

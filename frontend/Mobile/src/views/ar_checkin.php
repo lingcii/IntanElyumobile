@@ -74,9 +74,26 @@ $hideBottomNav = true; // Hide bottom nav for full immersive view
         const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
         const headers = { 'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token };
 
-        // Get spot ID from URL query param
+        // Get spot ID and coordinates from URL query params or storage
         const urlParams = new URLSearchParams(window.location.search);
         const spotId = urlParams.get('spot_id');
+        let spotLat = urlParams.get('spot_lat') ? parseFloat(urlParams.get('spot_lat')) : null;
+        let spotLng = urlParams.get('spot_lng') ? parseFloat(urlParams.get('spot_lng')) : null;
+
+        if ((spotLat === null || spotLng === null) && spotId) {
+            try {
+                const rawMap = localStorage.getItem('public_map_data');
+                if (rawMap) {
+                    const parsed = JSON.parse(rawMap);
+                    const spots = (parsed && parsed.data && parsed.data.destinations) ? parsed.data.destinations : (parsed && parsed.destinations ? parsed.destinations : []);
+                    const found = spots.find(s => s && String(s.id) === String(spotId));
+                    if (found) {
+                        spotLat = parseFloat(found.latitude || found.lat);
+                        spotLng = parseFloat(found.longitude || found.lng);
+                    }
+                }
+            } catch (e) { }
+        }
 
         let userLat = null;
         let userLng = null;
@@ -132,6 +149,26 @@ $hideBottomNav = true; // Hide bottom nav for full immersive view
             }
 
             document.getElementById('btn-scan').innerHTML = '<i class="fa-solid fa-spinner spinning"></i>';
+
+            // STRICT 200M RADIUS CHECK (Applies to both OFFLINE and ONLINE!)
+            if (spotLat !== null && spotLng !== null && !isNaN(spotLat) && !isNaN(spotLng)) {
+                const R = 6371e3;
+                const φ1 = userLat * Math.PI / 180;
+                const φ2 = spotLat * Math.PI / 180;
+                const Δφ = (spotLat - userLat) * Math.PI / 180;
+                const Δλ = (spotLng - userLng) * Math.PI / 180;
+                const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+                const dist = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+                if (dist > 200) {
+                    const distM = Math.round(dist);
+                    const distKm = (dist / 1000).toFixed(1);
+                    const displayDist = dist >= 1000 ? `${distKm} km` : `${distM} meters`;
+                    alert(`⚠️ Too far! You are ${displayDist} away from this tourist site. You must be within 200m to check in! 📍`);
+                    document.getElementById('btn-scan').innerHTML = '';
+                    return; // Blocked!
+                }
+            }
 
             // Immediate offline fallback if disconnected
             if ((!navigator.onLine || window.isAppOnline === false) && window.OfflineCheckinManager) {

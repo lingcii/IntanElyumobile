@@ -34,12 +34,41 @@ public class MainActivity extends BridgeActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
+        // Fresh install or re-installation after uninstall detection:
+        android.content.SharedPreferences installPrefs = getSharedPreferences("intan_elyu_install_state", Context.MODE_PRIVATE);
+        boolean isInitialized = installPrefs.getBoolean("app_install_initialized", false);
+        final boolean isFreshInstall = !isInitialized;
+
+        if (isFreshInstall) {
+            // Fresh install or re-install detected: wipe cloud-restored cookies & web storage so user is never logged in directly
+            try {
+                android.webkit.CookieManager cookieManager = android.webkit.CookieManager.getInstance();
+                cookieManager.removeAllCookies(null);
+                cookieManager.flush();
+            } catch (Exception ignored) {}
+
+            try {
+                android.webkit.WebStorage.getInstance().deleteAllData();
+            } catch (Exception ignored) {}
+
+            installPrefs.edit().putBoolean("app_install_initialized", true).apply();
+        }
+
         // Request runtime Android location permissions on app startup
         requestLocationPermissions();
 
         try {
             if (this.bridge != null && this.bridge.getWebView() != null) {
                 final WebView webView = this.bridge.getWebView();
+
+                if (isFreshInstall) {
+                    try {
+                        webView.clearCache(true);
+                        webView.clearFormData();
+                        webView.clearHistory();
+                    } catch (Exception ignored) {}
+                }
+
                 WebSettings settings = webView.getSettings();
                 
                 // Enable Geolocation, Storage, and Local Asset File Access in WebView
@@ -82,6 +111,29 @@ public class MainActivity extends BridgeActivity {
 
                 // Custom BridgeWebViewClient: Guaranteed Zero-Failure offline mode & custom URI handler
                 webView.setWebViewClient(new BridgeWebViewClient(this.bridge) {
+                    private boolean freshCleanDone = false;
+
+                    @Override
+                    public void onPageStarted(WebView view, String url, android.graphics.Bitmap favicon) {
+                        super.onPageStarted(view, url, favicon);
+                        if (isFreshInstall && !freshCleanDone) {
+                            freshCleanDone = true;
+                            view.evaluateJavascript(
+                                "(function() {" +
+                                "  try {" +
+                                "    localStorage.removeItem('intan_elyu_token');" +
+                                "    localStorage.removeItem('Intan_Elyu_Token');" +
+                                "    localStorage.removeItem('api_token');" +
+                                "    localStorage.removeItem('auth_user');" +
+                                "    localStorage.removeItem('intan_elyu_user');" +
+                                "    localStorage.removeItem('intan_elyu_guest');" +
+                                "    sessionStorage.clear();" +
+                                "  } catch(e) {}" +
+                                "})()",
+                                null
+                            );
+                        }
+                    }
                     private boolean handleCustomUriOrNavigation(WebView view, String url) {
                         if (url == null) return false;
 

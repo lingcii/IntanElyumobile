@@ -5142,8 +5142,39 @@ if (is_dir($imgDir)) {
                 btn.disabled = true;
             }
 
-            const lat = window.myLat || dest.lat || dest.latitude;
-            const lng = window.myLng || dest.lng || dest.longitude;
+            const dLat = (dest.lat != null && !isNaN(dest.lat)) ? parseFloat(dest.lat) : (dest.latitude != null ? parseFloat(dest.latitude) : null);
+            const dLng = (dest.lng != null && !isNaN(dest.lng)) ? parseFloat(dest.lng) : (dest.longitude != null ? parseFloat(dest.longitude) : null);
+
+            const lat = (window.myLat != null && !isNaN(window.myLat)) ? parseFloat(window.myLat) : null;
+            const lng = (window.myLng != null && !isNaN(window.myLng)) ? parseFloat(window.myLng) : null;
+
+            if (lat === null || lng === null) {
+                if (typeof showToast === 'function') showToast('📍 Please turn on Location/GPS to check in at this destination.', 'warning');
+                if (btn) { btn.innerHTML = origHtml; btn.disabled = false; }
+                return;
+            }
+
+            if (dLat !== null && dLng !== null) {
+                const R = 6371e3;
+                const φ1 = lat * Math.PI / 180;
+                const φ2 = dLat * Math.PI / 180;
+                const Δφ = (dLat - lat) * Math.PI / 180;
+                const Δλ = (dLng - lng) * Math.PI / 180;
+                const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+                const dist = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+                if (dist > 200) {
+                    const distM = Math.round(dist);
+                    const distKm = (dist / 1000).toFixed(1);
+                    const displayDist = dist >= 1000 ? `${distKm} km` : `${distM} meters`;
+                    if (typeof showToast === 'function') {
+                        showToast(`⚠️ You are ${displayDist} away from ${dest.name}. You must be within 200m of the tourist site to check in! 📍`, 'warning', 4500);
+                    }
+                    if (btn) { btn.innerHTML = origHtml; btn.disabled = false; }
+                    return;
+                }
+            }
+
             const capturedAt = new Date().toISOString();
 
             // Immediate offline fallback if disconnected
