@@ -152,6 +152,7 @@ Route::prefix('auth')->group(function () {
     Route::post('/validate-reset-otp', [LoginController::class, 'validateResetOtp']);
     Route::post('/reset-password', [LoginController::class, 'resetPassword']);
     Route::post('/reset-password-otp', [LoginController::class, 'resetPasswordWithOtp']);
+    Route::post('/2fa/resend', [LoginController::class, 'resend2FACode']);
     Route::get('/test-email', [LoginController::class, 'testEmail']);
 
     Route::get('/google/redirect', function () {
@@ -1178,7 +1179,8 @@ Route::prefix('tourist')->middleware('tourist.auth')->group(function () {
     Route::get('/notifications', [NotificationController::class, 'index']);
     Route::post('/notifications/{id}/read', [NotificationController::class, 'markRead']);
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead']);
-    Route::delete('/notifications/{id}', [NotificationController::class, 'destroy']);
+    Route::match(['delete', 'post'], '/notifications/{id}', [NotificationController::class, 'destroy']);
+    Route::post('/notifications/{id}/delete', [NotificationController::class, 'destroy']);
     Route::delete('/notifications', [NotificationController::class, 'clearAll']);
     Route::post('/notifications/clear-all', [NotificationController::class, 'clearAll']);
 

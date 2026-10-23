@@ -363,11 +363,7 @@
         }
 
         const notifCacheKey = 'intan_elyu_cached_notifs_' + token.substring(0, 10);
-        let cachedNotifs = [];
-        try {
-            const raw = localStorage.getItem(notifCacheKey);
-            if (raw) cachedNotifs = JSON.parse(raw);
-        } catch (e) { }
+        let cachedNotifs = getCachedNotifs();
 
         // Fast offline check: immediately render cached notifications if offline
         if (!navigator.onLine || window.isAppOnline === false) {
@@ -406,8 +402,14 @@
                 });
                 if (res.ok) {
                     const data = await res.json();
-                    const notifs = data.notifications || [];
-                    try { localStorage.setItem(notifCacheKey, JSON.stringify(notifs)); } catch (e) { }
+                    const deletedIds = getDeletedNotifIds();
+                    const rawNotifs = data.notifications || [];
+                    const notifs = rawNotifs.filter(n => n && n.id && !deletedIds.includes(String(n.id)));
+                    // Anchor fixed timestamps on fresh items before caching
+                    notifs.forEach(n => {
+                        n._fixed_timestamp = window.getNotifTimestamp(n);
+                    });
+                    saveCachedNotifs(notifs);
                     renderNotifications(notifs);
                     return;
                 }
@@ -415,6 +417,7 @@
                 if (timeoutId) clearTimeout(timeoutId);
             }
             // If fetch did not succeed but we have cache
+            cachedNotifs = getCachedNotifs();
             if (Array.isArray(cachedNotifs) && cachedNotifs.length > 0) {
                 renderNotifications(cachedNotifs);
             } else {
@@ -422,6 +425,7 @@
             }
         } catch (e) {
             // Gracefully fallback to cache or empty state - never display error exclamation
+            cachedNotifs = getCachedNotifs();
             if (Array.isArray(cachedNotifs) && cachedNotifs.length > 0) {
                 renderNotifications(cachedNotifs);
             } else {
@@ -431,28 +435,32 @@
     }
 </script>
 
-<!-- Interactive Push Notification Popup Modal -->
+<!-- Interactive Push Notification Popup Modal (Header, White Middle, Button Footer, No View Details) -->
 <div id="push-notification-modal" class="push-notif-backdrop" style="display: none;" onclick="if(event.target===this) closePushNotificationModal()">
     <div class="push-notif-card">
+        <!-- Top Header -->
         <div class="push-notif-header">
             <div style="flex: 1; min-width: 0;">
                 <div id="push-notif-badge" class="push-notif-badge">
                     <span id="push-notif-category">PUSH NOTIFICATION</span>
                 </div>
-                <div id="push-notif-time" class="push-notif-time">Just now</div>
+                <div id="push-notif-time" class="push-notif-time" data-time="">Just now</div>
             </div>
-            <button type="button" class="push-notif-close-btn" onclick="closePushNotificationModal()">&times;</button>
+            <button type="button" class="push-notif-close-btn" onclick="closePushNotificationModal()" aria-label="Close">&times;</button>
         </div>
 
-        <h3 id="push-notif-title" class="push-notif-title">Push Notification Alert</h3>
-        <p id="push-notif-body" class="push-notif-body">Notification details will appear here.</p>
+        <!-- White Middle Body -->
+        <div class="push-notif-body-container">
+            <h3 id="push-notif-title" class="push-notif-title">Welcome to Intan Elyu</h3>
+            <p id="push-notif-body" class="push-notif-body">Notification details will appear here.</p>
 
-        <div id="push-notif-footer-extra" style="display: none; margin-bottom: 16px; padding: 10px 14px; background: rgba(255, 255, 255, 0.12); border-radius: 12px; border: none !important; outline: none !important; font-size: 12px; color: #00f2fe;">
-            <span id="push-notif-spot-name"></span>
+            <div id="push-notif-footer-extra" style="display: none; margin-top: 14px; padding: 10px 14px; background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 12px; font-size: 12px; color: #0284c7; font-weight: 600;">
+                <span id="push-notif-spot-name"></span>
+            </div>
         </div>
 
-        <div class="push-notif-actions">
-            <button id="push-notif-action-btn" type="button" class="push-notif-btn-primary" onclick="handlePushNotificationAction()" style="display: none;">View Details</button>
+        <!-- Footer Buttons (Dismiss & Delete only; View Details removed) -->
+        <div class="push-notif-footer">
             <button type="button" class="push-notif-btn-secondary" onclick="closePushNotificationModal()">Dismiss</button>
             <button id="push-notif-delete-btn" type="button" class="push-notif-btn-delete" onclick="handlePushNotificationDelete()">Delete</button>
         </div>
@@ -464,6 +472,27 @@
     var _currentPushNotifId = window._currentPushNotifId || null;
     window._notifTimerInterval = window._notifTimerInterval || null;
     window._notifItemsMap = window._notifItemsMap || {};
+
+    function getDeletedNotifIds() {
+        try {
+            const raw = localStorage.getItem('intan_elyu_deleted_notif_ids');
+            if (!raw) return [];
+            const parsed = JSON.parse(raw);
+            return Array.isArray(parsed) ? parsed.map(String) : [];
+        } catch (e) { return []; }
+    }
+
+    function markNotifIdDeleted(id) {
+        if (!id) return;
+        try {
+            const ids = getDeletedNotifIds();
+            const strId = String(id);
+            if (!ids.includes(strId)) {
+                ids.push(strId);
+                localStorage.setItem('intan_elyu_deleted_notif_ids', JSON.stringify(ids));
+            }
+        } catch (e) {}
+    }
 
     function getNotifCacheKey() {
         const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('tourist_token');
@@ -480,7 +509,10 @@
             const raw = localStorage.getItem(key);
             if (raw) {
                 const parsed = JSON.parse(raw);
-                return Array.isArray(parsed) ? parsed : [];
+                if (Array.isArray(parsed)) {
+                    const deletedIds = getDeletedNotifIds();
+                    return parsed.filter(n => n && n.id && !deletedIds.includes(String(n.id)));
+                }
             }
         } catch (e) { }
         return [];
@@ -490,7 +522,9 @@
         const key = getNotifCacheKey();
         if (!key) return;
         try {
-            localStorage.setItem(key, JSON.stringify(notifs || []));
+            const deletedIds = getDeletedNotifIds();
+            const cleanList = (notifs || []).filter(n => n && n.id && !deletedIds.includes(String(n.id)));
+            localStorage.setItem(key, JSON.stringify(cleanList));
         } catch (e) { }
     }
 
@@ -512,10 +546,14 @@
             .trim();
     };
 
+    /**
+     * Anchors notification timestamp to an immutable point in time.
+     * Prevents the timer from resetting to 'Just now' when opening modals or re-rendering.
+     */
     window.getNotifTimestamp = function(item) {
         if (!item) return Date.now();
-        if (typeof item.elapsed_seconds === 'number' && !isNaN(item.elapsed_seconds) && item.elapsed_seconds >= 0) {
-            return Date.now() - (item.elapsed_seconds * 1000);
+        if (typeof item._fixed_timestamp === 'number' && item._fixed_timestamp > 0) {
+            return item._fixed_timestamp;
         }
         if (item.created_at) {
             let str = String(item.created_at).trim();
@@ -526,9 +564,25 @@
                 }
             }
             const t = new Date(str).getTime();
-            if (!isNaN(t) && t > 0) return t;
+            if (!isNaN(t) && t > 0) {
+                item._fixed_timestamp = t;
+                return t;
+            }
         }
-        return Date.now();
+        if (typeof item.server_time === 'number' && typeof item.elapsed_seconds === 'number') {
+            const t = (item.server_time - item.elapsed_seconds) * 1000;
+            if (!isNaN(t) && t > 0) {
+                item._fixed_timestamp = t;
+                return t;
+            }
+        }
+        if (typeof item.elapsed_seconds === 'number' && !isNaN(item.elapsed_seconds) && item.elapsed_seconds >= 0) {
+            const t = Date.now() - (item.elapsed_seconds * 1000);
+            item._fixed_timestamp = t;
+            return t;
+        }
+        item._fixed_timestamp = Date.now();
+        return item._fixed_timestamp;
     };
 
     window.formatReverseTimer = function(timestamp) {
@@ -593,10 +647,13 @@
 
         window._notifItemsMap = window._notifItemsMap || {};
 
-        if (Array.isArray(notifications) && notifications.length > 0) {
+        const deletedIds = getDeletedNotifIds();
+        const activeNotifs = (Array.isArray(notifications) ? notifications : []).filter(n => n && n.id && !deletedIds.includes(String(n.id)));
+
+        if (activeNotifs.length > 0) {
             let html = '';
-            const unread = notifications.filter(n => !n.is_read);
-            notifications.forEach(item => {
+            const unread = activeNotifs.filter(n => !n.is_read);
+            activeNotifs.forEach(item => {
                 if (!item || !item.id) return;
                 window._notifItemsMap[item.id] = item;
                 const isWelcome = item.type === 'welcome';
@@ -670,13 +727,11 @@
         const rawBody = opts.message || opts.body || 'You have a new update.';
         const body = window.cleanNotifMessage(rawBody);
         const type = opts.type || 'general';
-        const actionUrl = opts.action_url || opts.url || (opts.data && (opts.data.action_url || opts.data.url)) || null;
         const spotName = opts.spot_name || opts.spot || (opts.data && opts.data.spot_name) || null;
         const notifTimestamp = window.getNotifTimestamp ? window.getNotifTimestamp(opts) : Date.now();
         const timeStr = window.formatReverseTimer ? window.formatReverseTimer(notifTimestamp) : 'Just now';
 
         let category = 'PUSH ALERT';
-
         if (type === 'new_spot' || type === 'spot_added') {
             category = 'NEW SPOT';
         } else if (type === 'favorite_update' || type === 'spot_updated') {
@@ -696,10 +751,8 @@
         const bodyEl = document.getElementById('push-notif-body');
         const catEl = document.getElementById('push-notif-category');
         const timeEl = document.getElementById('push-notif-time');
-        const badgeEl = document.getElementById('push-notif-badge');
         const spotContainer = document.getElementById('push-notif-footer-extra');
         const spotNameEl = document.getElementById('push-notif-spot-name');
-        const actionBtn = document.getElementById('push-notif-action-btn');
 
         if (titleEl) titleEl.textContent = title;
         if (bodyEl) bodyEl.textContent = body;
@@ -709,37 +762,11 @@
             timeEl.textContent = timeStr;
         }
 
-        if (badgeEl) {
-            badgeEl.style.border = 'none';
-            badgeEl.style.outline = 'none';
-            badgeEl.style.background = 'rgba(0, 242, 254, 0.22)';
-            badgeEl.style.color = '#00f2fe';
-        }
-
         if (spotName && spotContainer && spotNameEl) {
             spotNameEl.textContent = spotName;
             spotContainer.style.display = 'block';
         } else if (spotContainer) {
             spotContainer.style.display = 'none';
-        }
-
-        _currentPushNotifTargetUrl = actionUrl;
-
-        if (actionBtn) {
-            if (actionUrl) {
-                actionBtn.style.display = 'inline-block';
-                if (type === 'new_spot' || type === 'spot_added' || type === 'favorite_update' || type === 'spot_updated' || spotName) {
-                    actionBtn.textContent = 'View Spot';
-                } else if (type === 'itinerary_reminder' || type === 'trip') {
-                    actionBtn.textContent = 'View Trip';
-                } else if (type === 'reward' || type === 'quest' || type === 'points') {
-                    actionBtn.textContent = 'View Rewards';
-                } else {
-                    actionBtn.textContent = 'View Details';
-                }
-            } else {
-                actionBtn.style.display = 'none';
-            }
         }
 
         document.body.classList.add('notif-open');
@@ -761,18 +788,8 @@
     };
 
     window.handlePushNotificationAction = function() {
-        const target = _currentPushNotifTargetUrl;
-        document.body.classList.remove('notif-open');
+        // Fallback action handler
         closePushNotificationModal();
-        if (target) {
-            if (typeof window.navigateTo === 'function') {
-                window.navigateTo(target);
-            } else if (target.startsWith('http')) {
-                window.location.href = target;
-            } else {
-                window.location.href = target.startsWith('?') ? target : ('?view=' + target);
-            }
-        }
     };
 
     window.handlePushNotificationDelete = async function() {
@@ -789,9 +806,12 @@
     window.deleteNotification = async function(id, el) {
         if (!id) return;
         const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('tourist_token');
-        if (!token) return;
 
-        // Immediate cache synchronization: remove from localStorage
+        // Immediate persistent deletion: record in deleted list so it NEVER resurfaces
+        markNotifIdDeleted(id);
+        delete window._notifItemsMap[id];
+
+        // Immediate cache synchronization
         try {
             let cached = getCachedNotifs();
             cached = cached.filter(n => String(n.id) !== String(id));
@@ -823,6 +843,8 @@
             }, 200);
         }
 
+        if (!token) return;
+
         try {
             const backendUrl = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
             const res = await fetch(backendUrl + '/api/tourist/notifications/' + id, {
@@ -845,12 +867,15 @@
 
     window.clearAllNotifications = async function() {
         const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('tourist_token');
-        if (!token) return;
 
-        // Immediate cache synchronization: clear localStorage
+        // Mark all current cached items as deleted permanently
         try {
+            const cached = getCachedNotifs();
+            cached.forEach(n => { if (n && n.id) markNotifIdDeleted(n.id); });
             saveCachedNotifs([]);
         } catch(e) {}
+
+        window._notifItemsMap = {};
 
         const list = document.getElementById('notifications-list');
         if (list) {
@@ -860,6 +885,8 @@
         if (dot) dot.classList.remove('show');
         const footer = document.getElementById('notifications-footer');
         if (footer) footer.style.display = 'none';
+
+        if (!token) return;
 
         try {
             const backendUrl = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');

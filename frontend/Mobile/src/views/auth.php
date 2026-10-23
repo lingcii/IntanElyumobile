@@ -445,6 +445,50 @@
     </div>
 </div>
 
+<!-- Two-Factor Authentication Login Verification Modal -->
+<div id="auth-login-2fa-modal" class="auth-2fa-overlay" style="display: none;" onclick="if(event.target===this) closeAuthLogin2FAModal();">
+    <div class="auth-2fa-card" style="background: #ffffff !important; border: 1.5px solid #e2e8f0 !important; color: #0f172a !important; border-radius: 26px; padding: 28px 22px 24px 22px; max-width: 380px; width: 90%; text-align: center; box-shadow: 0 20px 50px rgba(15, 23, 42, 0.45); box-sizing: border-box;">
+        <button type="button" class="auth-2fa-close" onclick="closeAuthLogin2FAModal()" style="background: #f1f5f9 !important; color: #475569 !important; border: 1px solid #cbd5e1 !important; box-shadow: none !important;">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+
+        <div class="auth-2fa-icon-ring" style="background: #eff6ff !important; color: #1e3a8a !important; border: none !important; box-shadow: 0 4px 14px rgba(30, 58, 138, 0.15) !important;">
+            <i class="fa-solid fa-shield-halved" style="color: #1e3a8a !important; font-size: 28px;"></i>
+        </div>
+
+        <h3 class="auth-2fa-title" style="color: #0f172a !important; text-shadow: none !important; font-size: 20px; font-weight: 800; margin-bottom: 6px;">Two-Factor Verification</h3>
+
+        <p class="auth-2fa-desc" style="color: #64748b !important; font-size: 13px; margin-bottom: 16px; line-height: 1.5;">
+            Enter the 6-digit security code sent to:<br>
+            <strong id="auth-2fa-target-email" style="color: #0284c7; font-size: 13.5px; font-weight: 800;">your email</strong>
+        </p>
+
+        <!-- 6 Segmented Digit Input Boxes -->
+        <div id="auth-login-2fa-boxes" style="display: flex; justify-content: center; gap: 8px; margin-bottom: 18px;">
+            <input type="text" class="auth-login-2fa-otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code" oninput="handleLogin2FAOtpInput(this, 0)" onkeydown="handleLogin2FAOtpKeydown(this, event, 0)" onpaste="handleLogin2FAOtpPaste(event)" onfocus="this.style.borderColor='#0284c7'" onblur="this.style.borderColor='#cbd5e1'" style="width: 44px; height: 50px; text-align: center; font-size: 22px; font-weight: 800; border-radius: 12px; border: 1.5px solid #cbd5e1; background: #f8fafc; color: #0f172a; outline: none; transition: all 0.2s;">
+            <input type="text" class="auth-login-2fa-otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" oninput="handleLogin2FAOtpInput(this, 1)" onkeydown="handleLogin2FAOtpKeydown(this, event, 1)" onpaste="handleLogin2FAOtpPaste(event)" onfocus="this.style.borderColor='#0284c7'" onblur="this.style.borderColor='#cbd5e1'" style="width: 44px; height: 50px; text-align: center; font-size: 22px; font-weight: 800; border-radius: 12px; border: 1.5px solid #cbd5e1; background: #f8fafc; color: #0f172a; outline: none; transition: all 0.2s;">
+            <input type="text" class="auth-login-2fa-otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" oninput="handleLogin2FAOtpInput(this, 2)" onkeydown="handleLogin2FAOtpKeydown(this, event, 2)" onpaste="handleLogin2FAOtpPaste(event)" onfocus="this.style.borderColor='#0284c7'" onblur="this.style.borderColor='#cbd5e1'" style="width: 44px; height: 50px; text-align: center; font-size: 22px; font-weight: 800; border-radius: 12px; border: 1.5px solid #cbd5e1; background: #f8fafc; color: #0f172a; outline: none; transition: all 0.2s;">
+            <input type="text" class="auth-login-2fa-otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" oninput="handleLogin2FAOtpInput(this, 3)" onkeydown="handleLogin2FAOtpKeydown(this, event, 3)" onpaste="handleLogin2FAOtpPaste(event)" onfocus="this.style.borderColor='#0284c7'" onblur="this.style.borderColor='#cbd5e1'" style="width: 44px; height: 50px; text-align: center; font-size: 22px; font-weight: 800; border-radius: 12px; border: 1.5px solid #cbd5e1; background: #f8fafc; color: #0f172a; outline: none; transition: all 0.2s;">
+            <input type="text" class="auth-login-2fa-otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" oninput="handleLogin2FAOtpInput(this, 4)" onkeydown="handleLogin2FAOtpKeydown(this, event, 4)" onpaste="handleLogin2FAOtpPaste(event)" onfocus="this.style.borderColor='#0284c7'" onblur="this.style.borderColor='#cbd5e1'" style="width: 44px; height: 50px; text-align: center; font-size: 22px; font-weight: 800; border-radius: 12px; border: 1.5px solid #cbd5e1; background: #f8fafc; color: #0f172a; outline: none; transition: all 0.2s;">
+            <input type="text" class="auth-login-2fa-otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" oninput="handleLogin2FAOtpInput(this, 5)" onkeydown="handleLogin2FAOtpKeydown(this, event, 5)" onpaste="handleLogin2FAOtpPaste(event)" onfocus="this.style.borderColor='#0284c7'" onblur="this.style.borderColor='#cbd5e1'" style="width: 44px; height: 50px; text-align: center; font-size: 22px; font-weight: 800; border-radius: 12px; border: 1.5px solid #cbd5e1; background: #f8fafc; color: #0f172a; outline: none; transition: all 0.2s;">
+        </div>
+
+        <div style="margin-bottom: 18px; font-size: 12px; color: #64748b; font-weight: 600;">
+            Didn't receive the code? 
+            <span id="auth-2fa-resend-btn" onclick="resendLogin2FACode()" style="color: #0284c7; font-weight: 800; cursor: pointer; text-decoration: underline;">Resend Code</span>
+            <span id="auth-2fa-timer" style="display: none; color: #94a3b8; font-weight: 700;"></span>
+        </div>
+
+        <button type="button" id="btn-submit-login-2fa" onclick="submitLogin2FA()" class="auth-2fa-btn-primary" style="background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%) !important; color: #ffffff !important; border: none !important; width: 100%; padding: 13px 20px; border-radius: 100px; font-size: 14px; font-weight: 800; cursor: pointer; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35); display: flex; align-items: center; justify-content: center; gap: 8px; transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.97)'" onpointerup="this.style.transform='scale(1)'">
+            <i class="fa-solid fa-lock-open"></i> Verify &amp; Log In
+        </button>
+
+        <button type="button" onclick="closeAuthLogin2FAModal()" style="margin-top: 10px; background: transparent; border: none; color: #64748b; font-size: 13px; font-weight: 700; cursor: pointer; padding: 6px 12px;">
+            Cancel &amp; Return
+        </button>
+    </div>
+</div>
+
 <div id="privacy-policy-modal" class="auth-2fa-overlay" style="display: none;"
     onclick="if(event.target===this) closePrivacyPolicyModal(event);">
     <div class="privacy-modal-card">
@@ -793,138 +837,207 @@
         }, 300);
     };
 
-    window.openAuth2FAModal = function (user) {
-        const modal = document.getElementById('auth-2fa-modal');
-        if (!modal) {
-            if (typeof navigateTo === 'function') navigateTo('dashboard');
-            return;
+    window.openAuthLogin2FAModal = function (email) {
+        const modal = document.getElementById('auth-login-2fa-modal');
+        const emailEl = document.getElementById('auth-2fa-target-email');
+        if (emailEl && email) {
+            emailEl.textContent = email;
         }
+        if (!modal) return;
 
-        document.getElementById('auth-2fa-step-disabled').style.display = 'block';
-        document.getElementById('auth-2fa-step-verify').style.display = 'none';
+        // Reset boxes
+        const boxes = document.querySelectorAll('.auth-login-2fa-otp-box');
+        boxes.forEach(b => b.value = '');
 
         modal.style.display = 'flex';
+        modal.style.pointerEvents = 'auto';
         requestAnimationFrame(() => {
             modal.classList.add('active');
+            if (boxes[0]) setTimeout(() => boxes[0].focus(), 150);
         });
     };
 
-    window.closeAuth2FAModal = function () {
-        const modal = document.getElementById('auth-2fa-modal');
+    window.closeAuthLogin2FAModal = function () {
+        const modal = document.getElementById('auth-login-2fa-modal');
         if (modal) modal.classList.remove('active');
         setTimeout(() => {
-            if (modal) modal.style.display = 'none';
-            if (typeof navigateTo === 'function') navigateTo('dashboard');
-        }, 300);
+            if (modal) {
+                modal.style.display = 'none';
+                modal.style.pointerEvents = 'none';
+            }
+        }, 250);
     };
 
-    window.handleAuthInitiate2FA = async function () {
-        const btn = document.getElementById('btn-auth-enable-2fa');
-        if (btn) {
-            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin" style="margin-right: 6px;"></i> Sending Code...';
-            btn.disabled = true;
-        }
-
-        try {
-            const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
-            const res = await fetch(backendUrl + '/api/tourist/2fa/toggle', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'Authorization': 'Bearer ' + token
-                },
-                body: JSON.stringify({ enable: true })
-            });
-            const data = await res.json();
-            if (data.awaiting_verification || data.success) {
-                if (typeof showToast === 'function') showToast(data.message || 'Security verification code sent to your email!');
-                document.getElementById('auth-2fa-step-disabled').style.display = 'none';
-                document.getElementById('auth-2fa-step-verify').style.display = 'block';
-                const boxes = document.querySelectorAll('.auth-2fa-otp-box');
-                boxes.forEach(b => b.value = '');
-                if (boxes[0]) boxes[0].focus();
-            } else {
-                throw new Error(data.message || 'Failed to initiate 2FA setup.');
-            }
-        } catch (e) {
-            console.error('2FA Initiate Error:', e);
-            if (typeof showToast === 'function') showToast(e.message || 'Error sending 2FA code.');
-            if (btn) {
-                btn.innerHTML = '<i class="fa-solid fa-lock" style="margin-right: 8px;"></i>Enable 2FA Security';
-                btn.disabled = false;
-            }
-        }
-    };
-
-    window.handleAuth2FAOtpBoxInput = function (el, index) {
+    window.handleLogin2FAOtpInput = function (el, index) {
         el.value = el.value.replace(/[^0-9]/g, '');
-        const boxes = document.querySelectorAll('.auth-2fa-otp-box');
+        const boxes = document.querySelectorAll('.auth-login-2fa-otp-box');
         if (el.value && index < boxes.length - 1) {
             boxes[index + 1].focus();
         }
+        // If all 6 digits filled, auto-submit
+        const fullCode = Array.from(boxes).map(b => b.value).join('');
+        if (fullCode.length === 6) {
+            window.submitLogin2FA();
+        }
     };
 
-    window.handleAuth2FAOtpBoxKeydown = function (el, e, index) {
-        const boxes = document.querySelectorAll('.auth-2fa-otp-box');
+    window.handleLogin2FAOtpKeydown = function (el, e, index) {
+        const boxes = document.querySelectorAll('.auth-login-2fa-otp-box');
         if (e.key === 'Backspace' && !el.value && index > 0) {
             boxes[index - 1].focus();
         }
     };
 
-    window.handleAuth2FAOtpPaste = function (e) {
+    window.handleLogin2FAOtpPaste = function (e) {
         e.preventDefault();
         const pasted = (e.clipboardData || window.clipboardData).getData('text').replace(/[^0-9]/g, '');
-        const boxes = document.querySelectorAll('.auth-2fa-otp-box');
+        const boxes = document.querySelectorAll('.auth-login-2fa-otp-box');
         for (let i = 0; i < boxes.length && i < pasted.length; i++) {
             boxes[i].value = pasted[i];
         }
         if (pasted.length >= 6) {
-            boxes[5].focus();
+            if (boxes[5]) boxes[5].focus();
+            window.submitLogin2FA();
         }
     };
 
-    window.handleAuthVerify2FA = async function (e) {
-        e.preventDefault();
-        const boxes = document.querySelectorAll('.auth-2fa-otp-box');
-        const code = Array.from(boxes).map(b => b.value).join('');
-        if (code.length < 6) {
-            if (typeof showToast === 'function') showToast('Please enter all 6 digits of your verification code.');
+    window.submitLogin2FA = async function () {
+        if (!window._pending2FALogin) {
+            window.closeAuthLogin2FAModal();
             return;
         }
 
-        const btn = document.getElementById('btn-auth-verify-2fa');
+        const boxes = document.querySelectorAll('.auth-login-2fa-otp-box');
+        const code = Array.from(boxes).map(b => b.value.trim()).join('');
+        if (code.length < 6) {
+            if (typeof showToast === 'function') {
+                showToast('Please enter all 6 digits of your 2FA verification code.', 'warning');
+            }
+            return;
+        }
+
+        const btn = document.getElementById('btn-submit-login-2fa');
         if (btn) {
-            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin" style="margin-right: 6px;"></i> Verifying...';
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Verifying...';
             btn.disabled = true;
         }
 
         try {
-            const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
-            const res = await fetch(backendUrl + '/api/tourist/2fa/verify', {
+            const response = await fetch(backendUrl + '/api/auth/login', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'Authorization': 'Bearer ' + token
-                },
-                body: JSON.stringify({ code: code })
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                body: JSON.stringify({
+                    email: window._pending2FALogin.email,
+                    password: window._pending2FALogin.password,
+                    two_factor_code: code,
+                    remember: window._pending2FALogin.remember
+                })
             });
-            const data = await res.json();
-            if (res.ok && data.enabled) {
-                localStorage.setItem('intan_elyu_2fa_active', 'true');
-                if (typeof showToast === 'function') showToast('🔒 Two-Factor Authentication Activated!');
-                closeAuth2FAModal();
-            } else {
-                throw new Error(data.message || 'Invalid 6-digit verification code.');
+
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.error || data.message || 'Invalid or expired 2FA code.');
             }
-        } catch (e) {
-            console.error('2FA Verify Error:', e);
-            if (typeof showToast === 'function') showToast(e.message || 'Verification failed.');
+
+            // 2FA login verified!
+            window.closeAuthLogin2FAModal();
+            const remember = window._pending2FALogin.remember;
+            const email = window._pending2FALogin.email;
+            window._pending2FALogin = null;
+
+            if (remember) {
+                localStorage.setItem('intan_elyu_remembered_email', email);
+                localStorage.setItem('intan_elyu_remember_me', '1');
+            } else {
+                localStorage.removeItem('intan_elyu_remembered_email');
+                localStorage.removeItem('intan_elyu_remember_me');
+            }
+
+            window.purgeAllUserSessionCaches();
+
+            localStorage.setItem('auth_user', JSON.stringify(data.user));
+            localStorage.setItem('auth_user_backup', JSON.stringify(data.user));
+            localStorage.setItem('intan_elyu_user', JSON.stringify(data.user));
+            localStorage.setItem('intan_elyu_token', data.token);
+            localStorage.setItem('Intan_Elyu_Token', data.token);
+            localStorage.setItem('api_token', data.token);
+            localStorage.setItem('intan_elyu_real_token_backup', data.token);
+            localStorage.setItem('intan_elyu_2fa_active', 'true');
+            if (window.AppStorage) {
+                try {
+                    window.AppStorage.setItem('auth_user', data.user);
+                    window.AppStorage.setItem('intan_elyu_token', data.token);
+                } catch (e) { }
+            }
+
+            window.showLoginSuccessModal(data.user);
+        } catch (error) {
+            console.error('2FA Verification Error:', error);
+            if (typeof showToast === 'function') {
+                showToast(error.message || 'Invalid 2FA code.', 'error', 4000);
+            }
+            const boxContainer = document.getElementById('auth-login-2fa-boxes');
+            if (boxContainer) {
+                boxContainer.classList.remove('shake-attention');
+                void boxContainer.offsetWidth;
+                boxContainer.classList.add('shake-attention');
+            }
+            boxes.forEach(b => b.value = '');
+            if (boxes[0]) boxes[0].focus();
+        } finally {
             if (btn) {
-                btn.innerHTML = '<i class="fa-solid fa-circle-check" style="margin-right: 6px;"></i>Verify & Activate 2FA';
+                btn.innerHTML = '<i class="fa-solid fa-lock-open"></i> Verify &amp; Log In';
                 btn.disabled = false;
             }
+        }
+    };
+
+    window.resendLogin2FACode = async function () {
+        if (!window._pending2FALogin) return;
+        const resendBtn = document.getElementById('auth-2fa-resend-btn');
+        const timerEl = document.getElementById('auth-2fa-timer');
+        if (resendBtn) resendBtn.style.pointerEvents = 'none';
+
+        try {
+            const response = await fetch(backendUrl + '/api/auth/2fa/resend', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                body: JSON.stringify({
+                    email: window._pending2FALogin.email,
+                    password: window._pending2FALogin.password
+                })
+            });
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.error || data.message || 'Failed to resend 2FA code.');
+            }
+            if (typeof showToast === 'function') {
+                showToast('A new 2FA code has been sent to your email!', 'success');
+            }
+
+            let timeLeft = 60;
+            if (resendBtn) resendBtn.style.display = 'none';
+            if (timerEl) {
+                timerEl.style.display = 'inline';
+                timerEl.textContent = `(Resend in ${timeLeft}s)`;
+            }
+            const timer = setInterval(() => {
+                timeLeft--;
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    if (timerEl) timerEl.style.display = 'none';
+                    if (resendBtn) {
+                        resendBtn.style.display = 'inline';
+                        resendBtn.style.pointerEvents = 'auto';
+                    }
+                } else if (timerEl) {
+                    timerEl.textContent = `(Resend in ${timeLeft}s)`;
+                }
+            }, 1000);
+        } catch (err) {
+            if (typeof showToast === 'function') showToast(err.message || 'Error resending code.', 'warning');
+            if (resendBtn) resendBtn.style.pointerEvents = 'auto';
         }
     };
 
@@ -1313,6 +1426,13 @@
 
             if (!response.ok) {
                 throw new Error(data.error || data.message || 'Invalid login credentials.');
+            }
+
+            // Check if Two-Factor Authentication (2FA) is required
+            if (data.requires_2fa) {
+                window._pending2FALogin = { email: email, password: password, remember: remember };
+                window.openAuthLogin2FAModal(data.email || email);
+                return;
             }
 
             if (remember) {

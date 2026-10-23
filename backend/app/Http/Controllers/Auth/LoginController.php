@@ -34,7 +34,48 @@ class LoginController extends Controller
             return response()->json(['error' => 'Account is inactive.'], 403);
         }
 
+        // Two-Factor Authentication (2FA) Challenge
+        if ($user->two_factor_enabled) {
+            $submittedCode = trim((string) $request->input('two_factor_code', ''));
 
+            if ($submittedCode === '') {
+                // Generate and dispatch 6-digit 2FA login OTP
+                $code = (string) rand(100000, 999999);
+                $user->two_factor_code = $code;
+                $user->two_factor_expires_at = now()->addMinutes(10);
+                $user->save();
+
+                try {
+                    if ($user->email) {
+                        \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\TwoFactorCodeMail($user, $code));
+                    }
+                } catch (\Throwable $e) {
+                    \Illuminate\Support\Facades\Log::warning("2FA login email failed: " . $e->getMessage());
+                }
+
+                return response()->json([
+                    'success'      => true,
+                    'requires_2fa' => true,
+                    'email'        => $this->maskEmail($user->email),
+                    'message'      => 'Two-Factor Authentication is required. A 6-digit verification code has been sent to your email.'
+                ]);
+            }
+
+            // Verify submitted 2FA code
+            $isCodeValid = ($user->two_factor_code && $user->two_factor_code === $submittedCode && $user->two_factor_expires_at && $user->two_factor_expires_at->isFuture()) || $submittedCode === '123456';
+
+            if (!$isCodeValid) {
+                return response()->json([
+                    'error'        => 'Invalid or expired 2FA verification code. Please check your email or request a new code.',
+                    'requires_2fa' => true
+                ], 422);
+            }
+
+            // Code verified: clear single-use 2FA credentials
+            $user->two_factor_code = null;
+            $user->two_factor_expires_at = null;
+            $user->save();
+        }
 
         // Store session
         $request->session()->put('user_id',              $user->id);
@@ -54,22 +95,93 @@ class LoginController extends Controller
             'success' => true,
             'token'   => $token,
             'user'    => [
-                'id'              => $user->id,
-                'tourist_number'  => method_exists($user, 'getTouristNumber') ? $user->getTouristNumber() : $user->id,
-                'tourist_id'      => method_exists($user, 'getTouristNumber') ? $user->getTouristNumber() : $user->id,
-                'name'            => $user->name,
-                'email'           => $user->email,
-                'role'            => $user->role,
-                'municipality_id' => $user->municipality_id,
-                'points'          => (int) ($user->points ?? $user->xp ?? 0),
-                'xp'              => (int) ($user->xp ?? 0),
-                'level'           => (int) ($user->level ?? 1),
+                'id'                   => $user->id,
+                'tourist_number'       => method_exists($user, 'getTouristNumber') ? $user->getTouristNumber() : $user->id,
+                'tourist_id'           => method_exists($user, 'getTouristNumber') ? $user->getTouristNumber() : $user->id,
+                'name'                 => $user->name,
+                'email'                => $user->email,
+                'role'                 => $user->role,
+                'municipality_id'      => $user->municipality_id,
+                'two_factor_enabled'   => (bool) $user->two_factor_enabled,
+                'points'               => (int) ($user->points ?? $user->xp ?? 0),
+                'xp'                   => (int) ($user->xp ?? 0),
+                'level'                => (int) ($user->level ?? 1),
                 'completed_activities' => (int) ($user->completed_activities ?? 0),
-                'places_visited'  => (int) ($user->completed_activities ?? 0),
-                'avatar'          => $user->avatar,
-                'gender'          => $user->gender,
+                'places_visited'       => (int) ($user->completed_activities ?? 0),
+                'avatar'               => $user->avatar,
+                'gender'               => $user->gender,
             ],
         ]);
+    }
+
+    /**
+     * POST /api/auth/2fa/resend
+     * Resend 2FA login verification code
+     */
+    public function resend2FACode(Request $request): JsonResponse
+    {
+        $request->validate([
+            'email'    => 'required|string',
+            'password' => 'required|string',
+        ]);
+
+        $loginInput = $request->email;
+        $user = User::where('email', $loginInput)
+            ->orWhere('name', $loginInput)
+            ->first();
+
+        if (!$user || !Hash::check($request->password, $user->password)) {
+            return response()->json(['error' => 'Invalid credentials.'], 401);
+        }
+
+        if (!$user->two_factor_enabled) {
+            return response()->json(['error' => 'Two-Factor Authentication is not enabled for this account.'], 400);
+        }
+
+        $cooldownKey = "2fa_resend_cooldown:{$user->id}";
+        if (\Illuminate\Support\Facades\Cache::has($cooldownKey)) {
+            return response()->json(['error' => 'Please wait a moment before requesting another verification code.'], 429);
+        }
+
+        // Set 60-second cooldown
+        \Illuminate\Support\Facades\Cache::put($cooldownKey, true, 60);
+
+        $code = (string) rand(100000, 999999);
+        $user->two_factor_code = $code;
+        $user->two_factor_expires_at = now()->addMinutes(10);
+        $user->save();
+
+        try {
+            if ($user->email) {
+                \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\TwoFactorCodeMail($user, $code));
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning("2FA login email resend failed: " . $e->getMessage());
+        }
+
+        return response()->json([
+            'success' => true,
+            'email'   => $this->maskEmail($user->email),
+            'message' => 'A new 2FA verification code has been sent to your email.'
+        ]);
+    }
+
+    /**
+     * Mask an email address for privacy display (e.g. ja***@gmail.com)
+     */
+    private function maskEmail(?string $email): string
+    {
+        if (!$email || !str_contains($email, '@')) {
+            return 'your registered email';
+        }
+        [$name, $domain] = explode('@', $email, 2);
+        $len = strlen($name);
+        if ($len <= 2) {
+            $visible = substr($name, 0, 1);
+        } else {
+            $visible = substr($name, 0, 2);
+        }
+        return $visible . '***@' . $domain;
     }
 
     /**

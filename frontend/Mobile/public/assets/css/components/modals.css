@@ -1125,19 +1125,18 @@
 }
 
 .push-notif-card {
-    background: linear-gradient(135deg, rgba(30, 58, 138, 0.98) 0%, rgba(63, 125, 183, 0.96) 60%, rgba(2, 132, 199, 0.96) 100%) !important;
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
+    background: #ffffff !important;
     border: none !important;
     outline: none !important;
-    border-radius: 26px;
+    border-radius: 24px;
     width: 100%;
-    max-width: 380px;
-    padding: 24px 22px;
-    box-shadow: 0 25px 60px rgba(10, 25, 60, 0.55);
+    max-width: 360px;
+    padding: 0;
+    box-shadow: 0 20px 50px rgba(15, 23, 42, 0.45);
     transform: scale(0.85) translateY(20px);
     transition: transform 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
     text-align: left;
+    overflow: hidden;
 }
 
 .push-notif-backdrop.active .push-notif-card {
@@ -1145,31 +1144,32 @@
 }
 
 .push-notif-header {
+    background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%) !important;
+    padding: 16px 20px;
     display: flex;
     align-items: center;
     gap: 14px;
-    margin-bottom: 16px;
 }
 
 .push-notif-badge {
     display: inline-flex;
     align-items: center;
-    padding: 4px 10px;
+    padding: 3px 9px;
     border-radius: 20px;
-    background: rgba(0, 242, 254, 0.22) !important;
+    background: rgba(255, 255, 255, 0.22) !important;
     border: none !important;
     outline: none !important;
-    color: #00f2fe !important;
+    color: #ffffff !important;
     font-size: 10px;
     font-weight: 800;
     letter-spacing: 0.5px;
     text-transform: uppercase;
-    margin-bottom: 4px;
+    margin-bottom: 2px;
 }
 
 .push-notif-time {
     font-size: 11px;
-    color: rgba(255, 255, 255, 0.75) !important;
+    color: rgba(255, 255, 255, 0.85) !important;
     font-weight: 600;
 }
 
@@ -1187,6 +1187,7 @@
     font-size: 18px;
     font-weight: 800;
     cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
     transition: all 0.2s ease;
 }
 
@@ -1195,14 +1196,19 @@
 }
 
 .push-notif-close-btn:active {
-    transform: scale(0.95);
+    transform: scale(0.92);
+}
+
+.push-notif-body-container {
+    background: #ffffff !important;
+    padding: 22px 20px 18px 20px;
 }
 
 .push-notif-title {
-    margin: 0 0 8px;
-    font-size: 18px;
+    margin: 0 0 10px;
+    font-size: 17px;
     font-weight: 800;
-    color: #ffffff !important;
+    color: #0f172a !important;
     line-height: 1.35;
     letter-spacing: -0.3px;
     border: none !important;
@@ -1210,62 +1216,41 @@
 }
 
 .push-notif-body {
-    margin: 0 0 20px;
+    margin: 0;
     font-size: 13.5px;
-    color: rgba(255, 255, 255, 0.92) !important;
-    line-height: 1.55;
+    color: #334155 !important;
+    line-height: 1.6;
     font-weight: 400;
     border: none !important;
     outline: none !important;
 }
 
-.push-notif-actions {
+.push-notif-footer {
+    background: #f8fafc !important;
+    border-top: 1px solid #e2e8f0;
+    padding: 14px 20px 18px 20px;
     display: flex;
     gap: 12px;
 }
 
-.push-notif-btn-primary {
-    flex: 1;
-    border: none !important;
-    outline: none !important;
-    background: #00f2fe !important;
-    color: #1e3a8a !important;
-    padding: 13px 18px;
-    border-radius: 14px;
-    font-weight: 800;
-    font-size: 14px;
-    cursor: pointer;
-    text-align: center;
-    box-shadow: 0 4px 14px rgba(0, 242, 254, 0.35);
-    transition: all 0.2s ease;
-}
-
-.push-notif-btn-primary:hover {
-    background: #38bdf8 !important;
-}
-
-.push-notif-btn-primary:active {
-    transform: scale(0.97);
-}
-
 .push-notif-btn-secondary {
     flex: 1;
-    border: none !important;
+    border: 1.5px solid #cbd5e1 !important;
     outline: none !important;
     background: #ffffff !important;
     color: #1e3a8a !important;
-    padding: 13px 18px;
-    border-radius: 14px;
+    padding: 12px 16px;
+    border-radius: 12px;
     font-weight: 800;
-    font-size: 14px;
+    font-size: 13.5px;
     cursor: pointer;
     text-align: center;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
     transition: all 0.2s ease;
 }
 
 .push-notif-btn-secondary:hover {
-    background: #f1f5f9 !important;
+    background: #f8fafc !important;
 }
 
 .push-notif-btn-secondary:active {
@@ -1278,13 +1263,13 @@
     outline: none !important;
     background: #ef4444 !important;
     color: #ffffff !important;
-    padding: 13px 18px;
-    border-radius: 14px;
+    padding: 12px 16px;
+    border-radius: 12px;
     font-weight: 800;
-    font-size: 14px;
+    font-size: 13.5px;
     cursor: pointer;
     text-align: center;
-    box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
     transition: all 0.2s ease;
 }
 
@@ -1295,3 +1280,30 @@
 .push-notif-btn-delete:active {
     transform: scale(0.97);
 }
+
+.push-notif-btn-delete:hover {
+    background: #dc2626 !important;
+}
+
+.push-notif-btn-delete:active {
+    transform: scale(0.97);
+}
+
+/* 2FA Digit Input and Shake Attention Keyframes */
+@keyframes shakeAttention {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-6px); }
+    40%, 80% { transform: translateX(6px); }
+}
+
+.shake-attention {
+    animation: shakeAttention 0.4s ease-in-out !important;
+}
+
+.auth-login-2fa-otp-box:focus,
+.settings-2fa-otp-box:focus {
+    border-color: #0284c7 !important;
+    background: #ffffff !important;
+    box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.18) !important;
+}
+

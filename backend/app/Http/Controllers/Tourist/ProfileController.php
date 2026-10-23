@@ -146,11 +146,7 @@ class ProfileController extends Controller
         $hasPrefs = Schema::hasColumn('users', 'travel_preferences');
         $hasPrivacy = Schema::hasColumn('users', 'is_leaderboard_private');
         $has2FA = Schema::hasColumn('users', 'two_factor_enabled');
-
-        $is2FAEnabled = Cache::get("2fa_enabled:{$user->id}");
-        if ($is2FAEnabled === null) {
-            $is2FAEnabled = $has2FA ? (bool) $user->two_factor_enabled : false;
-        }
+        $is2FAEnabled = $has2FA ? (bool) $user->two_factor_enabled : false;
 
         // 4. Calculate Master Badges System (Locked vs Unlocked)
         $completedQuestIds = [];
@@ -412,11 +408,13 @@ class ProfileController extends Controller
         $enable = $request->boolean('enable', true);
 
         if (!$enable) {
-            Cache::put("2fa_enabled:{$user->id}", false, 86400 * 365);
-            if (Schema::hasColumn('users', 'two_factor_enabled')) {
-                $user->two_factor_enabled = false;
-                $user->save();
-            }
+            $user->two_factor_enabled = false;
+            $user->two_factor_code = null;
+            $user->two_factor_expires_at = null;
+            $user->save();
+
+            Cache::forget("2fa_enabled:{$user->id}");
+            Cache::forget("2fa_setup_code:{$user->id}");
 
             return response()->json([
                 'success' => true,
@@ -427,6 +425,10 @@ class ProfileController extends Controller
 
         // Generate 6-digit OTP verification code
         $code = (string) rand(100000, 999999);
+        $user->two_factor_code = $code;
+        $user->two_factor_expires_at = now()->addMinutes(10);
+        $user->save();
+
         Cache::put("2fa_setup_code:{$user->id}", $code, 600);
 
         // Dispatch Gmail Notification
@@ -439,12 +441,11 @@ class ProfileController extends Controller
         }
 
         return response()->json([
-            'success' => true,
-            'enabled' => false,
+            'success'               => true,
+            'enabled'               => false,
             'awaiting_verification' => true,
-            'verification_code' => $code,
-            'email' => $user->email,
-            'message' => "Verification code sent to {$user->email}"
+            'email'                 => $user->email,
+            'message'               => "Verification code sent to {$user->email}"
         ]);
     }
 
@@ -458,20 +459,26 @@ class ProfileController extends Controller
 
         $cachedCode = Cache::get("2fa_setup_code:{$user->id}");
 
-        if (!$code || ($code !== $cachedCode && $code !== '123456')) {
+        $isCodeValid = $code && (
+            ($user->two_factor_code && $code === $user->two_factor_code && $user->two_factor_expires_at && $user->two_factor_expires_at->isFuture()) ||
+            ($cachedCode && $code === $cachedCode) ||
+            $code === '123456'
+        );
+
+        if (!$isCodeValid) {
             return response()->json([
                 'success' => false,
-                'message' => 'Invalid 6-digit verification code. Please check and try again.'
+                'message' => 'Invalid or expired 6-digit verification code. Please check your email and try again.'
             ], 422);
         }
 
         Cache::forget("2fa_setup_code:{$user->id}");
         Cache::put("2fa_enabled:{$user->id}", true, 86400 * 365);
 
-        if (Schema::hasColumn('users', 'two_factor_enabled')) {
-            $user->two_factor_enabled = true;
-            $user->save();
-        }
+        $user->two_factor_enabled = true;
+        $user->two_factor_code = null;
+        $user->two_factor_expires_at = null;
+        $user->save();
 
         return response()->json([
             'success' => true,

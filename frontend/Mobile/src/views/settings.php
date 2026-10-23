@@ -184,68 +184,86 @@ $backRoute = 'dashboard';
 <!-- Two-Factor Authentication Modal -->
 <div id="two-factor-modal" class="profile-modal-overlay">
     <div class="profile-modal-card"
-        style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border: none; outline: none; border-radius: 24px; padding: 24px; max-width: 400px; width: 92%; text-align: center; box-shadow: 0 20px 50px rgba(10, 25, 60, 0.5);">
-        <button class="profile-modal-close" onclick="close2FAModal()"><i class="fa-solid fa-xmark"></i></button>
+        style="background: #ffffff !important; border: 1.5px solid #e2e8f0 !important; border-radius: 26px; padding: 28px 22px 24px 22px; max-width: 400px; width: 92%; text-align: center; box-shadow: 0 20px 50px rgba(15, 23, 42, 0.45); color: #0f172a !important; box-sizing: border-box;">
+        <button class="profile-modal-close" onclick="close2FAModal()"
+            style="background: #f1f5f9 !important; color: #475569 !important; border: 1px solid #cbd5e1 !important; box-shadow: none !important;">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
 
         <div
-            style="width: 60px; height: 60px; border-radius: 50%; background: rgba(56, 189, 248, 0.15); display: flex; align-items: center; justify-content: center; margin: 0 auto 12px auto; box-shadow: 0 0 20px rgba(56, 189, 248, 0.3);">
-            <i class="fa-solid fa-user-shield" style="font-size: 28px; color: #38bdf8;"></i>
+            style="width: 68px; height: 68px; border-radius: 50%; background: #eff6ff !important; color: #1e3a8a !important; display: flex; align-items: center; justify-content: center; margin: 0 auto 14px auto; box-shadow: 0 4px 14px rgba(30, 58, 138, 0.15);">
+            <i class="fa-solid fa-shield-halved" style="font-size: 30px; color: #1e3a8a;"></i>
         </div>
 
-        <h3 style="font-size: 18px; font-weight: 800; color: #fff; margin: 0 0 6px 0;">Two-Factor Authentication</h3>
+        <h3 style="font-size: 19px; font-weight: 800; color: #0f172a; margin: 0 0 6px 0; letter-spacing: -0.3px;">Two-Factor Authentication</h3>
 
         <!-- View 1: When 2FA is Active -->
         <div id="2fa-view-active" style="display: none;">
-            <p style="font-size: 12px; color: rgba(148, 163, 184, 0.85); line-height: 1.5; margin: 0 0 16px 0;">
-                Your account is protected with email OTP security. Device logins require verification.
+            <p style="font-size: 13px; color: #64748b; line-height: 1.5; margin: 0 0 16px 0;">
+                Your account is protected with email verification codes. Device logins require OTP verification.
             </p>
             <div
-                style="background: rgba(52, 199, 89, 0.12); border: 1px solid rgba(52, 199, 89, 0.35); border-radius: 16px; padding: 14px; margin-bottom: 18px; text-align: left;">
+                style="background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 16px; padding: 14px; margin-bottom: 18px; text-align: left;">
                 <div
-                    style="display: flex; align-items: center; gap: 8px; color: #34c759; font-weight: 800; font-size: 13px; margin-bottom: 4px;">
+                    style="display: flex; align-items: center; gap: 8px; color: #16a34a; font-weight: 800; font-size: 13px; margin-bottom: 4px;">
                     <i class="fa-solid fa-circle-check"></i> Security Status: Active
                 </div>
-                <div style="font-size: 11px; color: rgba(226, 232, 240, 0.8); font-weight: 600;">
-                    Verification Channel: Email & Session Token
+                <div style="font-size: 11.5px; color: #475569; font-weight: 600;">
+                    Verification Channel: Registered Email Address
                 </div>
             </div>
-            <button onclick="handleDisable2FA()"
-                style="width: 100%; padding: 12px; border-radius: 100px; background: rgba(244, 63, 94, 0.15); border: 1px solid rgba(244, 63, 94, 0.3); color: #f43f5e; font-weight: 800; font-size: 13px; cursor: pointer; transition: background 0.2s;">
-                <i class="fa-solid fa-shield-xmark"></i> Disable 2FA Security
+            <button type="button" onclick="handleDisable2FA()"
+                style="width: 100%; padding: 12px 18px; border-radius: 100px; background: #fff1f2; border: 1.5px solid #fecdd3; color: #e11d48; font-weight: 800; font-size: 13px; cursor: pointer; transition: all 0.2s;"
+                onpointerdown="this.style.transform='scale(0.97)'" onpointerup="this.style.transform='scale(1)'">
+                <i class="fa-solid fa-shield-xmark" style="margin-right: 6px;"></i> Disable 2FA Security
             </button>
         </div>
 
         <!-- View 2: When 2FA is Disabled (Initial state) -->
         <div id="2fa-view-disabled" style="display: block;">
-            <p style="font-size: 12px; color: rgba(148, 163, 184, 0.85); line-height: 1.5; margin: 0 0 16px 0;">
-                Add an extra layer of security to your account to protect your profile and preferences.
+            <p style="font-size: 13px; color: #64748b; line-height: 1.5; margin: 0 0 16px 0;">
+                Add an extra layer of security to your tourist account. When logging in, you will be prompted for a 6-digit security code sent to your email.
             </p>
             <div
-                style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 16px; padding: 12px; margin-bottom: 18px; text-align: left; font-size: 11px; color: #f59e0b; font-weight: 600;">
-                <i class="fa-solid fa-shield-halved"></i> 2FA is currently disabled for your account.
+                style="background: #fffbeb; border: 1.5px solid #fde68a; border-radius: 16px; padding: 12px 14px; margin-bottom: 18px; text-align: left; font-size: 12px; color: #b45309; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                <i class="fa-solid fa-shield-halved" style="font-size: 15px;"></i>
+                <span>2FA is currently disabled for your account.</span>
             </div>
-            <button onclick="handleInitiate2FA()"
-                style="width: 100%; padding: 14px; border-radius: 100px; background: linear-gradient(135deg, #38bdf8, #2563eb); border: none; color: #fff; font-weight: 800; font-size: 14px; cursor: pointer; box-shadow: 0 4px 14px rgba(56,189,248,0.3);">
-                <i class="fa-solid fa-lock"></i> Enable 2FA Security
+            <button type="button" id="btn-settings-enable-2fa" onclick="handleInitiate2FA()"
+                style="width: 100%; padding: 13px 20px; border-radius: 100px; background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%); border: none; color: #ffffff; font-weight: 800; font-size: 14px; cursor: pointer; box-shadow: 0 4px 14px rgba(37,99,235,0.35); transition: transform 0.15s ease;"
+                onpointerdown="this.style.transform='scale(0.97)'" onpointerup="this.style.transform='scale(1)'">
+                <i class="fa-solid fa-lock" style="margin-right: 6px;"></i> Enable 2FA Security
             </button>
         </div>
 
         <!-- View 3: Awaiting OTP Verification -->
         <div id="2fa-view-verify" style="display: none;">
-            <p style="font-size: 12px; color: rgba(148, 163, 184, 0.85); line-height: 1.5; margin: 0 0 14px 0;">
+            <p style="font-size: 13px; color: #64748b; line-height: 1.5; margin: 0 0 14px 0;">
                 Enter the 6-digit verification code sent to your email to confirm activation.
             </p>
             <div
-                style="background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 12px; padding: 10px 14px; margin-bottom: 16px; font-size: 12px; color: #38bdf8; font-weight: 600; text-align: left;">
-                <i class="fa-solid fa-paper-plane" style="margin-right: 6px;"></i> A 6-digit code has been sent to your
-                email inbox.
+                style="background: #f0f9ff; border: 1.5px solid #bae6fd; border-radius: 14px; padding: 10px 14px; margin-bottom: 16px; font-size: 12px; color: #0284c7; font-weight: 700; text-align: left; display: flex; align-items: center; gap: 8px;">
+                <i class="fa-solid fa-paper-plane"></i>
+                <span id="settings-2fa-verify-msg">A 6-digit code has been sent to your email.</span>
             </div>
             <form onsubmit="handleVerify2FA(event)">
-                <input type="text" id="2fa-otp-input" maxlength="6" pattern="[0-9]*" placeholder="000000"
-                    style="width: 100%; text-align: center; font-size: 22px; font-weight: 900; letter-spacing: 8px; padding: 12px; border-radius: 14px; background: rgba(255,255,255,0.06); border: 1.5px solid #38bdf8; color: #fff; margin-bottom: 16px;">
-                <button type="submit"
-                    style="width: 100%; padding: 14px; border-radius: 100px; background: linear-gradient(135deg, #34c759, #10b981); border: none; color: #fff; font-weight: 800; font-size: 14px; cursor: pointer; box-shadow: 0 4px 14px rgba(52,199,89,0.3);">
-                    <i class="fa-solid fa-circle-check"></i> Verify & Activate 2FA
+                <div id="settings-2fa-boxes" style="display: flex; justify-content: center; gap: 8px; margin-bottom: 16px;">
+                    <input type="text" class="settings-2fa-otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code" oninput="handleSettings2FAOtpInput(this, 0)" onkeydown="handleSettings2FAOtpKeydown(this, event, 0)" onpaste="handleSettings2FAOtpPaste(event)" onfocus="this.style.borderColor='#0284c7'" onblur="this.style.borderColor='#cbd5e1'" style="width: 44px; height: 50px; text-align: center; font-size: 22px; font-weight: 800; border-radius: 12px; border: 1.5px solid #cbd5e1; background: #f8fafc; color: #0f172a; outline: none; transition: all 0.2s;">
+                    <input type="text" class="settings-2fa-otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" oninput="handleSettings2FAOtpInput(this, 1)" onkeydown="handleSettings2FAOtpKeydown(this, event, 1)" onpaste="handleSettings2FAOtpPaste(event)" onfocus="this.style.borderColor='#0284c7'" onblur="this.style.borderColor='#cbd5e1'" style="width: 44px; height: 50px; text-align: center; font-size: 22px; font-weight: 800; border-radius: 12px; border: 1.5px solid #cbd5e1; background: #f8fafc; color: #0f172a; outline: none; transition: all 0.2s;">
+                    <input type="text" class="settings-2fa-otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" oninput="handleSettings2FAOtpInput(this, 2)" onkeydown="handleSettings2FAOtpKeydown(this, event, 2)" onpaste="handleSettings2FAOtpPaste(event)" onfocus="this.style.borderColor='#0284c7'" onblur="this.style.borderColor='#cbd5e1'" style="width: 44px; height: 50px; text-align: center; font-size: 22px; font-weight: 800; border-radius: 12px; border: 1.5px solid #cbd5e1; background: #f8fafc; color: #0f172a; outline: none; transition: all 0.2s;">
+                    <input type="text" class="settings-2fa-otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" oninput="handleSettings2FAOtpInput(this, 3)" onkeydown="handleSettings2FAOtpKeydown(this, event, 3)" onpaste="handleSettings2FAOtpPaste(event)" onfocus="this.style.borderColor='#0284c7'" onblur="this.style.borderColor='#cbd5e1'" style="width: 44px; height: 50px; text-align: center; font-size: 22px; font-weight: 800; border-radius: 12px; border: 1.5px solid #cbd5e1; background: #f8fafc; color: #0f172a; outline: none; transition: all 0.2s;">
+                    <input type="text" class="settings-2fa-otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" oninput="handleSettings2FAOtpInput(this, 4)" onkeydown="handleSettings2FAOtpKeydown(this, event, 4)" onpaste="handleSettings2FAOtpPaste(event)" onfocus="this.style.borderColor='#0284c7'" onblur="this.style.borderColor='#cbd5e1'" style="width: 44px; height: 50px; text-align: center; font-size: 22px; font-weight: 800; border-radius: 12px; border: 1.5px solid #cbd5e1; background: #f8fafc; color: #0f172a; outline: none; transition: all 0.2s;">
+                    <input type="text" class="settings-2fa-otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" oninput="handleSettings2FAOtpInput(this, 5)" onkeydown="handleSettings2FAOtpKeydown(this, event, 5)" onpaste="handleSettings2FAOtpPaste(event)" onfocus="this.style.borderColor='#0284c7'" onblur="this.style.borderColor='#cbd5e1'" style="width: 44px; height: 50px; text-align: center; font-size: 22px; font-weight: 800; border-radius: 12px; border: 1.5px solid #cbd5e1; background: #f8fafc; color: #0f172a; outline: none; transition: all 0.2s;">
+                </div>
+                <div style="margin-bottom: 16px; font-size: 12px; color: #64748b; font-weight: 600;">
+                    Didn't get code? 
+                    <span id="settings-2fa-resend-btn" onclick="handleInitiate2FA()" style="color: #0284c7; font-weight: 800; cursor: pointer; text-decoration: underline;">Resend</span>
+                    <span id="settings-2fa-timer" style="display: none; color: #94a3b8; font-weight: 700;"></span>
+                </div>
+                <button type="submit" id="btn-settings-verify-2fa"
+                    style="width: 100%; padding: 13px 20px; border-radius: 100px; background: linear-gradient(135deg, #16a34a 0%, #15803d 100%); border: none; color: #ffffff; font-weight: 800; font-size: 14px; cursor: pointer; box-shadow: 0 4px 14px rgba(22,163,74,0.35); display: flex; align-items: center; justify-content: center; gap: 8px; transition: transform 0.15s ease;"
+                    onpointerdown="this.style.transform='scale(0.97)'" onpointerup="this.style.transform='scale(1)'">
+                    <i class="fa-solid fa-circle-check"></i> Verify &amp; Activate 2FA
                 </button>
             </form>
         </div>
@@ -313,11 +331,54 @@ $backRoute = 'dashboard';
             document.getElementById('two-factor-modal').classList.remove('active');
         };
 
+        window.handleSettings2FAOtpInput = function (el, index) {
+            el.value = el.value.replace(/[^0-9]/g, '');
+            const boxes = document.querySelectorAll('.settings-2fa-otp-box');
+            if (el.value && index < boxes.length - 1) {
+                boxes[index + 1].focus();
+            }
+            const fullCode = Array.from(boxes).map(b => b.value).join('');
+            if (fullCode.length === 6) {
+                window.handleVerify2FA();
+            }
+        };
+
+        window.handleSettings2FAOtpKeydown = function (el, e, index) {
+            const boxes = document.querySelectorAll('.settings-2fa-otp-box');
+            if (e.key === 'Backspace' && !el.value && index > 0) {
+                boxes[index - 1].focus();
+            }
+        };
+
+        window.handleSettings2FAOtpPaste = function (e) {
+            e.preventDefault();
+            const pasted = (e.clipboardData || window.clipboardData).getData('text').replace(/[^0-9]/g, '');
+            const boxes = document.querySelectorAll('.settings-2fa-otp-box');
+            for (let i = 0; i < boxes.length && i < pasted.length; i++) {
+                boxes[i].value = pasted[i];
+            }
+            if (pasted.length >= 6) {
+                if (boxes[5]) boxes[5].focus();
+                window.handleVerify2FA();
+            }
+        };
+
         window.handleInitiate2FA = async function () {
             if (!navigator.onLine || window.isAppOnline === false) {
-                if (typeof showToast === 'function') showToast('Internet connection required to configure 2FA security.');
+                if (typeof showToast === 'function') showToast('Internet connection required to configure 2FA security.', 'warning');
                 return;
             }
+
+            const btn = document.getElementById('btn-settings-enable-2fa');
+            const resendBtn = document.getElementById('settings-2fa-resend-btn');
+            const timerEl = document.getElementById('settings-2fa-timer');
+
+            if (btn) {
+                btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Sending Code...';
+                btn.disabled = true;
+            }
+            if (resendBtn) resendBtn.style.pointerEvents = 'none';
+
             try {
                 const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
                 const backendUrl = window.backendUrl || 'https://api.intan-elyu.online';
@@ -332,32 +393,75 @@ $backRoute = 'dashboard';
                 });
                 const data = await res.json();
 
+                if (!res.ok) {
+                    throw new Error(data.message || data.error || 'Failed to send 2FA verification code.');
+                }
+
                 document.getElementById('2fa-view-disabled').style.display = 'none';
                 document.getElementById('2fa-view-active').style.display = 'none';
                 document.getElementById('2fa-view-verify').style.display = 'block';
 
-                const codeDisp = document.getElementById('2fa-code-display');
-                if (codeDisp) codeDisp.textContent = data.verification_code || '584920';
+                const msgEl = document.getElementById('settings-2fa-verify-msg');
+                if (msgEl && data.email) {
+                    msgEl.textContent = `A 6-digit code has been sent to ${data.email}.`;
+                }
 
-                if (typeof showToast === 'function') showToast(data.message || 'Verification code sent!');
+                const boxes = document.querySelectorAll('.settings-2fa-otp-box');
+                boxes.forEach(b => b.value = '');
+                if (boxes[0]) setTimeout(() => boxes[0].focus(), 150);
+
+                if (typeof showToast === 'function') showToast('Verification code sent to your email!', 'success');
+
+                // Start 60s cooldown
+                let timeLeft = 60;
+                if (resendBtn) resendBtn.style.display = 'none';
+                if (timerEl) {
+                    timerEl.style.display = 'inline';
+                    timerEl.textContent = `(${timeLeft}s)`;
+                }
+                const timer = setInterval(() => {
+                    timeLeft--;
+                    if (timeLeft <= 0) {
+                        clearInterval(timer);
+                        if (timerEl) timerEl.style.display = 'none';
+                        if (resendBtn) {
+                            resendBtn.style.display = 'inline';
+                            resendBtn.style.pointerEvents = 'auto';
+                        }
+                    } else if (timerEl) {
+                        timerEl.textContent = `(${timeLeft}s)`;
+                    }
+                }, 1000);
             } catch (e) {
-                document.getElementById('2fa-view-disabled').style.display = 'none';
-                document.getElementById('2fa-view-verify').style.display = 'block';
-                const codeDisp = document.getElementById('2fa-code-display');
-                if (codeDisp) codeDisp.textContent = '584920';
+                console.error('2FA Initiate Error:', e);
+                if (typeof showToast === 'function') showToast(e.message || 'Error configuring 2FA security.', 'error');
+                if (resendBtn) resendBtn.style.pointerEvents = 'auto';
+            } finally {
+                if (btn) {
+                    btn.innerHTML = '<i class="fa-solid fa-lock" style="margin-right: 6px;"></i> Enable 2FA Security';
+                    btn.disabled = false;
+                }
             }
         };
 
         window.handleVerify2FA = async function (e) {
             if (e) e.preventDefault();
             if (!navigator.onLine || window.isAppOnline === false) {
-                if (typeof showToast === 'function') showToast('Internet connection required to verify 2FA security.');
+                if (typeof showToast === 'function') showToast('Internet connection required to verify 2FA security.', 'warning');
                 return;
             }
-            const code = document.getElementById('2fa-otp-input').value.trim();
+
+            const boxes = document.querySelectorAll('.settings-2fa-otp-box');
+            const code = Array.from(boxes).map(b => b.value.trim()).join('');
             if (!code || code.length < 6) {
-                if (typeof showToast === 'function') showToast('Please enter a valid 6-digit code.');
+                if (typeof showToast === 'function') showToast('Please enter all 6 digits of the code.', 'warning');
                 return;
+            }
+
+            const btn = document.getElementById('btn-settings-verify-2fa');
+            if (btn) {
+                btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Verifying...';
+                btn.disabled = true;
             }
 
             try {
@@ -377,27 +481,42 @@ $backRoute = 'dashboard';
                 if (res.ok && data.success) {
                     localStorage.setItem('intan_elyu_2fa_active', 'true');
                     update2FAState(true);
-                    if (typeof showToast === 'function') showToast('2FA Security Successfully Activated!');
+                    if (typeof showToast === 'function') showToast('🔒 Two-Factor Authentication Activated!', 'success');
+                    setTimeout(() => {
+                        window.close2FAModal();
+                    }, 1200);
                 } else {
-                    if (typeof showToast === 'function') showToast(data.message || 'Invalid code.');
+                    throw new Error(data.message || 'Invalid 6-digit verification code.');
                 }
             } catch (e) {
-                localStorage.setItem('intan_elyu_2fa_active', 'true');
-                update2FAState(true);
-                if (typeof showToast === 'function') showToast('2FA Security Successfully Activated!');
+                console.error('2FA Verification Error:', e);
+                if (typeof showToast === 'function') showToast(e.message || 'Verification failed. Please try again.', 'error');
+                const boxContainer = document.getElementById('settings-2fa-boxes');
+                if (boxContainer) {
+                    boxContainer.classList.remove('shake-attention');
+                    void boxContainer.offsetWidth;
+                    boxContainer.classList.add('shake-attention');
+                }
+                boxes.forEach(b => b.value = '');
+                if (boxes[0]) boxes[0].focus();
+            } finally {
+                if (btn) {
+                    btn.innerHTML = '<i class="fa-solid fa-circle-check"></i> Verify &amp; Activate 2FA';
+                    btn.disabled = false;
+                }
             }
         };
 
         window.handleDisable2FA = async function () {
             if (!navigator.onLine || window.isAppOnline === false) {
-                if (typeof showToast === 'function') showToast('Internet connection required to update 2FA settings.');
+                if (typeof showToast === 'function') showToast('Internet connection required to update 2FA settings.', 'warning');
                 return;
             }
-            if (confirm('Are you sure you want to disable Two-Factor Authentication?')) {
+            if (confirm('Are you sure you want to disable Two-Factor Authentication? Your login security level will be reduced.')) {
                 try {
                     const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
                     const backendUrl = window.backendUrl || 'https://api.intan-elyu.online';
-                    await fetch(backendUrl + '/api/tourist/2fa/toggle', {
+                    const res = await fetch(backendUrl + '/api/tourist/2fa/toggle', {
                         method: 'POST',
                         headers: {
                             'Authorization': 'Bearer ' + token,
@@ -406,10 +525,14 @@ $backRoute = 'dashboard';
                         },
                         body: JSON.stringify({ enable: false })
                     });
-                } catch (e) { }
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.message || 'Failed to disable 2FA.');
+                } catch (e) {
+                    console.error('Disable 2FA error:', e);
+                }
                 localStorage.setItem('intan_elyu_2fa_active', 'false');
                 update2FAState(false);
-                if (typeof showToast === 'function') showToast('Two-factor authentication disabled.');
+                if (typeof showToast === 'function') showToast('Two-Factor Authentication disabled.', 'info');
             }
         };
 

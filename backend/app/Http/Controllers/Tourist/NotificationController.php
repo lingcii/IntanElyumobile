@@ -22,31 +22,6 @@ class NotificationController extends Controller
                 ]);
             }
 
-            // Ensure a Welcome notification exists only if not previously dismissed
-            $hasWelcome = Notification::where('user_id', $user->id)
-                ->where('type', 'welcome')
-                ->exists();
-
-            $welcomeDismissed = \Illuminate\Support\Facades\Cache::get("welcome_notif_dismissed_{$user->id}", false);
-
-            if (!$hasWelcome && !$welcomeDismissed) {
-                $hadNotificationsBefore = \Illuminate\Support\Facades\Cache::get("user_had_notifs_{$user->id}", false);
-                if (!$hadNotificationsBefore) {
-                    $firstName = trim(explode(' ', $user->name ?? 'Explorer')[0]);
-                    Notification::createSafely(
-                        $user->id,
-                        'welcome',
-                        'Welcome to Intan Elyu',
-                        "Welcome to Intan Elyu, {$firstName}! Explore top tourist spots in La Union, plan your personalized itineraries, and earn XP with AR check-ins!",
-                        [
-                            'module'     => 'welcome',
-                            'action_url' => 'dashboard'
-                        ]
-                    );
-                    \Illuminate\Support\Facades\Cache::forever("user_had_notifs_{$user->id}", true);
-                }
-            }
-
             $notifications = Notification::where('user_id', $user->id)
                 ->orderByDesc('created_at')
                 ->limit(50)

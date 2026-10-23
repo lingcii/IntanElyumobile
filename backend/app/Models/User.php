@@ -36,21 +36,27 @@ class User extends Authenticatable
         'last_gps_lat',
         'last_gps_lng',
         'last_gps_ping_at',
+        'two_factor_enabled',
+        'two_factor_code',
+        'two_factor_expires_at',
     ];
 
     protected $hidden = [
         'password',
         'remember_token',
         'api_token',
+        'two_factor_code',
     ];
 
     protected $casts = [
-        'xp'                => 'integer',
-        'points'            => 'integer',
-        'age'               => 'integer',
-        'email_verified_at' => 'datetime',
-        'last_activity'     => 'datetime',
-        'created_at'        => 'datetime',
+        'xp'                    => 'integer',
+        'points'                => 'integer',
+        'age'                   => 'integer',
+        'two_factor_enabled'    => 'boolean',
+        'two_factor_expires_at' => 'datetime',
+        'email_verified_at'     => 'datetime',
+        'last_activity'         => 'datetime',
+        'created_at'            => 'datetime',
     ];
 
     /** Valid roles in the system */
