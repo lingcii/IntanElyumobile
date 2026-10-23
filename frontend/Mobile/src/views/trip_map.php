@@ -13,30 +13,30 @@ include_once __DIR__ . '/../components/testimony_modal.php';
 
     <!-- Offline Navigation Status Pill -->
     <div id="trip-offline-badge"
-        style="display: none; align-self: center; background: rgba(245, 158, 11, 0.22); border: 1px solid rgba(245, 158, 11, 0.45); border-radius: 100px; padding: 5px 14px; color: #fbbf24; font-size: 11px; font-weight: 800; gap: 6px; align-items: center; pointer-events: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
+        style="display: none; align-self: center; background: #ffffff; border: 1.5px solid #fde68a; border-radius: 100px; padding: 5px 14px; color: #b45309; font-size: 11px; font-weight: 800; gap: 6px; align-items: center; pointer-events: auto; box-shadow: 0 4px 14px rgba(245, 158, 11, 0.18);">
         <i class="fa-solid fa-cloud-slash"></i> Offline Navigation &bull; Geodesic Mode
     </div>
 
     <!-- Trip Overview Summary Header Pill -->
     <div id="trip-summary-pill"
-        style="align-self: center; background: linear-gradient(135deg, rgba(30, 58, 138, 0.96) 0%, rgba(63, 125, 183, 0.94) 100%); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: none !important; outline: none !important; border-radius: 100px; padding: 7px 16px; display: flex; align-items: center; gap: 12px; box-shadow: 0 10px 28px rgba(10, 25, 60, 0.35); pointer-events: auto;">
-        <div style="display:flex; align-items:center; gap:6px; color:#ffffff; font-size:12px; font-weight:800;">
-            <i class="fa-solid fa-route" style="color:#67e8f9;"></i> <span id="trip-info-distance">-- km</span>
+        style="align-self: center; background: #ffffff !important; border: 1.5px solid #e2e8f0 !important; border-radius: 100px; padding: 6px 14px; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 10px 25px rgba(15, 23, 42, 0.12), 0 2px 6px rgba(15, 23, 42, 0.05); pointer-events: auto; max-width: calc(100vw - 32px); box-sizing: border-box;">
+        <div style="display:flex; align-items:center; gap:5px; color:#0f172a; font-size:12.5px; font-weight:800; white-space:nowrap;">
+            <i class="fa-solid fa-route" style="color:#0284c7; font-size:12px;"></i> <span id="trip-info-distance">-- km</span>
         </div>
-        <div style="width:1px; height:12px; background:rgba(255,255,255,0.25);"></div>
-        <div style="display:flex; align-items:center; gap:6px; color:#ffffff; font-size:12px; font-weight:800;">
-            <i class="fa-solid fa-stopwatch" style="color:#34d399;"></i> <span id="trip-info-time">-- mins</span>
+        <div style="width:1px; height:14px; background:#e2e8f0; flex-shrink:0;"></div>
+        <div style="display:flex; align-items:center; gap:5px; color:#0f172a; font-size:12.5px; font-weight:800; white-space:nowrap;">
+            <i class="fa-solid fa-stopwatch" style="color:#10b981; font-size:12px;"></i> <span id="trip-info-time">-- mins</span>
         </div>
-        <div style="width:1px; height:12px; background:rgba(255,255,255,0.25);"></div>
+        <div style="width:1px; height:14px; background:#e2e8f0; flex-shrink:0;"></div>
         <div id="trip-info-vehicle-badge"
-            style="display:flex; align-items:center; gap:6px; color:#ffffff; font-size:12px; font-weight:800; background:rgba(255,255,255,0.18); border:none !important; outline:none !important; border-radius:100px; padding:4px 10px;">
-            <i id="trip-info-vehicle-icon" class="fa-solid fa-car" style="color:#f59e0b;"></i>
+            style="display:flex; align-items:center; gap:5px; color:#1e293b; font-size:11.5px; font-weight:800; background:#f1f5f9; border:1px solid #e2e8f0; border-radius:100px; padding:3px 9px; white-space:nowrap;">
+            <i id="trip-info-vehicle-icon" class="fa-solid fa-car" style="color:#f59e0b; font-size:11px;"></i>
             <span id="trip-info-vehicle-name">Own Car</span>
         </div>
-        <div id="trip-info-pax-divider" style="width:1px; height:12px; background:rgba(255,255,255,0.25);"></div>
+        <div id="trip-info-pax-divider" style="width:1px; height:14px; background:#e2e8f0; flex-shrink:0;"></div>
         <div id="trip-info-pax-badge"
-            style="display:flex; align-items:center; gap:6px; color:#ffffff; font-size:12px; font-weight:800; background:rgba(255,255,255,0.18); border:none !important; outline:none !important; border-radius:100px; padding:4px 10px;">
-            <i id="trip-info-pax-icon" class="fa-solid fa-users" style="color:#38bdf8;"></i>
+            style="display:flex; align-items:center; gap:5px; color:#1d4ed8; font-size:11.5px; font-weight:800; background:#eff6ff; border:1px solid #bfdbfe; border-radius:100px; padding:3px 9px; white-space:nowrap;">
+            <i id="trip-info-pax-icon" class="fa-solid fa-user" style="color:#2563eb; font-size:11px;"></i>
             <span id="trip-info-pax-text">1 Pax</span>
         </div>
     </div>
@@ -383,35 +383,45 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                     const isActive = idx === activeIndex;
                     if (isActive) {
                         card.classList.add('active');
+                        card.style.borderColor = '#0284c7';
+                        card.style.boxShadow = '0 12px 32px rgba(2, 132, 199, 0.18), 0 4px 10px rgba(15, 23, 42, 0.06)';
                     } else {
                         card.classList.remove('active');
+                        card.style.borderColor = '#e2e8f0';
+                        card.style.boxShadow = '0 10px 28px rgba(15, 23, 42, 0.08), 0 2px 6px rgba(15, 23, 42, 0.04)';
                     }
                     const badgeEl = card.querySelector('.conveyor-status-badge');
                     if (badgeEl) {
                         if (isQueued) {
                             badgeEl.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> Queued (Offline)';
-                            badgeEl.style.background = 'rgba(245, 158, 11, 0.25)';
-                            badgeEl.style.color = '#fde68a';
+                            badgeEl.style.background = '#fef3c7';
+                            badgeEl.style.color = '#b45309';
+                            badgeEl.style.borderColor = '#fde68a';
                         } else if (isVisited) {
                             badgeEl.innerHTML = '<i class="fa-solid fa-circle-check"></i> Visited';
-                            badgeEl.style.background = 'rgba(52, 199, 89, 0.25)';
-                            badgeEl.style.color = '#ffffff';
+                            badgeEl.style.background = '#dcfce7';
+                            badgeEl.style.color = '#15803d';
+                            badgeEl.style.borderColor = '#bbf7d0';
                         } else if (isPending) {
                             badgeEl.innerHTML = '<i class="fa-solid fa-clock"></i> Pending Review';
-                            badgeEl.style.background = 'rgba(245, 158, 11, 0.25)';
-                            badgeEl.style.color = '#ffffff';
+                            badgeEl.style.background = '#fef3c7';
+                            badgeEl.style.color = '#b45309';
+                            badgeEl.style.borderColor = '#fde68a';
                         } else if (isRejected) {
                             badgeEl.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> Rejected';
-                            badgeEl.style.background = 'rgba(239, 68, 68, 0.25)';
-                            badgeEl.style.color = '#ffffff';
+                            badgeEl.style.background = '#fee2e2';
+                            badgeEl.style.color = '#b91c1c';
+                            badgeEl.style.borderColor = '#fecaca';
                         } else if (isActive) {
                             badgeEl.innerHTML = `Stop ${idx + 1} of ${items.length} • NEXT`;
-                            badgeEl.style.background = 'rgba(255, 255, 255, 0.25)';
-                            badgeEl.style.color = '#ffffff';
+                            badgeEl.style.background = '#eff6ff';
+                            badgeEl.style.color = '#1d4ed8';
+                            badgeEl.style.borderColor = '#bfdbfe';
                         } else {
                             badgeEl.innerHTML = `Stop ${idx + 1} of ${items.length}`;
-                            badgeEl.style.background = 'rgba(255, 255, 255, 0.15)';
-                            badgeEl.style.color = 'rgba(255, 255, 255, 0.85)';
+                            badgeEl.style.background = '#f1f5f9';
+                            badgeEl.style.color = '#475569';
+                            badgeEl.style.borderColor = '#e2e8f0';
                         }
                     }
                 });
@@ -449,21 +459,21 @@ include_once __DIR__ . '/../components/testimony_modal.php';
 
                 let badgeHtml = '';
                 if (isQueued) {
-                    badgeHtml = `<span class="conveyor-status-badge" style="background:rgba(245,158,11,0.25); border:none !important; outline:none !important; color:#fde68a; padding:4px 12px; border-radius:100px; font-size:10px; font-weight:800; flex-shrink:0;"><i class="fa-solid fa-cloud-arrow-up"></i> Queued (Offline)</span>`;
+                    badgeHtml = `<span class="conveyor-status-badge" style="background:#fef3c7; border:1px solid #fde68a; color:#b45309; padding:4px 10px; border-radius:100px; font-size:10px; font-weight:800; flex-shrink:0;"><i class="fa-solid fa-cloud-arrow-up"></i> Queued (Offline)</span>`;
                 } else if (isVisited) {
-                    badgeHtml = `<span class="conveyor-status-badge" style="background:rgba(52,199,89,0.25); border:none !important; outline:none !important; color:#ffffff; padding:4px 12px; border-radius:100px; font-size:10px; font-weight:800; flex-shrink:0;"><i class="fa-solid fa-circle-check"></i> Visited</span>`;
+                    badgeHtml = `<span class="conveyor-status-badge" style="background:#dcfce7; border:1px solid #bbf7d0; color:#15803d; padding:4px 10px; border-radius:100px; font-size:10px; font-weight:800; flex-shrink:0;"><i class="fa-solid fa-circle-check"></i> Visited</span>`;
                 } else if (isRejected) {
-                    badgeHtml = `<span class="conveyor-status-badge" style="background:rgba(239,68,68,0.25); border:none !important; outline:none !important; color:#ffffff; padding:4px 12px; border-radius:100px; font-size:10px; font-weight:800; flex-shrink:0;"><i class="fa-solid fa-circle-xmark"></i> Rejected</span>`;
+                    badgeHtml = `<span class="conveyor-status-badge" style="background:#fee2e2; border:1px solid #fecaca; color:#b91c1c; padding:4px 10px; border-radius:100px; font-size:10px; font-weight:800; flex-shrink:0;"><i class="fa-solid fa-circle-xmark"></i> Rejected</span>`;
                 } else if (isPendingApproval) {
-                    badgeHtml = `<span class="conveyor-status-badge" style="background:rgba(245,158,11,0.25); border:none !important; outline:none !important; color:#ffffff; padding:4px 12px; border-radius:100px; font-size:10px; font-weight:800; flex-shrink:0;"><i class="fa-solid fa-clock"></i> Pending Review</span>`;
+                    badgeHtml = `<span class="conveyor-status-badge" style="background:#fef3c7; border:1px solid #fde68a; color:#b45309; padding:4px 10px; border-radius:100px; font-size:10px; font-weight:800; flex-shrink:0;"><i class="fa-solid fa-clock"></i> Pending Review</span>`;
                 } else if (isLocationVerified && !hasProof) {
-                    badgeHtml = `<span class="conveyor-status-badge" style="background:rgba(56,189,248,0.25); border:none !important; outline:none !important; color:#38bdf8; padding:4px 12px; border-radius:100px; font-size:10px; font-weight:800; flex-shrink:0;"><i class="fa-solid fa-location-dot"></i> Checked In</span>`;
+                    badgeHtml = `<span class="conveyor-status-badge" style="background:#e0f2fe; border:1px solid #bae6fd; color:#0284c7; padding:4px 10px; border-radius:100px; font-size:10px; font-weight:800; flex-shrink:0;"><i class="fa-solid fa-location-dot"></i> Checked In</span>`;
                 } else if (!isLocationVerified && hasProof) {
-                    badgeHtml = `<span class="conveyor-status-badge" style="background:rgba(167,139,250,0.25); border:none !important; outline:none !important; color:#c4b5fd; padding:4px 12px; border-radius:100px; font-size:10px; font-weight:800; flex-shrink:0;"><i class="fa-solid fa-camera"></i> Photo Ready</span>`;
+                    badgeHtml = `<span class="conveyor-status-badge" style="background:#ede9fe; border:1px solid #ddd6fe; color:#6d28d9; padding:4px 10px; border-radius:100px; font-size:10px; font-weight:800; flex-shrink:0;"><i class="fa-solid fa-camera"></i> Photo Ready</span>`;
                 } else if (isActive) {
-                    badgeHtml = `<span class="conveyor-status-badge" style="background:rgba(255,255,255,0.25); border:none !important; outline:none !important; color:#ffffff; padding:4px 12px; border-radius:100px; font-size:10px; font-weight:800; flex-shrink:0;">Stop ${idx + 1} of ${items.length} • NEXT</span>`;
+                    badgeHtml = `<span class="conveyor-status-badge" style="background:#eff6ff; border:1px solid #bfdbfe; color:#1d4ed8; padding:4px 10px; border-radius:100px; font-size:10px; font-weight:800; flex-shrink:0;">Stop ${idx + 1} of ${items.length} • NEXT</span>`;
                 } else {
-                    badgeHtml = `<span class="conveyor-status-badge" style="background:rgba(255,255,255,0.15); border:none !important; outline:none !important; color:rgba(255,255,255,0.85); padding:4px 12px; border-radius:100px; font-size:10px; font-weight:700; flex-shrink:0;">Stop ${idx + 1} of ${items.length}</span>`;
+                    badgeHtml = `<span class="conveyor-status-badge" style="background:#f1f5f9; border:1px solid #e2e8f0; color:#475569; padding:4px 10px; border-radius:100px; font-size:10px; font-weight:700; flex-shrink:0;">Stop ${idx + 1} of ${items.length}</span>`;
                 }
 
                 const destEscaped = (dest && dest.name) ? dest.name.replace(/'/g, "\\'") : 'Destination';
@@ -476,9 +486,9 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                         ${proofImages.slice(0, 3).map((imgUrl, pIdx) => {
                             let pUrl = (typeof window.resolveProofImageUrl === 'function') ? window.resolveProofImageUrl(imgUrl) : imgUrl;
                             let fallbackUrl = (typeof window.getProofImageFallbackUrl === 'function') ? window.getProofImageFallbackUrl(imgUrl) : 'assets/img/no_image.svg';
-                            return `<img src="${pUrl}" onerror="if(this.dataset.triedFallback!=='1'){this.dataset.triedFallback='1';this.src='${fallbackUrl}';}else{this.onerror=null;this.src='assets/img/no_image.svg';}" onclick="event.stopPropagation(); if(typeof window.viewProofPhotoModal==='function') window.viewProofPhotoModal(${jsonUrlsAttr}, '${destEscaped}', '${isVisited ? 'Verified Visit Proof' : 'Uploaded Proof'}');" alt="Proof" title="Tap to view proof photo" style="width:30px; height:30px; border-radius:7px; object-fit:cover; border:1px solid rgba(255,255,255,0.3); flex-shrink:0; cursor:pointer;">`;
+                            return `<img src="${pUrl}" onerror="if(this.dataset.triedFallback!=='1'){this.dataset.triedFallback='1';this.src='${fallbackUrl}';}else{this.onerror=null;this.src='assets/img/no_image.svg';}" onclick="event.stopPropagation(); if(typeof window.viewProofPhotoModal==='function') window.viewProofPhotoModal(${jsonUrlsAttr}, '${destEscaped}', '${isVisited ? 'Verified Visit Proof' : 'Uploaded Proof'}');" alt="Proof" title="Tap to view proof photo" style="width:30px; height:30px; border-radius:8px; object-fit:cover; border:1.5px solid #e2e8f0; flex-shrink:0; cursor:pointer;">`;
                         }).join('')}
-                        ${proofImages.length > 3 ? `<span onclick="event.stopPropagation(); if(typeof window.viewProofPhotoModal==='function') window.viewProofPhotoModal(${jsonUrlsAttr}, '${destEscaped}', '${isVisited ? 'Verified Visit Proof' : 'Uploaded Proof'}');" style="background:rgba(0,0,0,0.7); color:#fff; font-size:8px; font-weight:800; padding:2px 4px; border-radius:4px; cursor:pointer;">+${proofImages.length - 3}</span>` : ''}
+                        ${proofImages.length > 3 ? `<span onclick="event.stopPropagation(); if(typeof window.viewProofPhotoModal==='function') window.viewProofPhotoModal(${jsonUrlsAttr}, '${destEscaped}', '${isVisited ? 'Verified Visit Proof' : 'Uploaded Proof'}');" style="background:#0f172a; color:#fff; font-size:8.5px; font-weight:800; padding:2px 5px; border-radius:6px; cursor:pointer;">+${proofImages.length - 3}</span>` : ''}
                     </div>`;
                 }
 
@@ -486,9 +496,9 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                 if (isQueued && queuedItem) {
                     const qSrc = queuedItem.previewUrl || queuedItem.image || '';
                     if (qSrc) {
-                        queuedThumbnail = `<img src="${qSrc}" onerror="this.onerror=null; this.src='assets/img/no_image.svg';" onclick="event.stopPropagation(); if(typeof window.viewProofPhotoModal==='function') window.viewProofPhotoModal('${qSrc}', '${destEscaped}', 'Offline Proof (Queued on Device)');" alt="Proof" title="Tap to view offline proof photo" style="width:30px; height:30px; border-radius:7px; object-fit:cover; border:1.5px solid #f59e0b !important; box-shadow:none !important; flex-shrink:0; cursor:pointer;">`;
+                        queuedThumbnail = `<img src="${qSrc}" onerror="this.onerror=null; this.src='assets/img/no_image.svg';" onclick="event.stopPropagation(); if(typeof window.viewProofPhotoModal==='function') window.viewProofPhotoModal('${qSrc}', '${destEscaped}', 'Offline Proof (Queued on Device)');" alt="Proof" title="Tap to view offline proof photo" style="width:30px; height:30px; border-radius:8px; object-fit:cover; border:1.5px solid #f59e0b !important; box-shadow:none !important; flex-shrink:0; cursor:pointer;">`;
                     } else {
-                        queuedThumbnail = `<div style="width:30px; height:30px; border-radius:7px; background:rgba(245,158,11,0.2); border:1px dashed #f59e0b; display:flex; align-items:center; justify-content:center; color:#fbbf24; flex-shrink:0;"><i class="fa-solid fa-camera" style="font-size:11px;"></i></div>`;
+                        queuedThumbnail = `<div style="width:30px; height:30px; border-radius:8px; background:rgba(245,158,11,0.12); border:1px dashed #f59e0b; display:flex; align-items:center; justify-content:center; color:#d97706; flex-shrink:0;"><i class="fa-solid fa-camera" style="font-size:11px;"></i></div>`;
                     }
                 }
 
@@ -496,7 +506,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                 if (isQueued) {
                     actionBtnHtml = `<div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
                         ${queuedThumbnail}
-                        <span style="background:rgba(245,158,11,0.25); border:none !important; outline:none !important; color:#fde68a; font-weight:800; font-size:10.5px; padding:3px 8px; border-radius:100px; display:inline-flex; align-items:center; gap:4px; white-space:nowrap;"><i class="fa-solid fa-cloud-arrow-up"></i> Queued</span>
+                        <span style="background:#fef3c7; border:1px solid #fde68a; color:#b45309; font-weight:800; font-size:10.5px; padding:3px 8px; border-radius:100px; display:inline-flex; align-items:center; gap:4px; white-space:nowrap;"><i class="fa-solid fa-cloud-arrow-up"></i> Queued</span>
                     </div>`;
                 } else if (isVisited) {
                     const sId = item.tourist_spot_id || (item.destination ? item.destination.id : '');
@@ -506,8 +516,8 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                     actionBtnHtml = `<div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
                         ${proofThumbnailStrip}
                         <div style="display:flex; flex-direction:column; gap:2px;">
-                            <span style="background:rgba(52,199,89,0.25); border:none !important; outline:none !important; color:#ffffff; font-weight:800; font-size:10px; padding:3px 7px; border-radius:100px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-circle-check"></i> Visited</span>
-                            <button type="button" data-spot-id="${sId}" data-spot-classification="${sClass}" onclick="event.stopPropagation(); window.openWriteTestimonyModal('${sId}', this)" style="background:rgba(255,255,255,0.18); border:none !important; outline:none !important; color:#ffffff; font-size:9.5px; font-weight:700; padding:2px 7px; border-radius:100px; cursor:pointer; width:fit-content;">
+                            <span style="background:#dcfce7; border:1px solid #bbf7d0; color:#15803d; font-weight:800; font-size:10px; padding:2px 8px; border-radius:100px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-circle-check"></i> Visited</span>
+                            <button type="button" data-spot-id="${sId}" data-spot-classification="${sClass}" onclick="event.stopPropagation(); window.openWriteTestimonyModal('${sId}', this)" style="background:#eff6ff; border:1px solid #bfdbfe; color:#1d4ed8; font-size:9.5px; font-weight:800; padding:2px 8px; border-radius:100px; cursor:pointer; width:fit-content;">
                                 ${isReviewed ? '<i class="fa-solid fa-check"></i> Reviewed' : `<i class="fa-solid fa-pen"></i> Review (+${sMeta.points} PTS)`}
                             </button>
                         </div>
@@ -516,37 +526,33 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                     actionBtnHtml = `<div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
                         ${proofThumbnailStrip}
                         <div style="display:flex; flex-direction:column; gap:2px;">
-                            <span style="background:rgba(239,68,68,0.25); border:none !important; outline:none !important; color:#ffffff; font-weight:800; font-size:10px; padding:2px 6px; border-radius:100px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-circle-xmark"></i> Rejected</span>
-                            <button onclick="event.stopPropagation(); window.openProofUploadModal('${item.id}', '${destEscaped}')" style="background:linear-gradient(135deg, #ef4444, #dc2626); color:#ffffff; border:none !important; outline:none !important; padding:4px 8px; border-radius:100px; font-weight:800; font-size:9.5px; cursor:pointer; white-space:nowrap;"><i class="fa-solid fa-camera" style="margin-right:2px;"></i> Re-upload Proof</button>
+                            <span style="background:#fee2e2; border:1px solid #fecaca; color:#b91c1c; font-weight:800; font-size:10px; padding:2px 6px; border-radius:100px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-circle-xmark"></i> Rejected</span>
+                            <button onclick="event.stopPropagation(); window.openProofUploadModal('${item.id}', '${destEscaped}')" style="background:linear-gradient(135deg, #ef4444, #dc2626); color:#ffffff; border:none; padding:4px 8px; border-radius:100px; font-weight:800; font-size:9.5px; cursor:pointer; white-space:nowrap; box-shadow:0 2px 6px rgba(239,68,68,0.25);"><i class="fa-solid fa-camera" style="margin-right:2px;"></i> Re-upload Proof</button>
                         </div>
                     </div>`;
                 } else if (isPendingApproval) {
-                    // State 4: Both Submitted
                     actionBtnHtml = `<div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
                         ${proofThumbnailStrip}
-                        <span style="background:rgba(245,158,11,0.25); border:none !important; outline:none !important; color:#ffffff; font-weight:800; font-size:10px; padding:4px 8px; border-radius:100px; display:inline-flex; align-items:center; gap:4px; white-space:nowrap;"><i class="fa-solid fa-clock"></i> Awaiting Approval</span>
+                        <span style="background:#fef3c7; border:1px solid #fde68a; color:#b45309; font-weight:800; font-size:10.5px; padding:4px 9px; border-radius:100px; display:inline-flex; align-items:center; gap:4px; white-space:nowrap;"><i class="fa-solid fa-clock"></i> Awaiting Approval</span>
                     </div>`;
                 } else if (isLocationVerified && !hasProof) {
-                    // State 2: Location Only
                     actionBtnHtml = `<div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
-                        <span style="background:rgba(56,189,248,0.2); color:#38bdf8; font-weight:800; font-size:10px; padding:4px 8px; border-radius:100px; white-space:nowrap;"><i class="fa-solid fa-location-dot"></i> Checked In</span>
-                        <button onclick="event.stopPropagation(); window.openProofUploadModal('${item.id}', '${destEscaped}')" style="background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); color:#ffffff; border:none !important; outline:none !important; padding:6px 11px; border-radius:100px; font-weight:800; font-size:10.5px; box-shadow:none !important; cursor:pointer; white-space:nowrap;"><i class="fa-solid fa-camera" style="margin-right:3px;"></i> Upload Proof</button>
+                        <span style="background:#e0f2fe; border:1px solid #bae6fd; color:#0284c7; font-weight:800; font-size:10px; padding:4px 8px; border-radius:100px; white-space:nowrap;"><i class="fa-solid fa-location-dot"></i> Checked In</span>
+                        <button onclick="event.stopPropagation(); window.openProofUploadModal('${item.id}', '${destEscaped}')" style="background:linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color:#ffffff; border:none; padding:6px 12px; border-radius:100px; font-weight:800; font-size:10.5px; box-shadow:0 2px 8px rgba(2,132,199,0.3); cursor:pointer; white-space:nowrap;"><i class="fa-solid fa-camera" style="margin-right:3px;"></i> Upload Proof</button>
                     </div>`;
                 } else if (!isLocationVerified && hasProof) {
-                    // State 3: Photo Only
                     actionBtnHtml = `<div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
                         ${proofThumbnailStrip}
-                        <button onclick="event.stopPropagation(); window.executeLocationCheckIn('${item.id}', '${destEscaped}', ${lat}, ${lng}, this)" style="background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); color:#ffffff; border:none !important; outline:none !important; padding:6px 11px; border-radius:100px; font-weight:800; font-size:10.5px; box-shadow:none !important; cursor:pointer; white-space:nowrap;"><i class="fa-solid fa-location-crosshairs" style="margin-right:3px;"></i> Check In</button>
+                        <button onclick="event.stopPropagation(); window.executeLocationCheckIn('${item.id}', '${destEscaped}', ${lat}, ${lng}, this)" style="background:linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color:#ffffff; border:none; padding:6px 12px; border-radius:100px; font-weight:800; font-size:10.5px; box-shadow:0 2px 8px rgba(2,132,199,0.3); cursor:pointer; white-space:nowrap;"><i class="fa-solid fa-location-crosshairs" style="margin-right:3px;"></i> Check In</button>
                     </div>`;
                 } else {
-                    // State 1: Not Started
-                    actionBtnHtml = `<div style="display:flex; align-items:center; gap:5px; flex-shrink:0;">
-                        <button onclick="event.stopPropagation(); window.executeLocationCheckIn('${item.id}', '${destEscaped}', ${lat}, ${lng}, this)" style="background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); color:#ffffff; border:none !important; outline:none !important; padding:6px 10px; border-radius:100px; font-weight:800; font-size:10.5px; box-shadow:none !important; cursor:pointer; white-space:nowrap;"><i class="fa-solid fa-location-crosshairs" style="margin-right:3px;"></i> Check In</button>
-                        <button onclick="event.stopPropagation(); window.openProofUploadModal('${item.id}', '${destEscaped}')" style="background:rgba(255,255,255,0.18); color:#ffffff; border:none !important; outline:none !important; padding:6px 10px; border-radius:100px; font-weight:800; font-size:10.5px; cursor:pointer; white-space:nowrap;"><i class="fa-solid fa-camera" style="margin-right:3px;"></i> Proof</button>
+                    actionBtnHtml = `<div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
+                        <button onclick="event.stopPropagation(); window.executeLocationCheckIn('${item.id}', '${destEscaped}', ${lat}, ${lng}, this)" style="background:linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color:#ffffff; border:none; padding:6px 11px; border-radius:100px; font-weight:800; font-size:10.5px; box-shadow:0 2px 8px rgba(2,132,199,0.3); cursor:pointer; white-space:nowrap;"><i class="fa-solid fa-location-crosshairs" style="margin-right:3px;"></i> Check In</button>
+                        <button onclick="event.stopPropagation(); window.openProofUploadModal('${item.id}', '${destEscaped}')" style="background:#f1f5f9; color:#1e3a8a; border:1.5px solid #cbd5e1; padding:6px 11px; border-radius:100px; font-weight:800; font-size:10.5px; cursor:pointer; white-space:nowrap;"><i class="fa-solid fa-camera" style="margin-right:3px;"></i> Proof</button>
                     </div>`;
                 }
 
-                const classBadge = dest.classification_status ? `<span style="padding: 3px 8px; border-radius: 100px; font-size: 8px; font-weight: 800; text-transform: uppercase; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#0284c7' : (dest.classification_status === 'EMERGE' ? '#ef4444' : '#10b981')}; border:none !important; outline:none !important; flex-shrink:0;">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</span>` : '';
+                const classBadge = dest.classification_status ? `<span style="padding: 3px 8px; border-radius: 100px; font-size: 8.5px; font-weight: 800; text-transform: uppercase; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#0284c7' : (dest.classification_status === 'EMERGE' ? '#ef4444' : '#10b981')}; border:none !important; outline:none !important; flex-shrink:0;">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</span>` : '';
 
                 let legTransitHtml = '';
                 if (item.transport_mode) {
@@ -557,8 +563,8 @@ include_once __DIR__ . '/../components/testimony_modal.php';
 
                     if (isSpotMaint) {
                         legTransitHtml = `<div style="display:flex; align-items:center; gap:6px; margin-bottom:8px; flex-wrap:wrap;">
-                        <span style="background:#ef4444; color:#ffffff; padding:2px 8px; border-radius:100px; font-size:10px; font-weight:800; display:inline-flex; align-items:center; gap:4px; box-shadow:0 2px 6px rgba(239,68,68,0.3);">
-                            <i class="fa-solid fa-ban" style="color:#ffffff; font-size:9px;"></i> Unavailable (Maintenance) &bull; ₱0.00
+                        <span style="background:#fef2f2; border:1px solid #fecaca; color:#dc2626; padding:3px 9px; border-radius:100px; font-size:10.5px; font-weight:800; display:inline-flex; align-items:center; gap:4px;">
+                            <i class="fa-solid fa-ban" style="color:#ef4444; font-size:9.5px;"></i> Unavailable (Maintenance) &bull; ₱0.00
                         </span>
                     </div>`;
                     } else {
@@ -592,25 +598,25 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                         const cStr = (cNum > 0) ? `&bull; ₱${cNum.toFixed(2)}` : (legParts.length === 1 && ['own_car', 'motorcycle', 'walking'].includes(legParts[0]) ? '&bull; ₱0' : '');
 
                         legTransitHtml = `<div style="display:flex; align-items:center; gap:6px; margin-bottom:8px; flex-wrap:wrap;">
-                        <span style="background:rgba(255,255,255,0.18); color:#e0f2fe; padding:2px 8px; border-radius:100px; font-size:10px; font-weight:700; display:inline-flex; align-items:center; gap:4px;">
-                            <i class="fa-solid ${vIcon}" style="color:#00f2fe; font-size:9px;"></i> ${vName} ${cStr}
+                        <span style="background:#f8fafc; border:1px solid #e2e8f0; color:#334155; padding:3px 9px; border-radius:100px; font-size:10.5px; font-weight:700; display:inline-flex; align-items:center; gap:5px;">
+                            <i class="fa-solid ${vIcon}" style="color:#0284c7; font-size:10px;"></i> ${vName} ${cStr}
                         </span>
-                        ${(dest && (dest.accessible_by_private_vehicle === 0 || dest.accessible_by_private_vehicle === false || dest.accessible_by_private_vehicle === '0')) ? `<span style="background:rgba(245,158,11,0.22); color:#fef3c7; padding:2px 7px; border-radius:100px; font-size:9px; font-weight:800; display:inline-flex; align-items:center; gap:3px;"><i class="fa-solid fa-triangle-exclamation" style="color:#fbbf24;"></i> Trailhead</span>` : ''}
+                        ${(dest && (dest.accessible_by_private_vehicle === 0 || dest.accessible_by_private_vehicle === false || dest.accessible_by_private_vehicle === '0')) ? `<span style="background:#fef3c7; border:1px solid #fde68a; color:#92400e; padding:3px 8px; border-radius:100px; font-size:9.5px; font-weight:800; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-triangle-exclamation" style="color:#f59e0b;"></i> Trailhead</span>` : ''}
                     </div>`;
                     }
                 }
 
                 conveyorHtml += `
-            <div id="conveyor-card-${idx}" class="conveyor-card ${isActive ? 'active' : ''}" onclick="window.flyToConveyorSpot(${lng}, ${lat}, ${idx})" style="scroll-snap-align: center; flex: 0 0 calc(100vw - 64px); max-width: 320px; min-width: 250px; box-sizing: border-box; background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: none !important; outline: none !important; border-radius: 24px; padding: 16px 18px; box-shadow: none !important; overflow: hidden !important; cursor: pointer; transition: transform 0.25s ease;">
+            <div id="conveyor-card-${idx}" class="conveyor-card ${isActive ? 'active' : ''}" onclick="window.flyToConveyorSpot(${lng}, ${lat}, ${idx})" style="scroll-snap-align: center; flex: 0 0 calc(100vw - 48px); max-width: 330px; min-width: 260px; box-sizing: border-box; background: #ffffff !important; border: 1.5px solid ${isActive ? '#0284c7' : '#e2e8f0'} !important; border-radius: 22px; padding: 15px 16px; box-shadow: 0 10px 28px rgba(15, 23, 42, ${isActive ? '0.14' : '0.08'}), 0 2px 6px rgba(15, 23, 42, 0.04) !important; overflow: hidden !important; cursor: pointer; transition: all 0.25s ease;">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; gap:8px;">
                     ${badgeHtml}
                     ${classBadge}
                 </div>
-                <h4 style="margin:0 0 4px 0; font-size:16px; font-weight:800; color:#ffffff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${dest.name}">${dest.name}</h4>
-                <p style="margin:0 0 8px 0; font-size:12px; color:rgba(255,255,255,0.85); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"><i class="fa-solid fa-location-dot" style="color:#67e8f9; margin-right:5px;"></i>${dest.municipality || 'La Union'}</p>
+                <h4 style="margin:0 0 4px 0; font-size:16px; font-weight:800; color:#0f172a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${dest.name}">${dest.name}</h4>
+                <p style="margin:0 0 8px 0; font-size:12px; color:#64748b; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"><i class="fa-solid fa-location-dot" style="color:#0284c7; margin-right:5px;"></i>${dest.municipality || 'La Union'}</p>
                 ${legTransitHtml}
-                <div style="display:flex; justify-content:space-between; align-items:center; gap:6px; min-width:0;">
-                    <span style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.75); flex-shrink:0;"><i class="fa-solid fa-compass" style="color:#67e8f9;"></i> Tap to view</span>
+                <div style="display:flex; justify-content:space-between; align-items:center; gap:6px; min-width:0; padding-top:6px; border-top:1px solid #f1f5f9;">
+                    <span style="font-size:11px; font-weight:700; color:#64748b; flex-shrink:0;"><i class="fa-solid fa-compass" style="color:#0284c7; margin-right:4px;"></i> Tap to view</span>
                     <div style="flex-shrink:0; max-width:68%;">${actionBtnHtml}</div>
                 </div>
             </div>`;
@@ -841,20 +847,20 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                                 <div style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #ffffff; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; border: 2.5px solid #ffffff; box-shadow: 0 4px 12px rgba(245,158,11,0.4); z-index: 2;">
                                     <i class="fa-solid fa-cloud-arrow-up"></i>
                                 </div>
-                                <div style="background: linear-gradient(135deg, rgba(30, 58, 138, 0.96) 0%, rgba(63, 125, 183, 0.94) 100%); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: none !important; outline: none !important; border-radius: 10px; padding: 4px 8px; margin-top: 5px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 12px rgba(10,25,60,0.3); z-index: 1;">
-                                    <span style="color: #fde68a; font-size: 10px; font-weight: 700;">Queued (Offline)</span>
+                                <div style="background: #ffffff; border: 1.5px solid #fde68a; border-radius: 10px; padding: 4px 8px; margin-top: 5px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(245,158,11,0.18); z-index: 1;">
+                                    <span style="color: #b45309; font-size: 10px; font-weight: 800;">Queued (Offline)</span>
                                 </div>
                             </div>
                         `;
                         } else if (isVisited) {
-                            // VISITED - Green Checkmark + Royal Blue Tag without outline
+                            // VISITED - Green Checkmark + Clean Tag
                             iconHtml = `
                             <div style="display: flex; flex-direction: column; align-items: center; cursor: pointer;">
                                 <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #ffffff; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; border: 2.5px solid #ffffff; box-shadow: 0 4px 12px rgba(16,185,129,0.4); z-index: 2;">
                                     <i class="fa-solid fa-check"></i>
                                 </div>
-                                <div style="background: linear-gradient(135deg, rgba(30, 58, 138, 0.96) 0%, rgba(63, 125, 183, 0.94) 100%); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: none !important; outline: none !important; border-radius: 10px; padding: 4px 8px; margin-top: 5px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 12px rgba(10,25,60,0.3); z-index: 1;">
-                                    <span style="color: rgba(255, 255, 255, 0.75); font-size: 11px; font-weight: 600; text-decoration: line-through;">${dest.name}</span>
+                                <div style="background: #ffffff; border: 1.5px solid #bbf7d0; border-radius: 10px; padding: 4px 8px; margin-top: 5px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,185,129,0.18); z-index: 1;">
+                                    <span style="color: #15803d; font-size: 11px; font-weight: 700; text-decoration: line-through;">${dest.name}</span>
                                 </div>
                             </div>
                         `;
@@ -865,8 +871,8 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                                 <div style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #ffffff; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; border: 2.5px solid #ffffff; box-shadow: 0 4px 12px rgba(245,158,11,0.4); z-index: 2;">
                                     <i class="fa-solid fa-clock"></i>
                                 </div>
-                                <div style="background: linear-gradient(135deg, rgba(30, 58, 138, 0.96) 0%, rgba(63, 125, 183, 0.94) 100%); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: none !important; outline: none !important; border-radius: 10px; padding: 4px 8px; margin-top: 5px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 12px rgba(10,25,60,0.3); z-index: 1;">
-                                    <span style="color: #fde68a; font-size: 10px; font-weight: 700;">Pending Review</span>
+                                <div style="background: #ffffff; border: 1.5px solid #fde68a; border-radius: 10px; padding: 4px 8px; margin-top: 5px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(245,158,11,0.18); z-index: 1;">
+                                    <span style="color: #b45309; font-size: 10px; font-weight: 800;">Pending Review</span>
                                 </div>
                             </div>
                         `;
@@ -877,8 +883,8 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                                 <div style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: #ffffff; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; border: 2.5px solid #ffffff; box-shadow: 0 4px 12px rgba(239,68,68,0.4); z-index: 2;">
                                     <i class="fa-solid fa-xmark"></i>
                                 </div>
-                                <div style="background: linear-gradient(135deg, rgba(30, 58, 138, 0.96) 0%, rgba(63, 125, 183, 0.94) 100%); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: none !important; outline: none !important; border-radius: 10px; padding: 4px 8px; margin-top: 5px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 12px rgba(10,25,60,0.3); z-index: 1;">
-                                    <span style="color: #fca5a5; font-size: 10px; font-weight: 700;">Re-upload</span>
+                                <div style="background: #ffffff; border: 1.5px solid #fecaca; border-radius: 10px; padding: 4px 8px; margin-top: 5px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(239,68,68,0.18); z-index: 1;">
+                                    <span style="color: #b91c1c; font-size: 10px; font-weight: 800;">Re-upload</span>
                                 </div>
                             </div>
                         `;
@@ -889,8 +895,8 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                                 <div style="background: linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); color: #ffffff; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; border: 2.5px solid #ffffff; box-shadow: 0 4px 12px rgba(2,132,199,0.4); z-index: 2;">
                                     <i class="fa-solid fa-location-dot"></i>
                                 </div>
-                                <div style="background: linear-gradient(135deg, rgba(30, 58, 138, 0.96) 0%, rgba(63, 125, 183, 0.94) 100%); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: none !important; outline: none !important; border-radius: 10px; padding: 4px 8px; margin-top: 5px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 12px rgba(10,25,60,0.3); z-index: 1;">
-                                    <span style="color: #38bdf8; font-size: 10px; font-weight: 700;">Checked In</span>
+                                <div style="background: #ffffff; border: 1.5px solid #bae6fd; border-radius: 10px; padding: 4px 8px; margin-top: 5px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(2,132,199,0.18); z-index: 1;">
+                                    <span style="color: #0284c7; font-size: 10px; font-weight: 800;">Checked In</span>
                                 </div>
                             </div>
                         `;
@@ -901,33 +907,33 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                                 <div style="background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); color: #ffffff; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; border: 2.5px solid #ffffff; box-shadow: 0 4px 12px rgba(109,40,217,0.4); z-index: 2;">
                                     <i class="fa-solid fa-camera"></i>
                                 </div>
-                                <div style="background: linear-gradient(135deg, rgba(30, 58, 138, 0.96) 0%, rgba(63, 125, 183, 0.94) 100%); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: none !important; outline: none !important; border-radius: 10px; padding: 4px 8px; margin-top: 5px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 12px rgba(10,25,60,0.3); z-index: 1;">
-                                    <span style="color: #c4b5fd; font-size: 10px; font-weight: 700;">Photo Ready</span>
+                                <div style="background: #ffffff; border: 1.5px solid #ddd6fe; border-radius: 10px; padding: 4px 8px; margin-top: 5px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(109,40,217,0.18); z-index: 1;">
+                                    <span style="color: #6d28d9; font-size: 10px; font-weight: 800;">Photo Ready</span>
                                 </div>
                             </div>
                         `;
                         } else if (idx === activeIndex) {
-                            // ACTIVE - Vibrant Cyan/Blue Pin + Royal Blue Next Stop Tag without outline
+                            // ACTIVE - Vibrant Cyan/Blue Pin + Clean Next Stop Tag
                             iconHtml = `
                             <div style="display: flex; flex-direction: column; align-items: center; cursor: pointer;">
-                                <div style="background: linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); color: #ffffff; width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 15px; border: 2.5px solid #ffffff; box-shadow: 0 4px 16px rgba(2, 132, 199, 0.5); z-index: 2;">
+                                <div style="background: linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); color: #ffffff; width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 15px; border: 2.5px solid #ffffff; box-shadow: 0 4px 16px rgba(2, 132, 199, 0.45); z-index: 2;">
                                     ${idx + 1}
                                 </div>
-                                <div style="background: linear-gradient(135deg, rgba(30, 58, 138, 0.96) 0%, rgba(63, 125, 183, 0.94) 100%); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: none !important; outline: none !important; border-radius: 12px; padding: 5px 10px; margin-top: 6px; display: flex; align-items: center; gap: 6px; box-shadow: 0 8px 20px rgba(10,25,60,0.4); z-index: 1;">
-                                    <span style="background: rgba(255, 255, 255, 0.22); color: #ffffff; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.4px;">Next</span>
-                                    <span style="color: #ffffff; font-size: 12px; font-weight: 700; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${dest.name}</span>
+                                <div style="background: #ffffff; border: 1.5px solid #bae6fd; border-radius: 12px; padding: 4px 9px; margin-top: 6px; display: flex; align-items: center; gap: 6px; box-shadow: 0 6px 18px rgba(2, 132, 199, 0.22); z-index: 1;">
+                                    <span style="background: #e0f2fe; color: #0284c7; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.4px;">Next</span>
+                                    <span style="color: #0f172a; font-size: 12px; font-weight: 800; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${dest.name}</span>
                                 </div>
                             </div>
                         `;
                         } else {
                             // LOCKED - Grey Padlock + Stop Number
                             iconHtml = `
-                            <div style="display: flex; flex-direction: column; align-items: center; opacity: 0.88; cursor: pointer;">
-                                <div style="background: #475569; color: #ffffff; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 11px; border: 2px solid rgba(255,255,255,0.6); box-shadow: 0 2px 8px rgba(0,0,0,0.3); z-index: 2;">
+                            <div style="display: flex; flex-direction: column; align-items: center; opacity: 0.92; cursor: pointer;">
+                                <div style="background: #475569; color: #ffffff; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 11px; border: 2px solid rgba(255,255,255,0.8); box-shadow: 0 2px 8px rgba(0,0,0,0.25); z-index: 2;">
                                     <i class="fa-solid fa-lock" style="font-size: 10px;"></i>
                                 </div>
-                                <div style="background: linear-gradient(135deg, rgba(30, 58, 138, 0.92) 0%, rgba(63, 125, 183, 0.90) 100%); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: none !important; outline: none !important; border-radius: 8px; padding: 3px 8px; margin-top: 4px; z-index: 1;">
-                                    <span style="color: rgba(255, 255, 255, 0.85); font-size: 10px; font-weight: 600;">Stop ${idx + 1}</span>
+                                <div style="background: #ffffff; border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 3px 8px; margin-top: 4px; box-shadow: 0 2px 8px rgba(15,23,42,0.1); z-index: 1;">
+                                    <span style="color: #475569; font-size: 10px; font-weight: 700;">Stop ${idx + 1}</span>
                                 </div>
                             </div>
                         `;
@@ -1054,16 +1060,16 @@ include_once __DIR__ . '/../components/testimony_modal.php';
 
                                     const etaEl = document.createElement('div');
                                     etaEl.innerHTML = `
-                                <div style="background: linear-gradient(135deg, rgba(30, 58, 138, 0.96) 0%, rgba(63, 125, 183, 0.94) 100%); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: none !important; outline: none !important; padding: 7px 13px; border-radius: 16px; box-shadow: 0 8px 24px rgba(10, 25, 60, 0.45); display: flex; align-items: center; gap: 8px; color: #ffffff; white-space: nowrap; pointer-events: none; transform: translateY(-4px);">
-                                    <div style="width: 28px; height: 28px; border-radius: 10px; background: rgba(255, 255, 255, 0.2); border: none !important; outline: none !important; display: flex; align-items: center; justify-content: center; color: #ffffff; font-size: 13px; flex-shrink: 0;">
+                                <div style="background: #ffffff; border: 1.5px solid #e2e8f0; padding: 6px 12px; border-radius: 14px; box-shadow: 0 8px 24px rgba(15, 23, 42, 0.16); display: flex; align-items: center; gap: 8px; color: #0f172a; white-space: nowrap; pointer-events: none; transform: translateY(-4px);">
+                                    <div style="width: 26px; height: 26px; border-radius: 8px; background: #e0f2fe; display: flex; align-items: center; justify-content: center; color: #0284c7; font-size: 12px; flex-shrink: 0;">
                                         <i class="fa-solid ${activeVehicle.icon}"></i>
                                     </div>
                                     <div style="display: flex; flex-direction: column; line-height: 1.15;">
                                         <div style="display: flex; align-items: baseline; gap: 3px;">
-                                            <span style="font-size: 14px; font-weight: 800; color: #ffffff;">${Math.round(legDurMin)}</span>
-                                            <span style="font-size: 10px; font-weight: 700; color: #67e8f9;">min</span>
+                                            <span style="font-size: 13px; font-weight: 800; color: #0f172a;">${Math.round(legDurMin)}</span>
+                                            <span style="font-size: 10px; font-weight: 700; color: #0284c7;">min</span>
                                         </div>
-                                        <span style="font-size: 10px; font-weight: 600; color: rgba(255, 255, 255, 0.85);">${legDistKm < 1 ? Math.round(legDistKm * 1000) + ' m' : legDistKm.toFixed(1) + ' km'}</span>
+                                        <span style="font-size: 10px; font-weight: 600; color: #64748b;">${legDistKm < 1 ? Math.round(legDistKm * 1000) + ' m' : legDistKm.toFixed(1) + ' km'}</span>
                                     </div>
                                 </div>
                             `;
