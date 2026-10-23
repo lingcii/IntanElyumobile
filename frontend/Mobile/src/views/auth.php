@@ -150,7 +150,7 @@
                             <option value="Prefer not to say">Prefer not to say</option>
                             <option value="Other">Other</option>
                         </select>
-                        <i class="fa-solid fa-chevron-down" style="position:absolute; right:14px; top:50%; transform:translateY(-50%); pointer-events:none; color:#64748b; font-size:11px;"></i>
+                        <i class="fa-solid fa-chevron-down select-arrow"></i>
                     </div>
                     <div class="input-group">
                         <i class="fa-solid fa-mobile-screen"></i>

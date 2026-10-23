@@ -581,8 +581,8 @@ body.keyboard-open .auth-bottom {
 }
 
 /* Leading Field Icon (Mail, Phone, Lock, User) - Always on the left */
-.input-group > i:first-child,
-.input-group > i:not(.password-toggle):not(.field-status-icon) {
+.input-group > i:first-child:not(.select-arrow),
+.input-group > i:not(.password-toggle):not(.field-status-icon):not(.select-arrow) {
     position: absolute !important;
     left: 14px !important;
     right: auto !important;
@@ -601,7 +601,7 @@ body.keyboard-open .auth-bottom {
     margin: 0 !important;
 }
 
-.input-group:focus-within > i:not(.password-toggle):not(.field-status-icon) {
+.input-group:focus-within > i:not(.password-toggle):not(.field-status-icon):not(.select-arrow) {
     color: #2563eb !important;
 }
 
@@ -676,6 +676,34 @@ select.auth-input option {
 .input-group > i.password-toggle:active {
     color: #0f172a !important;
     transform: translateY(-50%) scale(1.1) !important;
+}
+
+/* Select / Dropdown Arrow Icon - Always fixed on the right */
+.input-group > i.select-arrow {
+    position: absolute !important;
+    right: 14px !important;
+    left: auto !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    color: #64748b !important;
+    font-size: 11.5px !important;
+    width: 18px !important;
+    height: 18px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    pointer-events: none !important;
+    z-index: 4 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    transition: color 0.2s ease, transform 0.2s ease !important;
+}
+
+.input-group:focus-within > i.select-arrow {
+    color: #1d4ed8 !important;
 }
 
 /* Inline Field Validation Badges & Microcopy */
@@ -1746,8 +1774,8 @@ body[data-offline="true"] .btn-offline-guest {
         padding: 0 36px 0 36px !important;
         font-size: 13px !important;
     }
-    .input-group > i:first-child,
-    .input-group > i:not(.password-toggle):not(.field-status-icon) {
+    .input-group > i:first-child:not(.select-arrow),
+    .input-group > i:not(.password-toggle):not(.field-status-icon):not(.select-arrow) {
         font-size: 14.5px !important;
         left: 13px !important;
         right: auto !important;
@@ -1756,6 +1784,11 @@ body[data-offline="true"] .btn-offline-guest {
         font-size: 14.5px !important;
         left: auto !important;
         right: 12px !important;
+    }
+    .input-group > i.select-arrow {
+        font-size: 11px !important;
+        left: auto !important;
+        right: 13px !important;
     }
     .btn-circle-submit {
         width: 48px !important;
@@ -1784,8 +1817,8 @@ body[data-offline="true"] .btn-offline-guest {
         padding: 0 34px 0 34px !important;
         font-size: 12.5px !important;
     }
-    .input-group > i:first-child,
-    .input-group > i:not(.password-toggle):not(.field-status-icon) {
+    .input-group > i:first-child:not(.select-arrow),
+    .input-group > i:not(.password-toggle):not(.field-status-icon):not(.select-arrow) {
         font-size: 14px !important;
         left: 12px !important;
         right: auto !important;
@@ -1794,6 +1827,11 @@ body[data-offline="true"] .btn-offline-guest {
         font-size: 14px !important;
         left: auto !important;
         right: 11px !important;
+    }
+    .input-group > i.select-arrow {
+        font-size: 10.5px !important;
+        left: auto !important;
+        right: 12px !important;
     }
 }
 

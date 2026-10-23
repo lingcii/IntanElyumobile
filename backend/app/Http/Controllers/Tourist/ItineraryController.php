@@ -113,7 +113,7 @@ class ItineraryController extends Controller
             'is_location_verified' => (bool) ($item->visited_at !== null),
             'proof_image'          => $item->proof_image,
             'proof_images'         => $item->proof_images ?? [],
-            'proof_status'         => $item->proof_status ?? ($item->proof_image ? ($item->is_visited ? 'approved' : 'pending') : null),
+            'proof_status'         => !empty($item->proof_image) ? ($item->proof_status ?? ($item->is_visited ? 'approved' : 'pending')) : null,
             'rejection_reason'     => $item->rejection_reason,
             'companion_males'      => (int) ($item->companion_males ?? 0),
             'companion_females'    => (int) ($item->companion_females ?? 0),

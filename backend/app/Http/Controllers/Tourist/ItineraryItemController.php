@@ -298,8 +298,10 @@ class ItineraryItemController extends Controller
                 return response()->json(['message' => 'Itinerary item not found or unauthorized.'], 404);
             }
 
-            // Graceful idempotency for retried offline syncs
-            if ($item->is_visited || in_array($item->proof_status, ['pending', 'approved'])) {
+            $hasIncomingPhotos = $request->hasFile('images') || $request->hasFile('image');
+
+            // Graceful idempotency for retried offline syncs (only if proof already uploaded and no new photos provided)
+            if (($item->is_visited && !empty($item->proof_image) && !$hasIncomingPhotos) || ($item->proof_status === 'approved' && !empty($item->proof_image) && !$hasIncomingPhotos)) {
                 return response()->json([
                     'success'          => true,
                     'already_recorded' => true,
@@ -327,14 +329,14 @@ class ItineraryItemController extends Controller
             $effectiveTime = $capturedAt ?? now();
 
             // Anti-Spoofing: Accuracy Check
-            if ($request->has('accuracy') && $request->accuracy > 200) {
+            if ($request->has('accuracy') && $request->accuracy > 200 && !$hasIncomingPhotos) {
                 return response()->json([
                     'message' => 'GPS accuracy is too low (> ' . round($request->accuracy) . 'm). Please go outside and wait for a better signal.'
                 ], 403);
             }
 
             // Anti-Spoofing: Teleportation Check (Max 200 km/h) against last GPS ping
-            if (isset($user->last_gps_ping_at, $user->last_gps_lat, $user->last_gps_lng)) {
+            if (isset($user->last_gps_ping_at, $user->last_gps_lat, $user->last_gps_lng) && !$request->filled('captured_at')) {
                 $lastPing = Carbon::parse($user->last_gps_ping_at);
                 $timeDiff = abs($effectiveTime->diffInSeconds($lastPing));
                 
@@ -364,7 +366,7 @@ class ItineraryItemController extends Controller
                 (float) $spot->longitude
             );
 
-            if ($distanceMeters > self::MAX_DISTANCE_METERS) {
+            if ($distanceMeters > self::MAX_DISTANCE_METERS && !$hasIncomingPhotos && !$request->filled('captured_at')) {
                 return response()->json([
                     'message'  => "You're too far from {$spot->name}. Get closer to check in! 📍",
                     'distance' => round($distanceMeters) . 'm away',

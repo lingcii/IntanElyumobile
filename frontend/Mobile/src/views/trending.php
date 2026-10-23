@@ -57,49 +57,61 @@ if (is_dir($imgDir)) {
         </button>
     </div>
 
-    <!-- Category Filter Bar -->
-    <div class="trending-categories-bar" id="trending-cat-bar">
-        <button type="button" class="trending-cat-pill active" onclick="window.filterTrendingCat('All', this)">
-            <i class="fa-solid fa-layer-group"></i> All
-        </button>
-        <button type="button" class="trending-cat-pill" onclick="window.filterTrendingCat('Beach', this)">
-            <i class="fa-solid fa-umbrella-beach"></i> Beach
-        </button>
-        <button type="button" class="trending-cat-pill" onclick="window.filterTrendingCat('Nature', this)">
-            <i class="fa-solid fa-tree"></i> Nature & Parks
-        </button>
-        <button type="button" class="trending-cat-pill" onclick="window.filterTrendingCat('Mountains', this)">
-            <i class="fa-solid fa-mountain-sun"></i> Mountains
-        </button>
-        <button type="button" class="trending-cat-pill" onclick="window.filterTrendingCat('Lakes', this)">
-            <i class="fa-solid fa-water"></i> Lakes & Falls
-        </button>
-        <button type="button" class="trending-cat-pill" onclick="window.filterTrendingCat('Heritage', this)">
-            <i class="fa-solid fa-landmark"></i> Heritage
-        </button>
-        <button type="button" class="trending-cat-pill" onclick="window.filterTrendingCat('Food & Dining', this)">
-            <i class="fa-solid fa-utensils"></i> Food
-        </button>
-        <button type="button" class="trending-cat-pill" onclick="window.filterTrendingCat('Farm', this)">
-            <i class="fa-solid fa-seedling"></i> Farms
-        </button>
-        <button type="button" class="trending-cat-pill" onclick="window.filterTrendingCat('Arts & craft', this)">
-            <i class="fa-solid fa-palette"></i> Arts & Crafts
-        </button>
-        <button type="button" class="trending-cat-pill" onclick="window.filterTrendingCat('Nightlife', this)">
-            <i class="fa-solid fa-martini-glass-citrus"></i> Nightlife
-        </button>
-    </div>
+    <!-- Dual Filter Droplists Row: Sort on Left, Categories on Right -->
+    <div class="trending-filter-dropdowns-row">
+        <!-- Sort Droplist (Left) -->
+        <div class="trending-dropdown-wrap">
+            <i class="fa-solid fa-arrow-down-wide-short dropdown-lead-icon"></i>
+            <select id="trending-sort-select" class="trending-dropdown-select" onchange="window.setSortTrending(this.value)">
+                <option value="popular">Most Visited</option>
+                <option value="rating">Top Rated</option>
+                <option value="alpha">Name A-Z</option>
+            </select>
+            <i class="fa-solid fa-chevron-down dropdown-arrow-icon"></i>
+        </div>
 
-    <!-- Sort Bar -->
-    <div class="trending-sort-bar" id="trending-sort-bar">
-        <span class="sort-label"><i class="fa-solid fa-arrow-down-wide-short"></i> Sort:</span>
-        <button type="button" class="sort-chip active" data-sort="popular"
-            onclick="window.setSortTrending('popular', this)">Most Visited</button>
-        <button type="button" class="sort-chip" data-sort="rating" onclick="window.setSortTrending('rating', this)">Top
-            Rated</button>
-        <button type="button" class="sort-chip" data-sort="alpha" onclick="window.setSortTrending('alpha', this)">Name
-            A-Z</button>
+        <!-- Categories Droplist (Right) -->
+        <div class="trending-dropdown-wrap">
+            <i class="fa-solid fa-layer-group dropdown-lead-icon"></i>
+            <select id="trending-cat-select" class="trending-dropdown-select" onchange="window.filterTrendingCat(this.value)">
+                <option value="All">All Categories</option>
+                <option value="Beach">Beach</option>
+                <option value="Mountain">Mountain</option>
+                <option value="Waterfalls">Waterfalls</option>
+                <option value="River">River</option>
+                <option value="Lake">Lake</option>
+                <option value="Island">Island</option>
+                <option value="Cave">Cave</option>
+                <option value="Volcano">Volcano</option>
+                <option value="Forest">Forest</option>
+                <option value="Nature Park">Nature Park</option>
+                <option value="Marine Sanctuary">Marine Sanctuary</option>
+                <option value="Wildlife Sanctuary">Wildlife Sanctuary</option>
+                <option value="Historical">Historical</option>
+                <option value="Cultural Heritage">Cultural Heritage</option>
+                <option value="Religious">Religious</option>
+                <option value="Museum">Museum</option>
+                <option value="Monument">Monument</option>
+                <option value="Landmark">Landmark</option>
+                <option value="Viewpoint">Viewpoint</option>
+                <option value="Adventure">Adventure</option>
+                <option value="Hiking">Hiking</option>
+                <option value="Camping">Camping</option>
+                <option value="Farm">Farm</option>
+                <option value="Eco-Tourism">Eco-Tourism</option>
+                <option value="Garden">Garden</option>
+                <option value="Park">Park</option>
+                <option value="Recreation">Recreation</option>
+                <option value="Hot Spring">Hot Spring</option>
+                <option value="Cold Spring">Cold Spring</option>
+                <option value="Food Destination">Food Destination</option>
+                <option value="Shopping">Shopping</option>
+                <option value="Festival Venue">Festival Venue</option>
+                <option value="Resort">Resort</option>
+                <option value="Other">Other</option>
+            </select>
+            <i class="fa-solid fa-chevron-down dropdown-arrow-icon"></i>
+        </div>
     </div>
 
     <!-- Meta Info Bar -->
@@ -140,73 +152,137 @@ if (is_dir($imgDir)) {
             const combined = `${c} ${n} ${m}`;
             const t = targetCat.toLowerCase().trim();
 
-            if (c && (c === t || c.includes(t) || (c.length >= 3 && t.includes(c)))) return true;
-            if (c && ` ${c} `.includes(` ${t} `)) return true;
-
-            // Beach, Coastal & Surfing
-            if (t.includes('beach') || t.includes('surf') || t.includes('coastal') || t.includes('island')) {
-                return combined.includes('beach') || combined.includes('surf') || combined.includes('coastal') ||
-                    combined.includes('island') || combined.includes('seascape') || combined.includes('water sports');
+            // 1. Direct or substring match on category field
+            if (c) {
+                if (c === t || c.includes(t) || t.includes(c)) return true;
+                const cClean = c.replace(/[^a-z0-9]/g, '');
+                const tClean = t.replace(/[^a-z0-9]/g, '');
+                if (cClean && tClean && (cClean === tClean || cClean.includes(tClean) || tClean.includes(cClean))) return true;
             }
 
-            // Nature & Parks
-            if (t.includes('nature') || t.includes('park')) {
-                return c.includes('nature') || c.includes('park') || combined.includes('park') ||
-                    combined.includes('plaza') || combined.includes('agro-forestry') || combined.includes('tree') ||
-                    combined.includes('mangrove') || combined.includes('lagoon') || combined.includes('baywalk');
+            // 2. Beach, Coastal & Surfing
+            if (t === 'beach') {
+                return combined.includes('beach') || combined.includes('surf') || combined.includes('coastal') || combined.includes('seascape');
             }
 
-            // Mountains & Hiking
-            if (t.includes('mountain') || t.includes('hiking') || t.includes('trail') || t.includes('view')) {
-                return c.includes('mountain') || c.includes('hiking') || combined.includes('trail') ||
-                    combined.includes('peak') || combined.includes('view deck') || combined.includes('viewdeck') ||
-                    combined.includes('terrace') || combined.includes('mt.') || combined.includes('mountain');
+            // 3. Mountain & Hiking / Trail
+            if (t === 'mountain' || t === 'hiking') {
+                return combined.includes('mountain') || combined.includes('hiking') || combined.includes('trail') || combined.includes('peak') || combined.includes('mt.') || combined.includes('trek');
             }
 
-            // Lakes, Falls & Waterways
-            if (t.includes('lake') || t.includes('fall') || t.includes('water') || t.includes('river')) {
-                return c.includes('waterfall') || c.includes('river') || c.includes('lake') ||
-                    combined.includes('fall') || combined.includes('river') || combined.includes('lake') ||
-                    combined.includes('dam') || combined.includes('spring');
+            // 4. Waterfalls
+            if (t === 'waterfalls') {
+                return combined.includes('waterfall') || combined.includes('falls') || combined.includes('fall');
             }
 
-            // Heritage, Cultural, Historical & Monuments
-            if (t.includes('heritage') || t.includes('cultural') || t.includes('historical') || t.includes('monument') || t.includes('museum')) {
-                return c.includes('cultural') || c.includes('heritage') || c.includes('historical') ||
-                    c.includes('monument') || c.includes('museum') || combined.includes('watchtower') ||
-                    combined.includes('tunnel') || combined.includes('marker') || combined.includes('station') ||
-                    combined.includes('memorial') || combined.includes('ancestral') || combined.includes('church') ||
-                    combined.includes('shrine') || combined.includes('parish') || combined.includes('basilica');
+            // 5. River
+            if (t === 'river') {
+                return combined.includes('river');
             }
 
-            // Food & Dining
-            if (t.includes('food') || t.includes('dining') || t.includes('restaurant')) {
-                return c.includes('food') || combined.includes('restaurant') || combined.includes('seafood') ||
-                    combined.includes('dining') || combined.includes('eatery') || combined.includes('cafe') ||
-                    combined.includes('bistro') || combined.includes('grill');
+            // 6. Lake
+            if (t === 'lake') {
+                return combined.includes('lake') || combined.includes('lagoon') || combined.includes('dam');
             }
 
-            // Arts & Crafts
-            if (t.includes('art') || t.includes('craft') || t.includes('weaving')) {
-                return c.includes('arts') || combined.includes('weaving') || combined.includes('pottery') ||
-                    combined.includes('gallery') || combined.includes('craft') || combined.includes('paper');
+            // 7. Island
+            if (t === 'island') {
+                return combined.includes('island') || combined.includes('isle') || combined.includes('islet');
             }
 
-            // Farms & Agriculture
-            if (t.includes('farm') || t.includes('agro') || t.includes('plant')) {
-                return c.includes('farm') || combined.includes('plantation') || combined.includes('grapes') ||
-                    combined.includes('mushroom') || combined.includes('fishery') || combined.includes('agri');
+            // 8. Cave
+            if (t === 'cave') {
+                return combined.includes('cave') || combined.includes('cavern');
             }
 
-            // Nightlife (Strict matching for authentic nightlife spots only)
-            if (t === 'nightlife' || t.includes('nightlife')) {
-                return c.includes('nightlife') || combined.includes('nightlife') ||
-                    /\b(nightclub|night club|pub|pubs|disco|discotheque|restobar|resto-bar|sports bar|comedy bar|karaoke bar|lounge bar)\b/i.test(combined);
+            // 9. Volcano
+            if (t === 'volcano') {
+                return combined.includes('volcano');
             }
 
-            // Recreation & Resorts (Separated from Nightlife so resorts & recreation do not pollute nightlife)
-            if (t.includes('resort') || t.includes('recreation')) {
-                return c.includes('resort') || c.includes('recreation') || combined.includes('resort') || combined.includes('recreation');
+            // 10. Forest
+            if (t === 'forest') {
+                return combined.includes('forest') || combined.includes('woods') || combined.includes('agro-forestry') || combined.includes('tree');
+            }
+
+            // 11. Nature Park & Park & Garden
+            if (t === 'nature park' || t === 'park' || t === 'garden') {
+                return combined.includes('nature') || combined.includes('park') || combined.includes('garden') || combined.includes('plaza') || combined.includes('baywalk') || combined.includes('mangrove');
+            }
+
+            // 12. Marine Sanctuary & Wildlife Sanctuary
+            if (t === 'marine sanctuary' || t === 'wildlife sanctuary') {
+                return combined.includes('sanctuary') || combined.includes('marine') || combined.includes('wildlife') || combined.includes('turtle') || combined.includes('pawikan');
+            }
+
+            // 13. Historical, Cultural Heritage, Monument, Landmark
+            if (t === 'historical' || t === 'cultural heritage' || t === 'monument' || t === 'landmark') {
+                return combined.includes('historic') || combined.includes('cultural') || combined.includes('heritage') || combined.includes('monument') || combined.includes('landmark') || combined.includes('watchtower') || combined.includes('tunnel') || combined.includes('marker') || combined.includes('memorial') || combined.includes('ancestral');
+            }
+
+            // 14. Religious
+            if (t === 'religious') {
+                return combined.includes('religious') || combined.includes('church') || combined.includes('shrine') || combined.includes('parish') || combined.includes('basilica') || combined.includes('cathedral') || combined.includes('chapel');
+            }
+
+            // 15. Museum
+            if (t === 'museum') {
+                return combined.includes('museum') || combined.includes('gallery');
+            }
+
+            // 16. Viewpoint
+            if (t === 'viewpoint') {
+                return combined.includes('viewpoint') || combined.includes('view deck') || combined.includes('viewdeck') || combined.includes('overlook') || combined.includes('terrace');
+            }
+
+            // 17. Adventure & Camping
+            if (t === 'adventure' || t === 'camping') {
+                return combined.includes('adventure') || combined.includes('camp') || combined.includes('glamping');
+            }
+
+            // 18. Farm
+            if (t === 'farm') {
+                return combined.includes('farm') || combined.includes('plantation') || combined.includes('grapes') || combined.includes('mushroom') || combined.includes('agri');
+            }
+
+            // 19. Eco-Tourism
+            if (t === 'eco-tourism') {
+                return combined.includes('eco') || combined.includes('ecology');
+            }
+
+            // 20. Recreation
+            if (t === 'recreation') {
+                return combined.includes('recreation') || combined.includes('activity');
+            }
+
+            // 21. Hot Spring & Cold Spring
+            if (t === 'hot spring' || t === 'cold spring') {
+                return combined.includes('spring');
+            }
+
+            // 22. Food Destination
+            if (t === 'food destination') {
+                return combined.includes('food') || combined.includes('restaurant') || combined.includes('dining') || combined.includes('eatery') || combined.includes('cafe') || combined.includes('bistro') || combined.includes('grill') || combined.includes('seafood');
+            }
+
+            // 23. Shopping
+            if (t === 'shopping') {
+                return combined.includes('shop') || combined.includes('market') || combined.includes('mall') || combined.includes('pasalubong') || combined.includes('souvenir') || combined.includes('weaving') || combined.includes('pottery');
+            }
+
+            // 24. Festival Venue
+            if (t === 'festival venue') {
+                return combined.includes('festival') || combined.includes('events') || combined.includes('arena') || combined.includes('coliseum') || combined.includes('stadium');
+            }
+
+            // 25. Resort
+            if (t === 'resort') {
+                return combined.includes('resort');
+            }
+
+            // 26. Other
+            if (t === 'other') {
+                return true;
             }
 
             return false;
@@ -228,10 +304,8 @@ if (is_dir($imgDir)) {
                 if (input) input.placeholder = "Search trending sites, municipality...";
                 if (currentSort === 'popular') {
                     currentSort = 'rating';
-                    document.querySelectorAll('#trending-sort-bar .sort-chip').forEach(c => {
-                        if (c.dataset.sort === 'rating') c.classList.add('active');
-                        else c.classList.remove('active');
-                    });
+                    const sortSelect = document.getElementById('trending-sort-select');
+                    if (sortSelect) sortSelect.value = 'rating';
                 }
             } else {
                 if (wrap) wrap.classList.remove('mode-trending');
@@ -243,10 +317,10 @@ if (is_dir($imgDir)) {
             applyFilters();
         };
 
-        window.setSortTrending = function (sortKey, btn) {
+        window.setSortTrending = function (sortKey) {
             currentSort = sortKey;
-            document.querySelectorAll('#trending-sort-bar .sort-chip').forEach(c => c.classList.remove('active'));
-            if (btn) btn.classList.add('active');
+            const sortSelect = document.getElementById('trending-sort-select');
+            if (sortSelect && sortSelect.value !== sortKey) sortSelect.value = sortKey;
             applyFilters();
         };
 
@@ -324,14 +398,8 @@ if (is_dir($imgDir)) {
             const savedCat = localStorage.getItem('intan_elyu_filter_category');
             if (savedCat) {
                 currentCategory = savedCat;
-                document.querySelectorAll('#trending-cat-bar .trending-cat-pill').forEach(pill => {
-                    const text = (pill.textContent || '').trim();
-                    if (text.toLowerCase().includes(savedCat.toLowerCase())) {
-                        pill.classList.add('active');
-                    } else {
-                        pill.classList.remove('active');
-                    }
-                });
+                const catSelect = document.getElementById('trending-cat-select');
+                if (catSelect) catSelect.value = savedCat;
             }
             window.switchTrendingMode(currentMode);
         }
@@ -468,7 +536,7 @@ if (is_dir($imgDir)) {
                 const metaBottomHtml = `
                     <div class="card-bottom-tags" style="display:flex; align-items:center; gap:5px; flex-wrap:wrap; margin-top:5px;">
                         <span class="card-rating" style="background:rgba(245,158,11,0.22); color:#fbbf24; border:1px solid rgba(245,158,11,0.4); padding:2px 7px; border-radius:100px; font-size:10px; font-weight:800; display:inline-flex; align-items:center; gap:3px;">
-                            <i class="fa-solid fa-star" style="font-size:9px; color:#f59e0b;"></i> ${displayRating} ${muni}
+                            <i class="fa-solid fa-star" style="font-size:9px; color:#f59e0b;"></i> ${displayRating}
                         </span>
                         ${currentMode === 'trending'
                             ? `<span style="font-size:9.5px; color:#fed7aa; font-weight:800; margin-left:auto; display:inline-flex; align-items:center; gap:3px;"><i class="fa-solid fa-fire" style="color:#f97316; font-size:9px;"></i> Trending</span>`
@@ -496,14 +564,14 @@ if (is_dir($imgDir)) {
             const list = document.getElementById('trending-list');
             if (!list) return;
             list.innerHTML = `
-            <div class="dash-empty-state" style="margin-top: 24px !important;">
-                <div class="dash-empty-icon-wrap" style="background: #ffffff !important; color: #1e3a8a !important; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15) !important;">
-                    <i class="fa-solid fa-compass" style="color: #1e3a8a !important;"></i>
+            <div class="dash-empty-state">
+                <div class="dash-empty-icon-wrap">
+                    <i class="fa-solid fa-map-location-dot"></i>
                 </div>
                 <div class="dash-empty-title">${title}</div>
                 <div class="dash-empty-desc">${desc}</div>
                 <button type="button" onclick="if(typeof navigateTo==='function') navigateTo('map'); else window.location.href='?view=map';" class="dash-empty-btn">
-                    <i class="fa-solid fa-location-arrow"></i> Explore Map
+                    <i class="fa-solid fa-location-arrow"></i> Open Map
                 </button>
             </div>
         `;
@@ -513,12 +581,12 @@ if (is_dir($imgDir)) {
             const list = document.getElementById('trending-list');
             if (!list) return;
             list.innerHTML = `
-            <div class="dash-empty-state" style="margin-top: 24px !important;">
-                <div class="dash-empty-icon-wrap" style="background: #ffffff !important; color: #1e3a8a !important; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15) !important;">
-                    <i class="fa-solid fa-compass" style="color: #1e3a8a !important;"></i>
+            <div class="dash-empty-state">
+                <div class="dash-empty-icon-wrap">
+                    <i class="fa-solid fa-map-location-dot"></i>
                 </div>
-                <div class="dash-empty-title">No Sites Match Filter</div>
-                <div class="dash-empty-desc">No destinations match your search or category selection. Try searching another keyword or reset your filter.</div>
+                <div class="dash-empty-title">No Destinations Found</div>
+                <div class="dash-empty-desc">No destinations match your search or selected category. Try selecting another category or reset your filter.</div>
                 <button type="button" onclick="window.resetTrendingFilters()" class="dash-empty-btn">
                     <i class="fa-solid fa-rotate-left"></i> Reset Filters
                 </button>
@@ -526,10 +594,10 @@ if (is_dir($imgDir)) {
         `;
         }
 
-        window.filterTrendingCat = function (category, element) {
-            currentCategory = category;
-            document.querySelectorAll('#trending-cat-bar .trending-cat-pill').forEach(pill => pill.classList.remove('active'));
-            if (element) element.classList.add('active');
+        window.filterTrendingCat = function (category) {
+            currentCategory = category || 'All';
+            const catSelect = document.getElementById('trending-cat-select');
+            if (catSelect && catSelect.value !== currentCategory) catSelect.value = currentCategory;
             applyFilters();
         };
 
@@ -552,17 +620,10 @@ if (is_dir($imgDir)) {
             if (input) input.value = '';
             if (clearBtn) clearBtn.style.display = 'none';
 
-            const pills = document.querySelectorAll('#trending-cat-bar .trending-cat-pill');
-            pills.forEach((p, idx) => {
-                if (idx === 0) p.classList.add('active');
-                else p.classList.remove('active');
-            });
-
-            const sortChips = document.querySelectorAll('#trending-sort-bar .sort-chip');
-            sortChips.forEach((c, idx) => {
-                if (idx === 0) c.classList.add('active');
-                else c.classList.remove('active');
-            });
+            const sortSelect = document.getElementById('trending-sort-select');
+            if (sortSelect) sortSelect.value = 'popular';
+            const catSelect = document.getElementById('trending-cat-select');
+            if (catSelect) catSelect.value = 'All';
 
             applyFilters();
         };

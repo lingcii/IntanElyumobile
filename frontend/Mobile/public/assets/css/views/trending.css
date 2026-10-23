@@ -195,7 +195,77 @@ body[data-view="trending"] .mobile-header .header-icon i {
     color: #1e3a8a !important;
 }
 
-/* Category Filter Bar */
+/* Dual Filter Dropdowns Row: Sort on Left, Categories on Right */
+.trending-filter-dropdowns-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.trending-dropdown-wrap {
+    position: relative;
+    width: 100%;
+}
+
+.trending-dropdown-wrap .dropdown-lead-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 12px;
+    color: #203f8d;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.trending-dropdown-wrap .dropdown-arrow-icon {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 10px;
+    color: #64748b;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.trending-dropdown-select {
+    width: 100%;
+    height: 42px;
+    padding: 0 28px 0 32px;
+    border-radius: 14px;
+    border: 1.5px solid #e2e8f0 !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+    font-size: 12.5px;
+    font-weight: 700;
+    outline: none !important;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04) !important;
+    box-sizing: border-box;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
+.trending-dropdown-select:focus {
+    border-color: #203f8d !important;
+    box-shadow: 0 0 0 3px rgba(32, 63, 141, 0.12) !important;
+}
+
+.trending-dropdown-select option {
+    background: #ffffff;
+    color: #0f172a;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+/* Category Filter Bar (Legacy/Fallback) */
 .trending-categories-bar {
     display: flex;
     gap: 8px;
@@ -481,63 +551,87 @@ body[data-view="trending"] .mobile-header .header-icon i {
 }
 
 /* Empty State & Action Buttons */
+/* Empty State Container (Matches Saved Places Oceanic Blue Card) */
 .trending-page-container .dash-empty-state {
-    background: #f8fafc !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    padding: 30px 20px !important;
+    text-align: center !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 12px !important;
+    background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%) !important;
     border: none !important;
     outline: none !important;
     border-radius: 24px !important;
-    padding: 38px 24px !important;
-    text-align: center !important;
+    box-shadow: 0 8px 24px rgba(30, 58, 138, 0.28) !important;
     margin-top: 24px !important;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04) !important;
+    animation: dashEmptyFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
 }
 
 .trending-page-container .dash-empty-icon-wrap {
-    width: 64px !important;
-    height: 64px !important;
-    border-radius: 50% !important;
+    width: 58px !important;
+    height: 58px !important;
+    border-radius: 18px !important;
     background: #ffffff !important;
-    color: #1e3a8a !important;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12) !important;
-    display: inline-flex !important;
+    border: none !important;
+    outline: none !important;
+    display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    font-size: 26px !important;
-    margin-bottom: 14px !important;
+    font-size: 24px !important;
+    color: #1e3a8a !important;
+    box-shadow: 0 4px 14px rgba(10, 25, 60, 0.18) !important;
+    margin-bottom: 2px !important;
+    flex-shrink: 0 !important;
+}
+
+.trending-page-container .dash-empty-icon-wrap i {
+    color: #1e3a8a !important;
 }
 
 .trending-page-container .dash-empty-title {
-    font-size: 17px !important;
+    font-size: 18px !important;
     font-weight: 800 !important;
-    color: #0f172a !important;
-    margin-bottom: 8px !important;
+    color: #ffffff !important;
+    letter-spacing: -0.2px !important;
+    line-height: 1.3 !important;
+    margin: 0 !important;
 }
 
 .trending-page-container .dash-empty-desc {
-    font-size: 13px !important;
-    color: #64748b !important;
-    margin-bottom: 20px !important;
+    font-size: 13.5px !important;
+    color: #ffffff !important;
     line-height: 1.5 !important;
+    max-width: 360px !important;
+    margin: 0 auto !important;
+    text-wrap: pretty !important;
+    opacity: 0.95 !important;
 }
 
 .trending-page-container .dash-empty-btn {
-    background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important;
-    color: #ffffff !important;
-    border: none !important;
-    padding: 12px 30px !important;
+    margin-top: 6px !important;
+    padding: 11px 26px !important;
     border-radius: 100px !important;
-    font-weight: 800 !important;
     font-size: 13.5px !important;
+    font-weight: 800 !important;
+    background: #ffffff !important;
+    color: #1e3a8a !important;
+    border: none !important;
+    cursor: pointer !important;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
     gap: 8px !important;
-    box-shadow: 0 4px 14px rgba(32, 63, 141, 0.35) !important;
-    cursor: pointer !important;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18) !important;
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease !important;
     text-decoration: none !important;
-    text-transform: uppercase !important;
-    letter-spacing: 0.5px !important;
-    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease !important;
+    white-space: nowrap !important;
+    letter-spacing: normal !important;
+    text-transform: none !important;
 }
 
 .trending-page-container .dash-empty-btn:active {
@@ -545,6 +639,6 @@ body[data-view="trending"] .mobile-header .header-icon i {
 }
 
 .trending-page-container .dash-empty-btn i {
-    color: #ffffff !important;
+    color: #1e3a8a !important;
     font-size: 13px !important;
 }

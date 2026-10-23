@@ -627,11 +627,15 @@ body[data-view="itinerary"] .mobile-header .header-icon i {
     box-sizing: border-box !important;
 }
 
+#save-trip-modal label,
 .save-trip-modal-body label {
     color: #1e293b !important;
     font-weight: 700 !important;
 }
 
+#save-trip-modal input[type="text"],
+#save-trip-modal input[type="tel"],
+#save-trip-modal input[type="number"],
 .save-trip-modal-body input[type="text"],
 .save-trip-modal-body input[type="tel"],
 .save-trip-modal-body input[type="number"] {
@@ -644,6 +648,7 @@ body[data-view="itinerary"] .mobile-header .header-icon i {
     border-radius: 14px !important;
 }
 
+#save-trip-modal input::placeholder,
 .save-trip-modal-body input::placeholder {
     color: #94a3b8 !important;
     -webkit-text-fill-color: #94a3b8 !important;
@@ -651,6 +656,7 @@ body[data-view="itinerary"] .mobile-header .header-icon i {
     font-weight: 500 !important;
 }
 
+#save-trip-modal input::-webkit-input-placeholder,
 .save-trip-modal-body input::-webkit-input-placeholder {
     color: #94a3b8 !important;
     -webkit-text-fill-color: #94a3b8 !important;
@@ -658,12 +664,14 @@ body[data-view="itinerary"] .mobile-header .header-icon i {
     font-weight: 500 !important;
 }
 
+#save-trip-modal input::-moz-placeholder,
 .save-trip-modal-body input::-moz-placeholder {
     color: #94a3b8 !important;
     opacity: 1 !important;
     font-weight: 500 !important;
 }
 
+#save-trip-modal input:-ms-input-placeholder,
 .save-trip-modal-body input:-ms-input-placeholder {
     color: #94a3b8 !important;
     font-weight: 500 !important;

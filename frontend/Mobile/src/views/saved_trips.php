@@ -8,6 +8,26 @@ $backRoute = 'itinerary';
 <?php include __DIR__ . '/../components/testimony_modal.php'; ?>
 
 
+<style>
+    /* Prevent pull-to-refresh reload flicker on mobile devices */
+    html, body, .saved-trips-page-container {
+        overscroll-behavior-y: none !important;
+        overscroll-behavior: none !important;
+    }
+    #edit-trip-details-modal {
+        -webkit-overflow-scrolling: touch;
+        touch-action: manipulation;
+    }
+    #edit-trip-details-modal input,
+    #edit-trip-details-modal button,
+    #edit-trip-details-modal label {
+        touch-action: manipulation !important;
+        pointer-events: auto !important;
+        -webkit-user-select: auto !important;
+        user-select: auto !important;
+    }
+</style>
+
 <!-- Saved Trips Container -->
 <div class="saved-trips-page-container has-header animate-slide-up">
     <!-- Offline Status Badge -->
@@ -16,10 +36,7 @@ $backRoute = 'itinerary';
         <span>Offline Mode &bull; Cached Trips & Queued Check-ins</span>
     </div>
     <div id="saved-trips-list">
-        <!-- Fetched saved trips will be injected here -->
-        <p style="text-align:center; color:#999; margin-top: 20px;">
-            <i class="fa-solid fa-spinner fa-spin"></i> Loading saved trips...
-        </p>
+        <!-- Saved trips rendered immediately from cache with 0ms delay -->
     </div>
 </div>
 
@@ -150,8 +167,9 @@ $backRoute = 'itinerary';
 
 <!-- Edit Trip Modal (Direct In-Place Editing, Notifications style) -->
 <div id="edit-trip-details-modal"
-    style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(10,25,60,0.45); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); z-index:999999; justify-content:center; align-items:center; padding:16px; box-sizing:border-box;">
-    <div style="background:#ffffff !important; border:none !important; outline:none !important; border-radius:22px; width:100%; max-width:390px; max-height:86dvh; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 16px 40px rgba(10,25,60,0.45) !important;" class="hide-scrollbar">
+    onclick="if(event.target === this) window.closeEditTripDetailsModal();"
+    style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(10,25,60,0.55); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); z-index:9999999; justify-content:center; align-items:center; padding:16px; box-sizing:border-box; pointer-events:auto !important; touch-action:manipulation;">
+    <div onclick="event.stopPropagation();" style="background:#ffffff !important; border:none !important; outline:none !important; border-radius:22px; width:100%; max-width:390px; max-height:86dvh; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 16px 40px rgba(10,25,60,0.45) !important; pointer-events:auto !important; touch-action:manipulation;" class="hide-scrollbar">
         
         <!-- Header Banner (Locked top) -->
         <div style="background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%) !important; padding:14px 16px; color:#ffffff; flex-shrink:0; display:flex; align-items:center; justify-content:space-between; border:none !important;">
@@ -159,7 +177,7 @@ $backRoute = 'itinerary';
                 Edit Trip
             </h3>
             <button type="button" onclick="window.closeEditTripDetailsModal()"
-                style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 8px rgba(0,0,0,0.18) !important; flex-shrink:0; transition:transform 0.15s ease;"
+                style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 8px rgba(0,0,0,0.18) !important; flex-shrink:0; transition:transform 0.15s ease; touch-action:manipulation;"
                 onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">
                 <i class="fa-solid fa-xmark" style="color:#1e3a8a !important; font-size:14px;"></i>
             </button>
@@ -168,69 +186,57 @@ $backRoute = 'itinerary';
         <input type="hidden" id="quick-edit-trip-id" value="">
 
         <!-- Scrollable Middle Body (White Background) -->
-        <div style="background:#ffffff !important; color:#0f172a; padding:16px; flex:1; min-height:0; overflow-y:auto; display:flex; flex-direction:column; box-sizing:border-box;" class="hide-scrollbar">
+        <div style="background:#ffffff !important; color:#0f172a; padding:16px; flex:1; min-height:0; overflow-y:auto; display:flex; flex-direction:column; box-sizing:border-box; pointer-events:auto !important;" class="hide-scrollbar">
 
             <!-- Trip Name -->
             <label style="font-size:12.5px; font-weight:700; color:#1e293b; margin-bottom:6px; display:block;">Trip Name</label>
             <input type="text" id="quick-edit-trip-title" placeholder="Trip Title"
-                style="width:100%; padding:12px 14px; border-radius:14px; border:1.5px solid #e2e8f0 !important; outline:none !important; background:#f8fafc; color:#0f172a; -webkit-text-fill-color:#0f172a; margin-bottom:14px; font-family:inherit; font-size:14px; font-weight:600; box-sizing:border-box;"
+                style="width:100%; padding:12px 14px; border-radius:14px; border:1.5px solid #e2e8f0 !important; outline:none !important; background:#f8fafc; color:#0f172a; -webkit-text-fill-color:#0f172a; margin-bottom:14px; font-family:inherit; font-size:14px; font-weight:600; box-sizing:border-box; pointer-events:auto !important; touch-action:manipulation;"
                 onfocus="this.style.borderColor='#0284c7'" onblur="this.style.borderColor='#e2e8f0'">
 
             <!-- Trip Date -->
             <label style="font-size:12.5px; font-weight:700; color:#1e293b; margin-bottom:6px; display:block;">Trip Date</label>
             <input type="date" id="quick-edit-trip-date"
-                style="width:100%; padding:12px 14px; border-radius:14px; border:1.5px solid #e2e8f0 !important; outline:none !important; background:#f8fafc; color:#0f172a; -webkit-text-fill-color:#0f172a; margin-bottom:14px; font-family:inherit; font-size:14px; font-weight:600; box-sizing:border-box;"
+                style="width:100%; padding:12px 14px; border-radius:14px; border:1.5px solid #e2e8f0 !important; outline:none !important; background:#f8fafc; color:#0f172a; -webkit-text-fill-color:#0f172a; margin-bottom:14px; font-family:inherit; font-size:14px; font-weight:600; box-sizing:border-box; pointer-events:auto !important; touch-action:manipulation;"
                 onfocus="this.style.borderColor='#0284c7'" onblur="this.style.borderColor='#e2e8f0'">
 
-            <!-- Trip Type (Solo vs With Companions) -->
+            <!-- Travel Companions Section with Radio Buttons (No icons) -->
             <label style="font-size:12.5px; font-weight:700; color:#1e293b; margin-bottom:8px; display:block;">Travel Companions</label>
-            <div style="display:flex; gap:10px; margin-bottom:14px;">
-                <button type="button" id="quick-edit-type-solo-btn" onclick="window.setQuickEditTripType('solo')"
-                    style="flex:1; padding:12px; border-radius:14px; background:#eff6ff; border:1.5px solid #2563eb; color:#1e3a8a; cursor:pointer; text-align:center; transition:all 0.2s; font-family:inherit;"
-                    onpointerdown="this.style.transform='scale(0.97)'" onpointerup="this.style.transform='scale(1)'">
-                    <i class="fa-solid fa-user" style="color:#2563eb; margin-right:6px;"></i>
-                    <span style="font-size:13px; font-weight:800;">Solo Trip</span>
-                </button>
-                <button type="button" id="quick-edit-type-group-btn" onclick="window.setQuickEditTripType('group')"
-                    style="flex:1; padding:12px; border-radius:14px; background:#f8fafc; border:1.5px solid #e2e8f0; color:#64748b; cursor:pointer; text-align:center; transition:all 0.2s; font-family:inherit;"
-                    onpointerdown="this.style.transform='scale(0.97)'" onpointerup="this.style.transform='scale(1)'">
-                    <i class="fa-solid fa-users" style="color:#94a3b8; margin-right:6px;"></i>
-                    <span style="font-size:13px; font-weight:800;">With Companions</span>
-                </button>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px;">
+                <label id="quick-edit-opt-solo" onclick="window.setQuickEditTripType('solo')"
+                    style="display:flex; align-items:center; gap:8px; padding:11px 14px; border-radius:14px; background:#eff6ff; border:1.5px solid #2563eb; cursor:pointer; transition:all 0.2s ease; touch-action:manipulation; pointer-events:auto !important;">
+                    <input type="radio" name="quick_edit_companion_type" id="quick-edit-radio-solo" value="solo" checked style="accent-color:#2563eb; cursor:pointer; width:17px; height:17px; pointer-events:auto !important;">
+                    <span style="color:#1e3a8a; font-size:13px; font-weight:800;">Solo Trip</span>
+                </label>
+                <label id="quick-edit-opt-group" onclick="window.setQuickEditTripType('group')"
+                    style="display:flex; align-items:center; gap:8px; padding:11px 14px; border-radius:14px; background:#f8fafc; border:1.5px solid #e2e8f0; cursor:pointer; transition:all 0.2s ease; touch-action:manipulation; pointer-events:auto !important;">
+                    <input type="radio" name="quick_edit_companion_type" id="quick-edit-radio-group" value="group" style="accent-color:#2563eb; cursor:pointer; width:17px; height:17px; pointer-events:auto !important;">
+                    <span style="color:#64748b; font-size:13px; font-weight:800;">With Companions</span>
+                </label>
             </div>
             <input type="hidden" id="quick-edit-trip-type" value="solo">
 
-            <!-- Stepper Box for Companions -->
-            <div id="quick-edit-companion-box" style="display:none; background:#f8fafc; border:1px solid #e2e8f0; border-radius:16px; padding:14px; margin-bottom:14px;">
+            <!-- Stepper Box for Companions (No icons) -->
+            <div id="quick-edit-companion-box" style="display:none; background:#f8fafc; border:1px solid #e2e8f0; border-radius:16px; padding:14px; margin-bottom:14px; pointer-events:auto !important;">
                 <div style="font-size:12px; color:#475569; font-weight:700; margin-bottom:12px;">
                     Additional Travelers:
                 </div>
                 <!-- Male -->
                 <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
-                    <div style="display:flex; align-items:center; gap:10px;">
-                        <div style="width:30px; height:30px; border-radius:8px; background:#2563eb; display:flex; align-items:center; justify-content:center; color:#ffffff; box-shadow:0 2px 6px rgba(37,99,235,0.35);">
-                            <i class="fa-solid fa-mars" style="font-size:14px;"></i>
-                        </div>
-                        <span style="font-size:13px; font-weight:700; color:#1e293b;">Male</span>
-                    </div>
+                    <span style="font-size:13px; font-weight:700; color:#1e293b;">Male</span>
                     <div style="display:flex; align-items:center; gap:8px;">
-                        <button type="button" onclick="window.adjustQuickEditCompanions('males', -1)" style="width:32px; height:32px; border-radius:50%; background:#334155; border:none; outline:none; color:#ffffff; font-size:15px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 4px rgba(0,0,0,0.2);">−</button>
+                        <button type="button" onclick="window.adjustQuickEditCompanions('males', -1)" style="width:32px; height:32px; border-radius:50%; background:#334155; border:none; outline:none; color:#ffffff; font-size:15px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 4px rgba(0,0,0,0.2); touch-action:manipulation; pointer-events:auto !important;">−</button>
                         <span id="quick-edit-males-count" style="font-size:15px; font-weight:800; color:#0f172a; min-width:24px; text-align:center;">0</span>
-                        <button type="button" onclick="window.adjustQuickEditCompanions('males', 1)" style="width:32px; height:32px; border-radius:50%; background:#0284c7; border:none; outline:none; color:#ffffff; font-size:15px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 6px rgba(2,132,199,0.35);">+</button>
+                        <button type="button" onclick="window.adjustQuickEditCompanions('males', 1)" style="width:32px; height:32px; border-radius:50%; background:#0284c7; border:none; outline:none; color:#ffffff; font-size:15px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 6px rgba(2,132,199,0.35); touch-action:manipulation; pointer-events:auto !important;">+</button>
                     </div>
                 </div>
                 <!-- Female -->
                 <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
-                    <div style="display:flex; align-items:center; gap:10px;">
-                        <div style="width:30px; height:30px; border-radius:8px; background:#db2777; display:flex; align-items:center; justify-content:center; color:#ffffff; box-shadow:0 2px 6px rgba(219,39,119,0.35);">
-                            <i class="fa-solid fa-venus" style="font-size:14px;"></i>
-                        </div>
-                        <span style="font-size:13px; font-weight:700; color:#1e293b;">Female</span>
-                    </div>
+                    <span style="font-size:13px; font-weight:700; color:#1e293b;">Female</span>
                     <div style="display:flex; align-items:center; gap:8px;">
-                        <button type="button" onclick="window.adjustQuickEditCompanions('females', -1)" style="width:32px; height:32px; border-radius:50%; background:#334155; border:none; outline:none; color:#ffffff; font-size:15px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 4px rgba(0,0,0,0.2);">−</button>
+                        <button type="button" onclick="window.adjustQuickEditCompanions('females', -1)" style="width:32px; height:32px; border-radius:50%; background:#334155; border:none; outline:none; color:#ffffff; font-size:15px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 4px rgba(0,0,0,0.2); touch-action:manipulation; pointer-events:auto !important;">−</button>
                         <span id="quick-edit-females-count" style="font-size:15px; font-weight:800; color:#0f172a; min-width:24px; text-align:center;">0</span>
-                        <button type="button" onclick="window.adjustQuickEditCompanions('females', 1)" style="width:32px; height:32px; border-radius:50%; background:#db2777; border:none; outline:none; color:#ffffff; font-size:15px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 6px rgba(219,39,119,0.35);">+</button>
+                        <button type="button" onclick="window.adjustQuickEditCompanions('females', 1)" style="width:32px; height:32px; border-radius:50%; background:#db2777; border:none; outline:none; color:#ffffff; font-size:15px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 6px rgba(219,39,119,0.35); touch-action:manipulation; pointer-events:auto !important;">+</button>
                     </div>
                 </div>
                 <!-- Live Party Size Summary -->
@@ -241,21 +247,19 @@ $backRoute = 'itinerary';
             </div>
         </div>
 
-        <!-- Locked Bottom Footer Banner (Matching Notifications modal) -->
-        <div style="background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%) !important; padding:12px 16px max(12px, env(safe-area-inset-bottom)) 16px; flex-shrink:0; display:flex; flex-direction:column; gap:10px; border:none !important;">
+        <!-- Locked Bottom Footer Banner: Edit Stops on Left, Save Changes on Right -->
+        <div style="background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%) !important; padding:12px 16px max(12px, env(safe-area-inset-bottom)) 16px; flex-shrink:0; display:flex; flex-direction:row; gap:10px; align-items:center; justify-content:space-between; border:none !important; pointer-events:auto !important;">
+            <button type="button" onclick="window.openPlannerFromQuickEdit()"
+                style="flex:1; height:42px; border-radius:100px; border:1px solid rgba(255,255,255,0.28) !important; outline:none !important; background:rgba(255,255,255,0.14) !important; color:#ffffff !important; font-size:13px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:transform 0.15s ease; touch-action:manipulation; pointer-events:auto !important;"
+                onpointerdown="this.style.transform='scale(0.96)'" onpointerup="this.style.transform='scale(1)'">
+                Edit Stops
+            </button>
             <button type="button" id="btn-save-quick-edit" onclick="window.submitQuickEditTripDetails()"
-                style="width:100%; height:42px; border-radius:100px; border:none !important; outline:none !important; background:#ffffff !important; color:#1e3a8a !important; font-size:13.5px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 2px 8px rgba(0,0,0,0.15) !important; transition:transform 0.15s ease;"
+                style="flex:1; height:42px; border-radius:100px; border:none !important; outline:none !important; background:#ffffff !important; color:#1e3a8a !important; font-size:13px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(0,0,0,0.18) !important; transition:transform 0.15s ease; touch-action:manipulation; pointer-events:auto !important;"
                 onpointerdown="this.style.transform='scale(0.96)'" onpointerup="this.style.transform='scale(1)'">
                 Save Changes
             </button>
-            <button type="button" onclick="window.openPlannerFromQuickEdit()"
-                style="width:100%; height:36px; border-radius:100px; border:1px solid rgba(255,255,255,0.25) !important; outline:none !important; background:rgba(255,255,255,0.14) !important; color:#ffffff !important; font-size:12px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; transition:transform 0.15s ease;"
-                onpointerdown="this.style.transform='scale(0.96)'" onpointerup="this.style.transform='scale(1)'">
-                <i class="fa-solid fa-route" style="color:#00f2fe; font-size:12px;"></i> Edit Stops in Trip Planner
-            </button>
         </div>
-    </div>
-</div>
     </div>
 </div>
 
@@ -593,28 +597,32 @@ $backRoute = 'itinerary';
                 harvestProofsFromTrips(window._cachedSavedTrips);
 
                 // Check offline checkin queue
-                if (window.OfflineCheckinManager && typeof window.OfflineCheckinManager.getQueuedCheckins === 'function') {
-                    try {
-                        const queuedCheckins = window.OfflineCheckinManager.getQueuedCheckins() || [];
+                try {
+                    const queuedCheckins = (window.OfflineCheckinManager && typeof window.OfflineCheckinManager.getQueue === 'function')
+                        ? window.OfflineCheckinManager.getQueue()
+                        : ((window.OfflineCheckinManager && typeof window.OfflineCheckinManager.getQueuedCheckins === 'function')
+                            ? window.OfflineCheckinManager.getQueuedCheckins()
+                            : JSON.parse(localStorage.getItem('intan_elyu_offline_checkins') || '[]'));
+
+                    if (Array.isArray(queuedCheckins)) {
                         queuedCheckins.forEach(q => {
-                            if (q && q.itemId) {
-                                const qId = String(q.itemId);
-                                const qImg = q.previewUrl || q.image;
-                                if (qImg) {
-                                    const existing = localItemProofs[qId] ? localItemProofs[qId].proof_images : [];
-                                    const merged = (existing.length > 0) ? existing : [qImg];
-                                    localItemProofs[qId] = {
-                                        proof_image: merged[0],
-                                        proof_images: merged,
-                                        proof_status: 'pending',
-                                        is_location_verified: true,
-                                        visited_at: q.capturedAt || new Date().toISOString()
-                                    };
-                                }
+                            if (!q) return;
+                            const targetKey = String(q.itemId || q.spotId || '');
+                            const qImg = q.previewUrl || q.image;
+                            if (targetKey) {
+                                const existing = (localItemProofs[targetKey] && localItemProofs[targetKey].proof_images) ? localItemProofs[targetKey].proof_images : [];
+                                const merged = qImg ? ((existing.length > 0) ? existing : [qImg]) : existing;
+                                localItemProofs[targetKey] = {
+                                    proof_image: merged[0] || null,
+                                    proof_images: merged,
+                                    proof_status: 'pending',
+                                    is_location_verified: true,
+                                    visited_at: q.capturedAt || new Date().toISOString()
+                                };
                             }
                         });
-                    } catch (e) { }
-                }
+                    }
+                } catch (e) { }
 
                 // Check localStorage persistent backups
                 ['intan_elyu_offline_saved_trips_backup', 'intan_elyu_offline_saved_trips', 'intan_elyu_saved_trips'].forEach(k => {
@@ -644,21 +652,21 @@ $backRoute = 'itinerary';
                         tripObj.items = tripObj.items.map(it => {
                             if (!it) return it;
                             const itId = String(it.id);
-                            const saved = localItemProofs[itId];
+                            const spotIdKey = String(it.tourist_spot_id || it.destination_id || (it.destination ? it.destination.id : ''));
+                            const saved = localItemProofs[itId] || (spotIdKey ? localItemProofs[spotIdKey] : null);
                             if (saved) {
                                 const currentProofs = (Array.isArray(it.proof_images) && it.proof_images.length)
                                     ? it.proof_images
                                     : (it.proof_image ? [it.proof_image] : []);
-                                if (currentProofs.length === 0) {
-                                    return {
-                                        ...it,
-                                        proof_image: saved.proof_image,
-                                        proof_images: saved.proof_images,
-                                        proof_status: it.proof_status || saved.proof_status || 'pending',
-                                        is_location_verified: Boolean(it.is_location_verified || saved.is_location_verified),
-                                        visited_at: it.visited_at || saved.visited_at
-                                    };
-                                }
+                                const mergedProofs = currentProofs.length > 0 ? currentProofs : saved.proof_images;
+                                return {
+                                    ...it,
+                                    proof_image: (mergedProofs && mergedProofs.length > 0) ? mergedProofs[0] : (saved.proof_image || it.proof_image),
+                                    proof_images: mergedProofs || [],
+                                    proof_status: (it.proof_status && it.proof_status !== 'pending' && it.proof_status !== null) ? it.proof_status : (saved.proof_status || 'pending'),
+                                    is_location_verified: Boolean(it.is_location_verified || saved.is_location_verified || it.visited_at || saved.visited_at),
+                                    visited_at: it.visited_at || saved.visited_at
+                                };
                             }
                             return it;
                         });
@@ -707,6 +715,17 @@ $backRoute = 'itinerary';
                     list.innerHTML = emptyStateHtml;
                     return;
                 }
+
+                // Silent signature check: prevent DOM rebuild and flicker if data has not changed
+                const currentRenderSig = JSON.stringify(activeItineraries.map(t => [
+                    t.id, t.title, t.trip_date, t.companion_males, t.companion_females, t.total_pax,
+                    (t.items || []).map(i => [i.id, i.proof_status, i.is_visited, i.is_location_verified, i.proof_image, (i.proof_images || []).length])
+                ]));
+
+                if (window._lastRenderedTripsSig === currentRenderSig && list.children.length > 0) {
+                    return; // Zero DOM teardown, completely silent refresh
+                }
+                window._lastRenderedTripsSig = currentRenderSig;
 
                 let html = '';
 
@@ -1032,13 +1051,7 @@ $backRoute = 'itinerary';
                             html += `<p style="font-size:13px; color:#ffffff; opacity:0.85; margin:10px 0;">No destinations in this trip.</p>`;
                         }
 
-                        // Subtle delete option inside details (unobtrusive & accessible)
-                        html += `
-                        <div style="display:flex; justify-content:flex-end; margin-top:14px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.14);">
-                            <button type="button" onclick="event.stopPropagation(); window.confirmDeleteSavedTrip('${trip.id}', this.closest('.trip-swipe-container'), '${safeTitle}');" style="background:rgba(239,68,68,0.2); border:1px solid rgba(239,68,68,0.4); border-radius:10px; padding:6px 14px; color:#ffffff; font-size:11.5px; font-weight:800; cursor:pointer; display:inline-flex; align-items:center; gap:6px; transition:all 0.2s ease;">
-                                <i class="fa-solid fa-trash-can" style="color:#fca5a5;"></i> Delete Trip
-                            </button>
-                        </div>`;
+
 
                         html += `</div></div></div>`; // Close timeline, timeline-inner, and timeline-collapsible
 
@@ -2205,46 +2218,50 @@ $backRoute = 'itinerary';
         window.closeEditTripDetailsModal = function () {
             const modal = document.getElementById('edit-trip-details-modal');
             if (modal) modal.style.display = 'none';
+            document.body.classList.remove('modal-open');
+            document.body.classList.remove('sheet-open');
         };
 
         window.setQuickEditTripType = function (type) {
             const hiddenInput = document.getElementById('quick-edit-trip-type');
             if (hiddenInput) hiddenInput.value = type;
 
-            const soloBtn = document.getElementById('quick-edit-type-solo-btn');
-            const groupBtn = document.getElementById('quick-edit-type-group-btn');
+            const soloRadio = document.getElementById('quick-edit-radio-solo');
+            const groupRadio = document.getElementById('quick-edit-radio-group');
+            const soloOpt = document.getElementById('quick-edit-opt-solo');
+            const groupOpt = document.getElementById('quick-edit-opt-group');
             const compBox = document.getElementById('quick-edit-companion-box');
 
             if (type === 'group') {
-                if (groupBtn) {
-                    groupBtn.style.background = '#eff6ff';
-                    groupBtn.style.border = '1.5px solid #2563eb';
-                    groupBtn.style.color = '#1e3a8a';
-                    const icon = groupBtn.querySelector('i');
-                    if (icon) icon.style.color = '#2563eb';
+                if (groupRadio) groupRadio.checked = true;
+                if (soloRadio) soloRadio.checked = false;
+                if (groupOpt) {
+                    groupOpt.style.background = '#eff6ff';
+                    groupOpt.style.borderColor = '#2563eb';
+                    const span = groupOpt.querySelector('span');
+                    if (span) span.style.color = '#1e3a8a';
                 }
-                if (soloBtn) {
-                    soloBtn.style.background = '#f8fafc';
-                    soloBtn.style.border = '1.5px solid #e2e8f0';
-                    soloBtn.style.color = '#64748b';
-                    const icon = soloBtn.querySelector('i');
-                    if (icon) icon.style.color = '#94a3b8';
+                if (soloOpt) {
+                    soloOpt.style.background = '#f8fafc';
+                    soloOpt.style.borderColor = '#e2e8f0';
+                    const span = soloOpt.querySelector('span');
+                    if (span) span.style.color = '#64748b';
                 }
                 if (compBox) compBox.style.display = 'block';
             } else {
-                if (soloBtn) {
-                    soloBtn.style.background = '#eff6ff';
-                    soloBtn.style.border = '1.5px solid #2563eb';
-                    soloBtn.style.color = '#1e3a8a';
-                    const icon = soloBtn.querySelector('i');
-                    if (icon) icon.style.color = '#2563eb';
+                if (soloRadio) soloRadio.checked = true;
+                if (groupRadio) groupRadio.checked = false;
+                if (soloOpt) {
+                    soloOpt.style.background = '#eff6ff';
+                    soloOpt.style.borderColor = '#2563eb';
+                    const span = soloOpt.querySelector('span');
+                    if (span) span.style.color = '#1e3a8a';
                 }
-                if (groupBtn) {
-                    groupBtn.style.background = '#f8fafc';
-                    groupBtn.style.border = '1.5px solid #e2e8f0';
-                    groupBtn.style.color = '#64748b';
-                    const icon = groupBtn.querySelector('i');
-                    if (icon) icon.style.color = '#94a3b8';
+                if (groupOpt) {
+                    groupOpt.style.background = '#f8fafc';
+                    groupOpt.style.borderColor = '#e2e8f0';
+                    const span = groupOpt.querySelector('span');
+                    if (span) span.style.color = '#64748b';
                 }
                 if (compBox) compBox.style.display = 'none';
             }
@@ -2325,7 +2342,12 @@ $backRoute = 'itinerary';
 
             window.updateQuickEditPartySummary();
 
-            if (modal) modal.style.display = 'flex';
+            if (modal) {
+                modal.style.display = 'flex';
+                modal.style.pointerEvents = 'auto';
+            }
+            document.body.classList.add('modal-open');
+            document.body.classList.add('sheet-open');
         };
 
         window.submitQuickEditTripDetails = async function () {

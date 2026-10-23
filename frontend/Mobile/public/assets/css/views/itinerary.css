@@ -578,64 +578,114 @@ body[data-view="itinerary"] .mobile-header .header-icon i {
 }
 
 #save-trip-modal > div {
-    background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important;
+    background: #ffffff !important;
     border: none !important;
     outline: none !important;
-    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.65), 0 8px 24px rgba(10, 25, 60, 0.3) !important;
-    color: #ffffff !important;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45), 0 8px 24px rgba(10, 25, 60, 0.2) !important;
+    color: #0f172a !important;
     border-radius: 26px !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+    max-height: 90vh !important;
 }
 
-#save-trip-modal h3 {
+.save-trip-modal-header {
+    background: linear-gradient(180deg, #1e3a8a 0%, #193375 100%) !important;
+    padding: 18px 20px 16px 20px !important;
     color: #ffffff !important;
-    font-size: 21px !important;
-    font-weight: 900 !important;
-    letter-spacing: -0.4px !important;
+    flex-shrink: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
 }
 
-#save-trip-modal label {
+.save-trip-modal-header h3 {
     color: #ffffff !important;
+    font-size: 18px !important;
+    font-weight: 800 !important;
+    letter-spacing: -0.2px !important;
+    margin: 0 !important;
+}
+
+.save-trip-modal-header p {
+    color: rgba(255, 255, 255, 0.82) !important;
+    font-size: 12px !important;
+    margin: 3px 0 0 !important;
+}
+
+.save-trip-modal-body {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    padding: 18px 20px 20px 20px !important;
+    flex: 1 !important;
+    overflow-y: auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    box-sizing: border-box !important;
+}
+
+#save-trip-modal label,
+.save-trip-modal-body label {
+    color: #1e293b !important;
     font-weight: 700 !important;
-}
-
-#save-trip-modal p {
-    color: rgba(255, 255, 255, 0.9) !important;
 }
 
 #save-trip-modal input[type="text"],
 #save-trip-modal input[type="tel"],
-#save-trip-modal input[type="number"] {
-    background: rgba(255, 255, 255, 0.12) !important;
-    border: 1.5px solid rgba(255, 255, 255, 0.28) !important;
-    color: #ffffff !important;
-    -webkit-text-fill-color: #ffffff !important;
+#save-trip-modal input[type="number"],
+.save-trip-modal-body input[type="text"],
+.save-trip-modal-body input[type="tel"],
+.save-trip-modal-body input[type="number"] {
+    background: #f8fafc !important;
+    border: 1.5px solid #e2e8f0 !important;
+    color: #0f172a !important;
+    -webkit-text-fill-color: #0f172a !important;
     font-weight: 600 !important;
     font-size: 14px !important;
+    border-radius: 14px !important;
 }
 
-#save-trip-modal input::placeholder {
-    color: rgba(255, 255, 255, 0.8) !important;
-    -webkit-text-fill-color: rgba(255, 255, 255, 0.8) !important;
+#save-trip-modal input::placeholder,
+.save-trip-modal-body input::placeholder {
+    color: #94a3b8 !important;
+    -webkit-text-fill-color: #94a3b8 !important;
     opacity: 1 !important;
     font-weight: 500 !important;
 }
 
-#save-trip-modal input::-webkit-input-placeholder {
-    color: rgba(255, 255, 255, 0.8) !important;
-    -webkit-text-fill-color: rgba(255, 255, 255, 0.8) !important;
+#save-trip-modal input::-webkit-input-placeholder,
+.save-trip-modal-body input::-webkit-input-placeholder {
+    color: #94a3b8 !important;
+    -webkit-text-fill-color: #94a3b8 !important;
     opacity: 1 !important;
     font-weight: 500 !important;
 }
 
-#save-trip-modal input::-moz-placeholder {
-    color: rgba(255, 255, 255, 0.8) !important;
+#save-trip-modal input::-moz-placeholder,
+.save-trip-modal-body input::-moz-placeholder {
+    color: #94a3b8 !important;
     opacity: 1 !important;
     font-weight: 500 !important;
 }
 
-#save-trip-modal input:-ms-input-placeholder {
-    color: rgba(255, 255, 255, 0.8) !important;
+#save-trip-modal input:-ms-input-placeholder,
+.save-trip-modal-body input:-ms-input-placeholder {
+    color: #94a3b8 !important;
     font-weight: 500 !important;
+}
+
+.save-trip-modal-footer {
+    padding: 14px 20px 16px 20px !important;
+    background: #ffffff !important;
+    border-top: 1px solid #e2e8f0 !important;
+    flex-shrink: 0 !important;
+    display: flex !important;
+    gap: 12px !important;
+    align-items: center !important;
+    box-sizing: border-box !important;
 }
 
 /* ============================================================

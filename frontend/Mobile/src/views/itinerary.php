@@ -138,6 +138,46 @@ try {
 <!-- Save Trip Modal (matches Notifications modal design) -->
 <div id="save-trip-modal"
     style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(10, 25, 60, 0.45); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); z-index:99999; justify-content:center; align-items:center; padding:16px; box-sizing:border-box;">
+    <style>
+        #save-trip-modal,
+        #save-trip-modal .save-trip-modal-body {
+            color: #0f172a !important;
+        }
+        #save-trip-modal label,
+        .save-trip-modal-body label {
+            color: #1e293b !important;
+            font-weight: 700 !important;
+        }
+        #save-trip-modal label span:first-child,
+        .save-trip-modal-body label span:first-child {
+            color: #1e293b !important;
+        }
+        #save-trip-modal #trip-title,
+        #save-trip-modal #trip-budget,
+        .save-trip-modal-body input[type="text"],
+        .save-trip-modal-body input[type="tel"] {
+            color: #0f172a !important;
+            -webkit-text-fill-color: #0f172a !important;
+            background: #f8fafc !important;
+            font-weight: 600 !important;
+        }
+        #save-trip-modal input::placeholder,
+        #save-trip-modal input::-webkit-input-placeholder,
+        #save-trip-modal input::-moz-placeholder,
+        #save-trip-modal input:-ms-input-placeholder,
+        .save-trip-modal-body input::placeholder,
+        .save-trip-modal-body input::-webkit-input-placeholder,
+        .save-trip-modal-body input::-moz-placeholder,
+        .save-trip-modal-body input:-ms-input-placeholder {
+            color: #94a3b8 !important;
+            -webkit-text-fill-color: #94a3b8 !important;
+            opacity: 1 !important;
+            font-weight: 500 !important;
+        }
+        #modal-donut-pct {
+            color: #0f172a !important;
+        }
+    </style>
     <div style="background:#ffffff !important; border:none !important; outline:none !important; border-radius:22px; width:100%; max-width:400px; max-height:88dvh; display:flex; flex-direction:column; box-shadow:0 16px 40px rgba(10, 25, 60, 0.45) !important; overflow:hidden;"
         class="hide-scrollbar">
 
@@ -164,17 +204,17 @@ try {
         <div class="save-trip-modal-body hide-scrollbar"
             style="background:#ffffff !important; color:#0f172a; padding:18px 20px 20px 20px; flex:1; overflow-y:auto; display:flex; flex-direction:column; box-sizing:border-box;">
 
-            <label style="font-size:12.5px; color:#1e293b; margin-bottom:6px; display:block; font-weight:700;">Trip Name</label>
+            <label style="font-size:12.5px; color:#1e293b !important; margin-bottom:6px; display:block; font-weight:700;">Trip Name</label>
             <input type="text" id="trip-title" placeholder="e.g. La Union Weekend"
-                style="width:100%; padding:12px 14px; border-radius:14px; border:1.5px solid #e2e8f0 !important; outline:none !important; background:#f8fafc; color:#0f172a; -webkit-text-fill-color:#0f172a; margin-bottom:16px; font-family:inherit; font-size:14px; font-weight:600; box-sizing:border-box; box-shadow:none !important; transition:border-color 0.2s;"
+                style="width:100%; padding:12px 14px; border-radius:14px; border:1.5px solid #e2e8f0 !important; outline:none !important; background:#f8fafc !important; color:#0f172a !important; -webkit-text-fill-color:#0f172a !important; margin-bottom:16px; font-family:inherit; font-size:14px; font-weight:600; box-sizing:border-box; box-shadow:none !important; transition:border-color 0.2s;"
                 onfocus="this.style.borderColor='#0284c7'" onblur="this.style.borderColor='#e2e8f0'">
 
             <!-- Custom Designed Calendar Date Picker -->
             <label
-                style="font-size:12.5px; color:#1e293b; margin-bottom:6px; display:flex; align-items:center; justify-content:space-between; font-weight:700;">
-                <span>Trip Date (Optional)</span>
+                style="font-size:12.5px; color:#1e293b !important; margin-bottom:6px; display:flex; align-items:center; justify-content:space-between; font-weight:700;">
+                <span style="color:#1e293b !important;">Trip Date (Optional)</span>
                 <span id="calendar-clear-link" onclick="window.customClearDate(event)"
-                    style="display:none; font-size:11px; color:#ef4444; cursor:pointer; font-weight:700;">Clear</span>
+                    style="display:none; font-size:11px; color:#ef4444 !important; cursor:pointer; font-weight:700;">Clear</span>
             </label>
 
             <div id="custom-date-trigger" onclick="window.toggleCustomCalendar(event)"
@@ -188,57 +228,61 @@ try {
             <input type="hidden" id="trip-date" value="">
 
             <!-- Floating Sleek Custom Calendar Card with Smooth Slide Animation -->
-            <div id="custom-calendar-dropdown">
+            <div id="custom-calendar-dropdown" style="display:none;" onclick="event.stopPropagation()">
                 <!-- Month & Year Navigation -->
                 <div
                     style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; padding:0 4px;">
-                    <button type="button" onclick="window.changeCalendarMonth(-1)"
-                        style="background:rgba(255,255,255,0.12); border:none !important; outline:none !important; color:white; width:32px; height:32px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background 0.2s; box-shadow:none !important;">
-                        <i class="fa-solid fa-chevron-left" style="font-size:11px;"></i>
+                    <button type="button" onclick="window.changeCalendarMonth(-1, event)"
+                        style="background:#f1f5f9; border:1px solid #e2e8f0 !important; outline:none !important; color:#0f172a; width:34px; height:34px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.2s; box-shadow:none !important;"
+                        onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'">
+                        <i class="fa-solid fa-chevron-left" style="font-size:11px; color:#0f172a;"></i>
                     </button>
                     <div id="calendar-month-year"
-                        style="font-size:14.5px; font-weight:800; color:#ffffff; letter-spacing:0.3px;"></div>
-                    <button type="button" onclick="window.changeCalendarMonth(1)"
-                        style="background:rgba(255,255,255,0.12); border:none !important; outline:none !important; color:white; width:32px; height:32px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background 0.2s; box-shadow:none !important;">
-                        <i class="fa-solid fa-chevron-right" style="font-size:11px;"></i>
+                        style="font-size:15px; font-weight:800; color:#0f172a !important; letter-spacing:0.2px;"></div>
+                    <button type="button" onclick="window.changeCalendarMonth(1, event)"
+                        style="background:#f1f5f9; border:1px solid #e2e8f0 !important; outline:none !important; color:#0f172a; width:34px; height:34px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.2s; box-shadow:none !important;"
+                        onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'">
+                        <i class="fa-solid fa-chevron-right" style="font-size:11px; color:#0f172a;"></i>
                     </button>
                 </div>
 
                 <!-- Day of Week Headers -->
-                <div style="display:grid; grid-template-columns:repeat(7, 1fr); text-align:center; margin-bottom:6px;">
-                    <span style="font-size:11px; font-weight:700; color:#f87171;">Su</span>
-                    <span style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.85);">Mo</span>
-                    <span style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.85);">Tu</span>
-                    <span style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.85);">We</span>
-                    <span style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.85);">Th</span>
-                    <span style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.85);">Fr</span>
-                    <span style="font-size:11px; font-weight:700; color:#38bdf8;">Sa</span>
+                <div style="display:grid; grid-template-columns:repeat(7, 1fr); text-align:center; margin-bottom:8px;">
+                    <span style="font-size:11.5px; font-weight:800; color:#ef4444 !important;">Su</span>
+                    <span style="font-size:11.5px; font-weight:700; color:#64748b !important;">Mo</span>
+                    <span style="font-size:11.5px; font-weight:700; color:#64748b !important;">Tu</span>
+                    <span style="font-size:11.5px; font-weight:700; color:#64748b !important;">We</span>
+                    <span style="font-size:11.5px; font-weight:700; color:#64748b !important;">Th</span>
+                    <span style="font-size:11.5px; font-weight:700; color:#64748b !important;">Fr</span>
+                    <span style="font-size:11.5px; font-weight:800; color:#0284c7 !important;">Sa</span>
                 </div>
 
                 <!-- Days Grid -->
                 <div id="calendar-days-grid"
-                    style="display:grid; grid-template-columns:repeat(7, 1fr); gap:3px; text-align:center;">
+                    style="display:grid; grid-template-columns:repeat(7, 1fr); gap:4px; text-align:center;">
                     <!-- Generated dynamically via JS -->
                 </div>
 
                 <!-- Footer Quick Actions -->
                 <div
-                    style="display:flex; justify-content:space-between; align-items:center; margin-top:12px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.12);">
-                    <button type="button" onclick="window.selectTodayDate()"
-                        style="background:rgba(255,255,255,0.15); border:none !important; outline:none !important; color:#ffffff; font-size:11px; font-weight:700; padding:6px 14px; border-radius:100px; cursor:pointer; box-shadow:none !important;">
-                        Today
+                    style="display:flex; justify-content:space-between; align-items:center; margin-top:12px; padding-top:10px; border-top:1px solid #e2e8f0;">
+                    <button type="button" onclick="window.selectTodayDate(event)"
+                        style="background:#f1f5f9; border:1px solid #cbd5e1 !important; outline:none !important; color:#0f172a !important; font-size:11.5px; font-weight:700; padding:6px 14px; border-radius:100px; cursor:pointer; box-shadow:none !important; transition:all 0.15s ease;"
+                        onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'">
+                        <i class="fa-solid fa-calendar-day" style="margin-right:4px; color:#0284c7;"></i> Today
                     </button>
                     <button type="button" onclick="window.toggleCustomCalendar(null, false)"
-                        style="background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); border:none !important; outline:none !important; color:#ffffff; font-size:11px; font-weight:800; padding:6px 16px; border-radius:100px; cursor:pointer; box-shadow:none !important;">
+                        style="background:linear-gradient(135deg, #0284c7 0%, #0369a1 100%); border:none !important; outline:none !important; color:#ffffff !important; font-size:11.5px; font-weight:800; padding:6px 18px; border-radius:100px; cursor:pointer; box-shadow:0 2px 6px rgba(2, 132, 199, 0.3) !important; transition:all 0.15s ease;"
+                        onmouseover="this.style.filter='brightness(1.08)'" onmouseout="this.style.filter='none'">
                         Done
                     </button>
                 </div>
             </div>
 
             <!-- Travel Group / Companions Section -->
-            <label style="font-size:12.5px; color:#1e293b; margin-bottom:8px; display:flex; align-items:center; justify-content:space-between; font-weight:700;">
-                <span>Travel Group Type</span>
-                <span id="trip-pax-count-badge" style="font-size:11px; background:#e0f2fe; color:#0369a1; font-weight:800; padding:2px 8px; border-radius:100px;">1 Traveler (Solo)</span>
+            <label style="font-size:12.5px; color:#1e293b !important; margin-bottom:8px; display:flex; align-items:center; justify-content:space-between; font-weight:700;">
+                <span style="color:#1e293b !important;">Travel Group Type</span>
+                <span id="trip-pax-count-badge" style="font-size:11px; background:#e0f2fe; color:#0369a1 !important; font-weight:800; padding:2px 8px; border-radius:100px;">1 Traveler (Solo)</span>
             </label>
 
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:14px;">
@@ -346,7 +390,7 @@ try {
                     style="position:absolute; left:16px; top:12px; color:#0284c7; font-weight:800; font-size:15px;">₱</span>
                 <input type="tel" id="trip-budget" placeholder="Set a budget (optional)"
                     oninput="this.value=this.value.replace(/\D/g,'');if(this.value.length>5)this.value=this.value.slice(0,5);window.calculateModalBudget()"
-                    style="width:100%; padding:12px 16px 12px 34px; border-radius:14px; border:1.5px solid #e2e8f0 !important; outline:none !important; background:#f8fafc; color:#0f172a; -webkit-text-fill-color:#0f172a; font-family:inherit; font-size:14px; font-weight:600; box-sizing:border-box; box-shadow:none !important; transition:border-color 0.2s;"
+                    style="width:100%; padding:12px 16px 12px 34px; border-radius:14px; border:1.5px solid #e2e8f0 !important; outline:none !important; background:#f8fafc !important; color:#0f172a !important; -webkit-text-fill-color:#0f172a !important; font-family:inherit; font-size:14px; font-weight:600; box-sizing:border-box; box-shadow:none !important; transition:border-color 0.2s;"
                     onfocus="this.style.borderColor='#0284c7'" onblur="this.style.borderColor='#e2e8f0'">
             </div>
 
@@ -3635,7 +3679,7 @@ try {
                     const fillPct = Math.min(Math.max(pct, 0), 100);
                     donutEl.style.background = `conic-gradient(
                     ${color} 0% ${fillPct}%,
-                    rgba(255,255,255,0.08) ${fillPct}% 100%
+                    rgba(15, 23, 42, 0.08) ${fillPct}% 100%
                 )`;
                     donutEl.style.mask = 'radial-gradient(transparent 58%, black 59%)';
                     donutEl.style.webkitMask = 'radial-gradient(transparent 58%, black 59%)';
@@ -3652,7 +3696,7 @@ try {
                     } else {
                         pctEl.textContent = Math.round(pct) + '%';
                     }
-                    pctEl.style.color = '#ffffff';
+                    pctEl.style.color = '#0f172a';
                 }
 
                 if (progress < 1) {
@@ -3936,7 +3980,7 @@ try {
             // Leading days from previous month
             for (let i = firstDayIndex - 1; i >= 0; i--) {
                 const prevDay = prevMonthDays - i;
-                html += `<div style="padding:7px 0; font-size:12px; color:#cbd5e1; pointer-events:none; border-radius:10px;">${prevDay}</div>`;
+                html += `<div style="padding:8px 0; font-size:12px; color:#cbd5e1 !important; pointer-events:none; border-radius:10px;">${prevDay}</div>`;
             }
 
             // Days of current month
@@ -3946,27 +3990,27 @@ try {
                 const isToday = (dayStr === todayStr);
 
                 let bg = 'transparent';
-                let color = '#1e293b';
-                let border = 'none';
-                let shadow = 'none';
+                let color = '#0f172a';
+                let border = '1.5px solid transparent';
                 let weight = '600';
+                let shadow = 'none';
 
                 if (isSelected) {
                     bg = 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)';
                     color = '#ffffff';
                     weight = '800';
-                    border = 'none';
-                    shadow = 'none';
+                    border = '1.5px solid transparent';
+                    shadow = '0 2px 6px rgba(2, 132, 199, 0.3)';
                 } else if (isToday) {
                     bg = '#e0f2fe';
-                    border = '1px solid #7dd3fc';
+                    border = '1.5px solid #7dd3fc';
                     color = '#0284c7';
-                    weight = '700';
+                    weight = '800';
                     shadow = 'none';
                 }
 
                 html += `
-                    <div onclick="window.selectCalendarDate('${dayStr}')" style="padding:7px 0; font-size:13px; font-weight:${weight}; cursor:pointer; border-radius:11px; background:${bg}; color:${color}; border:none !important; outline:none !important; box-shadow:none !important; transition:all 0.15s ease; position:relative; display:flex; align-items:center; justify-content:center;">
+                    <div class="calendar-day-cell" onclick="window.selectCalendarDate('${dayStr}')" style="padding:8px 0; font-size:13px; font-weight:${weight}; cursor:pointer; border-radius:11px; background:${bg}; color:${color} !important; border:${border} !important; outline:none !important; box-shadow:${shadow} !important; transition:all 0.15s ease; position:relative; display:flex; align-items:center; justify-content:center;">
                         ${day}
                         ${isToday && !isSelected ? '<span style="position:absolute; bottom:2px; width:4px; height:4px; border-radius:50%; background:#0284c7;"></span>' : ''}
                     </div>
@@ -3977,13 +4021,14 @@ try {
             const totalRendered = firstDayIndex + totalDays;
             const remainingCells = (totalRendered <= 35 ? 35 : 42) - totalRendered;
             for (let j = 1; j <= remainingCells; j++) {
-                html += `<div style="padding:7px 0; font-size:12px; color:#cbd5e1; pointer-events:none; border-radius:10px;">${j}</div>`;
+                html += `<div style="padding:8px 0; font-size:12px; color:#cbd5e1 !important; pointer-events:none; border-radius:10px;">${j}</div>`;
             }
 
             gridEl.innerHTML = html;
         };
 
-        window.changeCalendarMonth = function (delta) {
+        window.changeCalendarMonth = function (delta, e) {
+            if (e) e.stopPropagation();
             window.calendarState.currentMonth += delta;
             if (window.calendarState.currentMonth > 11) {
                 window.calendarState.currentMonth = 0;
@@ -4005,9 +4050,9 @@ try {
 
             if (displayEl && dateStr) {
                 const parts = dateStr.split('-');
-                const y = parseInt(parts[0]);
-                const m = parseInt(parts[1]);
-                const d = parseInt(parts[2]);
+                const y = parseInt(parts[0], 10);
+                const m = parseInt(parts[1], 10);
+                const d = parseInt(parts[2], 10);
                 const dateObj = new Date(y, m - 1, d);
                 const formatted = dateObj.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
                 displayEl.textContent = formatted;
@@ -4038,7 +4083,8 @@ try {
             window.renderCalendarGrid();
         };
 
-        window.selectTodayDate = function () {
+        window.selectTodayDate = function (e) {
+            if (e) e.stopPropagation();
             const today = new Date();
             const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
             window.calendarState.currentYear = today.getFullYear();
@@ -4067,20 +4113,33 @@ try {
                     trigger.style.borderColor = '#0284c7';
                     trigger.style.boxShadow = '0 0 0 3px rgba(2, 132, 199, 0.15)';
                 }
+                setTimeout(() => {
+                    dropdown.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }, 60);
             } else {
                 dropdown.classList.remove('calendar-open');
                 if (arrow) arrow.style.transform = 'rotate(0deg)';
                 if (trigger) {
-                    trigger.style.borderColor = '#cbd5e1';
+                    trigger.style.borderColor = '#e2e8f0';
                     trigger.style.boxShadow = 'none';
                 }
                 setTimeout(() => {
                     if (!dropdown.classList.contains('calendar-open')) {
                         dropdown.style.display = 'none';
                     }
-                }, 380);
+                }, 350);
             }
         };
+
+        // Close calendar dropdown when tapping outside
+        document.addEventListener('click', function (e) {
+            const dropdown = document.getElementById('custom-calendar-dropdown');
+            const trigger = document.getElementById('custom-date-trigger');
+            if (!dropdown || !dropdown.classList.contains('calendar-open')) return;
+            if (trigger && (trigger === e.target || trigger.contains(e.target))) return;
+            if (dropdown.contains(e.target)) return;
+            window.toggleCustomCalendar(null, false);
+        });
 
         window.setTripType = function (type) {
             const isGroup = type === 'group';
@@ -4227,6 +4286,20 @@ try {
             try {
                 const draft = window.getEffectiveDraft ? window.getEffectiveDraft() : JSON.parse(localStorage.getItem('intan_elyu_draft_itinerary') || '[]');
 
+                // Reset calendar dropdown state on modal open
+                const cal = document.getElementById('custom-calendar-dropdown');
+                if (cal) {
+                    cal.classList.remove('calendar-open');
+                    cal.style.display = 'none';
+                }
+                const calArrow = document.getElementById('custom-date-arrow');
+                if (calArrow) calArrow.style.transform = 'rotate(0deg)';
+                const calTrigger = document.getElementById('custom-date-trigger');
+                if (calTrigger) {
+                    calTrigger.style.borderColor = '#e2e8f0';
+                    calTrigger.style.boxShadow = 'none';
+                }
+
                 // Check if in edit mode
                 const editingId = sessionStorage.getItem('editing_itinerary_id');
                 const modalTitleEl = document.getElementById('save-trip-modal-title');
@@ -4254,25 +4327,6 @@ try {
                     const dateInput = document.getElementById('trip-date');
                     if (dateInput) {
                         dateInput.value = targetDateStr;
-                        const display = document.getElementById('custom-date-display') || document.getElementById('trip-date-display');
-                        if (display) {
-                            let formatted = 'Select trip date';
-                            if (targetDateStr) {
-                                const parts = targetDateStr.split('-');
-                                if (parts.length === 3) {
-                                    const dObj = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
-                                    if (!isNaN(dObj.getTime())) {
-                                        formatted = dObj.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
-                                    }
-                                }
-                            }
-                            if ('value' in display) display.value = formatted;
-                            display.textContent = formatted;
-                            display.style.color = targetDateStr ? '#0f172a' : '#64748b';
-                            display.style.fontWeight = targetDateStr ? '700' : '600';
-                        }
-                        const clearLink = document.getElementById('calendar-clear-link');
-                        if (clearLink) clearLink.style.display = targetDateStr ? 'inline' : 'none';
                     }
                     const budgetInput = document.getElementById('trip-budget');
                     if (budgetInput) {
@@ -4313,7 +4367,28 @@ try {
                     }
                 }
 
-                // Sync custom dark-glass calendar with target date or current month
+                // ALWAYS sync custom-date-display and clear link with targetDateStr
+                const display = document.getElementById('custom-date-display') || document.getElementById('trip-date-display');
+                if (display) {
+                    let formatted = 'Select trip date';
+                    if (targetDateStr) {
+                        const parts = targetDateStr.split('-');
+                        if (parts.length === 3) {
+                            const dObj = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+                            if (!isNaN(dObj.getTime())) {
+                                formatted = dObj.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+                            }
+                        }
+                    }
+                    if ('value' in display) display.value = formatted;
+                    display.textContent = formatted;
+                    display.style.color = targetDateStr ? '#0f172a' : '#64748b';
+                    display.style.fontWeight = targetDateStr ? '700' : '600';
+                }
+                const clearLink = document.getElementById('calendar-clear-link');
+                if (clearLink) clearLink.style.display = targetDateStr ? 'inline' : 'none';
+
+                // Sync custom calendar with target date or current month
                 const today = new Date();
                 let calYear = today.getFullYear();
                 let calMonth = today.getMonth();
@@ -4365,8 +4440,19 @@ try {
             const bottomNav = document.getElementById('bottom-navigation');
             if (bottomNav) bottomNav.classList.remove('nav-hidden');
 
-            // Close calendar dropdown without clearing date or input values
-            window.toggleCustomCalendar(null, false);
+            // Close calendar dropdown immediately
+            const cal = document.getElementById('custom-calendar-dropdown');
+            if (cal) {
+                cal.classList.remove('calendar-open');
+                cal.style.display = 'none';
+            }
+            const calArrow = document.getElementById('custom-date-arrow');
+            if (calArrow) calArrow.style.transform = 'rotate(0deg)';
+            const calTrigger = document.getElementById('custom-date-trigger');
+            if (calTrigger) {
+                calTrigger.style.borderColor = '#e2e8f0';
+                calTrigger.style.boxShadow = 'none';
+            }
             // All draft inputs (#trip-title, #trip-date, #trip-budget, #trip-transport) remain intact on cancel!
         };
 
