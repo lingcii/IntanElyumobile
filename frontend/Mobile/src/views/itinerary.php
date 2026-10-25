@@ -1840,9 +1840,9 @@ try {
                         mode: 'no_vehicle',
                         transport_mode: 'no_vehicle',
                         transport_modes: [],
-                        name: 'Select your Vehicle',
-                        full_names: 'Select your Vehicle',
-                        icon: 'fa-car-side',
+                        name: 'select your vehicle',
+                        full_names: 'select your vehicle',
+                        icon: '',
                         cost: 0,
                         leg_cost: 0,
                         distance_km: distKm,
@@ -1860,9 +1860,9 @@ try {
                         mode: 'no_vehicle',
                         transport_mode: 'no_vehicle',
                         transport_modes: [],
-                        name: 'Select your Vehicle',
-                        full_names: 'Select your Vehicle',
-                        icon: 'fa-car-side',
+                        name: 'select your vehicle',
+                        full_names: 'select your vehicle',
+                        icon: '',
                         cost: 0,
                         leg_cost: 0,
                         distance_km: distKm,
@@ -1930,9 +1930,9 @@ try {
                 mode: 'no_vehicle',
                 transport_mode: 'no_vehicle',
                 transport_modes: [],
-                name: 'Select your Vehicle',
-                full_names: 'Select your Vehicle',
-                icon: 'fa-car-side',
+                name: 'select your vehicle',
+                full_names: 'select your vehicle',
+                icon: '',
                 cost: 0,
                 leg_cost: 0,
                 distance_km: distKm,
@@ -2408,8 +2408,8 @@ try {
                     transport_modes: [],
                     leg_cost: 0,
                     leg_distance_km: parseFloat(window.currentLegModalDistKm) || 0,
-                    display_name: 'Select your Vehicle',
-                    full_names: 'Select your Vehicle',
+                    display_name: 'select your vehicle',
+                    full_names: 'select your vehicle',
                     is_custom: true
                 };
 
@@ -2429,7 +2429,7 @@ try {
                     window.updateDraftTravelModeBar();
                 }
                 if (typeof showToast === 'function') {
-                    showToast(`Stop ${legIdx + 1} transit set to Select your Vehicle`);
+                    showToast(`Stop ${legIdx + 1} transit set to select your vehicle`);
                 }
                 return;
             }
@@ -2547,11 +2547,14 @@ try {
                         </span>
                     `;
                 } else {
-                    const iconClass = (info && info.icon) ? info.icon : 'fa-car';
-                    const vehicleLabel = (info && (info.full_names || info.name)) ? (info.full_names || info.name) : 'Own Car';
+                    const isSelected = Boolean(info && info.has_selection && !String(info.name).toLowerCase().includes('select your vehicle'));
+                    const iconMarkup = (isSelected && info.icon)
+                        ? `<i class="fa-solid ${info.icon}" style="color:#00f2fe; font-size:12px;"></i>`
+                        : '';
+                    const vehicleLabel = isSelected ? (info.full_names || info.name) : 'select your vehicle';
                     transportMarkup = `
                         <div style="display:inline-flex; align-items:center; gap:6px; background:rgba(255,255,255,0.16); color:#ffffff; font-size:11.5px; font-weight:700; padding:4px 10px; border-radius:100px; border:1px solid rgba(255,255,255,0.22);">
-                            <i class="fa-solid ${iconClass}" style="color:#00f2fe; font-size:12px;"></i>
+                            ${iconMarkup}
                             <span style="max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${vehicleLabel}</span>
                         </div>
                     `;
@@ -3152,10 +3155,10 @@ try {
 
                 const leg0Info = (typeof window.getLegTransportInfo === 'function')
                     ? window.getLegTransportInfo(0)
-                    : { mode: 'no_vehicle', name: 'Select your Vehicle', icon: 'fa-car-side', cost: 0, has_selection: false };
+                    : { mode: 'no_vehicle', name: 'select your vehicle', icon: '', cost: 0, has_selection: false };
 
                 const startDistText = startEta ? `${startEta.distanceText} &bull; ~${startEta.durationText}` : 'Start Leg';
-                const fareBadge = (leg0Info.is_maintenance || leg0Info.name === 'Unavailable' || !leg0Info.has_selection || leg0Info.name === 'Select your Vehicle')
+                const fareBadge = (leg0Info.is_maintenance || leg0Info.name === 'Unavailable' || !leg0Info.has_selection || String(leg0Info.name).toLowerCase().includes('select your vehicle'))
                     ? ''
                     : ((leg0Info.cost > 0)
                         ? `<span class="leg-fare-tag">₱${leg0Info.cost.toFixed(2)}</span>`
@@ -3168,9 +3171,10 @@ try {
                 const leg0ClickAction = leg0Info.is_maintenance
                     ? `if(typeof showToast==='function') showToast('${leg0DestName} is currently under maintenance or temporarily closed. Transport options are disabled.');`
                     : `window.openLegTransportModal(0)`;
+                const isLeg0Selected = Boolean(leg0Info.has_selection && !String(leg0Info.name).toLowerCase().includes('select your vehicle'));
                 const leg0LeadingIcon = leg0Info.is_maintenance
                     ? `<i class="fa-solid fa-ban" style="color:#ffffff; font-size:11px; flex-shrink:0;"></i>`
-                    : (leg0Info.icon ? `<i class="fa-solid ${leg0Info.icon}" style="color:${leg0IconColor}; font-size:11px; flex-shrink:0;"></i>` : '');
+                    : (isLeg0Selected && leg0Info.icon ? `<i class="fa-solid ${leg0Info.icon}" style="color:${leg0IconColor}; font-size:11px; flex-shrink:0;"></i>` : '');
                 const leg0TrailingIcon = (leg0Info.is_maintenance || leg0Info.name === 'Unavailable')
                     ? ''
                     : `<i class="fa-solid fa-chevron-right leg-action-edit" style="flex-shrink:0;"></i>`;
@@ -3252,10 +3256,10 @@ try {
 
                         const legInfo = (typeof window.getLegTransportInfo === 'function')
                             ? window.getLegTransportInfo(index)
-                            : { mode: 'no_vehicle', name: 'Select your Vehicle', icon: 'fa-car-side', cost: 0, has_selection: false };
+                            : { mode: 'no_vehicle', name: 'select your vehicle', icon: '', cost: 0, has_selection: false };
 
                         const legDistText = legEta ? `${legEta.distanceText} &bull; ~${legEta.durationText}` : 'Leg Route';
-                        const fareBadge = (legInfo.is_maintenance || legInfo.name === 'Unavailable' || !legInfo.has_selection || legInfo.name === 'Select your Vehicle')
+                        const fareBadge = (legInfo.is_maintenance || legInfo.name === 'Unavailable' || !legInfo.has_selection || String(legInfo.name).toLowerCase().includes('select your vehicle'))
                             ? ''
                             : ((legInfo.cost > 0)
                                 ? `<span class="leg-fare-tag">₱${legInfo.cost.toFixed(2)}</span>`
@@ -3268,9 +3272,10 @@ try {
                         const legClickAction = legInfo.is_maintenance
                             ? `if(typeof showToast==='function') showToast('${legDestName} is currently under maintenance or temporarily closed. Transport options are disabled.');`
                             : `window.openLegTransportModal(${index})`;
+                        const isLegSelected = Boolean(legInfo.has_selection && !String(legInfo.name).toLowerCase().includes('select your vehicle'));
                         const legLeadingIcon = legInfo.is_maintenance
                             ? `<i class="fa-solid fa-ban" style="color:#ffffff; font-size:11px; flex-shrink:0;"></i>`
-                            : (legInfo.icon ? `<i class="fa-solid ${legInfo.icon}" style="color:${legIconColor}; font-size:11px; flex-shrink:0;"></i>` : '');
+                            : (isLegSelected && legInfo.icon ? `<i class="fa-solid ${legInfo.icon}" style="color:${legIconColor}; font-size:11px; flex-shrink:0;"></i>` : '');
                         const legTrailingIcon = (legInfo.is_maintenance || legInfo.name === 'Unavailable')
                             ? ''
                             : `<i class="fa-solid fa-chevron-right leg-action-edit" style="flex-shrink:0;"></i>`;
