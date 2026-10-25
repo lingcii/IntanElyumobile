@@ -194,7 +194,7 @@ class AnalyticsController extends Controller
             // Sync spot rating if computed from reviews and different
             if (isset($ratingAverages[$spot->id]) && round((float)$ratingAverages[$spot->id], 1) !== (float)$spot->rating) {
                 try {
-                    $spot->update(['rating' => round((float)$ratingAverages[$spot->id], 1)]);
+                    TouristSpot::where('id', $spot->id)->update(['rating' => round((float)$ratingAverages[$spot->id], 1)]);
                 } catch (\Throwable $e) {}
             }
 
