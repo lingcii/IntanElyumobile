@@ -15,14 +15,27 @@ body:has(.saved-trips-page-container) * {
 }
 
 html:has(body[data-view="saved_trips"]),
-body[data-view="saved_trips"],
-html:has(.saved-trips-page-container),
-body:has(.saved-trips-page-container) {
+body[data-view="saved_trips"] {
     background: #ffffff !important;
     background-color: #ffffff !important;
-    color: #0f172a !important;
-    overflow-y: auto !important;
-    -webkit-overflow-scrolling: touch !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    overflow: hidden !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+body[data-view="saved_trips"] #app-container,
+body[data-view="saved_trips"] #main-content,
+body:has(.saved-trips-page-container) #app-container,
+body:has(.saved-trips-page-container) #main-content {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    overflow: hidden !important;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
 }
 
 html:has(body[data-view="saved_trips"])::-webkit-scrollbar,
@@ -34,6 +47,8 @@ body:has(.saved-trips-page-container) *::-webkit-scrollbar,
 body[data-view="saved_trips"] #app-container::-webkit-scrollbar,
 body[data-view="saved_trips"] #main-content::-webkit-scrollbar,
 .saved-trips-page-container::-webkit-scrollbar,
+.saved-trips-page-container.is-scrollable::-webkit-scrollbar,
+.saved-trips-page-container.scrollview::-webkit-scrollbar,
 #saved-trips-list::-webkit-scrollbar,
 .timeline-collapsible::-webkit-scrollbar,
 .timeline-inner::-webkit-scrollbar,
@@ -42,16 +57,6 @@ body[data-view="saved_trips"] #main-content::-webkit-scrollbar,
     width: 0 !important;
     height: 0 !important;
     background: transparent !important;
-}
-
-body[data-view="saved_trips"] #app-container,
-body[data-view="saved_trips"] #main-content,
-body:has(.saved-trips-page-container) #app-container,
-body:has(.saved-trips-page-container) #main-content {
-    background: #ffffff !important;
-    background-color: #ffffff !important;
-    scrollbar-width: none !important;
-    -ms-overflow-style: none !important;
 }
 
 body[data-view="saved_trips"] .mobile-header {
@@ -83,22 +88,33 @@ body[data-view="saved_trips"] .mobile-header .header-icon i {
 /* Main Container: Pure White Background & Invisible Scrollbar */
 .saved-trips-page-container {
     width: 100%;
-    min-height: 100vh;
-    min-height: 100dvh;
+    max-width: 480px;
+    margin: 0 auto;
+    height: 100vh;
+    height: 100dvh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    padding-top: var(--page-top-padding, calc(max(env(safe-area-inset-top, 0px), 36px) + 52px)) !important;
+    padding-bottom: var(--page-bottom-padding, calc(max(18px, env(safe-area-inset-bottom, 18px)) + 82px)) !important;
+    padding-left: var(--page-inline-padding, clamp(12px, 3.8vw, 18px)) !important;
+    padding-right: var(--page-inline-padding, clamp(12px, 3.8vw, 18px)) !important;
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    overflow-x: hidden !important;
+    overflow-y: hidden; /* Default: NO scrollview when empty or fits */
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+}
+
+/* Scrollview enabled when content overflows or multiple trips exist, with scrollbars 100% hidden */
+.saved-trips-page-container.is-scrollable,
+.saved-trips-page-container.scrollview {
     overflow-y: auto !important;
     -webkit-overflow-scrolling: touch !important;
     touch-action: pan-y !important;
     scrollbar-width: none !important;
     -ms-overflow-style: none !important;
-    padding-top: var(--page-top-padding, calc(max(env(safe-area-inset-top, 0px), 36px) + 52px)) !important;
-    padding-left: var(--page-inline-padding, clamp(12px, 3.8vw, 18px)) !important;
-    padding-right: var(--page-inline-padding, clamp(12px, 3.8vw, 18px)) !important;
-    padding-bottom: var(--page-bottom-padding, calc(max(18px, env(safe-area-inset-bottom, 18px)) + 82px)) !important;
-    box-sizing: border-box;
-    background: #ffffff !important;
-    background-color: #ffffff !important;
-    color: #0f172a !important;
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
 }
 
 #saved-trips-list {

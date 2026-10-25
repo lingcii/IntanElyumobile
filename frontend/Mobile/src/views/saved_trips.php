@@ -9,11 +9,30 @@ $backRoute = 'itinerary';
 
 
 <style>
-    /* Smooth vertical scrolling with universal invisible scrollbars for details and long lists */
+    /* Clean white theme with dynamic scrollview and completely hidden scrollbars */
+    html:has(body[data-view="saved_trips"]),
+    body[data-view="saved_trips"] {
+        background: #ffffff !important;
+        background-color: #ffffff !important;
+        height: 100vh !important;
+        height: 100dvh !important;
+        overflow: hidden !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    body[data-view="saved_trips"] #app-container,
+    body[data-view="saved_trips"] #main-content {
+        background: #ffffff !important;
+        background-color: #ffffff !important;
+        height: 100vh !important;
+        height: 100dvh !important;
+        overflow: hidden !important;
+        scrollbar-width: none !important;
+        -ms-overflow-style: none !important;
+    }
     html, body, .saved-trips-page-container, #saved-trips-list, #main-content, #app-container {
         scrollbar-width: none !important;
         -ms-overflow-style: none !important;
-        -webkit-overflow-scrolling: touch !important;
     }
     html:has(body[data-view="saved_trips"]) *,
     body[data-view="saved_trips"] *,
@@ -26,7 +45,8 @@ $backRoute = 'itinerary';
     html:has(body[data-view="saved_trips"]) *::-webkit-scrollbar,
     body[data-view="saved_trips"] *::-webkit-scrollbar,
     .saved-trips-page-container::-webkit-scrollbar,
-    .saved-trips-page-container *::-webkit-scrollbar,
+    .saved-trips-page-container.is-scrollable::-webkit-scrollbar,
+    .saved-trips-page-container.scrollview::-webkit-scrollbar,
     #saved-trips-list::-webkit-scrollbar,
     #main-content::-webkit-scrollbar,
     #app-container::-webkit-scrollbar,
@@ -38,16 +58,34 @@ $backRoute = 'itinerary';
         height: 0 !important;
         background: transparent !important;
     }
-    html, body {
-        overflow-y: auto !important;
-        -webkit-overflow-scrolling: touch !important;
-        touch-action: pan-y !important;
-    }
     .saved-trips-page-container {
-        overflow-y: auto !important;
+        width: 100%;
+        max-width: 480px;
+        margin: 0 auto;
+        height: 100vh;
+        height: 100dvh;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        padding-top: var(--page-top-padding, calc(max(env(safe-area-inset-top, 0px), 36px) + 52px)) !important;
+        padding-bottom: var(--page-bottom-padding, calc(max(18px, env(safe-area-inset-bottom, 18px)) + 82px)) !important;
+        padding-left: var(--page-inline-padding, clamp(12px, 3.8vw, 18px)) !important;
+        padding-right: var(--page-inline-padding, clamp(12px, 3.8vw, 18px)) !important;
+        background: #ffffff !important;
+        background-color: #ffffff !important;
+        color: #0f172a !important;
+        overflow-x: hidden !important;
+        overflow-y: hidden; /* Default: NO scrollview when empty */
         touch-action: pan-y !important;
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+    }
+    .saved-trips-page-container.is-scrollable,
+    .saved-trips-page-container.scrollview {
+        overflow-y: auto !important;
         -webkit-overflow-scrolling: touch !important;
-        overscroll-behavior-y: contain !important;
+        touch-action: pan-y !important;
+        scrollbar-width: none !important;
+        -ms-overflow-style: none !important;
     }
     #saved-trips-list {
         touch-action: pan-y !important;
@@ -67,7 +105,7 @@ $backRoute = 'itinerary';
 </style>
 
 <!-- Saved Trips Container -->
-<div class="saved-trips-page-container has-header animate-slide-up">
+<div id="saved-trips-container" class="saved-trips-page-container has-header animate-slide-up">
     <!-- Offline Status Badge -->
     <div id="saved-trips-offline-badge" style="display: none; align-items: center; justify-content: center; gap: 8px; margin: 0 auto 14px auto; padding: 7px 16px; border-radius: 100px; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.35); color: #d97706; font-size: 11.5px; font-weight: 800; text-align: center; width: fit-content;">
         <i class="fa-solid fa-cloud-slash" style="color: #f59e0b;"></i>
@@ -438,6 +476,35 @@ $backRoute = 'itinerary';
             } catch (e) { }
             return null;
         };
+
+        function updateScrollviewState() {
+            const container = document.getElementById('saved-trips-container');
+            const list = document.getElementById('saved-trips-list');
+            if (!container || !list) return;
+
+            const cards = list.querySelectorAll('.trip-swipe-container');
+            const hasEmptyState = list.querySelector('.empty-state-card');
+
+            // If empty state or 0 cards, remove scrollview completely
+            if (hasEmptyState || cards.length === 0) {
+                container.classList.remove('is-scrollable');
+                container.scrollTop = 0;
+                return;
+            }
+
+            // Enable scrollview if multiple cards exist or content overflows
+            requestAnimationFrame(() => {
+                const isOverflowing = cards.length > 1 || list.scrollHeight > (container.clientHeight - 30);
+                if (isOverflowing) {
+                    container.classList.add('is-scrollable');
+                } else {
+                    container.classList.remove('is-scrollable');
+                    container.scrollTop = 0;
+                }
+            });
+        }
+        window.updateSavedTripsScrollview = updateScrollviewState;
+        window.addEventListener('resize', updateScrollviewState);
 
         window.fetchSavedTrips = async function (forceRefresh = false) {
             const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
@@ -906,6 +973,7 @@ $backRoute = 'itinerary';
 
                 if (!dedupedTrips || dedupedTrips.length === 0) {
                     list.innerHTML = emptyStateHtml;
+                    updateScrollviewState();
                     return;
                 }
 
@@ -913,6 +981,7 @@ $backRoute = 'itinerary';
 
                 if (activeItineraries.length === 0) {
                     list.innerHTML = emptyStateHtml;
+                    updateScrollviewState();
                     return;
                 }
 
@@ -1229,13 +1298,18 @@ $backRoute = 'itinerary';
                                                 </div>` :
                                             (isLocVerified && isPendingProof ?
                                                 `<div style="display:flex; flex-direction:column; gap:8px; margin-top:4px;">
-                                                    <div>
-                                                        <span style="background:rgba(255,149,0,0.22); border:none !important; outline:none !important; color:#ff9f0a; font-size:11.5px; font-weight:800; padding:3px 10px; border-radius:100px; display:inline-flex; align-items:center; gap:5px;">
-                                                            <i class="fa-solid fa-hourglass-half"></i> Awaiting Admin Approval
-                                                        </span>
-                                                        <span style="font-size:10px; color:#ffffff; opacity:0.8; display:block; margin-top:4px;">
-                                                            <i class="fa-solid fa-circle-check" style="color:#34c759; margin-right:3px;"></i> Location Verified &bull; Photos submitted
-                                                        </span>
+                                                    <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+                                                        <div>
+                                                            <span style="background:rgba(255,149,0,0.22); border:none !important; outline:none !important; color:#ff9f0a; font-size:11.5px; font-weight:800; padding:3px 10px; border-radius:100px; display:inline-flex; align-items:center; gap:5px;">
+                                                                <i class="fa-solid fa-hourglass-half"></i> Awaiting Admin Approval
+                                                            </span>
+                                                            <span style="font-size:10px; color:#ffffff; opacity:0.8; display:block; margin-top:4px;">
+                                                                <i class="fa-solid fa-circle-check" style="color:#34c759; margin-right:3px;"></i> Location Verified &bull; Photos submitted
+                                                            </span>
+                                                        </div>
+                                                        <button type="button" class="btn-primary" style="padding:7px 14px; font-size:11.5px; font-weight:800; border-radius:100px; background:rgba(255,255,255,0.18); border:none !important; outline:none !important; color:#fff; cursor:pointer;" onclick="event.stopPropagation(); window.openProofUploadModal('${item.id}', '${destEscaped}')">
+                                                            <i class="fa-solid fa-camera" style="margin-right:4px;"></i> Edit Proof
+                                                        </button>
                                                     </div>
                                                     ${photosStripHtml}
                                                 </div>` :
@@ -1248,9 +1322,14 @@ $backRoute = 'itinerary';
                                                             </span>
                                                             <span style="font-size:10px; color:#ffffff; opacity:0.8; display:block; margin-top:4px;">Please check in on-site to verify location</span>
                                                         </div>
-                                                        <button type="button" class="btn-primary" style="padding:7px 14px; font-size:11.5px; font-weight:800; border-radius:100px; background:linear-gradient(135deg, #00f2fe, #0284c7); border:none !important; outline:none !important; color:#fff; cursor:pointer;" onclick="event.stopPropagation(); window.executeLocationCheckIn('${item.id}', '${destEscaped}', ${dest?.latitude || 'null'}, ${dest?.longitude || 'null'}, this)">
-                                                            <i class="fa-solid fa-location-crosshairs" style="margin-right:4px;"></i> Check In
-                                                        </button>
+                                                        <div style="display:flex; gap:6px; align-items:center;">
+                                                            <button type="button" class="btn-primary" style="padding:7px 12px; font-size:11px; font-weight:800; border-radius:100px; background:rgba(255,255,255,0.18); border:none !important; outline:none !important; color:#fff; cursor:pointer;" onclick="event.stopPropagation(); window.openProofUploadModal('${item.id}', '${destEscaped}')">
+                                                                <i class="fa-solid fa-camera" style="margin-right:4px;"></i> Proof
+                                                            </button>
+                                                            <button type="button" class="btn-primary" style="padding:7px 14px; font-size:11.5px; font-weight:800; border-radius:100px; background:linear-gradient(135deg, #00f2fe, #0284c7); border:none !important; outline:none !important; color:#fff; cursor:pointer;" onclick="event.stopPropagation(); window.executeLocationCheckIn('${item.id}', '${destEscaped}', ${dest?.latitude || 'null'}, ${dest?.longitude || 'null'}, this)">
+                                                                <i class="fa-solid fa-location-crosshairs" style="margin-right:4px;"></i> Check In
+                                                            </button>
+                                                        </div>
                                                     </div>
                                                     ${photosStripHtml}
                                                 </div>` :
@@ -1292,7 +1371,7 @@ $backRoute = 'itinerary';
                         // View Details button
                         html += `
                         <button class="btn-primary" style="flex:1; min-width:105px; background: rgba(255, 255, 255, 0.22); border: none !important; outline: none !important; color: #ffffff; padding: 13px 14px; border-radius: 14px; font-weight: 800; font-size: 13px; cursor: pointer; transition: all 0.25s ease;" onclick="window.toggleTripDetails('${trip.id}')">
-                            <i class="fa-solid fa-chevron-down" id="chevron-${trip.id}" style="margin-right:6px; transition:transform 0.3s ease;"></i> Details
+                            <i class="fa-solid fa-chevron-down" id="chevron-${trip.id}" style="margin-right:6px; transition:transform 0.3s ease;"></i> Details & Photo Proofs
                         </button>`;
 
                         // If trip is queued offline, or has queued offline check-ins / photos, show prominent "Sync Now" button
@@ -1331,6 +1410,7 @@ $backRoute = 'itinerary';
                 });
 
                 list.innerHTML = html || emptyStateHtml;
+                updateScrollviewState();
                 initSavedTripsSwipe();
                 if (typeof window.syncReviewedButtons === 'function') {
                     window.syncReviewedButtons();
@@ -1381,6 +1461,11 @@ $backRoute = 'itinerary';
                 } else {
                     timeline.classList.remove('expanded');
                     chevron.style.transform = 'rotate(0deg)';
+                    if (startWrapper) startWrapper.classList.remove('expanded');
+                }
+                if (typeof window.updateSavedTripsScrollview === 'function') {
+                    requestAnimationFrame(window.updateSavedTripsScrollview);
+                    setTimeout(window.updateSavedTripsScrollview, 350);
                 }
             }
         };

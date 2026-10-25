@@ -2644,6 +2644,32 @@ window.fetchSavedTrips = async function (forceRefresh = false) {
 };
 window.loadSavedTrips = window.fetchSavedTrips;
 
+window.updateSavedTripsScrollview = function () {
+    const container = document.getElementById('saved-trips-container');
+    const list = document.getElementById('saved-trips-list');
+    if (!container || !list) return;
+
+    const cards = list.querySelectorAll('.trip-swipe-container');
+    const hasEmptyState = list.querySelector('.empty-state-card');
+
+    if (hasEmptyState || cards.length === 0) {
+        container.classList.remove('is-scrollable');
+        container.scrollTop = 0;
+        return;
+    }
+
+    requestAnimationFrame(() => {
+        const isOverflowing = cards.length > 1 || list.scrollHeight > (container.clientHeight - 30);
+        if (isOverflowing) {
+            container.classList.add('is-scrollable');
+        } else {
+            container.classList.remove('is-scrollable');
+            container.scrollTop = 0;
+        }
+    });
+};
+window.addEventListener('resize', window.updateSavedTripsScrollview);
+
 window.renderSavedTrips = function (itineraries) {
     try {
         const queuedTrips = (window.OfflineTripManager && typeof window.OfflineTripManager.getQueuedTrips === 'function')
@@ -2779,6 +2805,7 @@ window.renderSavedTrips = function (itineraries) {
 
         if (!dedupedTrips || dedupedTrips.length === 0) {
             list.innerHTML = emptyStateHtml;
+            if (typeof window.updateSavedTripsScrollview === 'function') window.updateSavedTripsScrollview();
             return;
         }
 
@@ -2786,6 +2813,7 @@ window.renderSavedTrips = function (itineraries) {
 
         if (activeItineraries.length === 0) {
             list.innerHTML = emptyStateHtml;
+            if (typeof window.updateSavedTripsScrollview === 'function') window.updateSavedTripsScrollview();
             return;
         }
 
@@ -3027,16 +3055,22 @@ window.renderSavedTrips = function (itineraries) {
                                     </div>` :
                                     (hasProof ?
                                         `<div style="display:flex; flex-direction:column; gap:8px; margin-top:4px;">
-                                            <div>
+                                            <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
                                                 <span style="background:rgba(255,149,0,0.22); color:#ff9f0a; font-size:11.5px; font-weight:800; padding:3px 10px; border-radius:100px; display:inline-flex; align-items:center; gap:5px;">
                                                     <i class="fa-solid fa-hourglass-half"></i> Awaiting Approval
                                                 </span>
+                                                <button type="button" class="btn-primary" style="padding:7px 12px; font-size:11px; font-weight:800; border-radius:100px; background:rgba(255,255,255,0.18); border:none !important; outline:none !important; color:#fff; cursor:pointer;" onclick="event.stopPropagation(); if(typeof window.openProofUploadModal==='function') window.openProofUploadModal('${item.id}', '${destEscaped}')">
+                                                    <i class="fa-solid fa-camera" style="margin-right:4px;"></i> Edit Proof
+                                                </button>
                                             </div>
                                             ${photosStripHtml}
                                         </div>` :
                                         `<div style="display:flex; align-items:center; gap:8px; margin-top:6px; flex-wrap:wrap;">
                                             <button type="button" class="btn-primary" style="padding:8px 14px; font-size:11.5px; font-weight:800; border-radius:100px; background:linear-gradient(135deg, #00f2fe, #0284c7); border:none !important; outline:none !important; color:#fff; cursor:pointer; display:inline-flex; align-items:center; gap:5px;" onclick="event.stopPropagation(); if(typeof window.executeLocationCheckIn==='function') window.executeLocationCheckIn('${item.id}', '${destEscaped}', ${dest?.latitude || 'null'}, ${dest?.longitude || 'null'}, this)">
                                                 <i class="fa-solid fa-location-crosshairs"></i> Check In
+                                            </button>
+                                            <button type="button" class="btn-primary" style="padding:8px 14px; font-size:11.5px; font-weight:800; border-radius:100px; background:rgba(255,255,255,0.18); border:none !important; outline:none !important; color:#fff; cursor:pointer; display:inline-flex; align-items:center; gap:5px;" onclick="event.stopPropagation(); if(typeof window.openProofUploadModal==='function') window.openProofUploadModal('${item.id}', '${destEscaped}')">
+                                                <i class="fa-solid fa-camera"></i> Upload Proof
                                             </button>
                                         </div>`))}
                             </div>
@@ -3052,7 +3086,7 @@ window.renderSavedTrips = function (itineraries) {
                 html += `<div style="display:flex; gap:8px; margin-top:16px; flex-wrap:wrap; align-items:center;">`;
                 html += `
                 <button class="btn-primary" style="flex:1; min-width:105px; background: rgba(255, 255, 255, 0.22); border: none !important; outline: none !important; color: #ffffff; padding: 13px 14px; border-radius: 14px; font-weight: 800; font-size: 13px; cursor: pointer; transition: all 0.25s ease;" onclick="window.toggleTripDetails('${trip.id}')">
-                    <i class="fa-solid fa-chevron-down" id="chevron-${trip.id}" style="margin-right:6px; transition:transform 0.3s ease;"></i> Details
+                    <i class="fa-solid fa-chevron-down" id="chevron-${trip.id}" style="margin-right:6px; transition:transform 0.3s ease;"></i> Details & Photo Proofs
                 </button>`;
 
                 if (trip.is_offline_queued || hasQueuedCheckins) {
@@ -3088,6 +3122,9 @@ window.renderSavedTrips = function (itineraries) {
         });
 
         list.innerHTML = html || emptyStateHtml;
+        if (typeof window.updateSavedTripsScrollview === 'function') {
+            window.updateSavedTripsScrollview();
+        }
         if (typeof window.initSavedTripsSwipe === 'function') {
             window.initSavedTripsSwipe();
         }
@@ -3120,6 +3157,10 @@ window.toggleTripDetails = function (tripId) {
         } else {
             timeline.classList.remove('expanded');
             chevron.style.transform = 'rotate(0deg)';
+        }
+        if (typeof window.updateSavedTripsScrollview === 'function') {
+            requestAnimationFrame(window.updateSavedTripsScrollview);
+            setTimeout(window.updateSavedTripsScrollview, 350);
         }
     }
 };
@@ -4136,7 +4177,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                     <div class="bell-dot" id="bell-dot"></div>
                 </div>
             </div>
-            <div class="saved-trips-page-container has-header animate-slide-up">
+            <div id="saved-trips-container" class="saved-trips-page-container has-header animate-slide-up">
                 <div id="saved-trips-offline-badge" style="display: flex; align-items: center; justify-content: center; gap: 8px; margin: 0 auto 14px auto; padding: 7px 16px; border-radius: 100px; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.35); color: #d97706; font-size: 11.5px; font-weight: 800; text-align: center; width: fit-content;">
                     <i class="fa-solid fa-cloud-slash" style="color: #f59e0b;"></i>
                     <span>Offline Mode &bull; Cached Trips & Queued Check-ins</span>
