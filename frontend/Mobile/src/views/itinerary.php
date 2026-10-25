@@ -1840,21 +1840,39 @@ try {
                         mode: 'no_vehicle',
                         transport_mode: 'no_vehicle',
                         transport_modes: [],
-                        name: 'No Vehicle',
-                        full_names: 'No Vehicle',
-                        icon: 'fa-person-walking',
+                        name: 'Select your Vehicle',
+                        full_names: 'Select your Vehicle',
+                        icon: 'fa-car-side',
                         cost: 0,
                         leg_cost: 0,
                         distance_km: distKm,
                         warning: null,
                         is_inaccessible: false,
                         is_non_drivable: false,
-                        is_custom: true
+                        is_custom: true,
+                        has_selection: false
                     };
                 }
 
                 let modes = window.parseCompositeTransportModes(override.transport_modes || override.transport_mode);
-                if (modes.length === 0) modes = ['own_car'];
+                if (modes.length === 0) {
+                    return {
+                        mode: 'no_vehicle',
+                        transport_mode: 'no_vehicle',
+                        transport_modes: [],
+                        name: 'Select your Vehicle',
+                        full_names: 'Select your Vehicle',
+                        icon: 'fa-car-side',
+                        cost: 0,
+                        leg_cost: 0,
+                        distance_km: distKm,
+                        warning: null,
+                        is_inaccessible: false,
+                        is_non_drivable: false,
+                        is_custom: true,
+                        has_selection: false
+                    };
+                }
 
                 // Filter out any vehicles not accessible for this spot only if not an explicit custom leg selection
                 if (!override.is_custom) {
@@ -1902,26 +1920,27 @@ try {
                     warning: !hasInaccessible ? (isNonDrivable && modes.includes('own_car') ? 'Trailhead drop-off only' : null) : warningReason,
                     is_inaccessible: hasInaccessible,
                     is_non_drivable: isNonDrivable,
-                    is_custom: true
+                    is_custom: true,
+                    has_selection: true
                 };
             }
 
-            const resolved = window.resolveLegOptimalTransport(fromSpot, toSpot, distKm, curGlobalTransport);
             const isNonDrivable = Boolean(toSpot && (toSpot.accessible_by_private_vehicle === 0 || toSpot.accessible_by_private_vehicle === false || toSpot.accessible_by_private_vehicle === '0'));
-            const check = window.isVehicleAllowedForSpot(resolved.mode, toSpot);
-
             return {
-                ...resolved,
-                transport_mode: resolved.mode,
-                transport_modes: (Array.isArray(resolved.transport_modes) && resolved.transport_modes.length > 0)
-                    ? resolved.transport_modes
-                    : window.parseCompositeTransportModes(resolved.mode),
-                leg_cost: resolved.cost,
+                mode: 'no_vehicle',
+                transport_mode: 'no_vehicle',
+                transport_modes: [],
+                name: 'Select your Vehicle',
+                full_names: 'Select your Vehicle',
+                icon: 'fa-car-side',
+                cost: 0,
+                leg_cost: 0,
                 distance_km: distKm,
-                warning: check.allowed ? resolved.warning : check.reason,
-                is_inaccessible: !check.allowed,
+                warning: null,
+                is_inaccessible: false,
                 is_non_drivable: isNonDrivable,
-                is_custom: false
+                is_custom: false,
+                has_selection: false
             };
         };
 
@@ -2389,8 +2408,8 @@ try {
                     transport_modes: [],
                     leg_cost: 0,
                     leg_distance_km: parseFloat(window.currentLegModalDistKm) || 0,
-                    display_name: 'No Vehicle',
-                    full_names: 'No Vehicle',
+                    display_name: 'Select your Vehicle',
+                    full_names: 'Select your Vehicle',
                     is_custom: true
                 };
 
@@ -2410,7 +2429,7 @@ try {
                     window.updateDraftTravelModeBar();
                 }
                 if (typeof showToast === 'function') {
-                    showToast(`Stop ${legIdx + 1} transit set to No Vehicle`);
+                    showToast(`Stop ${legIdx + 1} transit set to Select your Vehicle`);
                 }
                 return;
             }
@@ -3133,10 +3152,10 @@ try {
 
                 const leg0Info = (typeof window.getLegTransportInfo === 'function')
                     ? window.getLegTransportInfo(0)
-                    : { mode: 'own_car', name: 'Own Car', icon: 'fa-car', cost: 0 };
+                    : { mode: 'no_vehicle', name: 'Select your Vehicle', icon: 'fa-car-side', cost: 0, has_selection: false };
 
                 const startDistText = startEta ? `${startEta.distanceText} &bull; ~${startEta.durationText}` : 'Start Leg';
-                const fareBadge = (leg0Info.is_maintenance || leg0Info.name === 'Unavailable')
+                const fareBadge = (leg0Info.is_maintenance || leg0Info.name === 'Unavailable' || !leg0Info.has_selection || leg0Info.name === 'Select your Vehicle')
                     ? ''
                     : ((leg0Info.cost > 0)
                         ? `<span class="leg-fare-tag">₱${leg0Info.cost.toFixed(2)}</span>`
@@ -3233,10 +3252,10 @@ try {
 
                         const legInfo = (typeof window.getLegTransportInfo === 'function')
                             ? window.getLegTransportInfo(index)
-                            : { mode: 'mpuj', name: 'Modern Jeepney', icon: 'fa-van-shuttle', cost: 0 };
+                            : { mode: 'no_vehicle', name: 'Select your Vehicle', icon: 'fa-car-side', cost: 0, has_selection: false };
 
                         const legDistText = legEta ? `${legEta.distanceText} &bull; ~${legEta.durationText}` : 'Leg Route';
-                        const fareBadge = (legInfo.is_maintenance || legInfo.name === 'Unavailable')
+                        const fareBadge = (legInfo.is_maintenance || legInfo.name === 'Unavailable' || !legInfo.has_selection || legInfo.name === 'Select your Vehicle')
                             ? ''
                             : ((legInfo.cost > 0)
                                 ? `<span class="leg-fare-tag">₱${legInfo.cost.toFixed(2)}</span>`

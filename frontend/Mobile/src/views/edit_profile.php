@@ -79,10 +79,6 @@ $backRoute = 'profile';
                         <option value="" style="background: #1e3a8a; color: #ffffff;">Select gender</option>
                         <option value="Male" style="background: #1e3a8a; color: #ffffff;">Male</option>
                         <option value="Female" style="background: #1e3a8a; color: #ffffff;">Female</option>
-                        <option value="Non-binary" style="background: #1e3a8a; color: #ffffff;">Non-binary</option>
-                        <option value="Prefer not to say" style="background: #1e3a8a; color: #ffffff;">Prefer not to say
-                        </option>
-                        <option value="Other" style="background: #1e3a8a; color: #ffffff;">Other</option>
                     </select>
                 </div>
             </div>

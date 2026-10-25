@@ -33,12 +33,12 @@ class RegisterController extends Controller
             'first_name' => 'nullable|string|min:2|max:50',
             'last_name'  => 'nullable|string|min:2|max:50',
             'name'       => 'nullable|string|min:4|max:100',
-            'gender'     => 'required|string|in:Male,Female,Non-binary,Other,Prefer not to say',
+            'gender'     => 'required|string|in:Male,Female',
             'email'      => 'required|email|unique:users,email',
             'password'   => 'required|string|min:8|confirmed',
         ], [
-            'gender.required' => 'Sex or gender is required for official tourist registration and MTO records.',
-            'gender.in'       => 'Please select a valid sex or gender option.',
+            'gender.required' => 'Gender is required for official tourist registration.',
+            'gender.in'       => 'Please select Male or Female.',
         ]);
 
         $firstName = trim($request->first_name ?? '');

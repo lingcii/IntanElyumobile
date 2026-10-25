@@ -305,7 +305,7 @@ class ProfileController extends Controller
             'home_location' => 'nullable|string|max:255',
             'bio' => 'nullable|string|max:500',
             'age' => 'nullable|integer|min:1|max:120',
-            'gender' => 'nullable|string|max:50',
+            'gender' => 'nullable|string|in:Male,Female',
             'travel_preferences' => 'nullable|string|max:255',
             'avatar' => 'sometimes|file|mimes:jpeg,png,jpg,gif,webp,heic,heif|max:10240',
         ]);

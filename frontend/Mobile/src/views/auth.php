@@ -633,27 +633,6 @@
                 </div>
                 <i class="fa-solid fa-circle-check gender-check-icon"></i>
             </div>
-            <div class="gender-option-item" data-value="Non-binary" onclick="window.selectGenderOption('Non-binary')" style="background: #ffffff !important;">
-                <div class="gender-option-icon icon-nonbinary" style="background: #ede9fe !important; color: #7c3aed !important;"><i class="fa-solid fa-genderless"></i></div>
-                <div class="gender-option-info">
-                    <span class="gender-option-name" style="color: #0f172a !important;">Non-binary</span>
-                </div>
-                <i class="fa-solid fa-circle-check gender-check-icon"></i>
-            </div>
-            <div class="gender-option-item" data-value="Prefer not to say" onclick="window.selectGenderOption('Prefer not to say')" style="background: #ffffff !important;">
-                <div class="gender-option-icon icon-prefer" style="background: #f1f5f9 !important; color: #475569 !important;"><i class="fa-solid fa-user-shield"></i></div>
-                <div class="gender-option-info">
-                    <span class="gender-option-name" style="color: #0f172a !important;">Prefer not to say</span>
-                </div>
-                <i class="fa-solid fa-circle-check gender-check-icon"></i>
-            </div>
-            <div class="gender-option-item" data-value="Other" onclick="window.selectGenderOption('Other')" style="background: #ffffff !important;">
-                <div class="gender-option-icon icon-other" style="background: #e0f2fe !important; color: #0284c7 !important;"><i class="fa-solid fa-asterisk"></i></div>
-                <div class="gender-option-info">
-                    <span class="gender-option-name" style="color: #0f172a !important;">Other</span>
-                </div>
-                <i class="fa-solid fa-circle-check gender-check-icon"></i>
-            </div>
         </div>
     </div>
 </div>
