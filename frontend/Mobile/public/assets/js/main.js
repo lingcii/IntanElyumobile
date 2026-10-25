@@ -3038,38 +3038,100 @@ window.renderSavedTrips = function (itineraries) {
                                     </div>
                                 </div>
                                 ${isApproved ?
-                                `<div style="display:flex; flex-direction:column; gap:8px; margin-top:4px;">
-                                    <span style="color:#34c759; font-size:12px; font-weight:800; display:inline-flex; align-items:center; gap:5px; background:rgba(52,199,89,0.18); padding:4px 10px; border-radius:100px;">
-                                        <i class="fa-solid fa-circle-check"></i> Visit Verified
-                                    </span>
-                                    ${photosStripHtml}
-                                </div>` :
-                                (isQueued ?
-                                    `<div style="display:flex; align-items:center; gap:10px; margin-top:4px;">
-                                        ${queuedThumbnailHtml}
-                                        <div>
-                                            <span style="background:rgba(245,158,11,0.25); border:none !important; outline:none !important; color:#fbbf24; font-size:11px; font-weight:800; padding:3px 10px; border-radius:100px; display:inline-flex; align-items:center; gap:4px;">
-                                                <i class="fa-solid fa-clock-rotate-left"></i> Queued for Sync (Offline)
-                                            </span>
-                                        </div>
+                                    `<div style="display:flex; flex-direction:column; gap:8px; margin-top:4px;">
+                                        <span style="color:#34c759; font-size:12px; font-weight:800; display:inline-flex; align-items:center; gap:5px; background:rgba(52,199,89,0.18); padding:4px 10px; border-radius:100px;">
+                                            <i class="fa-solid fa-circle-check"></i> Visit Verified
+                                        </span>
+                                        ${photosStripHtml}
                                     </div>` :
-                                    (hasProof ?
+                                    (isRejected ?
                                         `<div style="display:flex; flex-direction:column; gap:8px; margin-top:4px;">
-                                            <div>
-                                                <span style="background:rgba(255,149,0,0.22); color:#ff9f0a; font-size:11.5px; font-weight:800; padding:3px 10px; border-radius:100px; display:inline-flex; align-items:center; gap:5px;">
-                                                    <i class="fa-solid fa-hourglass-half"></i> Awaiting Approval
-                                                </span>
+                                            <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+                                                <div>
+                                                    <span style="color:#ef4444; font-size:12px; font-weight:800; display:inline-flex; align-items:center; gap:5px;">
+                                                        <i class="fa-solid fa-circle-xmark"></i> Photo Proof Rejected
+                                                    </span>
+                                                    <span style="font-size:10px; color:#fca5a5; display:block; margin-top:2px;">${item.rejection_reason || 'Please upload a clearer photo taken at this destination.'}</span>
+                                                </div>
+                                                <button type="button" class="btn-primary" style="padding:7px 14px; font-size:11.5px; font-weight:800; border-radius:100px; background:linear-gradient(135deg, #ef4444, #dc2626); border:none !important; outline:none !important; color:#fff; cursor:pointer;" onclick="event.stopPropagation(); window.openProofUploadModal('${item.id}', '${destEscaped}')">
+                                                    <i class="fa-solid fa-camera" style="margin-right:4px;"></i> Re-upload Proof
+                                                </button>
                                             </div>
                                             ${photosStripHtml}
                                         </div>` :
-                                        `<div style="display:flex; align-items:center; gap:8px; margin-top:6px; flex-wrap:wrap;">
-                                            <button type="button" class="btn-primary" style="padding:8px 14px; font-size:11.5px; font-weight:800; border-radius:100px; background:linear-gradient(135deg, #00f2fe, #0284c7); border:none !important; outline:none !important; color:#fff; cursor:pointer; display:inline-flex; align-items:center; gap:5px;" onclick="event.stopPropagation(); if(typeof window.executeLocationCheckIn==='function') window.executeLocationCheckIn('${item.id}', '${destEscaped}', ${dest?.latitude || 'null'}, ${dest?.longitude || 'null'}, this)">
-                                                <i class="fa-solid fa-location-crosshairs"></i> Check In
-                                            </button>
-                                            <button type="button" class="btn-primary" style="padding:8px 14px; font-size:11.5px; font-weight:800; border-radius:100px; background:rgba(255,255,255,0.18); border:none !important; outline:none !important; color:#fff; cursor:pointer; display:inline-flex; align-items:center; gap:5px;" onclick="event.stopPropagation(); if(typeof window.openProofUploadModal==='function') window.openProofUploadModal('${item.id}', '${destEscaped}')">
-                                                <i class="fa-solid fa-camera"></i> Upload Proof
-                                            </button>
-                                        </div>`))}
+                                        (isQueued ?
+                                            `<div style="display:flex; align-items:center; gap:10px; margin-top:4px;">
+                                                ${queuedThumbnailHtml}
+                                                <div>
+                                                    <span style="background:rgba(245,158,11,0.25); border:none !important; outline:none !important; color:#fbbf24; font-size:11px; font-weight:800; padding:3px 10px; border-radius:100px; display:inline-flex; align-items:center; gap:4px;">
+                                                        <i class="fa-solid fa-clock-rotate-left"></i> Queued for Sync (Offline)
+                                                    </span>
+                                                    <span style="font-size:10px; color:#ffffff; opacity:0.85; display:block; margin-top:4px;"><i class="fa-solid fa-camera" style="color:#fbbf24; margin-right:4px;"></i>Saved on device &bull; Auto-syncs when online</span>
+                                                </div>
+                                            </div>` :
+                                        (isPhotoApproved && !isLocVerified ?
+                                            `<div style="display:flex; flex-direction:column; gap:8px; margin-top:4px;">
+                                                <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+                                                    <div>
+                                                        <span style="background:rgba(52,199,89,0.18); border:none !important; outline:none !important; color:#34c759; font-size:11px; font-weight:800; padding:3px 10px; border-radius:100px; display:inline-flex; align-items:center; gap:5px;">
+                                                            <i class="fa-solid fa-circle-check"></i> Photo Approved &bull; ⚠️ Check-in Required
+                                                        </span>
+                                                        <span style="font-size:10px; color:#ffffff; opacity:0.8; display:block; margin-top:4px;">Photo proof verified! Please check in to complete this stop.</span>
+                                                    </div>
+                                                    <button type="button" class="btn-primary" style="padding:7px 14px; font-size:11.5px; font-weight:800; border-radius:100px; background:linear-gradient(135deg, #00f2fe, #0284c7); border:none !important; outline:none !important; color:#fff; cursor:pointer;" onclick="event.stopPropagation(); window.executeLocationCheckIn('${item.id}', '${destEscaped}', ${dest?.latitude || 'null'}, ${dest?.longitude || 'null'}, this)">
+                                                        <i class="fa-solid fa-location-crosshairs" style="margin-right:4px;"></i> Check In
+                                                    </button>
+                                                </div>
+                                                ${photosStripHtml}
+                                            </div>` :
+                                        (isLocVerified && isPendingProof ?
+                                            `<div style="display:flex; flex-direction:column; gap:8px; margin-top:4px;">
+                                                <div>
+                                                    <span style="background:rgba(255,149,0,0.22); border:none !important; outline:none !important; color:#ff9f0a; font-size:11.5px; font-weight:800; padding:3px 10px; border-radius:100px; display:inline-flex; align-items:center; gap:5px;">
+                                                        <i class="fa-solid fa-hourglass-half"></i> Awaiting Admin Approval
+                                                    </span>
+                                                    <span style="font-size:10px; color:#ffffff; opacity:0.8; display:block; margin-top:4px;">
+                                                        <i class="fa-solid fa-circle-check" style="color:#34c759; margin-right:3px;"></i> Location Verified &bull; Photos submitted
+                                                    </span>
+                                                </div>
+                                                ${photosStripHtml}
+                                            </div>` :
+                                        (!isLocVerified && (isPendingProof || hasProof) ?
+                                            `<div style="display:flex; flex-direction:column; gap:8px; margin-top:4px;">
+                                                <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+                                                    <div>
+                                                        <span style="background:rgba(245,158,11,0.22); border:none !important; outline:none !important; color:#fbbf24; font-size:11px; font-weight:800; padding:3px 10px; border-radius:100px; display:inline-flex; align-items:center; gap:5px;">
+                                                            <i class="fa-solid fa-camera"></i> Photo Ready &bull; ⚠️ GPS Check-in Required
+                                                        </span>
+                                                        <span style="font-size:10px; color:#ffffff; opacity:0.8; display:block; margin-top:4px;">Please check in on-site to verify location</span>
+                                                    </div>
+                                                    <button type="button" class="btn-primary" style="padding:7px 14px; font-size:11.5px; font-weight:800; border-radius:100px; background:linear-gradient(135deg, #00f2fe, #0284c7); border:none !important; outline:none !important; color:#fff; cursor:pointer;" onclick="event.stopPropagation(); window.executeLocationCheckIn('${item.id}', '${destEscaped}', ${dest?.latitude || 'null'}, ${dest?.longitude || 'null'}, this)">
+                                                        <i class="fa-solid fa-location-crosshairs" style="margin-right:4px;"></i> Check In
+                                                    </button>
+                                                </div>
+                                                ${photosStripHtml}
+                                            </div>` :
+                                        (isLocVerified && !hasProof ?
+                                            `<div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:4px; flex-wrap:wrap;">
+                                                <div>
+                                                    <span style="background:rgba(52,199,89,0.18); border:none !important; outline:none !important; color:#34c759; font-size:11px; font-weight:800; padding:3px 10px; border-radius:100px; display:inline-flex; align-items:center; gap:5px;">
+                                                        <i class="fa-solid fa-circle-check"></i> Checked In &bull; ⚠️ Photo Proof Required
+                                                    </span>
+                                                    <span style="font-size:10px; color:#ffffff; opacity:0.8; display:block; margin-top:4px;">Take or upload photos to complete check-in</span>
+                                                </div>
+                                                <button type="button" class="btn-primary" style="padding:7px 14px; font-size:11.5px; font-weight:800; border-radius:100px; background:linear-gradient(135deg, #00f2fe, #0284c7); border:none !important; outline:none !important; color:#fff; cursor:pointer;" onclick="event.stopPropagation(); window.openProofUploadModal('${item.id}', '${destEscaped}')">
+                                                    <i class="fa-solid fa-camera" style="margin-right:4px;"></i> Upload Proof
+                                                </button>
+                                            </div>` :
+                                            `<div style="display:flex; align-items:center; gap:8px; margin-top:6px; flex-wrap:wrap;">
+                                                <button type="button" class="btn-primary" style="padding:8px 14px; font-size:11.5px; font-weight:800; border-radius:100px; background:linear-gradient(135deg, #00f2fe, #0284c7); border:none !important; outline:none !important; color:#fff; cursor:pointer; display:inline-flex; align-items:center; gap:5px;" onclick="event.stopPropagation(); window.executeLocationCheckIn('${item.id}', '${destEscaped}', ${dest?.latitude || 'null'}, ${dest?.longitude || 'null'}, this)">
+                                                    <i class="fa-solid fa-location-crosshairs"></i> Check In
+                                                </button>
+                                                <button type="button" class="btn-primary" style="padding:8px 14px; font-size:11.5px; font-weight:800; border-radius:100px; background:rgba(255,255,255,0.18); border:none !important; outline:none !important; color:#fff; cursor:pointer; display:inline-flex; align-items:center; gap:5px;" onclick="event.stopPropagation(); window.openProofUploadModal('${item.id}', '${destEscaped}')">
+                                                    <i class="fa-solid fa-camera"></i> Upload Proof
+                                                </button>
+                                            </div>`))))))
+                                }
                             </div>
                         </div>`;
                     });
@@ -3200,6 +3262,1125 @@ window.startTrip = function (tripId, btnElement) {
             window.location.href = '?view=trip_map&trip_id=' + encodeURIComponent(tripId) + transportParam + appParam;
         }
     }, 180);
+};
+
+// --- MULTI-PHOTO PROOF, INDEPENDENT LOCATION CHECK-IN & TRIP COMPLETION HANDLERS ---
+window.selectedProofPhotos = [];
+window._currentProofItemId = null;
+window._currentProofSpotName = null;
+
+window.ensureProofUploadModal = function () {
+    let modal = document.getElementById('proof-upload-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'proof-upload-modal';
+        modal.setAttribute('onclick', 'if(event.target===this) window.closeProofUploadModal();');
+        modal.style.cssText = 'display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(10,25,60,0.72); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); z-index:99999; justify-content:center; align-items:center; padding:16px; box-sizing:border-box;';
+        modal.innerHTML = `
+            <div style="background:#ffffff; border:none; outline:none; border-radius:26px; width:100%; max-width:420px; box-shadow:0 20px 50px rgba(0,0,0,0.35); text-align:center; max-height:90vh; overflow:hidden; display:flex; flex-direction:column; box-sizing:border-box;">
+                <div style="flex-shrink:0; background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%); padding:18px 20px; display:flex; justify-content:space-between; align-items:center; border-top-left-radius:26px; border-top-right-radius:26px; box-sizing:border-box;">
+                    <div style="text-align:left;">
+                        <h3 id="proof-spot-title" style="margin:0; color:#ffffff; font-size:18px; font-weight:800; display:flex; align-items:center; gap:8px;">
+                            <i class="fa-solid fa-camera" style="color:#38bdf8; font-size:17px;"></i> Upload Photo Proof
+                        </h3>
+                        <span id="proof-spot-subtitle" style="font-size:12px; color:rgba(255,255,255,0.85); font-weight:600; display:block; margin-top:3px;">Select up to 5 photos</span>
+                    </div>
+                    <button type="button" onclick="window.closeProofUploadModal()"
+                        style="background:rgba(255,255,255,0.18); border:none; outline:none; color:#ffffff; width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; transition:all 0.15s ease;">
+                        <i class="fa-solid fa-xmark" style="font-size:15px;"></i>
+                    </button>
+                </div>
+                <div style="background:#ffffff !important; padding:20px; flex:1; overflow-y:auto; text-align:left; box-sizing:border-box;">
+                    <p style="font-size:13px; color:#475569; margin:0 0 16px 0; line-height:1.5; font-weight:500;">
+                        Take or select selfies and photos at this destination to verify your visit.
+                    </p>
+                    <input type="hidden" id="proof-upload-item-id">
+                    <input type="file" id="proof-upload-input" accept="image/*" multiple style="display:none;" onchange="window.handleProofPhotosSelected(this)">
+                    <div style="display:flex; gap:10px; margin-bottom:16px;">
+                        <button type="button" onclick="window.addProofPhotoFromSource('camera')"
+                            style="flex:1; padding:12px 10px; background:linear-gradient(135deg, #0284c7 0%, #0369a1 100%); border:none; outline:none; border-radius:14px; color:#ffffff; font-weight:800; font-size:13px; display:flex; align-items:center; justify-content:center; gap:7px; cursor:pointer; box-shadow:0 3px 10px rgba(2, 132, 199, 0.28);">
+                            <i class="fa-solid fa-camera" style="font-size:15px;"></i> Take Photo
+                        </button>
+                        <button type="button" onclick="window.addProofPhotoFromSource('gallery')"
+                            style="flex:1; padding:12px 10px; background:#f1f5f9; border:1.5px solid #e2e8f0; outline:none; border-radius:14px; color:#1e3a8a; font-weight:800; font-size:13px; display:flex; align-items:center; justify-content:center; gap:7px; cursor:pointer;">
+                            <i class="fa-solid fa-images" style="color:#0284c7; font-size:15px;"></i> Add from Gallery
+                        </button>
+                    </div>
+                    <div style="margin-bottom:8px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                            <label style="font-size:11.5px; font-weight:800; color:#334155; text-transform:uppercase; letter-spacing:0.5px;">Selected Photos</label>
+                            <span id="proof-count-badge" style="font-size:11.5px; font-weight:800; color:#0284c7; background:#e0f2fe; padding:3px 10px; border-radius:100px;">0 / 5 photos</span>
+                        </div>
+                        <div id="proof-empty-prompt" onclick="window.addProofPhotoFromSource('gallery')"
+                            style="border:2px dashed #94a3b8; border-radius:16px; padding:24px 16px; text-align:center; cursor:pointer; background:#f8fafc; transition:all 0.2s ease;">
+                            <i class="fa-solid fa-cloud-arrow-up" style="font-size:28px; color:#0284c7; margin-bottom:6px; display:block;"></i>
+                            <p style="margin:0; font-size:13px; font-weight:800; color:#1e293b;">Tap to select photos</p>
+                            <p style="margin:4px 0 0 0; font-size:11.5px; color:#64748b; font-weight:500;">You can choose multiple photos</p>
+                        </div>
+                        <div id="proof-thumbnails-grid" style="display:none; grid-template-columns:repeat(3, 1fr); gap:10px;"></div>
+                    </div>
+                </div>
+                <div style="flex-shrink:0; background:#f8fafc; border-top:1px solid #e2e8f0; padding:16px 20px; border-bottom-left-radius:26px; border-bottom-right-radius:26px; box-sizing:border-box;">
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; align-items:center;">
+                        <button type="button" style="width:100%; padding:13px 16px; border-radius:14px; border:1.5px solid #cbd5e1; outline:none; background:#ffffff; color:#475569; font-size:14px; font-weight:800; cursor:pointer;" onclick="window.closeProofUploadModal()">Cancel</button>
+                        <button type="button" id="btn-submit-proof-photos" class="btn-primary" style="width:100%; padding:13px 16px; font-size:14px; font-weight:800; background:linear-gradient(135deg, #10b981 0%, #059669 100%); border:none; outline:none; color:#ffffff; border-radius:14px; cursor:pointer; box-shadow:0 4px 14px rgba(16, 185, 129, 0.35);" onclick="window.submitProofPhotos()">
+                            <i class="fa-solid fa-cloud-arrow-up" style="margin-right:6px;"></i> Submit
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    }
+    return modal;
+};
+
+window.ensureCompleteTripModal = function () {
+    let modal = document.getElementById('complete-trip-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'complete-trip-modal';
+        modal.style.cssText = 'display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.75); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); z-index:999999; justify-content:center; align-items:center;';
+        modal.innerHTML = `
+            <div style="background:linear-gradient(135deg, rgba(30, 58, 138, 0.98) 0%, rgba(63, 125, 183, 0.96) 60%, rgba(2, 132, 199, 0.96) 100%); border:none; outline:none; border-radius:24px; padding:28px 24px; width:90%; max-width:360px; box-shadow:0 16px 40px rgba(10, 25, 60, 0.45); text-align:center;">
+                <i class="fa-solid fa-flag-checkered" style="font-size:32px; color:#34c759; margin-bottom:10px; display:block;"></i>
+                <h3 style="margin:0 0 8px; color:#ffffff; font-size:20px; font-weight:800;">Complete Trip?</h3>
+                <p style="font-size:13px; color:#ffffff; opacity:0.95; margin-bottom:22px; line-height:1.5;">Are you sure you want to mark this trip as completed? It will be moved to your History.</p>
+                <div style="display:flex; gap:10px;">
+                    <button type="button" style="flex:1; padding:13px; border-radius:14px; border:none; outline:none; background:rgba(255,255,255,0.12); color:#ffffff; font-size:13px; font-weight:700; cursor:pointer;" onclick="window.closeCompleteTripModal()">Cancel</button>
+                    <button type="button" id="btn-confirm-complete-trip" style="flex:1; padding:13px; font-size:14px; font-weight:800; background:linear-gradient(135deg, #10b981 0%, #059669 100%); border:none; outline:none; color:#ffffff; border-radius:14px; box-shadow:none; cursor:pointer;" onclick="window.executeConfirmCompleteTrip()">Complete</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    }
+    return modal;
+};
+
+window.openProofUploadModal = function (itemId, spotName = '') {
+    if (typeof window.isGuestUser === 'function' && window.isGuestUser()) {
+        if (typeof window.promptGuestLogin === 'function') {
+            window.promptGuestLogin('photo');
+        } else if (typeof showToast === 'function') {
+            showToast('Please sign in to upload photo proofs.');
+        }
+        return;
+    }
+
+    if (typeof window.ensureProofUploadModal === 'function') {
+        window.ensureProofUploadModal();
+    }
+    document.body.classList.add('modal-blurred');
+    window._currentProofItemId = itemId;
+    window._currentProofSpotName = spotName;
+    window.selectedProofPhotos = [];
+
+    const titleEl = document.getElementById('proof-spot-title');
+    if (titleEl) {
+        titleEl.innerHTML = `<i class="fa-solid fa-camera" style="color:#38bdf8; font-size:17px;"></i> ${spotName || 'Upload Photo Proof'}`;
+    }
+
+    const input = document.getElementById('proof-upload-input');
+    if (input) input.value = '';
+
+    window.renderProofThumbnailsGrid();
+
+    const modal = document.getElementById('proof-upload-modal');
+    if (modal) modal.style.display = 'flex';
+};
+
+window.closeProofUploadModal = function () {
+    document.body.classList.remove('modal-blurred');
+    const modal = document.getElementById('proof-upload-modal');
+    if (modal) modal.style.display = 'none';
+    window.selectedProofPhotos = [];
+    window._currentProofItemId = null;
+    window._currentProofSpotName = null;
+
+    const btn = document.getElementById('btn-submit-proof-photos');
+    if (btn) {
+        btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up" style="margin-right:6px;"></i> Submit';
+        btn.disabled = false;
+    }
+};
+
+// Backwards compatibility aliases
+window.openCheckinModal = window.openProofUploadModal;
+window.closeCheckinModal = window.closeProofUploadModal;
+
+window.compressImageFile = async function (fileOrBlob, maxDimension = 1280, quality = 0.8) {
+    return new Promise((resolve) => {
+        if (!fileOrBlob || !fileOrBlob.type || !fileOrBlob.type.startsWith('image/')) {
+            return resolve(fileOrBlob);
+        }
+        const img = new Image();
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            img.onload = () => {
+                let width = img.width;
+                let height = img.height;
+
+                if (width > maxDimension || height > maxDimension) {
+                    if (width > height) {
+                        height = Math.round((height * maxDimension) / width);
+                        width = maxDimension;
+                    } else {
+                        width = Math.round((width * maxDimension) / height);
+                        height = maxDimension;
+                    }
+                }
+
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+
+                canvas.toBlob((blob) => {
+                    if (!blob) {
+                        resolve(fileOrBlob);
+                        return;
+                    }
+                    const name = (fileOrBlob.name || 'proof_' + Date.now() + '.jpg').replace(/\.[^/.]+$/, "") + ".jpg";
+                    const compressedFile = new File([blob], name, { type: 'image/jpeg', lastModified: Date.now() });
+                    resolve(compressedFile);
+                }, 'image/jpeg', quality);
+            };
+            img.onerror = () => resolve(fileOrBlob);
+            img.src = e.target.result;
+        };
+        reader.onerror = () => resolve(fileOrBlob);
+        reader.readAsDataURL(fileOrBlob);
+    });
+};
+
+window.renderProofThumbnailsGrid = function () {
+    const emptyPrompt = document.getElementById('proof-empty-prompt');
+    const grid = document.getElementById('proof-thumbnails-grid');
+    const countBadge = document.getElementById('proof-count-badge');
+    const submitBtn = document.getElementById('btn-submit-proof-photos');
+
+    const total = window.selectedProofPhotos.length;
+    if (countBadge) {
+        countBadge.textContent = `${total} / 5 photos`;
+    }
+
+    if (submitBtn) {
+        submitBtn.innerHTML = `<i class="fa-solid fa-cloud-arrow-up" style="margin-right:6px;"></i> Submit ${total > 0 ? `(${total})` : ''}`;
+    }
+
+    if (total === 0) {
+        if (emptyPrompt) emptyPrompt.style.display = 'block';
+        if (grid) {
+            grid.style.display = 'none';
+            grid.innerHTML = '';
+        }
+        return;
+    }
+
+    if (emptyPrompt) emptyPrompt.style.display = 'none';
+    if (grid) {
+        grid.style.display = 'grid';
+        let html = '';
+
+        window.selectedProofPhotos.forEach((item, index) => {
+            html += `
+                <div style="position:relative; aspect-ratio:1/1; border-radius:14px; overflow:hidden; background:#0f172a; box-shadow:0 3px 8px rgba(0,0,0,0.15); border:1.5px solid #e2e8f0;">
+                    <img src="${item.dataUrl}" alt="Photo ${index + 1}" style="width:100%; height:100%; object-fit:cover; display:block;">
+                    <span style="position:absolute; bottom:4px; left:4px; background:rgba(0,0,0,0.7); color:#fff; font-size:9px; font-weight:800; padding:2px 6px; border-radius:6px;">
+                        ${index + 1}
+                    </span>
+                    <button type="button" onclick="event.stopPropagation(); window.removeProofPhotoAtIndex(${index})" title="Remove Photo"
+                        style="position:absolute; top:4px; right:4px; width:26px; height:26px; border-radius:50%; background:rgba(239,68,68,0.95); color:#fff; border:none; outline:none; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.25);">
+                        <i class="fa-solid fa-xmark" style="font-size:12px;"></i>
+                    </button>
+                </div>
+            `;
+        });
+
+        if (total < 5) {
+            html += `
+                <div onclick="window.addProofPhotoFromSource('gallery')"
+                    style="aspect-ratio:1/1; border:2px dashed #94a3b8; border-radius:14px; display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer; background:#f8fafc; transition:all 0.2s ease;">
+                    <i class="fa-solid fa-plus" style="font-size:20px; color:#0284c7; margin-bottom:4px;"></i>
+                    <span style="font-size:11px; font-weight:700; color:#475569;">Add Photo</span>
+                </div>
+            `;
+        }
+
+        grid.innerHTML = html;
+    }
+};
+
+window.removeProofPhotoAtIndex = function (index) {
+    if (index >= 0 && index < window.selectedProofPhotos.length) {
+        window.selectedProofPhotos.splice(index, 1);
+        window.renderProofThumbnailsGrid();
+    }
+};
+
+window.addProofPhotoFromSource = async function (source) {
+    if (window.selectedProofPhotos.length >= 5) {
+        if (typeof showToast === 'function') showToast('Maximum 5 photos allowed.');
+        return;
+    }
+
+    const isCapacitorNative = Boolean(
+        window.Capacitor &&
+        typeof window.Capacitor.isNativePlatform === 'function' &&
+        window.Capacitor.isNativePlatform() &&
+        window.Capacitor.Plugins &&
+        window.Capacitor.Plugins.Camera
+    );
+
+    if (isCapacitorNative) {
+        try {
+            const cameraPlugin = window.Capacitor.Plugins.Camera;
+            const image = await cameraPlugin.getPhoto({
+                quality: 80,
+                width: 1280,
+                height: 1280,
+                allowEditing: false,
+                resultType: 'dataUrl',
+                source: source === 'camera' ? 'CAMERA' : 'PHOTOS'
+            });
+
+            if (image && image.dataUrl) {
+                const res = await fetch(image.dataUrl);
+                const blob = await res.blob();
+                const rawFile = new File([blob], 'proof_' + Date.now() + '.jpg', { type: blob.type || 'image/jpeg' });
+                const compressed = await window.compressImageFile(rawFile, 1280, 0.8);
+                window.selectedProofPhotos.push({
+                    file: compressed,
+                    dataUrl: image.dataUrl
+                });
+                window.renderProofThumbnailsGrid();
+            }
+        } catch (err) {
+            console.warn('Capacitor Camera cancel or error:', err);
+        }
+    } else {
+        const input = document.getElementById('proof-upload-input');
+        if (!input) return;
+
+        if (source === 'camera') {
+            input.setAttribute('capture', 'environment');
+            input.removeAttribute('multiple');
+        } else {
+            input.removeAttribute('capture');
+            input.setAttribute('multiple', 'multiple');
+        }
+        input.click();
+    }
+};
+
+window.handleProofPhotosSelected = async function (input) {
+    if (!input.files || input.files.length === 0) return;
+
+    const remainingSlots = 5 - window.selectedProofPhotos.length;
+    if (remainingSlots <= 0) {
+        if (typeof showToast === 'function') showToast('Maximum 5 photos allowed.');
+        return;
+    }
+
+    const filesToProcess = Array.from(input.files).slice(0, remainingSlots);
+
+    for (const file of filesToProcess) {
+        try {
+            const compressed = await window.compressImageFile(file, 1280, 0.8);
+            const dataUrl = await new Promise((res) => {
+                const r = new FileReader();
+                r.onload = (e) => res(e.target.result);
+                r.readAsDataURL(compressed);
+            });
+            window.selectedProofPhotos.push({
+                file: compressed,
+                dataUrl: dataUrl
+            });
+        } catch (e) {
+            console.warn('Failed to process file:', e);
+        }
+    }
+
+    input.value = '';
+    window.renderProofThumbnailsGrid();
+};
+
+window.applyPhotoProofUpdateLocally = function (itemId, proofUrls, proofStatus = 'pending') {
+    if (!itemId) return;
+    const targetIdStr = String(itemId);
+    const urls = Array.isArray(proofUrls) ? proofUrls : (proofUrls ? [proofUrls] : []);
+    if (urls.length === 0) return;
+
+    const parentTrip = (window._cachedSavedTrips || []).find(t => (t.items || []).some(i => String(i.id) === targetIdStr));
+    const targetItem = parentTrip ? (parentTrip.items || []).find(i => String(i.id) === targetIdStr) : null;
+    const spotId = targetItem ? (targetItem.tourist_spot_id || targetItem.destination_id || (targetItem.destination ? targetItem.destination.id : null)) : null;
+
+    if (typeof window.savePersistentItemState === 'function') {
+        window.savePersistentItemState(itemId, {
+            proof_image: urls[0],
+            proof_images: urls,
+            proof_status: proofStatus,
+            spot_id: spotId
+        });
+    }
+
+    const updateItemInTrips = (tripsList) => {
+        if (!Array.isArray(tripsList)) return tripsList;
+        return tripsList.map(trip => {
+            if (!trip || !Array.isArray(trip.items)) return trip;
+            const updatedItems = trip.items.map(it => {
+                if (!it) return it;
+                const itIdStr = String(it.id || '');
+                if (itIdStr === targetIdStr || (targetIdStr && itIdStr && targetIdStr.includes(itIdStr))) {
+                    return {
+                        ...it,
+                        proof_image: urls[0],
+                        proof_images: urls,
+                        proof_status: proofStatus,
+                        rejection_reason: null
+                    };
+                }
+                return it;
+            });
+            return {
+                ...trip,
+                items: updatedItems
+            };
+        });
+    };
+
+    if (Array.isArray(window._cachedSavedTrips)) {
+        window._cachedSavedTrips = updateItemInTrips(window._cachedSavedTrips);
+        if (typeof window.renderSavedTrips === 'function') {
+            window.renderSavedTrips(window._cachedSavedTrips);
+        }
+    }
+
+    ['intan_elyu_offline_saved_trips_backup', 'intan_elyu_offline_saved_trips', 'intan_elyu_saved_trips'].forEach(k => {
+        try {
+            const raw = localStorage.getItem(k);
+            if (raw) {
+                const parsed = JSON.parse(raw);
+                if (Array.isArray(parsed)) {
+                    localStorage.setItem(k, JSON.stringify(updateItemInTrips(parsed)));
+                } else if (parsed && Array.isArray(parsed.itineraries)) {
+                    parsed.itineraries = updateItemInTrips(parsed.itineraries);
+                    localStorage.setItem(k, JSON.stringify(parsed));
+                } else if (parsed && Array.isArray(parsed.data)) {
+                    parsed.data = updateItemInTrips(parsed.data);
+                    localStorage.setItem(k, JSON.stringify(parsed));
+                }
+            }
+        } catch (e) { }
+    });
+
+    try {
+        for (let i = 0; i < localStorage.length; i++) {
+            const k = localStorage.key(i);
+            if (k && (k.startsWith('saved_trips_') || k.startsWith('dashboard_trips_') || k.startsWith('dashboard_saved_trips_'))) {
+                try {
+                    const raw = localStorage.getItem(k);
+                    if (raw) {
+                        const parsed = JSON.parse(raw);
+                        if (Array.isArray(parsed)) {
+                            localStorage.setItem(k, JSON.stringify(updateItemInTrips(parsed)));
+                        } else if (parsed && Array.isArray(parsed.itineraries)) {
+                            parsed.itineraries = updateItemInTrips(parsed.itineraries);
+                            localStorage.setItem(k, JSON.stringify(parsed));
+                        } else if (parsed && Array.isArray(parsed.data)) {
+                            parsed.data = updateItemInTrips(parsed.data);
+                            localStorage.setItem(k, JSON.stringify(parsed));
+                        }
+                    }
+                } catch (e) { }
+            }
+        }
+    } catch (e) { }
+};
+
+window.applyLocationCheckinLocally = function (itemId) {
+    if (!itemId) return;
+    const targetIdStr = String(itemId);
+    const nowIso = new Date().toISOString();
+
+    if (typeof window.savePersistentItemState === 'function') {
+        window.savePersistentItemState(itemId, {
+            is_location_verified: true,
+            visited_at: nowIso
+        });
+    }
+
+    const updateItemInTrips = (tripsList) => {
+        if (!Array.isArray(tripsList)) return tripsList;
+        return tripsList.map(trip => {
+            if (!trip || !Array.isArray(trip.items)) return trip;
+            const updatedItems = trip.items.map(it => {
+                if (!it) return it;
+                const itIdStr = String(it.id || '');
+                if (itIdStr === targetIdStr || (targetIdStr && itIdStr && targetIdStr.includes(itIdStr))) {
+                    return {
+                        ...it,
+                        is_location_verified: true,
+                        visited_at: it.visited_at || nowIso
+                    };
+                }
+                return it;
+            });
+            return {
+                ...trip,
+                items: updatedItems
+            };
+        });
+    };
+
+    if (Array.isArray(window._cachedSavedTrips)) {
+        window._cachedSavedTrips = updateItemInTrips(window._cachedSavedTrips);
+        if (typeof window.renderSavedTrips === 'function') {
+            window.renderSavedTrips(window._cachedSavedTrips);
+        }
+    }
+
+    ['intan_elyu_offline_saved_trips_backup', 'intan_elyu_offline_saved_trips', 'intan_elyu_saved_trips'].forEach(k => {
+        try {
+            const raw = localStorage.getItem(k);
+            if (raw) {
+                const parsed = JSON.parse(raw);
+                if (Array.isArray(parsed)) {
+                    localStorage.setItem(k, JSON.stringify(updateItemInTrips(parsed)));
+                } else if (parsed && Array.isArray(parsed.itineraries)) {
+                    parsed.itineraries = updateItemInTrips(parsed.itineraries);
+                    localStorage.setItem(k, JSON.stringify(parsed));
+                } else if (parsed && Array.isArray(parsed.data)) {
+                    parsed.data = updateItemInTrips(parsed.data);
+                    localStorage.setItem(k, JSON.stringify(parsed));
+                }
+            }
+        } catch (e) { }
+    });
+};
+
+window.submitProofPhotos = async function () {
+    if (typeof window.isGuestUser === 'function' && window.isGuestUser()) {
+        window.closeProofUploadModal();
+        if (typeof window.promptGuestLogin === 'function') window.promptGuestLogin('photo');
+        return;
+    }
+
+    const itemId = window._currentProofItemId;
+    if (!itemId) return;
+
+    if (window.selectedProofPhotos.length === 0) {
+        if (typeof showToast === 'function') showToast('Please select or capture at least one photo proof.');
+        return;
+    }
+
+    const btn = document.getElementById('btn-submit-proof-photos');
+    if (btn) {
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="margin-right:6px;"></i> Submitting...';
+        btn.disabled = true;
+    }
+
+    const previewUrls = window.selectedProofPhotos.map(p => p.dataUrl).filter(Boolean);
+    const firstFile = window.selectedProofPhotos[0].file;
+    const spotName = window._currentProofSpotName || 'Destination';
+
+    window.applyPhotoProofUpdateLocally(itemId, previewUrls, 'pending');
+
+    const parentTrip = (window._cachedSavedTrips || []).find(t => (t.items || []).some(i => String(i.id) === String(itemId)));
+    const targetItem = parentTrip ? (parentTrip.items || []).find(i => String(i.id) === String(itemId)) : null;
+    const spotId = targetItem ? (targetItem.tourist_spot_id || targetItem.destination_id || (targetItem.destination ? targetItem.destination.id : null)) : null;
+    const tripId = parentTrip ? parentTrip.id : null;
+
+    const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+    const isOfflineItem = !itemId || 
+        String(itemId).startsWith('offline_') || 
+        !navigator.onLine || 
+        window.isAppOnline === false ||
+        !token ||
+        token === 'guest_token' ||
+        token.startsWith('guest_') ||
+        token.startsWith('offline_');
+
+    if (isOfflineItem) {
+        if (window.OfflineCheckinManager) {
+            await window.OfflineCheckinManager.queueOfflineCheckin({
+                type: 'itinerary',
+                itemId: itemId,
+                spotId: spotId,
+                itineraryId: tripId,
+                spotName: spotName,
+                lat: window.myLat || 16.6159,
+                lng: window.myLng || 120.3209,
+                image: firstFile,
+                previewUrl: previewUrls[0] || null,
+                capturedAt: new Date().toISOString()
+            });
+        }
+        window.closeProofUploadModal();
+        if (typeof showToast === 'function') {
+            showToast('📍 Photo proof saved on device! Auto-syncs when online.', 'success');
+        }
+        if (window.confetti) {
+            try { window.confetti({ particleCount: 70, spread: 60, origin: { y: 0.7 } }); } catch (e) { }
+        }
+        if (Array.isArray(window._cachedSavedTrips) && typeof window.renderSavedTrips === 'function') {
+            window.renderSavedTrips(window._cachedSavedTrips);
+        }
+        return;
+    }
+
+    const formData = new FormData();
+    window.selectedProofPhotos.forEach((item, idx) => {
+        formData.append('images[]', item.file, item.file.name || `proof_${Date.now()}_${idx}.jpg`);
+    });
+    formData.append('image', firstFile);
+
+    const fallbackOffline = async (reason) => {
+        if (window.OfflineCheckinManager) {
+            await window.OfflineCheckinManager.queueOfflineCheckin({
+                type: 'itinerary',
+                itemId: itemId,
+                spotId: spotId,
+                itineraryId: tripId,
+                spotName: spotName,
+                lat: window.myLat || 16.6159,
+                lng: window.myLng || 120.3209,
+                image: firstFile,
+                previewUrl: previewUrls[0] || null,
+                capturedAt: new Date().toISOString()
+            });
+            window.closeProofUploadModal();
+            if (typeof showToast === 'function') {
+                showToast('📍 Saved Offline! Photo proof saved on device. Auto-syncs when online.', 'success');
+            }
+            if (Array.isArray(window._cachedSavedTrips) && typeof window.renderSavedTrips === 'function') {
+                window.renderSavedTrips(window._cachedSavedTrips);
+            }
+        } else {
+            if (typeof showToast === 'function') showToast(reason || 'Upload failed. Please try again.');
+            if (btn) {
+                btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up" style="margin-right:6px;"></i> Submit';
+                btn.disabled = false;
+            }
+        }
+    };
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 20000);
+
+    try {
+        const activeBackend = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
+        const response = await fetch(activeBackend + '/api/tourist/itineraries/items/' + itemId + '/proof', {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Authorization': 'Bearer ' + token,
+                'ngrok-skip-browser-warning': 'true'
+            },
+            body: formData,
+            signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+            window.closeProofUploadModal();
+            const permanentUrls = data.proof_images || (data.proof_image ? [data.proof_image] : previewUrls);
+            window.applyPhotoProofUpdateLocally(itemId, permanentUrls, data.proof_status || 'pending');
+
+            if (typeof showToast === 'function') {
+                showToast(data.message || 'Photo proof submitted! Awaiting for approval.', 'success');
+            }
+            if (window.confetti) {
+                try { window.confetti({ particleCount: 80, spread: 60, origin: { y: 0.7 } }); } catch (e) { }
+            }
+        } else {
+            console.warn('Server proof upload failed:', data);
+            await fallbackOffline(data.message || 'Server upload failed; saved offline.');
+        }
+    } catch (err) {
+        clearTimeout(timeoutId);
+        console.warn('Network timeout or error during proof upload, falling back offline:', err);
+        await fallbackOffline('Network timeout during upload.');
+    }
+};
+
+window.executeLocationCheckIn = function (itemId, spotName = '', spotLat = null, spotLng = null, btnEl = null) {
+    if (!itemId) return;
+
+    const originalHtml = btnEl ? btnEl.innerHTML : '';
+
+    if (typeof window.isGuestUser === 'function' && window.isGuestUser()) {
+        if (typeof window.promptGuestLogin === 'function') window.promptGuestLogin('check-in');
+        return;
+    }
+
+    if (btnEl) {
+        btnEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Checking in...';
+        btnEl.disabled = true;
+    }
+
+    const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+    const isOfflineItem = !itemId || 
+        String(itemId).startsWith('offline_') || 
+        !navigator.onLine || 
+        window.isAppOnline === false ||
+        !token ||
+        token === 'guest_token' ||
+        token.startsWith('guest_') ||
+        token.startsWith('offline_');
+
+    const getHaversineDist = (lat1, lon1, lat2, lon2) => {
+        const R = 6371e3;
+        const phi1 = lat1 * Math.PI / 180;
+        const phi2 = lat2 * Math.PI / 180;
+        const dPhi = (lat2 - lat1) * Math.PI / 180;
+        const dLam = (lon2 - lon1) * Math.PI / 180;
+        const a = Math.sin(dPhi / 2) * Math.sin(dPhi / 2) + Math.cos(phi1) * Math.cos(phi2) * Math.sin(dLam / 2) * Math.sin(dLam / 2);
+        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    };
+
+    const parentTrip = (window._cachedSavedTrips || []).find(t => (t.items || []).some(i => String(i.id) === String(itemId)));
+    const targetItem = parentTrip ? (parentTrip.items || []).find(i => String(i.id) === String(itemId)) : null;
+    const spotId = targetItem ? (targetItem.tourist_spot_id || targetItem.destination_id || (targetItem.destination ? targetItem.destination.id : null)) : null;
+    const tripId = parentTrip ? parentTrip.id : null;
+    const tPax = parentTrip ? (parentTrip.total_pax || 1) : 1;
+    const cMales = parentTrip ? (parentTrip.companion_males || 0) : 0;
+    const cFemales = parentTrip ? (parentTrip.companion_females || 0) : 0;
+
+    let destLat = (spotLat !== null && !isNaN(spotLat)) ? parseFloat(spotLat) : null;
+    let destLng = (spotLng !== null && !isNaN(spotLng)) ? parseFloat(spotLng) : null;
+    if ((destLat === null || destLng === null) && targetItem && targetItem.destination) {
+        if (targetItem.destination.latitude != null) destLat = parseFloat(targetItem.destination.latitude);
+        if (targetItem.destination.longitude != null) destLng = parseFloat(targetItem.destination.longitude);
+    }
+    if ((destLat === null || destLng === null) && spotId && typeof window.getTouristSpotById === 'function') {
+        const sp = window.getTouristSpotById(spotId);
+        if (sp) {
+            if (sp.latitude != null) destLat = parseFloat(sp.latitude);
+            if (sp.longitude != null) destLng = parseFloat(sp.longitude);
+        }
+    }
+
+    const doSubmitCheckin = async (lat, lng) => {
+        if (destLat !== null && destLng !== null && !isNaN(destLat) && !isNaN(destLng)) {
+            const dist = getHaversineDist(lat, lng, destLat, destLng);
+            if (dist > 200) {
+                const distM = Math.round(dist);
+                const distKm = (dist / 1000).toFixed(1);
+                const displayDist = dist >= 1000 ? `${distKm} km` : `${distM} meters`;
+                if (typeof showToast === 'function') {
+                    showToast(`⚠️ You are ${displayDist} away from ${spotName || 'the tourist site'}. You must be within 200m of the tourist site to check in! 📍`, 'warning', 4500);
+                }
+                if (btnEl) {
+                    btnEl.innerHTML = originalHtml;
+                    btnEl.disabled = false;
+                }
+                return;
+            }
+        }
+
+        if (isOfflineItem) {
+            window.applyLocationCheckinLocally(itemId);
+
+            if (window.OfflineCheckinManager) {
+                await window.OfflineCheckinManager.queueOfflineCheckin({
+                    type: 'itinerary',
+                    itemId: itemId,
+                    spotId: spotId,
+                    itineraryId: tripId,
+                    spotName: spotName || 'Destination',
+                    lat: lat,
+                    lng: lng,
+                    total_pax: tPax,
+                    companion_males: cMales,
+                    companion_females: cFemales,
+                    capturedAt: new Date().toISOString()
+                });
+            }
+            if (typeof showToast === 'function') {
+                showToast(`📍 Checked in party of ${tPax} offline at ${spotName}! Auto-syncs when online.`, 'success');
+            }
+            if (window.confetti) {
+                try { window.confetti({ particleCount: 70, spread: 60, origin: { y: 0.7 } }); } catch (e) { }
+            }
+            if (btnEl) {
+                btnEl.innerHTML = originalHtml;
+                btnEl.disabled = false;
+            }
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('lat', lat);
+        formData.append('lng', lng);
+        formData.append('total_pax', tPax);
+        formData.append('companion_males', cMales);
+        formData.append('companion_females', cFemales);
+        formData.append('captured_at', new Date().toISOString());
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 12000);
+
+        try {
+            const activeBackend = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
+            const response = await fetch(activeBackend + '/api/tourist/itineraries/items/' + itemId + '/checkin', {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Authorization': 'Bearer ' + token,
+                    'ngrok-skip-browser-warning': 'true'
+                },
+                body: formData,
+                signal: controller.signal
+            });
+            clearTimeout(timeoutId);
+            const data = await response.json();
+
+            if (response.ok && (data.success || data.is_location_verified)) {
+                window.applyLocationCheckinLocally(itemId);
+                if (typeof showToast === 'function') {
+                    showToast(data.message || `📍 Location verified at ${spotName}! Photo proof is required to earn points.`, 'success');
+                }
+                if (window.confetti) {
+                    try { window.confetti({ particleCount: 70, spread: 60, origin: { y: 0.7 } }); } catch (e) { }
+                }
+            } else {
+                if (typeof showToast === 'function') {
+                    showToast(data.message || 'Check-in failed. Please ensure you are within 200m of the destination.', 'error');
+                }
+            }
+            if (btnEl) {
+                btnEl.innerHTML = originalHtml;
+                btnEl.disabled = false;
+            }
+        } catch (err) {
+            clearTimeout(timeoutId);
+            console.warn('Location check-in error, queuing offline:', err);
+            if (window.OfflineCheckinManager) {
+                window.applyLocationCheckinLocally(itemId);
+                await window.OfflineCheckinManager.queueOfflineCheckin({
+                    type: 'itinerary',
+                    itemId: itemId,
+                    spotId: spotId,
+                    itineraryId: tripId,
+                    spotName: spotName || 'Destination',
+                    lat: lat,
+                    lng: lng,
+                    capturedAt: new Date().toISOString()
+                });
+                if (typeof showToast === 'function') {
+                    showToast(`📍 Checked in offline at ${spotName}! Auto-syncs when online.`, 'success');
+                }
+            } else {
+                if (typeof showToast === 'function') showToast('Network error during check-in. Please try again.');
+            }
+            if (btnEl) {
+                btnEl.innerHTML = originalHtml;
+                btnEl.disabled = false;
+            }
+        }
+    };
+
+    const handleGpsFailure = (err) => {
+        console.warn('GPS location acquisition error:', err);
+        if (typeof showToast === 'function') {
+            showToast('📍 Unable to acquire accurate GPS location. Please turn on Location/GPS and try again.', 'error');
+        }
+        if (btnEl) {
+            btnEl.innerHTML = originalHtml;
+            btnEl.disabled = false;
+        }
+    };
+
+    const options = { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 };
+
+    if (typeof window.requestPreciseLocation === 'function') {
+        window.requestPreciseLocation(true).then(loc => {
+            if (loc && loc.lat && loc.lng) doSubmitCheckin(loc.lat, loc.lng);
+            else handleGpsFailure("No coords");
+        }).catch(() => {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    pos => doSubmitCheckin(pos.coords.latitude, pos.coords.longitude),
+                    handleGpsFailure,
+                    options
+                );
+            } else {
+                handleGpsFailure("Geolocation unsupported");
+            }
+        });
+    } else if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            pos => doSubmitCheckin(pos.coords.latitude, pos.coords.longitude),
+            handleGpsFailure,
+            options
+        );
+    } else {
+        handleGpsFailure("Geolocation unsupported");
+    }
+};
+
+window.markTripCompleted = function (id) {
+    window._pendingCompleteTripId = id;
+    if (typeof window.ensureCompleteTripModal === 'function') {
+        window.ensureCompleteTripModal();
+    }
+    const modal = document.getElementById('complete-trip-modal');
+    if (modal) {
+        modal.style.display = 'flex';
+    }
+};
+
+window.closeCompleteTripModal = function () {
+    const modal = document.getElementById('complete-trip-modal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+};
+
+window.executeConfirmCompleteTrip = async function () {
+    const id = window._pendingCompleteTripId;
+    if (!id) return;
+
+    window.closeCompleteTripModal();
+    const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+
+    if (typeof window.markTripAsCompletedLocally === 'function') {
+        window.markTripAsCompletedLocally(id, 0, null);
+    }
+
+    const tripCard = document.querySelector(`.trip-swipe-container[data-trip-id="${id}"]`);
+    if (tripCard) {
+        tripCard.style.transition = 'opacity 0.3s ease, transform 0.3s ease, max-height 0.4s ease, margin 0.4s ease';
+        tripCard.style.opacity = '0';
+        tripCard.style.transform = 'translateY(-10px) scale(0.95)';
+        setTimeout(() => {
+            tripCard.remove();
+            const list = document.getElementById('saved-trips-list');
+            if (list && list.children.length === 0) {
+                list.innerHTML = '<p style="text-align:center; color:#ffffff; margin-top: 20px;">No active trips found.</p>';
+            }
+        }, 300);
+    }
+
+    let localVisitedItems = [];
+    try {
+        if (Array.isArray(window._cachedSavedTrips)) {
+            const found = window._cachedSavedTrips.find(t => t && (String(t.id) === String(id) || String(t.local_id) === String(id)));
+            if (found && Array.isArray(found.items)) {
+                localVisitedItems = found.items;
+            }
+        }
+        if (localVisitedItems.length === 0) {
+            const backupRaw = localStorage.getItem('intan_elyu_offline_saved_trips_backup') || localStorage.getItem('intan_elyu_saved_trips');
+            if (backupRaw) {
+                const parsed = JSON.parse(backupRaw);
+                const itins = Array.isArray(parsed) ? parsed : (parsed.itineraries || parsed.data || []);
+                const found = itins.find(t => t && (String(t.id) === String(id) || String(t.local_id) === String(id)));
+                if (found && Array.isArray(found.items)) {
+                    localVisitedItems = found.items;
+                }
+            }
+        }
+    } catch (e) {
+        console.warn('Could not extract local trip items:', e);
+    }
+
+    if (!navigator.onLine || window.isAppOnline === false) {
+        if (window.OfflineCompletedTripsManager) {
+            window.OfflineCompletedTripsManager.queueCompletion(id);
+        }
+        if (typeof showToast === 'function') {
+            showToast("🎉 Trip completed! Please review your destinations to earn points.", "success", 5000);
+        }
+        if (window.confetti) {
+            window.confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+        }
+        if (token) {
+            const tokenKey = token.substring(0, 10);
+            localStorage.removeItem('saved_trips_' + tokenKey);
+            localStorage.removeItem('dashboard_trips_' + tokenKey);
+            localStorage.removeItem('dashboard_saved_trips_' + tokenKey);
+        }
+        if (typeof window.fetchSavedTrips === 'function') window.fetchSavedTrips(true);
+        if (typeof window.showTripCompletionReviewModal === 'function') {
+            window.showTripCompletionReviewModal(localVisitedItems);
+        }
+        return;
+    }
+
+    try {
+        const bUrl = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
+        const response = await fetch(bUrl + '/api/tourist/itineraries/' + id + '/complete', {
+            method: 'PATCH',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'ngrok-skip-browser-warning': 'true',
+                'Authorization': 'Bearer ' + token
+            }
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+            if (typeof showToast === 'function') showToast(data.message || "Trip completed! Please review your destinations to earn points.");
+            if (window.confetti) {
+                window.confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+            }
+
+            if (token) {
+                const tokenKey = token.substring(0, 10);
+                localStorage.removeItem('saved_trips_' + tokenKey);
+                localStorage.removeItem('dashboard_trips_' + tokenKey);
+                localStorage.removeItem('dashboard_saved_trips_' + tokenKey);
+            }
+            if (typeof window.fetchSavedTrips === 'function') window.fetchSavedTrips(true);
+
+            let visitedItems = data.visited_items || data.visited_spots || [];
+            if (!visitedItems || visitedItems.length === 0) {
+                visitedItems = data.itinerary?.items || data.items || localVisitedItems;
+            }
+            if (typeof window.showTripCompletionReviewModal === 'function') {
+                window.showTripCompletionReviewModal(visitedItems);
+            }
+        } else {
+            if (typeof showToast === 'function') showToast(data.message || "Failed to complete trip.");
+        }
+    } catch (error) {
+        console.error("Error completing trip, queuing offline:", error);
+        if (window.OfflineCompletedTripsManager) {
+            window.OfflineCompletedTripsManager.queueCompletion(id);
+            if (typeof showToast === 'function') {
+                showToast("🎉 Trip completed! Please review your destinations to earn points.", "success", 5000);
+            }
+            if (window.confetti) {
+                window.confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+            }
+            if (token) {
+                const tokenKey = token.substring(0, 10);
+                localStorage.removeItem('saved_trips_' + tokenKey);
+                localStorage.removeItem('dashboard_trips_' + tokenKey);
+                localStorage.removeItem('dashboard_saved_trips_' + tokenKey);
+            }
+            if (typeof window.fetchSavedTrips === 'function') window.fetchSavedTrips(true);
+            if (typeof window.showTripCompletionReviewModal === 'function') {
+                window.showTripCompletionReviewModal(localVisitedItems);
+            }
+        } else {
+            if (typeof showToast === 'function') showToast("Could not complete trip. Please check your connection.");
+        }
+    }
+};
+
+window.showTripCompletionReviewModal = function (visitedItems) {
+    const existing = document.getElementById('trip-completion-review-modal');
+    if (existing) existing.remove();
+
+    if (!Array.isArray(visitedItems) || visitedItems.length === 0) {
+        return;
+    }
+
+    window.userReviewedSpotIds = window.userReviewedSpotIds || new Set();
+
+    let destListHtml = '';
+    visitedItems.forEach((item, idx) => {
+        if (!item) return;
+        const spotId = item.tourist_spot_id || item.destination_id || (item.destination ? item.destination.id : item.id);
+        if (!spotId) return;
+
+        const destName = item.destination_name || (item.destination ? item.destination.name : (item.name || item.spot_name || 'Tourist Destination'));
+        const sClass = item.classification_status || (item.destination ? item.destination.classification_status : (item.classification || 'EXIST'));
+        const classMeta = (typeof window.getRewardPointsForClassification === 'function')
+            ? window.getRewardPointsForClassification(sClass)
+            : { label: 'Existing', points: 50, color: '#0284c7' };
+
+        const isReviewed = window.userReviewedSpotIds && window.userReviewedSpotIds.has(Number(spotId));
+
+        destListHtml += `
+        <div style="display:flex; align-items:center; gap:10px; padding:10px 12px; background:rgba(255,255,255,0.08); border:none; outline:none; border-radius:14px; margin-bottom:8px;">
+            <div style="width:32px; height:32px; border-radius:10px; background:linear-gradient(135deg, #38bdf8, #2563eb); display:flex; align-items:center; justify-content:center; flex-shrink:0; font-weight:900; font-size:13px; color:#fff; border:none; outline:none;">${idx + 1}</div>
+            <div style="flex:1; min-width:0;">
+                <div style="font-size:14px; font-weight:700; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${destName}</div>
+                <div style="font-size:11px; color:rgba(255,255,255,0.85); font-weight:600;">
+                    ${isReviewed 
+                        ? '<span style="color:#10b981;"><i class="fa-solid fa-check" style="font-size:10px; margin-right:3px;"></i> Reviewed & Points Claimed</span>' 
+                        : `Review to earn <strong style="color:#fbbf24;">+${classMeta.points} PTS</strong>`}
+                </div>
+            </div>
+            <button type="button" 
+                    data-spot-id="${spotId}" 
+                    data-spot-classification="${sClass}"
+                    onclick="window.startReviewFromCompletion('${spotId}', this)" 
+                    style="padding:6px 14px; border-radius:100px; background:${isReviewed ? 'rgba(255,255,255,0.18)' : 'linear-gradient(135deg, #38bdf8, #2563eb)'}; border:none; outline:none; color:#fff; font-size:12px; font-weight:800; cursor:pointer; white-space:nowrap; box-shadow:none; display:inline-flex; align-items:center; gap:4px; flex-shrink:0;">
+                ${isReviewed ? '<i class="fa-solid fa-check" style="font-size:10px; margin-right:4px;"></i> Reviewed' : `<i class="fa-solid fa-pen" style="font-size:10px;"></i> Review (+${classMeta.points} PTS)`}
+            </button>
+        </div>`;
+    });
+
+    const modalHtml = `
+    <div id="trip-completion-review-modal" style="position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.85); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:99998; display:flex; align-items:center; justify-content:center; padding:20px; opacity:0; transition:opacity 0.3s ease;">
+        <div style="background:linear-gradient(135deg, rgba(30, 58, 138, 0.98) 0%, rgba(63, 125, 183, 0.96) 60%, rgba(2, 132, 199, 0.96) 100%); border:none; outline:none; border-radius:24px; padding:22px 20px; width:100%; max-width:380px; box-shadow:0 16px 40px rgba(10, 25, 60, 0.45); text-align:center; transform:scale(0.92) translateY(12px); transition:transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; padding-bottom:12px; border-bottom:1px solid rgba(255,255,255,0.14); text-align:left;">
+                <div>
+                    <h4 style="margin:0; font-size:16px; font-weight:800; color:#ffffff; display:flex; align-items:center; gap:8px;">
+                        <i class="fa-solid fa-flag-checkered" style="color:#10b981;"></i> Trip Completed!
+                    </h4>
+                    <p style="margin:2px 0 0 0; font-size:11.5px; color:rgba(255,255,255,0.85);">
+                        Review destinations to earn your Points
+                    </p>
+                </div>
+                <button type="button" onclick="window.closeTripCompletionReviewModal()" style="background:rgba(255,255,255,0.15); border:none !important; outline:none !important; color:#ffffff; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:14px; transition:background 0.2s;">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div style="width:54px; height:54px; border-radius:50%; background:rgba(16, 185, 129, 0.18); display:flex; align-items:center; justify-content:center; margin:0 auto 12px auto; box-shadow:none; border:none; outline:none;">
+                <i class="fa-solid fa-award" style="font-size:26px; color:#10b981;"></i>
+            </div>
+            <h3 style="margin:0 0 4px; color:#fff; font-size:19px; font-weight:900;">Congratulations!</h3>
+            <p style="font-size:12px; color:rgba(255,255,255,0.85); margin:0 0 16px 0; line-height:1.5;">
+                Share your experience! Review each destination you visited to earn reward Points and help fellow travelers.
+            </p>
+            <div style="text-align:left; max-height:220px; overflow-y:auto; margin-bottom:16px; padding-right:4px;">
+                ${destListHtml}
+            </div>
+            <button type="button" id="btn-trip-completion-close" onclick="window.closeTripCompletionReviewModal()" style="width:100%; padding:13px; border-radius:100px; border:none; outline:none; background:rgba(255,255,255,0.15); color:#ffffff; font-size:13px; font-weight:700; cursor:pointer; transition:all 0.2s ease;">
+                Done
+            </button>
+        </div>
+    </div>`;
+
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+    requestAnimationFrame(() => {
+        const modal = document.getElementById('trip-completion-review-modal');
+        if (modal) {
+            modal.style.opacity = '1';
+            const card = modal.querySelector('div > div');
+            if (card) {
+                card.style.transform = 'scale(1) translateY(0)';
+            }
+        }
+    });
+};
+
+window.closeTripCompletionReviewModal = function () {
+    const modal = document.getElementById('trip-completion-review-modal');
+    if (modal) {
+        modal.style.opacity = '0';
+        setTimeout(() => modal.remove(), 320);
+    }
+};
+
+window.startReviewFromCompletion = function (spotId, btnEl) {
+    if (btnEl) {
+        btnEl.dataset.reviewing = "true";
+        window._lastReviewedBtn = btnEl;
+    }
+    if (typeof window.openWriteTestimonyModal === 'function') {
+        window.openWriteTestimonyModal(spotId, btnEl);
+    }
 };
 
 window.initSavedTripsSwipe = function () {
