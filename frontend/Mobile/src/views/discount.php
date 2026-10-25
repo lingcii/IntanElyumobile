@@ -250,8 +250,52 @@ let isStatusDropdownOpen = false;
 let isCatDropdownOpen = false;
 let isMuniDropdownOpen = false;
 
+// ── Guest Mode detection (guests must never see a previous account's cached data) ──
+function isDiscountGuest() {
+    if (typeof window.isGuestUser === 'function') return window.isGuestUser();
+    const tok = localStorage.getItem('intan_elyu_token') || '';
+    return !tok || tok === 'guest_token' || tok === 'offline_guest_token' ||
+        tok.startsWith('guest_') || tok.startsWith('offline_') ||
+        localStorage.getItem('intan_elyu_guest') === 'true' ||
+        localStorage.getItem('intan_elyu_offline_guest') === 'true';
+}
+
+function renderDiscountGuestHero() {
+    userPointsBalance = 0;
+    window._touristRedemptions = [];
+    const nameEl = document.getElementById('discount-user-name');
+    if (nameEl) nameEl.textContent = 'Guest Explorer';
+    const imgEl = document.getElementById('discount-user-avatar');
+    if (imgEl) imgEl.src = 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/logo/LOGO.png';
+    const ptsEl = document.getElementById('discount-user-pts');
+    if (ptsEl) {
+        ptsEl.textContent = 'Login now to get your vouchers';
+        ptsEl.style.fontSize = '11.5px';
+        ptsEl.style.lineHeight = '1.2';
+        ptsEl.style.whiteSpace = 'normal';
+        ptsEl.style.textAlign = 'left';
+        const pill = ptsEl.parentElement;
+        if (pill && !pill.dataset.guestBound) {
+            pill.dataset.guestBound = '1';
+            pill.id = 'discount-guest-login-pill';
+            pill.style.cursor = 'pointer';
+            pill.style.flexShrink = '1';
+            pill.style.maxWidth = '60%';
+            pill.style.borderRadius = '14px';
+            pill.setAttribute('role', 'button');
+            pill.addEventListener('click', () => {
+                if (typeof navigateTo === 'function') navigateTo('auth');
+            });
+        }
+    }
+}
+
 // ── Instant Synchronous Profile Hydration (0ms, Zero Latency) ──
 function hydrateDiscountUser() {
+    if (isDiscountGuest()) {
+        renderDiscountGuestHero();
+        return;
+    }
     try {
         const cached = JSON.parse(localStorage.getItem('auth_user') || '{}');
         if (cached.name) {
@@ -473,6 +517,8 @@ function clearVoucherSearch() {
 }
 
 function getAuthUserId() {
+    // Guests share the device with previous accounts: never read/write another user's voucher cache
+    if (isDiscountGuest()) return null;
     try {
         const u = JSON.parse(localStorage.getItem('auth_user') || '{}');
         if (u && (u.id || u.user_id)) return String(u.id || u.user_id);
@@ -737,6 +783,15 @@ function syncClaimedVouchersWithData() {
 
 async function fetchUserPointsAndRedemptions() {
     const token = localStorage.getItem('intan_elyu_token');
+    if (isDiscountGuest()) {
+        renderDiscountGuestHero();
+        syncClaimedVouchersWithData();
+        updateClaimedBadge();
+        populateStatusDropdown();
+        populateCategoryDropdown();
+        renderDiscounts();
+        return;
+    }
     if (!token) {
         const ptsBadge = document.getElementById('discount-user-pts');
         if (ptsBadge) ptsBadge.textContent = '0 Points';
@@ -1398,8 +1453,9 @@ async function handleModalRedeem() {
     }
 
     const token = localStorage.getItem('intan_elyu_token');
-    if (!token) {
-        if (typeof showToast === 'function') showToast("Please log in to your tourist account to redeem vouchers.");
+    if (!token || isDiscountGuest()) {
+        if (typeof showToast === 'function') showToast("Login now to get your vouchers! Sign in to your tourist account to claim rewards.", "info", 4500);
+        if (typeof closeVoucherModal === 'function') closeVoucherModal();
         navigateTo('auth');
         return;
     }

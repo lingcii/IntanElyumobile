@@ -1861,6 +1861,24 @@ window.OfflineProfileManager = {
                 } else if (curToken === 'offline_guest_token') {
                     localStorage.setItem('intan_elyu_token', 'guest_token');
                     localStorage.setItem('intan_elyu_guest', 'true');
+                    // No real account to restore: ensure the guest doesn't inherit a previous user's cached profile
+                    try {
+                        const cachedUser = JSON.parse(localStorage.getItem('auth_user') || 'null');
+                        if (!cachedUser || !cachedUser.is_guest || cachedUser.is_offline_guest) {
+                            localStorage.setItem('auth_user', JSON.stringify({
+                                id: 'guest',
+                                user_id: 'guest',
+                                name: 'Guest Explorer',
+                                full_name: 'Guest Explorer',
+                                role: 'tourist',
+                                points: 0,
+                                xp: 0,
+                                completed_activities: 0,
+                                home_location: 'La Union',
+                                is_guest: true
+                            }));
+                        }
+                    } catch (e) { }
                 }
             }
         } catch(e) {}
@@ -2313,13 +2331,8 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
     }
     const isGuestUser = !isRealAuthToken;
 
-    if (isGuestUser && (targetView === 'puzzles' || targetView === 'gamezone')) {
-        if (typeof showToast === 'function') {
-            showToast('GameZone is restricted in Guest Mode. Please log in first to play and earn rewards!', 'warning', 4500);
-        }
-        navigateTo('auth');
-        return;
-    }
+    // GameZone is browsable in Guest Mode; puzzles.php itself shows a login-required
+    // modal whenever a guest tries to play any mode (no redirect to auth here).
 
     if (isGuestUser && targetView === 'edit_profile') {
         if (typeof showToast === 'function') {

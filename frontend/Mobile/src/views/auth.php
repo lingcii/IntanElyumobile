@@ -803,26 +803,24 @@
             localStorage.removeItem('intan_elyu_offline_guest');
             sessionStorage.removeItem('elyu_show_offline_bypass_notice');
 
-            let cached = null;
-            try {
-                cached = JSON.parse(localStorage.getItem('auth_user') || 'null');
-            } catch (err) {}
-
-            if (!cached || !cached.name || cached.is_offline_guest) {
-                cached = {
-                    id: 'guest',
-                    user_id: 'guest',
-                    name: 'Guest Explorer',
-                    full_name: 'Guest Explorer',
-                    role: 'tourist',
-                    points: 0,
-                    xp: 0,
-                    completed_activities: 0,
-                    home_location: 'La Union',
-                    is_guest: true
-                };
-                localStorage.setItem('auth_user', JSON.stringify(cached));
-            }
+            // Always start Guest Mode with a clean profile so the previously logged-in
+            // account's name, avatar, points and vouchers never leak into the guest session.
+            const guestProfile = {
+                id: 'guest',
+                user_id: 'guest',
+                name: 'Guest Explorer',
+                full_name: 'Guest Explorer',
+                role: 'tourist',
+                points: 0,
+                xp: 0,
+                completed_activities: 0,
+                home_location: 'La Union',
+                is_guest: true
+            };
+            localStorage.setItem('auth_user', JSON.stringify(guestProfile));
+            // Explicit guest choice: drop any backed-up account session so it can't be auto-restored later
+            localStorage.removeItem('intan_elyu_real_token_backup');
+            localStorage.removeItem('auth_user_backup');
 
             if (typeof showToast === 'function') {
                 showToast('Continuing as Guest Explorer. Welcome!', 'info', 3000);

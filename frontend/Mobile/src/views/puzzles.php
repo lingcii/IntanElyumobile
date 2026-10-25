@@ -4,7 +4,7 @@ $backRoute = 'dashboard';
 include __DIR__ . '/../components/header.php';
 ?>
 
-<div class="puzzles-container has-header animate-slide-up">
+<div id="gamezone-container" class="puzzles-container has-header animate-slide-up">
 
     <!-- Offline Status Badge -->
     <div id="puzzles-offline-badge" style="display: none; align-items: center; justify-content: center; gap: 8px; margin: 0 auto 14px auto; padding: 7px 16px; border-radius: 100px; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.35); color: #d97706; font-size: 11.5px; font-weight: 800; text-align: center; width: fit-content;">
@@ -369,30 +369,64 @@ include __DIR__ . '/../components/header.php';
     }
     </style>
 
-    <!-- Guest Restriction Overlay -->
-    <div id="gamezone-guest-restriction-overlay"
-        style="display: none; position: fixed; inset: 0; z-index: 10000; background: rgba(15, 23, 42, 0.96) !important; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); align-items: center; justify-content: center; padding: 24px; box-sizing: border-box;">
-        <div style="background: #ffffff !important; border: 1.5px solid #e2e8f0; border-radius: 24px; padding: 30px 24px 26px 24px; max-width: 360px; width: 100%; text-align: center; box-shadow: 0 20px 45px rgba(0,0,0,0.45); box-sizing: border-box;">
-            <div style="width: 72px; height: 72px; border-radius: 50%; background: #eff6ff; color: #1e3a8a; display: inline-flex; align-items: center; justify-content: center; font-size: 32px; margin-bottom: 18px; box-shadow: 0 4px 14px rgba(30, 58, 138, 0.18);">
-                <i class="fa-solid fa-lock" style="color: #1e3a8a;"></i>
+    <!-- Guest Login-Required Modal (guests may browse GameZone, but must log in to play any mode) -->
+    <div id="gamezone-guest-restriction-overlay" onclick="if(event.target===this) closeGuestGameLoginModal();"
+        style="display: none; position: fixed; inset: 0; z-index: 10005; background: rgba(10, 25, 60, 0.6) !important; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); align-items: center; justify-content: center; padding: 22px; box-sizing: border-box;">
+        <div style="background: #ffffff !important; border: 1px solid rgba(226, 232, 240, 0.9); border-radius: 26px; max-width: 370px; width: 100%; overflow: hidden; text-align: center; box-shadow: 0 20px 48px rgba(10, 25, 60, 0.4); box-sizing: border-box; animation: popInGameModal 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;">
+            <!-- Header Banner -->
+            <div style="background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%) !important; padding: 16px 18px; display: flex; align-items: center; justify-content: space-between;">
+                <div style="display: flex; align-items: center; gap: 10px; text-align: left;">
+                    <div style="width: 34px; height: 34px; border-radius: 10px; background: rgba(255,255,255,0.16); display: flex; align-items: center; justify-content: center; color: #38bdf8; font-size: 16px;">
+                        <i class="fa-solid fa-gamepad"></i>
+                    </div>
+                    <div>
+                        <h3 style="margin: 0; font-size: 15.5px; font-weight: 800; color: #ffffff; letter-spacing: -0.3px;">Login Required</h3>
+                        <span style="font-size: 11px; color: #bfdbfe; font-weight: 600;">You're browsing in Guest Mode</span>
+                    </div>
+                </div>
+                <button type="button" onclick="closeGuestGameLoginModal()" aria-label="Close"
+                    style="background: rgba(255,255,255,0.18) !important; border: none !important; outline: none !important; color: #ffffff !important; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 13px;">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
             </div>
-            <h3 style="margin: 0 0 10px 0; font-size: 20px; font-weight: 800; color: #0f172a; letter-spacing: -0.3px;">
-                GameZone Restricted
-            </h3>
-            <p style="margin: 0 0 24px 0; font-size: 13.5px; color: #64748b; line-height: 1.55; font-weight: 500;">
-                Playing mini-games and claiming rewards is restricted in Guest Mode. Please log in or create an account first!
-            </p>
-            <div style="display: flex; flex-direction: column; gap: 10px;">
-                <button type="button" onclick="navigateTo('auth')"
-                    style="width: 100%; padding: 13px 20px; border-radius: 100px; background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%) !important; color: #ffffff !important; border: none !important; outline: none !important; font-size: 14px; font-weight: 800; cursor: pointer; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35); transition: transform 0.15s ease;"
-                    onpointerdown="this.style.transform='scale(0.96)'" onpointerup="this.style.transform='scale(1)'">
-                    <i class="fa-solid fa-arrow-right-to-bracket" style="margin-right: 8px;"></i> Log In / Register
-                </button>
-                <button type="button" onclick="navigateTo('dashboard')"
-                    style="width: 100%; padding: 12px 20px; border-radius: 100px; background: #f1f5f9 !important; color: #475569 !important; border: 1px solid #cbd5e1 !important; outline: none !important; font-size: 13.5px; font-weight: 700; cursor: pointer; transition: transform 0.15s ease;"
-                    onpointerdown="this.style.transform='scale(0.96)'" onpointerup="this.style.transform='scale(1)'">
-                    Back to Dashboard
-                </button>
+
+            <!-- Body -->
+            <div style="padding: 22px 20px 20px 20px;">
+                <div style="width: 64px; height: 64px; border-radius: 20px; background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border: 1.5px solid #bfdbfe; display: flex; align-items: center; justify-content: center; margin: 0 auto 14px auto; color: #1e3a8a; font-size: 28px; box-shadow: 0 8px 20px rgba(30, 58, 138, 0.15);">
+                    <i class="fa-solid fa-lock"></i>
+                </div>
+                <h4 style="margin: 0 0 8px 0; font-size: 18px; font-weight: 800; color: #0f172a; letter-spacing: -0.4px;">Log in to Play</h4>
+                <p style="margin: 0 0 16px 0; font-size: 13px; color: #475569; line-height: 1.5; font-weight: 500;">
+                    You need to <strong>log in first</strong> before playing any GameZone mode &mdash; Slide Puzzle, Memory Match, or Word Scramble.
+                </p>
+
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 12px 14px; text-align: left; margin-bottom: 18px; display: flex; flex-direction: column; gap: 9px;">
+                    <div style="display: flex; align-items: center; gap: 10px; font-size: 12px; color: #334155; font-weight: 700;">
+                        <i class="fa-solid fa-coins" style="color: #f59e0b; width: 16px; text-align: center;"></i>
+                        <span>Earn daily reward points from every mode</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px; font-size: 12px; color: #334155; font-weight: 700;">
+                        <i class="fa-solid fa-ticket" style="color: #0284c7; width: 16px; text-align: center;"></i>
+                        <span>Redeem points for partner vouchers</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px; font-size: 12px; color: #334155; font-weight: 700;">
+                        <i class="fa-solid fa-ranking-star" style="color: #10b981; width: 16px; text-align: center;"></i>
+                        <span>Climb the explorer leaderboard</span>
+                    </div>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 9px;">
+                    <button type="button" id="gamezone-guest-login-btn" onclick="closeGuestGameLoginModal(); navigateTo('auth');"
+                        style="width: 100%; padding: 13px 20px; border-radius: 14px; background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%) !important; color: #ffffff !important; border: none !important; outline: none !important; font-size: 14px; font-weight: 800; cursor: pointer; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35); transition: transform 0.15s ease; display: flex; align-items: center; justify-content: center; gap: 8px;"
+                        onpointerdown="this.style.transform='scale(0.97)'" onpointerup="this.style.transform='scale(1)'">
+                        <i class="fa-solid fa-arrow-right-to-bracket"></i> Log In / Register
+                    </button>
+                    <button type="button" id="gamezone-guest-browse-btn" onclick="closeGuestGameLoginModal()"
+                        style="width: 100%; padding: 12px 20px; border-radius: 14px; background: #ffffff !important; color: #64748b !important; border: 1.5px solid #cbd5e1 !important; outline: none !important; font-size: 13px; font-weight: 700; cursor: pointer; transition: transform 0.15s ease;"
+                        onpointerdown="this.style.transform='scale(0.97)'" onpointerup="this.style.transform='scale(1)'">
+                        Continue Browsing
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -412,16 +446,51 @@ include __DIR__ . '/../components/header.php';
             localStorage.getItem('intan_elyu_guest') === 'true' || 
             localStorage.getItem('intan_elyu_offline_guest') === 'true';
 
+        // Guests may browse GameZone, but any attempt to play a mode opens the login-required modal.
+        function showGuestGameLoginModal() {
+            const guestModal = document.getElementById('gamezone-guest-restriction-overlay');
+            if (guestModal) guestModal.style.setProperty('display', 'flex', 'important');
+        }
+        function closeGuestGameLoginModal() {
+            const guestModal = document.getElementById('gamezone-guest-restriction-overlay');
+            if (guestModal) guestModal.style.setProperty('display', 'none', 'important');
+        }
+        window.showGuestGameLoginModal = showGuestGameLoginModal;
+        window.closeGuestGameLoginModal = closeGuestGameLoginModal;
+
         if (_isGuest) {
-            const guestOverlay = document.getElementById('gamezone-guest-restriction-overlay');
-            if (guestOverlay) {
-                guestOverlay.style.setProperty('display', 'flex', 'important');
+            // Never show a previous account's cached points to a guest
+            const guestPtsEl = document.getElementById('game-points-val');
+            if (guestPtsEl) guestPtsEl.textContent = '0';
+
+            // Intercept every interaction inside the game play areas (boards, inputs, controls,
+            // practice-mode buttons). Tab buttons remain usable so guests can preview each mode.
+            const gzContainer = document.getElementById('gamezone-container');
+            if (gzContainer) {
+                const blockGuestPlay = (e) => {
+                    const playArea = e.target && e.target.closest ? e.target.closest('.game-tab-content') : null;
+                    if (!playArea) return;
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (e.type === 'focusin' && typeof e.target.blur === 'function') e.target.blur();
+                    if (e.type === 'click' || e.type === 'focusin') showGuestGameLoginModal();
+                };
+                ['pointerdown', 'mousedown', 'touchstart', 'click', 'focusin', 'keydown'].forEach(evt => {
+                    gzContainer.addEventListener(evt, blockGuestPlay, { capture: true, passive: false });
+                });
             }
-            return; // Halt any game loading or logic for guest users
+
+            // Let the guest know up-front that playing requires an account
+            setTimeout(showGuestGameLoginModal, 350);
         }
 
         // Load points balance
         async function loadGamePoints() {
+            if (_isGuest) {
+                const ptsEl = document.getElementById('game-points-val');
+                if (ptsEl) ptsEl.textContent = '0';
+                return;
+            }
             try {
                 const _cachedAuth = JSON.parse(localStorage.getItem('auth_user') || '{}');
                 const fallbackPts = Math.max(Number(_cachedAuth.points ?? 0), Number(_cachedAuth.xp ?? 0));
@@ -1532,6 +1601,10 @@ include __DIR__ . '/../components/header.php';
         }
 
         async function claimMiniGamePoints(gameType) {
+            if (_isGuest) {
+                showGuestGameLoginModal();
+                return;
+            }
             try {
                 if (window._practiceModes && window._practiceModes[gameType]) {
                     openGameSuccess({
@@ -1886,6 +1959,7 @@ include __DIR__ . '/../components/header.php';
         window.reshuffleWordLetters = reshuffleWordLetters;
         window.toggleScrambleMechanics = toggleScrambleMechanics;
         async function syncOfflineGameClaims() {
+            if (_isGuest) return;
             if (!navigator.onLine) return;
             try {
                 const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('api_token');
