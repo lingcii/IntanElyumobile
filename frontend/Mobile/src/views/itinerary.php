@@ -580,13 +580,19 @@ try {
             <!-- Multi-Select Selection Info Bar -->
             <div id="leg-modal-selection-bar"
                 style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; background:#f8fafc; padding:8px 12px; border-radius:12px; border:1px solid #e2e8f0;">
-                <span
-                    style="font-size:12px; font-weight:700; color:#1e3a8a; display:flex; align-items:center;">
-                    Select multiple vehicles if needed:
-                </span>
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <span
+                        style="font-size:12px; font-weight:700; color:#1e3a8a; display:flex; align-items:center;">
+                        Select vehicles:
+                    </span>
+                    <button type="button" onclick="window.unselectAllLegCandidates()"
+                        style="background:rgba(239, 68, 68, 0.1); border:none !important; outline:none !important; color:#dc2626 !important; font-size:11px; font-weight:800; cursor:pointer; padding:3px 9px; border-radius:100px; transition:all 0.15s ease;">
+                        Unselect All
+                    </button>
+                </div>
                 <span id="leg-modal-selection-count"
                     style="font-size:10.5px; font-weight:800; background:rgba(30, 58, 138, 0.08); color:#1e3a8a; padding:3px 10px; border-radius:100px;">
-                    1 Selected
+                    0 Selected
                 </span>
             </div>
 
@@ -1829,6 +1835,24 @@ try {
 
             const override = Array.isArray(overrides) ? overrides[legIdx] : null;
             if (override && (override.transport_mode || override.transport_modes)) {
+                if (override.transport_mode === 'no_vehicle' || (override.is_custom && Array.isArray(override.transport_modes) && override.transport_modes.length === 0)) {
+                    return {
+                        mode: 'no_vehicle',
+                        transport_mode: 'no_vehicle',
+                        transport_modes: [],
+                        name: 'No Vehicle',
+                        full_names: 'No Vehicle',
+                        icon: 'fa-person-walking',
+                        cost: 0,
+                        leg_cost: 0,
+                        distance_km: distKm,
+                        warning: null,
+                        is_inaccessible: false,
+                        is_non_drivable: false,
+                        is_custom: true
+                    };
+                }
+
                 let modes = window.parseCompositeTransportModes(override.transport_modes || override.transport_mode);
                 if (modes.length === 0) modes = ['own_car'];
 
@@ -2152,32 +2176,15 @@ try {
             let initialModes = [];
             if (isSiteUnderMaintenance) {
                 initialModes = [];
-            } else if (override && Array.isArray(override.transport_modes) && override.transport_modes.length > 0) {
+            } else if (override && override.is_custom && Array.isArray(override.transport_modes) && override.transport_modes.length > 0) {
                 initialModes = window.parseCompositeTransportModes(override.transport_modes);
-            } else if (override && override.transport_mode) {
+            } else if (override && override.is_custom && override.transport_mode && override.transport_mode !== 'no_vehicle') {
                 initialModes = window.parseCompositeTransportModes(override.transport_mode);
             } else {
-                const curLegInfo = window.getLegTransportInfo(legIdx);
-                if (curLegInfo && Array.isArray(curLegInfo.transport_modes) && curLegInfo.transport_modes.length > 0) {
-                    initialModes = window.parseCompositeTransportModes(curLegInfo.transport_modes);
-                } else if (curLegInfo && curLegInfo.transport_mode && curLegInfo.transport_mode !== 'suspended') {
-                    initialModes = window.parseCompositeTransportModes(curLegInfo.transport_mode);
-                } else {
-                    initialModes = window.getNormalizedTripModes();
-                }
+                // Do NOT add a default - make all vehicles unselected by default
+                initialModes = [];
             }
 
-            if (!isSiteUnderMaintenance && initialModes.length === 0) {
-                initialModes = window.getNormalizedTripModes();
-            }
-
-            // Ensure inaccessible vehicles for this spot are not pre-selected in the modal (unless tourist explicitly chose a custom combination)
-            if (!isSiteUnderMaintenance && (!override || !override.is_custom)) {
-                const allowedInitial = initialModes.filter(m => window.isVehicleAllowedForSpot(m, toSpot).allowed);
-                if (allowedInitial.length > 0) {
-                    initialModes = allowedInitial;
-                }
-            }
             window.currentLegModalSelectedModes = initialModes;
 
             window.renderLegModalList(availableCount);
@@ -2306,7 +2313,9 @@ try {
                     btnApply.style.cursor = 'pointer';
                     btnApply.style.width = 'auto';
                     btnApply.style.justifyContent = 'flex-start';
-                    btnApply.innerHTML = `<i class="fa-solid fa-check"></i> Done (${selectedModes.length})`;
+                    btnApply.innerHTML = selectedModes.length > 0
+                        ? `<i class="fa-solid fa-check"></i> Done (${selectedModes.length})`
+                        : `<i class="fa-solid fa-check"></i> Done (No Vehicle)`;
                 }
             }
         };
@@ -2325,18 +2334,17 @@ try {
 
             const idx = list.indexOf(norm);
             if (idx > -1) {
-                if (list.length === 1) {
-                    if (typeof showToast === 'function') {
-                        showToast('Please keep at least one transport mode selected.');
-                    }
-                    return;
-                }
                 list.splice(idx, 1);
             } else {
                 list.push(norm);
             }
 
             window.currentLegModalSelectedModes = list;
+            window.renderLegModalList();
+        };
+
+        window.unselectAllLegCandidates = function () {
+            window.currentLegModalSelectedModes = [];
             window.renderLegModalList();
         };
 
@@ -2364,15 +2372,42 @@ try {
             }
 
             const selectedModes = window.parseCompositeTransportModes(window.currentLegModalSelectedModes || []);
-            if (selectedModes.length === 0) {
-                if (typeof showToast === 'function') showToast('Please select at least one transport mode.');
-                return;
-            }
-
             let overrides = [];
             try {
                 overrides = JSON.parse(localStorage.getItem('intan_elyu_draft_leg_vehicles') || '[]');
             } catch (e) { overrides = []; }
+
+            if (selectedModes.length === 0) {
+                overrides[legIdx] = {
+                    transport_mode: 'no_vehicle',
+                    transport_modes: [],
+                    leg_cost: 0,
+                    leg_distance_km: parseFloat(window.currentLegModalDistKm) || 0,
+                    display_name: 'No Vehicle',
+                    full_names: 'No Vehicle',
+                    is_custom: true
+                };
+
+                localStorage.setItem('intan_elyu_draft_leg_vehicles', JSON.stringify(overrides));
+                window.closeLegTransportModal();
+
+                if (typeof window.renderItinerary === 'function') {
+                    window.renderItinerary(true);
+                }
+                if (typeof window.calculateModalBudget === 'function') {
+                    window.calculateModalBudget();
+                }
+                if (typeof window.updateDraftBudget === 'function') {
+                    window.updateDraftBudget(draft);
+                }
+                if (typeof window.updateDraftTravelModeBar === 'function') {
+                    window.updateDraftTravelModeBar();
+                }
+                if (typeof showToast === 'function') {
+                    showToast(`Stop ${legIdx + 1} transit set to No Vehicle`);
+                }
+                return;
+            }
 
             let totalCost = 0;
             selectedModes.forEach(m => {
