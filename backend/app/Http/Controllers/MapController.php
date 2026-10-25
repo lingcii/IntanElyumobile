@@ -17,7 +17,22 @@ class MapController extends Controller
      */
     public function publicMapData(): JsonResponse
     {
-        $spots = \Illuminate\Support\Facades\Cache::remember('map:public:spots', 120, function () {
+        $normalizeVehName = function ($v) {
+            $vUpper = strtoupper(trim((string) $v));
+            if ($vUpper === 'MPUJ' || $vUpper === 'MPUJ (MODERN JEEPNEY)') return 'Modern Jeepney';
+            if ($vUpper === 'TPUJ' || $vUpper === 'TPUJ (TRADITIONAL JEEPNEY)') return 'Traditional Jeepney';
+            if ($vUpper === 'PUB_REGULAR' || $vUpper === 'PUB_ORDINARY' || $vUpper === 'PUB REGULAR' || $vUpper === 'PUB ORDINARY') return 'Regular Bus';
+            if ($vUpper === 'PUB_AIRCON' || $vUpper === 'PUB AIRCON') return 'Aircon Bus';
+            if ($vUpper === 'UVE') return 'UV Express';
+            if ($vUpper === 'TAXI') return 'Taxi';
+            if ($vUpper === 'CAR' || $vUpper === 'OWN_CAR') return 'Car';
+            if ($vUpper === 'MOTORCYCLE') return 'Motorcycle';
+            if ($vUpper === 'TRICYCLE' || $vUpper === 'TRYCICLE') return 'Tricycle';
+            if ($vUpper === 'VAN') return 'Van';
+            return trim((string) $v);
+        };
+
+        $spots = \Illuminate\Support\Facades\Cache::remember('map:public:spots', 120, function () use ($normalizeVehName) {
             $spotPublicVehicles = [];
             $spotPrivateVehicles = [];
             $spotAllVehicles = [];
@@ -73,37 +88,23 @@ class MapController extends Controller
                        'environmental_fee', 'fee_types', 'route_guide', 'tour_guide_notice',
                        'accessible_by_private_vehicle', 'photo_url', 'description', 'opening_time', 'closing_time',
                        'is_open_24_hours', 'is_maintenance', 'rating', 'visits', 'classification_status', 'status'])
-                ->map(function ($spot) use ($spotPublicVehicles, $spotPrivateVehicles, $spotAllVehicles, $spotServiceCenterMap) {
+                ->map(function (TouristSpot $spot) use ($normalizeVehName, $spotPublicVehicles, $spotPrivateVehicles, $spotAllVehicles, $spotServiceCenterMap) {
+                    /** @var TouristSpot $spot */
                     $imageUrl = $spot->photo_url;
-                    if (!$imageUrl && $spot->images->isNotEmpty()) {
+                    if (!$imageUrl && $spot->images && $spot->images->isNotEmpty()) {
                         $imageUrl = $spot->images->first()->photo_url;
                     }
                     $imagesList = [];
                     if ($spot->photo_url) {
                         $imagesList[] = $spot->photo_url;
                     }
-                    if ($spot->relationLoaded('images') && $spot->images->isNotEmpty()) {
+                    if ($spot instanceof TouristSpot && $spot->relationLoaded('images') && $spot->images && $spot->images->isNotEmpty()) {
                         foreach ($spot->images as $imgObj) {
                             if ($imgObj->photo_url && !in_array($imgObj->photo_url, $imagesList)) {
                                 $imagesList[] = $imgObj->photo_url;
                             }
                         }
                     }
-
-                    $normalizeVehName = function ($v) {
-                        $vUpper = strtoupper(trim((string) $v));
-                        if ($vUpper === 'MPUJ' || $vUpper === 'MPUJ (MODERN JEEPNEY)') return 'Modern Jeepney';
-                        if ($vUpper === 'TPUJ' || $vUpper === 'TPUJ (TRADITIONAL JEEPNEY)') return 'Traditional Jeepney';
-                        if ($vUpper === 'PUB_REGULAR' || $vUpper === 'PUB_ORDINARY' || $vUpper === 'PUB REGULAR' || $vUpper === 'PUB ORDINARY') return 'Regular Bus';
-                        if ($vUpper === 'PUB_AIRCON' || $vUpper === 'PUB AIRCON') return 'Aircon Bus';
-                        if ($vUpper === 'UVE') return 'UV Express';
-                        if ($vUpper === 'TAXI') return 'Taxi';
-                        if ($vUpper === 'CAR' || $vUpper === 'OWN_CAR') return 'Car';
-                        if ($vUpper === 'MOTORCYCLE') return 'Motorcycle';
-                        if ($vUpper === 'TRICYCLE' || $vUpper === 'TRYCICLE') return 'Tricycle';
-                        if ($vUpper === 'VAN') return 'Van';
-                        return trim((string) $v);
-                    };
 
                     $hasExplicit = isset($spotAllVehicles[$spot->id]) && !empty($spotAllVehicles[$spot->id]);
                     $isDrivable = (bool) ($spot->accessible_by_private_vehicle ?? 1);
