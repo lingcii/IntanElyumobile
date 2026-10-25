@@ -12,27 +12,31 @@ use Illuminate\Http\Request;
 class MapController extends Controller
 {
     /**
+     * Normalize vehicle name to standard display format.
+     */
+    private function normalizeVehicleName($v): string
+    {
+        $vUpper = strtoupper(trim((string) $v));
+        if ($vUpper === 'MPUJ' || $vUpper === 'MPUJ (MODERN JEEPNEY)') return 'Modern Jeepney';
+        if ($vUpper === 'TPUJ' || $vUpper === 'TPUJ (TRADITIONAL JEEPNEY)') return 'Traditional Jeepney';
+        if ($vUpper === 'PUB_REGULAR' || $vUpper === 'PUB_ORDINARY' || $vUpper === 'PUB REGULAR' || $vUpper === 'PUB ORDINARY') return 'Regular Bus';
+        if ($vUpper === 'PUB_AIRCON' || $vUpper === 'PUB AIRCON') return 'Aircon Bus';
+        if ($vUpper === 'UVE') return 'UV Express';
+        if ($vUpper === 'TAXI') return 'Taxi';
+        if ($vUpper === 'CAR' || $vUpper === 'OWN_CAR') return 'Car';
+        if ($vUpper === 'MOTORCYCLE') return 'Motorcycle';
+        if ($vUpper === 'TRICYCLE' || $vUpper === 'TRYCICLE') return 'Tricycle';
+        if ($vUpper === 'VAN') return 'Van';
+        return trim((string) $v);
+    }
+
+    /**
      * GET /api/public/map
      * Returns all approved tourist spots for the mobile map view (no auth required).
      */
     public function publicMapData(): JsonResponse
     {
-        $normalizeVehName = function ($v) {
-            $vUpper = strtoupper(trim((string) $v));
-            if ($vUpper === 'MPUJ' || $vUpper === 'MPUJ (MODERN JEEPNEY)') return 'Modern Jeepney';
-            if ($vUpper === 'TPUJ' || $vUpper === 'TPUJ (TRADITIONAL JEEPNEY)') return 'Traditional Jeepney';
-            if ($vUpper === 'PUB_REGULAR' || $vUpper === 'PUB_ORDINARY' || $vUpper === 'PUB REGULAR' || $vUpper === 'PUB ORDINARY') return 'Regular Bus';
-            if ($vUpper === 'PUB_AIRCON' || $vUpper === 'PUB AIRCON') return 'Aircon Bus';
-            if ($vUpper === 'UVE') return 'UV Express';
-            if ($vUpper === 'TAXI') return 'Taxi';
-            if ($vUpper === 'CAR' || $vUpper === 'OWN_CAR') return 'Car';
-            if ($vUpper === 'MOTORCYCLE') return 'Motorcycle';
-            if ($vUpper === 'TRICYCLE' || $vUpper === 'TRYCICLE') return 'Tricycle';
-            if ($vUpper === 'VAN') return 'Van';
-            return trim((string) $v);
-        };
-
-        $spots = \Illuminate\Support\Facades\Cache::remember('map:public:spots', 120, function () use ($normalizeVehName) {
+        $spots = \Illuminate\Support\Facades\Cache::remember('map:public:spots', 120, function () {
             $spotPublicVehicles = [];
             $spotPrivateVehicles = [];
             $spotAllVehicles = [];
@@ -88,7 +92,7 @@ class MapController extends Controller
                        'environmental_fee', 'fee_types', 'route_guide', 'tour_guide_notice',
                        'accessible_by_private_vehicle', 'photo_url', 'description', 'opening_time', 'closing_time',
                        'is_open_24_hours', 'is_maintenance', 'rating', 'visits', 'classification_status', 'status'])
-                ->map(function (TouristSpot $spot) use ($normalizeVehName, $spotPublicVehicles, $spotPrivateVehicles, $spotAllVehicles, $spotServiceCenterMap) {
+                ->map(function ($spot) use ($spotPublicVehicles, $spotPrivateVehicles, $spotAllVehicles, $spotServiceCenterMap) {
                     /** @var TouristSpot $spot */
                     $imageUrl = $spot->photo_url;
                     if (!$imageUrl && $spot->images && $spot->images->isNotEmpty()) {
@@ -111,13 +115,13 @@ class MapController extends Controller
 
                     if ($hasExplicit) {
                         $pubList = isset($spotPublicVehicles[$spot->id])
-                            ? array_values(array_unique(array_map($normalizeVehName, $spotPublicVehicles[$spot->id])))
+                            ? array_values(array_unique(array_map([$this, 'normalizeVehicleName'], $spotPublicVehicles[$spot->id])))
                             : [];
                         $privList = isset($spotPrivateVehicles[$spot->id])
-                            ? array_values(array_unique(array_map($normalizeVehName, $spotPrivateVehicles[$spot->id])))
+                            ? array_values(array_unique(array_map([$this, 'normalizeVehicleName'], $spotPrivateVehicles[$spot->id])))
                             : [];
                         $allList = isset($spotAllVehicles[$spot->id])
-                            ? array_values(array_unique(array_map($normalizeVehName, $spotAllVehicles[$spot->id])))
+                            ? array_values(array_unique(array_map([$this, 'normalizeVehicleName'], $spotAllVehicles[$spot->id])))
                             : [];
                     } else {
                         // Standard default vehicle access for spots without custom database assignments
@@ -368,14 +372,14 @@ class MapController extends Controller
             return $result;
         });
 
-        $activeFareVehicleTypes = \Illuminate\Support\Facades\Cache::remember('public:active_fare_vehicle_types:v5', 300, function () use ($normalizeVehName) {
+        $activeFareVehicleTypes = \Illuminate\Support\Facades\Cache::remember('public:active_fare_vehicle_types:v5', 300, function () {
             try {
                 $dbTypes = \Illuminate\Support\Facades\DB::table('vehicle_types')
                     ->select('name', 'category')
                     ->orderBy('category', 'desc')
                     ->orderBy('name', 'asc')
                     ->get()
-                    ->map(fn($v) => ['name' => $normalizeVehName($v->name), 'category' => $v->category])
+                    ->map(fn($v) => ['name' => $this->normalizeVehicleName($v->name), 'category' => $v->category])
                     ->unique('name')
                     ->values()
                     ->toArray();
