@@ -192,9 +192,6 @@ $gdriveMirrorUrl = getenv('APK_GDRIVE_MIRROR_URL') ?: '';
       </div>
 
       <div class="nav-actions">
-        <a href="index.php?view=auth" class="nav-btn-web" title="Open web version directly in browser">
-          <i class="fa-solid fa-globe"></i> <span>Web Portal</span>
-        </a>
         <a href="#hero-qr-card-wrap" class="nav-btn-dl" title="Download Android Mobile App">
           <i class="fa-brands fa-android"></i> <span>Get App</span>
         </a>
@@ -209,11 +206,6 @@ $gdriveMirrorUrl = getenv('APK_GDRIVE_MIRROR_URL') ?: '';
     <!-- Hero Section with QR Code Directly in Hero -->
     <section class="portal-hero">
       <div class="hero-left-col">
-        <div class="hero-badge reveal-on-scroll">
-          <span class="live-pulse-dot"></span>
-          <span>Official Smart Tourism Platform &bull; Province of La Union</span>
-        </div>
-
         <h2 class="hero-title reveal-on-scroll delay-1">
           Discover, Explore & Experience <br>
           <span class="accent-cyan">The Whole of La Union</span>
@@ -269,8 +261,6 @@ $gdriveMirrorUrl = getenv('APK_GDRIVE_MIRROR_URL') ?: '';
               <p class="dl-app-subtitle">Provincial Government of La Union</p>
               <div class="dl-rating-strip">
                 <span class="dl-stars"><i class="fa-solid fa-star"></i> 4.9</span>
-                <span class="dl-sep">&bull;</span>
-                <span class="dl-downloads">10K+ Explorers</span>
                 <span class="dl-sep">&bull;</span>
                 <span class="dl-size-tag"><?= htmlspecialchars($apkSizeStr) ?></span>
               </div>
@@ -330,9 +320,6 @@ $gdriveMirrorUrl = getenv('APK_GDRIVE_MIRROR_URL') ?: '';
           <div class="dl-trust-row">
             <div class="dl-trust-pill">
               <i class="fa-solid fa-shield-halved" style="color:#10b981;"></i> Verified Safe & Signed
-            </div>
-            <div class="dl-trust-pill">
-              <i class="fa-solid fa-microchip" style="color:#0284c7;"></i> Universal APK
             </div>
             <div class="dl-trust-pill">
               <i class="fa-solid fa-mobile-screen" style="color:#6366f1;"></i> Android 8.0+
