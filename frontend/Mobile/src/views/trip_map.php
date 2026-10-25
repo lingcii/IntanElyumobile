@@ -193,6 +193,15 @@ include_once __DIR__ . '/../components/testimony_modal.php';
         }
 
         function initTripMap() {
+            if (typeof maplibregl === 'undefined') {
+                console.warn('MapLibre GL is not loaded yet. Retrying...');
+                setTimeout(initTripMap, 200);
+                return;
+            }
+            if (!document.getElementById('trip-map')) {
+                return;
+            }
+
             const style = {
                 "version": 8,
                 "glyphs": "https://fonts.openmaptiles.org/{fontstack}/{range}.pbf",

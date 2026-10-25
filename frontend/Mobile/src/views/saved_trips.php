@@ -816,6 +816,7 @@ $backRoute = 'itinerary';
         }
 
         function renderSavedTrips(itineraries) {
+            window._isStartingTrip = false;
             try {
                 // Prepend queued offline trips and merge offline updates
                 const queuedTrips = (window.OfflineTripManager && typeof window.OfflineTripManager.getQueuedTrips === 'function')
@@ -1553,10 +1554,22 @@ $backRoute = 'itinerary';
             if (window._isStartingTrip) return;
             window._isStartingTrip = true;
 
-            if (btnElement) {
-                btnElement.disabled = true;
-                btnElement.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="margin-right:6px;"></i> Starting...';
+            const btn = btnElement || (typeof event !== 'undefined' && event && event.target ? event.target.closest('button') : null);
+            let prevHtml = '';
+            if (btn) {
+                prevHtml = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="margin-right:6px;"></i> Starting...';
             }
+
+            // Automatic failsafe: Re-enable button & reset starting flag after 2.5s
+            setTimeout(() => {
+                window._isStartingTrip = false;
+                if (btn) {
+                    btn.disabled = false;
+                    if (prevHtml) btn.innerHTML = prevHtml;
+                }
+            }, 2500);
 
             let transportParam = '';
             if (window._cachedSavedTrips) {

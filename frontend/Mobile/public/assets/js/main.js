@@ -3261,10 +3261,22 @@ window.startTrip = function (tripId, btnElement) {
     if (window._isStartingTrip) return;
     window._isStartingTrip = true;
 
-    if (btnElement) {
-        btnElement.disabled = true;
-        btnElement.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="margin-right:6px;"></i> Starting...';
+    const btn = btnElement || (typeof event !== 'undefined' && event && event.target ? event.target.closest('button') : null);
+    let prevHtml = '';
+    if (btn) {
+        prevHtml = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="margin-right:6px;"></i> Starting...';
     }
+
+    // Automatic failsafe: Re-enable button & reset starting flag after 2.5s
+    setTimeout(() => {
+        window._isStartingTrip = false;
+        if (btn) {
+            btn.disabled = false;
+            if (prevHtml) btn.innerHTML = prevHtml;
+        }
+    }, 2500);
 
     let transportParam = '';
     if (window._cachedSavedTrips) {
@@ -4958,11 +4970,15 @@ function executeScripts(container) {
     if (!container) return;
     const scripts = container.querySelectorAll('script');
     scripts.forEach(oldScript => {
-        const newScript = document.createElement('script');
-        Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
-        newScript.appendChild(document.createTextNode(oldScript.innerHTML));
-        if (oldScript.parentNode) {
-            oldScript.parentNode.replaceChild(newScript, oldScript);
+        try {
+            const newScript = document.createElement('script');
+            Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+            newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+            if (oldScript.parentNode) {
+                oldScript.parentNode.replaceChild(newScript, oldScript);
+            }
+        } catch (scriptErr) {
+            console.error('Error executing injected script:', scriptErr);
         }
     });
 }
@@ -5143,12 +5159,12 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
 
         // In-memory and persistent disk view template cache for instantaneous and offline navigation
         window._viewHtmlCache = window._viewHtmlCache || {};
-        let html = (!extraParams.size && window._viewHtmlCache[targetView]) ? window._viewHtmlCache[targetView] : null;
+        let html = window._viewHtmlCache[targetView] || null;
         if (!isValidViewPartial(html)) {
             html = null;
         }
 
-        if (!html && !extraParams.size) {
+        if (!html) {
             try {
                 const cached = localStorage.getItem('elyu_view_cache_v3_' + targetView) || localStorage.getItem('elyu_view_cache_v2_' + targetView);
                 if (isValidViewPartial(cached)) {
@@ -5184,10 +5200,8 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                     const freshHtml = await response.text();
                     if (isValidViewPartial(freshHtml)) {
                         html = freshHtml;
-                        if (!extraParams.size) {
-                            window._viewHtmlCache[targetView] = html;
-                            try { localStorage.setItem('elyu_view_cache_v3_' + targetView, html); } catch(e) {}
-                        }
+                        window._viewHtmlCache[targetView] = html;
+                        try { localStorage.setItem('elyu_view_cache_v3_' + targetView, html); } catch(e) {}
                     }
                 }
             } catch (fetchErr) {
