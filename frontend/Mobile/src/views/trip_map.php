@@ -33,24 +33,21 @@ include_once __DIR__ . '/../components/testimony_modal.php';
     <!-- Trip Overview Summary Header Pill -->
     <div id="trip-summary-pill"
         style="align-self: center; background: #ffffff !important; border: 1.5px solid #e2e8f0 !important; border-radius: 100px; padding: 6px 14px; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 10px 25px rgba(15, 23, 42, 0.12), 0 2px 6px rgba(15, 23, 42, 0.05); pointer-events: auto; max-width: calc(100vw - 32px); box-sizing: border-box;">
-        <div style="display:flex; align-items:center; gap:5px; color:#0f172a; font-size:12.5px; font-weight:800; white-space:nowrap;">
-            <i class="fa-solid fa-route" style="color:#0284c7; font-size:12px;"></i> <span id="trip-info-distance">-- km</span>
-        </div>
-        <div style="width:1px; height:14px; background:#e2e8f0; flex-shrink:0;"></div>
-        <div style="display:flex; align-items:center; gap:5px; color:#0f172a; font-size:12.5px; font-weight:800; white-space:nowrap;">
-            <i class="fa-solid fa-stopwatch" style="color:#10b981; font-size:12px;"></i> <span id="trip-info-time">-- mins</span>
-        </div>
-        <div style="width:1px; height:14px; background:#e2e8f0; flex-shrink:0;"></div>
         <div id="trip-info-vehicle-badge"
-            style="display:flex; align-items:center; gap:5px; color:#1e293b; font-size:11.5px; font-weight:800; background:#f1f5f9; border:1px solid #e2e8f0; border-radius:100px; padding:3px 9px; white-space:nowrap;">
+            style="display:flex; align-items:center; gap:5px; color:#1e293b; font-size:12px; font-weight:800; background:#f1f5f9; border:1px solid #e2e8f0; border-radius:100px; padding:4px 11px; white-space:nowrap;">
             <i id="trip-info-vehicle-icon" class="fa-solid fa-car" style="color:#f59e0b; font-size:11px;"></i>
             <span id="trip-info-vehicle-name">Own Car</span>
         </div>
         <div id="trip-info-pax-divider" style="width:1px; height:14px; background:#e2e8f0; flex-shrink:0;"></div>
         <div id="trip-info-pax-badge"
-            style="display:flex; align-items:center; gap:5px; color:#1d4ed8; font-size:11.5px; font-weight:800; background:#eff6ff; border:1px solid #bfdbfe; border-radius:100px; padding:3px 9px; white-space:nowrap;">
+            style="display:flex; align-items:center; gap:5px; color:#1d4ed8; font-size:12px; font-weight:800; background:#eff6ff; border:1px solid #bfdbfe; border-radius:100px; padding:4px 11px; white-space:nowrap;">
             <i id="trip-info-pax-icon" class="fa-solid fa-user" style="color:#2563eb; font-size:11px;"></i>
-            <span id="trip-info-pax-text">1 Pax</span>
+            <span id="trip-info-pax-text">Solo</span>
+        </div>
+        <!-- Distance and time kept in DOM hidden to ensure all JS route callbacks continue working safely -->
+        <div style="display:none !important;">
+            <span id="trip-info-distance">-- km</span>
+            <span id="trip-info-time">-- mins</span>
         </div>
     </div>
 
@@ -365,13 +362,45 @@ include_once __DIR__ . '/../components/testimony_modal.php';
             }
         }
 
-        // Immediate frame-0 vehicle initialization so there is zero flicker of "Own Car"
-        (function initImmediateVehicle() {
+        // Immediate frame-0 vehicle and pax initialization so there is zero flicker
+        (function initImmediateVehicleAndPax() {
             const urlParams = new URLSearchParams(window.location.search);
             const tripId = urlParams.get('trip_id') || sessionStorage.getItem('active_trip_id') || window.currentTripId;
             if (tripId) {
                 const v = resolveTripVehicle(null, tripId);
                 applyVehicleToUI(v);
+
+                try {
+                    const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+                    const tokenKey = token ? token.substring(0, 10) : 'default';
+                    const raw = localStorage.getItem('saved_trips_' + tokenKey);
+                    let cachedTrip = null;
+                    if (raw) {
+                        const parsed = JSON.parse(raw);
+                        const list = Array.isArray(parsed) ? parsed : (parsed.itineraries || parsed.data || []);
+                        cachedTrip = list.find(t => t.id == tripId || t.local_id == tripId);
+                    }
+                    if (!cachedTrip && window.OfflineTripManager && typeof window.OfflineTripManager.getQueuedTrips === 'function') {
+                        cachedTrip = window.OfflineTripManager.getQueuedTrips().find(t => t.id == tripId || t.local_id == tripId);
+                    }
+                    if (cachedTrip) {
+                        const paxTextEl = document.getElementById('trip-info-pax-text');
+                        const paxIconEl = document.getElementById('trip-info-pax-icon');
+                        if (paxTextEl) {
+                            const isGroup = cachedTrip.trip_type === 'group' || (cachedTrip.total_pax && cachedTrip.total_pax > 1);
+                            const totalPax = parseInt(cachedTrip.total_pax || 1, 10);
+                            const males = parseInt(cachedTrip.companion_males || 0, 10);
+                            const females = parseInt(cachedTrip.companion_females || 0, 10);
+                            if (isGroup) {
+                                paxTextEl.textContent = `${totalPax} Pax${(males > 0 || females > 0) ? ` (${males}M, ${females}F)` : ''}`;
+                                if (paxIconEl) paxIconEl.className = 'fa-solid fa-users';
+                            } else {
+                                paxTextEl.textContent = 'Solo';
+                                if (paxIconEl) paxIconEl.className = 'fa-solid fa-user';
+                            }
+                        }
+                    }
+                } catch (e) { }
             }
         })();
 
@@ -459,6 +488,16 @@ include_once __DIR__ . '/../components/testimony_modal.php';
             }
 
             window._conveyorRenderedTripId = window.currentTripId;
+            const trip = window.currentTrip;
+            const isGroupTrip = trip && (trip.trip_type === 'group' || (trip.total_pax && trip.total_pax > 1));
+            const totalPaxCount = trip ? parseInt(trip.total_pax || 1, 10) : 1;
+            const malesCount = trip ? parseInt(trip.companion_males || 0, 10) : 0;
+            const femalesCount = trip ? parseInt(trip.companion_females || 0, 10) : 0;
+            const paxLabel = isGroupTrip 
+                ? `${totalPaxCount} Pax${(malesCount > 0 || femalesCount > 0) ? ` (${malesCount}M, ${femalesCount}F)` : ''}`
+                : 'Solo';
+            const paxIcon = isGroupTrip ? 'fa-users' : 'fa-user';
+
             let conveyorHtml = '';
             items.forEach((item, idx) => {
                 const dest = item.destination;
@@ -663,7 +702,11 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                     ${classBadge}
                 </div>
                 <h4 style="margin:0 0 4px 0; font-size:16px; font-weight:800; color:#0f172a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${dest.name}">${dest.name}</h4>
-                <p style="margin:0 0 8px 0; font-size:12px; color:#64748b; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"><i class="fa-solid fa-location-dot" style="color:#0284c7; margin-right:5px;"></i>${dest.municipality || 'La Union'}</p>
+                <p style="margin:0 0 8px 0; font-size:12px; color:#64748b; font-weight:600; display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                    <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"><i class="fa-solid fa-location-dot" style="color:#0284c7; margin-right:4px;"></i>${dest.municipality || 'La Union'}</span>
+                    <span style="color:#cbd5e1;">&bull;</span>
+                    <span style="color:#1d4ed8; font-weight:700; white-space:nowrap;"><i class="fa-solid ${paxIcon}" style="color:#2563eb; margin-right:4px;"></i>${paxLabel}</span>
+                </p>
                 ${legTransitHtml}
                 <div style="display:flex; justify-content:space-between; align-items:center; gap:6px; min-width:0; padding-top:6px; border-top:1px solid #f1f5f9;">
                     <span style="font-size:11px; font-weight:700; color:#64748b; flex-shrink:0;"><i class="fa-solid fa-compass" style="color:#0284c7; margin-right:4px;"></i> Tap to view</span>
@@ -1172,6 +1215,15 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                                     if (routeType === 'Scenic Route') { legDurMin *= 1.3; legDistKm *= 1.25; }
                                     else if (isAlternative) { legDurMin *= 1.15; legDistKm *= 1.1; }
 
+                                    let activeLeg = (activeIndex >= 0 && items[activeIndex]) ? items[activeIndex] : (items[0] || null);
+                                    let activeLegCost = activeLeg ? parseFloat(activeLeg.leg_cost || 0) : 0;
+                                    let legCostDisplay = activeLegCost > 0 ? `₱${activeLegCost.toFixed(2)}` : 'Free / Own';
+                                    let activeLegVehicleName = activeVehicle.name || 'Vehicle';
+                                    if (activeLeg && activeLeg.transport_mode) {
+                                        const foundVeh = VEHICLE_CATALOG.find(v => v.key === activeLeg.transport_mode.toLowerCase());
+                                        if (foundVeh) activeLegVehicleName = foundVeh.name;
+                                    }
+
                                     const etaEl = document.createElement('div');
                                     etaEl.innerHTML = `
                                 <div style="background: #ffffff; border: 1.5px solid #e2e8f0; padding: 6px 12px; border-radius: 14px; box-shadow: 0 8px 24px rgba(15, 23, 42, 0.16); display: flex; align-items: center; gap: 8px; color: #0f172a; white-space: nowrap; pointer-events: none; transform: translateY(-4px);">
@@ -1179,11 +1231,8 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                                         <i class="fa-solid ${activeVehicle.icon}"></i>
                                     </div>
                                     <div style="display: flex; flex-direction: column; line-height: 1.15;">
-                                        <div style="display: flex; align-items: baseline; gap: 3px;">
-                                            <span style="font-size: 13px; font-weight: 800; color: #0f172a;">${Math.round(legDurMin)}</span>
-                                            <span style="font-size: 10px; font-weight: 700; color: #0284c7;">min</span>
-                                        </div>
-                                        <span style="font-size: 10px; font-weight: 600; color: #64748b;">${legDistKm < 1 ? Math.round(legDistKm * 1000) + ' m' : legDistKm.toFixed(1) + ' km'}</span>
+                                        <span style="font-size: 12px; font-weight: 800; color: #0f172a;">${activeLegVehicleName}</span>
+                                        <span style="font-size: 10.5px; font-weight: 700; color: ${activeLegCost > 0 ? '#059669' : '#64748b'};">${legCostDisplay}</span>
                                     </div>
                                 </div>
                             `;
