@@ -39,6 +39,8 @@ class User extends Authenticatable
         'two_factor_enabled',
         'two_factor_code',
         'two_factor_expires_at',
+        'created_at',
+        'updated_at',
     ];
 
     protected $hidden = [
@@ -46,6 +48,12 @@ class User extends Authenticatable
         'remember_token',
         'api_token',
         'two_factor_code',
+    ];
+
+    protected $appends = [
+        'created_at_formatted',
+        'date_created',
+        'tourist_number',
     ];
 
     protected $casts = [
@@ -57,7 +65,21 @@ class User extends Authenticatable
         'email_verified_at'     => 'datetime',
         'last_activity'         => 'datetime',
         'created_at'            => 'datetime',
+        'updated_at'            => 'datetime',
     ];
+
+    protected static function booted()
+    {
+        static::creating(function ($user) {
+            $now = now();
+            if (empty($user->created_at)) {
+                $user->created_at = $now;
+            }
+            if (empty($user->updated_at)) {
+                $user->updated_at = $now;
+            }
+        });
+    }
 
     /** Valid roles in the system */
     public static array $ALL_ROLES = [
@@ -180,5 +202,15 @@ class User extends Authenticatable
     public function getTouristNumberAttribute(): int
     {
         return $this->getTouristNumber();
+    }
+
+    public function getCreatedAtFormattedAttribute(): ?string
+    {
+        return $this->created_at ? $this->created_at->format('M d, Y h:i A') : null;
+    }
+
+    public function getDateCreatedAttribute(): ?string
+    {
+        return $this->created_at ? $this->created_at->format('M d, Y h:i A') : null;
     }
 }

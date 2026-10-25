@@ -745,6 +745,22 @@ foreach (['lupto', 'pitco', 'picto', 'municipal'] as $rolePrefix) {
                 }
 
                 $uArr = is_array($u) ? $u : (method_exists($u, 'toArray') ? $u->toArray() : (array) $u);
+                $createdRaw = $u->created_at ?? ($uArr['created_at'] ?? null);
+                $createdCarbon = $createdRaw ? (\Carbon\Carbon::parse($createdRaw)) : null;
+                $createdFormatted = $createdCarbon ? $createdCarbon->format('M d, Y h:i A') : '—';
+                $createdSql = $createdCarbon ? $createdCarbon->format('Y-m-d H:i:s') : null;
+                $createdIso = $createdCarbon ? $createdCarbon->toIso8601String() : null;
+
+                $uArr['created_at'] = $createdSql ?: $createdIso;
+                $uArr['created_at_formatted'] = $createdFormatted;
+                $uArr['date_created'] = $createdFormatted;
+                $uArr['date_created_formatted'] = $createdFormatted;
+                $uArr['created_date'] = $createdCarbon ? $createdCarbon->format('Y-m-d') : null;
+                $uArr['created_time'] = $createdCarbon ? $createdCarbon->format('h:i A') : null;
+                $uArr['timestamp'] = $createdSql ?: $createdIso;
+                $uArr['registered_at'] = $createdFormatted;
+                $uArr['registered_date'] = $createdFormatted;
+
                 $uArr['rank'] = $rankVal;
                 $uArr['rank_no'] = $rankVal;
                 $uArr['position'] = $rankVal;
@@ -1473,6 +1489,22 @@ $usersHandler = function (\Illuminate\Http\Request $request) {
         }
 
         $uArr = is_array($u) ? $u : (method_exists($u, 'toArray') ? $u->toArray() : (array) $u);
+        $createdRaw = $u->created_at ?? ($uArr['created_at'] ?? null);
+        $createdCarbon = $createdRaw ? (\Carbon\Carbon::parse($createdRaw)) : null;
+        $createdFormatted = $createdCarbon ? $createdCarbon->format('M d, Y h:i A') : '—';
+        $createdSql = $createdCarbon ? $createdCarbon->format('Y-m-d H:i:s') : null;
+        $createdIso = $createdCarbon ? $createdCarbon->toIso8601String() : null;
+
+        $uArr['created_at'] = $createdSql ?: $createdIso;
+        $uArr['created_at_formatted'] = $createdFormatted;
+        $uArr['date_created'] = $createdFormatted;
+        $uArr['date_created_formatted'] = $createdFormatted;
+        $uArr['created_date'] = $createdCarbon ? $createdCarbon->format('Y-m-d') : null;
+        $uArr['created_time'] = $createdCarbon ? $createdCarbon->format('h:i A') : null;
+        $uArr['timestamp'] = $createdSql ?: $createdIso;
+        $uArr['registered_at'] = $createdFormatted;
+        $uArr['registered_date'] = $createdFormatted;
+
         $uArr['rank'] = $rankVal;
         $uArr['rank_no'] = $rankVal;
         $uArr['position'] = $rankVal;

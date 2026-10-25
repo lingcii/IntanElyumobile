@@ -274,6 +274,8 @@ class LoginController extends Controller
                 'level'             => 1,
                 'avatar'            => $avatar,
                 'google_id'         => $google_id,
+                'created_at'        => now(),
+                'updated_at'        => now(),
             ]);
 
             // Send welcome confirmation email via Resend HTTPS API (Port 443 — non-blocking)

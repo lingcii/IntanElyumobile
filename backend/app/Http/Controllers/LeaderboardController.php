@@ -38,7 +38,8 @@ class LeaderboardController extends Controller
                     COALESCE(u.points, 0)                             AS claimable_points,
                     COALESCE(u.completed_activities, 0)               AS completed_activities,
                     COALESCE(u.completed_activities, 0)               AS places_visited,
-                    COALESCE(u.created_at, NOW())                     AS points_since
+                    COALESCE(u.created_at, NOW())                     AS points_since,
+                    COALESCE(u.created_at, NOW())                     AS created_at
                 FROM users u
                 LEFT JOIN municipalities m ON u.municipality_id = m.id
                 WHERE u.role = 'tourist' AND (u.status = 'active' OR u.status IS NULL)
@@ -233,6 +234,15 @@ class LeaderboardController extends Controller
                 'places_visited' => (int) ($r->places_visited ?? $activitiesVal),
                 'level' => (int) (floor($xpVal / 1000) + 1),
                 'points_since' => $r->points_since ?? null,
+                'created_at' => (!empty($r->created_at) ? date('Y-m-d H:i:s', strtotime($r->created_at)) : (!empty($r->points_since) ? date('Y-m-d H:i:s', strtotime($r->points_since)) : null)),
+                'created_at_formatted' => (!empty($r->created_at) ? date('M d, Y h:i A', strtotime($r->created_at)) : (!empty($r->points_since) ? date('M d, Y h:i A', strtotime($r->points_since)) : null)),
+                'date_created' => (!empty($r->created_at) ? date('M d, Y h:i A', strtotime($r->created_at)) : (!empty($r->points_since) ? date('M d, Y h:i A', strtotime($r->points_since)) : null)),
+                'date_created_formatted' => (!empty($r->created_at) ? date('M d, Y h:i A', strtotime($r->created_at)) : (!empty($r->points_since) ? date('M d, Y h:i A', strtotime($r->points_since)) : null)),
+                'created_date' => (!empty($r->created_at) ? date('Y-m-d', strtotime($r->created_at)) : null),
+                'created_time' => (!empty($r->created_at) ? date('h:i A', strtotime($r->created_at)) : null),
+                'timestamp' => (!empty($r->created_at) ? date('Y-m-d H:i:s', strtotime($r->created_at)) : null),
+                'registered_at' => (!empty($r->created_at) ? date('M d, Y h:i A', strtotime($r->created_at)) : null),
+                'registered_date' => (!empty($r->created_at) ? date('M d, Y h:i A', strtotime($r->created_at)) : null),
             ];
         }, $rows, array_keys($rows));
     }

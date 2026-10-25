@@ -585,8 +585,8 @@ try {
                         style="font-size:12px; font-weight:700; color:#1e3a8a; display:flex; align-items:center;">
                         Select vehicles:
                     </span>
-                    <button type="button" onclick="window.unselectAllLegCandidates()"
-                        style="background:rgba(239, 68, 68, 0.1); border:none !important; outline:none !important; color:#dc2626 !important; font-size:11px; font-weight:800; cursor:pointer; padding:3px 9px; border-radius:100px; transition:all 0.15s ease;">
+                    <button type="button" id="leg-modal-unselect-btn" onclick="window.unselectAllLegCandidates()"
+                        style="display:none; background:rgba(239, 68, 68, 0.1); border:none !important; outline:none !important; color:#dc2626 !important; font-size:11px; font-weight:800; cursor:pointer; padding:3px 9px; border-radius:100px; transition:all 0.15s ease;">
                         Unselect All
                     </button>
                 </div>
@@ -2268,6 +2268,12 @@ try {
             const selBar = document.getElementById('leg-modal-selection-bar');
             if (selBar) {
                 selBar.style.display = isSiteMaint ? 'none' : 'flex';
+            }
+
+            // Toggle Unselect All button: only show if there is at least one selected vehicle
+            const unselectBtn = document.getElementById('leg-modal-unselect-btn');
+            if (unselectBtn) {
+                unselectBtn.style.display = (selectedModes.length > 0 && !isSiteMaint) ? 'inline-block' : 'none';
             }
 
             // Update Selection Count Pill

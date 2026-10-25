@@ -80,14 +80,17 @@ class RegisterController extends Controller
 
         // Create active user account directly
         $token = Str::random(60);
+        $now = now();
         $user = User::create([
-            'name'      => $trimmedName,
-            'email'     => $emailKey,
-            'password'  => Hash::make($request->password),
-            'gender'    => $request->gender,
-            'role'      => 'tourist',
-            'status'    => 'active',
-            'api_token' => $token,
+            'name'       => $trimmedName,
+            'email'      => $emailKey,
+            'password'   => Hash::make($request->password),
+            'gender'     => $request->gender,
+            'role'       => 'tourist',
+            'status'     => 'active',
+            'api_token'  => $token,
+            'created_at' => $now,
+            'updated_at' => $now,
         ]);
 
         // Send Welcome Mail
@@ -112,6 +115,9 @@ class RegisterController extends Controller
                 'completed_activities' => 0,
                 'places_visited' => 0,
                 'avatar'         => null,
+                'created_at'     => $user->created_at ? $user->created_at->toIso8601String() : $now->toIso8601String(),
+                'created_at_formatted' => $user->created_at ? $user->created_at->format('M d, Y h:i A') : $now->format('M d, Y h:i A'),
+                'date_created'   => $user->created_at ? $user->created_at->format('M d, Y h:i A') : $now->format('M d, Y h:i A'),
             ],
             'message' => 'Account created successfully! Welcome to Intan Elyu!',
         ], 201);
@@ -156,13 +162,16 @@ class RegisterController extends Controller
 
         // Create active user account
         $token = Str::random(60);
+        $now = now();
         $user = User::create([
-            'name'      => $pending['name'],
-            'email'     => $pending['email'],
-            'password'  => $pending['password'],
-            'role'      => 'tourist',
-            'status'    => 'active',
-            'api_token' => $token,
+            'name'       => $pending['name'],
+            'email'      => $pending['email'],
+            'password'   => $pending['password'],
+            'role'       => 'tourist',
+            'status'     => 'active',
+            'api_token'  => $token,
+            'created_at' => $now,
+            'updated_at' => $now,
         ]);
 
         \Illuminate\Support\Facades\Cache::forget("pending_reg_{$emailKey}");
@@ -204,6 +213,9 @@ class RegisterController extends Controller
                 'completed_activities' => 0,
                 'places_visited' => 0,
                 'avatar'         => null,
+                'created_at'     => $user->created_at ? $user->created_at->toIso8601String() : $now->toIso8601String(),
+                'created_at_formatted' => $user->created_at ? $user->created_at->format('M d, Y h:i A') : $now->format('M d, Y h:i A'),
+                'date_created'   => $user->created_at ? $user->created_at->format('M d, Y h:i A') : $now->format('M d, Y h:i A'),
             ],
         ], 201);
     }
