@@ -2770,6 +2770,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                         window.populateMunicipalitiesRow();
                     }
                 })();
+            </script>`;
         } else if (!html && targetView === 'saved_trips') {
             html = `<div class="mobile-header">
                 <div class="header-icon" onclick="typeof window.goBack==='function'?window.goBack():(typeof navigateTo==='function'?navigateTo('dashboard'):window.history.back())" title="Back">
