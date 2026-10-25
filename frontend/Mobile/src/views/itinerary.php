@@ -1840,8 +1840,8 @@ try {
                         mode: 'no_vehicle',
                         transport_mode: 'no_vehicle',
                         transport_modes: [],
-                        name: 'select your vehicle',
-                        full_names: 'select your vehicle',
+                        name: 'Select your vehicle',
+                        full_names: 'Select your vehicle',
                         icon: '',
                         cost: 0,
                         leg_cost: 0,
@@ -1860,8 +1860,8 @@ try {
                         mode: 'no_vehicle',
                         transport_mode: 'no_vehicle',
                         transport_modes: [],
-                        name: 'select your vehicle',
-                        full_names: 'select your vehicle',
+                        name: 'Select your vehicle',
+                        full_names: 'Select your vehicle',
                         icon: '',
                         cost: 0,
                         leg_cost: 0,
@@ -1930,8 +1930,8 @@ try {
                 mode: 'no_vehicle',
                 transport_mode: 'no_vehicle',
                 transport_modes: [],
-                name: 'select your vehicle',
-                full_names: 'select your vehicle',
+                name: 'Select your vehicle',
+                full_names: 'Select your vehicle',
                 icon: '',
                 cost: 0,
                 leg_cost: 0,
@@ -2408,8 +2408,8 @@ try {
                     transport_modes: [],
                     leg_cost: 0,
                     leg_distance_km: parseFloat(window.currentLegModalDistKm) || 0,
-                    display_name: 'select your vehicle',
-                    full_names: 'select your vehicle',
+                    display_name: 'Select your vehicle',
+                    full_names: 'Select your vehicle',
                     is_custom: true
                 };
 
@@ -2429,7 +2429,7 @@ try {
                     window.updateDraftTravelModeBar();
                 }
                 if (typeof showToast === 'function') {
-                    showToast(`Stop ${legIdx + 1} transit set to select your vehicle`);
+                    showToast(`Stop ${legIdx + 1} transit set to Select your vehicle`);
                 }
                 return;
             }
@@ -2551,7 +2551,7 @@ try {
                     const iconMarkup = (isSelected && info.icon)
                         ? `<i class="fa-solid ${info.icon}" style="color:#00f2fe; font-size:12px;"></i>`
                         : '';
-                    const vehicleLabel = isSelected ? (info.full_names || info.name) : 'select your vehicle';
+                    const vehicleLabel = isSelected ? (info.full_names || info.name) : 'Select your vehicle';
                     transportMarkup = `
                         <div style="display:inline-flex; align-items:center; gap:6px; background:rgba(255,255,255,0.16); color:#ffffff; font-size:11.5px; font-weight:700; padding:4px 10px; border-radius:100px; border:1px solid rgba(255,255,255,0.22);">
                             ${iconMarkup}
@@ -2562,7 +2562,7 @@ try {
 
                 // Fare display
                 let fareMarkup = '';
-                if (isMaintenance) {
+                if (isMaintenance || !isSelected) {
                     fareMarkup = `<span style="font-size:13px; font-weight:700; color:rgba(255,255,255,0.6);">—</span>`;
                 } else if (cost === 0) {
                     fareMarkup = `<span style="font-size:13.5px; font-weight:800; color:#34d399;">₱0.00</span> <span style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.72);">(Free)</span>`;
@@ -3155,7 +3155,7 @@ try {
 
                 const leg0Info = (typeof window.getLegTransportInfo === 'function')
                     ? window.getLegTransportInfo(0)
-                    : { mode: 'no_vehicle', name: 'select your vehicle', icon: '', cost: 0, has_selection: false };
+                    : { mode: 'no_vehicle', name: 'Select your vehicle', icon: '', cost: 0, has_selection: false };
 
                 const startDistText = startEta ? `${startEta.distanceText} &bull; ~${startEta.durationText}` : 'Start Leg';
                 const fareBadge = (leg0Info.is_maintenance || leg0Info.name === 'Unavailable' || !leg0Info.has_selection || String(leg0Info.name).toLowerCase().includes('select your vehicle'))
@@ -3183,11 +3183,11 @@ try {
             <div class="stops-swap-divider starting-leg-divider">
                 <div class="stops-swap-line"></div>
                 <div class="stops-leg-wrapper" style="display:flex; align-items:center; gap:8px; z-index:3;">
-                    <div class="${leg0ChipClass}" onclick="${leg0ClickAction}" title="${leg0Info.is_maintenance ? 'Destination is under maintenance. Transport options are disabled.' : 'Selected: ' + (leg0Info.full_names || leg0Info.name)}">
+                    <div class="${leg0ChipClass}" onclick="${leg0ClickAction}" title="${leg0Info.is_maintenance ? 'Destination is under maintenance. Transport options are disabled.' : (isLeg0Selected ? 'Selected: ' + (leg0Info.full_names || leg0Info.name) : 'Click to select vehicle')}">
                         ${leg0LeadingIcon}
                         <span class="leg-chip-name" style="${leg0NameStyle}">${leg0Info.name}</span>
                         ${fareBadge}
-                        ${leg0Info.is_maintenance ? '' : `<span class="leg-dist-text">&bull; ${startDistText}</span>`}
+                        ${(!isLeg0Selected || leg0Info.is_maintenance) ? '' : `<span class="leg-dist-text">&bull; ${startDistText}</span>`}
                         ${leg0TrailingIcon}
                     </div>
                 </div>
@@ -3256,7 +3256,7 @@ try {
 
                         const legInfo = (typeof window.getLegTransportInfo === 'function')
                             ? window.getLegTransportInfo(index)
-                            : { mode: 'no_vehicle', name: 'select your vehicle', icon: '', cost: 0, has_selection: false };
+                            : { mode: 'no_vehicle', name: 'Select your vehicle', icon: '', cost: 0, has_selection: false };
 
                         const legDistText = legEta ? `${legEta.distanceText} &bull; ~${legEta.durationText}` : 'Leg Route';
                         const fareBadge = (legInfo.is_maintenance || legInfo.name === 'Unavailable' || !legInfo.has_selection || String(legInfo.name).toLowerCase().includes('select your vehicle'))
@@ -3284,11 +3284,11 @@ try {
                         <div class="stops-swap-divider">
                             <div class="stops-swap-line"></div>
                             <div class="stops-leg-wrapper" style="display:flex; align-items:center; gap:8px; z-index:3;">
-                                <div class="${legChipClass}" onclick="${legClickAction}" title="${legInfo.is_maintenance ? 'Destination is under maintenance. Transport options are disabled.' : 'Selected: ' + (legInfo.full_names || legInfo.name)}">
+                                <div class="${legChipClass}" onclick="${legClickAction}" title="${legInfo.is_maintenance ? 'Destination is under maintenance. Transport options are disabled.' : (isLegSelected ? 'Selected: ' + (legInfo.full_names || legInfo.name) : 'Click to select vehicle')}">
                                     ${legLeadingIcon}
                                     <span class="leg-chip-name" style="${legNameStyle}">${legInfo.name}</span>
                                     ${fareBadge}
-                                    ${legInfo.is_maintenance ? '' : `<span class="leg-dist-text">&bull; ${legDistText}</span>`}
+                                    ${(!isLegSelected || legInfo.is_maintenance) ? '' : `<span class="leg-dist-text">&bull; ${legDistText}</span>`}
                                     ${legTrailingIcon}
                                 </div>
                                 <button type="button" class="btn-swap-pill" onclick="event.stopPropagation(); window.swapDraftStops(${index - 1}, ${index});" title="Swap Stop ${index} and Stop ${index + 1}" aria-label="Swap order">
