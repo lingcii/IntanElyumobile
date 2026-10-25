@@ -3083,7 +3083,7 @@ window.renderSavedTrips = function (itineraries) {
                 html += `<div style="display:flex; gap:8px; margin-top:16px; flex-wrap:wrap; align-items:center;">`;
                 html += `
                 <button class="btn-primary" style="flex:1; min-width:105px; background: rgba(255, 255, 255, 0.22); border: none !important; outline: none !important; color: #ffffff; padding: 13px 14px; border-radius: 14px; font-weight: 800; font-size: 13px; cursor: pointer; transition: all 0.25s ease;" onclick="window.toggleTripDetails('${trip.id}')">
-                    <i class="fa-solid fa-chevron-down" id="chevron-${trip.id}" style="margin-right:6px; transition:transform 0.3s ease;"></i> Details & Photo Proofs
+                    <i class="fa-solid fa-chevron-down" id="chevron-${trip.id}" style="margin-right:6px; transition:transform 0.3s ease;"></i> View Details
                 </button>`;
 
                 if (trip.is_offline_queued || hasQueuedCheckins) {

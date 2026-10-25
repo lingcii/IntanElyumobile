@@ -293,9 +293,8 @@ try {
             </div>
 
             <!-- Travel Group / Companions Section -->
-            <label style="font-size:12.5px; color:#1e293b !important; margin-bottom:8px; display:flex; align-items:center; justify-content:space-between; font-weight:700;">
+            <label style="font-size:12.5px; color:#1e293b !important; margin-bottom:8px; display:block; font-weight:700;">
                 <span style="color:#1e293b !important;">Travel Group Type</span>
-                <span id="trip-pax-count-badge" style="font-size:11px; background:#e0f2fe; color:#0369a1 !important; font-weight:800; padding:2px 8px; border-radius:100px;">1 Traveler (Solo)</span>
             </label>
 
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:14px;">

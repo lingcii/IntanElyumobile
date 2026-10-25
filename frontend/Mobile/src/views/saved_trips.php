@@ -1361,7 +1361,7 @@ $backRoute = 'itinerary';
                         // View Details button
                         html += `
                         <button class="btn-primary" style="flex:1; min-width:105px; background: rgba(255, 255, 255, 0.22); border: none !important; outline: none !important; color: #ffffff; padding: 13px 14px; border-radius: 14px; font-weight: 800; font-size: 13px; cursor: pointer; transition: all 0.25s ease;" onclick="window.toggleTripDetails('${trip.id}')">
-                            <i class="fa-solid fa-chevron-down" id="chevron-${trip.id}" style="margin-right:6px; transition:transform 0.3s ease;"></i> Details & Photo Proofs
+                            <i class="fa-solid fa-chevron-down" id="chevron-${trip.id}" style="margin-right:6px; transition:transform 0.3s ease;"></i> View Details
                         </button>`;
 
                         // If trip is queued offline, or has queued offline check-ins / photos, show prominent "Sync Now" button
