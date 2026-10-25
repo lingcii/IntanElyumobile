@@ -19,6 +19,7 @@ use App\Http\Controllers\VehicleController;
 use App\Http\Controllers\PuzzleController;
 use App\Http\Controllers\Admin\AnalyticsController;
 use App\Models\TouristSpot;
+use App\Models\User;
 use Illuminate\Support\Facades\Route;
 
 // Catch-all OPTIONS route to guarantee CORS headers on preflight requests
@@ -80,10 +81,12 @@ $serveFileHandler = function ($file) {
 
     // Direct binary stream from Cloudflare R2 / S3 storage disk (bypasses ISP DNS blocking of *.r2.dev)
     try {
+        /** @var \Illuminate\Filesystem\FilesystemAdapter $storage */
         $storage = \Illuminate\Support\Facades\Storage::disk('r2');
         foreach ($r2Paths as $r2Path) {
             if ($storage->exists($r2Path)) {
-                $mime = $storage->mimeType($r2Path) ?: (preg_match('#\.(webp)$#i', $r2Path) ? 'image/webp' : (preg_match('#\.(png)$#i', $r2Path) ? 'image/png' : 'image/jpeg'));
+                $mime = (method_exists($storage, 'mimeType') ? $storage->mimeType($r2Path) : null)
+                    ?: (preg_match('#\.(webp)$#i', $r2Path) ? 'image/webp' : (preg_match('#\.(png)$#i', $r2Path) ? 'image/png' : 'image/jpeg'));
                 $stream = $storage->readStream($r2Path);
                 if ($stream) {
                     return response()->stream(function () use ($stream) {
@@ -106,9 +109,11 @@ $serveFileHandler = function ($file) {
     if (in_array($disk, ['r2', 's3'])) {
         foreach ($r2Paths as $r2Path) {
             try {
-                if (\Illuminate\Support\Facades\Storage::disk($disk)->exists($r2Path)) {
-                    $mime = \Illuminate\Support\Facades\Storage::disk($disk)->mimeType($r2Path) ?: 'image/jpeg';
-                    $content = \Illuminate\Support\Facades\Storage::disk($disk)->get($r2Path);
+                /** @var \Illuminate\Filesystem\FilesystemAdapter $activeDisk */
+                $activeDisk = \Illuminate\Support\Facades\Storage::disk($disk);
+                if ($activeDisk->exists($r2Path)) {
+                    $mime = (method_exists($activeDisk, 'mimeType') ? $activeDisk->mimeType($r2Path) : null) ?: 'image/jpeg';
+                    $content = $activeDisk->get($r2Path);
                     if ($content) {
                         return response($content, 200, [
                             'Content-Type' => $mime,
@@ -447,7 +452,7 @@ Route::prefix('admin')->middleware('tourist.auth')->group(function () {
             }
         }
 
-        \App\Models\TouristSpot::clearSpotCaches();
+        TouristSpot::clearSpotCaches();
 
         return response()->json([
             'success' => true,
@@ -513,12 +518,12 @@ Route::prefix('admin')->middleware('tourist.auth')->group(function () {
         }
 
         $item = \App\Models\ItineraryItem::findOrFail($id);
+        $hasCheckin = ($item->visited_at !== null);
         $item->update([
             'proof_status' => 'approved',
-            'is_visited' => true,
-            'visited_at' => $item->visited_at ?? now(),
-            'reviewed_by' => $user->id ?? null,
-            'reviewed_at' => now(),
+            'is_visited'   => $hasCheckin,
+            'reviewed_by'  => $user->id ?? null,
+            'reviewed_at'  => now(),
         ]);
 
         $item->loadMissing('destination');
@@ -578,14 +583,14 @@ foreach (['lupto', 'pitco', 'picto', 'municipal'] as $rolePrefix) {
     Route::prefix($rolePrefix)->group(function () use ($rolePrefix) {
         Route::get('/dashboard', function (Illuminate\Http\Request $request) {
             $muniId = $request->query('municipality_id');
-            $spotsQuery = \App\Models\TouristSpot::with('municipality');
+            $spotsQuery = TouristSpot::with('municipality');
             if ($muniId) {
                 $spotsQuery->where('municipality_id', $muniId);
             }
             $spots = $spotsQuery->get();
             $totalSpots = $spots->count();
             $totalMunis = \Illuminate\Support\Facades\DB::table('municipalities')->count();
-            $totalUsers = \App\Models\User::count();
+            $totalUsers = User::count();
             $totalVisits = (int) $spots->sum('visits');
             $ratedSpots = $spots->where('rating', '>', 0);
             $avgRating = $ratedSpots->count() > 0 ? round((float) $ratedSpots->avg('rating'), 1) : 0.0;
@@ -593,7 +598,7 @@ foreach (['lupto', 'pitco', 'picto', 'municipal'] as $rolePrefix) {
             $pendingApprovals = 0;
             try {
                 $pendingApprovals = \App\Models\ItineraryItem::where('proof_status', 'pending')->count()
-                    + \App\Models\TouristSpot::where('status', 'pending')->count();
+                    + TouristSpot::where('status', 'pending')->count();
             } catch (\Throwable $e) {
             }
 
@@ -615,7 +620,7 @@ foreach (['lupto', 'pitco', 'picto', 'municipal'] as $rolePrefix) {
 
         Route::get('/tourist-spots', function (Illuminate\Http\Request $request) {
             $muniId = $request->query('municipality_id');
-            $query = \App\Models\TouristSpot::with(['municipality:id,name', 'images']);
+            $query = TouristSpot::with(['municipality:id,name', 'images']);
             if ($muniId) {
                 $query->where('municipality_id', $muniId);
             }
@@ -668,8 +673,8 @@ foreach (['lupto', 'pitco', 'picto', 'municipal'] as $rolePrefix) {
                 }
             }
 
-            $spot = \App\Models\TouristSpot::create($data);
-            \App\Models\TouristSpot::clearSpotCaches();
+            $spot = TouristSpot::create($data);
+            TouristSpot::clearSpotCaches();
 
             return response()->json([
                 'success' => true,
@@ -683,7 +688,7 @@ foreach (['lupto', 'pitco', 'picto', 'municipal'] as $rolePrefix) {
                 'photo' => 'required|image|mimes:jpeg,png,jpg,webp,gif|max:10240'
             ]);
 
-            $spot = \App\Models\TouristSpot::findOrFail($id);
+            $spot = TouristSpot::findOrFail($id);
             $disk = 'r2';
             try {
                 $path = \App\Helpers\ImageCompressor::compressAndStore($request->file('photo'), 'tourist_spots', 'r2', 'spot_', 1200, 80);
@@ -713,12 +718,12 @@ foreach (['lupto', 'pitco', 'picto', 'municipal'] as $rolePrefix) {
         });
 
         Route::get('/users', function (\Illuminate\Http\Request $request) {
-            $ctrl = new \App\Http\Controllers\LeaderboardController();
+            $ctrl = new LeaderboardController();
             $leaderboardResp = $ctrl->index($request);
             $leaderboardData = json_decode($leaderboardResp->getContent(), true);
             $rankedUsers = $leaderboardData['leaderboard'] ?? ($leaderboardData['data'] ?? []);
 
-            $allUsers = \App\Models\User::with('municipality')->get();
+            $allUsers = User::with('municipality')->get();
             $adminCount = $allUsers->whereIn('role', ['admin', 'super_admin', 'lupto', 'pitco', 'picto'])->count();
             $municipalCount = $allUsers->where('role', 'municipal')->count();
             $touristCount = $allUsers->where('role', 'tourist')->count();
@@ -739,7 +744,7 @@ foreach (['lupto', 'pitco', 'picto', 'municipal'] as $rolePrefix) {
                     $actVal = (int) ($u->completed_activities ?? 0);
                 }
 
-                $uArr = $u->toArray();
+                $uArr = is_array($u) ? $u : (method_exists($u, 'toArray') ? $u->toArray() : (array) $u);
                 $uArr['rank'] = $rankVal;
                 $uArr['rank_no'] = $rankVal;
                 $uArr['position'] = $rankVal;
@@ -809,8 +814,8 @@ foreach (['lupto', 'pitco', 'picto', 'municipal'] as $rolePrefix) {
 
         Route::get('/archive/stats', function () {
             $fareCount = \App\Models\FareGuide::count();
-            $userCount = \App\Models\User::count();
-            $spotCount = \App\Models\TouristSpot::count();
+            $userCount = User::count();
+            $spotCount = TouristSpot::count();
             return response()->json([
                 'success' => true,
                 'stats' => [
@@ -833,8 +838,8 @@ foreach (['lupto', 'pitco', 'picto', 'municipal'] as $rolePrefix) {
 
         Route::get('/archive', function () {
             $fareCount = \App\Models\FareGuide::count();
-            $userCount = \App\Models\User::count();
-            $spotCount = \App\Models\TouristSpot::count();
+            $userCount = User::count();
+            $spotCount = TouristSpot::count();
             return response()->json([
                 'success' => true,
                 'archive' => [],
@@ -845,8 +850,8 @@ foreach (['lupto', 'pitco', 'picto', 'municipal'] as $rolePrefix) {
 
         Route::any('/archive/{any}', function () {
             $fareCount = \App\Models\FareGuide::count();
-            $userCount = \App\Models\User::count();
-            $spotCount = \App\Models\TouristSpot::count();
+            $userCount = User::count();
+            $spotCount = TouristSpot::count();
             return response()->json([
                 'success' => true,
                 'archive' => [],
@@ -858,134 +863,30 @@ foreach (['lupto', 'pitco', 'picto', 'municipal'] as $rolePrefix) {
         Route::get('/fare-data', [MapController::class, 'publicFares']);
         Route::get('/fares', [MapController::class, 'publicFares']);
 
-        Route::get('/activity-logs', function (\Illuminate\Http\Request $request) {
-            $dbLogs = \App\Models\ActivityLog::with('user:id,name,email,avatar')->latest()->limit(100)->get();
-
-            if ($dbLogs->isNotEmpty()) {
-                $formatted = $dbLogs->map(function ($l) {
-                    return [
-                        'id' => $l->id,
-                        'user_id' => $l->user_id,
-                        'user_name' => $l->user ? $l->user->name : "Explorer #{$l->user_id}",
-                        'name' => $l->user ? $l->user->name : "Explorer #{$l->user_id}",
-                        'action' => $l->action,
-                        'details' => $l->details,
-                        'description' => $l->details,
-                        'module' => $l->module ?? 'General',
-                        'ip_address' => $l->ip_address ?? '127.0.0.1',
-                        'created_at' => $l->created_at ? $l->created_at->toIso8601String() : now()->toIso8601String(),
-                        'date' => $l->created_at ? $l->created_at->format('M d, Y h:i A') : now()->format('M d, Y h:i A'),
-                        'user' => $l->user,
-                    ];
-                });
-
-                return response()->json([
-                    'success' => true,
-                    'status' => 'success',
-                    'logs' => $formatted,
-                    'data' => $formatted,
-                    'total' => $formatted->count(),
-                ]);
-            }
-
-            // Synthesize comprehensive live activity records from real database events
-            $users = \App\Models\User::latest()->limit(25)->get()->map(function ($u) {
-                return [
-                    'id' => 'usr_' . $u->id,
-                    'user_id' => $u->id,
-                    'user_name' => $u->name ?: "Explorer #{$u->id}",
-                    'name' => $u->name ?: "Explorer #{$u->id}",
-                    'action' => 'User Registration',
-                    'details' => "Tourist '{$u->name}' registered with email {$u->email}",
-                    'description' => "Tourist '{$u->name}' registered with email {$u->email}",
-                    'module' => 'Authentication',
-                    'ip_address' => '127.0.0.1',
-                    'created_at' => $u->created_at ? $u->created_at->toIso8601String() : now()->toIso8601String(),
-                    'date' => $u->created_at ? $u->created_at->format('M d, Y h:i A') : now()->format('M d, Y h:i A'),
-                    'user' => ['id' => $u->id, 'name' => $u->name, 'avatar' => $u->avatar],
-                ];
-            });
-
-            $feedbacks = \App\Models\SiteFeedback::with(['user:id,name,avatar', 'touristSpot:id,name'])->latest()->limit(25)->get()->map(function ($fb) {
-                $spotName = $fb->touristSpot ? $fb->touristSpot->name : 'Tourist Spot';
-                $uName = $fb->user ? $fb->user->name : 'Tourist';
-                return [
-                    'id' => 'fb_' . $fb->id,
-                    'user_id' => $fb->user_id,
-                    'user_name' => $uName,
-                    'name' => $uName,
-                    'action' => 'Destination Review & Rating',
-                    'details' => "Submitted {$fb->rating}★ review for '{$spotName}'",
-                    'description' => "Submitted {$fb->rating}★ review for '{$spotName}'" . ($fb->testimony ? ": \"{$fb->testimony}\"" : ''),
-                    'module' => 'Feedback',
-                    'ip_address' => '127.0.0.1',
-                    'created_at' => $fb->created_at ? $fb->created_at->toIso8601String() : now()->toIso8601String(),
-                    'date' => $fb->created_at ? $fb->created_at->format('M d, Y h:i A') : now()->format('M d, Y h:i A'),
-                    'user' => $fb->user ? ['id' => $fb->user->id, 'name' => $fb->user->name, 'avatar' => $fb->user->avatar] : null,
-                ];
-            });
-
-            $points = collect();
-
-            $itinItems = \App\Models\ItineraryItem::with(['itinerary.user:id,name,avatar', 'destination:id,name'])->latest()->limit(25)->get()->map(function ($it) {
-                $u = $it->itinerary ? $it->itinerary->user : null;
-                $uName = $u ? $u->name : 'Tourist';
-                $spotName = $it->destination ? $it->destination->name : 'Destination';
-                return [
-                    'id' => 'itin_' . $it->id,
-                    'user_id' => $u ? $u->id : null,
-                    'user_name' => $uName,
-                    'name' => $uName,
-                    'action' => $it->is_visited ? 'Destination Check-In' : 'Itinerary Destination Added',
-                    'details' => ($it->is_visited ? 'Completed check-in at ' : 'Added destination ') . "'{$spotName}'",
-                    'description' => ($it->is_visited ? 'Completed check-in at ' : 'Added destination ') . "'{$spotName}'",
-                    'module' => 'Itinerary',
-                    'ip_address' => '127.0.0.1',
-                    'created_at' => $it->created_at ? $it->created_at->toIso8601String() : now()->toIso8601String(),
-                    'date' => $it->created_at ? $it->created_at->format('M d, Y h:i A') : now()->format('M d, Y h:i A'),
-                    'user' => $u ? ['id' => $u->id, 'name' => $u->name, 'avatar' => $u->avatar] : null,
-                ];
-            });
-
-            $combined = collect()
-                ->concat($users)
-                ->concat($feedbacks)
-                ->concat($points)
-                ->concat($itinItems)
-                ->sortByDesc('created_at')
-                ->values();
-
-            return response()->json([
-                'success' => true,
-                'status' => 'success',
-                'logs' => $combined,
-                'data' => $combined,
-                'total' => $combined->count(),
-            ]);
-        });
+        Route::get('/activity-logs', [AnalyticsController::class, 'activityLogs']);
 
         Route::post('/dashboard/approve-spot', function (\Illuminate\Http\Request $request) {
-            $spot = \App\Models\TouristSpot::find($request->input('id'));
+            $spot = TouristSpot::find($request->input('id'));
             if ($spot) {
                 $spot->update(['status' => 'approved']);
             }
-            \App\Models\TouristSpot::clearSpotCaches();
+            TouristSpot::clearSpotCaches();
             return response()->json(['success' => true]);
         });
 
         Route::post('/dashboard/reject-spot', function (\Illuminate\Http\Request $request) {
-            $spot = \App\Models\TouristSpot::find($request->input('id'));
+            $spot = TouristSpot::find($request->input('id'));
             if ($spot) {
                 $spot->update(['status' => 'rejected']);
             }
-            \App\Models\TouristSpot::clearSpotCaches();
+            TouristSpot::clearSpotCaches();
             return response()->json(['success' => true]);
         });
 
         Route::post('/dashboard/batch-approve-spots', function (\Illuminate\Http\Request $request) {
             $ids = $request->input('ids', []);
-            \App\Models\TouristSpot::whereIn('id', $ids)->update(['status' => 'approved']);
-            \App\Models\TouristSpot::clearSpotCaches();
+            TouristSpot::whereIn('id', $ids)->update(['status' => 'approved']);
+            TouristSpot::clearSpotCaches();
             return response()->json(['success' => true]);
         });
 
@@ -1036,12 +937,12 @@ foreach (['lupto', 'pitco', 'picto', 'municipal'] as $rolePrefix) {
         Route::post('/proof-checkins/{id}/approve', function (\Illuminate\Http\Request $request, $id) {
             $item = \App\Models\ItineraryItem::findOrFail($id);
             $user = $request->user();
+            $hasCheckin = ($item->visited_at !== null);
             $item->update([
                 'proof_status' => 'approved',
-                'is_visited' => true,
-                'visited_at' => $item->visited_at ?? now(),
-                'reviewed_by' => $user->id ?? null,
-                'reviewed_at' => now(),
+                'is_visited'   => $hasCheckin,
+                'reviewed_by'  => $user->id ?? null,
+                'reviewed_at'  => now(),
             ]);
 
             $item->loadMissing('destination');
@@ -1538,86 +1439,20 @@ Route::get('/pitco/leaderboard', [LeaderboardController::class, 'index']);
 Route::get('/municipal/leaderboard', [LeaderboardController::class, 'index']);
 
 // Top-level Activity Logs aliases
-$activityLogsHandler = function (\Illuminate\Http\Request $request) {
-    $dbLogs = \App\Models\ActivityLog::with('user:id,name,email,avatar')->latest()->limit(100)->get();
-    if ($dbLogs->isNotEmpty()) {
-        $formatted = $dbLogs->map(fn($l) => [
-            'id' => $l->id,
-            'user_id' => $l->user_id,
-            'user_name' => $l->user ? $l->user->name : "Explorer #{$l->user_id}",
-            'name' => $l->user ? $l->user->name : "Explorer #{$l->user_id}",
-            'action' => $l->action,
-            'details' => $l->details,
-            'description' => $l->details,
-            'module' => $l->module ?? 'General',
-            'ip_address' => $l->ip_address ?? '127.0.0.1',
-            'created_at' => $l->created_at ? $l->created_at->toIso8601String() : now()->toIso8601String(),
-            'date' => $l->created_at ? $l->created_at->format('M d, Y h:i A') : now()->format('M d, Y h:i A'),
-            'user' => $l->user,
-        ]);
-        return response()->json(['success' => true, 'status' => 'success', 'logs' => $formatted, 'data' => $formatted, 'total' => $formatted->count()]);
-    }
-    $users = \App\Models\User::latest()->limit(25)->get()->map(fn($u) => [
-        'id' => 'usr_' . $u->id,
-        'user_id' => $u->id,
-        'user_name' => $u->name ?: "Explorer #{$u->id}",
-        'name' => $u->name ?: "Explorer #{$u->id}",
-        'action' => 'User Registration',
-        'details' => "Tourist '{$u->name}' registered with email {$u->email}",
-        'description' => "Tourist '{$u->name}' registered with email {$u->email}",
-        'module' => 'Authentication',
-        'ip_address' => '127.0.0.1',
-        'created_at' => $u->created_at ? $u->created_at->toIso8601String() : now()->toIso8601String(),
-        'date' => $u->created_at ? $u->created_at->format('M d, Y h:i A') : now()->format('M d, Y h:i A'),
-        'user' => ['id' => $u->id, 'name' => $u->name, 'avatar' => $u->avatar],
-    ]);
-    $feedbacks = \App\Models\SiteFeedback::with(['user:id,name,avatar', 'touristSpot:id,name'])->latest()->limit(25)->get()->map(fn($fb) => [
-        'id' => 'fb_' . $fb->id,
-        'user_id' => $fb->user_id,
-        'user_name' => $fb->user ? $fb->user->name : 'Tourist',
-        'name' => $fb->user ? $fb->user->name : 'Tourist',
-        'action' => 'Destination Review & Rating',
-        'details' => "Submitted {$fb->rating}★ review for '" . ($fb->touristSpot ? $fb->touristSpot->name : 'Spot') . "'",
-        'description' => "Submitted {$fb->rating}★ review for '" . ($fb->touristSpot ? $fb->touristSpot->name : 'Spot') . "'" . ($fb->testimony ? ": \"{$fb->testimony}\"" : ''),
-        'module' => 'Feedback',
-        'ip_address' => '127.0.0.1',
-        'created_at' => $fb->created_at ? $fb->created_at->toIso8601String() : now()->toIso8601String(),
-        'date' => $fb->created_at ? $fb->created_at->format('M d, Y h:i A') : now()->format('M d, Y h:i A'),
-        'user' => $fb->user ? ['id' => $fb->user->id, 'name' => $fb->user->name, 'avatar' => $fb->user->avatar] : null,
-    ]);
-    $points = collect();
-    $itinItems = \App\Models\ItineraryItem::with(['itinerary.user:id,name,avatar', 'destination:id,name'])->latest()->limit(25)->get()->map(fn($it) => [
-        'id' => 'itin_' . $it->id,
-        'user_id' => $it->itinerary ? $it->itinerary->user_id : null,
-        'user_name' => ($it->itinerary && $it->itinerary->user) ? $it->itinerary->user->name : 'Tourist',
-        'name' => ($it->itinerary && $it->itinerary->user) ? $it->itinerary->user->name : 'Tourist',
-        'action' => $it->is_visited ? 'Destination Check-In' : 'Itinerary Destination Added',
-        'details' => ($it->is_visited ? 'Completed check-in at ' : 'Added destination ') . "'" . ($it->destination ? $it->destination->name : 'Spot') . "'",
-        'description' => ($it->is_visited ? 'Completed check-in at ' : 'Added destination ') . "'" . ($it->destination ? $it->destination->name : 'Spot') . "'",
-        'module' => 'Itinerary',
-        'ip_address' => '127.0.0.1',
-        'created_at' => $it->created_at ? $it->created_at->toIso8601String() : now()->toIso8601String(),
-        'date' => $it->created_at ? $it->created_at->format('M d, Y h:i A') : now()->format('M d, Y h:i A'),
-        'user' => ($it->itinerary && $it->itinerary->user) ? ['id' => $it->itinerary->user->id, 'name' => $it->itinerary->user->name, 'avatar' => $it->itinerary->user->avatar] : null,
-    ]);
-    $combined = collect()->concat($users)->concat($feedbacks)->concat($points)->concat($itinItems)->sortByDesc('created_at')->values();
-    return response()->json(['success' => true, 'status' => 'success', 'logs' => $combined, 'data' => $combined, 'total' => $combined->count()]);
-};
-
-Route::get('/activity-logs', $activityLogsHandler);
-Route::get('/admin/activity-logs', $activityLogsHandler);
-Route::get('/lupto/activity-logs', $activityLogsHandler);
-Route::get('/picto/activity-logs', $activityLogsHandler);
-Route::get('/pitco/activity-logs', $activityLogsHandler);
-Route::get('/municipal/activity-logs', $activityLogsHandler);
+Route::get('/activity-logs', [AnalyticsController::class, 'activityLogs']);
+Route::get('/admin/activity-logs', [AnalyticsController::class, 'activityLogs']);
+Route::get('/lupto/activity-logs', [AnalyticsController::class, 'activityLogs']);
+Route::get('/picto/activity-logs', [AnalyticsController::class, 'activityLogs']);
+Route::get('/pitco/activity-logs', [AnalyticsController::class, 'activityLogs']);
+Route::get('/municipal/activity-logs', [AnalyticsController::class, 'activityLogs']);
 
 $usersHandler = function (\Illuminate\Http\Request $request) {
-    $ctrl = new \App\Http\Controllers\LeaderboardController();
+    $ctrl = new LeaderboardController();
     $leaderboardResp = $ctrl->index($request);
     $leaderboardData = json_decode($leaderboardResp->getContent(), true);
     $rankedUsers = $leaderboardData['leaderboard'] ?? ($leaderboardData['data'] ?? []);
 
-    $allUsers = \App\Models\User::with('municipality')->get();
+    $allUsers = User::with('municipality')->get();
     $adminCount = $allUsers->whereIn('role', ['admin', 'super_admin', 'lupto', 'pitco', 'picto'])->count();
     $municipalCount = $allUsers->where('role', 'municipal')->count();
     $touristCount = $allUsers->where('role', 'tourist')->count();
@@ -1637,7 +1472,7 @@ $usersHandler = function (\Illuminate\Http\Request $request) {
             $actVal = (int) ($u->completed_activities ?? 0);
         }
 
-        $uArr = $u->toArray();
+        $uArr = is_array($u) ? $u : (method_exists($u, 'toArray') ? $u->toArray() : (array) $u);
         $uArr['rank'] = $rankVal;
         $uArr['rank_no'] = $rankVal;
         $uArr['position'] = $rankVal;
@@ -1678,7 +1513,7 @@ Route::get('/users', $usersHandler);
 Route::get('/admin/users', $usersHandler);
 
 $touristsHandler = function (\Illuminate\Http\Request $request) {
-    $ctrl = new \App\Http\Controllers\LeaderboardController();
+    $ctrl = new LeaderboardController();
     return $ctrl->index($request);
 };
 

@@ -86,7 +86,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
         <!-- Middle Scrollable Area (White) -->
         <div style="background:#ffffff !important; padding:20px; flex:1; overflow-y:auto; text-align:left; box-sizing:border-box;">
             <p style="font-size:13px; color:#475569; margin:0 0 16px 0; line-height:1.5; font-weight:500;">
-                Take or select selfies and photos at this destination to earn <strong style="color:#0284c7; font-weight:800;">+50 Points</strong>.
+                Take or select selfies and photos at this destination to verify your visit.
             </p>
 
             <input type="hidden" id="proof-upload-item-id">
@@ -389,7 +389,9 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                 items.forEach((item, idx) => {
                     const card = document.getElementById(`conveyor-card-${idx}`);
                     if (!card) return;
-                    const isVisited = Boolean(item.is_visited || item.proof_status === 'approved');
+                    const isLocationVerified = Boolean(item.is_location_verified || item.visited_at);
+                    const isPhotoApproved = (item.proof_status === 'approved');
+                    const isVisited = Boolean((item.is_visited && isLocationVerified) || (isLocationVerified && isPhotoApproved));
                     const isPending = Boolean(item.proof_image && (item.proof_status === 'pending' || !item.proof_status));
                     const isRejected = (item.proof_status === 'rejected');
                     const spotIdVal = item.tourist_spot_id || item.destination_id || (item.destination ? item.destination.id : null);
@@ -416,6 +418,11 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                             badgeEl.style.background = '#dcfce7';
                             badgeEl.style.color = '#15803d';
                             badgeEl.style.borderColor = '#bbf7d0';
+                        } else if (isPhotoApproved && !isLocationVerified) {
+                            badgeEl.innerHTML = '<i class="fa-solid fa-camera"></i> Photo Approved • GPS Req.';
+                            badgeEl.style.background = '#e0f2fe';
+                            badgeEl.style.color = '#0284c7';
+                            badgeEl.style.borderColor = '#bae6fd';
                         } else if (isPending) {
                             badgeEl.innerHTML = '<i class="fa-solid fa-clock"></i> Pending Review';
                             badgeEl.style.background = '#fef3c7';
@@ -449,9 +456,11 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                 if (!dest) return;
                 const lat = parseFloat(dest.lat || dest.latitude);
                 const lng = parseFloat(dest.lng || dest.longitude);
-                const isVisited = Boolean(item.is_visited || item.proof_status === 'approved');
-                const isRejected = (item.proof_status === 'rejected');
                 const isLocationVerified = Boolean(item.is_location_verified || item.visited_at);
+                const proofStatus = item.proof_status || (item.is_visited ? 'approved' : null);
+                const isPhotoApproved = (proofStatus === 'approved');
+                const isVisited = Boolean((item.is_visited && isLocationVerified) || (isLocationVerified && isPhotoApproved));
+                const isRejected = (item.proof_status === 'rejected');
                 const spotIdVal = item.tourist_spot_id || item.destination_id || (item.destination ? item.destination.id : null);
                 const queuedItem = window.OfflineCheckinManager ? window.OfflineCheckinManager.getQueuedItem(item.id, spotIdVal) : null;
                 const isQueued = Boolean(queuedItem || item.is_offline_queued);
@@ -480,6 +489,8 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                     badgeHtml = `<span class="conveyor-status-badge" style="background:#fef3c7; border:1px solid #fde68a; color:#b45309; padding:4px 10px; border-radius:100px; font-size:10px; font-weight:800; flex-shrink:0;"><i class="fa-solid fa-cloud-arrow-up"></i> Queued (Offline)</span>`;
                 } else if (isVisited) {
                     badgeHtml = `<span class="conveyor-status-badge" style="background:#dcfce7; border:1px solid #bbf7d0; color:#15803d; padding:4px 10px; border-radius:100px; font-size:10px; font-weight:800; flex-shrink:0;"><i class="fa-solid fa-circle-check"></i> Visited</span>`;
+                } else if (isPhotoApproved && !isLocationVerified) {
+                    badgeHtml = `<span class="conveyor-status-badge" style="background:#e0f2fe; border:1px solid #bae6fd; color:#0284c7; padding:4px 10px; border-radius:100px; font-size:10px; font-weight:800; flex-shrink:0;"><i class="fa-solid fa-camera"></i> Photo Approved • GPS Req.</span>`;
                 } else if (isRejected) {
                     badgeHtml = `<span class="conveyor-status-badge" style="background:#fee2e2; border:1px solid #fecaca; color:#b91c1c; padding:4px 10px; border-radius:100px; font-size:10px; font-weight:800; flex-shrink:0;"><i class="fa-solid fa-circle-xmark"></i> Rejected</span>`;
                 } else if (isPendingApproval) {
@@ -564,6 +575,11 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                     actionBtnHtml = `<div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
                         <span style="background:#e0f2fe; border:1px solid #bae6fd; color:#0284c7; font-weight:800; font-size:10px; padding:4px 8px; border-radius:100px; white-space:nowrap;"><i class="fa-solid fa-location-dot"></i> Checked In</span>
                         <button onclick="event.stopPropagation(); window.openProofUploadModal('${item.id}', '${destEscaped}')" style="background:linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color:#ffffff; border:none; padding:6px 12px; border-radius:100px; font-weight:800; font-size:10.5px; box-shadow:0 2px 8px rgba(2,132,199,0.3); cursor:pointer; white-space:nowrap;"><i class="fa-solid fa-camera" style="margin-right:3px;"></i> Upload Proof</button>
+                    </div>`;
+                } else if (isPhotoApproved && !isLocationVerified) {
+                    actionBtnHtml = `<div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
+                        ${proofThumbnailStrip}
+                        <button onclick="event.stopPropagation(); window.executeLocationCheckIn('${item.id}', '${destEscaped}', ${lat}, ${lng}, this)" style="background:linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color:#ffffff; border:none; padding:6px 12px; border-radius:100px; font-weight:800; font-size:10.5px; box-shadow:0 2px 8px rgba(2,132,199,0.3); cursor:pointer; white-space:nowrap;"><i class="fa-solid fa-location-crosshairs" style="margin-right:3px;"></i> Check In</button>
                     </div>`;
                 } else if (!isLocationVerified && hasProof) {
                     actionBtnHtml = `<div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
@@ -906,13 +922,14 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                         bounds.extend([lng, lat]);
 
                         let iconHtml = '';
-                        const isVisited = Boolean(item.is_visited || item.proof_status === 'approved');
-                        const isRejected = (item.proof_status === 'rejected');
                         const isLocationVerified = Boolean(item.is_location_verified || item.visited_at);
+                        const isPhotoApproved = (item.proof_status === 'approved');
+                        const isVisited = Boolean((item.is_visited && isLocationVerified) || (isLocationVerified && isPhotoApproved));
+                        const isRejected = (item.proof_status === 'rejected');
                         const hasProof = Boolean((Array.isArray(item.proof_images) && item.proof_images.length > 0) || item.proof_image);
                         const isPending = Boolean(isLocationVerified && hasProof && (item.proof_status === 'pending' || !item.proof_status) && !isVisited);
                         const isLocOnly = Boolean(isLocationVerified && !hasProof && !isVisited);
-                        const isPhotoOnly = Boolean(!isLocationVerified && hasProof && !isVisited);
+                        const isPhotoOnly = Boolean(!isLocationVerified && hasProof && !isVisited && !isPhotoApproved);
                         const sId = item.tourist_spot_id || item.destination_id || (item.destination ? item.destination.id : null);
                         const isQueued = Boolean((window.OfflineCheckinManager && window.OfflineCheckinManager.isItemQueued(item.id, sId)) || item.is_offline_queued);
 
@@ -937,6 +954,18 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                                 </div>
                                 <div style="background: #ffffff; border: 1.5px solid #bbf7d0; border-radius: 10px; padding: 4px 8px; margin-top: 5px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,185,129,0.18); z-index: 1;">
                                     <span style="color: #15803d; font-size: 11px; font-weight: 700; text-decoration: line-through;">${dest.name}</span>
+                                </div>
+                            </div>
+                        `;
+                        } else if (isPhotoApproved && !isLocationVerified) {
+                            // PHOTO APPROVED, GPS PENDING - Sky Blue Camera + Check-in Required Tag
+                            iconHtml = `
+                            <div style="display: flex; flex-direction: column; align-items: center; cursor: pointer;">
+                                <div style="background: linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); color: #ffffff; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; border: 2.5px solid #ffffff; box-shadow: 0 4px 12px rgba(2,132,199,0.4); z-index: 2;">
+                                    <i class="fa-solid fa-camera"></i>
+                                </div>
+                                <div style="background: #ffffff; border: 1.5px solid #bae6fd; border-radius: 10px; padding: 4px 8px; margin-top: 5px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(2,132,199,0.18); z-index: 1;">
+                                    <span style="color: #0284c7; font-size: 10px; font-weight: 800;">Photo Approved (GPS Req.)</span>
                                 </div>
                             </div>
                         `;
@@ -1803,8 +1832,24 @@ include_once __DIR__ . '/../components/testimony_modal.php';
             }
 
             const doSubmitCheckin = async (lat, lng) => {
+                if (sLat !== null && sLng !== null && !isNaN(sLat) && !isNaN(sLng)) {
+                    const dist = getDistance(lat, lng, sLat, sLng);
+                    if (dist > 200) {
+                        const distM = Math.round(dist);
+                        const distKm = (dist / 1000).toFixed(1);
+                        const displayDist = dist >= 1000 ? `${distKm} km` : `${distM} meters`;
+                        if (typeof showToast === 'function') {
+                            showToast(`⚠️ You are ${displayDist} away from ${spotName || 'the destination'}. You must be within 200m to check in! 📍`, 'warning', 4500);
+                        }
+                        if (btnEl) {
+                            btnEl.innerHTML = originalHtml;
+                            btnEl.disabled = false;
+                        }
+                        return;
+                    }
+                }
+
                 if (isOfflineItem) {
-                    // Only apply locally once 200m check passed
                     window.applyLocationCheckinLocally(itemId);
 
                     if (window.OfflineCheckinManager) {
@@ -1864,7 +1909,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                     if (response.ok && (data.success || data.is_location_verified)) {
                         window.applyLocationCheckinLocally(itemId);
                         if (typeof showToast === 'function') {
-                            showToast(data.message || `📍 Location verified at ${spotName}! Photo proof is required to earn +50 Points.`, 'success');
+                            showToast(data.message || `📍 Location verified at ${spotName}! Photo proof is required to verify your visit.`, 'success');
                         }
                         if (window.confetti) {
                             try { window.confetti({ particleCount: 70, spread: 60, origin: { y: 0.7 } }); } catch (e) { }

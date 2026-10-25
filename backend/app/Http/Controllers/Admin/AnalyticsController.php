@@ -8,6 +8,7 @@ use App\Models\SiteFeedback;
 use App\Models\TouristSpot;
 use App\Models\User;
 use App\Models\ItineraryItem;
+use App\Models\ActivityLog;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -486,5 +487,152 @@ class AnalyticsController extends Controller
             'spots'          => $topSpots['spots'] ?? [],
             'municipalities' => $topMunis['municipalities'] ?? [],
         ]);
+    }
+
+    /**
+     * GET /api/{role}/activity-logs
+     * Returns database activity logs or synthesizes recent system events.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function activityLogs(Request $request): JsonResponse
+    {
+        $dbLogs = ActivityLog::with('user:id,name,email,avatar')->latest()->limit(100)->get();
+        if ($dbLogs->isNotEmpty()) {
+            $formatted = $dbLogs->map(function ($l) {
+                $userName = $l->user ? $l->user->name : "Explorer #{$l->user_id}";
+                $isoDate = $l->created_at ? $l->created_at->toIso8601String() : now()->toIso8601String();
+                $formattedDate = $l->created_at ? $l->created_at->format('M d, Y h:i A') : now()->format('M d, Y h:i A');
+
+                return [
+                    'id'          => $l->id,
+                    'user_id'     => $l->user_id,
+                    'user_name'   => $userName,
+                    'name'        => $userName,
+                    'action'      => $l->action,
+                    'details'     => $l->details,
+                    'description' => $l->details,
+                    'module'      => $l->module ?? 'General',
+                    'ip_address'  => $l->ip_address ?? '127.0.0.1',
+                    'created_at'  => $isoDate,
+                    'date'        => $formattedDate,
+                    'user'        => $l->user,
+                ];
+            })->values()->all();
+
+            return response()->json([
+                'success' => true,
+                'status'  => 'success',
+                'logs'    => $formatted,
+                'data'    => $formatted,
+                'total'   => count($formatted),
+            ]);
+        }
+
+        $combined = $this->buildFallbackActivityLogs();
+
+        return response()->json([
+            'success' => true,
+            'status'  => 'success',
+            'logs'    => $combined,
+            'data'    => $combined,
+            'total'   => count($combined),
+        ]);
+    }
+
+    /**
+     * Synthesize recent system events as activity logs when ActivityLog table is empty.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function buildFallbackActivityLogs(): array
+    {
+        /** @var array<int, array<string, mixed>> $logs */
+        $logs = [];
+
+        try {
+            $users = User::latest()->limit(25)->get();
+            foreach ($users as $u) {
+                $name = $u->name ?: "Explorer #{$u->id}";
+                $iso = $u->created_at ? $u->created_at->toIso8601String() : now()->toIso8601String();
+                $date = $u->created_at ? $u->created_at->format('M d, Y h:i A') : now()->format('M d, Y h:i A');
+                $logs[] = [
+                    'id'          => 'usr_' . $u->id,
+                    'user_id'     => $u->id,
+                    'user_name'   => $name,
+                    'name'        => $name,
+                    'action'      => 'User Registration',
+                    'details'     => "Tourist '{$u->name}' registered with email {$u->email}",
+                    'description' => "Tourist '{$u->name}' registered with email {$u->email}",
+                    'module'      => 'Authentication',
+                    'ip_address'  => '127.0.0.1',
+                    'created_at'  => $iso,
+                    'date'        => $date,
+                    'user'        => ['id' => $u->id, 'name' => $u->name, 'avatar' => $u->avatar],
+                ];
+            }
+        } catch (\Throwable $e) {
+        }
+
+        try {
+            $feedbacks = SiteFeedback::with(['user:id,name,avatar', 'touristSpot:id,name'])->latest()->limit(25)->get();
+            foreach ($feedbacks as $fb) {
+                $userName = $fb->user ? $fb->user->name : 'Tourist';
+                $spotName = $fb->touristSpot ? $fb->touristSpot->name : 'Spot';
+                $iso = $fb->created_at ? $fb->created_at->toIso8601String() : now()->toIso8601String();
+                $date = $fb->created_at ? $fb->created_at->format('M d, Y h:i A') : now()->format('M d, Y h:i A');
+                $desc = "Submitted {$fb->rating}★ review for '{$spotName}'" . ($fb->testimony ? ": \"{$fb->testimony}\"" : '');
+                $logs[] = [
+                    'id'          => 'fb_' . $fb->id,
+                    'user_id'     => $fb->user_id,
+                    'user_name'   => $userName,
+                    'name'        => $userName,
+                    'action'      => 'Destination Review & Rating',
+                    'details'     => "Submitted {$fb->rating}★ review for '{$spotName}'",
+                    'description' => $desc,
+                    'module'      => 'Feedback',
+                    'ip_address'  => '127.0.0.1',
+                    'created_at'  => $iso,
+                    'date'        => $date,
+                    'user'        => $fb->user ? ['id' => $fb->user->id, 'name' => $fb->user->name, 'avatar' => $fb->user->avatar] : null,
+                ];
+            }
+        } catch (\Throwable $e) {
+        }
+
+        try {
+            $itinItems = ItineraryItem::with(['itinerary.user:id,name,avatar', 'destination:id,name'])->latest()->limit(25)->get();
+            foreach ($itinItems as $it) {
+                $tourist = ($it->itinerary && $it->itinerary->user) ? $it->itinerary->user : null;
+                $userName = $tourist ? $tourist->name : 'Tourist';
+                $spotName = $it->destination ? $it->destination->name : 'Spot';
+                $action = $it->is_visited ? 'Destination Check-In' : 'Itinerary Destination Added';
+                $desc = ($it->is_visited ? 'Completed check-in at ' : 'Added destination ') . "'{$spotName}'";
+                $iso = $it->created_at ? $it->created_at->toIso8601String() : now()->toIso8601String();
+                $date = $it->created_at ? $it->created_at->format('M d, Y h:i A') : now()->format('M d, Y h:i A');
+                $logs[] = [
+                    'id'          => 'itin_' . $it->id,
+                    'user_id'     => $it->itinerary ? $it->itinerary->user_id : null,
+                    'user_name'   => $userName,
+                    'name'        => $userName,
+                    'action'      => $action,
+                    'details'     => $desc,
+                    'description' => $desc,
+                    'module'      => 'Itinerary',
+                    'ip_address'  => '127.0.0.1',
+                    'created_at'  => $iso,
+                    'date'        => $date,
+                    'user'        => $tourist ? ['id' => $tourist->id, 'name' => $tourist->name, 'avatar' => $tourist->avatar] : null,
+                ];
+            }
+        } catch (\Throwable $e) {
+        }
+
+        usort($logs, function ($a, $b) {
+            return strcmp((string) ($b['created_at'] ?? ''), (string) ($a['created_at'] ?? ''));
+        });
+
+        return array_values($logs);
     }
 }

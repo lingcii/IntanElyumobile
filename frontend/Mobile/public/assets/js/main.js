@@ -814,6 +814,138 @@ window.queuePendingServerDelete = function (tripId) {
 };
 
 // ══════════════════════════════════════════════════════════════════════════
+// PERSISTENT COMPLETED TRIPS TRACKER & BLACKLIST
+// ══════════════════════════════════════════════════════════════════════════
+window.getCompletedTripIds = function () {
+    try {
+        const direct = JSON.parse(localStorage.getItem('intan_elyu_completed_trip_ids') || '[]');
+        const queued = (window.OfflineCompletedTripsManager && typeof window.OfflineCompletedTripsManager.getQueue === 'function')
+            ? window.OfflineCompletedTripsManager.getQueue().map(q => q.tripId)
+            : [];
+        return Array.from(new Set([...(Array.isArray(direct) ? direct : []), ...queued])).map(String);
+    } catch (e) {
+        return [];
+    }
+};
+
+window.markTripAsCompletedLocally = function (tripId, earnedPoints = 0, newTotalPoints = null) {
+    if (!tripId) return;
+    try {
+        const completed = window.getCompletedTripIds();
+        const sId = String(tripId).trim();
+        if (!completed.includes(sId)) {
+            completed.push(sId);
+            if (completed.length > 250) completed.shift();
+            localStorage.setItem('intan_elyu_completed_trip_ids', JSON.stringify(completed));
+        }
+
+        // 1. Update auth_user points and completed_activities in localStorage
+        try {
+            const uStr = localStorage.getItem('auth_user');
+            if (uStr) {
+                const uObj = JSON.parse(uStr);
+                const ptsNum = parseInt(earnedPoints, 10) || 0;
+                if (newTotalPoints !== null && newTotalPoints !== undefined) {
+                    uObj.points = parseInt(newTotalPoints, 10);
+                    uObj.xp = parseInt(newTotalPoints, 10);
+                } else if (ptsNum > 0) {
+                    uObj.points = (parseInt(uObj.points, 10) || 0) + ptsNum;
+                    uObj.xp = (parseInt(uObj.xp, 10) || 0) + ptsNum;
+                }
+                uObj.completed_activities = (parseInt(uObj.completed_activities, 10) || 0) + 1;
+                localStorage.setItem('auth_user', JSON.stringify(uObj));
+                localStorage.setItem('auth_user_backup', JSON.stringify(uObj));
+            }
+        } catch (e) { }
+
+        // 2. Mark completed in intan_elyu_saved_trips
+        try {
+            let localSaved = JSON.parse(localStorage.getItem('intan_elyu_saved_trips') || '[]');
+            if (Array.isArray(localSaved)) {
+                localSaved = localSaved.map(t => {
+                    if (t && (String(t.id) === sId || String(t.local_id) === sId)) {
+                        return { ...t, status: 'completed' };
+                    }
+                    return t;
+                });
+                localStorage.setItem('intan_elyu_saved_trips', JSON.stringify(localSaved));
+            }
+        } catch (e) { }
+
+        // 3. Mark completed in intan_elyu_offline_saved_trips_backup
+        try {
+            let backup = JSON.parse(localStorage.getItem('intan_elyu_offline_saved_trips_backup') || '[]');
+            if (Array.isArray(backup)) {
+                backup = backup.map(t => {
+                    if (t && (String(t.id) === sId || String(t.local_id) === sId)) {
+                        return { ...t, status: 'completed' };
+                    }
+                    return t;
+                });
+                localStorage.setItem('intan_elyu_offline_saved_trips_backup', JSON.stringify(backup));
+            }
+        } catch (e) { }
+
+        // 4. Update in-memory window._cachedSavedTrips
+        if (Array.isArray(window._cachedSavedTrips)) {
+            window._cachedSavedTrips = window._cachedSavedTrips.map(t => {
+                if (t && (String(t.id) === sId || String(t.local_id) === sId)) {
+                    return { ...t, status: 'completed' };
+                }
+                return t;
+            });
+        }
+
+        // 5. Remove from OfflineTripManager queue if queued
+        if (window.OfflineTripManager && typeof window.OfflineTripManager.removeQueuedTrip === 'function') {
+            try { window.OfflineTripManager.removeQueuedTrip(sId); } catch(e) {}
+        }
+
+        // 6. Purge token caches
+        const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+        if (token) {
+            const tokenKey = token.substring(0, 10);
+            localStorage.removeItem('saved_trips_' + tokenKey);
+            localStorage.removeItem('dashboard_trips_' + tokenKey);
+        }
+
+        // 7. Update UI points ticker if present
+        try {
+            const uStr = localStorage.getItem('auth_user');
+            if (uStr) {
+                const uObj = JSON.parse(uStr);
+                const ptTickers = document.querySelectorAll('#user-points-display, .header-points-badge, .user-points-badge, .points-count, [data-user-points]');
+                ptTickers.forEach(el => {
+                    if (el && uObj.points !== undefined) {
+                        el.textContent = Number(uObj.points).toLocaleString();
+                    }
+                });
+            }
+        } catch(e) {}
+
+        window.dispatchEvent(new CustomEvent('tripCompleted', { detail: { tripId: sId, earnedPoints: earnedPoints } }));
+    } catch (e) { }
+};
+
+window.isTripCompletedLocally = function (trip) {
+    if (!trip) return false;
+    if (trip.status === 'completed') return true;
+    const completed = window.getCompletedTripIds();
+    if (!completed || completed.length === 0) return false;
+    const ids = [
+        String(trip.id || ''),
+        String(trip.trip_id || ''),
+        String(trip.local_id || ''),
+        String(trip.update_id || '')
+    ];
+    for (const id of ids) {
+        if (id && completed.includes(id)) return true;
+        if (id && id.startsWith('offline_edit_') && completed.includes(id.replace('offline_edit_', ''))) return true;
+    }
+    return false;
+};
+
+// ══════════════════════════════════════════════════════════════════════════
 // GUEST USER STATE & AUTH PROMPT UTILITIES
 // ══════════════════════════════════════════════════════════════════════════
 window.isGuestUser = function () {
@@ -1413,8 +1545,21 @@ window.OfflineCompletedTripsManager = {
                 });
                 if (res.ok || res.status === 409) {
                     synced++;
+                    try {
+                        const data = await res.json();
+                        if (typeof window.markTripAsCompletedLocally === 'function') {
+                            window.markTripAsCompletedLocally(item.tripId, data?.points_awarded || 0, data?.total_points);
+                        }
+                    } catch(e) {
+                        if (typeof window.markTripAsCompletedLocally === 'function') {
+                            window.markTripAsCompletedLocally(item.tripId, 0, null);
+                        }
+                    }
                 } else if (res.status >= 400 && res.status < 500 && res.status !== 408) {
                     // permanent client error (e.g. 404 deleted)
+                    if (typeof window.markTripAsCompletedLocally === 'function') {
+                        window.markTripAsCompletedLocally(item.tripId, 0, null);
+                    }
                 } else {
                     remaining.push(item);
                 }
@@ -2173,6 +2318,7 @@ window.getFullImageUrl = function (url) {
 
 // Extract initial view name from query param (?view=...) or URL path (/download)
 function getInitialViewName() {
+    if (window._initialOfflineView) return window._initialOfflineView;
     const params = new URLSearchParams(window.location.search);
     if (params.get('view')) return params.get('view');
     const pathSegs = window.location.pathname.split('/').filter(Boolean);
@@ -2493,6 +2639,126 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                     </div>
                 </div>
             </div>`;
+        } else if (!html && targetView === 'dashboard') {
+            html = `<div class="mobile-header">
+                <div class="header-icon" onclick="typeof toggleSidebar==='function'&&toggleSidebar()" title="Menu">
+                    <i class="fa-solid fa-bars"></i>
+                </div>
+                <h1 class="header-title">Discover La Union</h1>
+                <div class="header-icon" onclick="typeof toggleNotifications==='function'&&toggleNotifications()" title="Notifications">
+                    <i class="fa-solid fa-bell" id="bell-icon"></i>
+                    <div class="bell-dot" id="bell-dot"></div>
+                </div>
+            </div>
+            <div class="dashboard-container has-header has-bottom-nav animate-slide-up">
+                <div id="dash-offline-pill" style="display: flex; align-items: center; justify-content: center; gap: 8px; margin: 0 0 14px 0; padding: 8px 16px; border-radius: 100px; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.35); color: #d97706; font-size: 12px; font-weight: 800; text-align: center;">
+                    <i class="fa-solid fa-cloud-slash" style="color: #f59e0b;"></i>
+                    <span>Offline Mode &bull; Showing Saved Guides & Local GPS</span>
+                </div>
+                <div class="profile-header stagger-1" onclick="navigateTo('profile')"
+                    style="background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline: none !important; box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important;">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:14px;">
+                        <div class="profile-info-row" style="margin-bottom:0; flex:1;">
+                            <div class="profile-avatar">
+                                <img id="dash-avatar" src="https://ui-avatars.com/api/?name=Explorer&background=007AFF&color=fff&rounded=true&bold=true&size=128" alt="Avatar">
+                            </div>
+                            <div class="profile-text">
+                                <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                                    <h2 class="profile-name" id="dash-name" style="margin:0;">Hi, Explorer! <i class="fa-solid fa-hand" style="color:#fbbf24; font-size:18px; margin-left:4px;"></i></h2>
+                                </div>
+                                <div id="dash-title-row" style="display:flex; align-items:center; gap:8px; margin-top:6px; flex-wrap:wrap;">
+                                    <span class="profile-title" id="dash-title"><i class="fa-solid fa-compass" style="color:#ffffff; font-size:11px;"></i> Explorer of Elyu</span>
+                                    <span id="dash-status-badge"><i class="fa-solid fa-circle" style="font-size:6px; margin-right:4px; color:#ffffff;"></i> Active Tourist</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stats-row" id="dash-stats-row" style="margin-bottom:0; display:grid; grid-template-columns:repeat(3, 1fr); gap:8px;">
+                        <div class="stat-card" onclick="event.stopPropagation(); navigateTo('itinerary');"
+                            style="background: linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.14) 100%) !important; border: none !important; outline: none !important; border-radius: 16px; padding: 10px 6px; text-align: center; cursor: pointer; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 4px 14px rgba(10, 25, 60, 0.2) !important;">
+                            <div class="stat-icon" style="font-size:18px; margin-bottom:3px;"><i class="fa-solid fa-map-location-dot" style="color:#38bdf8;"></i></div>
+                            <div class="stat-value" id="dash-stat-places" style="font-size:17px; font-weight:900; color:#ffffff; margin-bottom:1px; letter-spacing:-0.4px;">—</div>
+                            <div class="stat-label" style="font-size:10px; font-weight:800; color:#ffffff !important; text-transform:uppercase; letter-spacing:0.5px; opacity:0.95;">Places</div>
+                        </div>
+                        <div class="stat-card" onclick="event.stopPropagation(); navigateTo('leaderboard');"
+                            style="background: linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.14) 100%) !important; border: none !important; outline: none !important; border-radius: 16px; padding: 10px 6px; text-align: center; cursor: pointer; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 4px 14px rgba(10, 25, 60, 0.2) !important;">
+                            <div class="stat-icon" style="font-size:18px; margin-bottom:3px;"><i class="fa-solid fa-coins" style="color:#fbbf24;"></i></div>
+                            <div class="stat-value" id="dash-stat-points" style="font-size:17px; font-weight:900; color:#ffffff; margin-bottom:1px; letter-spacing:-0.4px;">—</div>
+                            <div class="stat-label" style="font-size:10px; font-weight:800; color:#ffffff !important; text-transform:uppercase; letter-spacing:0.5px; opacity:0.95;">Points</div>
+                        </div>
+                        <div class="stat-card" onclick="event.stopPropagation(); navigateTo('leaderboard');"
+                            style="background: linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.14) 100%) !important; border: none !important; outline: none !important; border-radius: 16px; padding: 10px 6px; text-align: center; cursor: pointer; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 4px 14px rgba(10, 25, 60, 0.2) !important;">
+                            <div class="stat-icon" style="font-size:18px; margin-bottom:3px;"><i class="fa-solid fa-trophy" style="color:#f59e0b;"></i></div>
+                            <div class="stat-value" id="dash-stat-rank" style="font-size:17px; font-weight:900; color:#ffffff; margin-bottom:1px; letter-spacing:-0.4px;">—</div>
+                            <div class="stat-label" style="font-size:10px; font-weight:800; color:#ffffff !important; text-transform:uppercase; letter-spacing:0.5px; opacity:0.95;">Rank</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="weather-card stagger-2" style="position: relative;">
+                    <div class="weather-left">
+                        <div class="weather-temp" id="weather-temp">29°C</div>
+                        <div class="weather-desc" id="weather-desc">Sunny &bull; Good for Travel</div>
+                        <div class="weather-loc" id="weather-loc"><i class="fa-solid fa-location-dot" style="color:#38bdf8; margin-right:4px;"></i> San Fernando, La Union</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div class="weather-icon" id="weather-icon">⛅</div>
+                    </div>
+                </div>
+                <div class="dash-quick-actions stagger-2" style="display:grid; grid-template-columns:repeat(4, 1fr); gap:8px; margin: 16px 0;">
+                    <div onclick="navigateTo('map')" style="background:#ffffff; border-radius:16px; padding:12px 6px; text-align:center; box-shadow:0 2px 8px rgba(0,0,0,0.06); cursor:pointer;">
+                        <i class="fa-solid fa-map-location-dot" style="color:#2563eb; font-size:20px; margin-bottom:6px; display:block;"></i>
+                        <span style="font-size:11px; font-weight:700; color:#1e293b; display:block;">Map</span>
+                    </div>
+                    <div onclick="navigateTo('itinerary')" style="background:#ffffff; border-radius:16px; padding:12px 6px; text-align:center; box-shadow:0 2px 8px rgba(0,0,0,0.06); cursor:pointer;">
+                        <i class="fa-solid fa-route" style="color:#059669; font-size:20px; margin-bottom:6px; display:block;"></i>
+                        <span style="font-size:11px; font-weight:700; color:#1e293b; display:block;">Itinerary</span>
+                    </div>
+                    <div onclick="navigateTo('discount')" style="background:#ffffff; border-radius:16px; padding:12px 6px; text-align:center; box-shadow:0 2px 8px rgba(0,0,0,0.06); cursor:pointer;">
+                        <i class="fa-solid fa-tags" style="color:#d97706; font-size:20px; margin-bottom:6px; display:block;"></i>
+                        <span style="font-size:11px; font-weight:700; color:#1e293b; display:block;">Discounts</span>
+                    </div>
+                    <div onclick="navigateTo('saved_places')" style="background:#ffffff; border-radius:16px; padding:12px 6px; text-align:center; box-shadow:0 2px 8px rgba(0,0,0,0.06); cursor:pointer;">
+                        <i class="fa-solid fa-heart" style="color:#dc2626; font-size:20px; margin-bottom:6px; display:block;"></i>
+                        <span style="font-size:11px; font-weight:700; color:#1e293b; display:block;">Saved</span>
+                    </div>
+                </div>
+                <div class="dash-section stagger-3">
+                    <div class="section-title">
+                        <h3>Explore Municipalities</h3>
+                        <span style="font-size:11px; font-weight:700; color:#64748b;">20 Municipalities</span>
+                    </div>
+                    <div id="dash-municipalities-row" class="municipalities-row" style="display:flex; gap:12px; overflow-x:auto; padding-bottom:8px; scrollbar-width:none;">
+                    </div>
+                </div>
+            </div>
+            <script>
+                (function() {
+                    try {
+                        var rawUser = localStorage.getItem('auth_user') || localStorage.getItem('intan_elyu_user');
+                        if (rawUser) {
+                            var u = typeof rawUser === 'string' ? JSON.parse(rawUser) : rawUser;
+                            if (u) {
+                                var nameEl = document.getElementById('dash-name');
+                                if (nameEl && (u.name || u.full_name)) {
+                                    var fName = (u.name || u.full_name).split(' ')[0];
+                                    nameEl.innerHTML = 'Hi, ' + fName + '! <i class="fa-solid fa-hand" style="color:#fbbf24; font-size:18px; margin-left:4px;"></i>';
+                                }
+                                var avEl = document.getElementById('dash-avatar');
+                                if (avEl && (u.avatar || u.profile_picture || u.avatar_url)) {
+                                    avEl.src = u.avatar || u.profile_picture || u.avatar_url;
+                                }
+                                if (u.points !== undefined) {
+                                    var ptEl = document.getElementById('dash-stat-points');
+                                    if (ptEl) ptEl.textContent = Number(u.points).toLocaleString();
+                                }
+                            }
+                        }
+                    } catch(e) {}
+                    if (typeof window.populateMunicipalitiesRow === 'function') {
+                        window.populateMunicipalitiesRow();
+                    }
+                })();
+            </script>`;
         }
 
         if (!html) {
@@ -3274,10 +3540,18 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
 
         // Global Auth Enforcement for Initial Direct Load (skip if OAuth handshake in progress)
         if (!window._isProcessingGoogleOAuth) {
+            const isNetOffline = (typeof navigator.onLine === 'boolean' && !navigator.onLine) || 
+                                 window.isAppOnline === false || 
+                                 localStorage.getItem('intan_elyu_offline_mode') === 'true';
             const publicViews = ['splash', 'auth', 'download', 'reset-password'];
-            if (!publicViews.includes(state.currentView) && !localStorage.getItem('intan_elyu_token')) {
-                navigateTo('auth');
-                return;
+            const activeToken = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+            const cachedUser = localStorage.getItem('auth_user');
+
+            if (!publicViews.includes(state.currentView)) {
+                if (!activeToken && !cachedUser && !isNetOffline) {
+                    navigateTo('auth');
+                    return;
+                }
             }
         }
 

@@ -126,38 +126,49 @@
             window._splashNavigated = true;
 
             const splashMain = document.getElementById('splash-main');
-            const token = localStorage.getItem('intan_elyu_token');
-            const cachedUser = localStorage.getItem('auth_user');
+            const rawToken = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('api_token');
+            const rawUser = localStorage.getItem('auth_user') || localStorage.getItem('intan_elyu_user');
             const isOffline = (typeof navigator.onLine === 'boolean') ? !navigator.onLine : (window.isAppOnline === false);
+
+            let userObj = null;
+            try { userObj = typeof rawUser === 'string' ? JSON.parse(rawUser) : rawUser; } catch(e) {}
+
+            const isRealTourist = Boolean(
+                (rawToken && 
+                 rawToken !== 'guest_token' && 
+                 rawToken !== 'offline_guest_token' && 
+                 !rawToken.startsWith('guest_') && 
+                 !rawToken.startsWith('offline_')) ||
+                (userObj && 
+                 userObj.id && 
+                 userObj.id !== 'offline_guest' && 
+                 !userObj.is_offline_guest && 
+                 userObj.role !== 'guest')
+            );
 
             if (isOffline) {
                 // Device has NO internet connection:
                 localStorage.setItem('intan_elyu_offline_mode', 'true');
-                if (!token) {
-                    localStorage.setItem('intan_elyu_token', 'offline_guest_token');
-                    localStorage.setItem('intan_elyu_offline_guest', 'true');
-                    if (!cachedUser) {
-                        const defaultGuest = {
-                            id: 'offline_guest',
-                            user_id: 'offline_guest',
-                            name: 'Guest Explorer',
-                            full_name: 'Guest Explorer',
-                            role: 'tourist',
-                            tourist_number: 'OFFLINE',
-                            points: 0,
-                            xp: 0,
-                            completed_activities: 0,
-                            home_location: 'La Union',
-                            is_offline_guest: true
-                        };
-                        localStorage.setItem('auth_user', JSON.stringify(defaultGuest));
+                if (isRealTourist) {
+                    // USER HAS A SESSION LOGGED IN: direct to homepage (dashboard) in offline mode
+                    if (rawToken) {
+                        localStorage.setItem('intan_elyu_token', rawToken);
+                        localStorage.setItem('Intan_Elyu_Token', rawToken);
+                        localStorage.setItem('api_token', rawToken);
                     }
+                    sessionStorage.setItem('elyu_show_offline_bypass_notice', 'true');
+                    if (splashMain) splashMain.classList.add('exit');
+                    setTimeout(() => {
+                        navigateTo('dashboard');
+                    }, 450);
+                } else {
+                    // USER DOES NOT HAVE A LOGGED-IN SESSION: direct to auth with offline options
+                    localStorage.removeItem('intan_elyu_offline_guest');
+                    if (splashMain) splashMain.classList.add('exit');
+                    setTimeout(() => {
+                        navigateTo('auth');
+                    }, 450);
                 }
-                sessionStorage.setItem('elyu_show_offline_bypass_notice', 'true');
-                if (splashMain) splashMain.classList.add('exit');
-                setTimeout(() => {
-                    navigateTo('dashboard');
-                }, 450);
             } else {
                 // Device is ONLINE (Wi-Fi or Mobile Data connected):
                 // Clean up any stale offline flags
@@ -165,24 +176,19 @@
                 localStorage.removeItem('intan_elyu_offline_guest');
                 sessionStorage.removeItem('elyu_show_offline_bypass_notice');
 
-                const isRealTourist = Boolean(
-                    token && 
-                    token !== 'guest_token' && 
-                    token !== 'offline_guest_token' && 
-                    !token.startsWith('guest_') && 
-                    !token.startsWith('offline_')
-                );
-
                 if (isRealTourist) {
                     // Valid real logged-in tourist account - keep tokens synchronized
-                    localStorage.setItem('Intan_Elyu_Token', token);
-                    localStorage.setItem('api_token', token);
+                    if (rawToken) {
+                        localStorage.setItem('intan_elyu_token', rawToken);
+                        localStorage.setItem('Intan_Elyu_Token', rawToken);
+                        localStorage.setItem('api_token', rawToken);
+                    }
                     if (splashMain) splashMain.classList.add('exit');
                     setTimeout(() => {
                         navigateTo('dashboard');
                     }, 450);
                 } else {
-                    // Auth page is always the first one to show when opening the app!
+                    // Auth page is always the first one to show when opening the app without a session!
                     localStorage.removeItem('intan_elyu_token');
                     localStorage.removeItem('Intan_Elyu_Token');
                     localStorage.removeItem('api_token');

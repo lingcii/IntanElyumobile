@@ -184,10 +184,20 @@ $gdriveMirrorUrl = getenv('APK_GDRIVE_MIRROR_URL') ?: '';
 
       <div class="nav-links">
         <a href="#about-elyu" class="nav-link">About La Union</a>
-        <a href="#municipalities" class="nav-link">Municipalities</a>
-        <a href="#tourist-spots" class="nav-link">Tourist Spots</a>
+        <a href="#app-features" class="nav-link">App Features</a>
+        <a href="#municipalities" class="nav-link">20 Municipalities</a>
+        <a href="#tourist-spots" class="nav-link">Attractions</a>
         <a href="#discounts" class="nav-link">Discounts</a>
         <a href="#points-mechanism" class="nav-link">Points System</a>
+      </div>
+
+      <div class="nav-actions">
+        <a href="index.php?view=auth" class="nav-btn-web" title="Open web version directly in browser">
+          <i class="fa-solid fa-globe"></i> <span>Web Portal</span>
+        </a>
+        <a href="#hero-qr-card-wrap" class="nav-btn-dl" title="Download Android Mobile App">
+          <i class="fa-brands fa-android"></i> <span>Get App</span>
+        </a>
       </div>
     </div>
   </nav>
@@ -200,7 +210,8 @@ $gdriveMirrorUrl = getenv('APK_GDRIVE_MIRROR_URL') ?: '';
     <section class="portal-hero">
       <div class="hero-left-col">
         <div class="hero-badge reveal-on-scroll">
-          <i class="fa-solid fa-shield-halved"></i> Official Smart Tourism Platform &bull; Province of La Union
+          <span class="live-pulse-dot"></span>
+          <span>Official Smart Tourism Platform &bull; Province of La Union</span>
         </div>
 
         <h2 class="hero-title reveal-on-scroll delay-1">
@@ -209,11 +220,18 @@ $gdriveMirrorUrl = getenv('APK_GDRIVE_MIRROR_URL') ?: '';
         </h2>
 
         <p class="hero-subtitle reveal-on-scroll delay-2">
-          Welcome to <strong>Intan Elyu</strong> — the premier digital companion for traveling through La Union.
-          Plan multi-stop itineraries, navigate public transportation fares, uncover hidden gems across 20
-          municipalities,
-          earn explorer points with GPS check-ins, and redeem partner merchant discounts.
+          Welcome to <strong>Intan Elyu</strong> — the premier digital companion for traveling through La Union, certified by the Provincial Government of La Union (PGLU).
+          Plan multi-stop itineraries, navigate verified public transport fares, explore 20 municipalities,
+          earn explorer points with GPS check-ins, and redeem exclusive partner merchant discounts.
         </p>
+
+        <!-- Feature Chips Strip -->
+        <div class="hero-chips-strip reveal-on-scroll delay-2">
+          <div class="hero-chip"><i class="fa-solid fa-cloud-arrow-down"></i> 100% Offline-Ready</div>
+          <div class="hero-chip"><i class="fa-solid fa-location-crosshairs"></i> Smart GPS Check-In</div>
+          <div class="hero-chip"><i class="fa-solid fa-ticket"></i> Merchant Vouchers</div>
+          <div class="hero-chip"><i class="fa-solid fa-van-shuttle"></i> Verified Fares</div>
+        </div>
 
         <!-- Stat Metrics Ticker -->
         <div class="hero-stats-strip reveal-on-scroll delay-3">
@@ -227,55 +245,114 @@ $gdriveMirrorUrl = getenv('APK_GDRIVE_MIRROR_URL') ?: '';
           </div>
           <div class="stat-col">
             <div class="stat-num">3</div>
-            <div class="stat-label">Classifications</div>
+            <div class="stat-label">Tourism Tiers</div>
           </div>
           <div class="stat-col">
             <div class="stat-num">100%</div>
-            <div class="stat-label">Play-to-Earn</div>
+            <div class="stat-label">Free & Play-to-Earn</div>
           </div>
         </div>
       </div>
 
       <div class="hero-right-col reveal-on-scroll delay-2" id="hero-qr-card-wrap">
-        <div class="hero-qr-card">
-          <div class="hero-qr-badge">
-            <i class="fa-brands fa-android"></i> Official Mobile App
-          </div>
-          <div class="hero-qr-box">
-            <img id="portal-hero-qr"
-              src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https%3A%2F%2Fapp.intan-elyu.online%2Findex.php%3Faction%3Ddownload_apk&margin=1"
-              alt="Scan QR Code to Download Intan Elyu APK">
-          </div>
-          <div class="hero-qr-title">Scan or Tap to Download</div>
-          <p class="hero-qr-caption">
-            Scan with another device's camera, or tap the button below to download directly to this phone.
-          </p>
-          <a href="index.php?action=download_apk&v=<?= urlencode($appVersion) ?>&t=<?= time() ?>" download="intan-elyu.apk" class="btn-hero-dl">
-            <i class="fa-brands fa-android"></i> Direct Download APK
-          </a>
-          <div class="hero-mirror-row">
-            <a href="<?= htmlspecialchars($r2ApkUrl) ?>" target="_blank"
-              rel="noopener" class="hero-mirror-link" title="Download via Cloudflare R2 mirror">
-              <i class="fa-solid fa-cloud-arrow-down"></i> Cloud Mirror (R2)
-            </a>
-            <?php if (!empty($gdriveMirrorUrl)): ?>
-            <a href="<?= htmlspecialchars($gdriveMirrorUrl) ?>" target="_blank"
-              rel="noopener" class="hero-mirror-link" title="Download via Google Drive mirror">
-              <i class="fa-brands fa-google-drive"></i> GDrive
-            </a>
-            <?php endif; ?>
-            <span class="hero-ver-tag"><?= htmlspecialchars($appVersion) ?> &bull; <?= htmlspecialchars($apkSizeStr) ?> &bull; Android 8.0+</span>
+        <div class="hero-dl-card">
+          <!-- Card Header Profile -->
+          <div class="dl-card-header">
+            <div class="dl-app-icon">
+              <img src="assets/img/logo.png" alt="Intan Elyu Icon">
+            </div>
+            <div class="dl-app-meta">
+              <div class="dl-app-title-row">
+                <h3 class="dl-app-title">Intan Elyu</h3>
+                <span class="dl-app-badge">OFFICIAL</span>
+              </div>
+              <p class="dl-app-subtitle">Provincial Government of La Union</p>
+              <div class="dl-rating-strip">
+                <span class="dl-stars"><i class="fa-solid fa-star"></i> 4.9</span>
+                <span class="dl-sep">&bull;</span>
+                <span class="dl-downloads">10K+ Explorers</span>
+                <span class="dl-sep">&bull;</span>
+                <span class="dl-size-tag"><?= htmlspecialchars($apkSizeStr) ?></span>
+              </div>
+            </div>
           </div>
 
-          <!-- Quick Mobile Troubleshooting Tip Box -->
-          <div class="dl-dns-helper" style="margin-top: 14px; width: 100%; text-align: left; font-size: 11.5px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 10px 12px; color: #475569;">
-            <div style="font-weight: 700; color: #0f172a; display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
-              <i class="fa-solid fa-circle-question" style="color: #0284c7;"></i> Trouble downloading on mobile?
+          <!-- Main Download CTA Button -->
+          <a href="index.php?action=download_apk&v=<?= urlencode($appVersion) ?>&t=<?= time() ?>" download="intan-elyu.apk" class="btn-primary-dl">
+            <div class="btn-dl-icon-col">
+              <i class="fa-brands fa-android"></i>
             </div>
-            <div style="line-height: 1.45; font-size: 11px;">
-              If your phone shows <em>"Couldn't find DNS address"</em>, use <strong>Direct Download</strong> above, or open this link in <strong>Google Chrome</strong> (not Xiaomi/MIUI browser).
+            <div class="btn-dl-text-col">
+              <span class="btn-dl-action">Direct Download APK</span>
+              <span class="btn-dl-meta">v<?= ltrim($appVersion, 'v') ?> &bull; <?= htmlspecialchars($apkSizeStr) ?> &bull; High Speed</span>
+            </div>
+            <div class="btn-dl-arrow">
+              <i class="fa-solid fa-download"></i>
+            </div>
+          </a>
+
+          <!-- Cloudflare R2 Global Edge CDN Mirror Button -->
+          <a href="<?= htmlspecialchars($r2ApkUrl) ?>" target="_blank" rel="noopener" class="btn-mirror-dl" title="Download directly from Cloudflare R2 global edge CDN">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <i class="fa-solid fa-bolt" style="color:#f59e0b;"></i>
+              <span>Cloudflare R2 Global Mirror</span>
+            </div>
+            <span class="mirror-speed-badge">Fast CDN</span>
+          </a>
+
+          <?php if (!empty($gdriveMirrorUrl)): ?>
+          <a href="<?= htmlspecialchars($gdriveMirrorUrl) ?>" target="_blank" rel="noopener" class="btn-mirror-dl" title="Download via Google Drive mirror">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <i class="fa-brands fa-google-drive" style="color:#10b981;"></i>
+              <span>Google Drive Alternate Mirror</span>
+            </div>
+          </a>
+          <?php endif; ?>
+
+          <!-- QR Scan Hub -->
+          <div class="dl-qr-hub">
+            <div class="dl-qr-frame">
+              <img id="portal-hero-qr"
+                src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https%3A%2F%2Fapp.intan-elyu.online%2Findex.php%3Faction%3Ddownload_apk&margin=1"
+                alt="Scan QR Code to Download Intan Elyu APK">
+              <div class="qr-crosshair qr-tl"></div>
+              <div class="qr-crosshair qr-tr"></div>
+              <div class="qr-crosshair qr-bl"></div>
+              <div class="qr-crosshair qr-br"></div>
+            </div>
+            <div class="dl-qr-copy">
+              <div class="dl-qr-heading"><i class="fa-solid fa-qrcode"></i> Scan to Download</div>
+              <p class="dl-qr-desc">Point your phone's camera at this QR code to download directly to your mobile device.</p>
             </div>
           </div>
+
+          <!-- Trust & Verification Row -->
+          <div class="dl-trust-row">
+            <div class="dl-trust-pill">
+              <i class="fa-solid fa-shield-halved" style="color:#10b981;"></i> Verified Safe & Signed
+            </div>
+            <div class="dl-trust-pill">
+              <i class="fa-solid fa-microchip" style="color:#0284c7;"></i> Universal APK
+            </div>
+            <div class="dl-trust-pill">
+              <i class="fa-solid fa-mobile-screen" style="color:#6366f1;"></i> Android 8.0+
+            </div>
+          </div>
+
+          <!-- Installation Guide Accordion -->
+          <details class="dl-install-accordion">
+            <summary class="dl-accordion-summary">
+              <span><i class="fa-solid fa-circle-info" style="color:#0284c7;"></i> Quick Android Installation Guide</span>
+              <i class="fa-solid fa-chevron-down accordion-chevron"></i>
+            </summary>
+            <div class="dl-accordion-content">
+              <ol class="dl-steps-list">
+                <li><strong>Download:</strong> Tap the button above to begin downloading the APK.</li>
+                <li><strong>Confirm:</strong> If prompted <em>"File might be harmful"</em>, tap <strong>Download anyway</strong> (standard security prompt for APKs outside Google Play).</li>
+                <li><strong>Install:</strong> Tap the downloaded file in your browser or notification bar, and select <strong>Install</strong>.</li>
+              </ol>
+            </div>
+          </details>
         </div>
       </div>
     </section>
@@ -294,8 +371,87 @@ $gdriveMirrorUrl = getenv('APK_GDRIVE_MIRROR_URL') ?: '';
        ───────────────────────────────────────────────────────────────────────────── -->
   <main class="portal-body">
 
+    <!-- Section: Core App Features Showcase -->
+    <section id="app-features" class="portal-container" style="padding-bottom: 20px;">
+      <div class="center-header reveal-on-scroll">
+        <span class="section-tag"><i class="fa-solid fa-wand-magic-sparkles"></i> App Capabilities</span>
+        <h2 class="section-title">Engineered for Seamless Exploration</h2>
+        <p class="section-subtitle">
+          Intan Elyu unites intelligent itinerary planning, offline caching, transparent transit fares, and merchant rewards into one unified companion.
+        </p>
+      </div>
+
+      <div class="features-quad-grid">
+        <div class="feature-card reveal-on-scroll delay-1">
+          <div class="feature-icon-badge" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);">
+            <i class="fa-solid fa-cloud-arrow-down"></i>
+          </div>
+          <h3>Offline Sync Engine</h3>
+          <p>Full access to saved multi-stop trips, destination guides, and emergency contacts with zero internet signal in coastal breaks or mountain valleys.</p>
+          <span class="feature-pill-tag"><i class="fa-solid fa-check"></i> 100% Offline-Ready</span>
+        </div>
+
+        <div class="feature-card reveal-on-scroll delay-2">
+          <div class="feature-icon-badge" style="background: linear-gradient(135deg, #10b981 0%, #047857 100%);">
+            <i class="fa-solid fa-location-crosshairs"></i>
+          </div>
+          <h3>GPS Geolocation Check-Ins</h3>
+          <p>Verify your physical visits with precision GPS geofencing and AR camera photo stamps to earn XP, badges, and leaderboard prestige.</p>
+          <span class="feature-pill-tag"><i class="fa-solid fa-check"></i> Automated Geofence</span>
+        </div>
+
+        <div class="feature-card reveal-on-scroll delay-3">
+          <div class="feature-icon-badge" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+            <i class="fa-solid fa-van-shuttle"></i>
+          </div>
+          <h3>Dynamic Transit Fare Matrix</h3>
+          <p>Transparent fare estimates for jeepneys, tricycles, and buses with automated holiday and Peak Season surge calculations across all routes.</p>
+          <span class="feature-pill-tag"><i class="fa-solid fa-check"></i> Transparent Pricing</span>
+        </div>
+
+        <div class="feature-card reveal-on-scroll delay-4">
+          <div class="feature-icon-badge" style="background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);">
+            <i class="fa-solid fa-ticket"></i>
+          </div>
+          <h3>Play-to-Earn Vouchers</h3>
+          <p>Exchange accumulated travel points for actual merchant discounts, dining perks, surf coaching passes, and authentic Ilokano handicrafts.</p>
+          <span class="feature-pill-tag"><i class="fa-solid fa-check"></i> Real Partner Perks</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section: 3-Step Installation Banner -->
+    <section class="portal-container" style="padding-top: 10px; padding-bottom: 50px;">
+      <div class="install-banner-card reveal-on-scroll">
+        <div class="install-banner-header">
+          <span class="install-banner-tag"><i class="fa-solid fa-shield-check"></i> Quick Setup</span>
+          <h3 class="install-banner-title">Get Started with Intan Elyu in 3 Steps</h3>
+          <p class="install-banner-desc">No Google Play account needed. Download directly and explore La Union right away.</p>
+        </div>
+        <div class="install-steps-row">
+          <div class="install-step-item">
+            <div class="install-step-badge">1</div>
+            <h4>Download APK</h4>
+            <p>Tap Direct Download or Cloudflare R2 mirror above.</p>
+          </div>
+          <div class="install-step-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+          <div class="install-step-item">
+            <div class="install-step-badge">2</div>
+            <h4>Allow & Install</h4>
+            <p>Tap the APK in your downloads and allow installation when prompted.</p>
+          </div>
+          <div class="install-step-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+          <div class="install-step-item">
+            <div class="install-step-badge">3</div>
+            <h4>Explore Elyu</h4>
+            <p>Launch the app and travel as a registered Explorer or Guest.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- Section: About The Whole of La Union -->
-    <section id="about-elyu" class="portal-container">
+    <section id="about-elyu" class="portal-container" style="padding-top: 20px;">
       <div class="center-header reveal-on-scroll">
         <span class="section-tag"><i class="fa-solid fa-map-location-dot"></i> Provincial Profile</span>
         <h2 class="section-title">The Wonders of La Union ("Elyu")</h2>

@@ -258,17 +258,20 @@ class FeedbackController extends Controller
         }
 
         return response()->json([
-            'status'         => 'success',
-            'success'        => true,
-            'reward_awarded' => $rewardAwarded,
-            'earned_xp'      => $rewardAwarded ? $rewardPoints : 0,
-            'earned_points'  => $rewardAwarded ? $rewardPoints : 0,
-            'classification' => $canonicalClassification,
-            'message'        => $rewardAwarded
+            'status'               => 'success',
+            'success'              => true,
+            'reward_awarded'       => $rewardAwarded,
+            'earned_xp'            => $rewardAwarded ? $rewardPoints : 0,
+            'earned_points'        => $rewardAwarded ? $rewardPoints : 0,
+            'total_points'         => (int) ($user ? ($user->fresh()->points ?? 0) : 0),
+            'xp'                   => (int) ($user ? ($user->fresh()->xp ?? 0) : 0),
+            'completed_activities' => (int) ($user ? ($user->fresh()->completed_activities ?? 0) : 0),
+            'classification'       => $canonicalClassification,
+            'message'              => $rewardAwarded
                 ? "Thank you for your testimony and feedback! (+{$rewardPoints} Points & +{$rewardPoints} XP earned — {$canonicalClassification})"
                 : 'Review updated successfully! (Rewards have already been claimed for this destination)',
-            'data'           => $feedback,
-            'spot_rating'    => isset($spot) && $spot ? (float) $spot->rating : ($rating ? (float) $rating : 0.0)
+            'data'                 => $feedback,
+            'spot_rating'          => isset($spot) && $spot ? (float) $spot->rating : ($rating ? (float) $rating : 0.0)
         ]);
     }
 }

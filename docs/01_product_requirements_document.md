@@ -70,7 +70,7 @@ La Union is world-renowned for its premier surf breaks in San Juan, eco-tourism 
   * Real-time calculation using official provincial Tricycle and Jeepney Fare Guides.
   * Travel mode toggle: *Commute (Public Utility Vehicles)* vs *Private Vehicle*.
 * **Destination Check-in & Photo Verification**:
-  * **Independent Location Check-in**: Fast GPS-radius validation marking spots as visited (+50 Points).
+  * **Independent Location Check-in**: Fast GPS-radius validation marking spots as visited.
   * **Photo Proof Upload Modal**:
     * Clean 3-section layout: Royal Blue gradient header, pure white scrollable middle, light bottom action bar with Cancel (left) and Submit (right).
     * Multi-photo submission (up to 5 photos per destination) with client-side image compression.

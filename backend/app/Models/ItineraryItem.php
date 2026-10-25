@@ -121,15 +121,16 @@ class ItineraryItem extends Model
     protected static function booted(): void
     {
         static::updated(function (ItineraryItem $item) {
-            // If proof_status was updated to approved, sync is_visited = true
+            // If proof_status was updated to approved, sync is_visited = true ONLY IF the tourist has also checked in on location
             if ($item->isDirty('proof_status') && $item->proof_status === 'approved' && !$item->is_visited) {
-                $item->is_visited = true;
-                $item->visited_at = $item->visited_at ?? now();
-                $item->saveQuietly();
+                if ($item->visited_at !== null) {
+                    $item->is_visited = true;
+                    $item->saveQuietly();
+                }
             }
 
-            // When is_visited transitions to true in the database (or proof_status is approved)
-            if (($item->isDirty('is_visited') && $item->is_visited) || ($item->isDirty('proof_status') && $item->proof_status === 'approved')) {
+            // When is_visited transitions to true in the database (requires both check-in and approved proof)
+            if (($item->isDirty('is_visited') && $item->is_visited) || ($item->isDirty('proof_status') && $item->proof_status === 'approved' && $item->visited_at !== null)) {
                 $item->loadMissing(['itinerary.user', 'destination']);
                 $spot = $item->destination;
                 $user = $item->itinerary ? $item->itinerary->user : null;

@@ -5,13 +5,51 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=overlays-content">
-    <title>Intan Elyu — Login</title>
-    <link rel="stylesheet" href="assets/css/style.css">
-    <link rel="stylesheet" href="assets/css/views/auth.css">
-    <link rel="stylesheet" href="assets/css/components/modals.css">
+    <title>Intan Elyu — Official Tourism Portal & Mobile App | Province of La Union</title>
+    <meta name="description"
+        content="Official smart tourism mobile platform and portal of the Provincial Government of La Union (PGLU). Discover 20 municipalities, attractions, surf spots, discounts, travel fares, and download the Intan Elyu mobile app.">
+    <meta name="author" content="Provincial Government of La Union (PGLU)">
+    <link rel="icon" type="image/png" href="assets/img/logo.png">
+    <link rel="apple-touch-icon" href="assets/img/logo.png">
+    <meta name="theme-color" content="#1e3a8a">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="manifest.json">
+    <base href="./">
+
+    <!-- Offline FontAwesome and Local Fallbacks -->
     <link rel="stylesheet" href="assets/css/fontawesome.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- Core App Stylesheets -->
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/components/header.css">
+    <link rel="stylesheet" href="assets/css/components/bottom_nav.css">
+    <link rel="stylesheet" href="assets/css/components/modals.css">
+    <link rel="stylesheet" href="assets/css/views/dashboard.css">
+    <link rel="stylesheet" href="assets/css/views/profile.css">
+    <link rel="stylesheet" href="assets/css/views/settings.css">
+    <link rel="stylesheet" href="assets/css/views/leaderboard.css">
+    <link rel="stylesheet" href="assets/css/views/about.css">
+    <link rel="stylesheet" href="assets/css/views/help.css">
+    <link rel="stylesheet" href="assets/css/views/auth.css">
+    <link rel="stylesheet" href="assets/css/views/edit_profile.css">
+    <link rel="stylesheet" href="assets/css/views/terms.css">
+    <link rel="stylesheet" href="assets/css/views/splash.css">
+    <link rel="stylesheet" href="assets/css/views/map.css">
+    <link rel="stylesheet" href="assets/css/views/itinerary.css">
+    <link rel="stylesheet" href="assets/css/views/puzzles.css">
+    <link rel="stylesheet" href="assets/css/views/discount.css">
+    <link rel="stylesheet" href="assets/css/views/trip_map.css">
+    <link rel="stylesheet" href="assets/css/views/saved_trips.css">
+    <link rel="stylesheet" href="assets/css/views/saved_places.css">
+    <link rel="stylesheet" href="assets/css/views/ar_checkin.css">
+    <link rel="stylesheet" href="assets/css/views/trending.css">
+    <link rel="stylesheet" href="assets/css/views/user_manual.css">
+
+    <!-- Early Session Determination Script for Offline Cold Boot -->
     <script>
         (function () {
             var winH = window.innerHeight || 0;
@@ -20,930 +58,249 @@
             if (h > 0) {
                 document.documentElement.style.setProperty('--auth-screen-h', h + 'px');
             }
+
+            var token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('api_token');
+            var rawUser = localStorage.getItem('auth_user') || localStorage.getItem('intan_elyu_user') || localStorage.getItem('user');
+            var isRealUser = false;
+            if (rawUser) {
+                try {
+                    var u = typeof rawUser === 'string' ? JSON.parse(rawUser) : rawUser;
+                    if (u && (u.email || u.tourist_number || u.id || u.full_name || u.name)) {
+                        if (!u.is_offline_guest && u.id !== 'offline_guest' && u.role !== 'guest') {
+                            isRealUser = true;
+                        }
+                    }
+                } catch(e) {}
+            }
+            var isRealToken = Boolean(
+                token && 
+                token !== 'guest_token' && 
+                token !== 'offline_guest_token' && 
+                !token.startsWith('guest_') && 
+                !token.startsWith('offline_')
+            );
+
+            // Cold boot in offline mode: Direct to Homepage if user has active session
+            var hasSession = isRealUser || isRealToken;
+            if (hasSession) {
+                window._initialOfflineView = 'dashboard';
+                localStorage.setItem('intan_elyu_offline_mode', 'true');
+                if (token) {
+                    localStorage.setItem('intan_elyu_token', token);
+                    localStorage.setItem('Intan_Elyu_Token', token);
+                    localStorage.setItem('api_token', token);
+                }
+            } else {
+                window._initialOfflineView = 'auth';
+                localStorage.setItem('intan_elyu_offline_mode', 'true');
+            }
+
+            window.backendUrl = 'https://api.intan-elyu.online';
+            window.GOOGLE_CLIENT_ID = '620598190857-37a0ucobfd4b3rct7ofti8rtvl3qt884.apps.googleusercontent.com';
         })();
     </script>
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            -webkit-tap-highlight-color: transparent;
-        }
 
-        html, body {
-            background: #74a3cf !important;
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            min-height: 100%;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            color: #ffffff;
-            overflow-x: hidden !important;
-            overflow-y: auto !important;
-            -webkit-overflow-scrolling: touch;
-        }
-
-        /* Online Alert Banner */
-        .online-alert-banner {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 999999;
-            background: linear-gradient(135deg, #10b981, #059669);
-            color: white;
-            padding: 10px 16px;
-            font-size: 12.5px;
-            font-weight: 700;
-            text-align: center;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
-            animation: slideDown 0.3s ease;
-        }
-
-        @keyframes slideDown {
-            from { transform: translateY(-100%); }
-            to { transform: translateY(0); }
-        }
-
-        /* Dedicated Offline Status Badge */
-        .auth-offline-badge {
-            display: none;
-            align-items: center;
-            gap: 6px;
-            padding: 4px 14px;
-            margin: 0 auto 8px auto;
-            border-radius: 100px;
-            background: rgba(15, 23, 42, 0.45);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(245, 158, 11, 0.45);
-            color: #fef3c7;
-            font-size: 11px;
-            font-weight: 700;
-            letter-spacing: 0.2px;
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
-            position: relative;
-            z-index: 10;
-        }
-
-        body.is-offline .auth-offline-badge,
-        body[data-offline="true"] .auth-offline-badge {
-            display: inline-flex;
-        }
-
-        /* Explore in Offline Mode Button */
-        .btn-offline-guest {
-            width: 100%;
-            margin-top: 9px;
-            padding: 10.5px;
-            border-radius: 100px;
-            border: 1px solid rgba(56, 189, 248, 0.4);
-            background: rgba(56, 189, 248, 0.12);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            color: #ffffff;
-            font-size: 13px;
-            font-weight: 700;
-            display: none !important; /* Only shown in offline mode */
-            align-items: center;
-            justify-content: center;
-            gap: 9px;
-            cursor: pointer;
-            transition: background 0.2s, transform 0.1s, border-color 0.2s;
-        }
-
-        body.is-offline .btn-offline-guest,
-        .is-offline .btn-offline-guest,
-        body[data-offline="true"] .btn-offline-guest {
-            display: flex !important;
-        }
-
-        .btn-offline-guest:active {
-            transform: scale(0.98);
-            background: rgba(56, 189, 248, 0.22);
-            border-color: rgba(56, 189, 248, 0.7);
-        }
-
-        /* Offline Modal Dialog */
-        .auth-offline-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 999999;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            padding: 24px;
-        }
-
-        .auth-offline-backdrop {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(15, 23, 42, 0.75);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-        }
-
-        .auth-offline-card {
-            position: relative;
-            z-index: 10;
-            width: 100%;
-            max-width: 340px;
-            background: #ffffff;
-            border-radius: 24px;
-            padding: 24px 20px;
-            text-align: center;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
-            animation: popUpSmooth 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        .auth-offline-icon-circle {
-            width: 56px;
-            height: 56px;
-            border-radius: 50%;
-            background: rgba(245, 158, 11, 0.15);
-            border: 1.5px solid rgba(245, 158, 11, 0.4);
-            color: #f59e0b;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 22px;
-            margin: 0 auto 12px auto;
-        }
-
-        .auth-offline-title {
-            font-size: 17px;
-            font-weight: 800;
-            color: #0f172a;
-            margin-bottom: 6px;
-        }
-
-        .auth-offline-desc {
-            font-size: 12.5px;
-            color: #64748b;
-            line-height: 1.45;
-            margin-bottom: 16px;
-        }
-
-        .auth-offline-actions {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .btn-offline-confirm {
-            width: 100%;
-            padding: 11.5px;
-            border-radius: 100px;
-            border: none;
-            background: linear-gradient(135deg, #1e3a8a, #2563eb);
-            color: #ffffff;
-            font-size: 13.5px;
-            font-weight: 700;
-            cursor: pointer;
-            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
-        }
-
-        .btn-offline-dismiss {
-            width: 100%;
-            padding: 9px;
-            background: transparent;
-            border: none;
-            color: #64748b;
-            font-size: 12.5px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        /* Toast notifications */
-        .toast-notification {
-            position: fixed;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%) translateY(30px);
-            background: rgba(15, 23, 42, 0.95);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: #ffffff;
-            padding: 10px 18px;
-            border-radius: 100px;
-            font-size: 12.5px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
-            opacity: 0;
-            pointer-events: none;
-            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-            z-index: 9999999;
-            max-width: 90%;
-            text-align: center;
-        }
-
-        .toast-notification.active {
-            opacity: 1;
-            transform: translateX(-50%) translateY(0);
-        }
-
-        .toast-notification.warning {
-            border-color: rgba(245, 158, 11, 0.5);
-            color: #fef3c7;
-        }
-
-        .toast-notification.success {
-            border-color: rgba(16, 185, 129, 0.5);
-            color: #d1fae5;
-        }
-
-        .toast-notification.error {
-            border-color: rgba(239, 68, 68, 0.5);
-            color: #fee2e2;
-        }
-    </style>
+    <!-- Capacitor & Main Router -->
+    <script src="assets/js/capacitor/capacitor.js"></script>
+    <script src="assets/js/main.js"></script>
 </head>
 
-<body data-view="auth">
-
-    <!-- Online Alert Banner -->
-    <div id="online-alert" class="online-alert-banner" onclick="attemptReconnect()">
-        <i class="fa-solid fa-wifi"></i>
-        <span>Internet connection restored! Tap to switch to Live Cloud Mode.</span>
-        <i class="fa-solid fa-arrow-right"></i>
+<body data-view="dashboard">
+    <!-- Ambient Offline Mode Status Banner -->
+    <div id="elyu-offline-pill" class="elyu-offline-pill">
+        <i class="fa-solid fa-cloud-slash" id="elyu-offline-pill-icon" style="color: #f59e0b; font-size: 11px;"></i>
+        <span id="elyu-offline-pill-text">Offline Mode &bull; Showing saved data</span>
     </div>
 
-    <!-- Main Authentic Auth View Container -->
-    <div class="auth-container">
+    <!-- Global Drifting Clouds -->
+    <div class="cloud-container" id="global-cloud-container">
+        <div class="cloud cloud-1">
+            <svg viewBox="0 0 100 50">
+                <path fill="#ffffff" opacity="0.85"
+                    d="M 20 35 A 15 15 0 0 1 35 20 A 20 20 0 0 1 70 20 A 15 15 0 0 1 85 35 A 10 10 0 0 1 75 45 L 25 45 A 10 10 0 0 1 20 35 Z" />
+            </svg>
+        </div>
+        <div class="cloud cloud-2">
+            <svg viewBox="0 0 100 50">
+                <path fill="#ffffff" opacity="0.75"
+                    d="M 10 30 A 10 10 0 0 1 25 20 A 12 12 0 0 1 50 18 A 12 12 0 0 1 75 22 A 10 10 0 0 1 90 30 A 8 8 0 0 1 82 38 L 18 38 A 8 8 0 0 1 10 30 Z" />
+            </svg>
+        </div>
+        <div class="cloud cloud-3">
+            <svg viewBox="0 0 100 50">
+                <path fill="#ffffff" opacity="0.65"
+                    d="M 20 30 A 12 12 0 0 1 30 15 A 16 16 0 0 1 55 10 A 16 16 0 0 1 80 18 A 12 12 0 0 1 90 30 L 10 30 Z" />
+            </svg>
+        </div>
+        <div class="cloud cloud-4">
+            <svg viewBox="0 0 100 50">
+                <path fill="#ffffff" opacity="0.7"
+                    d="M 20 35 A 15 15 0 0 1 35 20 A 20 20 0 0 1 70 20 A 15 15 0 0 1 85 35 A 10 10 0 0 1 75 45 L 25 45 A 10 10 0 0 1 20 35 Z" />
+            </svg>
+        </div>
+        <div class="cloud cloud-5">
+            <svg viewBox="0 0 100 50">
+                <path fill="#ffffff" opacity="0.9"
+                    d="M 10 30 A 10 10 0 0 1 25 20 A 12 12 0 0 1 50 18 A 12 12 0 0 1 75 22 A 10 10 0 0 1 90 30 A 8 8 0 0 1 82 38 L 18 38 A 8 8 0 0 1 10 30 Z" />
+            </svg>
+        </div>
+        <div class="cloud cloud-6">
+            <svg viewBox="0 0 100 50">
+                <path fill="#ffffff" opacity="0.55"
+                    d="M 20 30 A 12 12 0 0 1 30 15 A 16 16 0 0 1 55 10 A 16 16 0 0 1 80 18 A 12 12 0 0 1 90 30 L 10 30 Z" />
+            </svg>
+        </div>
+        <div class="cloud cloud-7">
+            <svg viewBox="0 0 100 50">
+                <path fill="#ffffff" opacity="0.5"
+                    d="M 20 35 A 15 15 0 0 1 35 20 A 20 20 0 0 1 70 20 A 15 15 0 0 1 85 35 A 10 10 0 0 1 75 45 L 25 45 A 10 10 0 0 1 20 35 Z" />
+            </svg>
+        </div>
+    </div>
 
-        <!-- Top Blue Section -->
-        <div class="auth-top">
-            <div class="logo-container">
-                <img id="auth-logo-img" src="assets/img/logo.png" alt="Intan Elyu Logo"
-                    style="width: 100%; height: 100%; object-fit: contain; border-radius: 50%; display: block;"
-                    onerror="this.src='assets/img/no_image.svg'">
-            </div>
-            <h1 id="auth-title" style="color: #ffffff; font-weight: 800;">Welcome to Elyu</h1>
+    <!-- Main Content Container -->
+    <div id="app-container">
+        <main id="main-content">
+            <!-- View content dynamically rendered by navigateTo() -->
+        </main>
+    </div>
 
-            <!-- Animated Seamless SVG Wave -->
-            <div class="wave-bottom">
-                <svg viewBox="0 0 2000 100" preserveAspectRatio="none">
+    <!-- Bottom Navigation Bar (Magic Nav) -->
+    <div id="bottom-navigation">
+        <div class="magic-nav" id="magic-nav">
+            <div class="magic-nav-bg">
+                <svg class="magic-nav-svg" id="magic-nav-svg" viewBox="0 0 448 66" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
                     <defs>
-                        <linearGradient id="authWaveGrad1" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" stop-color="#00f2fe" stop-opacity="0.85" />
-                            <stop offset="40%" stop-color="#06b6d4" stop-opacity="0.65" />
-                            <stop offset="100%" stop-color="#0284c7" stop-opacity="0.25" />
-                        </linearGradient>
-                        <linearGradient id="authWaveGrad2" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.9" />
-                            <stop offset="50%" stop-color="#0284c7" stop-opacity="0.75" />
-                            <stop offset="100%" stop-color="#1e3a8a" stop-opacity="0.45" />
-                        </linearGradient>
-                        <linearGradient id="authWaveGrad3" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" stop-color="#74a3cf" stop-opacity="1" />
-                            <stop offset="100%" stop-color="#74a3cf" stop-opacity="1" />
-                        </linearGradient>
+                        <filter id="navShadow" x="-10%" y="-40%" width="120%" height="200%">
+                            <feDropShadow dx="0" dy="6" stdDeviation="10" floodColor="rgba(0,0,0,0.18)" />
+                            <feDropShadow dx="0" dy="2" stdDeviation="4" floodColor="rgba(0,0,0,0.10)" />
+                        </filter>
                     </defs>
-                    <path class="wave-layer wave-1" fill="url(#authWaveGrad1)"
-                        d="M0,50 C150,100 350,0 500,50 C650,100 850,0 1000,50 C1150,100 1350,0 1500,50 C1650,100 1850,0 2000,50 L2000,160 L0,160 Z">
-                    </path>
-                    <path class="wave-layer wave-2" fill="url(#authWaveGrad2)"
-                        d="M0,60 C200,110 300,10 500,60 C700,110 800,10 1000,60 C1200,110 1300,10 1500,60 C1700,110 1800,10 2000,60 L2000,160 L0,160 Z">
-                    </path>
-                    <path class="wave-layer wave-3" fill="#74a3cf"
-                        d="M0,70 C250,120 250,20 500,70 C750,120 750,20 1000,70 C1250,120 1250,20 1500,70 C1750,120 1750,20 2000,70 L2000,160 L0,160 Z">
-                    </path>
+                    <path id="magic-nav-path-base" d="" fill="rgba(255,255,255,0.15)" filter="url(#navShadow)" />
+                    <path id="magic-nav-path-tint" d="" fill="#1e3a8a" opacity="0.2" />
+                    <path id="magic-nav-path-edge" d="" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="1.5" stroke-linejoin="round" />
                 </svg>
+            </div>  
+
+            <div class="magic-nav-items">
+                <a href="#" class="magic-nav-item active" data-index="0" data-view="dashboard" data-color="#1e3a8a" onclick="navigateTo('dashboard'); return false;">
+                    <span class="icon">
+                        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z" />
+                            <path d="M9 21V12h6v9" />
+                        </svg>
+                    </span>
+                </a>
+                <a href="#" class="magic-nav-item" data-index="1" data-view="map" data-color="#1e3a8a" onclick="navigateTo('map'); return false;">
+                    <span class="icon">
+                        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21" />
+                            <line x1="9" y1="3" x2="9" y2="18" />
+                            <line x1="15" y1="6" x2="15" y2="21" />
+                        </svg>
+                    </span>
+                </a>
+                <a href="#" class="magic-nav-item" data-index="2" data-view="itinerary" data-color="#1e3a8a" onclick="navigateTo('itinerary'); return false;">
+                    <span class="icon">
+                        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                            <line x1="16" y1="2" x2="16" y2="6" />
+                            <line x1="8" y1="2" x2="8" y2="6" />
+                            <line x1="3" y1="10" x2="21" y2="10" />
+                        </svg>
+                    </span>
+                </a>
+                <a href="#" class="magic-nav-item" data-index="3" data-view="leaderboard" data-color="#1e3a8a" onclick="navigateTo('leaderboard'); return false;">
+                    <span class="icon">
+                        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M8 21h8M12 17v4" />
+                            <path d="M17 8c0 2.76-2.24 5-5 5S7 10.76 7 8V4h10v4z" />
+                            <path d="M7 4H4v4a3 3 0 0 0 3 3" />
+                            <path d="M17 4h3v4a3 3 0 0 1-3 3" />
+                        </svg>
+                    </span>
+                </a>
+                <a href="#" class="magic-nav-item" data-index="4" data-view="profile" data-color="#1e3a8a" onclick="navigateTo('profile'); return false;">
+                    <span class="icon">
+                        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                            <circle cx="12" cy="7" r="4" />
+                        </svg>
+                    </span>
+                </a>
             </div>
-        </div>
 
-        <!-- Bottom White / Light Blue Section -->
-        <div class="auth-bottom">
-
-            <!-- Offline Mode Status Indicator -->
-            <div id="auth-offline-badge" class="auth-offline-badge">
-                <i class="fa-solid fa-cloud-slash" style="color: #f59e0b; font-size: 11px;"></i>
-                <span>Offline Mode Active &bull; Saved Login Available</span>
-            </div>
-
-            <div class="auth-tabs" id="auth-tabs">
-                <div class="auth-tab active" id="tab-login" onclick="toggleAuthMode(false)">Login</div>
-                <div class="auth-tab" id="tab-register" onclick="toggleAuthMode(true)">Register</div>
-                <div class="tab-gooey-glider" id="tab-gooey-glider"></div>
-            </div>
-
-            <div class="forms-wrapper" id="forms-wrapper">
-
-                <!-- Panel 1: Login -->
-                <div class="form-panel login-form">
-                    <form id="form-login" onsubmit="handleLogin(event)">
-                        <div class="input-group">
-                            <i class="fa-solid fa-mobile-screen"></i>
-                            <input type="email" id="login-email" class="auth-input" placeholder="Email Address" required>
-                        </div>
-                        <div class="input-group">
-                            <i class="fa-solid fa-lock"></i>
-                            <input type="password" id="login-password" class="auth-input" placeholder="Password" required>
-                            <i class="fa-regular fa-eye password-toggle"
-                                onclick="togglePasswordVisibility('login-password', this)"></i>
-                        </div>
-                        <div class="auth-options-row">
-                            <label class="remember-me-label" for="login-remember">
-                                <input type="checkbox" id="login-remember" class="custom-terms-checkbox">
-                                <span>Remember me</span>
-                            </label>
-                            <a href="#" class="forgot-pwd" onclick="showForgotPassword(event)">Forgot Password?</a>
-                        </div>
-
-                        <button type="submit" id="btn-login" class="btn-circle-submit">
-                            <i class="fa-solid fa-arrow-right"></i>
-                        </button>
-                    </form>
-
-                    <div class="auth-social-section">
-                        <div style="width:100%; display:flex; align-items:center; gap:8px; margin-bottom:10px;">
-                            <hr style="flex:1; border:none; border-top:1.5px dashed rgba(255,255,255,0.25);">
-                            <span
-                                style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.8); text-transform:uppercase; letter-spacing:1px;">Or
-                                Connect With</span>
-                            <hr style="flex:1; border:none; border-top:1.5px dashed rgba(255,255,255,0.25);">
-                        </div>
-                        <button type="button" class="btn-google" onclick="triggerGoogleLogin(event)"
-                            style="width:100%; padding:10.5px; border-radius:100px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.04); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); color:white; font-size:13.5px; font-weight:700; display:flex; align-items:center; justify-content:center; gap:10px; cursor:pointer; transition:background 0.2s, transform 0.1s;">
-                            <svg viewBox="0 0 24 24" width="18" height="18" style="flex-shrink:0;">
-                                <path fill="#4285F4"
-                                    d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.53-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-8.7c0-.18-.01-.35-.05-.47z" />
-                                <path fill="#34A853"
-                                    d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.11 0-5.74-2.11-6.68-4.96H1.21v3.15C3.18 21.88 7.31 24 12 24z" />
-                                <path fill="#FBBC05"
-                                    d="M5.32 14.24A7.16 7.16 0 0 1 5 12c0-.79.13-1.57.32-2.31V6.54H1.21A11.96 11.96 0 0 0 0 12c0 1.92.45 3.74 1.21 5.38l4.11-3.14z" />
-                                <path fill="#EA4335"
-                                    d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.18 2.12 1.21 5.46l4.11 3.22c.94-2.85 3.57-4.93 6.68-4.93z" />
-                            </svg>
-                            <span>Sign in with Google</span>
-                        </button>
-                        <button type="button" id="btn-offline-mode" class="btn-offline-guest" onclick="enterOfflineMode(event)">
-                            <i class="fa-solid fa-compass" style="color: #38bdf8; font-size: 13.5px;"></i>
-                            <span>Explore in Offline Mode</span>
-                        </button>
-                        <p class="auth-switch-prompt">
-                            Don't have an account? <a href="#" onclick="toggleAuthMode(true); return false;"
-                                class="auth-switch-link">Register now</a>
-                        </p>
-                    </div>
-                </div>
-
-                <!-- Panel 2: Register -->
-                <div class="form-panel register-form">
-                    <form id="form-register" onsubmit="handleRegisterSubmit(event)">
-                        <div class="input-group">
-                            <i class="fa-regular fa-user"></i>
-                            <input type="text" id="reg-first-name" class="auth-input" placeholder="First Name" required>
-                        </div>
-                        <div class="input-group">
-                            <i class="fa-regular fa-user"></i>
-                            <input type="text" id="reg-last-name" class="auth-input" placeholder="Last Name" required>
-                        </div>
-                        <div class="input-group">
-                            <i class="fa-solid fa-venus-mars"></i>
-                            <select id="reg-gender" class="auth-input" required onchange="this.style.color = this.value ? '#0f172a' : '#64748b';" style="appearance:none; -webkit-appearance:none; cursor:pointer; color:#64748b;">
-                                <option value="" disabled selected>Select Sex / Gender *</option>
-                                <option value="Male">Male</option>
-                                <option value="Female">Female</option>
-                                <option value="Non-binary">Non-binary</option>
-                                <option value="Prefer not to say">Prefer not to say</option>
-                                <option value="Other">Other</option>
-                            </select>
-                            <i class="fa-solid fa-chevron-down select-arrow"></i>
-                        </div>
-                        <div class="input-group">
-                            <i class="fa-solid fa-mobile-screen"></i>
-                            <input type="email" id="reg-email" class="auth-input" placeholder="Email Address" required>
-                        </div>
-                        <div class="input-group">
-                            <i class="fa-solid fa-lock"></i>
-                            <input type="password" id="reg-password" class="auth-input" placeholder="Create Password" required
-                                autocomplete="off" oninput="validateRegisterFormInline()" onfocus="onPasswordFocus()" onblur="onPasswordBlur()">
-                            <i class="fa-regular fa-eye password-toggle"
-                                onclick="togglePasswordVisibility('reg-password', this)"></i>
-                        </div>
-                        <div id="pwd-strength-container" class="pwd-strength-wrapper"
-                            style="display: none;" data-score="0">
-                            <div class="pwd-strength-card">
-                                <div class="pwd-strength-header">
-                                    <div class="pwd-strength-badge status-weak" id="pwd-strength-badge">
-                                        <i class="fa-solid fa-shield-halved" id="pwd-strength-icon"></i>
-                                        <span id="pwd-strength-label">Password Strength: Weak</span>
-                                    </div>
-                                    <span id="pwd-strength-score" class="pwd-score-pill">0/4</span>
-                                </div>
-                                <div class="pwd-strength-segments">
-                                    <div class="pwd-segment seg-1"></div>
-                                    <div class="pwd-segment seg-2"></div>
-                                    <div class="pwd-segment seg-3"></div>
-                                    <div class="pwd-segment seg-4"></div>
-                                </div>
-                                <div class="pwd-checklist">
-                                    <span id="chk-len8" class="pwd-chk-item"><i class="fa-solid fa-circle-dot"></i> 8+ characters</span>
-                                    <span id="chk-num" class="pwd-chk-item"><i class="fa-solid fa-circle-dot"></i> A number</span>
-                                    <span id="chk-cap" class="pwd-chk-item"><i class="fa-solid fa-circle-dot"></i> A capital letter</span>
-                                    <span id="chk-sym" class="pwd-chk-item"><i class="fa-solid fa-circle-dot"></i> A symbol</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="terms-agreement-row">
-                            <input type="checkbox" id="reg-privacy-checkbox" class="custom-terms-checkbox" required>
-                            <div class="terms-agreement-text">
-                                <label for="reg-privacy-checkbox" id="reg-privacy-label" class="terms-agreement-label">I agree to the</label>
-                                <span style="font-weight:700; text-decoration:underline;">Terms &amp; Privacy Policy</span>.
-                            </div>
-                        </div>
-
-                        <button type="submit" id="btn-register" class="btn-circle-submit">
-                            <i class="fa-solid fa-arrow-right"></i>
-                        </button>
-                    </form>
-
-                    <div class="auth-social-section">
-                        <div style="width:100%; display:flex; align-items:center; gap:8px; margin-bottom:10px;">
-                            <hr style="flex:1; border:none; border-top:1.5px dashed rgba(255,255,255,0.15);">
-                            <span
-                                style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.4); text-transform:uppercase; letter-spacing:1px;">Or
-                                Connect With</span>
-                            <hr style="flex:1; border:none; border-top:1.5px dashed rgba(255,255,255,0.15);">
-                        </div>
-                        <button type="button" class="btn-google" onclick="triggerGoogleLogin(event)"
-                            style="width:100%; padding:10.5px; border-radius:100px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.04); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); color:white; font-size:13.5px; font-weight:700; display:flex; align-items:center; justify-content:center; gap:10px; cursor:pointer;">
-                            <svg viewBox="0 0 24 24" width="18" height="18" style="flex-shrink:0;">
-                                <path fill="#4285F4"
-                                    d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.53-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-8.7c0-.18-.01-.35-.05-.47z" />
-                                <path fill="#34A853"
-                                    d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.11 0-5.74-2.11-6.68-4.96H1.21v3.15C3.18 21.88 7.31 24 12 24z" />
-                                <path fill="#FBBC05"
-                                    d="M5.32 14.24A7.16 7.16 0 0 1 5 12c0-.79.13-1.57.32-2.31V6.54H1.21A11.96 11.96 0 0 0 0 12c0 1.92.45 3.74 1.21 5.38l4.11-3.14z" />
-                                <path fill="#EA4335"
-                                    d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.18 2.12 1.21 5.46l4.11 3.22c.94-2.85 3.57-4.93 6.68-4.93z" />
-                            </svg>
-                            <span>Sign up with Google</span>
-                        </button>
-                        <button type="button" class="btn-offline-guest" onclick="enterOfflineMode(event)">
-                            <i class="fa-solid fa-compass" style="color: #38bdf8; font-size: 13.5px;"></i>
-                            <span>Explore in Offline Mode</span>
-                        </button>
-                        <p class="auth-switch-prompt">
-                            Already have an account? <a href="#" onclick="toggleAuthMode(false); return false;"
-                                class="auth-switch-link">Log in</a>
-                        </p>
-                    </div>
-                </div>
-
-                <!-- Panel 3: Forgot Password -->
-                <div class="form-panel forgot-form" id="panel-forgot">
-                    <a href="#" class="back-link" id="fp-back-link" onclick="hideForgotPassword(event)"
-                        style="color:#ffffff; font-weight:700; text-decoration:none; display:inline-flex; align-items:center; gap:6px; margin-bottom:12px;">
-                        <i class="fa-solid fa-arrow-left"></i> Back to Login
-                    </a>
-                    <div class="fp-header" style="margin-bottom:14px;">
-                        <h3 style="font-size:16px; font-weight:800; color:#ffffff;">Reset Password</h3>
-                        <p style="font-size:12px; color:rgba(255, 255, 255, 0.85);">Enter your email to receive a password reset code when online.</p>
-                    </div>
-                    <form onsubmit="handleForgotSubmit(event)">
-                        <div class="input-group">
-                            <i class="fa-solid fa-envelope"></i>
-                            <input type="email" id="fp-email" class="auth-input" placeholder="Registered Email" required>
-                        </div>
-                        <button type="submit" class="btn-circle-submit">
-                            <i class="fa-solid fa-arrow-right"></i>
-                        </button>
-                    </form>
-                </div>
-
+            <div class="magic-circle" id="magic-indicator" style="background: radial-gradient(circle at 38% 32%, rgba(30, 58, 138, 0.93), rgba(30, 58, 138, 0.73));">
+                <div class="magic-circle-shine"></div>
             </div>
         </div>
     </div>
 
-    <!-- Login Success Modal (Matches System Design) -->
-    <div id="login-success-modal" class="login-success-overlay" style="display: none;">
-        <div class="login-success-card">
-            <div class="success-icon-badge" id="modal-badge">
-                <svg class="circular-spinner" id="modal-spinner-svg" viewBox="0 0 50 50">
-                    <circle class="spinner-track" cx="25" cy="25" r="20" fill="none" stroke-width="4"></circle>
-                    <circle class="spinner-head" cx="25" cy="25" r="20" fill="none" stroke-width="4"></circle>
-                </svg>
-                <i class="fa-solid fa-check modal-check-mark" id="modal-checkmark-icon" style="display:none;"></i>
+    <!-- Modals & Offline Helpers -->
+    <div id="offline-auth-modal" class="modal-backdrop" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; z-index:99999; background:rgba(0,0,0,0.6); backdrop-filter:blur(8px); align-items:center; justify-content:center;">
+        <div class="modal-card" style="background:linear-gradient(135deg, #1e3a8a, #0b1a3d); border:1px solid rgba(255,255,255,0.2); border-radius:24px; padding:28px 24px; max-width:340px; width:90%; color:#fff; text-align:center;">
+            <div style="width:56px; height:56px; border-radius:50%; background:rgba(245,158,11,0.2); border:1px solid #f59e0b; display:flex; align-items:center; justify-content:center; margin:0 auto 16px;">
+                <i class="fa-solid fa-cloud-slash" style="color:#fbbf24; font-size:24px;"></i>
             </div>
-            <h2 class="success-modal-title" id="login-modal-title">Logging in...</h2>
-            <p class="success-modal-sub" id="login-success-user-name">Authenticating with saved profile</p>
-        </div>
-    </div>
-
-    <!-- Offline Auth Modal Dialog -->
-    <div id="offline-auth-modal" class="auth-offline-modal" style="display: none;">
-        <div class="auth-offline-backdrop" onclick="closeOfflineAuthModal()"></div>
-        <div class="auth-offline-card">
-            <div class="auth-offline-icon-circle">
-                <i class="fa-solid fa-cloud-slash"></i>
-            </div>
-            <h3 class="auth-offline-title" id="offline-modal-title">Internet Required to Log In</h3>
-            <p class="auth-offline-desc" id="offline-modal-desc">
-                An active internet connection is required to log in and verify your cloud account. You can enter Offline Mode to explore all saved attractions, itineraries, and maps right now.
+            <h3 style="font-size:18px; font-weight:800; margin-bottom:8px;">No Offline Session</h3>
+            <p id="offline-auth-msg" style="font-size:13px; color:rgba(255,255,255,0.85); line-height:1.5; margin-bottom:20px;">
+                Please connect to the internet to sign in, or explore all saved attractions in Guest Offline Mode.
             </p>
-            <div class="auth-offline-actions">
-                <button type="button" class="btn-offline-confirm" onclick="enterOfflineMode()">
+            <div style="display:flex; flex-direction:column; gap:10px;">
+                <button type="button" class="btn-primary" onclick="enterOfflineMode(event)" style="padding:12px; border-radius:100px; font-weight:700; font-size:13px; background:#fbbf24; color:#1e3a8a; border:none; cursor:pointer;">
                     <i class="fa-solid fa-compass"></i> Explore in Offline Mode
                 </button>
-                <button type="button" class="btn-offline-dismiss" onclick="closeOfflineAuthModal()">
+                <button type="button" onclick="closeOfflineAuthModal()" style="padding:10px; border-radius:100px; font-weight:600; font-size:12px; background:rgba(255,255,255,0.1); color:#fff; border:1px solid rgba(255,255,255,0.2); cursor:pointer;">
                     Dismiss
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- Toast Notification Element -->
-    <div id="toast-notify" class="toast-notification">
-        <i id="toast-icon" class="fa-solid fa-circle-info"></i>
-        <span id="toast-text">Message goes here</span>
-    </div>
-
-    <!-- Script Engine -->
     <script>
-        function showToast(message, type = 'info', duration = 3500) {
-            const toast = document.getElementById('toast-notify');
-            const icon = document.getElementById('toast-icon');
-            const text = document.getElementById('toast-text');
-            if (!toast) return;
-
-            toast.className = `toast-notification ${type} active`;
-            text.textContent = message;
-
-            if (type === 'success') {
-                icon.className = 'fa-solid fa-circle-check';
-            } else if (type === 'warning') {
-                icon.className = 'fa-solid fa-triangle-exclamation';
-            } else if (type === 'error') {
-                icon.className = 'fa-solid fa-circle-xmark';
-            } else {
-                icon.className = 'fa-solid fa-circle-info';
-            }
-
-            clearTimeout(window._toastTimer);
-            window._toastTimer = setTimeout(() => {
-                toast.classList.remove('active');
-            }, duration);
-        }
-
-        function updateTitleWithTransition(newText) {
-            const titleEl = document.getElementById('auth-title');
-            if (!titleEl || titleEl.textContent === newText) return;
-            titleEl.classList.add('text-fade-out');
-            setTimeout(() => {
-                titleEl.textContent = newText;
-                titleEl.classList.remove('text-fade-out');
-            }, 200);
-        }
-
-        function positionTabGlider(isRegister, animate = true) {
-            const glider = document.getElementById('tab-gooey-glider');
-            const tabLogin = document.getElementById('tab-login');
-            const tabRegister = document.getElementById('tab-register');
-            const tabsContainer = document.getElementById('auth-tabs');
-            const targetTab = isRegister ? tabRegister : tabLogin;
-            if (!glider || !targetTab || !tabsContainer) return;
-
-            const targetRect = targetTab.getBoundingClientRect();
-            const containerRect = tabsContainer.getBoundingClientRect();
-            const targetLeft = targetRect.left - containerRect.left + (targetRect.width - 32) / 2;
-
-            if (!animate) {
-                glider.style.transition = 'none';
-                glider.style.left = `${targetLeft}px`;
-                return;
-            }
-
-            glider.style.transition = '';
-            glider.classList.remove('stretching-right', 'stretching-left');
-            void glider.offsetWidth;
-
-            if (isRegister) {
-                glider.classList.add('stretching-right');
-            } else {
-                glider.classList.add('stretching-left');
-            }
-            glider.style.left = `${targetLeft}px`;
-        }
-
-        function toggleAuthMode(isRegister) {
-            const tabLogin = document.getElementById('tab-login');
-            const tabRegister = document.getElementById('tab-register');
-            const wrapper = document.getElementById('forms-wrapper');
-            const tabsContainer = document.getElementById('auth-tabs');
-            const authContainer = document.querySelector('.auth-container');
-
-            if (tabsContainer) tabsContainer.style.display = 'flex';
-            if (wrapper) wrapper.classList.remove('show-forgot');
-            positionTabGlider(isRegister, true);
-
-            if (authContainer) {
-                if (isRegister) {
-                    authContainer.classList.add('mode-register');
-                } else {
-                    authContainer.classList.remove('mode-register');
-                }
-            }
-
-            if (isRegister) {
-                if (tabLogin) tabLogin.classList.remove('active');
-                if (tabRegister) tabRegister.classList.add('active');
-                if (wrapper) {
-                    wrapper.classList.remove('show-forgot');
-                    wrapper.classList.add('show-register');
-                }
-                updateTitleWithTransition('Join Intan Elyu');
-            } else {
-                if (tabRegister) tabRegister.classList.remove('active');
-                if (tabLogin) tabLogin.classList.add('active');
-                if (wrapper) {
-                    wrapper.classList.remove('show-register', 'show-forgot');
-                }
-                updateTitleWithTransition('Welcome to Elyu');
-            }
-        }
-
-        window.togglePasswordVisibility = function (fieldId, iconEl) {
-            const input = document.getElementById(fieldId);
-            if (!input) return;
-            if (input.type === 'password') {
-                input.type = 'text';
-                if (iconEl && iconEl.classList) {
-                    iconEl.classList.remove('fa-eye');
-                    iconEl.classList.add('fa-eye-slash');
-                }
-            } else {
-                input.type = 'password';
-                if (iconEl && iconEl.classList) {
-                    iconEl.classList.remove('fa-eye-slash');
-                    iconEl.classList.add('fa-eye');
-                }
-            }
-        };
-        function togglePasswordVisibility(fieldId, iconEl) {
-            window.togglePasswordVisibility(fieldId, iconEl);
-        }
-
-        function validateRegisterFormInline() {
-            const pwdEl = document.getElementById('reg-password');
-            if (!pwdEl) return;
-            const pwd = pwdEl.value;
-            const container = document.getElementById('pwd-strength-container');
-            const label = document.getElementById('pwd-strength-label');
-            const scoreEl = document.getElementById('pwd-strength-score');
-            const badgeEl = document.getElementById('pwd-strength-badge');
-
-            const chkLen8 = document.getElementById('chk-len8');
-            const chkNum = document.getElementById('chk-num');
-            const chkCap = document.getElementById('chk-cap');
-            const chkSym = document.getElementById('chk-sym');
-
-            const isFocused = (document.activeElement === pwdEl);
-            if (pwd.length === 0 && !isFocused) {
-                if (container) container.style.display = 'none';
-            } else {
-                if (container) container.style.display = 'block';
-
-                const len8 = pwd.length >= 8;
-                const hasNum = /\d/.test(pwd);
-                const hasCap = /[A-Z]/.test(pwd);
-                const hasSym = /[^A-Za-z0-9]/.test(pwd);
-
-                const score = [len8, hasNum, hasCap, hasSym].filter(Boolean).length;
-                if (container) container.dataset.score = score;
-                if (scoreEl) scoreEl.textContent = score + '/4';
-
-                const updateChk = (el, passed, text) => {
-                    if (!el) return;
-                    el.className = 'pwd-chk-item' + (passed ? ' passed' : '');
-                    el.innerHTML = passed
-                        ? '<i class="fa-solid fa-circle-check"></i> ' + text
-                        : '<i class="fa-solid fa-circle-dot"></i> ' + text;
-                };
-
-                updateChk(chkLen8, len8, '8+ characters');
-                updateChk(chkNum, hasNum, 'A number');
-                updateChk(chkCap, hasCap, 'A capital letter');
-                updateChk(chkSym, hasSym, 'A symbol');
-
-                const labels = ['Too Weak', 'Weak', 'Fair', 'Good', 'Strong'];
-                const badgeClasses = ['status-weak', 'status-weak', 'status-fair', 'status-good', 'status-strong'];
-
-                if (label) {
-                    label.textContent = 'Strength: ' + (labels[score] || 'Weak');
-                }
-                if (badgeEl) {
-                    badgeEl.className = 'pwd-strength-badge ' + (badgeClasses[score] || 'status-weak');
-                }
-            }
-        }
-
-        function onPasswordFocus() {
-            const container = document.getElementById('pwd-strength-container');
-            if (container) {
-                container.style.display = 'block';
-                validateRegisterFormInline();
-                setTimeout(() => {
-                    try {
-                        container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                    } catch (e) { }
-                }, 180);
-            }
-        }
-
-        function onPasswordBlur() {
-            const pwdEl = document.getElementById('reg-password');
-            const container = document.getElementById('pwd-strength-container');
-            if (pwdEl && pwdEl.value.length === 0 && container) {
-                container.style.display = 'none';
-            }
-        }
-
-        (function setupKeyboardAdaptiveAuth() {
-            // Keep login layout 100% intact with splash branding without shrinking header or logo
-            document.addEventListener('focusin', (e) => {
-                if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) {
-                    setTimeout(() => {
-                        try {
-                            e.target.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                        } catch (err) { }
-                    }, 180);
-                }
-            });
-        })();
-
-        function showForgotPassword(e) {
-            if (e) e.preventDefault();
-            const tabsContainer = document.getElementById('auth-tabs');
-            const wrapper = document.getElementById('forms-wrapper');
-            const authContainer = document.querySelector('.auth-container');
-            if (authContainer) authContainer.classList.remove('mode-register');
-            if (tabsContainer) tabsContainer.style.display = 'none';
-            if (wrapper) {
-                wrapper.classList.remove('show-register');
-                wrapper.classList.add('show-forgot');
-            }
-            updateTitleWithTransition('Account Recovery');
-        }
-
-        function hideForgotPassword(e) {
-            if (e) e.preventDefault();
-            const tabsContainer = document.getElementById('auth-tabs');
-            const wrapper = document.getElementById('forms-wrapper');
-            const tabLogin = document.getElementById('tab-login');
-            const tabRegister = document.getElementById('tab-register');
-            const authContainer = document.querySelector('.auth-container');
-            if (authContainer) authContainer.classList.remove('mode-register');
-
-            if (tabsContainer) tabsContainer.style.display = 'flex';
-            if (wrapper) wrapper.classList.remove('show-forgot', 'show-register');
-            if (tabRegister) tabRegister.classList.remove('active');
-            if (tabLogin) tabLogin.classList.add('active');
-            updateTitleWithTransition('Welcome to Elyu');
-            setTimeout(() => { positionTabGlider(false, false); }, 50);
-        }
-
-        function handleForgotSubmit(e) {
-            e.preventDefault();
-            showToast('Internet connection is required to request a password reset code.', 'warning', 4500);
-        }
-
-        function showOfflineAuthModal(email) {
-            const modal = document.getElementById('offline-auth-modal');
-            const desc = document.getElementById('offline-modal-desc');
-            if (desc && email) {
-                desc.innerHTML = `An active internet connection is required to authenticate with <strong>${email}</strong>.<br><br>Please connect to Wi-Fi or Mobile Data, or tap below to explore saved guides in Offline Mode.`;
-            }
-            if (modal) {
-                modal.style.display = 'flex';
-                modal.classList.add('active');
-                modal.style.pointerEvents = 'auto';
-            }
-        }
-
         function closeOfflineAuthModal() {
-            const modal = document.getElementById('offline-auth-modal');
+            var modal = document.getElementById('offline-auth-modal');
             if (modal) {
-                modal.classList.remove('active');
                 modal.style.display = 'none';
                 modal.style.pointerEvents = 'none';
             }
         }
 
-        function showLoginSuccessModal(user) {
-            if (window._loginModalActive) return;
-            window._loginModalActive = true;
-
-            const modal = document.getElementById('login-success-modal');
-            const badge = document.getElementById('modal-badge');
-            const spinner = document.getElementById('modal-spinner-svg');
-            const checkmark = document.getElementById('modal-checkmark-icon');
-            const titleEl = document.getElementById('login-modal-title');
-            const nameEl = document.getElementById('login-success-user-name');
-
-            if (badge) badge.classList.remove('is-done');
-            if (spinner) spinner.style.display = 'block';
-            if (checkmark) checkmark.style.display = 'none';
-            if (titleEl) titleEl.textContent = 'Logging in...';
-            if (nameEl) nameEl.textContent = 'Authenticating saved profile';
-
+        function showOfflineAuthModal(email) {
+            var modal = document.getElementById('offline-auth-modal');
             if (modal) {
+                var msg = document.getElementById('offline-auth-msg');
+                if (msg) {
+                    msg.innerHTML = email 
+                        ? 'No saved offline session found for <strong>' + email + '</strong>. Connect to the internet once to authenticate, or continue as Offline Guest.'
+                        : 'Please connect to the internet to log in, or explore saved spots in Offline Guest Mode.';
+                }
                 modal.style.display = 'flex';
-                setTimeout(() => { modal.classList.add('active'); }, 20);
+                modal.style.pointerEvents = 'auto';
             }
-
-            setTimeout(() => {
-                if (spinner) spinner.style.display = 'none';
-                if (checkmark) checkmark.style.display = 'block';
-                if (badge) badge.classList.add('is-done');
-                if (titleEl) titleEl.textContent = 'Successfully Logged In!';
-                if (nameEl) {
-                    nameEl.textContent = (user && user.name) ? 'Welcome back, ' + user.name + '!' : 'Welcome back to Intan Elyu!';
-                }
-            }, 1800);
-
-            setTimeout(() => {
-                if (modal) {
-                    modal.classList.remove('active');
-                    setTimeout(() => { modal.style.display = 'none'; }, 250);
-                }
-                enterOfflineMode();
-            }, 3000);
-        }
-
-        function handleLogin(e) {
-            e.preventDefault();
-            const email = (document.getElementById('login-email')?.value || '').trim();
-            const password = document.getElementById('login-password')?.value || '';
-            const remember = document.getElementById('login-remember')?.checked || false;
-
-            let cachedUser = null;
-            try { cachedUser = JSON.parse(localStorage.getItem('auth_user') || localStorage.getItem('user') || 'null'); } catch (err) {}
-            const rememberedEmail = localStorage.getItem('intan_elyu_remembered_email');
-
-            // If user previously logged in on this device with this email
-            if (cachedUser && (
-                (cachedUser.email && cachedUser.email.toLowerCase() === email.toLowerCase()) ||
-                (rememberedEmail && rememberedEmail.toLowerCase() === email.toLowerCase())
-            )) {
-                localStorage.setItem('intan_elyu_token', 'offline_session_token');
-                localStorage.setItem('intan_elyu_offline_mode', 'true');
-                if (remember) {
-                    localStorage.setItem('intan_elyu_remembered_email', email);
-                }
-                showLoginSuccessModal(cachedUser);
-                return;
-            }
-
-            // Not matched or offline without saved account: show modal
-            showOfflineAuthModal(email);
-        }
-
-        function handleRegisterSubmit(e) {
-            e.preventDefault();
-            showToast('Account registration requires an active internet connection to communicate with the Provincial server.', 'warning', 5000);
-        }
-
-        function triggerGoogleLogin(e) {
-            if (e) e.preventDefault();
-            showToast('Google Sign-In requires an active internet connection.', 'warning', 4000);
         }
 
         function enterOfflineMode(e) {
             if (e && e.preventDefault) e.preventDefault();
             closeOfflineAuthModal();
-
-            let cached = null;
+            localStorage.setItem('intan_elyu_offline_mode', 'true');
+            var cached = null;
             try { cached = JSON.parse(localStorage.getItem('auth_user') || 'null'); } catch (err) {}
-
             if (!cached || !cached.name) {
                 cached = {
                     id: 'offline_guest',
-                    name: 'Offline Explorer',
+                    name: 'Guest Explorer',
                     role: 'tourist',
                     is_offline_guest: true
                 };
                 localStorage.setItem('auth_user', JSON.stringify(cached));
             }
-
-            showToast('Offline Mode Active: Welcome, Explorer!', 'success', 3500);
+            if (typeof navigateTo === 'function') {
+                navigateTo('dashboard');
+            }
         }
 
+        // Live Reconnect Detection: Transition automatically when internet returns
         let isAutoReconnecting = false;
         async function attemptAutoReconnect() {
             if (isAutoReconnecting) return;
@@ -955,7 +312,9 @@
                 }).catch(() => null);
 
                 if ((res && (res.ok || res.status < 500)) || navigator.onLine) {
-                    showToast("⚡ Connection restored! Loading live app...", "success", 2000);
+                    if (typeof showToast === 'function') {
+                        showToast("⚡ Connection restored! Loading live app...", "success", 2000);
+                    }
                     setTimeout(() => {
                         window.location.href = "https://app.intan-elyu.online/?app=true";
                     }, 400);
@@ -965,79 +324,30 @@
             isAutoReconnecting = false;
         }
 
-        function attemptReconnect() {
-            if (navigator.onLine) {
-                attemptAutoReconnect();
-            } else {
-                showToast("Device is currently offline. Please connect to Wi-Fi or Mobile Data.", "warning");
-            }
-        }
+        window.addEventListener('online', attemptAutoReconnect);
 
-        function updateOfflineStatus() {
-            const isOffline = typeof navigator.onLine === 'boolean' ? !navigator.onLine : false;
-            if (isOffline) {
-                document.body.classList.add('is-offline');
-                document.body.setAttribute('data-offline', 'true');
-            } else {
-                document.body.classList.remove('is-offline');
-                document.body.removeAttribute('data-offline');
-                try {
-                    localStorage.removeItem('intan_elyu_offline_mode');
-                    localStorage.removeItem('intan_elyu_offline_guest');
-                } catch(e) {}
-                attemptAutoReconnect();
-            }
-            const badge = document.getElementById('auth-offline-badge');
-            if (badge) {
-                badge.style.setProperty('display', isOffline ? 'inline-flex' : 'none', 'important');
-            }
-            const offlineBtns = document.querySelectorAll('.btn-offline-guest');
-            offlineBtns.forEach(btn => {
-                btn.style.setProperty('display', 'flex', 'important');
-            });
-            const banner = document.getElementById('online-alert');
-            if (banner) {
-                banner.style.setProperty('display', !isOffline ? 'flex' : 'none', 'important');
-            }
-        }
+        // App Launch Handler
+        document.addEventListener('DOMContentLoaded', function () {
+            var targetView = window._initialOfflineView || 'dashboard';
+            document.body.setAttribute('data-view', targetView);
 
-        window.addEventListener('online', () => {
-            updateOfflineStatus();
-            attemptAutoReconnect();
-        });
-        window.addEventListener('offline', updateOfflineStatus);
-        setInterval(() => {
-            if (typeof navigator.onLine === 'boolean' && navigator.onLine) {
-                updateOfflineStatus();
-            }
-        }, 3000);
-
-        document.addEventListener('DOMContentLoaded', () => {
-            // Dismiss and hide any modals so they can NEVER intercept touch events
-            ['offline-auth-modal', 'login-success-modal'].forEach(id => {
-                const el = document.getElementById(id);
-                if (el) {
-                    el.style.display = 'none';
-                    el.style.pointerEvents = 'none';
-                    el.classList.remove('active');
+            var noNavViews = ['auth', 'splash', 'trip_map', 'saved_trips', 'saved_places', 'discount', 'puzzles', 'settings'];
+            var bottomNav = document.getElementById('bottom-navigation');
+            if (bottomNav) {
+                if (noNavViews.includes(targetView)) {
+                    bottomNav.classList.add('nav-hidden');
+                } else {
+                    bottomNav.classList.remove('nav-hidden');
                 }
-            });
+            }
 
-            updateOfflineStatus();
-            setTimeout(() => { positionTabGlider(false, false); }, 100);
-            window.addEventListener('resize', () => {
-                const wrapper = document.getElementById('forms-wrapper');
-                const isReg = wrapper && wrapper.classList.contains('show-register');
-                positionTabGlider(isReg, false);
-            });
+            var pill = document.getElementById('elyu-offline-pill');
+            if (pill) {
+                pill.classList.remove('hidden');
+            }
 
-            // Restore remembered email
-            const remEmail = localStorage.getItem('intan_elyu_remembered_email');
-            const emailInput = document.getElementById('login-email');
-            const remChk = document.getElementById('login-remember');
-            if (remEmail && emailInput) {
-                emailInput.value = remEmail;
-                if (remChk) remChk.checked = true;
+            if (typeof navigateTo === 'function') {
+                navigateTo(targetView);
             }
         });
     </script>

@@ -1472,10 +1472,11 @@ if (is_dir($imgDir)) {
                 ? window.OfflineTripManager.getQueuedTrips()
                 : [];
             const isDeletedFn = (typeof window.isTripDeleted === 'function') ? window.isTripDeleted : (t => false);
-            const allItineraries = [...queuedTrips, ...serverItineraries].filter(t => !isDeletedFn(t));
+            const isCompletedFn = (typeof window.isTripCompletedLocally === 'function') ? window.isTripCompletedLocally : (t => false);
+            const allItineraries = [...queuedTrips, ...serverItineraries].filter(t => !isDeletedFn(t) && !isCompletedFn(t));
             const seenSig = {};
             const itineraries = allItineraries.filter(t => {
-                if (!t || t.status === 'completed') return false;
+                if (!t || t.status === 'completed' || isCompletedFn(t)) return false;
                 const sig = String(t.title || '').trim().toLowerCase() + '|' + (t.trip_date || '');
                 if (seenSig[sig]) return false;
                 seenSig[sig] = true;
@@ -1526,10 +1527,15 @@ if (is_dir($imgDir)) {
                             let proofBadge = '';
                             const isLocVerified = Boolean(item.is_location_verified || item.visited_at);
                             const hasProof = Boolean(proofImages.length > 0);
+                            const isPhotoApproved = (item.proof_status === 'approved');
+                            const isApproved = Boolean((item.is_visited && isLocVerified) || (isLocVerified && isPhotoApproved));
+
                             if (isQueued) {
                                 proofBadge = `<span style="font-size:10px; font-weight:800; color:#fbbf24; background:rgba(245,158,11,0.18); border:1px solid rgba(245,158,11,0.35); padding:2px 8px; border-radius:100px; margin-left:auto; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-cloud-arrow-up"></i> Queued</span>`;
-                            } else if (item.is_visited || item.proof_status === 'approved') {
+                            } else if (isApproved) {
                                 proofBadge = `<span style="font-size:10px; font-weight:800; color:#34c759; background:rgba(52,199,89,0.15); border:1px solid rgba(52,199,89,0.3); padding:2px 8px; border-radius:100px; margin-left:auto; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-circle-check"></i> Verified</span>`;
+                            } else if (isPhotoApproved && !isLocVerified) {
+                                proofBadge = `<span style="font-size:10px; font-weight:800; color:#38bdf8; background:rgba(56,189,248,0.15); border:1px solid rgba(56,189,248,0.3); padding:2px 8px; border-radius:100px; margin-left:auto; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-camera"></i> Photo Approved</span>`;
                             } else if (item.proof_status === 'rejected') {
                                 proofBadge = `<span style="font-size:10px; font-weight:800; color:#ef4444; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.3); padding:2px 8px; border-radius:100px; margin-left:auto; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-circle-xmark"></i> Rejected</span>`;
                             } else if (isLocVerified && hasProof) {
@@ -2483,9 +2489,10 @@ if (is_dir($imgDir)) {
                     if (!res.ok) {
                         if (res.status === 401) {
                             const isGuestToken = isOfflineGuest || !token || token === 'guest_token' || token === 'offline_guest_token' || token.indexOf('guest_') === 0 || token.indexOf('offline_') === 0 || localStorage.getItem('intan_elyu_guest') === 'true' || localStorage.getItem('intan_elyu_offline_guest') === 'true';
-                            if (isGuestToken) {
-                                console.warn("Guest mode active; suppressing auth redirect.");
-                                throw new Error("Guest session");
+                            const isNetOffline = (typeof navigator.onLine === 'boolean' && !navigator.onLine) || window.isAppOnline === false || localStorage.getItem('intan_elyu_offline_mode') === 'true';
+                            if (isGuestToken || isNetOffline) {
+                                console.warn("Guest mode or offline active; suppressing auth redirect.");
+                                throw new Error("Guest/Offline session");
                             } else {
                                 localStorage.removeItem('intan_elyu_token');
                                 localStorage.removeItem('auth_user');

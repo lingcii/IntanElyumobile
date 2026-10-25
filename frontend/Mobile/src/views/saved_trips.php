@@ -102,7 +102,7 @@ $backRoute = 'itinerary';
         <!-- Middle Scrollable Area (White) -->
         <div style="background:#ffffff !important; padding:20px; flex:1; overflow-y:auto; text-align:left; box-sizing:border-box;">
             <p style="font-size:13px; color:#475569; margin:0 0 16px 0; line-height:1.5; font-weight:500;">
-                Take or select selfies and photos at this destination to earn <strong style="color:#0284c7; font-weight:800;">+50 Points</strong>.
+                Take or select selfies and photos at this destination to verify your visit.
             </p>
 
             <input type="hidden" id="proof-upload-item-id">
@@ -450,7 +450,7 @@ $backRoute = 'itinerary';
                             fallbackItins = Array.isArray(parsed) ? parsed : (parsed.itineraries || parsed.data || []);
                         }
                     } catch (e) { }
-                    const safeFallback = fallbackItins.filter(t => !window.isTripDeleted(t));
+                    const safeFallback = fallbackItins.filter(t => !window.isTripDeleted(t) && !(typeof window.isTripCompletedLocally === 'function' && window.isTripCompletedLocally(t)));
                     renderSavedTrips(safeFallback);
                 }
             }, 3000);
@@ -462,7 +462,7 @@ $backRoute = 'itinerary';
                     const parsed = JSON.parse(storedRaw);
                     const itins = Array.isArray(parsed) ? parsed : (parsed.itineraries || parsed.data || null);
                     if (Array.isArray(itins)) {
-                        const safeItins = itins.filter(t => !window.isTripDeleted(t));
+                        const safeItins = itins.filter(t => !window.isTripDeleted(t) && !(typeof window.isTripCompletedLocally === 'function' && window.isTripCompletedLocally(t)));
                         if (safeItins.length > 0) {
                             renderSavedTrips(safeItins);
                         }
@@ -483,7 +483,7 @@ $backRoute = 'itinerary';
                     }
                 } catch (e) { }
 
-                const combined = [...queuedTrips, ...localTrips].filter(t => !window.isTripDeleted(t));
+                const combined = [...queuedTrips, ...localTrips].filter(t => !window.isTripDeleted(t) && !(typeof window.isTripCompletedLocally === 'function' && window.isTripCompletedLocally(t)));
                 renderSavedTrips(combined);
                 return;
             }
@@ -497,7 +497,7 @@ $backRoute = 'itinerary';
                     const parsed = JSON.parse(storedRaw);
                     const itins = Array.isArray(parsed) ? parsed : (parsed.itineraries || parsed.data || null);
                     if (Array.isArray(itins)) {
-                        const safeItins = itins.filter(t => !window.isTripDeleted(t));
+                        const safeItins = itins.filter(t => !window.isTripDeleted(t) && !(typeof window.isTripCompletedLocally === 'function' && window.isTripCompletedLocally(t)));
                         if (safeItins.length > 0) {
                             renderSavedTrips(safeItins);
                         }
@@ -905,7 +905,7 @@ $backRoute = 'itinerary';
                     return;
                 }
 
-                const activeItineraries = dedupedTrips.filter(trip => trip && trip.status !== 'completed');
+                const activeItineraries = dedupedTrips.filter(trip => trip && trip.status !== 'completed' && !(typeof window.isTripCompletedLocally === 'function' && window.isTripCompletedLocally(trip)));
 
                 if (activeItineraries.length === 0) {
                     list.innerHTML = emptyStateHtml;
@@ -1039,7 +1039,8 @@ $backRoute = 'itinerary';
                                 const hasProof = (proofImages.length > 0);
                                 const isLocVerified = Boolean(item.visited_at || item.is_location_verified);
                                 const proofStatus = item.proof_status || (hasProof ? (item.is_visited ? 'approved' : 'pending') : null);
-                                const isApproved = Boolean(item.is_visited || proofStatus === 'approved');
+                                const isPhotoApproved = (proofStatus === 'approved');
+                                const isApproved = Boolean((item.is_visited && isLocVerified) || (isLocVerified && isPhotoApproved));
                                 const isRejected = (proofStatus === 'rejected');
                                 const isPendingProof = !isApproved && !isRejected && !isQueued && hasProof && (proofStatus === 'pending');
                                 const isNextStop = (!isApproved && !isPendingProof && !isQueued && index === firstUnvisitedIdx);
@@ -1163,7 +1164,7 @@ $backRoute = 'itinerary';
                                         `<div style="display:flex; flex-direction:column; gap:8px; margin-top:4px;">
                                             <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
                                                 <span style="color:#34c759; font-size:12px; font-weight:800; display:inline-flex; align-items:center; gap:5px; background:rgba(52,199,89,0.18); padding:4px 10px; border-radius:100px;">
-                                                    <i class="fa-solid fa-circle-check"></i> Visit Verified &bull; +50 Points Awarded
+                                                    <i class="fa-solid fa-circle-check"></i> Visit Verified
                                                 </span>
                                                 <button type="button" data-spot-id="${item.tourist_spot_id || (dest ? dest.id : '')}" data-spot-classification="${sClass}" onclick="event.stopPropagation(); window.openWriteTestimonyModal('${item.tourist_spot_id || (dest ? dest.id : '')}', this)" style="background:rgba(255,255,255,0.16); border:none !important; outline:none !important; color:#ffffff; font-size:11px; font-weight:800; padding:6px 14px; border-radius:100px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; box-shadow:none; flex-shrink:0;">
                                                     ${(window.userReviewedSpotIds && window.userReviewedSpotIds.has(Number(item.tourist_spot_id || (dest ? dest.id : '')))) ? '<i class="fa-solid fa-check" style="font-size:10px; margin-right:4px;"></i> Reviewed' : `<i class="fa-solid fa-pen" style="font-size:10px;"></i> Review (+${sMeta.points} PTS)`}
@@ -1195,6 +1196,21 @@ $backRoute = 'itinerary';
                                                         </span>
                                                         <span style="font-size:10px; color:#ffffff; opacity:0.85; display:block; margin-top:4px;"><i class="fa-solid fa-camera" style="color:#fbbf24; margin-right:4px;"></i>Saved on device &bull; Auto-syncs when online</span>
                                                     </div>
+                                                </div>` :
+                                            (isPhotoApproved && !isLocVerified ?
+                                                `<div style="display:flex; flex-direction:column; gap:8px; margin-top:4px;">
+                                                    <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+                                                        <div>
+                                                            <span style="background:rgba(52,199,89,0.18); border:none !important; outline:none !important; color:#34c759; font-size:11px; font-weight:800; padding:3px 10px; border-radius:100px; display:inline-flex; align-items:center; gap:5px;">
+                                                                <i class="fa-solid fa-circle-check"></i> Photo Approved &bull; ⚠️ Check-in Required
+                                                            </span>
+                                                            <span style="font-size:10px; color:#ffffff; opacity:0.8; display:block; margin-top:4px;">Photo proof verified! Please check in to complete this stop.</span>
+                                                        </div>
+                                                        <button type="button" class="btn-primary" style="padding:7px 14px; font-size:11.5px; font-weight:800; border-radius:100px; background:linear-gradient(135deg, #00f2fe, #0284c7); border:none !important; outline:none !important; color:#fff; cursor:pointer;" onclick="event.stopPropagation(); window.executeLocationCheckIn('${item.id}', '${destEscaped}', ${dest?.latitude || 'null'}, ${dest?.longitude || 'null'}, this)">
+                                                            <i class="fa-solid fa-location-crosshairs" style="margin-right:4px;"></i> Check In
+                                                        </button>
+                                                    </div>
+                                                    ${photosStripHtml}
                                                 </div>` :
                                             (isLocVerified && isPendingProof ?
                                                 `<div style="display:flex; flex-direction:column; gap:8px; margin-top:4px;">
@@ -1455,98 +1471,7 @@ $backRoute = 'itinerary';
             }, 180);
         };
 
-        window.markTripCompleted = async function (tripId) {
-            const btn = document.getElementById('btn-complete-trip-' + tripId);
-            if (btn) {
-                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="margin-right:6px;"></i> Completing...';
-                btn.disabled = true;
-            }
-            const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
-
-            // 1. Fast offline completion
-            if (!navigator.onLine || window.isAppOnline === false) {
-                if (window.OfflineCompletedTripsManager) {
-                    window.OfflineCompletedTripsManager.queueCompletion(tripId);
-                }
-                if (typeof showToast === 'function') {
-                    showToast('🎉 Congratulations! Trip completed offline. Will sync with servers when online.', 'success', 5000);
-                }
-                if (window.confetti) {
-                    window.confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
-                }
-                if (token) {
-                    localStorage.removeItem('saved_trips_' + token.substring(0, 10));
-                    localStorage.removeItem('dashboard_trips_' + token.substring(0, 10));
-                }
-                setTimeout(() => {
-                    if (typeof window.fetchSavedTrips === 'function') {
-                        window.fetchSavedTrips(true);
-                    }
-                }, 600);
-                return;
-            }
-
-            try {
-                const response = await fetch(backendUrl + '/api/tourist/itineraries/' + tripId + '/complete', {
-                    method: 'PATCH',
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json',
-                        'ngrok-skip-browser-warning': 'true',
-                        'Authorization': 'Bearer ' + token
-                    }
-                });
-                const data = await response.json();
-                if (response.ok) {
-                    if (typeof showToast === 'function') showToast(data.message || 'Congratulations! Trip completed.');
-                    if (window.confetti) {
-                        window.confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
-                    }
-                    // Invalidate cached saved trips
-                    if (token) {
-                        localStorage.removeItem('saved_trips_' + token.substring(0, 10));
-                        localStorage.removeItem('dashboard_trips_' + token.substring(0, 10));
-                    }
-                    setTimeout(() => {
-                        if (typeof window.fetchSavedTrips === 'function') {
-                            window.fetchSavedTrips(true);
-                        }
-                    }, 400);
-                } else {
-                    if (typeof showToast === 'function') showToast(data.message || 'Failed to complete trip.');
-                    if (btn) {
-                        btn.innerHTML = '<i class="fa-solid fa-flag-checkered" style="margin-right:6px;"></i> Complete';
-                        btn.disabled = false;
-                    }
-                }
-            } catch (e) {
-                console.error('Error completing trip, queuing offline:', e);
-                if (window.OfflineCompletedTripsManager) {
-                    window.OfflineCompletedTripsManager.queueCompletion(tripId);
-                    if (typeof showToast === 'function') {
-                        showToast('🎉 Congratulations! Trip completed offline. Will sync with servers when online.', 'success', 5000);
-                    }
-                    if (window.confetti) {
-                        window.confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
-                    }
-                    if (token) {
-                        localStorage.removeItem('saved_trips_' + token.substring(0, 10));
-                        localStorage.removeItem('dashboard_trips_' + token.substring(0, 10));
-                    }
-                    setTimeout(() => {
-                        if (typeof window.fetchSavedTrips === 'function') {
-                            window.fetchSavedTrips(true);
-                        }
-                    }, 600);
-                    return;
-                }
-                if (typeof showToast === 'function') showToast('Network error. Please try again.');
-                if (btn) {
-                    btn.innerHTML = '<i class="fa-solid fa-flag-checkered" style="margin-right:6px;"></i> Complete';
-                    btn.disabled = false;
-                }
-            }
-        };
+        // window.markTripCompleted is defined below to open confirmation modal and showTripCompletionReviewModal
 
         // --- MULTI-PHOTO PROOF & INDEPENDENT LOCATION CHECK-IN HANDLERS ---
         window.selectedProofPhotos = [];
@@ -2166,7 +2091,7 @@ $backRoute = 'itinerary';
             }
 
             const doSubmitCheckin = async (lat, lng) => {
-                // STRICT 200M RADIUS CHECK (Enforced both OFFLINE and ONLINE!)
+                // Check if user is within destination radius (200m)
                 if (destLat !== null && destLng !== null && !isNaN(destLat) && !isNaN(destLng)) {
                     const dist = getHaversineDist(lat, lng, destLat, destLng);
                     if (dist > 200) {
@@ -2180,12 +2105,11 @@ $backRoute = 'itinerary';
                             btnEl.innerHTML = originalHtml;
                             btnEl.disabled = false;
                         }
-                        return; // BLOCKED! Neither offline nor online checkin is allowed outside 200m!
+                        return; // Location remains unchecked!
                     }
                 }
 
                 if (isOfflineItem) {
-                    // Only apply locally once 200m radius check has passed
                     window.applyLocationCheckinLocally(itemId);
 
                     if (window.OfflineCheckinManager) {
@@ -2348,79 +2272,102 @@ $backRoute = 'itinerary';
             window.closeCompleteTripModal();
             const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
 
+            // 1. Immediately mark the trip as completed locally so all caches & pre-hydration filters blacklist it permanently!
+            if (typeof window.markTripAsCompletedLocally === 'function') {
+                window.markTripAsCompletedLocally(id, 0, null);
+            }
+
+            // Immediately animate out and remove completed trip card from DOM
+            const tripCard = document.querySelector(`.trip-swipe-container[data-trip-id="${id}"]`);
+            if (tripCard) {
+                tripCard.style.transition = 'opacity 0.3s ease, transform 0.3s ease, max-height 0.4s ease, margin 0.4s ease';
+                tripCard.style.opacity = '0';
+                tripCard.style.transform = 'translateY(-10px) scale(0.95)';
+                setTimeout(() => {
+                    tripCard.remove();
+                    const list = document.getElementById('saved-trips-list');
+                    if (list && list.children.length === 0) {
+                        list.innerHTML = '<p style="text-align:center; color:#ffffff; margin-top: 20px;">No active trips found.</p>';
+                    }
+                }, 300);
+            }
+
+            // Extract trip destinations from local cache in case we need them for review modal fallback
+            let localVisitedItems = [];
+            try {
+                if (Array.isArray(window._cachedSavedTrips)) {
+                    const found = window._cachedSavedTrips.find(t => t && (String(t.id) === String(id) || String(t.local_id) === String(id)));
+                    if (found && Array.isArray(found.items)) {
+                        localVisitedItems = found.items;
+                    }
+                }
+                if (localVisitedItems.length === 0) {
+                    const backupRaw = localStorage.getItem('intan_elyu_offline_saved_trips_backup') || localStorage.getItem('intan_elyu_saved_trips');
+                    if (backupRaw) {
+                        const parsed = JSON.parse(backupRaw);
+                        const itins = Array.isArray(parsed) ? parsed : (parsed.itineraries || parsed.data || []);
+                        const found = itins.find(t => t && (String(t.id) === String(id) || String(t.local_id) === String(id)));
+                        if (found && Array.isArray(found.items)) {
+                            localVisitedItems = found.items;
+                        }
+                    }
+                }
+            } catch (e) {
+                console.warn('Could not extract local trip items:', e);
+            }
+
             if (!navigator.onLine || window.isAppOnline === false) {
                 if (window.OfflineCompletedTripsManager) {
                     window.OfflineCompletedTripsManager.queueCompletion(id);
                 }
                 if (typeof showToast === 'function') {
-                    showToast("🎉 Trip completed offline! Will sync with servers when online.", "success", 5000);
+                    showToast("🎉 Trip completed! Please review your destinations to earn points.", "success", 5000);
                 }
                 if (window.confetti) {
                     window.confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
-                }
-                const tripCard = document.querySelector(`.trip-swipe-container[data-trip-id="${id}"]`);
-                if (tripCard) {
-                    tripCard.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-                    tripCard.style.opacity = '0';
-                    tripCard.style.transform = 'translateY(-10px) scale(0.95)';
-                    setTimeout(() => {
-                        tripCard.remove();
-                    }, 300);
                 }
                 if (token) {
                     const tokenKey = token.substring(0, 10);
                     localStorage.removeItem('saved_trips_' + tokenKey);
                     localStorage.removeItem('dashboard_trips_' + tokenKey);
+                    localStorage.removeItem('dashboard_saved_trips_' + tokenKey);
                 }
                 window.fetchSavedTrips(true);
+                showTripCompletionReviewModal(localVisitedItems);
                 return;
             }
 
             try {
-                const response = await fetch(backendUrl + '/api/tourist/itineraries/' + id + '/complete', {
+                const bUrl = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
+                const response = await fetch(bUrl + '/api/tourist/itineraries/' + id + '/complete', {
                     method: 'PATCH',
                     headers: {
                         'Accept': 'application/json',
+                        'Content-Type': 'application/json',
                         'ngrok-skip-browser-warning': 'true',
-                        'Authorization': 'Bearer ' + (localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('intan_elyu_token'))
+                        'Authorization': 'Bearer ' + token
                     }
                 });
 
                 const data = await response.json();
                 if (response.ok) {
-                    if (typeof showToast === 'function') showToast(data.message || "Trip completed!");
+                    if (typeof showToast === 'function') showToast(data.message || "Trip completed! Please review your destinations to earn points.");
                     if (window.confetti) {
                         window.confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
                     }
 
-                    // Immediately animate out and remove completed trip card from DOM
-                    const tripCard = document.querySelector(`.trip-swipe-container[data-trip-id="${id}"]`);
-                    if (tripCard) {
-                        tripCard.style.transition = 'opacity 0.3s ease, transform 0.3s ease, max-height 0.4s ease, margin 0.4s ease';
-                        tripCard.style.opacity = '0';
-                        tripCard.style.transform = 'translateY(-10px) scale(0.95)';
-                        setTimeout(() => {
-                            tripCard.remove();
-                            const list = document.getElementById('saved-trips-list');
-                            if (list && list.children.length === 0) {
-                                list.innerHTML = '<p style="text-align:center; color:#999; margin-top: 20px;">No active trips found.</p>';
-                            }
-                        }, 300);
-                    }
-
-                    // Invalidate cache and refetch saved trips
                     if (token) {
                         const tokenKey = token.substring(0, 10);
                         localStorage.removeItem('saved_trips_' + tokenKey);
                         localStorage.removeItem('dashboard_trips_' + tokenKey);
+                        localStorage.removeItem('dashboard_saved_trips_' + tokenKey);
                     }
                     window.fetchSavedTrips(true);
 
                     // Show Trip Completed modal with Review buttons for visited spots
                     let visitedItems = data.visited_items || data.visited_spots || [];
                     if (!visitedItems || visitedItems.length === 0) {
-                        // Fallback to itinerary items if API returns empty list
-                        visitedItems = data.itinerary?.items || data.items || [];
+                        visitedItems = data.itinerary?.items || data.items || localVisitedItems;
                     }
                     showTripCompletionReviewModal(visitedItems);
                 } else {
@@ -2431,7 +2378,7 @@ $backRoute = 'itinerary';
                 if (window.OfflineCompletedTripsManager) {
                     window.OfflineCompletedTripsManager.queueCompletion(id);
                     if (typeof showToast === 'function') {
-                        showToast("🎉 Trip completed offline! Will sync with servers when online.", "success", 5000);
+                        showToast("🎉 Trip completed! Please review your destinations to earn points.", "success", 5000);
                     }
                     if (window.confetti) {
                         window.confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
@@ -2440,8 +2387,10 @@ $backRoute = 'itinerary';
                         const tokenKey = token.substring(0, 10);
                         localStorage.removeItem('saved_trips_' + tokenKey);
                         localStorage.removeItem('dashboard_trips_' + tokenKey);
+                        localStorage.removeItem('dashboard_saved_trips_' + tokenKey);
                     }
                     window.fetchSavedTrips(true);
+                    showTripCompletionReviewModal(localVisitedItems);
                     return;
                 }
                 if (typeof showToast === 'function') showToast("Network error.");
@@ -2453,19 +2402,41 @@ $backRoute = 'itinerary';
             const existing = document.getElementById('trip-completion-review-modal');
             if (existing) existing.remove();
 
+            if (!Array.isArray(visitedItems) || visitedItems.length === 0) {
+                return;
+            }
+
             let destListHtml = '';
             visitedItems.forEach((item, idx) => {
-                const spotId = item.tourist_spot_id || item.id;
+                if (!item) return;
+                const spotId = item.tourist_spot_id || item.destination_id || (item.destination ? item.destination.id : item.id);
+                if (!spotId) return;
+
+                const destName = item.destination_name || (item.destination ? item.destination.name : (item.name || item.spot_name || 'Tourist Destination'));
+                const sClass = item.classification_status || (item.destination ? item.destination.classification_status : (item.classification || 'EXIST'));
+                const classMeta = (typeof window.getRewardPointsForClassification === 'function')
+                    ? window.getRewardPointsForClassification(sClass)
+                    : { label: 'Existing', points: 50, color: '#0284c7' };
+
                 const isReviewed = window.userReviewedSpotIds && window.userReviewedSpotIds.has(Number(spotId));
+
                 destListHtml += `
                 <div style="display:flex; align-items:center; gap:10px; padding:10px 12px; background:rgba(255,255,255,0.08); border:none; outline:none; border-radius:14px; margin-bottom:8px;">
                     <div style="width:32px; height:32px; border-radius:10px; background:linear-gradient(135deg, #38bdf8, #2563eb); display:flex; align-items:center; justify-content:center; flex-shrink:0; font-weight:900; font-size:13px; color:#fff; border:none; outline:none;">${idx + 1}</div>
                     <div style="flex:1; min-width:0;">
-                        <div style="font-size:14px; font-weight:700; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${item.destination_name || 'Destination'}</div>
-                        <div style="font-size:11px; color:rgba(255,255,255,0.8); font-weight:600;">${isReviewed ? 'Already reviewed' : 'Tap below to leave a review'}</div>
+                        <div style="font-size:14px; font-weight:700; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${destName}</div>
+                        <div style="font-size:11px; color:rgba(255,255,255,0.85); font-weight:600;">
+                            ${isReviewed 
+                                ? '<span style="color:#10b981;"><i class="fa-solid fa-check" style="font-size:10px; margin-right:3px;"></i> Reviewed & Points Claimed</span>' 
+                                : `Review to earn <strong style="color:#fbbf24;">+${classMeta.points} PTS</strong>`}
+                        </div>
                     </div>
-                    <button type="button" data-spot-id="${spotId}" onclick="window.startReviewFromCompletion('${spotId}', this)" style="padding:6px 14px; border-radius:100px; background:${isReviewed ? 'rgba(255,255,255,0.18)' : 'linear-gradient(135deg, #38bdf8, #2563eb)'}; border:none; outline:none; color:#fff; font-size:12px; font-weight:800; cursor:pointer; white-space:nowrap; box-shadow:none; display:inline-flex; align-items:center; gap:4px;">
-                        ${isReviewed ? '<i class="fa-solid fa-check" style="font-size:10px; margin-right:4px;"></i> Reviewed' : '<i class="fa-solid fa-pen" style="font-size:10px;"></i> Review (+25 PTS)'}
+                    <button type="button" 
+                            data-spot-id="${spotId}" 
+                            data-spot-classification="${sClass}"
+                            onclick="window.startReviewFromCompletion('${spotId}', this)" 
+                            style="padding:6px 14px; border-radius:100px; background:${isReviewed ? 'rgba(255,255,255,0.18)' : 'linear-gradient(135deg, #38bdf8, #2563eb)'}; border:none; outline:none; color:#fff; font-size:12px; font-weight:800; cursor:pointer; white-space:nowrap; box-shadow:none; display:inline-flex; align-items:center; gap:4px; flex-shrink:0;">
+                        ${isReviewed ? '<i class="fa-solid fa-check" style="font-size:10px; margin-right:4px;"></i> Reviewed' : `<i class="fa-solid fa-pen" style="font-size:10px;"></i> Review (+${classMeta.points} PTS)`}
                     </button>
                 </div>`;
             });
@@ -2480,7 +2451,7 @@ $backRoute = 'itinerary';
                             <i class="fa-solid fa-flag-checkered" style="color:#10b981;"></i> Trip Completed!
                         </h4>
                         <p style="margin:2px 0 0 0; font-size:11.5px; color:rgba(255,255,255,0.85);">
-                            Review the destinations you visited
+                            Review destinations to earn your Points
                         </p>
                     </div>
                     <button type="button" onclick="window.closeTripCompletionReviewModal()" style="background:rgba(255,255,255,0.15); border:none !important; outline:none !important; color:#ffffff; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:14px; transition:background 0.2s;">
@@ -2493,13 +2464,13 @@ $backRoute = 'itinerary';
                 </div>
                 <h3 style="margin:0 0 4px; color:#fff; font-size:19px; font-weight:900;">Congratulations!</h3>
                 <p style="font-size:12px; color:rgba(255,255,255,0.85); margin:0 0 16px 0; line-height:1.5;">
-                    Share your experience! Review the destinations you visited to help fellow travelers.
+                    Share your experience! Review each destination you visited to earn reward Points and help fellow travelers.
                 </p>
                 <div style="text-align:left; max-height:220px; overflow-y:auto; margin-bottom:16px; padding-right:4px;">
                     ${destListHtml}
                 </div>
                 <button type="button" id="btn-trip-completion-close" onclick="window.closeTripCompletionReviewModal()" style="width:100%; padding:13px; border-radius:100px; border:none; outline:none; background:rgba(255,255,255,0.15); color:#ffffff; font-size:13px; font-weight:700; cursor:pointer; transition:all 0.2s ease;">
-                    Okay
+                    Done
                 </button>
             </div>
         </div>`;

@@ -205,25 +205,28 @@ public class MainActivity extends BridgeActivity {
                             Uri uri = request.getUrl();
                             String path = uri.getPath();
 
-                            // 1. Intercept Main Frame navigation when device has no internet
+                            // 1. Intercept local APK asset bundle (/assets/...) so css/js/images render instantly offline
+                            if (path != null && path.contains("/assets/")) {
+                                try {
+                                    String subPath = path.substring(path.indexOf("/assets/"));
+                                    if (subPath.contains("?")) {
+                                        subPath = subPath.substring(0, subPath.indexOf("?"));
+                                    }
+                                    InputStream is = getAssets().open("public" + subPath);
+                                    String mimeType = getMimeType(subPath);
+                                    return new WebResourceResponse(mimeType, "UTF-8", is);
+                                } catch (Exception ignored) {}
+                            }
+
+                            // 2. Intercept Main Frame navigation when device has no internet
                             if (request.isForMainFrame()) {
                                 String urlStr = uri.toString();
-                                if (!isNetworkAvailable() || urlStr.contains("offline") || urlStr.contains("local-portal")) {
+                                if (!isNetworkAvailable() || urlStr.contains("offline=true") || urlStr.contains("local-portal")) {
                                     try {
                                         InputStream is = getAssets().open("public/index.html");
                                         return new WebResourceResponse("text/html", "UTF-8", is);
                                     } catch (Exception ignored) {}
                                 }
-                            }
-
-                            // 2. Intercept local APK asset bundle (/assets/...) so css/js/images render instantly offline
-                            if (path != null && path.contains("/assets/")) {
-                                try {
-                                    String subPath = path.substring(path.indexOf("/assets/"));
-                                    InputStream is = getAssets().open("public" + subPath);
-                                    String mimeType = getMimeType(subPath);
-                                    return new WebResourceResponse(mimeType, "UTF-8", is);
-                                } catch (Exception ignored) {}
                             }
                         }
                         return super.shouldInterceptRequest(view, request);
@@ -232,12 +235,7 @@ public class MainActivity extends BridgeActivity {
                     @Override
                     public WebResourceResponse shouldInterceptRequest(WebView view, String url) {
                         if (url != null) {
-                            if (!isNetworkAvailable() || url.contains("offline") || url.contains("local-portal")) {
-                                try {
-                                    InputStream is = getAssets().open("public/index.html");
-                                    return new WebResourceResponse("text/html", "UTF-8", is);
-                                } catch (Exception ignored) {}
-                            }
+                            // 1. Intercept assets first so CSS/JS are never intercepted as HTML
                             if (url.contains("/assets/")) {
                                 try {
                                     String subPath = url.substring(url.indexOf("/assets/"));
@@ -248,6 +246,16 @@ public class MainActivity extends BridgeActivity {
                                     String mimeType = getMimeType(subPath);
                                     return new WebResourceResponse(mimeType, "UTF-8", is);
                                 } catch (Exception ignored) {}
+                            }
+
+                            // 2. Intercept page navigation when offline
+                            if (!isNetworkAvailable() || url.contains("offline=true") || url.contains("local-portal")) {
+                                if (!url.contains("/api/")) {
+                                    try {
+                                        InputStream is = getAssets().open("public/index.html");
+                                        return new WebResourceResponse("text/html", "UTF-8", is);
+                                    } catch (Exception ignored) {}
+                                }
                             }
                         }
                         return super.shouldInterceptRequest(view, url);

@@ -5229,7 +5229,7 @@ if (is_dir($imgDir)) {
 
                 const data = await res.json();
                 if (res.ok && (data.status === 'success' || data.success)) {
-                    if (typeof showToast === 'function') showToast(data.message || `Check-in verified! Earned +50 Points at ${dest.name}!`);
+                    if (typeof showToast === 'function') showToast(data.message || `Check-in verified at ${dest.name}!`);
 
                     // Update local spot visitors count
                     const newVisits = data.visits || ((parseInt(dest.visits) || 0) + 1);

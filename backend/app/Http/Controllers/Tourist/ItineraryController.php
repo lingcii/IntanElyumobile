@@ -10,6 +10,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class ItineraryController extends Controller
 {
@@ -260,7 +261,7 @@ class ItineraryController extends Controller
                         $cleaned[] = $id;
                     } else {
                         // Check if this ID is an itinerary_items.id that references a valid tourist_spot
-                        $itItem = \App\Models\ItineraryItem::find($id);
+                        $itItem = ItineraryItem::find($id);
                         if ($itItem && $itItem->tourist_spot_id && TouristSpot::where('id', $itItem->tourist_spot_id)->exists()) {
                             $cleaned[] = (int)$itItem->tourist_spot_id;
                         }
@@ -462,6 +463,19 @@ class ItineraryController extends Controller
         $user = $request->user();
         $itinerary = Itinerary::where('user_id', $user->id)->findOrFail($id);
 
+        // Ensure tourist cannot complete trip unless all destinations have been visited or checked in on-site
+        $unvisitedCount = $itinerary->items()
+            ->where('is_visited', false)
+            ->whereNull('visited_at')
+            ->count();
+
+        if ($unvisitedCount > 0) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You cannot complete this trip yet. All destinations must be checked in on-site first.',
+            ], 422);
+        }
+
         $itinerary->update(['status' => 'completed']);
 
         // Mark all items as visited and increment spot visits
@@ -488,27 +502,28 @@ class ItineraryController extends Controller
         Cache::forget('trending:top:5');
         Cache::forget('trending:top:10');
 
-        try {
-            $user->increment('xp', 100);
-            $user->increment('completed_activities');
-        } catch (\Throwable $e) {}
-
         // Check if this itinerary is a quest trip and record completion + badge
         try {
-            if (\Illuminate\Support\Facades\Schema::hasTable('quests')) {
+            if (Schema::hasTable('quests')) {
                 $cleanTitle = trim(preg_replace('/\s*\(Quest\)$/i', '', $itinerary->title));
-                $quest = \App\Models\Quest::where('name', $cleanTitle)->first();
+                $quest = DB::table('quests')->where('name', $cleanTitle)->first();
                 if ($quest) {
-                    if (\Illuminate\Support\Facades\Schema::hasTable('quest_completions')) {
-                        \App\Models\QuestCompletion::firstOrCreate([
-                            'user_id'  => $user->id,
-                            'quest_id' => $quest->id,
-                        ], [
-                            'xp_earned'    => $quest->xp_reward,
-                            'completed_at' => now(),
-                        ]);
+                    if (Schema::hasTable('quest_completions')) {
+                        $alreadyCompleted = DB::table('quest_completions')
+                            ->where('user_id', $user->id)
+                            ->where('quest_id', $quest->id)
+                            ->exists();
+                        if (!$alreadyCompleted) {
+                            DB::table('quest_completions')->insert([
+                                'user_id'      => $user->id,
+                                'quest_id'     => $quest->id,
+                                'xp_earned'    => $quest->xp_reward ?? 0,
+                                'completed_at' => now(),
+                                'created_at'   => now(),
+                                'updated_at'   => now(),
+                            ]);
+                        }
                     }
-                    $user->increment('xp', $quest->xp_reward);
 
                     // Add badge to user's badges array on profile
                     $badges = is_array($user->badges) ? $user->badges : (json_decode($user->badges ?? '[]', true) ?? []);
@@ -528,11 +543,18 @@ class ItineraryController extends Controller
             }
         } catch (\Throwable $e) {}
 
+        // Increment milestone activities count and XP for itinerary completion
+        try {
+            $user->increment('completed_activities');
+            $user->increment('xp', 50);
+            $user->refresh();
+        } catch (\Throwable $e) {}
+
         \App\Models\Notification::createSafely(
             $user->id,
             'itinerary_reminder',
             'Trip Completed!',
-            "Congratulations! You completed '{$itinerary->title}' and earned +100 XP!",
+            "Congratulations! You completed '{$itinerary->title}'! Share your reviews on the spots you visited to earn points.",
             ['action_url' => '/saved_trips']
         );
 
@@ -541,22 +563,34 @@ class ItineraryController extends Controller
         Cache::forget("profile:trips:{$user->id}");
         Cache::flush();
 
-        // Return visited items with spot IDs for frontend review modal
+        // Return visited items with complete destination data for the review modal
         $visitedItems = $itinerary->items()
-            ->where('is_visited', true)
-            ->with('destination:id,name')
+            ->with(['destination:id,name,classification_status,photo_url'])
             ->get()
             ->map(function ($item) {
                 return [
-                    'id' => $item->id,
-                    'tourist_spot_id' => $item->tourist_spot_id,
-                    'destination_name' => $item->destination?->name ?? 'Unknown',
+                    'id'                    => $item->id,
+                    'tourist_spot_id'       => $item->tourist_spot_id,
+                    'destination_id'        => $item->tourist_spot_id,
+                    'destination_name'      => $item->destination?->name ?? 'Tourist Spot',
+                    'classification_status' => $item->destination?->classification_status ?? 'EXIST',
+                    'photo_url'             => $item->destination?->photo_url ?? null,
                 ];
             });
 
+        $user->refresh();
+
         return response()->json([
-            'message' => 'Trip marked as completed! 🏁',
-            'visited_items' => $visitedItems,
+            'success'              => true,
+            'message'              => 'Trip marked as completed! 🏁 Please review the destinations you visited to earn your Points!',
+            'visited_items'        => $visitedItems,
+            'points_awarded'       => 0,
+            'total_points'         => (int) ($user->points ?? 0),
+            'completed_activities' => (int) ($user->completed_activities ?? 1),
+            'itinerary'            => [
+                'id'     => $itinerary->id,
+                'status' => 'completed',
+            ],
         ]);
     }
 

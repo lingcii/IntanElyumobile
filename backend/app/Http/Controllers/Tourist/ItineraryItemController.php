@@ -152,11 +152,14 @@ class ItineraryItemController extends Controller
             $females = $request->has('companion_females') ? max(0, (int)$request->companion_females) : (int)($item->companion_females ?? $itin?->companion_females ?? 0);
             $totalPax = $request->has('total_pax') ? max(1, (int)$request->total_pax) : max(1, (int)($item->total_pax ?? $itin?->total_pax ?? (1 + $males + $females)));
 
+            $isFullyVisited = ($item->proof_status === 'approved');
             $item->update([
-                'visited_at'        => $effectiveTime,
-                'companion_males'   => $males,
-                'companion_females' => $females,
-                'total_pax'         => $totalPax,
+                'visited_at'           => $effectiveTime,
+                'is_visited'           => $isFullyVisited,
+                'is_location_verified' => true,
+                'companion_males'      => $males,
+                'companion_females'    => $females,
+                'total_pax'            => $totalPax,
             ]);
 
             // Increment spot visits by totalPax so companions who didn't use the app are counted
@@ -374,9 +377,11 @@ class ItineraryItemController extends Controller
                 ], 403);
             }
 
+            $isFullyVisited = ($item->proof_status === 'approved');
             $itemData = [
-                'is_visited'   => false,
-                'visited_at'   => $effectiveTime,
+                'is_visited'           => $isFullyVisited,
+                'visited_at'           => $effectiveTime,
+                'is_location_verified' => true,
             ];
 
             // Collect files

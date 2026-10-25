@@ -441,7 +441,42 @@ window.submitTestimony = async function(event) {
             }
 
             if (isRewardAwarded) {
-                const earnedPts = (data && data.earned_points !== undefined) ? parseInt(data.earned_points) : 50;
+                const earnedPts = (data && data.earned_points !== undefined) ? parseInt(data.earned_points, 10) : 50;
+                let newTotal = null;
+                try {
+                    const rawUser = localStorage.getItem('auth_user');
+                    if (rawUser) {
+                        const parsedUser = JSON.parse(rawUser);
+                        if (data && data.total_points !== undefined && data.total_points !== null) {
+                            parsedUser.points = parseInt(data.total_points, 10);
+                        } else {
+                            parsedUser.points = (parseInt(parsedUser.points, 10) || 0) + earnedPts;
+                        }
+                        if (data && data.xp !== undefined && data.xp !== null) {
+                            parsedUser.xp = parseInt(data.xp, 10);
+                        } else if (data && data.earned_xp) {
+                            parsedUser.xp = (parseInt(parsedUser.xp, 10) || 0) + parseInt(data.earned_xp, 10);
+                        }
+                        if (data && data.completed_activities !== undefined) {
+                            parsedUser.completed_activities = parseInt(data.completed_activities, 10);
+                        } else {
+                            parsedUser.completed_activities = (parseInt(parsedUser.completed_activities, 10) || 0) + 1;
+                        }
+                        newTotal = parsedUser.points;
+                        localStorage.setItem('auth_user', JSON.stringify(parsedUser));
+                        localStorage.setItem('auth_user_backup', JSON.stringify(parsedUser));
+                    }
+                } catch (e) {
+                    console.warn('Failed to update local auth_user points:', e);
+                }
+
+                // Update all user points displays and badges in DOM immediately
+                document.querySelectorAll('#user-points-display, .header-points-badge, .user-points-badge, .points-count, [data-user-points], #user-points-val').forEach(el => {
+                    if (newTotal !== null) {
+                        el.textContent = Number(newTotal).toLocaleString();
+                    }
+                });
+
                 if (window.confetti) {
                     window.confetti({ particleCount: 85, spread: 70, origin: { y: 0.6 } });
                 }
@@ -454,7 +489,7 @@ window.submitTestimony = async function(event) {
                     localStorage.removeItem('user_profile_' + token.substring(0, 10));
                     localStorage.removeItem('dashboard_data_' + token.substring(0, 10));
                 }
-                window.dispatchEvent(new CustomEvent('user-points-updated', { detail: { points: earnedPts } }));
+                window.dispatchEvent(new CustomEvent('user-points-updated', { detail: { points: earnedPts, total_points: newTotal } }));
                 if (typeof window.fetchUserProfile === 'function') {
                     window.fetchUserProfile(true);
                 }

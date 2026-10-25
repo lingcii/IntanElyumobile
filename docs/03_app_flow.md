@@ -102,7 +102,7 @@ flowchart TD
     SpotCard --> CheckInChoice{Choose Check-in Method}
     
     CheckInChoice -- GPS Quick Check-in --> GeoValidate{Is User Within Spot Radius?}
-    GeoValidate -- Yes --> PostQuickCheck[POST .../checkin -> +50 XP]
+    GeoValidate -- Yes --> PostQuickCheck[POST .../checkin]
     GeoValidate -- No --> RadiusAlert[Show Alert: Too Far from Coordinates]
     
     CheckInChoice -- Photo Proof Modal --> OpenProofModal[Open 3-Section Photo Modal<br/>Header: Royal Blue, Middle: White]
