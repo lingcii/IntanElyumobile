@@ -4485,10 +4485,15 @@ try {
                         localStorage.getItem('intan_elyu_guest') === 'true' ||
                         localStorage.getItem('intan_elyu_offline_guest') === 'true');
 
-                const isOffline = (typeof navigator.onLine === 'boolean') ? !navigator.onLine : (window.isAppOnline === false);
+                const isOffline = (typeof navigator.onLine === 'boolean' && !navigator.onLine)
+                    || window.isNetworkOffline === true
+                    || (window.isAppOnline === false)
+                    || localStorage.getItem('intan_elyu_offline_mode') === 'true'
+                    || localStorage.getItem('intan_elyu_offline_guest') === 'true';
+
                 const isOfflineTripId = Boolean(editingId && String(editingId).startsWith('offline_'));
 
-                if (!token && !isGuest && navigator.onLine) {
+                if (!token && !isGuest && navigator.onLine && !isOffline) {
                     btn.innerHTML = editingId ? 'Update Trip' : 'Save Trip';
                     btn.disabled = false;
                     showToast("Session expired. Please log in to save your trip.");
@@ -4546,36 +4551,94 @@ try {
                     }))
                 };
 
-                // Fast offline trip queueing or Guest mode local device save
-                if ((isGuest || isOffline || isOfflineTripId) && tripPayload && window.OfflineTripManager) {
-                    const queued = window.OfflineTripManager.queueOfflineTrip(tripPayload);
-                    const queuedId = queued ? (queued.local_id || queued.id) : ('offline_' + Date.now());
-
-                    // Also synchronize local storage backup so saved_trips displays the trip instantly
+                // Universal local storage updater so saved_trips ALWAYS displays the new trip instantly (0ms)
+                const persistTripLocally = function (tripObj) {
+                    if (!tripObj) return;
                     try {
+                        const tripId = String(tripObj.id || tripObj.local_id || '');
+                        // 1. intan_elyu_saved_trips
                         let localSaved = JSON.parse(localStorage.getItem('intan_elyu_saved_trips') || '[]');
                         if (!Array.isArray(localSaved)) localSaved = [];
-                        const exIdx = localSaved.findIndex(t => t && (String(t.id) === String(queuedId) || String(t.local_id) === String(queuedId)));
-                        const tripObj = { ...tripPayload, id: queuedId, local_id: queuedId, is_offline_queued: true, created_at: new Date().toISOString() };
+                        const exIdx = localSaved.findIndex(t => t && (String(t.id) === tripId || String(t.local_id) === tripId));
                         if (exIdx >= 0) {
                             localSaved[exIdx] = { ...localSaved[exIdx], ...tripObj };
                         } else {
                             localSaved.unshift(tripObj);
                         }
                         localStorage.setItem('intan_elyu_saved_trips', JSON.stringify(localSaved));
-                        localStorage.setItem('intan_elyu_offline_saved_trips_backup', JSON.stringify(localSaved));
-                    } catch (e) { }
 
-                    if (isGuest) {
-                        showToast(editingId ? "Trip updated on device! Create an account anytime to sync to cloud." : "Trip saved on device! Log in or register anytime to sync.", "success", 4000);
-                    } else {
-                        showToast(editingId ? "📍 Offline Mode: Trip changes saved on device for auto-sync!" : "📍 Offline Mode: Trip saved on device for auto-sync!", "info", 5000);
+                        // 2. intan_elyu_offline_saved_trips_backup
+                        let backup = JSON.parse(localStorage.getItem('intan_elyu_offline_saved_trips_backup') || '[]');
+                        if (!Array.isArray(backup)) backup = [];
+                        const bkIdx = backup.findIndex(t => t && (String(t.id) === tripId || String(t.local_id) === tripId));
+                        if (bkIdx >= 0) {
+                            backup[bkIdx] = { ...backup[bkIdx], ...tripObj };
+                        } else {
+                            backup.unshift(tripObj);
+                        }
+                        localStorage.setItem('intan_elyu_offline_saved_trips_backup', JSON.stringify(backup));
+
+                        // 3. User token cache
+                        const curToken = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+                        if (curToken) {
+                            const tKey = 'saved_trips_' + curToken.substring(0, 10);
+                            let tList = [];
+                            try {
+                                const raw = localStorage.getItem(tKey);
+                                if (raw) {
+                                    const parsed = JSON.parse(raw);
+                                    tList = Array.isArray(parsed) ? parsed : (parsed.data || parsed.itineraries || []);
+                                }
+                            } catch (e) {}
+                            if (!Array.isArray(tList)) tList = [];
+                            const tIdx = tList.findIndex(t => t && (String(t.id) === tripId || String(t.local_id) === tripId));
+                            if (tIdx >= 0) {
+                                tList[tIdx] = { ...tList[tIdx], ...tripObj };
+                            } else {
+                                tList.unshift(tripObj);
+                            }
+                            try {
+                                localStorage.setItem(tKey, JSON.stringify({ data: tList, itineraries: tList, timestamp: Date.now() }));
+                            } catch(e) {}
+                        }
+
+                        // 4. Invalidate signature & update in-memory cache
+                        window._lastRenderedTripsSig = null;
+                        if (Array.isArray(window._cachedSavedTrips)) {
+                            const cIdx = window._cachedSavedTrips.findIndex(t => t && (String(t.id) === tripId || String(t.local_id) === tripId));
+                            if (cIdx >= 0) {
+                                window._cachedSavedTrips[cIdx] = { ...window._cachedSavedTrips[cIdx], ...tripObj };
+                            } else {
+                                window._cachedSavedTrips.unshift(tripObj);
+                            }
+                        }
+                    } catch (err) {
+                        console.warn("persistTripLocally error:", err);
                     }
+                };
 
-                    sessionStorage.setItem('just_saved_trip_id', queuedId);
-                    sessionStorage.setItem('active_trip_transport_' + queuedId, effectiveTransport);
-                    localStorage.setItem('selected_trip_vehicle_' + queuedId, effectiveTransport);
-                    localStorage.removeItem('intan_elyu_draft_itinerary');
+                const cleanupItineraryDraft = function (finalTripId) {
+                    sessionStorage.setItem('just_saved_trip_id', String(finalTripId));
+                    sessionStorage.setItem('active_trip_transport_' + finalTripId, effectiveTransport);
+                    localStorage.setItem('selected_trip_vehicle_' + finalTripId, effectiveTransport);
+                    window._lastRenderedTripsSig = null;
+
+                    // If user updated an edited trip, restore their original pre-edit draft (if any was saved)
+                    const backupDraftRaw = localStorage.getItem('intan_elyu_pre_edit_backup_draft') || sessionStorage.getItem('intan_elyu_pre_edit_backup_draft');
+                    if (editingId && backupDraftRaw) {
+                        try {
+                            const parsed = JSON.parse(backupDraftRaw);
+                            if (Array.isArray(parsed) && parsed.length > 0) {
+                                localStorage.setItem('intan_elyu_draft_itinerary', backupDraftRaw);
+                            } else {
+                                localStorage.removeItem('intan_elyu_draft_itinerary');
+                            }
+                        } catch (e) {
+                            localStorage.removeItem('intan_elyu_draft_itinerary');
+                        }
+                    } else {
+                        localStorage.removeItem('intan_elyu_draft_itinerary');
+                    }
                     localStorage.removeItem('intan_elyu_pre_edit_backup_draft');
                     sessionStorage.removeItem('intan_elyu_pre_edit_backup_draft');
                     sessionStorage.removeItem('editing_itinerary_id');
@@ -4590,10 +4653,36 @@ try {
                     sessionStorage.removeItem('editing_transport_initialized');
                     localStorage.removeItem('intan_elyu_draft_leg_vehicles');
                     window.resetSaveModalInputs();
-                    document.getElementById('save-trip-modal').style.display = 'none';
+                    const modal = document.getElementById('save-trip-modal');
+                    if (modal) modal.style.display = 'none';
                     const bottomNav = document.getElementById('bottom-navigation');
                     if (bottomNav) bottomNav.classList.remove('nav-hidden');
                     window.renderItinerary();
+                };
+
+                // Fast offline trip queueing or Guest mode local device save
+                if ((isGuest || isOffline || isOfflineTripId) && tripPayload) {
+                    let queued = null;
+                    if (window.OfflineTripManager && typeof window.OfflineTripManager.queueOfflineTrip === 'function') {
+                        queued = window.OfflineTripManager.queueOfflineTrip(tripPayload);
+                    }
+                    const queuedId = queued ? (queued.local_id || queued.id) : ('offline_' + Date.now());
+                    const localTripObj = {
+                        ...tripPayload,
+                        id: queuedId,
+                        local_id: queuedId,
+                        is_offline_queued: true,
+                        created_at: new Date().toISOString()
+                    };
+                    persistTripLocally(localTripObj);
+
+                    if (isGuest) {
+                        showToast(editingId ? "Trip updated on device! Create an account anytime to sync to cloud." : "Trip saved on device! Log in or register anytime to sync.", "success", 4000);
+                    } else {
+                        showToast(editingId ? "📍 Offline Mode: Trip changes saved on device for auto-sync!" : "📍 Offline Mode: Trip saved on device for auto-sync!", "info", 5000);
+                    }
+
+                    cleanupItineraryDraft(queuedId);
                     navigateTo('saved_trips');
                     return;
                 }
@@ -4633,84 +4722,41 @@ try {
                 const data = await response.json();
 
                 if (response.ok) {
-                    // Invalidate caches
-                    const tokenKey = token ? token.substring(0, 10) : 'default';
-                    localStorage.removeItem('saved_trips_' + tokenKey);
-                    localStorage.removeItem('dashboard_trips_' + tokenKey);
-                    localStorage.removeItem('dashboard_saved_trips_' + tokenKey);
-                    if (typeof window._cachedSavedTrips !== 'undefined') {
-                        window._cachedSavedTrips = null;
-                    }
-
-                    const savedId = String(editingId || data.itinerary_id || (data.itinerary && data.itinerary.id) || '');
-                    if (savedId) {
-                        sessionStorage.setItem('just_saved_trip_id', savedId);
-                        sessionStorage.setItem('active_trip_transport_' + savedId, effectiveTransport);
-                        localStorage.setItem('selected_trip_vehicle_' + savedId, effectiveTransport);
-                    }
+                    const savedId = String(editingId || data.itinerary_id || (data.itinerary && data.itinerary.id) || ('trip_' + Date.now()));
+                    const finalTripObj = (data.itinerary && typeof data.itinerary === 'object')
+                        ? data.itinerary
+                        : {
+                            ...tripPayload,
+                            id: savedId,
+                            created_at: new Date().toISOString()
+                        };
+                    persistTripLocally(finalTripObj);
 
                     showToast(editingId ? "Trip updated successfully!" : "Trip saved successfully!");
-
-                    // If the user updated an edited trip, restore their original pre-edit draft (if any was saved)
-                    const backupDraftRaw = localStorage.getItem('intan_elyu_pre_edit_backup_draft') || sessionStorage.getItem('intan_elyu_pre_edit_backup_draft');
-                    if (editingId && backupDraftRaw) {
-                        try {
-                            const parsed = JSON.parse(backupDraftRaw);
-                            if (Array.isArray(parsed) && parsed.length > 0) {
-                                localStorage.setItem('intan_elyu_draft_itinerary', backupDraftRaw);
-                            } else {
-                                localStorage.removeItem('intan_elyu_draft_itinerary');
-                            }
-                        } catch (e) {
-                            localStorage.removeItem('intan_elyu_draft_itinerary');
-                        }
-                    } else {
-                        localStorage.removeItem('intan_elyu_draft_itinerary');
-                    }
-                    localStorage.removeItem('intan_elyu_pre_edit_backup_draft');
-                    sessionStorage.removeItem('intan_elyu_pre_edit_backup_draft');
-                    sessionStorage.removeItem('editing_itinerary_id');
-                    sessionStorage.removeItem('editing_trip_title');
-                    sessionStorage.removeItem('editing_trip_date');
-                    sessionStorage.removeItem('editing_trip_budget');
-                    sessionStorage.removeItem('editing_trip_transport');
-                    sessionStorage.removeItem('editing_transport_initialized');
-                    localStorage.removeItem('intan_elyu_draft_leg_vehicles');
-
-                    window.resetSaveModalInputs();
-                    document.getElementById('save-trip-modal').style.display = 'none';
-                    const bottomNav = document.getElementById('bottom-navigation');
-                    if (bottomNav) bottomNav.classList.remove('nav-hidden');
-                    window.renderItinerary();
+                    cleanupItineraryDraft(savedId);
                     navigateTo('saved_trips');
                 } else {
                     throw new Error(data.message || (editingId ? "Failed to update trip" : "Failed to save trip"));
                 }
             } catch (error) {
                 console.error("Save Error:", error);
-                const isNetworkErr = !navigator.onLine || (error && (error.name === 'TypeError' || String(error.message).toLowerCase().includes('network') || String(error.message).toLowerCase().includes('fetch')));
-                if (isNetworkErr && tripPayload && window.OfflineTripManager) {
-                    const queued = window.OfflineTripManager.queueOfflineTrip(tripPayload);
+                // Fallback: If network failed or offline or error occurred, ALWAYS queue on device so trip is NEVER lost!
+                if (tripPayload) {
+                    let queued = null;
+                    if (window.OfflineTripManager && typeof window.OfflineTripManager.queueOfflineTrip === 'function') {
+                        queued = window.OfflineTripManager.queueOfflineTrip(tripPayload);
+                    }
                     const queuedId = queued ? (queued.local_id || queued.id) : ('offline_' + Date.now());
-                    showToast(editingId ? "📍 Network lost. Trip changes saved offline for auto-sync!" : "📍 Network lost. Saved offline for auto-sync!");
-                    sessionStorage.setItem('just_saved_trip_id', queuedId);
-                    sessionStorage.setItem('active_trip_transport_' + queuedId, effectiveTransport);
-                    localStorage.setItem('selected_trip_vehicle_' + queuedId, effectiveTransport);
-                    localStorage.removeItem('intan_elyu_draft_itinerary');
-                    localStorage.removeItem('intan_elyu_pre_edit_backup_draft');
-                    sessionStorage.removeItem('intan_elyu_pre_edit_backup_draft');
-                    sessionStorage.removeItem('editing_itinerary_id');
-                    sessionStorage.removeItem('editing_trip_title');
-                    sessionStorage.removeItem('editing_trip_date');
-                    sessionStorage.removeItem('editing_trip_budget');
-                    sessionStorage.removeItem('editing_trip_transport');
-                    sessionStorage.removeItem('editing_transport_initialized');
-                    localStorage.removeItem('intan_elyu_draft_leg_vehicles');
-                    window.resetSaveModalInputs();
-                    document.getElementById('save-trip-modal').style.display = 'none';
-                    const bottomNav = document.getElementById('bottom-navigation');
-                    if (bottomNav) bottomNav.classList.remove('nav-hidden');
-                    window.renderItinerary();
+                    const offlineTripObj = {
+                        ...tripPayload,
+                        id: queuedId,
+                        local_id: queuedId,
+                        is_offline_queued: true,
+                        created_at: new Date().toISOString()
+                    };
+                    persistTripLocally(offlineTripObj);
+                    showToast(editingId ? "📍 Connection issue: Trip changes saved on device for auto-sync!" : "📍 Connection issue: Saved on device for auto-sync!", "info", 5000);
+                    cleanupItineraryDraft(queuedId);
                     navigateTo('saved_trips');
                     return;
                 }

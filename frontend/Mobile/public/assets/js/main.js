@@ -2248,6 +2248,1360 @@ window.setHtml = function (id, html) {
     if (el) el.innerHTML = (html !== undefined && html !== null) ? html : '';
 };
 
+// ══════════════════════════════════════════════════════════════════════════
+// GLOBAL SAVED TRIPS RUNTIME & PERSISTENCE (WORKS IN NATIVE APK & WEB)
+// ══════════════════════════════════════════════════════════════════════════
+const SAVED_TRIPS_VEHICLE_CATALOG = {
+    'own_car': { name: 'Own Car', icon: 'fa-car', color: '#f59e0b' },
+    'motorcycle': { name: 'Motorcycle', icon: 'fa-motorcycle', color: '#f97316' },
+    'van': { name: 'Van', icon: 'fa-van-shuttle', color: '#a855f7' },
+    'mpuj': { name: 'Modern Jeepney', icon: 'fa-bus-simple', color: '#10b981' },
+    'tpuj': { name: 'Traditional Jeepney', icon: 'fa-van-shuttle', color: '#f59e0b' },
+    'jeepney': { name: 'Jeepney', icon: 'fa-van-shuttle', color: '#38bdf8' },
+    'tricycle': { name: 'Tricycle', icon: 'fa-motorcycle', color: '#10b981' },
+    'pub_regular': { name: 'Ordinary Bus', icon: 'fa-bus-simple', color: '#06b6d4' },
+    'pub_ordinary': { name: 'Ordinary Bus', icon: 'fa-bus-simple', color: '#06b6d4' },
+    'pub_aircon': { name: 'Aircon Bus', icon: 'fa-bus', color: '#38bdf8' },
+    'bus': { name: 'Bus', icon: 'fa-bus', color: '#38bdf8' },
+    'private_bus': { name: 'Aircon Bus', icon: 'fa-bus', color: '#38bdf8' },
+    'mini_bus': { name: 'Mini Bus', icon: 'fa-bus-simple', color: '#06b6d4' },
+    'lutrampco': { name: 'Modern Jeepney', icon: 'fa-bus-simple', color: '#38bdf8' },
+    'uve': { name: 'UV Express', icon: 'fa-van-shuttle', color: '#a855f7' },
+    'taxi': { name: 'Taxi', icon: 'fa-taxi', color: '#eab308' },
+    'walking': { name: 'Walk / Hike', icon: 'fa-person-walking', color: '#22c55e' }
+};
+
+function parseVehicleModesGlobal(str) {
+    if (!str) return [];
+    if (Array.isArray(str)) return str.map(s => String(s).trim().toLowerCase().replace(/[- ]/g, '_')).filter(Boolean);
+    return String(str)
+        .split(/[,+]|\band\b/i)
+        .map(s => s.trim().toLowerCase().replace(/^[-_\s]+|[-_\s]+$/g, '').replace(/[- ]+/g, '_').replace(/_+/g, '_'))
+        .filter(Boolean);
+}
+
+function getVehicleInfoGlobal(key) {
+    const norm = String(key || '').toLowerCase().trim().replace(/[- ]/g, '_');
+    if (SAVED_TRIPS_VEHICLE_CATALOG[norm]) return SAVED_TRIPS_VEHICLE_CATALOG[norm];
+    if (norm === 'car') return SAVED_TRIPS_VEHICLE_CATALOG['own_car'];
+    if (norm === 'trike') return SAVED_TRIPS_VEHICLE_CATALOG['tricycle'];
+    if (norm.includes('aircon') || norm.includes('pub_aircon')) return SAVED_TRIPS_VEHICLE_CATALOG['pub_aircon'];
+    if (norm.includes('ordinary') || norm.includes('regular')) return SAVED_TRIPS_VEHICLE_CATALOG['pub_regular'];
+    if (norm.includes('bus')) return SAVED_TRIPS_VEHICLE_CATALOG['pub_aircon'];
+    if (norm.includes('mpuj') || norm.includes('modern')) return SAVED_TRIPS_VEHICLE_CATALOG['mpuj'];
+    if (norm.includes('tpuj') || norm.includes('traditional')) return SAVED_TRIPS_VEHICLE_CATALOG['tpuj'];
+    if (norm.includes('motor')) return SAVED_TRIPS_VEHICLE_CATALOG['motorcycle'];
+    return {
+        name: norm.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+        icon: 'fa-car',
+        color: '#38bdf8'
+    };
+}
+
+function getSavedTripTransportBadgeGlobal(rawMode) {
+    if (!rawMode || String(rawMode).toLowerCase().includes('no_vehicle') || String(rawMode).toLowerCase().includes('no vehicle')) {
+        return `<span style="background: rgba(255,255,255,0.22); border: none !important; outline: none !important; color: #ffffff; padding: 3px 10px; border-radius: 100px; font-weight: 700; font-size: 12px; display: inline-flex; align-items: center; gap: 5px;"><i class="fa-solid fa-ban" style="font-size:11px; color:#f87171;"></i>No Vehicle Selected</span>`;
+    }
+
+    const parts = parseVehicleModesGlobal(rawMode);
+    if (parts.length === 0) return '';
+
+    if (parts.length > 1) {
+        return `<span style="background: rgba(255,255,255,0.22); border: none !important; outline: none !important; color: #ffffff; padding: 3px 10px; border-radius: 100px; font-weight: 700; font-size: 12px; display: inline-flex; align-items: center; gap: 5px;"><i class="fa-solid fa-route" style="font-size:11px; color:#38bdf8;"></i>${parts.length} Vehicles</span>`;
+    }
+
+    const info = getVehicleInfoGlobal(parts[0]);
+    return `<span style="background: rgba(255,255,255,0.22); border: none !important; outline: none !important; color: #ffffff; padding: 3px 10px; border-radius: 100px; font-weight: 700; font-size: 12px; display: inline-flex; align-items: center; gap: 5px;"><i class="fa-solid ${info.icon}" style="font-size:11px; color:${info.color};"></i>${info.name}</span>`;
+}
+
+if (typeof window.getTouristSpotById !== 'function') {
+    window.getTouristSpotById = function (id) {
+        if (!id) return null;
+        const sId = String(id);
+        if (window._cachedSpotsMap && window._cachedSpotsMap[sId]) {
+            return window._cachedSpotsMap[sId];
+        }
+        const sources = [window.destinations, window.allDestinations, window.spotsList];
+        for (const arr of sources) {
+            if (Array.isArray(arr)) {
+                const found = arr.find(s => s && (String(s.id) === sId || String(s.tourist_spot_id) === sId));
+                if (found) return found;
+            }
+        }
+        try {
+            const rawMap = localStorage.getItem('public_map_data');
+            if (rawMap) {
+                const parsedMap = (typeof window.safeJsonParse === 'function') ? window.safeJsonParse(rawMap, null) : JSON.parse(rawMap);
+                const spotsArr = (parsedMap && parsedMap.data && parsedMap.data.destinations) ? parsedMap.data.destinations : (parsedMap && parsedMap.destinations ? parsedMap.destinations : []);
+                if (Array.isArray(spotsArr)) {
+                    const found = spotsArr.find(s => s && (String(s.id) === sId || String(s.tourist_spot_id) === sId));
+                    if (found) return found;
+                }
+            }
+            const rawSpots = localStorage.getItem('intan_elyu_spots') || localStorage.getItem('all_destinations');
+            if (rawSpots) {
+                const parsed = JSON.parse(rawSpots);
+                const list = Array.isArray(parsed) ? parsed : (parsed.data || []);
+                if (Array.isArray(list)) {
+                    const found = list.find(s => s && (String(s.id) === sId || String(s.tourist_spot_id) === sId));
+                    if (found) return found;
+                }
+            }
+        } catch (e) { }
+        return null;
+    };
+}
+
+if (typeof window.getPersistentItemStates !== 'function') {
+    window.getPersistentItemStates = function () {
+        try {
+            return JSON.parse(localStorage.getItem('intan_elyu_verified_item_states') || '{}');
+        } catch (e) {
+            return {};
+        }
+    };
+}
+
+if (typeof window.savePersistentItemState !== 'function') {
+    window.savePersistentItemState = function (itemId, stateUpdates) {
+        if (!itemId) return;
+        try {
+            const states = window.getPersistentItemStates();
+            const key = String(itemId);
+            const existing = states[key] || {};
+            states[key] = {
+                ...existing,
+                ...stateUpdates,
+                updated_at: Date.now()
+            };
+            if (stateUpdates && stateUpdates.spot_id) {
+                states['spot_' + stateUpdates.spot_id] = states[key];
+            }
+            localStorage.setItem('intan_elyu_verified_item_states', JSON.stringify(states));
+        } catch (e) {
+            console.warn('savePersistentItemState error:', e);
+        }
+    };
+}
+
+if (typeof window.resolveProofImageUrl !== 'function') {
+    window.resolveProofImageUrl = function (rawUrl) {
+        if (!rawUrl || typeof rawUrl !== 'string') return '';
+        var url = rawUrl.trim();
+        if (!url) return '';
+        if (url.startsWith('data:') || url.startsWith('blob:')) return url;
+        var activeBackend = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
+        var proofMatch = url.match(/(proof_[a-z0-9_]+\.(?:jpg|jpeg|png|webp|gif))/i);
+        if (proofMatch && proofMatch[1]) return activeBackend + '/api/image/proof_images/' + proofMatch[1];
+        if (url.startsWith('http://') || url.startsWith('https://')) {
+            if (url.includes('r2.dev') || url.includes('localhost') || url.includes('127.0.0.1')) {
+                var clean = url.split('/').pop().replace(/[?#].*$/, '');
+                var localMatch = clean.match(/(proof_[a-z0-9_]+\.(?:jpg|jpeg|png|webp|gif))/i);
+                if (localMatch && localMatch[1]) return activeBackend + '/api/image/proof_images/' + localMatch[1];
+                return activeBackend + '/api/image/proof_images/' + clean;
+            }
+            return url;
+        }
+        var clean = url.replace(/^\/+/, '');
+        if (clean.startsWith('storage/proof_images/')) return activeBackend + '/api/image/proof_images/' + clean.replace('storage/proof_images/', '');
+        if (clean.startsWith('proof_images/')) return activeBackend + '/api/image/proof_images/' + clean.replace('proof_images/', '');
+        if (clean.startsWith('api/')) return activeBackend + '/' + clean;
+        return activeBackend + '/api/image/proof_images/' + clean.split('/').pop().replace(/[?#].*$/, '');
+    };
+}
+
+if (typeof window.getProofImageFallbackUrl !== 'function') {
+    window.getProofImageFallbackUrl = function (rawUrl) {
+        if (!rawUrl || typeof rawUrl !== 'string') return 'assets/img/no_image.svg';
+        var url = rawUrl.trim();
+        if (url.startsWith('data:') || url.startsWith('blob:')) return url;
+        var activeBackend = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
+        var proofMatch = url.match(/(proof_[a-z0-9_]+\.(?:jpg|jpeg|png|webp|gif))/i);
+        if (proofMatch && proofMatch[1]) return activeBackend + '/api/image/proof_images/' + proofMatch[1];
+        var clean = url.replace(/^\/+/, '').split('/').pop().replace(/[?#].*$/, '');
+        if (clean) return activeBackend + '/api/image/proof_images/' + clean;
+        return 'assets/img/no_image.svg';
+    };
+}
+
+window.fetchSavedTrips = async function (forceRefresh = false) {
+    const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+    const isGuest = !token || token === 'guest_token' || token.startsWith('guest_') || token.startsWith('offline_') || localStorage.getItem('intan_elyu_guest') === 'true';
+    const isOfflineMode = localStorage.getItem('intan_elyu_offline_mode') === 'true' || localStorage.getItem('intan_elyu_offline_guest') === 'true';
+    const isNetworkDown = (typeof navigator.onLine === 'boolean' && !navigator.onLine)
+        || window.isNetworkOffline === true
+        || (window.isAppOnline === false);
+    const isOffline = isNetworkDown || isOfflineMode || isGuest;
+
+    function getLocalTripsCombined() {
+        const combined = [];
+        const seenIds = new Set();
+        const addTrip = (t) => {
+            if (!t) return;
+            const id = String(t.id || t.local_id || t.trip_id || '');
+            if (id) {
+                if (seenIds.has(id)) return;
+                seenIds.add(id);
+                if (id.startsWith('offline_edit_')) seenIds.add(id.replace('offline_edit_', ''));
+            }
+            combined.push(t);
+        };
+
+        // A. Offline queued trips
+        if (window.OfflineTripManager && typeof window.OfflineTripManager.getQueuedTrips === 'function') {
+            try {
+                const queued = window.OfflineTripManager.getQueuedTrips();
+                if (Array.isArray(queued)) queued.forEach(addTrip);
+            } catch(e) {}
+        }
+
+        // B. Token-specific cache
+        if (token) {
+            try {
+                const tokenKey = 'saved_trips_' + token.substring(0, 10);
+                const raw = localStorage.getItem(tokenKey);
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    const list = Array.isArray(parsed) ? parsed : (parsed.data || parsed.itineraries || []);
+                    if (Array.isArray(list)) list.forEach(addTrip);
+                }
+            } catch(e) {}
+        }
+
+        // C. Local storage backups
+        ['intan_elyu_saved_trips', 'intan_elyu_offline_saved_trips_backup', 'intan_elyu_offline_saved_trips'].forEach(k => {
+            try {
+                const raw = localStorage.getItem(k);
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    const list = Array.isArray(parsed) ? parsed : (parsed.data || parsed.itineraries || []);
+                    if (Array.isArray(list)) list.forEach(addTrip);
+                }
+            } catch(e) {}
+        });
+
+        return combined.filter(t => {
+            const isDeleted = (typeof window.isTripDeleted === 'function') ? window.isTripDeleted(t) : false;
+            const isCompleted = (typeof window.isTripCompletedLocally === 'function') ? window.isTripCompletedLocally(t) : (t && t.status === 'completed');
+            return !isDeleted && !isCompleted;
+        });
+    }
+
+    // 1. Instant pre-hydrate and render immediately with 0ms delay!
+    const localTrips = getLocalTripsCombined();
+    if (typeof window.renderSavedTrips === 'function') {
+        window.renderSavedTrips(localTrips);
+    }
+
+    // 2. If offline, ensure offline badge displays and do NOT attempt blocking network fetch
+    if (isOffline) {
+        const badge = document.getElementById('saved-trips-offline-badge');
+        if (badge) {
+            badge.style.setProperty('display', 'inline-flex', 'important');
+        }
+        return;
+    }
+
+    if (!token || token.startsWith('guest_') || token.startsWith('offline_')) {
+        return;
+    }
+
+    // 3. Online mode: fetch fresh trips from API and update local caches
+    const cacheKey = 'saved_trips_' + token.substring(0, 10);
+    const fetchCache = (typeof window.useCache === 'function') ? window.useCache : (async (key, fetcher, renderer, forceRefresh) => {
+        try {
+            const d = await fetcher();
+            if (typeof renderer === 'function') renderer(d);
+            return d;
+        } catch (e) {
+            if (typeof renderer === 'function') renderer(null);
+        }
+    });
+
+    try {
+        await fetchCache(
+            cacheKey,
+            async () => {
+                const controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+                const timeoutId = controller ? setTimeout(() => controller.abort(), 8000) : null;
+                try {
+                    const bUrl = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
+                    const response = await fetch(bUrl + '/api/tourist/itineraries', {
+                        signal: controller ? controller.signal : undefined,
+                        headers: {
+                            'Accept': 'application/json',
+                            'ngrok-skip-browser-warning': 'true',
+                            'Authorization': 'Bearer ' + token
+                        }
+                    });
+                    if (response.status === 401) {
+                        localStorage.removeItem('intan_elyu_token');
+                        localStorage.removeItem('Intan_Elyu_Token');
+                        if (typeof showToast === 'function') showToast("Session expired. Please log in again.");
+                        if (typeof window.navigateTo === 'function') window.navigateTo('auth');
+                        return [];
+                    }
+                    if (!response.ok) throw new Error("Failed to fetch saved trips: " + response.status);
+                    const data = await response.json();
+                    const itins = data.itineraries || [];
+                    const persistentStates = (typeof window.getPersistentItemStates === 'function') ? window.getPersistentItemStates() : {};
+                    const queuedCheckins = (window.OfflineCheckinManager && typeof window.OfflineCheckinManager.getQueue === 'function')
+                        ? window.OfflineCheckinManager.getQueue()
+                        : [];
+
+                    const mergedItins = itins.map(trip => {
+                        if (!trip || !Array.isArray(trip.items)) return trip;
+                        return {
+                            ...trip,
+                            items: trip.items.map(it => {
+                                if (!it) return it;
+                                const itKey = String(it.id || '');
+                                const spotIdKey = String(it.tourist_spot_id || it.destination_id || (it.destination ? it.destination.id : ''));
+                                const spotKey = 'spot_' + spotIdKey;
+                                const override = persistentStates[itKey] || (spotIdKey ? persistentStates[spotKey] : null);
+
+                                const queued = queuedCheckins.find(q => {
+                                    if (!q) return false;
+                                    if (q.itemId && String(q.itemId) === itKey) return true;
+                                    if (q.spotId && spotIdKey && String(q.spotId) === spotIdKey) return true;
+                                    return false;
+                                });
+
+                                let inMemoryItem = null;
+                                if (Array.isArray(window._cachedSavedTrips)) {
+                                    for (const t of window._cachedSavedTrips) {
+                                        if (t && Array.isArray(t.items)) {
+                                            const match = t.items.find(m => m && (String(m.id) === itKey || (spotIdKey && String(m.tourist_spot_id || m.destination_id || (m.destination ? m.destination.id : '')) === spotIdKey)));
+                                            if (match && (match.proof_image || (Array.isArray(match.proof_images) && match.proof_images.length > 0))) {
+                                                inMemoryItem = match;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+
+                                const serverProofs = (Array.isArray(it.proof_images) && it.proof_images.length > 0)
+                                    ? it.proof_images
+                                    : (it.proof_image ? [it.proof_image] : []);
+
+                                const localProofs = (override && Array.isArray(override.proof_images) && override.proof_images.length > 0)
+                                    ? override.proof_images
+                                    : ((override && override.proof_image) ? [override.proof_image] : []);
+
+                                const queuedProofs = (queued && (queued.previewUrl || queued.image))
+                                    ? [queued.previewUrl || queued.image]
+                                    : [];
+
+                                const inMemProofs = (inMemoryItem && Array.isArray(inMemoryItem.proof_images) && inMemoryItem.proof_images.length > 0)
+                                    ? inMemoryItem.proof_images
+                                    : ((inMemoryItem && inMemoryItem.proof_image) ? [inMemoryItem.proof_image] : []);
+
+                                const activeProofs = serverProofs.length > 0
+                                    ? serverProofs
+                                    : (queuedProofs.length > 0 ? queuedProofs : (localProofs.length > 0 ? localProofs : inMemProofs));
+
+                                const activeStatus = (serverProofs.length > 0 && it.proof_status)
+                                    ? it.proof_status
+                                    : (it.proof_status || (override ? override.proof_status : null) || (queued ? 'pending' : null) || (inMemoryItem ? inMemoryItem.proof_status : null) || (activeProofs.length > 0 ? 'pending' : null));
+
+                                return {
+                                    ...it,
+                                    is_location_verified: Boolean(it.is_location_verified || it.visited_at || (override && (override.is_location_verified || override.visited_at)) || (queued && queued.status) || (inMemoryItem && inMemoryItem.is_location_verified)),
+                                    visited_at: it.visited_at || (override ? override.visited_at : null) || (queued ? queued.capturedAt : null) || (inMemoryItem ? inMemoryItem.visited_at : null),
+                                    proof_image: activeProofs.length > 0 ? activeProofs[0] : null,
+                                    proof_images: activeProofs,
+                                    proof_status: activeStatus,
+                                    is_offline_queued: Boolean(queued || (override && override.is_queued) || (inMemoryItem && inMemoryItem.is_offline_queued))
+                                };
+                            })
+                        };
+                    });
+                    try {
+                        localStorage.setItem('intan_elyu_offline_saved_trips_backup', JSON.stringify(mergedItins));
+                    } catch (e) { }
+                    return mergedItins;
+                } finally {
+                    if (timeoutId) clearTimeout(timeoutId);
+                }
+            },
+            (itineraries) => {
+                if (window._isStartingTrip) return;
+                if (itineraries && Array.isArray(itineraries)) {
+                    window.renderSavedTrips(itineraries);
+                } else {
+                    window.renderSavedTrips(getLocalTripsCombined());
+                }
+            },
+            forceRefresh,
+            60000
+        );
+    } catch (fetchErr) {
+        console.warn("fetchSavedTrips handled offline fallback:", fetchErr);
+        if (typeof window.renderSavedTrips === 'function') {
+            window.renderSavedTrips(getLocalTripsCombined());
+        }
+    }
+};
+window.loadSavedTrips = window.fetchSavedTrips;
+
+window.renderSavedTrips = function (itineraries) {
+    try {
+        const queuedTrips = (window.OfflineTripManager && typeof window.OfflineTripManager.getQueuedTrips === 'function')
+            ? window.OfflineTripManager.getQueuedTrips()
+            : [];
+
+        const queuedNewTrips = queuedTrips.filter(t => !t.is_offline_update);
+        const queuedUpdates = queuedTrips.filter(t => t.is_offline_update && t.update_id);
+        const updatesMap = {};
+        queuedUpdates.forEach(u => { updatesMap[String(u.update_id)] = u; });
+
+        const localItemProofs = {};
+        const harvestProofsFromTrips = (trips) => {
+            if (!Array.isArray(trips)) return;
+            trips.forEach(t => {
+                if (!t || !Array.isArray(t.items)) return;
+                t.items.forEach(it => {
+                    if (!it || !it.id) return;
+                    const itId = String(it.id);
+                    const proofs = (Array.isArray(it.proof_images) && it.proof_images.length)
+                        ? it.proof_images
+                        : (it.proof_image ? [it.proof_image] : []);
+                    const hasProofs = (proofs.length > 0);
+                    const hasCheckin = Boolean(it.is_location_verified || it.visited_at);
+                    if (hasProofs || hasCheckin) {
+                        localItemProofs[itId] = {
+                            proof_image: it.proof_image || proofs[0] || null,
+                            proof_images: proofs,
+                            proof_status: it.proof_status || (hasProofs ? 'pending' : null),
+                            is_location_verified: hasCheckin,
+                            visited_at: it.visited_at || null
+                        };
+                    }
+                });
+            });
+        };
+
+        try {
+            const persistentStates = (typeof window.getPersistentItemStates === 'function') ? window.getPersistentItemStates() : {};
+            Object.keys(persistentStates).forEach(k => {
+                const st = persistentStates[k];
+                if (!st) return;
+                if (!localItemProofs[k]) {
+                    localItemProofs[k] = {
+                        proof_image: st.proof_image || null,
+                        proof_images: st.proof_images || (st.proof_image ? [st.proof_image] : []),
+                        proof_status: st.proof_status || 'pending',
+                        is_location_verified: Boolean(st.is_location_verified || st.visited_at),
+                        visited_at: st.visited_at || null
+                    };
+                } else {
+                    localItemProofs[k].is_location_verified = Boolean(localItemProofs[k].is_location_verified || st.is_location_verified || st.visited_at);
+                    if (!localItemProofs[k].visited_at && st.visited_at) localItemProofs[k].visited_at = st.visited_at;
+                    if ((!localItemProofs[k].proof_images || localItemProofs[k].proof_images.length === 0) && st.proof_images && st.proof_images.length > 0) {
+                        localItemProofs[k].proof_images = st.proof_images;
+                        localItemProofs[k].proof_image = st.proof_image || st.proof_images[0];
+                        localItemProofs[k].proof_status = st.proof_status || 'pending';
+                    }
+                }
+            });
+        } catch (e) { }
+
+        harvestProofsFromTrips(window._cachedSavedTrips);
+
+        let serverTrips = (Array.isArray(itineraries) ? itineraries : []).map(t => {
+            let tripObj = t;
+            if (updatesMap[String(t.id)]) {
+                tripObj = {
+                    ...t,
+                    ...updatesMap[String(t.id)],
+                    id: t.id,
+                    is_offline_queued: true,
+                    is_offline_update: true
+                };
+            }
+            if (tripObj && Array.isArray(tripObj.items)) {
+                tripObj.items = tripObj.items.map(it => {
+                    if (!it) return it;
+                    const itId = String(it.id);
+                    const spotIdKey = String(it.tourist_spot_id || it.destination_id || (it.destination ? it.destination.id : ''));
+                    const saved = localItemProofs[itId] || (spotIdKey ? localItemProofs[spotIdKey] : null);
+                    if (saved) {
+                        const currentProofs = (Array.isArray(it.proof_images) && it.proof_images.length)
+                            ? it.proof_images
+                            : (it.proof_image ? [it.proof_image] : []);
+                        const mergedProofs = currentProofs.length > 0 ? currentProofs : saved.proof_images;
+                        return {
+                            ...it,
+                            proof_image: (mergedProofs && mergedProofs.length > 0) ? mergedProofs[0] : (saved.proof_image || it.proof_image),
+                            proof_images: mergedProofs || [],
+                            proof_status: (it.proof_status && it.proof_status !== 'pending' && it.proof_status !== null) ? it.proof_status : (saved.proof_status || 'pending'),
+                            is_location_verified: Boolean(it.is_location_verified || saved.is_location_verified || it.visited_at || saved.visited_at),
+                            visited_at: it.visited_at || saved.visited_at,
+                            is_offline_queued: Boolean(saved.is_queued)
+                        };
+                    }
+                    return it;
+                });
+            }
+            return tripObj;
+        });
+
+        const combinedTrips = [...queuedNewTrips, ...serverTrips].filter(t => !window.isTripDeleted(t));
+        const seenTripIds = new Set();
+        const dedupedTrips = combinedTrips.filter(t => {
+            if (!t) return false;
+            const tId = String(t.id || t.local_id || t.trip_id || '');
+            if (tId) {
+                if (seenTripIds.has(tId)) return false;
+                seenTripIds.add(tId);
+                if (tId.startsWith('offline_edit_')) seenTripIds.add(tId.replace('offline_edit_', ''));
+            }
+            return true;
+        });
+        window._cachedSavedTrips = dedupedTrips;
+        const list = document.getElementById('saved-trips-list');
+        if (!list) return;
+
+        const emptyStateHtml = `
+            <div class="empty-state-card" style="margin-top: 30px; margin-bottom: 30px; opacity: 1 !important; visibility: visible !important;">
+                <div class="empty-state-icon" style="background: #ffffff !important; color: #1e3a8a !important; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15) !important;">
+                    <i class="fa-solid fa-route" style="color: #1e3a8a !important;"></i>
+                </div>
+                <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: #ffffff; text-wrap: balance;">No Saved Trips Yet</h3>
+                <p style="margin: 0; font-size: 13.5px; color: rgba(255, 255, 255, 0.88); line-height: 1.5; max-width: 260px; text-wrap: pretty;">
+                    Your adventure starts here! Explore La Union tourist spots and plan your personalized itinerary.
+                </p>
+                <button type="button" class="btn-open-map" onclick="if(typeof window.navigateTo==='function') window.navigateTo('itinerary');">
+                    <i class="fa-solid fa-plus"></i> Create New Trip
+                </button>
+            </div>
+        `;
+
+        if (!dedupedTrips || dedupedTrips.length === 0) {
+            list.innerHTML = emptyStateHtml;
+            return;
+        }
+
+        let activeItineraries = dedupedTrips.filter(trip => trip && trip.status !== 'completed' && !(typeof window.isTripCompletedLocally === 'function' && window.isTripCompletedLocally(trip)));
+
+        if (activeItineraries.length === 0) {
+            list.innerHTML = emptyStateHtml;
+            return;
+        }
+
+        const justSavedId = sessionStorage.getItem('just_saved_trip_id');
+        if (justSavedId) {
+            const matchIdx = activeItineraries.findIndex(t => t && (String(t.id) === String(justSavedId) || String(t.local_id) === String(justSavedId)));
+            if (matchIdx > 0) {
+                const savedItem = activeItineraries.splice(matchIdx, 1)[0];
+                activeItineraries.unshift(savedItem);
+            }
+        }
+
+        const currentRenderSig = JSON.stringify(activeItineraries.map(t => [
+            t.id, t.title, t.trip_date, t.companion_males, t.companion_females, t.total_pax,
+            (t.items || []).map(i => [i.id, i.proof_status, i.is_visited, i.is_location_verified, i.proof_image, (i.proof_images || []).length])
+        ]));
+
+        const hasExistingTripCards = list.querySelector('.trip-swipe-container') !== null;
+        if (!justSavedId && window._lastRenderedTripsSig === currentRenderSig && hasExistingTripCards) {
+            return;
+        }
+        window._lastRenderedTripsSig = currentRenderSig;
+
+        let html = '';
+        activeItineraries.forEach(trip => {
+            if (!trip) return;
+            try {
+                let budgetIndicator = '';
+                if (trip.budget && trip.budget > 0) {
+                    const cost = parseFloat(trip.total_cost || 0);
+                    const budget = parseFloat(trip.budget);
+                    let color = '#10b981';
+                    let statusTitle = `Within Budget: ₱${cost.toFixed(2)} / ₱${budget.toFixed(2)}`;
+                    if (cost > budget) {
+                        const coverage = (cost > 0) ? (budget / cost) : 0;
+                        if (coverage >= 0.8) {
+                            color = '#f59e0b';
+                            statusTitle = `Nearing Budget: ₱${budget.toFixed(2)} / ₱${cost.toFixed(2)}`;
+                        } else {
+                            color = '#ef4444';
+                            statusTitle = `Over Budget by ₱${(cost - budget).toFixed(2)}`;
+                        }
+                    }
+                    budgetIndicator = `<span style="display:inline-block; width:10px; height:10px; border-radius:50%; background-color:${color}; margin-left:6px; border:none; outline:none; box-shadow:0 0 6px ${color}80;" title="${statusTitle}"></span>`;
+                }
+
+                const transportBadge = getSavedTripTransportBadgeGlobal(trip.transport_mode);
+                const safeTitle = trip.title ? trip.title.replace(/"/g, '&quot;').replace(/'/g, "\\'") : 'Saved Trip';
+                const tripType = trip.trip_type || (trip.total_pax > 1 ? 'group' : 'solo');
+                const totalPax = parseInt(trip.total_pax || 1, 10);
+                const males = parseInt(trip.companion_males || 0, 10);
+                const females = parseInt(trip.companion_females || 0, 10);
+                let paxBadge = '';
+                if (tripType === 'group' || totalPax > 1) {
+                    paxBadge = `<span style="background:rgba(56,189,248,0.22); border:1px solid rgba(56,189,248,0.38); color:#ffffff; padding:3px 10px; border-radius:100px; font-weight:800; font-size:11.5px; display:inline-flex; align-items:center; gap:5px;"><i class="fa-solid fa-users" style="color:#38bdf8;"></i> ${totalPax} Pax ${males > 0 || females > 0 ? `(${males}M, ${females}F)` : ''}</span>`;
+                } else {
+                    paxBadge = `<span style="background:rgba(255,255,255,0.18); color:#ffffff; padding:3px 9px; border-radius:100px; font-weight:700; font-size:11.5px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-user" style="font-size:10px; color:#38bdf8;"></i> Solo</span>`;
+                }
+
+                html += `
+                <div class="trip-swipe-container" data-trip-id="${trip.id}" data-trip-title="${safeTitle}" style="position:relative; overflow:hidden; border-radius:24px; -webkit-mask-image:-webkit-radial-gradient(white, black); mask-image:radial-gradient(white, black); isolation:isolate; contain:paint; margin-bottom:20px; touch-action:pan-y;">
+                    <div class="trip-swipe-bg" onclick="event.stopPropagation(); window.confirmDeleteSavedTrip('${trip.id}', this.closest('.trip-swipe-container'), '${safeTitle}');" style="position:absolute; top:0; right:0; bottom:0; width:95px; background:linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border-radius:0 24px 24px 0; display:flex; align-items:center; justify-content:center; color:#ffffff; font-size:13px; font-weight:800; gap:6px; z-index:1; cursor:pointer; opacity:0; pointer-events:none; transform:translateX(95px); transition:transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease; touch-action:manipulation;">
+                        <i class="fa-solid fa-trash-can"></i> Delete
+                    </div>
+                    <div class="trip-swipe-content" style="position:relative; z-index:2; background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border: none !important; outline: none !important; border-radius: 24px; padding: 22px; transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-radius 0.25s ease; box-shadow: 0 10px 28px rgba(10, 25, 60, 0.28);">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 6px;">
+                            <h3 style="margin: 0; font-size: 20px; font-weight: 800; color: #ffffff; letter-spacing: -0.3px; flex: 1; min-width: 0; word-break: break-word;">${trip.title}</h3>
+                            <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+                                <button type="button" class="btn-edit-saved-trip" onclick="event.stopPropagation(); window.editSavedTrip('${trip.id}')" style="background: rgba(255,255,255,0.18); border: none !important; outline: none !important; border-radius: 12px; padding: 6px 14px; color: #ffffff; font-size: 12px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s ease; box-shadow: none !important;">
+                                    <i class="fa-solid fa-pen-to-square"></i> Edit
+                                </button>
+                            </div>
+                        </div>
+                        <div style="font-size: 12.5px; color: #ffffff; opacity: 0.95; margin: 0 0 16px 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                            <span style="display:inline-flex; align-items:center; gap:5px; font-weight:700;"><i class="fa-regular fa-calendar" style="color: #ffffff;"></i>${trip.trip_date ? new Date(trip.trip_date).toLocaleDateString() : 'No date set'}</span> 
+                            ${transportBadge}
+                            ${paxBadge}
+                            ${trip.is_offline_queued ? `<span style="background: rgba(245, 158, 11, 0.28); border: 1px solid rgba(245, 158, 11, 0.5); color: #fef08a; padding: 3px 10px; border-radius: 100px; font-weight: 800; font-size: 11px; display: inline-flex; align-items: center; gap: 4px;"><i class="fa-solid fa-cloud-arrow-up"></i> Queued (Offline)</span>` : ''}
+                            ${trip.budget ? `<span style="background: rgba(255,255,255,0.22); border: none !important; outline: none !important; color: #ffffff; padding: 3px 10px; border-radius: 100px; font-weight: 700; font-size: 12px; display: inline-flex; align-items: center; gap: 4px;"><i class="fa-solid fa-coins" style="font-size:10px; color:#fbbf24;"></i>Budget: ₱${parseFloat(trip.budget).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}${budgetIndicator}</span>` : ''}
+                        </div>
+                        <div class="timeline-collapsible" id="timeline-${trip.id}">
+                            <div class="timeline-inner">
+                                <div class="timeline">`;
+                
+                let unvisitedCount = 0;
+                let hasQueuedCheckins = false;
+                const isTripCompleted = (trip.status === 'completed');
+                if (trip.items && trip.items.length) {
+                    const sortedTripItems = [...trip.items].sort((a, b) => (a.order_index || 0) - (b.order_index || 0));
+                    const firstUnvisitedIdx = sortedTripItems.findIndex(i => !(i.is_visited || i.proof_status === 'approved'));
+                    sortedTripItems.forEach((item, index) => {
+                        if (!item) return;
+                        const dest = item.destination || (typeof window.getTouristSpotById === 'function' ? window.getTouristSpotById(item.tourist_spot_id) : null);
+                        const destName = (dest && (dest.name || dest.title)) ? String(dest.name || dest.title) : 'Destination';
+                        const destEscaped = destName.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                        const spotImgUrl = (typeof window.getDestImage === 'function')
+                            ? window.getDestImage(dest, 300)
+                            : ((dest && (dest.image || dest.photo_url)) || 'assets/img/no_image.svg');
+                        
+                        let proofImages = [];
+                        if (Array.isArray(item.proof_images) && item.proof_images.length > 0) {
+                            proofImages = item.proof_images;
+                        } else if (item.proof_image) {
+                            try {
+                                const parsed = JSON.parse(item.proof_image);
+                                if (Array.isArray(parsed)) proofImages = parsed;
+                                else proofImages = [item.proof_image];
+                            } catch (e) {
+                                proofImages = [item.proof_image];
+                            }
+                        }
+
+                        const spotIdVal = item.tourist_spot_id || item.destination_id || (item.destination ? item.destination.id : null);
+                        const queuedItem = window.OfflineCheckinManager ? window.OfflineCheckinManager.getQueuedItem(item.id, spotIdVal) : null;
+                        const isQueued = Boolean(queuedItem || item.is_offline_queued);
+                        if (isQueued) hasQueuedCheckins = true;
+                        if (proofImages.length === 0 && isQueued && queuedItem && (queuedItem.previewUrl || queuedItem.image)) {
+                            proofImages = [queuedItem.previewUrl || queuedItem.image];
+                        }
+
+                        const hasProof = (proofImages.length > 0);
+                        const isLocVerified = Boolean(item.visited_at || item.is_location_verified);
+                        const proofStatus = item.proof_status || (hasProof ? (item.is_visited ? 'approved' : 'pending') : null);
+                        const isPhotoApproved = (proofStatus === 'approved');
+                        const isApproved = Boolean((item.is_visited && isLocVerified) || (isLocVerified && isPhotoApproved));
+                        const isRejected = (proofStatus === 'rejected');
+                        const isPendingProof = !isApproved && !isRejected && !isQueued && hasProof && (proofStatus === 'pending');
+                        const isNextStop = (!isApproved && !isPendingProof && !isQueued && index === firstUnvisitedIdx);
+                        if (!isApproved && !isQueued) unvisitedCount++;
+
+                        let photosStripHtml = '';
+                        if (proofImages.length > 0) {
+                            const resolvedUrls = proofImages.map(u => (typeof window.resolveProofImageUrl === 'function' ? window.resolveProofImageUrl(u) : u));
+                            const jsonUrlsAttr = JSON.stringify(resolvedUrls).replace(/"/g, '&quot;');
+                            const thumbs = proofImages.map((pUrl, pIdx) => {
+                                const displayUrl = (typeof window.resolveProofImageUrl === 'function') ? window.resolveProofImageUrl(pUrl) : pUrl;
+                                const fallbackUrl = (typeof window.getProofImageFallbackUrl === 'function') ? window.getProofImageFallbackUrl(pUrl) : 'assets/img/no_image.svg';
+                                return `
+                                    <div style="position:relative; flex-shrink:0;">
+                                        <img src="${displayUrl}" 
+                                            onerror="if(this.dataset.triedFallback!=='1'){this.dataset.triedFallback='1';this.src='${fallbackUrl}';}else{this.onerror=null;this.src='assets/img/no_image.svg';}" 
+                                            onclick="event.stopPropagation(); if(typeof window.viewProofPhotoModal==='function') window.viewProofPhotoModal(${jsonUrlsAttr}, '${destEscaped}', 'Photo Proof (${pIdx + 1} of ${proofImages.length})', ${pIdx});" 
+                                            alt="Proof Photo ${pIdx + 1}" 
+                                            title="Tap to view proof photo" 
+                                            loading="lazy"
+                                            style="width:52px; height:52px; border-radius:12px; object-fit:cover; border:1.5px solid rgba(255,255,255,0.25); box-shadow:0 4px 12px rgba(0,0,0,0.3); cursor:pointer; display:block;">
+                                        ${proofImages.length > 1 ? `<span style="position:absolute; bottom:2px; right:2px; background:rgba(0,0,0,0.7); color:#fff; font-size:8px; font-weight:800; padding:1px 4px; border-radius:4px;">${pIdx + 1}</span>` : ''}
+                                    </div>
+                                `;
+                            }).join('');
+
+                            photosStripHtml = `
+                                <div style="display:flex; align-items:center; gap:8px; overflow-x:auto; padding:4px 0; max-width:100%; -webkit-overflow-scrolling:touch;">
+                                    ${thumbs}
+                                    ${proofImages.length > 1 ? `<span style="font-size:10px; color:#00f2fe; font-weight:700; white-space:nowrap; margin-left:2px;">${proofImages.length} photos</span>` : ''}
+                                </div>
+                            `;
+                        }
+
+                        let queuedThumbnailHtml = '';
+                        if (isQueued && queuedItem) {
+                            const qSrc = queuedItem.previewUrl || queuedItem.image || '';
+                            if (qSrc) {
+                                queuedThumbnailHtml = `<img src="${qSrc}" onerror="this.onerror=null; this.src='assets/img/no_image.svg';" onclick="event.stopPropagation(); if(typeof window.viewProofPhotoModal==='function') window.viewProofPhotoModal('${qSrc}', '${destEscaped}', 'Offline Proof (Queued on Device)');" alt="Proof" title="Tap to view offline proof photo" style="width:52px; height:52px; border-radius:12px; object-fit:cover; border:2px solid #f59e0b !important; outline:none !important; box-shadow:0 4px 12px rgba(0,0,0,0.3); flex-shrink:0; cursor:pointer;">`;
+                            } else {
+                                queuedThumbnailHtml = `<div style="width:52px; height:52px; border-radius:12px; background:rgba(245,158,11,0.2); border:1.5px dashed #f59e0b; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#fbbf24; flex-shrink:0;"><i class="fa-solid fa-camera" style="font-size:16px;"></i><span style="font-size:8px; font-weight:800; margin-top:2px;">OFFLINE</span></div>`;
+                            }
+                        }
+
+                        const sClass = (dest && dest.classification_status) ? dest.classification_status : '';
+                        const sMeta = (typeof window.getRewardPointsForClassification === 'function')
+                            ? window.getRewardPointsForClassification(sClass)
+                            : { points: (sClass === 'POTENTIAL' ? 75 : (sClass === 'EMERGE' ? 50 : 25)) };
+
+                        const itemMode = item.transport_mode || item.transport_type || '';
+                        if (itemMode) {
+                            const legModes = parseVehicleModesGlobal(itemMode);
+                            let vIcon = 'fa-route';
+                            let vName = itemMode;
+                            if (legModes.length > 1) {
+                                vIcon = 'fa-route';
+                                vName = `${legModes.length} Vehicles`;
+                            } else if (legModes.length === 1) {
+                                const info = getVehicleInfoGlobal(legModes[0]);
+                                vIcon = info.icon;
+                                vName = info.name;
+                            }
+                            const costNum = parseFloat(item.leg_cost || 0);
+                            const costStr = (costNum > 0) ? `&bull; ₱${costNum.toFixed(2)}` : '';
+                            const distNum = parseFloat(item.leg_distance_km || 0);
+                            const distStr = (distNum > 0) ? `&bull; ${distNum.toFixed(1)} km` : '';
+
+                            html += `
+                            <div style="display:flex; align-items:center; gap:8px; margin:${index === 0 ? '0 0 10px 18px' : '4px 0 10px 18px'};">
+                                <span style="padding:3px 10px; border-radius:100px; font-size:10.5px; font-weight:700; background:rgba(255,255,255,0.16); color:#e0f2fe; display:inline-flex; align-items:center; gap:5px; border:none !important; outline:none !important;">
+                                    <i class="fa-solid ${vIcon}" style="color:#00f2fe; font-size:10px;"></i>
+                                    <span>${vName}</span>
+                                    ${costStr ? `<span style="color:#38bdf8; font-weight:800;">${costStr}</span>` : ''}
+                                    ${distStr ? `<span style="opacity:0.8; font-size:9.5px;">${distStr}</span>` : ''}
+                                </span>
+                            </div>`;
+                        }
+
+                        html += `
+                        <div class="timeline-item ${isApproved ? 'completed' : (isPendingProof ? 'pending' : (isNextStop ? 'is-next-stop' : ''))}" style="margin-bottom: 12px;">
+                            <div class="timeline-dot"></div>
+                            <div class="timeline-content" style="padding:14px; background: rgba(255,255,255,0.12); border: none !important; outline: none !important; border-radius: 16px; display:flex; flex-direction:column; gap:10px;">
+                                <div style="display:flex; gap:12px; align-items:flex-start;">
+                                    <div class="saved-trip-spot-thumb" style="width:56px; height:56px; border-radius:14px; overflow:hidden; flex-shrink:0; background:rgba(0,0,0,0.25); position:relative; box-shadow:0 3px 10px rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.18);">
+                                        <img src="${spotImgUrl}" alt="${destEscaped}" loading="lazy" style="width:100%; height:100%; object-fit:cover; display:block;" onerror="this.onerror=null; this.src='assets/img/no_image.svg';">
+                                    </div>
+                                    <div style="flex:1; min-width:0;">
+                                        <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                                            <h4 style="margin:0; font-size:15px; font-weight:800; color:#ffffff; line-height:1.25;">${destName}</h4>
+                                            ${isNextStop ? `<span style="padding: 2px 8px; border-radius: 100px; font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: linear-gradient(135deg, #00f2fe, #0284c7); border: none !important; outline: none !important;"><i class="fa-solid fa-location-dot" style="font-size:8px;"></i> Next Stop</span>` : ''}
+                                        </div>
+                                        ${dest && (dest.municipality || dest.location) ? `
+                                            <div style="font-size:11.5px; color:rgba(255,255,255,0.8); display:flex; align-items:center; gap:4px; margin-top:3px;">
+                                                <i class="fa-solid fa-location-dot" style="color:#00f2fe; font-size:10px; flex-shrink:0;"></i>
+                                                <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${dest.municipality ? dest.municipality + ', La Union' : dest.location}</span>
+                                            </div>` : ''}
+                                    </div>
+                                </div>
+                                ${isApproved ?
+                                `<div style="display:flex; flex-direction:column; gap:8px; margin-top:4px;">
+                                    <span style="color:#34c759; font-size:12px; font-weight:800; display:inline-flex; align-items:center; gap:5px; background:rgba(52,199,89,0.18); padding:4px 10px; border-radius:100px;">
+                                        <i class="fa-solid fa-circle-check"></i> Visit Verified
+                                    </span>
+                                    ${photosStripHtml}
+                                </div>` :
+                                (isQueued ?
+                                    `<div style="display:flex; align-items:center; gap:10px; margin-top:4px;">
+                                        ${queuedThumbnailHtml}
+                                        <div>
+                                            <span style="background:rgba(245,158,11,0.25); border:none !important; outline:none !important; color:#fbbf24; font-size:11px; font-weight:800; padding:3px 10px; border-radius:100px; display:inline-flex; align-items:center; gap:4px;">
+                                                <i class="fa-solid fa-clock-rotate-left"></i> Queued for Sync (Offline)
+                                            </span>
+                                        </div>
+                                    </div>` :
+                                    (hasProof ?
+                                        `<div style="display:flex; flex-direction:column; gap:8px; margin-top:4px;">
+                                            <div>
+                                                <span style="background:rgba(255,149,0,0.22); color:#ff9f0a; font-size:11.5px; font-weight:800; padding:3px 10px; border-radius:100px; display:inline-flex; align-items:center; gap:5px;">
+                                                    <i class="fa-solid fa-hourglass-half"></i> Awaiting Approval
+                                                </span>
+                                            </div>
+                                            ${photosStripHtml}
+                                        </div>` :
+                                        `<div style="display:flex; align-items:center; gap:8px; margin-top:6px; flex-wrap:wrap;">
+                                            <button type="button" class="btn-primary" style="padding:8px 14px; font-size:11.5px; font-weight:800; border-radius:100px; background:linear-gradient(135deg, #00f2fe, #0284c7); border:none !important; outline:none !important; color:#fff; cursor:pointer; display:inline-flex; align-items:center; gap:5px;" onclick="event.stopPropagation(); if(typeof window.executeLocationCheckIn==='function') window.executeLocationCheckIn('${item.id}', '${destEscaped}', ${dest?.latitude || 'null'}, ${dest?.longitude || 'null'}, this)">
+                                                <i class="fa-solid fa-location-crosshairs"></i> Check In
+                                            </button>
+                                        </div>`))}
+                            </div>
+                        </div>`;
+                    });
+                } else {
+                    html += `<p style="font-size:13px; color:#ffffff; opacity:0.85; margin:10px 0;">No destinations in this trip.</p>`;
+                }
+
+                html += `</div></div></div>`; // Close timeline
+
+                // Action buttons
+                html += `<div style="display:flex; gap:8px; margin-top:16px; flex-wrap:wrap; align-items:center;">`;
+                html += `
+                <button class="btn-primary" style="flex:1; min-width:105px; background: rgba(255, 255, 255, 0.22); border: none !important; outline: none !important; color: #ffffff; padding: 13px 14px; border-radius: 14px; font-weight: 800; font-size: 13px; cursor: pointer; transition: all 0.25s ease;" onclick="window.toggleTripDetails('${trip.id}')">
+                    <i class="fa-solid fa-chevron-down" id="chevron-${trip.id}" style="margin-right:6px; transition:transform 0.3s ease;"></i> Details
+                </button>`;
+
+                if (trip.is_offline_queued || hasQueuedCheckins) {
+                    html += `
+                    <button type="button" class="btn-primary" id="btn-sync-${trip.id}" onclick="event.stopPropagation(); window.syncSingleOfflineTrip('${trip.id}', this)" style="flex:1; min-width:115px; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border: none !important; outline: none !important; color: #ffffff; padding: 13px 14px; border-radius: 14px; font-weight: 800; font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35);">
+                        <i class="fa-solid fa-cloud-arrow-up"></i> Sync Now
+                    </button>`;
+                }
+
+                html += `<div class="start-collapsible" id="start-wrapper-${trip.id}" style="flex:1.2; min-width:120px;">`;
+                if (isTripCompleted) {
+                    html += `
+                    <button class="btn-primary" style="width:100%; white-space:nowrap; background: rgba(16,185,129,0.25); border: none !important; outline: none !important; color: #ffffff; padding: 13px 14px; border-radius: 14px; font-weight: 800; font-size: 13px; cursor: default;" disabled>
+                        <i class="fa-solid fa-circle-check" style="margin-right:6px; color:#34c759;"></i> Completed
+                    </button>`;
+                } else if (unvisitedCount === 0 && trip.items && trip.items.length > 0) {
+                    html += `
+                    <button class="btn-primary" id="btn-complete-trip-${trip.id}" style="width:100%; white-space:nowrap; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none !important; outline: none !important; color: #fff; padding: 13px 14px; border-radius: 14px; font-weight: 800; font-size: 13px; box-shadow: none; cursor: pointer;" onclick="window.markTripCompleted('${trip.id}')">
+                        <i class="fa-solid fa-flag-checkered" style="margin-right:6px;"></i> Complete
+                    </button>`;
+                } else {
+                    html += `
+                    <button type="button" class="btn-primary" style="width:100%; white-space:nowrap; background: linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); border: none !important; outline: none !important; color: #fff; padding: 13px 14px; border-radius: 14px; font-weight: 800; font-size: 13px; box-shadow: none; cursor: pointer;" onclick="event.stopPropagation(); window.startTrip('${trip.id}', this)">
+                        <i class="fa-solid fa-play" style="margin-right:6px;"></i> Start Trip
+                    </button>`;
+                }
+                html += `</div>`; // Close start-collapsible
+                html += `</div>`; // Close action buttons flex
+                html += `</div></div>`; // Close swipe
+            } catch (tripErr) {
+                console.error("Error rendering saved trip item:", tripErr, trip);
+            }
+        });
+
+        list.innerHTML = html || emptyStateHtml;
+        if (typeof window.initSavedTripsSwipe === 'function') {
+            window.initSavedTripsSwipe();
+        }
+
+        if (justSavedId) {
+            sessionStorage.removeItem('just_saved_trip_id');
+            setTimeout(() => {
+                const savedContainer = document.querySelector(`.trip-swipe-container[data-trip-id="${justSavedId}"]`);
+                if (savedContainer) {
+                    if (typeof window.toggleTripDetails === 'function') window.toggleTripDetails(justSavedId);
+                    savedContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }, 80);
+        }
+    } catch (fatalErr) {
+        console.error("Fatal error rendering saved trips:", fatalErr);
+    }
+};
+
+window.toggleTripDetails = function (tripId) {
+    const timeline = document.getElementById('timeline-' + tripId);
+    const chevron = document.getElementById('chevron-' + tripId);
+    const startWrapper = document.getElementById('start-wrapper-' + tripId);
+
+    if (timeline && chevron) {
+        if (!timeline.classList.contains('expanded')) {
+            timeline.classList.add('expanded');
+            chevron.style.transform = 'rotate(180deg)';
+            if (startWrapper) startWrapper.classList.add('expanded');
+        } else {
+            timeline.classList.remove('expanded');
+            chevron.style.transform = 'rotate(0deg)';
+        }
+    }
+};
+
+window.startTrip = function (tripId, btnElement) {
+    if (window._isStartingTrip) return;
+    window._isStartingTrip = true;
+
+    if (btnElement) {
+        btnElement.disabled = true;
+        btnElement.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="margin-right:6px;"></i> Starting...';
+    }
+
+    let transportParam = '';
+    if (window._cachedSavedTrips) {
+        const found = window._cachedSavedTrips.find(t => t.id == tripId || t.local_id == tripId);
+        if (found) {
+            window.currentTrip = found;
+            if (found.transport_mode) {
+                sessionStorage.setItem('active_trip_transport_' + tripId, found.transport_mode);
+                localStorage.setItem('selected_trip_vehicle_' + tripId, found.transport_mode);
+                transportParam = '&transport=' + encodeURIComponent(found.transport_mode);
+            }
+        }
+    }
+
+    sessionStorage.setItem('active_trip_id', String(tripId));
+    window.currentTripId = String(tripId);
+
+    const curParams = new URLSearchParams(window.location.search);
+    const appParam = curParams.get('app') ? '&app=' + encodeURIComponent(curParams.get('app')) : '';
+
+    if (typeof showToast === 'function') showToast("Starting trip navigation...");
+
+    setTimeout(() => {
+        const target = 'trip_map&trip_id=' + encodeURIComponent(tripId) + transportParam + appParam;
+        if (typeof window.navigateTo === 'function') {
+            window.navigateTo(target);
+        } else {
+            window.location.href = '?view=trip_map&trip_id=' + encodeURIComponent(tripId) + transportParam + appParam;
+        }
+    }, 180);
+};
+
+window.initSavedTripsSwipe = function () {
+    const containers = document.querySelectorAll('.trip-swipe-container');
+    containers.forEach(container => {
+        if (container.dataset.swipeInitialized === 'true') return;
+        container.dataset.swipeInitialized = 'true';
+
+        const content = container.querySelector('.trip-swipe-content');
+        const bg = container.querySelector('.trip-swipe-bg');
+        if (!content) return;
+
+        let startX = 0, startY = 0, currentX = 0, currentY = 0;
+        let isSwiping = false, isHorizontalSwipe = false, isGestureDetermined = false;
+        let isOpen = false;
+        const tripId = container.dataset.tripId;
+        const tripTitle = container.dataset.tripTitle;
+
+        const openSwipe = () => {
+            isOpen = true;
+            content.style.transition = 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)';
+            content.style.transform = 'translateX(-95px)';
+            if (bg) {
+                bg.style.transition = 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease';
+                bg.style.width = '95px';
+                bg.style.opacity = '1';
+                bg.style.pointerEvents = 'auto';
+                bg.style.transform = 'translateX(0px)';
+                bg.style.zIndex = '10';
+            }
+        };
+
+        const closeSwipe = () => {
+            isOpen = false;
+            content.style.transition = 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)';
+            content.style.transform = 'translateX(0px)';
+            if (bg) {
+                bg.style.transition = 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease';
+                bg.style.width = '95px';
+                bg.style.opacity = '0';
+                bg.style.pointerEvents = 'none';
+                bg.style.transform = 'translateX(95px)';
+                bg.style.zIndex = '1';
+            }
+        };
+
+        const handleStart = (clientX, clientY, target) => {
+            if (target && target.closest('button, .btn-edit-saved-trip, a, input, select, textarea, .start-collapsible, .timeline-collapsible button')) {
+                return;
+            }
+            if (target && target.closest('.trip-swipe-bg')) {
+                return;
+            }
+
+            startX = clientX;
+            startY = clientY;
+            currentX = startX;
+            currentY = startY;
+            isSwiping = true;
+            isHorizontalSwipe = false;
+            isGestureDetermined = false;
+            content.style.transition = 'none';
+            if (bg) bg.style.transition = 'none';
+        };
+
+        const handleMove = (clientX, clientY) => {
+            if (!isSwiping) return;
+            currentX = clientX;
+            currentY = clientY;
+
+            const diffX = startX - currentX;
+            const diffY = startY - currentY;
+
+            if (!isGestureDetermined) {
+                if (Math.abs(diffX) > 7 || Math.abs(diffY) > 7) {
+                    isGestureDetermined = true;
+                    if (Math.abs(diffX) > Math.abs(diffY)) {
+                        isHorizontalSwipe = true;
+                    } else {
+                        isHorizontalSwipe = false;
+                        isSwiping = false;
+                        return;
+                    }
+                } else {
+                    return;
+                }
+            }
+
+            if (!isHorizontalSwipe) return;
+
+            const baseOffset = isOpen ? 95 : 0;
+            const effectiveDiff = diffX + baseOffset;
+
+            if (effectiveDiff > 0) {
+                const cardWidth = container.offsetWidth || 340;
+                const dragAmount = Math.min(effectiveDiff, cardWidth * 0.85);
+                content.style.transform = `translateX(-${dragAmount}px)`;
+                if (bg) {
+                    bg.style.opacity = '1';
+                    bg.style.pointerEvents = 'auto';
+                    bg.style.zIndex = '10';
+                    if (dragAmount > 95) {
+                        bg.style.width = `${dragAmount}px`;
+                        bg.style.transform = 'translateX(0px)';
+                    } else {
+                        bg.style.width = '95px';
+                        bg.style.transform = `translateX(${95 - dragAmount}px)`;
+                    }
+                }
+            } else {
+                content.style.transform = 'translateX(0px)';
+                if (bg) {
+                    bg.style.width = '95px';
+                    bg.style.opacity = '0';
+                    bg.style.pointerEvents = 'none';
+                    bg.style.transform = 'translateX(95px)';
+                    bg.style.zIndex = '1';
+                }
+            }
+        };
+
+        const handleEnd = () => {
+            if (!isSwiping) return;
+            isSwiping = false;
+
+            const diffX = startX - currentX;
+            const baseOffset = isOpen ? 95 : 0;
+            const effectiveDiff = diffX + baseOffset;
+            const cardWidth = container.offsetWidth || 340;
+
+            if (effectiveDiff > 130 || effectiveDiff > cardWidth * 0.38) {
+                content.style.transition = 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)';
+                content.style.transform = 'translateX(-100px)';
+                if (bg) {
+                    bg.style.transition = 'transform 0.25s ease, opacity 0.25s ease';
+                    bg.style.width = '100px';
+                    bg.style.transform = 'translateX(0px)';
+                    bg.style.opacity = '1';
+                    bg.style.pointerEvents = 'auto';
+                    bg.style.zIndex = '10';
+                }
+                isOpen = true;
+                if (typeof window.confirmDeleteSavedTrip === 'function') {
+                    window.confirmDeleteSavedTrip(tripId, container, tripTitle);
+                }
+            } else if (effectiveDiff > 35) {
+                openSwipe();
+            } else {
+                closeSwipe();
+            }
+
+            startX = 0; startY = 0; currentX = 0; currentY = 0;
+            isHorizontalSwipe = false; isGestureDetermined = false;
+        };
+
+        const handleCancel = () => {
+            if (!isSwiping) return;
+            isSwiping = false;
+            if (isOpen) openSwipe(); else closeSwipe();
+        };
+
+        content.addEventListener('touchstart', (e) => {
+            if (e.touches && e.touches.length === 1) {
+                handleStart(e.touches[0].clientX, e.touches[0].clientY, e.target);
+            }
+        }, { passive: true });
+
+        content.addEventListener('touchmove', (e) => {
+            if (e.touches && e.touches.length === 1) {
+                handleMove(e.touches[0].clientX, e.touches[0].clientY);
+            }
+        }, { passive: true });
+
+        content.addEventListener('touchend', handleEnd, { passive: true });
+        content.addEventListener('touchcancel', handleCancel, { passive: true });
+
+        content.addEventListener('mousedown', (e) => handleStart(e.clientX, e.clientY, e.target));
+        window.addEventListener('mousemove', (e) => { if (isSwiping) handleMove(e.clientX, e.clientY); });
+        window.addEventListener('mouseup', () => { if (isSwiping) handleEnd(); });
+    });
+};
+
+window.confirmDeleteSavedTrip = function (id, container, title) {
+    window._pendingDeleteTripId = id;
+    window._pendingDeleteTripContainer = container || (id ? document.querySelector(`.trip-swipe-container[data-trip-id="${id}"]`) : null);
+    window._pendingDeleteTripTitle = title || container?.dataset?.tripTitle || '';
+
+    let modal = document.getElementById('delete-trip-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'delete-trip-modal';
+        modal.style.cssText = 'display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.75); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); z-index:999999; justify-content:center; align-items:center;';
+        modal.innerHTML = `
+            <div style="background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border:none; outline:none; border-radius:24px; padding:28px 24px; width:90%; max-width:360px; box-shadow:0 16px 40px rgba(10, 25, 60, 0.45); text-align:center;">
+                <i class="fa-solid fa-trash-can" style="font-size:32px; color:#ffffff; margin-bottom:10px; display:block;"></i>
+                <h3 style="margin:0 0 8px; color:#ffffff; font-size:20px; font-weight:800;">Delete Saved Trip?</h3>
+                <p id="delete-trip-title-text" style="font-size:13px; color:rgba(255,255,255,0.95); margin-bottom:22px; line-height:1.5;">Are you sure you want to delete this trip?</p>
+                <div style="display:flex; gap:10px;">
+                    <button type="button" style="flex:1; padding:13px; border-radius:14px; border:none; outline:none; background:rgba(255,255,255,0.22); color:#ffffff; font-size:13px; font-weight:700; cursor:pointer;" onclick="window.closeDeleteTripModal()">Cancel</button>
+                    <button type="button" id="btn-confirm-delete-trip" style="flex:1; padding:13px; font-size:14px; font-weight:800; background:#ef4444; border:none; outline:none; color:#ffffff; border-radius:14px; cursor:pointer;" onclick="window.executeConfirmDeleteTrip()">Delete</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    }
+    const textEl = document.getElementById('delete-trip-title-text');
+    if (textEl) {
+        const displayTitle = window._pendingDeleteTripTitle || 'this trip';
+        textEl.textContent = `Are you sure you want to delete "${displayTitle}"? All saved itinerary items will be removed.`;
+    }
+    modal.style.display = 'flex';
+};
+
+window.closeDeleteTripModal = function () {
+    const modal = document.getElementById('delete-trip-modal');
+    if (modal) modal.style.display = 'none';
+
+    const container = window._pendingDeleteTripContainer || (window._pendingDeleteTripId ? document.querySelector(`.trip-swipe-container[data-trip-id="${window._pendingDeleteTripId}"]`) : null);
+    if (container) {
+        const content = container.querySelector('.trip-swipe-content');
+        const bg = container.querySelector('.trip-swipe-bg');
+        if (content) {
+            content.style.transition = 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)';
+            content.style.transform = 'translateX(0px)';
+        }
+        if (bg) {
+            bg.style.transition = 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease';
+            bg.style.width = '95px';
+            bg.style.opacity = '0';
+            bg.style.pointerEvents = 'none';
+            bg.style.transform = 'translateX(95px)';
+            bg.style.zIndex = '1';
+        }
+    }
+
+    window._pendingDeleteTripId = null;
+    window._pendingDeleteTripContainer = null;
+    window._pendingDeleteTripTitle = null;
+};
+
+window.executeConfirmDeleteTrip = async function () {
+    const id = window._pendingDeleteTripId;
+    let element = window._pendingDeleteTripContainer || (id ? document.querySelector(`.trip-swipe-container[data-trip-id="${id}"]`) : null);
+    const deletedTitle = window._pendingDeleteTripTitle || '';
+    window.closeDeleteTripModal();
+
+    if (!id) return;
+
+    if (typeof window.markTripAsDeleted === 'function') {
+        window.markTripAsDeleted(id);
+    }
+
+    const pruneTripFromLocalCaches = (tripId) => {
+        if (!tripId) return;
+        const targetStr = String(tripId).trim();
+        const filterOut = (list) => {
+            if (!Array.isArray(list)) return [];
+            return list.filter(t => {
+                if (!t) return false;
+                if (typeof window.isTripDeleted === 'function' && window.isTripDeleted(t)) return false;
+                const idStr = String(t.id || '');
+                const tripIdStr = String(t.trip_id || '');
+                const localIdStr = String(t.local_id || '');
+                const updateIdStr = String(t.update_id || '');
+                if (idStr === targetStr || tripIdStr === targetStr || localIdStr === targetStr || updateIdStr === targetStr) return false;
+                return true;
+            });
+        };
+
+        ['intan_elyu_offline_saved_trips', 'intan_elyu_offline_saved_trips_backup', 'intan_elyu_saved_trips'].forEach(k => {
+            try {
+                const raw = localStorage.getItem(k);
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    if (Array.isArray(parsed)) {
+                        localStorage.setItem(k, JSON.stringify(filterOut(parsed)));
+                    } else if (parsed && Array.isArray(parsed.itineraries)) {
+                        parsed.itineraries = filterOut(parsed.itineraries);
+                        localStorage.setItem(k, JSON.stringify(parsed));
+                    }
+                }
+            } catch (e) { }
+        });
+
+        if (window.OfflineTripManager && typeof window.OfflineTripManager.removeQueuedTrip === 'function') {
+            try { window.OfflineTripManager.removeQueuedTrip(tripId); } catch(e) {}
+        }
+
+        try {
+            for (let i = localStorage.length - 1; i >= 0; i--) {
+                const k = localStorage.key(i);
+                if (k && (k.startsWith('saved_trips_') || k.startsWith('dashboard_trips_') || k.startsWith('dashboard_saved_trips_'))) {
+                    localStorage.removeItem(k);
+                }
+            }
+        } catch(e) {}
+
+        if (Array.isArray(window._cachedSavedTrips)) {
+            window._cachedSavedTrips = filterOut(window._cachedSavedTrips);
+        }
+    };
+
+    pruneTripFromLocalCaches(id);
+
+    if (element) {
+        element.style.transition = 'opacity 0.25s ease, transform 0.25s ease, max-height 0.35s ease, margin 0.35s ease';
+        element.style.opacity = '0';
+        element.style.transform = 'translateX(-100%) scale(0.9)';
+        setTimeout(() => {
+            element.remove();
+            const list = document.getElementById('saved-trips-list');
+            if (list && list.querySelectorAll('.trip-swipe-container').length === 0) {
+                if (typeof window.renderSavedTrips === 'function') window.renderSavedTrips([]);
+            }
+        }, 300);
+    }
+
+    if (typeof showToast === 'function') showToast("Trip deleted.");
+
+    const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+    if (navigator.onLine && token && !String(id).startsWith('offline_')) {
+        try {
+            const bUrl = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
+            fetch(`${bUrl}/api/tourist/itineraries/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': 'Bearer ' + token,
+                    'Accept': 'application/json',
+                    'ngrok-skip-browser-warning': 'true'
+                }
+            }).catch(() => {});
+        } catch(e) {}
+    }
+};
+
+window.editSavedTrip = function (tripId) {
+    let trip = (window._cachedSavedTrips || []).find(t => String(t.id) === String(tripId));
+    if (!trip) {
+        const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+        if (token) {
+            try {
+                const rawCached = localStorage.getItem('saved_trips_' + token.substring(0, 10));
+                if (rawCached) {
+                    const parsed = JSON.parse(rawCached);
+                    const list = parsed && parsed.data ? parsed.data : parsed;
+                    if (Array.isArray(list)) trip = list.find(t => String(t.id) === String(tripId));
+                }
+            } catch (e) { }
+        }
+    }
+    if (!trip) {
+        if (typeof showToast === 'function') showToast("Could not load trip details for editing.");
+        return;
+    }
+
+    sessionStorage.setItem('editing_itinerary_id', trip.id);
+    sessionStorage.setItem('editing_trip_title', trip.title || '');
+    sessionStorage.setItem('editing_trip_date', trip.trip_date || '');
+    sessionStorage.setItem('editing_trip_budget', (trip.budget !== null && trip.budget !== undefined) ? trip.budget : '');
+    sessionStorage.setItem('editing_trip_transport', trip.transport_mode || '');
+    sessionStorage.setItem('editing_trip_type', trip.trip_type || 'solo');
+    sessionStorage.setItem('editing_companion_males', String(trip.companion_males || 0));
+    sessionStorage.setItem('editing_companion_females', String(trip.companion_females || 0));
+    sessionStorage.setItem('editing_total_pax', String(trip.total_pax || 1));
+    if (trip.transport_mode) {
+        localStorage.setItem('intan_elyu_draft_trip_transport', trip.transport_mode);
+        const rawModes = trip.transport_mode.split(/[\+,]/).map(s => s.trim().toLowerCase()).filter(Boolean);
+        localStorage.setItem('intan_elyu_draft_trip_transports', JSON.stringify(rawModes.length > 0 ? rawModes : [trip.transport_mode]));
+    }
+
+    const sortedTripItems = [...(trip.items || [])].sort((a, b) => (a.order_index || 0) - (b.order_index || 0));
+    const spots = sortedTripItems.map(i => {
+        let dest = i.destination || (typeof window.getTouristSpotById === 'function' ? window.getTouristSpotById(i.tourist_spot_id || i.destination_id) : null);
+        if (!dest && (i.name || i.title)) dest = i;
+        if (dest) {
+            const spotId = i.tourist_spot_id || i.destination_id || (dest ? (dest.tourist_spot_id || dest.id) : null);
+            return {
+                ...dest,
+                id: spotId,
+                tourist_spot_id: spotId,
+                itinerary_item_id: i.id
+            };
+        }
+        return null;
+    }).filter(Boolean);
+
+    localStorage.setItem('intan_elyu_draft_itinerary', JSON.stringify(spots));
+
+    if (typeof window.navigateTo === 'function') {
+        window.navigateTo('itinerary');
+    } else {
+        window.location.href = '?view=itinerary';
+    }
+};
+
+window.syncSingleOfflineTrip = async function (tripId, btnElement) {
+    if (!navigator.onLine || window.isAppOnline === false) {
+        if (typeof showToast === 'function') {
+            showToast("You are currently offline. Connect to the internet to sync to cloud.", "warning", 3500);
+        }
+        return;
+    }
+
+    let origHtml = '';
+    if (btnElement) {
+        origHtml = btnElement.innerHTML;
+        btnElement.disabled = true;
+        btnElement.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="margin-right:6px;"></i> Syncing...';
+    }
+
+    try {
+        let syncedAny = false;
+        if (window.OfflineTripManager && typeof window.OfflineTripManager.syncSingleTrip === 'function') {
+            const ok = await window.OfflineTripManager.syncSingleTrip(tripId);
+            if (ok) syncedAny = true;
+        }
+        if (window.OfflineCheckinManager && typeof window.OfflineCheckinManager.processQueue === 'function') {
+            const chkCount = await window.OfflineCheckinManager.processQueue();
+            if (chkCount && chkCount > 0) syncedAny = true;
+        }
+        if (typeof showToast === 'function') {
+            showToast(syncedAny ? "Trip data successfully synced to cloud!" : "Trip is up to date with cloud!", "success", 4000);
+        }
+        window.dispatchEvent(new CustomEvent('tripsSynced'));
+        if (typeof window.fetchSavedTrips === 'function') {
+            await window.fetchSavedTrips(true);
+        }
+    } catch (err) {
+        console.error("Manual trip sync failed:", err);
+        if (typeof showToast === 'function') {
+            showToast("Could not sync trip. Please check your internet connection.", "error", 4000);
+        }
+    } finally {
+        if (btnElement) {
+            btnElement.disabled = false;
+            btnElement.innerHTML = origHtml || '<i class="fa-solid fa-cloud-arrow-up"></i> Sync Now';
+        }
+    }
+};
+
 /**
  * Format destination visitor counts consistently across the application.
  * If visits < 100, display 'Less than 100 this month'.
@@ -2802,6 +4156,143 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                     </div>
                 </div>
             </div>
+            <!-- Dedicated Multi-Photo Proof Upload Modal -->
+            <div id="proof-upload-modal" onclick="if(event.target===this) window.closeProofUploadModal();"
+                style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(10,25,60,0.72); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); z-index:99999; justify-content:center; align-items:center; padding:16px; box-sizing:border-box;">
+                <div style="background:#ffffff; border:none; outline:none; border-radius:26px; width:100%; max-width:420px; box-shadow:0 20px 50px rgba(0,0,0,0.35); text-align:center; max-height:90vh; overflow:hidden; display:flex; flex-direction:column; box-sizing:border-box;">
+                    <div style="flex-shrink:0; background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%); padding:18px 20px; display:flex; justify-content:space-between; align-items:center; border-top-left-radius:26px; border-top-right-radius:26px; box-sizing:border-box;">
+                        <div style="text-align:left;">
+                            <h3 id="proof-spot-title" style="margin:0; color:#ffffff; font-size:18px; font-weight:800; display:flex; align-items:center; gap:8px;">
+                                <i class="fa-solid fa-camera" style="color:#38bdf8; font-size:17px;"></i> Upload Photo Proof
+                            </h3>
+                            <span id="proof-spot-subtitle" style="font-size:12px; color:rgba(255,255,255,0.85); font-weight:600; display:block; margin-top:3px;">Select up to 5 photos</span>
+                        </div>
+                        <button type="button" onclick="window.closeProofUploadModal()"
+                            style="background:rgba(255,255,255,0.18); border:none; outline:none; color:#ffffff; width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; transition:all 0.15s ease;">
+                            <i class="fa-solid fa-xmark" style="font-size:15px;"></i>
+                        </button>
+                    </div>
+                    <div style="background:#ffffff !important; padding:20px; flex:1; overflow-y:auto; text-align:left; box-sizing:border-box;">
+                        <p style="font-size:13px; color:#475569; margin:0 0 16px 0; line-height:1.5; font-weight:500;">
+                            Take or select selfies and photos at this destination to verify your visit.
+                        </p>
+                        <input type="hidden" id="proof-upload-item-id">
+                        <input type="file" id="proof-upload-input" accept="image/*" multiple style="display:none;" onchange="window.handleProofPhotosSelected(this)">
+                        <div style="display:flex; gap:10px; margin-bottom:16px;">
+                            <button type="button" onclick="window.addProofPhotoFromSource('camera')"
+                                style="flex:1; padding:12px 10px; background:linear-gradient(135deg, #0284c7 0%, #0369a1 100%); border:none; outline:none; border-radius:14px; color:#ffffff; font-weight:800; font-size:13px; display:flex; align-items:center; justify-content:center; gap:7px; cursor:pointer; box-shadow:0 3px 10px rgba(2, 132, 199, 0.28);">
+                                <i class="fa-solid fa-camera" style="font-size:15px;"></i> Take Photo
+                            </button>
+                            <button type="button" onclick="window.addProofPhotoFromSource('gallery')"
+                                style="flex:1; padding:12px 10px; background:#f1f5f9; border:1.5px solid #e2e8f0; outline:none; border-radius:14px; color:#1e3a8a; font-weight:800; font-size:13px; display:flex; align-items:center; justify-content:center; gap:7px; cursor:pointer;">
+                                <i class="fa-solid fa-images" style="color:#0284c7; font-size:15px;"></i> Add from Gallery
+                            </button>
+                        </div>
+                        <div style="margin-bottom:8px;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                                <label style="font-size:11.5px; font-weight:800; color:#334155; text-transform:uppercase; letter-spacing:0.5px;">Selected Photos</label>
+                                <span id="proof-count-badge" style="font-size:11.5px; font-weight:800; color:#0284c7; background:#e0f2fe; padding:3px 10px; border-radius:100px;">0 / 5 photos</span>
+                            </div>
+                            <div id="proof-empty-prompt" onclick="window.addProofPhotoFromSource('gallery')"
+                                style="border:2px dashed #94a3b8; border-radius:16px; padding:24px 16px; text-align:center; cursor:pointer; background:#f8fafc; transition:all 0.2s ease;">
+                                <i class="fa-solid fa-cloud-arrow-up" style="font-size:28px; color:#0284c7; margin-bottom:6px; display:block;"></i>
+                                <p style="margin:0; font-size:13px; font-weight:800; color:#1e293b;">Tap to select photos</p>
+                                <p style="margin:4px 0 0 0; font-size:11.5px; color:#64748b; font-weight:500;">You can choose multiple photos</p>
+                            </div>
+                            <div id="proof-thumbnails-grid" style="display:none; grid-template-columns:repeat(3, 1fr); gap:10px;"></div>
+                        </div>
+                    </div>
+                    <div style="flex-shrink:0; background:#f8fafc; border-top:1px solid #e2e8f0; padding:16px 20px; border-bottom-left-radius:26px; border-bottom-right-radius:26px; box-sizing:border-box;">
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; align-items:center;">
+                            <button type="button" style="width:100%; padding:13px 16px; border-radius:14px; border:1.5px solid #cbd5e1; outline:none; background:#ffffff; color:#475569; font-size:14px; font-weight:800; cursor:pointer;" onclick="window.closeProofUploadModal()">Cancel</button>
+                            <button type="button" id="btn-submit-proof-photos" class="btn-primary" style="width:100%; padding:13px 16px; font-size:14px; font-weight:800; background:linear-gradient(135deg, #10b981 0%, #059669 100%); border:none; outline:none; color:#ffffff; border-radius:14px; cursor:pointer; box-shadow:0 4px 14px rgba(16, 185, 129, 0.35);" onclick="window.submitProofPhotos()">
+                                <i class="fa-solid fa-cloud-arrow-up" style="margin-right:6px;"></i> Submit
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Complete Trip Confirmation Modal -->
+            <div id="complete-trip-modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.75); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); z-index:999999; justify-content:center; align-items:center;">
+                <div style="background:linear-gradient(135deg, rgba(30, 58, 138, 0.98) 0%, rgba(63, 125, 183, 0.96) 60%, rgba(2, 132, 199, 0.96) 100%); border:none; outline:none; border-radius:24px; padding:28px 24px; width:90%; max-width:360px; box-shadow:0 16px 40px rgba(10, 25, 60, 0.45); text-align:center;">
+                    <i class="fa-solid fa-flag-checkered" style="font-size:32px; color:#34c759; margin-bottom:10px; display:block;"></i>
+                    <h3 style="margin:0 0 8px; color:#ffffff; font-size:20px; font-weight:800;">Complete Trip?</h3>
+                    <p style="font-size:13px; color:#ffffff; opacity:0.95; margin-bottom:22px; line-height:1.5;">Are you sure you want to mark this trip as completed? It will be moved to your History.</p>
+                    <div style="display:flex; gap:10px;">
+                        <button type="button" style="flex:1; padding:13px; border-radius:14px; border:none; outline:none; background:rgba(255,255,255,0.12); color:#ffffff; font-size:13px; font-weight:700; cursor:pointer;" onclick="window.closeCompleteTripModal()">Cancel</button>
+                        <button type="button" id="btn-confirm-complete-trip" style="flex:1; padding:13px; font-size:14px; font-weight:800; background:linear-gradient(135deg, #10b981 0%, #059669 100%); border:none; outline:none; color:#ffffff; border-radius:14px; box-shadow:none; cursor:pointer;" onclick="window.executeConfirmCompleteTrip()">Complete</button>
+                    </div>
+                </div>
+            </div>
+            <!-- Delete Trip Confirmation Modal -->
+            <div id="delete-trip-modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.75); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); z-index:999999; justify-content:center; align-items:center;">
+                <div style="background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border:none; outline:none; border-radius:24px; padding:28px 24px; width:90%; max-width:360px; box-shadow:0 16px 40px rgba(10, 25, 60, 0.45); text-align:center;">
+                    <i class="fa-solid fa-trash-can" style="font-size:32px; color:#ffffff; margin-bottom:10px; display:block;"></i>
+                    <h3 style="margin:0 0 8px; color:#ffffff; font-size:20px; font-weight:800;">Delete Saved Trip?</h3>
+                    <p id="delete-trip-title-text" style="font-size:13px; color:rgba(255,255,255,0.95); margin-bottom:22px; line-height:1.5;">Are you sure you want to delete this trip? All saved itinerary items will be removed.</p>
+                    <div style="display:flex; gap:10px;">
+                        <button type="button" style="flex:1; padding:13px; border-radius:14px; border:none; outline:none; background:rgba(255,255,255,0.22); color:#ffffff; font-size:13px; font-weight:700; cursor:pointer; touch-action:manipulation; pointer-events:auto !important;" onclick="window.closeDeleteTripModal()">Cancel</button>
+                        <button type="button" id="btn-confirm-delete-trip" style="flex:1; padding:13px; font-size:14px; font-weight:800; background:#ef4444; border:none; outline:none; color:#ffffff; border-radius:14px; box-shadow:none; cursor:pointer; touch-action:manipulation; pointer-events:auto !important;" onclick="window.executeConfirmDeleteTrip()">Delete</button>
+                    </div>
+                </div>
+            </div>
+            <!-- Edit Trip Modal -->
+            <div id="edit-trip-details-modal" onclick="if(event.target === this) window.closeEditTripDetailsModal();" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(10,25,60,0.55); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); z-index:9999999; justify-content:center; align-items:center; padding:16px; box-sizing:border-box; pointer-events:auto !important; touch-action:manipulation;">
+                <div onclick="event.stopPropagation();" style="background:#ffffff !important; border:none !important; outline:none !important; border-radius:22px; width:100%; max-width:390px; max-height:86dvh; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 16px 40px rgba(10,25,60,0.45) !important; pointer-events:auto !important; touch-action:manipulation;" class="hide-scrollbar">
+                    <div style="background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%) !important; padding:14px 16px; color:#ffffff; flex-shrink:0; display:flex; align-items:center; justify-content:space-between; border:none !important;">
+                        <h3 style="margin:0; color:#ffffff; font-size:16px; font-weight:800; letter-spacing:-0.3px;">Edit Trip</h3>
+                        <button type="button" onclick="window.closeEditTripDetailsModal()" style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 8px rgba(0,0,0,0.18) !important; flex-shrink:0; transition:transform 0.15s ease; touch-action:manipulation;">
+                            <i class="fa-solid fa-xmark" style="color:#1e3a8a !important; font-size:14px;"></i>
+                        </button>
+                    </div>
+                    <input type="hidden" id="quick-edit-trip-id" value="">
+                    <div style="background:#ffffff !important; color:#0f172a; padding:16px; flex:1; min-height:0; overflow-y:auto; display:flex; flex-direction:column; box-sizing:border-box; pointer-events:auto !important;" class="hide-scrollbar">
+                        <label style="font-size:12.5px; font-weight:700; color:#1e293b; margin-bottom:6px; display:block;">Trip Name</label>
+                        <input type="text" id="quick-edit-trip-title" placeholder="Trip Title" style="width:100%; padding:12px 14px; border-radius:14px; border:1.5px solid #e2e8f0 !important; outline:none !important; background:#f8fafc; color:#0f172a; margin-bottom:14px; font-family:inherit; font-size:14px; font-weight:600; box-sizing:border-box;">
+                        <label style="font-size:12.5px; font-weight:700; color:#1e293b; margin-bottom:6px; display:block;">Trip Date</label>
+                        <input type="date" id="quick-edit-trip-date" style="width:100%; padding:12px 14px; border-radius:14px; border:1.5px solid #e2e8f0 !important; outline:none !important; background:#f8fafc; color:#0f172a; margin-bottom:14px; font-family:inherit; font-size:14px; font-weight:600; box-sizing:border-box;">
+                        <label style="font-size:12.5px; font-weight:700; color:#1e293b; margin-bottom:8px; display:block;">Travel Companions</label>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px;">
+                            <label id="quick-edit-opt-solo" onclick="window.setQuickEditTripType('solo')" style="display:flex; align-items:center; gap:8px; padding:11px 14px; border-radius:14px; background:#eff6ff; border:1.5px solid #2563eb; cursor:pointer;">
+                                <input type="radio" name="quick_edit_companion_type" id="quick-edit-radio-solo" value="solo" checked style="accent-color:#2563eb; cursor:pointer; width:17px; height:17px;">
+                                <span style="color:#1e3a8a; font-size:13px; font-weight:800;">Solo Trip</span>
+                            </label>
+                            <label id="quick-edit-opt-group" onclick="window.setQuickEditTripType('group')" style="display:flex; align-items:center; gap:8px; padding:11px 14px; border-radius:14px; background:#f8fafc; border:1.5px solid #e2e8f0; cursor:pointer;">
+                                <input type="radio" name="quick_edit_companion_type" id="quick-edit-radio-group" value="group" style="accent-color:#2563eb; cursor:pointer; width:17px; height:17px;">
+                                <span style="color:#64748b; font-size:13px; font-weight:800;">With Companions</span>
+                            </label>
+                        </div>
+                        <input type="hidden" id="quick-edit-trip-type" value="solo">
+                        <div id="quick-edit-companion-box" style="display:none; background:#f8fafc; border:1px solid #e2e8f0; border-radius:16px; padding:14px; margin-bottom:14px;">
+                            <div style="font-size:12px; color:#475569; font-weight:700; margin-bottom:12px;">Additional Travelers:</div>
+                            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+                                <span style="font-size:13px; font-weight:700; color:#1e293b;">Male</span>
+                                <div style="display:flex; align-items:center; gap:8px;">
+                                    <button type="button" onclick="window.adjustQuickEditCompanions('males', -1)" style="width:32px; height:32px; border-radius:50%; background:#334155; border:none; outline:none; color:#ffffff; font-size:15px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center;">−</button>
+                                    <span id="quick-edit-males-count" style="font-size:15px; font-weight:800; color:#0f172a; min-width:24px; text-align:center;">0</span>
+                                    <button type="button" onclick="window.adjustQuickEditCompanions('males', 1)" style="width:32px; height:32px; border-radius:50%; background:#0284c7; border:none; outline:none; color:#ffffff; font-size:15px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center;">+</button>
+                                </div>
+                            </div>
+                            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+                                <span style="font-size:13px; font-weight:700; color:#1e293b;">Female</span>
+                                <div style="display:flex; align-items:center; gap:8px;">
+                                    <button type="button" onclick="window.adjustQuickEditCompanions('females', -1)" style="width:32px; height:32px; border-radius:50%; background:#334155; border:none; outline:none; color:#ffffff; font-size:15px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center;">−</button>
+                                    <span id="quick-edit-females-count" style="font-size:15px; font-weight:800; color:#0f172a; min-width:24px; text-align:center;">0</span>
+                                    <button type="button" onclick="window.adjustQuickEditCompanions('females', 1)" style="width:32px; height:32px; border-radius:50%; background:#db2777; border:none; outline:none; color:#ffffff; font-size:15px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center;">+</button>
+                                </div>
+                            </div>
+                            <div style="padding-top:10px; border-top:1px solid #e2e8f0; font-size:11.5px; color:#64748b; display:flex; align-items:center; justify-content:space-between;">
+                                <span>Total Party Size:</span>
+                                <span id="quick-edit-party-summary" style="color:#0284c7; font-weight:800;">1 Pax (Solo)</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%) !important; padding:12px 16px max(12px, env(safe-area-inset-bottom)) 16px; flex-shrink:0; display:flex; flex-direction:row; gap:10px; align-items:center; justify-content:space-between;">
+                        <button type="button" onclick="window.openPlannerFromQuickEdit()" style="flex:1; height:42px; border-radius:100px; border:1px solid rgba(255,255,255,0.28) !important; outline:none !important; background:rgba(255,255,255,0.14) !important; color:#ffffff !important; font-size:13px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center;">Edit Stops</button>
+                        <button type="button" id="btn-save-quick-edit" onclick="window.submitQuickEditTripDetails()" style="flex:1; height:42px; border-radius:100px; border:none !important; outline:none !important; background:#ffffff !important; color:#1e3a8a !important; font-size:13px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(0,0,0,0.18) !important;">Save Changes</button>
+                    </div>
+                </div>
+            </div>
             <script>
                 (function() {
                     if (typeof window.fetchSavedTrips === 'function') {
@@ -2950,6 +4441,9 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                     const _isG = !_curTok || _curTok === 'guest_token' || _curTok === 'offline_guest_token' || _curTok.indexOf('guest_') === 0 || _curTok.indexOf('offline_') === 0 || localStorage.getItem('intan_elyu_guest') === 'true' || localStorage.getItem('intan_elyu_offline_guest') === 'true';
                     const _curU = window.safeJsonParse ? window.safeJsonParse(localStorage.getItem('auth_user'), {}) : {};
                     window.updateDashboardProfileHeader(_isG, _curU);
+                }
+                if (targetView === 'saved_trips' && typeof window.fetchSavedTrips === 'function') {
+                    window.fetchSavedTrips(false);
                 }
 
                 // Post-render scroll resets on next animation frames and timeouts to guarantee top placement

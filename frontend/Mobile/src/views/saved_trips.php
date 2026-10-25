@@ -455,14 +455,12 @@ $backRoute = 'itinerary';
                 const addTrip = (t) => {
                     if (!t) return;
                     const id = String(t.id || t.local_id || t.trip_id || '');
-                    const sig = String(t.title || '').trim().toLowerCase() + '|' + (t.trip_date || '');
-                    if (id && !seenIds.has(id) && !seenIds.has(sig)) {
+                    if (id) {
+                        if (seenIds.has(id)) return;
                         seenIds.add(id);
-                        if (sig) seenIds.add(sig);
-                        combined.push(t);
-                    } else if (!id) {
-                        combined.push(t);
+                        if (id.startsWith('offline_edit_')) seenIds.add(id.replace('offline_edit_', ''));
                     }
+                    combined.push(t);
                 };
 
                 // A. Offline queued trips
@@ -874,13 +872,16 @@ $backRoute = 'itinerary';
                 });
 
                 const combinedTrips = [...queuedNewTrips, ...serverTrips].filter(t => !window.isTripDeleted(t));
-                // Deduplicate any trips with identical title & date so rapid clones never display
-                const seenSig = {};
+                // Deduplicate by unique trip id so duplicate store entries never double-render
+                const seenTripIds = new Set();
                 const dedupedTrips = combinedTrips.filter(t => {
                     if (!t) return false;
-                    const sig = String(t.title || '').trim().toLowerCase() + '|' + (t.trip_date || '');
-                    if (seenSig[sig]) return false;
-                    seenSig[sig] = true;
+                    const tId = String(t.id || t.local_id || t.trip_id || '');
+                    if (tId) {
+                        if (seenTripIds.has(tId)) return false;
+                        seenTripIds.add(tId);
+                        if (tId.startsWith('offline_edit_')) seenTripIds.add(tId.replace('offline_edit_', ''));
+                    }
                     return true;
                 });
                 window._cachedSavedTrips = dedupedTrips;
@@ -908,11 +909,21 @@ $backRoute = 'itinerary';
                     return;
                 }
 
-                const activeItineraries = dedupedTrips.filter(trip => trip && trip.status !== 'completed' && !(typeof window.isTripCompletedLocally === 'function' && window.isTripCompletedLocally(trip)));
+                let activeItineraries = dedupedTrips.filter(trip => trip && trip.status !== 'completed' && !(typeof window.isTripCompletedLocally === 'function' && window.isTripCompletedLocally(trip)));
 
                 if (activeItineraries.length === 0) {
                     list.innerHTML = emptyStateHtml;
                     return;
+                }
+
+                // If a trip was just saved, prioritize it at index 0 so user sees it right away
+                const justSavedId = sessionStorage.getItem('just_saved_trip_id');
+                if (justSavedId) {
+                    const matchIdx = activeItineraries.findIndex(t => t && (String(t.id) === String(justSavedId) || String(t.local_id) === String(justSavedId)));
+                    if (matchIdx > 0) {
+                        const savedItem = activeItineraries.splice(matchIdx, 1)[0];
+                        activeItineraries.unshift(savedItem);
+                    }
                 }
 
                 // Silent signature check: prevent DOM rebuild and flicker if data has not changed
@@ -921,7 +932,8 @@ $backRoute = 'itinerary';
                     (t.items || []).map(i => [i.id, i.proof_status, i.is_visited, i.is_location_verified, i.proof_image, (i.proof_images || []).length])
                 ]));
 
-                if (window._lastRenderedTripsSig === currentRenderSig && list.children.length > 0) {
+                const hasExistingTripCards = list.querySelector('.trip-swipe-container') !== null;
+                if (!justSavedId && window._lastRenderedTripsSig === currentRenderSig && hasExistingTripCards) {
                     return; // Zero DOM teardown, completely silent refresh
                 }
                 window._lastRenderedTripsSig = currentRenderSig;
