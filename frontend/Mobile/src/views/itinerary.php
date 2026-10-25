@@ -3885,9 +3885,6 @@ try {
                     p2pIconEl.innerHTML = '<i class="fa-solid fa-route" style="color:#1e3a8a !important; font-size:16px;"></i>';
                 }
             }
-                    p2pIconEl.innerHTML = '<i class="fa-solid fa-car" style="color:#1e3a8a !important; font-size:16px;"></i>';
-                }
-            }
 
             // Sum Entrance Fees & Environmental Fees across all destinations in draft
             // NOTE: Sites under maintenance are closed/restricted and do NOT charge entrance or environmental fees (₱0.00).
