@@ -2517,54 +2517,66 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
     }
 
     try {
+        function isValidViewPartial(str) {
+            if (!str || typeof str !== 'string' || str.length < 30) return false;
+            // Reject full HTML outer document shells (like index.html containing app-container or DOCTYPE)
+            if (str.includes('<!DOCTYPE') || str.includes('<html') || str.includes('id="app-container"') || str.includes('id="magic-nav"')) {
+                return false;
+            }
+            return true;
+        }
+
         // In-memory and persistent disk view template cache for instantaneous and offline navigation
         window._viewHtmlCache = window._viewHtmlCache || {};
         let html = (!extraParams.size && window._viewHtmlCache[targetView]) ? window._viewHtmlCache[targetView] : null;
+        if (!isValidViewPartial(html)) {
+            html = null;
+        }
 
         if (!html && !extraParams.size) {
             try {
-                html = localStorage.getItem('elyu_view_cache_v3_' + targetView);
-                if (html) {
+                const cached = localStorage.getItem('elyu_view_cache_v3_' + targetView) || localStorage.getItem('elyu_view_cache_v2_' + targetView);
+                if (isValidViewPartial(cached)) {
+                    html = cached;
                     window._viewHtmlCache[targetView] = html;
+                } else if (cached) {
+                    localStorage.removeItem('elyu_view_cache_v3_' + targetView);
+                    localStorage.removeItem('elyu_view_cache_v2_' + targetView);
                 }
             } catch (e) {}
         }
 
-        // Always attempt network fetch for fresh view HTML, with resilient timeout
-        try {
-            let fetchUrl = `index.php?view=${encodeURIComponent(targetView)}&ajax=1&_t=${Date.now()}`;
-            extraParams.forEach((val, key) => {
-                fetchUrl += `&${encodeURIComponent(key)}=${encodeURIComponent(val)}`;
-            });
+        // Only attempt network fetch if not explicitly offline, or if view is not yet available in cache
+        if (!isNetworkOffline || !html) {
+            try {
+                let fetchUrl = `index.php?view=${encodeURIComponent(targetView)}&ajax=1&_t=${Date.now()}`;
+                extraParams.forEach((val, key) => {
+                    fetchUrl += `&${encodeURIComponent(key)}=${encodeURIComponent(val)}`;
+                });
 
-            const controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
-            const timeoutId = controller ? setTimeout(() => controller.abort(), 7000) : null;
+                const controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+                const timeoutId = controller ? setTimeout(() => controller.abort(), isNetworkOffline ? 1500 : 7000) : null;
 
-            const response = await fetch(fetchUrl, {
-                signal: controller ? controller.signal : undefined,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            });
-            if (timeoutId) clearTimeout(timeoutId);
+                const response = await fetch(fetchUrl, {
+                    signal: controller ? controller.signal : undefined,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+                if (timeoutId) clearTimeout(timeoutId);
 
-            if (response.ok) {
-                const freshHtml = await response.text();
-                if (freshHtml && freshHtml.length > 50) {
-                    html = freshHtml;
-                    if (!extraParams.size) {
-                        window._viewHtmlCache[targetView] = html;
-                        try { localStorage.setItem('elyu_view_cache_v3_' + targetView, html); } catch(e) {}
+                if (response.ok) {
+                    const freshHtml = await response.text();
+                    if (isValidViewPartial(freshHtml)) {
+                        html = freshHtml;
+                        if (!extraParams.size) {
+                            window._viewHtmlCache[targetView] = html;
+                            try { localStorage.setItem('elyu_view_cache_v3_' + targetView, html); } catch(e) {}
+                        }
                     }
                 }
-            }
-        } catch (fetchErr) {
-            console.warn(`View fetch for ${targetView} failed (using cache if available):`, fetchErr);
-            // Fall back to memory or disk cache if network fetch failed
-            if (!html) {
-                try {
-                    html = window._viewHtmlCache[targetView] || localStorage.getItem('elyu_view_cache_v3_' + targetView) || localStorage.getItem('elyu_view_cache_v2_' + targetView);
-                } catch(e) {}
+            } catch (fetchErr) {
+                console.warn(`View fetch for ${targetView} failed (using cache if available):`, fetchErr);
             }
         }
 
@@ -3764,6 +3776,43 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
     function initCurrentView() {
         // Update Magic Nav
         updateMagicNav(state.currentView);
+
+        if (state.currentView === 'dashboard') {
+            try {
+                var rawUser = localStorage.getItem('auth_user') || localStorage.getItem('intan_elyu_user');
+                if (rawUser) {
+                    var u = typeof rawUser === 'string' ? JSON.parse(rawUser) : rawUser;
+                    if (u) {
+                        var nameEl = document.getElementById('dash-name');
+                        if (nameEl && (u.name || u.full_name)) {
+                            var fName = (u.name || u.full_name).split(' ')[0];
+                            nameEl.innerHTML = 'Hi, ' + fName + '! <i class="fa-solid fa-hand" style="color:#fbbf24; font-size:18px; margin-left:4px;"></i>';
+                        }
+                        var avEl = document.getElementById('dash-avatar');
+                        if (avEl) {
+                            if (u.avatar || u.profile_picture || u.avatar_url) {
+                                avEl.src = u.avatar || u.profile_picture || u.avatar_url;
+                            } else if (u.name || u.full_name) {
+                                avEl.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(u.name || u.full_name) + '&background=007AFF&color=fff&rounded=true&bold=true&size=128';
+                            }
+                        }
+                        var ptEl = document.getElementById('dash-stat-points');
+                        if (ptEl && u.points !== undefined) {
+                            ptEl.textContent = Number(u.points).toLocaleString();
+                        }
+                        var rkEl = document.getElementById('dash-stat-rank');
+                        if (rkEl && (u.rank || u.position || u.ranking)) {
+                            rkEl.textContent = '#' + (u.rank || u.position || u.ranking);
+                        }
+                        var plEl = document.getElementById('dash-stat-places');
+                        if (plEl) {
+                            var p = (u.places_visited !== undefined) ? u.places_visited : (u.completed_activities || 0);
+                            plEl.textContent = p;
+                        }
+                    }
+                }
+            } catch(e) {}
+        }
 
         // Dispatch a custom event so individual views can listen for load
         document.dispatchEvent(new CustomEvent('viewLoaded', { detail: { view: state.currentView } }));

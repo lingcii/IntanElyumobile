@@ -221,7 +221,7 @@ public class MainActivity extends BridgeActivity {
                             // 2. Intercept Main Frame navigation when device has no internet
                             if (request.isForMainFrame()) {
                                 String urlStr = uri.toString();
-                                if (!isNetworkAvailable() || urlStr.contains("offline=true") || urlStr.contains("local-portal")) {
+                                if (!urlStr.contains("ajax=") && (!isNetworkAvailable() || urlStr.contains("offline=true") || urlStr.contains("local-portal"))) {
                                     try {
                                         InputStream is = getAssets().open("public/index.html");
                                         return new WebResourceResponse("text/html", "UTF-8", is);
@@ -248,9 +248,9 @@ public class MainActivity extends BridgeActivity {
                                 } catch (Exception ignored) {}
                             }
 
-                            // 2. Intercept page navigation when offline
+                            // 2. Intercept full page navigation when offline (NEVER intercept AJAX view partials or API requests)
                             if (!isNetworkAvailable() || url.contains("offline=true") || url.contains("local-portal")) {
-                                if (!url.contains("/api/")) {
+                                if (!url.contains("/api/") && !url.contains("ajax=") && !url.contains(".json")) {
                                     try {
                                         InputStream is = getAssets().open("public/index.html");
                                         return new WebResourceResponse("text/html", "UTF-8", is);
