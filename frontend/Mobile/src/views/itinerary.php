@@ -3157,12 +3157,12 @@ try {
                     ? window.getLegTransportInfo(0)
                     : { mode: 'no_vehicle', name: 'Select your vehicle', icon: '', cost: 0, has_selection: false };
 
-                const startDistText = startEta ? `${startEta.distanceText} &bull; ~${startEta.durationText}` : 'Start Leg';
-                const fareBadge = (leg0Info.is_maintenance || leg0Info.name === 'Unavailable' || !leg0Info.has_selection || String(leg0Info.name).toLowerCase().includes('select your vehicle'))
+                const isLeg0Selected = Boolean(leg0Info.has_selection && !String(leg0Info.name).toLowerCase().includes('select your vehicle'));
+                const fareBadge = (leg0Info.is_maintenance || leg0Info.name === 'Unavailable' || !isLeg0Selected)
                     ? ''
                     : ((leg0Info.cost > 0)
                         ? `<span class="leg-fare-tag">₱${leg0Info.cost.toFixed(2)}</span>`
-                        : '');
+                        : `<span class="leg-fare-tag" style="color:#059669; background:rgba(16,185,129,0.1);">₱0.00</span>`);
 
                 const leg0ChipClass = leg0Info.is_maintenance ? 'p2p-leg-chip leg-maintenance' : 'p2p-leg-chip';
                 const leg0IconColor = leg0Info.is_maintenance ? '#ffffff' : '#0284c7';
@@ -3171,7 +3171,6 @@ try {
                 const leg0ClickAction = leg0Info.is_maintenance
                     ? `if(typeof showToast==='function') showToast('${leg0DestName} is currently under maintenance or temporarily closed. Transport options are disabled.');`
                     : `window.openLegTransportModal(0)`;
-                const isLeg0Selected = Boolean(leg0Info.has_selection && !String(leg0Info.name).toLowerCase().includes('select your vehicle'));
                 const leg0LeadingIcon = leg0Info.is_maintenance
                     ? `<i class="fa-solid fa-ban" style="color:#ffffff; font-size:11px; flex-shrink:0;"></i>`
                     : (isLeg0Selected && leg0Info.icon ? `<i class="fa-solid ${leg0Info.icon}" style="color:${leg0IconColor}; font-size:11px; flex-shrink:0;"></i>` : '');
@@ -3187,7 +3186,6 @@ try {
                         ${leg0LeadingIcon}
                         <span class="leg-chip-name" style="${leg0NameStyle}">${leg0Info.name}</span>
                         ${fareBadge}
-                        ${(!isLeg0Selected || leg0Info.is_maintenance) ? '' : `<span class="leg-dist-text">&bull; ${startDistText}</span>`}
                         ${leg0TrailingIcon}
                     </div>
                 </div>
@@ -3258,12 +3256,12 @@ try {
                             ? window.getLegTransportInfo(index)
                             : { mode: 'no_vehicle', name: 'Select your vehicle', icon: '', cost: 0, has_selection: false };
 
-                        const legDistText = legEta ? `${legEta.distanceText} &bull; ~${legEta.durationText}` : 'Leg Route';
-                        const fareBadge = (legInfo.is_maintenance || legInfo.name === 'Unavailable' || !legInfo.has_selection || String(legInfo.name).toLowerCase().includes('select your vehicle'))
+                        const isLegSelected = Boolean(legInfo.has_selection && !String(legInfo.name).toLowerCase().includes('select your vehicle'));
+                        const fareBadge = (legInfo.is_maintenance || legInfo.name === 'Unavailable' || !isLegSelected)
                             ? ''
                             : ((legInfo.cost > 0)
                                 ? `<span class="leg-fare-tag">₱${legInfo.cost.toFixed(2)}</span>`
-                                : '');
+                                : `<span class="leg-fare-tag" style="color:#059669; background:rgba(16,185,129,0.1);">₱0.00</span>`);
 
                         const legChipClass = legInfo.is_maintenance ? 'p2p-leg-chip leg-maintenance' : 'p2p-leg-chip';
                         const legIconColor = legInfo.is_maintenance ? '#ffffff' : '#0284c7';
@@ -3272,7 +3270,6 @@ try {
                         const legClickAction = legInfo.is_maintenance
                             ? `if(typeof showToast==='function') showToast('${legDestName} is currently under maintenance or temporarily closed. Transport options are disabled.');`
                             : `window.openLegTransportModal(${index})`;
-                        const isLegSelected = Boolean(legInfo.has_selection && !String(legInfo.name).toLowerCase().includes('select your vehicle'));
                         const legLeadingIcon = legInfo.is_maintenance
                             ? `<i class="fa-solid fa-ban" style="color:#ffffff; font-size:11px; flex-shrink:0;"></i>`
                             : (isLegSelected && legInfo.icon ? `<i class="fa-solid ${legInfo.icon}" style="color:${legIconColor}; font-size:11px; flex-shrink:0;"></i>` : '');
@@ -3288,7 +3285,6 @@ try {
                                     ${legLeadingIcon}
                                     <span class="leg-chip-name" style="${legNameStyle}">${legInfo.name}</span>
                                     ${fareBadge}
-                                    ${(!isLegSelected || legInfo.is_maintenance) ? '' : `<span class="leg-dist-text">&bull; ${legDistText}</span>`}
                                     ${legTrailingIcon}
                                 </div>
                                 <button type="button" class="btn-swap-pill" onclick="event.stopPropagation(); window.swapDraftStops(${index - 1}, ${index});" title="Swap Stop ${index} and Stop ${index + 1}" aria-label="Swap order">
