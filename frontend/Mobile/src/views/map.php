@@ -946,7 +946,16 @@ if (is_dir($imgDir)) {
                                         const freshIds = (fresh.destinations || []).map(d => Number(d.id)).sort((a, b) => a - b).join(',');
                                         if (oldIds !== freshIds || (cachedMapData.destinations || []).length !== fresh.destinations.length) {
                                             window.allMapLocations = fresh.destinations;
-                                            if (typeof window.updateVisibleMarkers === 'function') window.updateVisibleMarkers();
+                                            const prevCatEl = document.querySelector('.category-pill.active');
+                                            const prevCat = prevCatEl ? prevCatEl.innerText : 'All';
+                                            if (typeof setupFilters === 'function') setupFilters();
+                                            const newCatEl = Array.from(document.querySelectorAll('.category-pill')).find(el => el.innerText === prevCat);
+                                            if (typeof window.filterCategory === 'function') {
+                                                window.filterCategory(prevCat, newCatEl || document.querySelector('.category-pill'));
+                                            } else {
+                                                window.currentFilteredLocations = fresh.destinations;
+                                                if (typeof window.updateVisibleMarkers === 'function') window.updateVisibleMarkers();
+                                            }
                                         }
                                     }
                                 }).catch(() => { });

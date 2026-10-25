@@ -148,6 +148,7 @@ class TouristSpot extends Model
     public static function clearSpotCaches(): void
     {
         \Illuminate\Support\Facades\Cache::forget('map:public:spots');
+        \Illuminate\Support\Facades\Cache::forget('map:public:spots:v5');
         \Illuminate\Support\Facades\Cache::forget('map:public:spots:v8');
         \Illuminate\Support\Facades\Cache::forget('map:public:spots:v4');
         \Illuminate\Support\Facades\Cache::forget('map:public:municipalities');

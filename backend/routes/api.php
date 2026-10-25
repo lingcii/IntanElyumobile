@@ -400,6 +400,7 @@ Route::prefix('admin')->middleware('tourist.auth')->group(function () {
         $data = $request->validate([
             'name' => 'required|string',
             'municipality_id' => 'required|integer',
+            'barangay' => 'nullable|string',
             'category' => 'required|string',
             'entrance_fee' => 'nullable|numeric',
             'adult_fee' => 'nullable|numeric',
@@ -412,8 +413,19 @@ Route::prefix('admin')->middleware('tourist.auth')->group(function () {
             'description' => 'nullable|string',
             'latitude' => 'required|numeric',
             'longitude' => 'required|numeric',
+            'status' => 'nullable|string',
+            'classification_status' => 'nullable|string',
+            'is_maintenance' => 'nullable|boolean',
+            'accessible_by_private_vehicle' => 'nullable|boolean',
+            'opening_time' => 'nullable|string',
+            'closing_time' => 'nullable|string',
+            'is_open_24_hours' => 'nullable|boolean',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,webp,gif|max:10240'
         ]);
+
+        if (empty($data['status'])) {
+            $data['status'] = 'active';
+        }
 
         if ($request->hasFile('photo')) {
             $disk = 'r2';
@@ -641,6 +653,7 @@ foreach (['lupto', 'pitco', 'picto', 'municipal'] as $rolePrefix) {
             $data = $request->validate([
                 'name' => 'required|string',
                 'municipality_id' => 'required|integer',
+                'barangay' => 'nullable|string',
                 'category' => 'required|string',
                 'entrance_fee' => 'nullable|numeric',
                 'adult_fee' => 'nullable|numeric',
@@ -653,8 +666,19 @@ foreach (['lupto', 'pitco', 'picto', 'municipal'] as $rolePrefix) {
                 'description' => 'nullable|string',
                 'latitude' => 'required|numeric',
                 'longitude' => 'required|numeric',
+                'status' => 'nullable|string',
+                'classification_status' => 'nullable|string',
+                'is_maintenance' => 'nullable|boolean',
+                'accessible_by_private_vehicle' => 'nullable|boolean',
+                'opening_time' => 'nullable|string',
+                'closing_time' => 'nullable|string',
+                'is_open_24_hours' => 'nullable|boolean',
                 'photo' => 'nullable|image|mimes:jpeg,png,jpg,webp,gif|max:10240'
             ]);
+
+            if (empty($data['status'])) {
+                $data['status'] = 'active';
+            }
 
             if ($request->hasFile('photo')) {
                 $disk = 'r2';
