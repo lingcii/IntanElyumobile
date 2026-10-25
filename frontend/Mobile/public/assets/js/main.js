@@ -2788,6 +2788,18 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                     <span>Offline Mode &bull; Cached Trips & Queued Check-ins</span>
                 </div>
                 <div id="saved-trips-list">
+                    <div class="empty-state-card" style="margin-top: 30px; margin-bottom: 30px; opacity: 1 !important; visibility: visible !important;">
+                        <div class="empty-state-icon" style="background: #ffffff !important; color: #1e3a8a !important; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15) !important;">
+                            <i class="fa-solid fa-route" style="color: #1e3a8a !important;"></i>
+                        </div>
+                        <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: #ffffff; text-wrap: balance;">No Saved Trips Yet</h3>
+                        <p style="margin: 0; font-size: 13.5px; color: rgba(255, 255, 255, 0.88); line-height: 1.5; max-width: 260px; text-wrap: pretty;">
+                            Your adventure starts here! Explore La Union tourist spots and plan your personalized itinerary.
+                        </p>
+                        <button type="button" class="btn-open-map" onclick="if(typeof window.navigateTo==='function') window.navigateTo('itinerary');">
+                            <i class="fa-solid fa-plus"></i> Create New Trip
+                        </button>
+                    </div>
                 </div>
             </div>
             <script>
