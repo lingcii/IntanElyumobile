@@ -429,82 +429,90 @@ $backRoute = 'itinerary';
         };
 
         window.fetchSavedTrips = async function (forceRefresh = false) {
-            if (typeof navigator.onLine === 'boolean' && navigator.onLine) {
-                try {
-                    localStorage.removeItem('intan_elyu_offline_mode');
-                    localStorage.removeItem('intan_elyu_offline_guest');
-                } catch (e) { }
-            }
             const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
-            const isGuestOrOffline = !token || token === 'guest_token' || token.startsWith('guest_') || token.startsWith('offline_') || localStorage.getItem('intan_elyu_guest') === 'true' || localStorage.getItem('intan_elyu_offline_mode') === 'true';
+            const isGuest = !token || token === 'guest_token' || token.startsWith('guest_') || token.startsWith('offline_') || localStorage.getItem('intan_elyu_guest') === 'true';
+            const isOfflineMode = localStorage.getItem('intan_elyu_offline_mode') === 'true' || localStorage.getItem('intan_elyu_offline_guest') === 'true';
+            const isNetworkDown = (typeof navigator.onLine === 'boolean' && !navigator.onLine)
+                || window.isNetworkOffline === true
+                || (window.isAppOnline === false);
+            const isOffline = isNetworkDown || isOfflineMode || isGuest;
 
-            // Safety watchdog timeout: Ensure loading spinner never hangs indefinitely
-            setTimeout(() => {
-                const list = document.getElementById('saved-trips-list');
-                if (list && list.querySelector('.fa-spinner')) {
-                    let fallbackItins = [];
+            // Helper to harvest all locally available trips across all storage keys
+            function getLocalTripsCombined() {
+                const combined = [];
+                const seenIds = new Set();
+                const addTrip = (t) => {
+                    if (!t) return;
+                    const id = String(t.id || t.local_id || t.trip_id || '');
+                    const sig = String(t.title || '').trim().toLowerCase() + '|' + (t.trip_date || '');
+                    if (id && !seenIds.has(id) && !seenIds.has(sig)) {
+                        seenIds.add(id);
+                        if (sig) seenIds.add(sig);
+                        combined.push(t);
+                    } else if (!id) {
+                        combined.push(t);
+                    }
+                };
+
+                // A. Offline queued trips
+                if (window.OfflineTripManager && typeof window.OfflineTripManager.getQueuedTrips === 'function') {
                     try {
-                        const backup = localStorage.getItem('intan_elyu_offline_saved_trips_backup') || localStorage.getItem('intan_elyu_saved_trips');
-                        if (backup) {
-                            const parsed = JSON.parse(backup);
-                            fallbackItins = Array.isArray(parsed) ? parsed : (parsed.itineraries || parsed.data || []);
-                        }
-                    } catch (e) { }
-                    const safeFallback = fallbackItins.filter(t => !window.isTripDeleted(t) && !(typeof window.isTripCompletedLocally === 'function' && window.isTripCompletedLocally(t)));
-                    renderSavedTrips(safeFallback);
+                        const queued = window.OfflineTripManager.getQueuedTrips();
+                        if (Array.isArray(queued)) queued.forEach(addTrip);
+                    } catch(e) {}
                 }
-            }, 3000);
 
-            // 1. Instant pre-hydrate from local storage for zero-delay display
-            try {
-                const storedRaw = localStorage.getItem('intan_elyu_offline_saved_trips_backup') || localStorage.getItem('intan_elyu_saved_trips');
-                if (storedRaw) {
-                    const parsed = JSON.parse(storedRaw);
-                    const itins = Array.isArray(parsed) ? parsed : (parsed.itineraries || parsed.data || null);
-                    if (Array.isArray(itins)) {
-                        const safeItins = itins.filter(t => !window.isTripDeleted(t) && !(typeof window.isTripCompletedLocally === 'function' && window.isTripCompletedLocally(t)));
-                        if (safeItins.length > 0) {
-                            renderSavedTrips(safeItins);
+                // B. Token-specific cache
+                if (token) {
+                    try {
+                        const tokenKey = 'saved_trips_' + token.substring(0, 10);
+                        const raw = localStorage.getItem(tokenKey);
+                        if (raw) {
+                            const parsed = JSON.parse(raw);
+                            const list = Array.isArray(parsed) ? parsed : (parsed.data || parsed.itineraries || []);
+                            if (Array.isArray(list)) list.forEach(addTrip);
                         }
-                    }
+                    } catch(e) {}
                 }
-            } catch (e) { }
 
-            if (isGuestOrOffline) {
-                const queuedTrips = (window.OfflineTripManager && typeof window.OfflineTripManager.getQueuedTrips === 'function')
-                    ? window.OfflineTripManager.getQueuedTrips()
-                    : [];
-                let localTrips = [];
-                try {
-                    const localRaw = localStorage.getItem('intan_elyu_saved_trips') || localStorage.getItem('intan_elyu_offline_saved_trips_backup');
-                    if (localRaw) {
-                        const parsed = JSON.parse(localRaw);
-                        localTrips = Array.isArray(parsed) ? parsed : (parsed.itineraries || parsed.data || []);
-                    }
-                } catch (e) { }
+                // C. Local storage backups
+                ['intan_elyu_saved_trips', 'intan_elyu_offline_saved_trips_backup', 'intan_elyu_offline_saved_trips'].forEach(k => {
+                    try {
+                        const raw = localStorage.getItem(k);
+                        if (raw) {
+                            const parsed = JSON.parse(raw);
+                            const list = Array.isArray(parsed) ? parsed : (parsed.data || parsed.itineraries || []);
+                            if (Array.isArray(list)) list.forEach(addTrip);
+                        }
+                    } catch(e) {}
+                });
 
-                const combined = [...queuedTrips, ...localTrips].filter(t => !window.isTripDeleted(t) && !(typeof window.isTripCompletedLocally === 'function' && window.isTripCompletedLocally(t)));
-                renderSavedTrips(combined);
+                return combined.filter(t => {
+                    const isDeleted = (typeof window.isTripDeleted === 'function') ? window.isTripDeleted(t) : false;
+                    const isCompleted = (typeof window.isTripCompletedLocally === 'function') ? window.isTripCompletedLocally(t) : (t && t.status === 'completed');
+                    return !isDeleted && !isCompleted;
+                });
+            }
+
+            // 1. Instant pre-hydrate and render immediately with 0ms delay!
+            const localTrips = getLocalTripsCombined();
+            renderSavedTrips(localTrips);
+
+            // 2. If offline, ensure offline badge displays and do NOT attempt blocking network fetch
+            if (isOffline) {
+                const badge = document.getElementById('saved-trips-offline-badge');
+                if (badge) {
+                    badge.style.setProperty('display', 'inline-flex', 'important');
+                }
                 return;
             }
 
+            if (!token || token.startsWith('guest_') || token.startsWith('offline_')) {
+                return;
+            }
+
+            // 3. Online mode: fetch fresh trips from API and update local caches
             const cacheKey = 'saved_trips_' + token.substring(0, 10);
-
-            // Pre-hydrate from active token cache
-            try {
-                const storedRaw = localStorage.getItem(cacheKey);
-                if (storedRaw) {
-                    const parsed = JSON.parse(storedRaw);
-                    const itins = Array.isArray(parsed) ? parsed : (parsed.itineraries || parsed.data || null);
-                    if (Array.isArray(itins)) {
-                        const safeItins = itins.filter(t => !window.isTripDeleted(t) && !(typeof window.isTripCompletedLocally === 'function' && window.isTripCompletedLocally(t)));
-                        if (safeItins.length > 0) {
-                            renderSavedTrips(safeItins);
-                        }
-                    }
-                }
-            } catch (e) { }
-
             const fetchCache = (typeof window.useCache === 'function') ? window.useCache : (async (key, fetcher, renderer, forceRefresh) => {
                 try {
                     const d = await fetcher();
@@ -629,14 +637,7 @@ $backRoute = 'itinerary';
                         if (itineraries && Array.isArray(itineraries)) {
                             renderSavedTrips(itineraries);
                         } else {
-                            try {
-                                const backup = localStorage.getItem('intan_elyu_offline_saved_trips_backup');
-                                if (backup) {
-                                    renderSavedTrips(JSON.parse(backup));
-                                    return;
-                                }
-                            } catch (e) { }
-                            renderSavedTrips([]);
+                            renderSavedTrips(getLocalTripsCombined());
                         }
                     },
                     forceRefresh,
@@ -644,16 +645,7 @@ $backRoute = 'itinerary';
                 );
             } catch (fetchErr) {
                 console.warn("fetchSavedTrips handled offline fallback:", fetchErr);
-                try {
-                    const backup = localStorage.getItem('intan_elyu_offline_saved_trips_backup');
-                    if (backup) {
-                        renderSavedTrips(JSON.parse(backup));
-                        return;
-                    }
-                } catch (e) { }
-                if (!window._cachedSavedTrips || window._cachedSavedTrips.length === 0) {
-                    renderSavedTrips([]);
-                }
+                renderSavedTrips(getLocalTripsCombined());
             }
         };
 
@@ -886,7 +878,7 @@ $backRoute = 'itinerary';
                 if (!list) return;
 
                 const emptyStateHtml = `
-                <div class="empty-state-card reveal-on-scroll" style="margin-top: 30px; margin-bottom: 30px;">
+                <div class="empty-state-card" style="margin-top: 30px; margin-bottom: 30px; opacity: 1 !important; visibility: visible !important;">
                     <div class="empty-state-icon" style="background: #ffffff !important; color: #1e3a8a !important; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15) !important;">
                         <i class="fa-solid fa-route" style="color: #1e3a8a !important;"></i>
                     </div>
@@ -1338,7 +1330,7 @@ $backRoute = 'itinerary';
                 const list = document.getElementById('saved-trips-list');
                 if (list) {
                     list.innerHTML = `
-                    <div class="empty-state-card reveal-on-scroll" style="margin-top: 30px; margin-bottom: 30px;">
+                    <div class="empty-state-card" style="margin-top: 30px; margin-bottom: 30px; opacity: 1 !important; visibility: visible !important;">
                         <div style="width: 72px; height: 72px; border-radius: 50%; background: rgba(239, 68, 68, 0.15); display: flex; align-items: center; justify-content: center; margin-bottom: 8px; border: 1px solid rgba(239, 68, 68, 0.3);">
                             <i class="fa-solid fa-circle-exclamation" style="font-size: 32px; color: #ef4444;"></i>
                         </div>

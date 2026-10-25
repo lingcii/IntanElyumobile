@@ -2770,6 +2770,31 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                         window.populateMunicipalitiesRow();
                     }
                 })();
+        } else if (!html && targetView === 'saved_trips') {
+            html = `<div class="mobile-header">
+                <div class="header-icon" onclick="typeof window.goBack==='function'?window.goBack():(typeof navigateTo==='function'?navigateTo('dashboard'):window.history.back())" title="Back">
+                    <i class="fa-solid fa-arrow-left"></i>
+                </div>
+                <h1 class="header-title">My Saved Trips</h1>
+                <div class="header-icon" onclick="typeof toggleNotifications==='function'&&toggleNotifications()" title="Notifications">
+                    <i class="fa-solid fa-bell" id="bell-icon"></i>
+                    <div class="bell-dot" id="bell-dot"></div>
+                </div>
+            </div>
+            <div class="saved-trips-page-container has-header animate-slide-up">
+                <div id="saved-trips-offline-badge" style="display: flex; align-items: center; justify-content: center; gap: 8px; margin: 0 auto 14px auto; padding: 7px 16px; border-radius: 100px; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.35); color: #d97706; font-size: 11.5px; font-weight: 800; text-align: center; width: fit-content;">
+                    <i class="fa-solid fa-cloud-slash" style="color: #f59e0b;"></i>
+                    <span>Offline Mode &bull; Cached Trips & Queued Check-ins</span>
+                </div>
+                <div id="saved-trips-list">
+                </div>
+            </div>
+            <script>
+                (function() {
+                    if (typeof window.fetchSavedTrips === 'function') {
+                        window.fetchSavedTrips(false);
+                    }
+                })();
             </script>`;
         }
 

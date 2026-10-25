@@ -282,10 +282,12 @@ body[data-view="saved_trips"] .mobile-header .header-icon i {
     padding: 36px 24px !important;
     text-align: center !important;
     box-shadow: 0 10px 28px rgba(10, 25, 60, 0.28) !important;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 12px;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 12px !important;
+    opacity: 1 !important;
+    visibility: visible !important;
 }
 
 .saved-trips-page-container .empty-state-icon {
