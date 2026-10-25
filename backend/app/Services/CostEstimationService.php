@@ -310,10 +310,10 @@ class CostEstimationService
             }
 
             if (!$legMode) {
-                if (!empty($globalNorm) && $globalNorm !== 'no_vehicle') {
+                if (!empty($globalNorm) && $globalNorm !== 'no_vehicle' && stripos($globalNorm, 'no vehicle') === false) {
                     $legMode = $transportModeString;
                 } else {
-                    $legMode = 'own_car';
+                    $legMode = 'no_vehicle';
                 }
             }
 

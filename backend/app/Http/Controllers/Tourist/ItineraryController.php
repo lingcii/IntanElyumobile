@@ -351,6 +351,23 @@ class ItineraryController extends Controller
 
             $legTransports = $request->leg_transports ?? [];
 
+            // If leg transports have specific vehicle selections, derive overall transport mode
+            if (!empty($legTransports) && is_array($legTransports)) {
+                $distinctModes = [];
+                foreach ($legTransports as $lt) {
+                    $lm = is_array($lt) ? ($lt['vehicle'] ?? $lt['transport_mode'] ?? null) : (string)$lt;
+                    if ($lm && stripos($lm, 'no_vehicle') === false && stripos($lm, 'no vehicle') === false) {
+                        $distinctModes[] = trim($lm);
+                    }
+                }
+                $distinctModes = array_values(array_unique(array_filter($distinctModes)));
+                if (!empty($distinctModes)) {
+                    $savedTransportMode = implode(' + ', $distinctModes);
+                } elseif ($isNoVehicle || $savedTransportMode === 'own_car') {
+                    $savedTransportMode = 'No Vehicle Selected';
+                }
+            }
+
             // Accurate cost estimation using CostEstimationService with Point-to-Point leg fares
             $totalEstimatedCost = 0.00;
             $est = [];
@@ -420,6 +437,9 @@ class ItineraryController extends Controller
                         $legCost = 0.00;
                     } elseif ($savedTransportMode === 'motorcycle') {
                         $legMode = 'motorcycle';
+                        $legCost = 0.00;
+                    } else {
+                        $legMode = 'no_vehicle';
                         $legCost = 0.00;
                     }
                 }
@@ -711,6 +731,9 @@ class ItineraryController extends Controller
                         $legCost = 0.00;
                     } elseif ($itinerary->transport_mode === 'motorcycle') {
                         $legMode = 'motorcycle';
+                        $legCost = 0.00;
+                    } else {
+                        $legMode = 'no_vehicle';
                         $legCost = 0.00;
                     }
                 }

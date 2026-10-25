@@ -758,8 +758,15 @@ $backRoute = 'itinerary';
 
         function getVehicleInfo(key) {
             const norm = String(key || '').toLowerCase().trim().replace(/[- ]/g, '_');
+            if (norm === 'no_vehicle' || norm === 'none' || norm === 'no_vehicle_selected' || norm === '') {
+                return {
+                    name: 'No Vehicle Selected',
+                    icon: 'fa-ban',
+                    color: '#f87171'
+                };
+            }
             if (VEHICLE_CATALOG[norm]) return VEHICLE_CATALOG[norm];
-            if (norm === 'car') return VEHICLE_CATALOG['own_car'];
+            if (norm === 'car' || norm === 'own_car' || norm === 'private_car') return VEHICLE_CATALOG['own_car'];
             if (norm === 'trike') return VEHICLE_CATALOG['tricycle'];
             if (norm.includes('aircon') || norm.includes('pub_aircon')) return VEHICLE_CATALOG['pub_aircon'];
             if (norm.includes('ordinary') || norm.includes('regular')) return VEHICLE_CATALOG['pub_regular'];
@@ -769,18 +776,36 @@ $backRoute = 'itinerary';
             if (norm.includes('motor')) return VEHICLE_CATALOG['motorcycle'];
             return {
                 name: norm.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
-                icon: 'fa-car',
+                icon: 'fa-route',
                 color: '#38bdf8'
             };
         }
 
-        function getSavedTripTransportBadge(rawMode) {
-            if (!rawMode || String(rawMode).toLowerCase().includes('no_vehicle') || String(rawMode).toLowerCase().includes('no vehicle')) {
+        function getSavedTripTransportBadge(rawMode, trip = null) {
+            let mode = rawMode;
+            if (trip && Array.isArray(trip.items) && trip.items.length > 0) {
+                const itemModes = trip.items
+                    .map(it => (it.transport_mode || it.transport_type || '').trim())
+                    .filter(m => m && m !== 'suspended');
+                const validNonEmptyModes = itemModes.filter(m => m !== 'no_vehicle' && !m.toLowerCase().includes('no vehicle'));
+                if (validNonEmptyModes.length > 0) {
+                    const uniqueModes = Array.from(new Set(validNonEmptyModes));
+                    if (mode === 'own_car' || !mode || mode === 'No Vehicle Selected' || mode === 'no_vehicle') {
+                        mode = uniqueModes.join(' + ');
+                    }
+                } else if (itemModes.length > 0 && itemModes.every(m => m === 'no_vehicle' || m.toLowerCase().includes('no vehicle'))) {
+                    mode = 'No Vehicle Selected';
+                }
+            }
+
+            if (!mode || String(mode).toLowerCase().includes('no_vehicle') || String(mode).toLowerCase().includes('no vehicle') || String(mode).toLowerCase() === 'none') {
                 return `<span style="background: rgba(255,255,255,0.22); border: none !important; outline: none !important; color: #ffffff; padding: 3px 10px; border-radius: 100px; font-weight: 700; font-size: 12px; display: inline-flex; align-items: center; gap: 5px;"><i class="fa-solid fa-ban" style="font-size:11px; color:#f87171;"></i>No Vehicle Selected</span>`;
             }
 
-            const parts = parseVehicleModes(rawMode);
-            if (parts.length === 0) return '';
+            const parts = parseVehicleModes(mode).filter(p => p !== 'no_vehicle' && !p.includes('no_vehicle'));
+            if (parts.length === 0) {
+                return `<span style="background: rgba(255,255,255,0.22); border: none !important; outline: none !important; color: #ffffff; padding: 3px 10px; border-radius: 100px; font-weight: 700; font-size: 12px; display: inline-flex; align-items: center; gap: 5px;"><i class="fa-solid fa-ban" style="font-size:11px; color:#f87171;"></i>No Vehicle Selected</span>`;
+            }
 
             if (parts.length > 1) {
                 return `<span style="background: rgba(255,255,255,0.22); border: none !important; outline: none !important; color: #ffffff; padding: 3px 10px; border-radius: 100px; font-weight: 700; font-size: 12px; display: inline-flex; align-items: center; gap: 5px;"><i class="fa-solid fa-route" style="font-size:11px; color:#38bdf8;"></i>${parts.length} Vehicles</span>`;
@@ -1038,7 +1063,7 @@ $backRoute = 'itinerary';
                             budgetIndicator = `<span style="display:inline-block; width:10px; height:10px; border-radius:50%; background-color:${color}; margin-left:6px; border:none; outline:none; box-shadow:0 0 6px ${color}80;" title="${statusTitle}"></span>`;
                         }
 
-                        const transportBadge = getSavedTripTransportBadge(trip.transport_mode);
+                        const transportBadge = getSavedTripTransportBadge(trip.transport_mode, trip);
                         const safeTitle = trip.title ? trip.title.replace(/"/g, '&quot;').replace(/'/g, "\\'") : 'Saved Trip';
 
                         const tripType = trip.trip_type || (trip.total_pax > 1 ? 'group' : 'solo');
@@ -1191,33 +1216,41 @@ $backRoute = 'itinerary';
                                             </span>
                                         </div>`;
                                     } else {
-                                        const legModes = parseVehicleModes(itemMode);
-                                        let vIcon = 'fa-route';
-                                        let vName = itemMode;
+                                        const isNoVehLeg = !itemMode || itemMode === 'no_vehicle' || itemMode.toLowerCase().includes('no vehicle');
+                                        if (isNoVehLeg) {
+                                            html += `
+                                            <div style="display:flex; align-items:center; gap:8px; margin:${index === 0 ? '0 0 10px 18px' : '4px 0 10px 18px'};">
+                                                <span style="padding:3px 10px; border-radius:100px; font-size:10.5px; font-weight:700; background:rgba(255,255,255,0.16); color:#fca5a5; display:inline-flex; align-items:center; gap:5px; border:none !important; outline:none !important;">
+                                                    <i class="fa-solid fa-ban" style="color:#f87171; font-size:10px;"></i>
+                                                    <span>No Vehicle Selected</span>
+                                                </span>
+                                            </div>`;
+                                        } else {
+                                            const legModes = parseVehicleModes(itemMode).filter(m => m !== 'no_vehicle' && !m.includes('no_vehicle'));
+                                            let vIcon = 'fa-route';
+                                            let vName = itemMode;
 
-                                        if (legModes.length > 1) {
-                                            vIcon = 'fa-route';
-                                            vName = `${legModes.length} Vehicles`;
-                                        } else if (legModes.length === 1) {
-                                            const info = getVehicleInfo(legModes[0]);
-                                            vIcon = info.icon;
-                                            vName = info.name;
+                                            if (legModes.length > 1) {
+                                                vIcon = 'fa-route';
+                                                vName = `${legModes.length} Vehicles`;
+                                            } else if (legModes.length === 1) {
+                                                const info = getVehicleInfo(legModes[0]);
+                                                vIcon = info.icon;
+                                                vName = info.name;
+                                            }
+
+                                            const costNum = parseFloat(item.leg_cost || 0);
+                                            const costStr = (costNum > 0) ? `&bull; ₱${costNum.toFixed(2)}` : '';
+
+                                            html += `
+                                            <div style="display:flex; align-items:center; gap:8px; margin:${index === 0 ? '0 0 10px 18px' : '4px 0 10px 18px'};">
+                                                <span style="padding:3px 10px; border-radius:100px; font-size:10.5px; font-weight:700; background:rgba(255,255,255,0.16); color:#e0f2fe; display:inline-flex; align-items:center; gap:5px; border:none !important; outline:none !important;">
+                                                    <i class="fa-solid ${vIcon}" style="color:#00f2fe; font-size:10px;"></i>
+                                                    <span>${vName}</span>
+                                                    ${costStr ? `<span style="color:#38bdf8; font-weight:800;">${costStr}</span>` : ''}
+                                                </span>
+                                            </div>`;
                                         }
-
-                                        const costNum = parseFloat(item.leg_cost || 0);
-                                        const costStr = (costNum > 0) ? `&bull; ₱${costNum.toFixed(2)}` : '';
-                                        const distNum = parseFloat(item.leg_distance_km || 0);
-                                        const distStr = (distNum > 0) ? `&bull; ${distNum.toFixed(1)} km` : '';
-
-                                        html += `
-                                        <div style="display:flex; align-items:center; gap:8px; margin:${index === 0 ? '0 0 10px 18px' : '4px 0 10px 18px'};">
-                                            <span style="padding:3px 10px; border-radius:100px; font-size:10.5px; font-weight:700; background:rgba(255,255,255,0.16); color:#e0f2fe; display:inline-flex; align-items:center; gap:5px; border:none !important; outline:none !important;">
-                                                <i class="fa-solid ${vIcon}" style="color:#00f2fe; font-size:10px;"></i>
-                                                <span>${vName}</span>
-                                                ${costStr ? `<span style="color:#38bdf8; font-weight:800;">${costStr}</span>` : ''}
-                                                ${distStr ? `<span style="opacity:0.8; font-size:9.5px;">${distStr}</span>` : ''}
-                                            </span>
-                                        </div>`;
                                     }
                                 }
 

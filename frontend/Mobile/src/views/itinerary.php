@@ -1484,7 +1484,22 @@ try {
                 };
             }
 
-            const normGlobal = (subModes.length === 1) ? subModes[0] : window.normalizeVehicleKey(globalMode || 'own_car');
+            const normGlobal = (subModes.length === 1) ? subModes[0] : (globalMode ? window.normalizeVehicleKey(globalMode) : 'no_vehicle');
+
+            if (!globalMode || normGlobal === 'no_vehicle' || String(globalMode).toLowerCase().includes('no vehicle')) {
+                return {
+                    mode: 'no_vehicle',
+                    transport_mode: 'no_vehicle',
+                    transport_modes: [],
+                    name: 'Select your vehicle',
+                    full_names: 'Select your vehicle',
+                    icon: '',
+                    cost: 0,
+                    leg_cost: 0,
+                    warning: null,
+                    is_non_drivable: isNonDrivable
+                };
+            }
 
             // 1. If global is Own Car
             if (normGlobal === 'own_car') {
@@ -1633,15 +1648,16 @@ try {
                 };
             }
 
-            // Default fallback: Own Car
+            // Default fallback: No vehicle selected
             return {
-                mode: 'own_car',
-                transport_mode: 'own_car',
-                transport_modes: ['own_car'],
-                name: 'Own Car',
-                icon: 'fa-car',
+                mode: 'no_vehicle',
+                transport_mode: 'no_vehicle',
+                transport_modes: [],
+                name: 'Select your vehicle',
+                icon: '',
                 cost: 0,
-                warning: isNonDrivable ? 'Not accessible by private car. Park at Trailhead & hike or ride local trike.' : null,
+                leg_cost: 0,
+                warning: null,
                 is_non_drivable: isNonDrivable
             };
         };
@@ -1777,10 +1793,10 @@ try {
                 : JSON.parse(localStorage.getItem('intan_elyu_draft_itinerary') || '[]');
 
             if (!draft || draft.length === 0 || legIdx >= draft.length) {
-                return { mode: 'own_car', transport_mode: 'own_car', name: 'Own Car', icon: 'fa-car', cost: 0, leg_cost: 0, distance_km: 0 };
+                return { mode: 'no_vehicle', transport_mode: 'no_vehicle', name: 'Select your vehicle', icon: '', cost: 0, leg_cost: 0, distance_km: 0 };
             }
 
-            const curGlobalTransport = localStorage.getItem('intan_elyu_draft_trip_transport') || document.getElementById('trip-transport')?.value || 'own_car';
+            const curGlobalTransport = localStorage.getItem('intan_elyu_draft_trip_transport') || document.getElementById('trip-transport')?.value || '';
 
             let fromSpot = null;
             let toSpot = draft[legIdx];
@@ -2660,21 +2676,21 @@ try {
             } catch (e) { }
 
             if (modes.length === 0) {
-                const raw = localStorage.getItem('intan_elyu_draft_trip_transport') || 'own_car';
-                modes = window.parseCompositeTransportModes(raw);
+                const raw = localStorage.getItem('intan_elyu_draft_trip_transport');
+                if (raw && raw !== 'no_vehicle' && !raw.toLowerCase().includes('no vehicle')) {
+                    modes = window.parseCompositeTransportModes(raw);
+                }
             }
 
-            if (modes.length === 0) {
-                modes = ['own_car'];
-            }
-
-            // Auto-heal legacy or corrupted localStorage entries (e.g. "own_car_ + _motorcycle" or missing array)
+            // Auto-heal legacy or corrupted localStorage entries
             try {
-                const cleanComposite = (modes.length === 1) ? modes[0] : modes.join(' + ');
-                const storedRaw = localStorage.getItem('intan_elyu_draft_trip_transport');
-                if (storedRaw !== cleanComposite) {
-                    localStorage.setItem('intan_elyu_draft_trip_transport', cleanComposite);
-                    localStorage.setItem('intan_elyu_draft_trip_transports', JSON.stringify(modes));
+                if (modes.length > 0) {
+                    const cleanComposite = (modes.length === 1) ? modes[0] : modes.join(' + ');
+                    const storedRaw = localStorage.getItem('intan_elyu_draft_trip_transport');
+                    if (storedRaw !== cleanComposite) {
+                        localStorage.setItem('intan_elyu_draft_trip_transport', cleanComposite);
+                        localStorage.setItem('intan_elyu_draft_trip_transports', JSON.stringify(modes));
+                    }
                 }
             } catch (e) { }
 
@@ -2689,13 +2705,21 @@ try {
 
             const tripModes = window.getNormalizedTripModes();
 
-            if (tripModes.length === 1) {
+            if (tripModes.length === 0) {
+                if (iconEl) iconEl.innerHTML = '<i class="fa-solid fa-route" style="color:#1e3a8a !important;"></i>';
+                if (labelEl) labelEl.textContent = 'Select your vehicle';
+            } else if (tripModes.length === 1) {
                 const mode = tripModes[0];
-                if (iconEl) {
-                    let html = window.getVehicleIconHtml(mode);
-                    iconEl.innerHTML = html.replace(/color:[^;"]+/g, 'color:#1e3a8a !important');
+                if (mode === 'no_vehicle') {
+                    if (iconEl) iconEl.innerHTML = '<i class="fa-solid fa-ban" style="color:#ef4444 !important;"></i>';
+                    if (labelEl) labelEl.textContent = 'No Vehicle Selected';
+                } else {
+                    if (iconEl) {
+                        let html = window.getVehicleIconHtml(mode);
+                        iconEl.innerHTML = html.replace(/color:[^;"]+/g, 'color:#1e3a8a !important');
+                    }
+                    if (labelEl) labelEl.textContent = window.getVehicleDisplayName(mode);
                 }
-                if (labelEl) labelEl.textContent = window.getVehicleDisplayName(mode);
             } else {
                 if (iconEl) iconEl.innerHTML = '<i class="fa-solid fa-route" style="color:#1e3a8a !important;"></i>';
                 if (labelEl) labelEl.textContent = `${tripModes.length} Vehicles`;
@@ -2728,7 +2752,7 @@ try {
             const modal = document.getElementById('travel-mode-starter-modal');
             if (!modal) return;
 
-            const selected = (window.starterModalSelectedModes || ['own_car']).map(m => window.normalizeVehicleKey(m));
+            const selected = (window.starterModalSelectedModes || []).map(m => window.normalizeVehicleKey(m));
 
             const cards = modal.querySelectorAll('.travel-starter-card');
             cards.forEach(card => {
@@ -3806,7 +3830,7 @@ try {
                 ? window.getEffectiveDraft()
                 : JSON.parse(localStorage.getItem('intan_elyu_draft_itinerary') || '[]');
 
-            const currentGlobalTransport = localStorage.getItem('intan_elyu_draft_trip_transport') || 'own_car';
+            const currentGlobalTransport = localStorage.getItem('intan_elyu_draft_trip_transport') || '';
 
             // Calculate Point-to-Point transit from draft legs using active transport mode
             const transCost = window.computeItineraryTransCost(draft, currentGlobalTransport);
@@ -3822,9 +3846,10 @@ try {
 
             let tripModes = (typeof window.getNormalizedTripModes === 'function')
                 ? window.getNormalizedTripModes()
-                : [currentGlobalTransport || 'own_car'];
+                : (currentGlobalTransport ? [currentGlobalTransport] : []);
 
-            const compositeTripTransport = (tripModes.length === 1) ? tripModes[0] : tripModes.join(' + ');
+            const isNoVehTrip = (tripModes.length === 0 || tripModes.includes('no_vehicle'));
+            const compositeTripTransport = isNoVehTrip ? 'No Vehicle Selected' : ((tripModes.length === 1) ? tripModes[0] : tripModes.join(' + '));
             if (transInput) transInput.value = compositeTripTransport;
 
             if (p2pCostEl) {
@@ -3835,7 +3860,9 @@ try {
             }
 
             if (p2pLabelEl) {
-                if (tripModes.length === 1) {
+                if (isNoVehTrip) {
+                    p2pLabelEl.textContent = 'Select your vehicle';
+                } else if (tripModes.length === 1) {
                     p2pLabelEl.textContent = (typeof window.getVehicleDisplayName === 'function')
                         ? window.getVehicleDisplayName(tripModes[0])
                         : tripModes[0].replace(/_/g, ' ').toUpperCase();
@@ -3847,12 +3874,17 @@ try {
             // Sync icon in Save modal
             if (p2pIconEl) {
                 p2pIconEl.style.background = '#ffffff';
-                if (tripModes.length === 1 && typeof window.getVehicleIconHtml === 'function') {
+                if (isNoVehTrip) {
+                    p2pIconEl.innerHTML = '<i class="fa-solid fa-route" style="color:#1e3a8a !important; font-size:16px;"></i>';
+                } else if (tripModes.length === 1 && typeof window.getVehicleIconHtml === 'function') {
                     let iconHtml = window.getVehicleIconHtml(tripModes[0]);
                     p2pIconEl.innerHTML = iconHtml.replace(/color:[^;"]+/g, 'color:#1e3a8a !important');
                 } else if (tripModes.length > 1) {
                     p2pIconEl.innerHTML = '<i class="fa-solid fa-route" style="color:#1e3a8a !important; font-size:16px;"></i>';
                 } else {
+                    p2pIconEl.innerHTML = '<i class="fa-solid fa-route" style="color:#1e3a8a !important; font-size:16px;"></i>';
+                }
+            }
                     p2pIconEl.innerHTML = '<i class="fa-solid fa-car" style="color:#1e3a8a !important; font-size:16px;"></i>';
                 }
             }
@@ -4578,6 +4610,18 @@ try {
                     };
                 });
 
+                // Derive overall transport from legs if user picked leg vehicles
+                const distinctLegModes = Array.from(new Set(
+                    legTransports.map(l => l.transport_mode).filter(m => m && m !== 'no_vehicle' && !m.toLowerCase().includes('no vehicle'))
+                ));
+
+                let finalTransport = effectiveTransport;
+                if (distinctLegModes.length > 0) {
+                    finalTransport = distinctLegModes.join(' + ');
+                } else if (isNoVeh || finalTransport === 'own_car') {
+                    finalTransport = 'No Vehicle Selected';
+                }
+
                 const tripType = document.querySelector('input[name="trip_companion_type"]:checked')?.value || 'solo';
                 const compMales = tripType === 'group' ? Math.max(0, parseInt(document.getElementById('companion-males-count')?.textContent || '0', 10)) : 0;
                 const compFemales = tripType === 'group' ? Math.max(0, parseInt(document.getElementById('companion-females-count')?.textContent || '0', 10)) : 0;
@@ -4589,7 +4633,7 @@ try {
                     budget: budget,
                     destinations: destinations,
                     route_type: activeRouteType,
-                    transport_mode: effectiveTransport,
+                    transport_mode: finalTransport,
                     trip_type: tripType,
                     companion_males: compMales,
                     companion_females: compFemales,
@@ -4600,8 +4644,8 @@ try {
                         id: 'offline_item_' + Date.now() + '_' + (idx + 1),
                         tourist_spot_id: extractTrueSpotId(place),
                         destination: place,
-                        transport_type: effectiveTransport,
-                        transport_mode: (legTransports && legTransports[idx] && legTransports[idx].transport_mode) ? legTransports[idx].transport_mode : effectiveTransport,
+                        transport_type: finalTransport,
+                        transport_mode: (legTransports && legTransports[idx] && legTransports[idx].transport_mode) ? legTransports[idx].transport_mode : finalTransport,
                         companion_males: compMales,
                         companion_females: compFemales,
                         total_pax: totalPax,
@@ -5260,7 +5304,7 @@ try {
             });
 
             // Calculate dynamic transit cost based on current draft sequence and selected transport
-            const curTransport = localStorage.getItem('intan_elyu_draft_trip_transport') || document.getElementById('trip-transport')?.value || 'own_car';
+            const curTransport = localStorage.getItem('intan_elyu_draft_trip_transport') || document.getElementById('trip-transport')?.value || '';
 
             if (typeof window.computeItineraryTransCost === 'function') {
                 transCost = window.computeItineraryTransCost(draft, curTransport);
