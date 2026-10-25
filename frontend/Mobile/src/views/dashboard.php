@@ -1528,7 +1528,7 @@ if (is_dir($imgDir)) {
                             const isLocVerified = Boolean(item.is_location_verified || item.visited_at);
                             const hasProof = Boolean(proofImages.length > 0);
                             const isPhotoApproved = (item.proof_status === 'approved');
-                            const isApproved = Boolean((item.is_visited && isLocVerified) || (isLocVerified && isPhotoApproved));
+                            const isApproved = Boolean(item.is_visited || isPhotoApproved || item.proof_status === 'approved' || (item.is_visited && isLocVerified));
 
                             if (isQueued) {
                                 proofBadge = `<span style="font-size:10px; font-weight:800; color:#fbbf24; background:rgba(245,158,11,0.18); border:1px solid rgba(245,158,11,0.35); padding:2px 8px; border-radius:100px; margin-left:auto; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-cloud-arrow-up"></i> Queued</span>`;

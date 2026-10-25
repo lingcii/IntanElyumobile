@@ -1124,7 +1124,7 @@ $backRoute = 'itinerary';
                                 const isLocVerified = Boolean(item.visited_at || item.is_location_verified);
                                 const proofStatus = item.proof_status || (hasProof ? (item.is_visited ? 'approved' : 'pending') : null);
                                 const isPhotoApproved = (proofStatus === 'approved');
-                                const isApproved = Boolean((item.is_visited && isLocVerified) || (isLocVerified && isPhotoApproved));
+                                const isApproved = Boolean(item.is_visited || isPhotoApproved || item.proof_status === 'approved' || (item.is_visited && isLocVerified));
                                 const isRejected = (proofStatus === 'rejected');
                                 const isPendingProof = !isApproved && !isRejected && !isQueued && hasProof && (proofStatus === 'pending');
                                 const isNextStop = (!isApproved && !isPendingProof && !isQueued && index === firstUnvisitedIdx);
@@ -1251,7 +1251,7 @@ $backRoute = 'itinerary';
                                                     <i class="fa-solid fa-circle-check"></i> Visit Verified
                                                 </span>
                                                 <button type="button" data-spot-id="${item.tourist_spot_id || (dest ? dest.id : '')}" data-spot-classification="${sClass}" onclick="event.stopPropagation(); window.openWriteTestimonyModal('${item.tourist_spot_id || (dest ? dest.id : '')}', this)" style="background:rgba(255,255,255,0.16); border:none !important; outline:none !important; color:#ffffff; font-size:11px; font-weight:800; padding:6px 14px; border-radius:100px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; box-shadow:none; flex-shrink:0;">
-                                                    ${(window.userReviewedSpotIds && window.userReviewedSpotIds.has(Number(item.tourist_spot_id || (dest ? dest.id : '')))) ? '<i class="fa-solid fa-check" style="font-size:10px; margin-right:4px;"></i> Reviewed' : `<i class="fa-solid fa-pen" style="font-size:10px;"></i> Review (+${sMeta.points} PTS)`}
+                                                    ${(window.userReviewedSpotIds && window.userReviewedSpotIds.has(Number(item.tourist_spot_id || (dest ? dest.id : '')))) ? '<i class="fa-solid fa-check" style="font-size:10px; margin-right:4px;"></i> Reviewed' : '<i class="fa-solid fa-pen" style="font-size:10px;"></i> Review'}
                                                 </button>
                                             </div>
                                             ${photosStripHtml}
@@ -1300,7 +1300,7 @@ $backRoute = 'itinerary';
                                                 `<div style="display:flex; flex-direction:column; gap:8px; margin-top:4px;">
                                                     <div>
                                                         <span style="background:rgba(255,149,0,0.22); border:none !important; outline:none !important; color:#ff9f0a; font-size:11.5px; font-weight:800; padding:3px 10px; border-radius:100px; display:inline-flex; align-items:center; gap:5px;">
-                                                            <i class="fa-solid fa-hourglass-half"></i> Awaiting Admin Approval
+                                                            <i class="fa-solid fa-hourglass-half"></i> Pending Approval
                                                         </span>
                                                         <span style="font-size:10px; color:#ffffff; opacity:0.8; display:block; margin-top:4px;">
                                                             <i class="fa-solid fa-circle-check" style="color:#34c759; margin-right:3px;"></i> Location Verified &bull; Photos submitted
@@ -2504,64 +2504,67 @@ $backRoute = 'itinerary';
 
                 const destName = item.destination_name || (item.destination ? item.destination.name : (item.name || item.spot_name || 'Tourist Destination'));
                 const sClass = item.classification_status || (item.destination ? item.destination.classification_status : (item.classification || 'EXIST'));
-                const classMeta = (typeof window.getRewardPointsForClassification === 'function')
-                    ? window.getRewardPointsForClassification(sClass)
-                    : { label: 'Existing', points: 50, color: '#0284c7' };
-
                 const isReviewed = window.userReviewedSpotIds && window.userReviewedSpotIds.has(Number(spotId));
 
                 destListHtml += `
-                <div style="display:flex; align-items:center; gap:10px; padding:10px 12px; background:rgba(255,255,255,0.08); border:none; outline:none; border-radius:14px; margin-bottom:8px;">
-                    <div style="width:32px; height:32px; border-radius:10px; background:linear-gradient(135deg, #38bdf8, #2563eb); display:flex; align-items:center; justify-content:center; flex-shrink:0; font-weight:900; font-size:13px; color:#fff; border:none; outline:none;">${idx + 1}</div>
+                <div style="display:flex; align-items:center; gap:10px; padding:10px 12px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:14px; margin-bottom:8px;">
+                    <div style="width:30px; height:30px; border-radius:8px; background:linear-gradient(135deg, #1e3a8a, #2563eb); display:flex; align-items:center; justify-content:center; flex-shrink:0; font-weight:800; font-size:12px; color:#fff;">${idx + 1}</div>
                     <div style="flex:1; min-width:0;">
-                        <div style="font-size:14px; font-weight:700; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${destName}</div>
-                        <div style="font-size:11px; color:rgba(255,255,255,0.85); font-weight:600;">
+                        <div style="font-size:13.5px; font-weight:700; color:#0f172a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${destName}</div>
+                        <div style="font-size:11px; color:#64748b; font-weight:600; margin-top:1px;">
                             ${isReviewed 
-                                ? '<span style="color:#10b981;"><i class="fa-solid fa-check" style="font-size:10px; margin-right:3px;"></i> Reviewed & Points Claimed</span>' 
-                                : `Review to earn <strong style="color:#fbbf24;">+${classMeta.points} PTS</strong>`}
+                                ? '<span style="color:#10b981;"><i class="fa-solid fa-check" style="font-size:10px; margin-right:3px;"></i> Reviewed</span>' 
+                                : '<span style="color:#64748b;">Leave a review for this stop</span>'}
                         </div>
                     </div>
                     <button type="button" 
                             data-spot-id="${spotId}" 
                             data-spot-classification="${sClass}"
                             onclick="window.startReviewFromCompletion('${spotId}', this)" 
-                            style="padding:6px 14px; border-radius:100px; background:${isReviewed ? 'rgba(255,255,255,0.18)' : 'linear-gradient(135deg, #38bdf8, #2563eb)'}; border:none; outline:none; color:#fff; font-size:12px; font-weight:800; cursor:pointer; white-space:nowrap; box-shadow:none; display:inline-flex; align-items:center; gap:4px; flex-shrink:0;">
-                        ${isReviewed ? '<i class="fa-solid fa-check" style="font-size:10px; margin-right:4px;"></i> Reviewed' : `<i class="fa-solid fa-pen" style="font-size:10px;"></i> Review (+${classMeta.points} PTS)`}
+                            style="padding:6px 14px; border-radius:100px; background:${isReviewed ? '#e2e8f0' : 'linear-gradient(135deg, #1e3a8a, #2563eb)'}; border:none; outline:none; color:${isReviewed ? '#64748b' : '#ffffff'}; font-size:11.5px; font-weight:800; cursor:pointer; white-space:nowrap; box-shadow:none; display:inline-flex; align-items:center; gap:4px; flex-shrink:0;">
+                        ${isReviewed ? '<i class="fa-solid fa-check" style="font-size:10px; margin-right:4px;"></i> Reviewed' : '<i class="fa-solid fa-pen" style="font-size:10px;"></i> Review'}
                     </button>
                 </div>`;
             });
 
             const modalHtml = `
-        <div id="trip-completion-review-modal" style="position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.85); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:99998; display:flex; align-items:center; justify-content:center; padding:20px; opacity:0; transition:opacity 0.3s ease;">
-            <div style="background:linear-gradient(135deg, rgba(30, 58, 138, 0.98) 0%, rgba(63, 125, 183, 0.96) 60%, rgba(2, 132, 199, 0.96) 100%); border:none; outline:none; border-radius:24px; padding:22px 20px; width:100%; max-width:380px; box-shadow:0 16px 40px rgba(10, 25, 60, 0.45); text-align:center; transform:scale(0.92) translateY(12px); transition:transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);">
-                <!-- Modal Top Header -->
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; padding-bottom:12px; border-bottom:1px solid rgba(255,255,255,0.14); text-align:left;">
+        <div id="trip-completion-review-modal" style="position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(10,25,60,0.75); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:99998; display:flex; align-items:center; justify-content:center; padding:16px; opacity:0; transition:opacity 0.3s ease;">
+            <div style="background:#ffffff; border:none; outline:none; border-radius:24px; width:100%; max-width:390px; box-shadow:0 25px 50px rgba(10, 25, 60, 0.45); overflow:hidden; display:flex; flex-direction:column; transform:scale(0.92) translateY(12px); transition:transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);">
+                <!-- Header (Royal Blue) -->
+                <div style="background:linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%) !important; padding:18px 20px; display:flex; justify-content:space-between; align-items:center; color:#ffffff; flex-shrink:0;">
                     <div>
                         <h4 style="margin:0; font-size:16px; font-weight:800; color:#ffffff; display:flex; align-items:center; gap:8px;">
-                            <i class="fa-solid fa-flag-checkered" style="color:#10b981;"></i> Trip Completed!
+                            <i class="fa-solid fa-flag-checkered" style="color:#60a5fa;"></i> Trip Completed!
                         </h4>
-                        <p style="margin:2px 0 0 0; font-size:11.5px; color:rgba(255,255,255,0.85);">
-                            Review destinations to earn your Points
+                        <p style="margin:2px 0 0 0; font-size:11.5px; color:rgba(255,255,255,0.9);">
+                            Review destinations you visited
                         </p>
                     </div>
-                    <button type="button" onclick="window.closeTripCompletionReviewModal()" style="background:rgba(255,255,255,0.15); border:none !important; outline:none !important; color:#ffffff; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:14px; transition:background 0.2s;">
+                    <button type="button" onclick="window.closeTripCompletionReviewModal()" style="background:rgba(255,255,255,0.2); border:none !important; outline:none !important; color:#ffffff; width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:13px; transition:background 0.2s;">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
                 </div>
 
-                <div style="width:54px; height:54px; border-radius:50%; background:rgba(16, 185, 129, 0.18); display:flex; align-items:center; justify-content:center; margin:0 auto 12px auto; box-shadow:none; border:none; outline:none;">
-                    <i class="fa-solid fa-award" style="font-size:26px; color:#10b981;"></i>
+                <!-- Middle (White) -->
+                <div style="background:#ffffff !important; padding:18px 20px 14px 20px; overflow-y:auto; max-height:calc(75vh - 120px); scrollbar-width:none; -ms-overflow-style:none; flex:1; text-align:center;">
+                    <div style="width:52px; height:52px; border-radius:50%; background:#eff6ff; display:flex; align-items:center; justify-content:center; margin:0 auto 10px auto; border:none; outline:none;">
+                        <i class="fa-solid fa-award" style="font-size:24px; color:#2563eb;"></i>
+                    </div>
+                    <h3 style="margin:0 0 4px; color:#0f172a; font-size:18px; font-weight:900;">Congratulations!</h3>
+                    <p style="font-size:12px; color:#64748b; margin:0 0 16px 0; line-height:1.45;">
+                        Share your experience! Review each destination you visited to help fellow travelers.
+                    </p>
+                    <div style="text-align:left; max-height:220px; overflow-y:auto; margin-bottom:0; padding-right:4px; scrollbar-width:none; -ms-overflow-style:none;">
+                        ${destListHtml}
+                    </div>
                 </div>
-                <h3 style="margin:0 0 4px; color:#fff; font-size:19px; font-weight:900;">Congratulations!</h3>
-                <p style="font-size:12px; color:rgba(255,255,255,0.85); margin:0 0 16px 0; line-height:1.5;">
-                    Share your experience! Review each destination you visited to earn reward Points and help fellow travelers.
-                </p>
-                <div style="text-align:left; max-height:220px; overflow-y:auto; margin-bottom:16px; padding-right:4px;">
-                    ${destListHtml}
+
+                <!-- Footer (Royal Blue) -->
+                <div style="background:linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%) !important; padding:14px 20px; flex-shrink:0;">
+                    <button type="button" id="btn-trip-completion-close" onclick="window.closeTripCompletionReviewModal()" style="width:100%; padding:12px; border-radius:100px; border:none; outline:none; background:rgba(255,255,255,0.2); color:#ffffff; font-size:13px; font-weight:800; cursor:pointer; transition:all 0.2s ease;">
+                        Done
+                    </button>
                 </div>
-                <button type="button" id="btn-trip-completion-close" onclick="window.closeTripCompletionReviewModal()" style="width:100%; padding:13px; border-radius:100px; border:none; outline:none; background:rgba(255,255,255,0.15); color:#ffffff; font-size:13px; font-weight:700; cursor:pointer; transition:all 0.2s ease;">
-                    Done
-                </button>
             </div>
         </div>`;
 
@@ -2591,6 +2594,10 @@ $backRoute = 'itinerary';
             if (btnEl) {
                 btnEl.dataset.reviewing = "true";
                 window._lastReviewedBtn = btnEl;
+            }
+            const compModal = document.getElementById('trip-completion-review-modal');
+            if (compModal) {
+                compModal.style.zIndex = '99990';
             }
             if (typeof window.openWriteTestimonyModal === 'function') {
                 window.openWriteTestimonyModal(spotId, btnEl);

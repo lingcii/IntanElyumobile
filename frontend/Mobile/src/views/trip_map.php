@@ -391,7 +391,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                     if (!card) return;
                     const isLocationVerified = Boolean(item.is_location_verified || item.visited_at);
                     const isPhotoApproved = (item.proof_status === 'approved');
-                    const isVisited = Boolean((item.is_visited && isLocationVerified) || (isLocationVerified && isPhotoApproved));
+                    const isVisited = Boolean(item.is_visited || isPhotoApproved || item.proof_status === 'approved' || (item.is_visited && isLocationVerified));
                     const isPending = Boolean(item.proof_image && (item.proof_status === 'pending' || !item.proof_status));
                     const isRejected = (item.proof_status === 'rejected');
                     const spotIdVal = item.tourist_spot_id || item.destination_id || (item.destination ? item.destination.id : null);
@@ -459,7 +459,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                 const isLocationVerified = Boolean(item.is_location_verified || item.visited_at);
                 const proofStatus = item.proof_status || (item.is_visited ? 'approved' : null);
                 const isPhotoApproved = (proofStatus === 'approved');
-                const isVisited = Boolean((item.is_visited && isLocationVerified) || (isLocationVerified && isPhotoApproved));
+                const isVisited = Boolean(item.is_visited || isPhotoApproved || item.proof_status === 'approved' || (item.is_visited && isLocationVerified));
                 const isRejected = (item.proof_status === 'rejected');
                 const spotIdVal = item.tourist_spot_id || item.destination_id || (item.destination ? item.destination.id : null);
                 const queuedItem = window.OfflineCheckinManager ? window.OfflineCheckinManager.getQueuedItem(item.id, spotIdVal) : null;
@@ -554,7 +554,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                         <div style="display:flex; flex-direction:column; gap:2px;">
                             <span style="background:#dcfce7; border:1px solid #bbf7d0; color:#15803d; font-weight:800; font-size:10px; padding:2px 8px; border-radius:100px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-circle-check"></i> Visited</span>
                             <button type="button" data-spot-id="${sId}" data-spot-classification="${sClass}" onclick="event.stopPropagation(); window.openWriteTestimonyModal('${sId}', this)" style="background:#eff6ff; border:1px solid #bfdbfe; color:#1d4ed8; font-size:9.5px; font-weight:800; padding:2px 8px; border-radius:100px; cursor:pointer; width:fit-content;">
-                                ${isReviewed ? '<i class="fa-solid fa-check"></i> Reviewed' : `<i class="fa-solid fa-pen"></i> Review (+${sMeta.points} PTS)`}
+                                ${isReviewed ? '<i class="fa-solid fa-check"></i> Reviewed' : '<i class="fa-solid fa-pen"></i> Review'}
                             </button>
                         </div>
                     </div>`;
@@ -924,7 +924,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                         let iconHtml = '';
                         const isLocationVerified = Boolean(item.is_location_verified || item.visited_at);
                         const isPhotoApproved = (item.proof_status === 'approved');
-                        const isVisited = Boolean((item.is_visited && isLocationVerified) || (isLocationVerified && isPhotoApproved));
+                        const isVisited = Boolean(item.is_visited || isPhotoApproved || item.proof_status === 'approved' || (item.is_visited && isLocationVerified));
                         const isRejected = (item.proof_status === 'rejected');
                         const hasProof = Boolean((Array.isArray(item.proof_images) && item.proof_images.length > 0) || item.proof_image);
                         const isPending = Boolean(isLocationVerified && hasProof && (item.proof_status === 'pending' || !item.proof_status) && !isVisited);

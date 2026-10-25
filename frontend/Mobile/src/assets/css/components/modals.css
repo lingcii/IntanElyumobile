@@ -601,20 +601,23 @@
 
 #testimony-comment::placeholder,
 #testimony-policy::placeholder {
-    color: rgba(255, 255, 255, 0.65) !important;
+    color: #94a3b8 !important;
     opacity: 1 !important;
 }
 
 #testimony-comment::-webkit-input-placeholder,
 #testimony-policy::-webkit-input-placeholder {
-    color: rgba(255, 255, 255, 0.65) !important;
+    color: #94a3b8 !important;
 }
 
 #testimony-comment,
 #testimony-policy {
-    border: none !important;
+    border: 1px solid #cbd5e1 !important;
     outline: none !important;
     box-shadow: none !important;
+    background: #f8fafc !important;
+    color: #0f172a !important;
+    -webkit-text-fill-color: #0f172a !important;
     overflow: hidden !important;
     overflow-y: hidden !important;
     overflow-x: hidden !important;

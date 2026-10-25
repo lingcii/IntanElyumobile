@@ -530,10 +530,10 @@ Route::prefix('admin')->middleware('tourist.auth')->group(function () {
         }
 
         $item = \App\Models\ItineraryItem::findOrFail($id);
-        $hasCheckin = ($item->visited_at !== null);
         $item->update([
             'proof_status' => 'approved',
-            'is_visited'   => $hasCheckin,
+            'is_visited'   => true,
+            'visited_at'   => $item->visited_at ?? now(),
             'reviewed_by'  => $user->id ?? null,
             'reviewed_at'  => now(),
         ]);
@@ -977,10 +977,10 @@ foreach (['lupto', 'pitco', 'picto', 'municipal'] as $rolePrefix) {
         Route::post('/proof-checkins/{id}/approve', function (\Illuminate\Http\Request $request, $id) {
             $item = \App\Models\ItineraryItem::findOrFail($id);
             $user = $request->user();
-            $hasCheckin = ($item->visited_at !== null);
             $item->update([
                 'proof_status' => 'approved',
-                'is_visited'   => $hasCheckin,
+                'is_visited'   => true,
+                'visited_at'   => $item->visited_at ?? now(),
                 'reviewed_by'  => $user->id ?? null,
                 'reviewed_at'  => now(),
             ]);

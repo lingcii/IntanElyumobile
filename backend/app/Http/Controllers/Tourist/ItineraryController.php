@@ -110,8 +110,8 @@ class ItineraryController extends Controller
         return [
             'id'                   => $item->id,
             'order_index'          => (int) ($item->order_index ?? 0),
-            'is_visited'           => (bool) $item->is_visited,
-            'is_location_verified' => (bool) ($item->visited_at !== null),
+            'is_visited'           => (bool) ($item->is_visited || $item->proof_status === 'approved'),
+            'is_location_verified' => (bool) ($item->visited_at !== null || $item->proof_status === 'approved'),
             'proof_image'          => $item->proof_image,
             'proof_images'         => $item->proof_images ?? [],
             'proof_status'         => !empty($item->proof_image) ? ($item->proof_status ?? ($item->is_visited ? 'approved' : 'pending')) : null,

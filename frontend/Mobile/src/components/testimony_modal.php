@@ -1,107 +1,111 @@
 <!-- Global Review Destination Modal Component -->
-<div id="testimony-modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(10,25,60,0.65); z-index:2147483647; align-items:center; justify-content:center; padding:12px; backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); opacity:0; transition:opacity 0.3s ease;">
-    <div class="testimony-card-anim" style="background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border:none !important; outline:none !important; border-radius:22px; padding:18px 20px 16px 20px; width:100%; max-width:380px; box-shadow:0 25px 50px rgba(10,25,60,0.45); text-align:left; box-sizing:border-box; transform:scale(0.88) translateY(16px); opacity:0; transition:transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease; scrollbar-width:none; -ms-overflow-style:none;">
+<div id="testimony-modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(10,25,60,0.75); z-index:2147483647 !important; align-items:center; justify-content:center; padding:16px; backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); opacity:0; transition:opacity 0.3s ease;">
+    <div class="testimony-card-anim" style="background:#ffffff; border:none !important; outline:none !important; border-radius:24px; overflow:hidden; width:100%; max-width:385px; box-shadow:0 25px 50px rgba(10,25,60,0.5); text-align:left; box-sizing:border-box; transform:scale(0.88) translateY(16px); opacity:0; transition:transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease; display:flex; flex-direction:column;">
         
-        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
+        <!-- Header (Royal Blue) -->
+        <div style="background:linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%) !important; padding:18px 20px; display:flex; justify-content:space-between; align-items:flex-start; color:#ffffff; flex-shrink:0;">
             <div>
                 <h3 id="testimony-modal-title" style="margin:0 0 2px; color:#ffffff; font-size:17px; font-weight:800; letter-spacing:-0.3px;">Review Destination</h3>
-                <p id="testimony-modal-subtitle" style="margin:0; font-size:11px; color:rgba(255,255,255,0.85); line-height:1.35;">Share your site feedback and policy recommendations to help local tourism.</p>
+                <p id="testimony-modal-subtitle" style="margin:0; font-size:11px; color:rgba(255,255,255,0.9); line-height:1.35;">Share your site feedback and recommendations.</p>
             </div>
-            <button type="button" onclick="window.closeWriteTestimonyModal()" style="background:rgba(255,255,255,0.15); border:none !important; outline:none !important; color:#ffffff; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; margin-left:8px;">
-                <i class="fa-solid fa-xmark" style="font-size:13px;"></i>
+            <button type="button" onclick="window.closeWriteTestimonyModal()" style="background:rgba(255,255,255,0.2); border:none !important; outline:none !important; color:#ffffff; width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; margin-left:8px; font-size:13px; transition:background 0.2s;">
+                <i class="fa-solid fa-xmark"></i>
             </button>
         </div>
 
-        <!-- Rewards Incentive Callout Banner -->
-        <div id="testimony-reward-banner" style="background:rgba(255, 255, 255, 0.14) !important; border:1px solid rgba(255, 255, 255, 0.22) !important; outline:none !important; border-radius:14px; padding:10px 14px; margin-bottom:12px; display:flex; align-items:center; gap:12px; box-shadow:0 4px 14px rgba(0,0,0,0.12); transition:all 0.3s ease;">
-            <div id="testimony-reward-icon" style="width:34px; height:34px; border-radius:10px; background:rgba(255,255,255,0.18); display:flex; align-items:center; justify-content:center; color:#fbbf24; font-size:15px; flex-shrink:0;">
-                <i class="fa-solid fa-gift"></i>
-            </div>
-            <div style="flex:1; min-width:0;">
-                <span id="testimony-reward-title" style="display:block; font-size:12.5px; font-weight:800; color:#ffffff; line-height:1.25;">Review & Earn Rewards</span>
-                <span id="testimony-reward-desc" style="font-size:11px; color:rgba(255,255,255,0.92); line-height:1.35; display:block; margin-top:2px;">Submit review to claim rewards</span>
-            </div>
-            <div id="testimony-reward-badges" style="display:none !important;"></div>
-        </div>
-
-        <form id="testimony-form" onsubmit="window.submitTestimony(event)">
+        <form id="testimony-form" onsubmit="window.submitTestimony(event)" style="display:flex; flex-direction:column; margin:0; flex:1; min-height:0;">
             <input type="hidden" id="testimony-spot-id">
 
-            <!-- Star Rating selection (inline compact) -->
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                <label style="font-size:11px; font-weight:800; color:#ffffff; text-transform:uppercase; letter-spacing:0.4px;">Your Rating (1 to 5 Stars):</label>
-                <div style="display:flex; gap:6px; font-size:20px; color:#f59e0b;">
-                    <i class="fa-solid fa-star star-btn" data-star="1" style="cursor:pointer;" onclick="window.setStarRating(1)"></i>
-                    <i class="fa-solid fa-star star-btn" data-star="2" style="cursor:pointer;" onclick="window.setStarRating(2)"></i>
-                    <i class="fa-solid fa-star star-btn" data-star="3" style="cursor:pointer;" onclick="window.setStarRating(3)"></i>
-                    <i class="fa-solid fa-star star-btn" data-star="4" style="cursor:pointer;" onclick="window.setStarRating(4)"></i>
-                    <i class="fa-solid fa-star star-btn" data-star="5" style="cursor:pointer;" onclick="window.setStarRating(5)"></i>
-                </div>
-                <input type="hidden" id="testimony-rating" value="5">
-            </div>
-
-            <!-- Cleanliness, Safety parameters (Solid Buttons) -->
-            <div style="display:flex; flex-direction:column; gap:7px; margin-bottom:8px;">
-
-                <!-- Cleanliness -->
-                <div>
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:3px;">
-                        <label style="font-size:10.5px; font-weight:700; color:rgba(255,255,255,0.9); text-transform:uppercase;">Cleanliness:</label>
-                        <span id="cleanliness-selected-label" style="font-size:10.5px; font-weight:800; color:#10b981;">Clean</span>
+            <!-- Middle (White) -->
+            <div style="background:#ffffff !important; padding:16px 20px 10px 20px; overflow-y:auto; max-height:calc(78vh - 130px); scrollbar-width:none; -ms-overflow-style:none; flex:1;">
+                
+                <!-- Rewards Incentive Callout Banner -->
+                <div id="testimony-reward-banner" style="background:#eff6ff !important; border:1px solid #bfdbfe !important; outline:none !important; border-radius:12px; padding:10px 12px; margin-bottom:12px; display:flex; align-items:center; gap:10px; transition:all 0.3s ease;">
+                    <div id="testimony-reward-icon" style="width:32px; height:32px; border-radius:8px; background:#dbeafe; display:flex; align-items:center; justify-content:center; color:#2563eb; font-size:14px; flex-shrink:0;">
+                        <i class="fa-solid fa-gift"></i>
                     </div>
-                    <div style="display:flex; gap:6px;">
-                        <button type="button" class="option-pill clean-pill active" data-val="clean" onclick="window.selectCleanliness('clean')" style="flex:1; padding:7px 4px; border-radius:8px; border:none !important; outline:none !important; background:#10b981; color:#ffffff; font-size:11px; font-weight:800; cursor:pointer; transition:all 0.2s ease;">
-                            Clean
-                        </button>
-                        <button type="button" class="option-pill clean-pill" data-val="moderate" onclick="window.selectCleanliness('moderate')" style="flex:1; padding:7px 4px; border-radius:8px; border:none !important; outline:none !important; background:rgba(255,255,255,0.15); color:#ffffff; font-size:11px; font-weight:700; cursor:pointer; transition:all 0.2s ease;">
-                            Moderate
-                        </button>
-                        <button type="button" class="option-pill clean-pill" data-val="dirty" onclick="window.selectCleanliness('dirty')" style="flex:1; padding:7px 4px; border-radius:8px; border:none !important; outline:none !important; background:rgba(255,255,255,0.15); color:#ffffff; font-size:11px; font-weight:700; cursor:pointer; transition:all 0.2s ease;">
-                            Dirty
-                        </button>
+                    <div style="flex:1; min-width:0;">
+                        <span id="testimony-reward-title" style="display:block; font-size:12px; font-weight:800; color:#1e3a8a; line-height:1.25;">Review & Earn Rewards</span>
+                        <span id="testimony-reward-desc" style="font-size:11px; color:#475569; line-height:1.35; display:block; margin-top:1px;">Submit review to claim rewards</span>
                     </div>
-                    <input type="hidden" id="testimony-cleanliness" value="clean">
+                    <div id="testimony-reward-badges" style="display:none !important;"></div>
                 </div>
 
-                <!-- Safety -->
-                <div>
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:3px;">
-                        <label style="font-size:10.5px; font-weight:700; color:rgba(255,255,255,0.9); text-transform:uppercase;">Safety Level:</label>
-                        <span id="safety-selected-label" style="font-size:10.5px; font-weight:800; color:#10b981;">Safe</span>
+                <!-- Star Rating selection -->
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                    <label style="font-size:11px; font-weight:800; color:#334155; text-transform:uppercase; letter-spacing:0.4px;">Your Rating (1 to 5 Stars):</label>
+                    <div style="display:flex; gap:6px; font-size:20px; color:#f59e0b;">
+                        <i class="fa-solid fa-star star-btn" data-star="1" style="cursor:pointer;" onclick="window.setStarRating(1)"></i>
+                        <i class="fa-solid fa-star star-btn" data-star="2" style="cursor:pointer;" onclick="window.setStarRating(2)"></i>
+                        <i class="fa-solid fa-star star-btn" data-star="3" style="cursor:pointer;" onclick="window.setStarRating(3)"></i>
+                        <i class="fa-solid fa-star star-btn" data-star="4" style="cursor:pointer;" onclick="window.setStarRating(4)"></i>
+                        <i class="fa-solid fa-star star-btn" data-star="5" style="cursor:pointer;" onclick="window.setStarRating(5)"></i>
                     </div>
-                    <div style="display:flex; gap:6px;">
-                        <button type="button" class="option-pill safety-pill active" data-val="safe" onclick="window.selectSafety('safe')" style="flex:1; padding:7px 4px; border-radius:8px; border:none !important; outline:none !important; background:#10b981; color:#ffffff; font-size:11px; font-weight:800; cursor:pointer; transition:all 0.2s ease;">
-                            Safe
-                        </button>
-                        <button type="button" class="option-pill safety-pill" data-val="moderate" onclick="window.selectSafety('moderate')" style="flex:1; padding:7px 4px; border-radius:8px; border:none !important; outline:none !important; background:rgba(255,255,255,0.15); color:#ffffff; font-size:11px; font-weight:700; cursor:pointer; transition:all 0.2s ease;">
-                            Moderate
-                        </button>
-                        <button type="button" class="option-pill safety-pill" data-val="unsafe" onclick="window.selectSafety('unsafe')" style="flex:1; padding:7px 4px; border-radius:8px; border:none !important; outline:none !important; background:rgba(255,255,255,0.15); color:#ffffff; font-size:11px; font-weight:700; cursor:pointer; transition:all 0.2s ease;">
-                            Unsafe
-                        </button>
+                    <input type="hidden" id="testimony-rating" value="5">
+                </div>
+
+                <!-- Cleanliness, Safety parameters -->
+                <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:10px;">
+                    <!-- Cleanliness -->
+                    <div>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                            <label style="font-size:10.5px; font-weight:700; color:#475569; text-transform:uppercase;">Cleanliness:</label>
+                            <span id="cleanliness-selected-label" style="font-size:10.5px; font-weight:800; color:#10b981;">Clean</span>
+                        </div>
+                        <div style="display:flex; gap:6px;">
+                            <button type="button" class="option-pill clean-pill active" data-val="clean" onclick="window.selectCleanliness('clean')" style="flex:1; padding:7px 4px; border-radius:8px; border:none !important; outline:none !important; background:#10b981; color:#ffffff; font-size:11px; font-weight:800; cursor:pointer; transition:all 0.2s ease;">
+                                Clean
+                            </button>
+                            <button type="button" class="option-pill clean-pill" data-val="moderate" onclick="window.selectCleanliness('moderate')" style="flex:1; padding:7px 4px; border-radius:8px; border:1px solid #e2e8f0 !important; outline:none !important; background:#f8fafc; color:#475569; font-size:11px; font-weight:700; cursor:pointer; transition:all 0.2s ease;">
+                                Moderate
+                            </button>
+                            <button type="button" class="option-pill clean-pill" data-val="dirty" onclick="window.selectCleanliness('dirty')" style="flex:1; padding:7px 4px; border-radius:8px; border:1px solid #e2e8f0 !important; outline:none !important; background:#f8fafc; color:#475569; font-size:11px; font-weight:700; cursor:pointer; transition:all 0.2s ease;">
+                                Dirty
+                            </button>
+                        </div>
+                        <input type="hidden" id="testimony-cleanliness" value="clean">
                     </div>
-                    <input type="hidden" id="testimony-safety" value="safe">
+
+                    <!-- Safety -->
+                    <div>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                            <label style="font-size:10.5px; font-weight:700; color:#475569; text-transform:uppercase;">Safety Level:</label>
+                            <span id="safety-selected-label" style="font-size:10.5px; font-weight:800; color:#10b981;">Safe</span>
+                        </div>
+                        <div style="display:flex; gap:6px;">
+                            <button type="button" class="option-pill safety-pill active" data-val="safe" onclick="window.selectSafety('safe')" style="flex:1; padding:7px 4px; border-radius:8px; border:none !important; outline:none !important; background:#10b981; color:#ffffff; font-size:11px; font-weight:800; cursor:pointer; transition:all 0.2s ease;">
+                                Safe
+                            </button>
+                            <button type="button" class="option-pill safety-pill" data-val="moderate" onclick="window.selectSafety('moderate')" style="flex:1; padding:7px 4px; border-radius:8px; border:1px solid #e2e8f0 !important; outline:none !important; background:#f8fafc; color:#475569; font-size:11px; font-weight:700; cursor:pointer; transition:all 0.2s ease;">
+                                Moderate
+                            </button>
+                            <button type="button" class="option-pill safety-pill" data-val="unsafe" onclick="window.selectSafety('unsafe')" style="flex:1; padding:7px 4px; border-radius:8px; border:1px solid #e2e8f0 !important; outline:none !important; background:#f8fafc; color:#475569; font-size:11px; font-weight:700; cursor:pointer; transition:all 0.2s ease;">
+                                Unsafe
+                            </button>
+                        </div>
+                        <input type="hidden" id="testimony-safety" value="safe">
+                    </div>
+                </div>
+
+                <!-- Feedback description -->
+                <div style="margin-bottom:8px;">
+                    <label style="font-size:10.5px; font-weight:800; color:#334155; text-transform:uppercase; letter-spacing:0.4px; display:block; margin-bottom:4px;">Your Feedback:</label>
+                    <textarea id="testimony-comment" placeholder="Describe your experience during this site visit..." style="width:100%; height:52px; background:#f8fafc; border:1px solid #cbd5e1 !important; outline:none !important; border-radius:10px; padding:8px 10px; color:#0f172a !important; -webkit-text-fill-color:#0f172a !important; font-size:12px; font-weight:500; font-family:inherit; resize:none; box-sizing:border-box; line-height:1.4; overflow:hidden !important; scrollbar-width:none; -ms-overflow-style:none;" required></textarea>
+                </div>
+
+                <!-- Policy Recommendation -->
+                <div style="margin-bottom:6px;">
+                    <label style="font-size:10.5px; font-weight:800; color:#334155; text-transform:uppercase; letter-spacing:0.4px; display:block; margin-bottom:4px;">Policy Recommendations (Optional):</label>
+                    <textarea id="testimony-policy" placeholder="Suggestions for safety, cleanliness, or crowd control..." style="width:100%; height:52px; background:#f8fafc; border:1px solid #cbd5e1 !important; outline:none !important; border-radius:10px; padding:8px 10px; color:#0f172a !important; -webkit-text-fill-color:#0f172a !important; font-size:12px; font-weight:500; font-family:inherit; resize:none; box-sizing:border-box; line-height:1.4; overflow:hidden !important; scrollbar-width:none; -ms-overflow-style:none;"></textarea>
                 </div>
             </div>
 
-            <!-- Feedback description -->
-            <div style="margin-bottom:7px;">
-                <label style="font-size:10.5px; font-weight:800; color:#ffffff; text-transform:uppercase; letter-spacing:0.4px; display:block; margin-bottom:3px;">Your Feedback:</label>
-                <textarea id="testimony-comment" placeholder="Describe your experience and feedback during this site visit..." style="width:100%; height:52px; background:rgba(255,255,255,0.15); border:none !important; outline:none !important; border-radius:10px; padding:8px 10px; color:#ffffff !important; -webkit-text-fill-color:#ffffff !important; font-size:12px; font-weight:500; font-family:inherit; resize:none; box-sizing:border-box; line-height:1.4; overflow:hidden !important; scrollbar-width:none; -ms-overflow-style:none;" required></textarea>
-            </div>
-
-            <!-- Policy Recommendation (No Scrollbar) -->
-            <div style="margin-bottom:10px;">
-                <label style="font-size:10.5px; font-weight:800; color:#ffffff; text-transform:uppercase; letter-spacing:0.4px; display:block; margin-bottom:3px;">Policy Recommendations (Optional):</label>
-                <textarea id="testimony-policy" placeholder="Any suggestions or recommendations for safety, cleanliness, or crowd control policies?..." style="width:100%; height:52px; background:rgba(255,255,255,0.15); border:none !important; outline:none !important; border-radius:10px; padding:8px 10px; color:#ffffff !important; -webkit-text-fill-color:#ffffff !important; font-size:12px; font-weight:500; font-family:inherit; resize:none; box-sizing:border-box; line-height:1.4; overflow:hidden !important; scrollbar-width:none; -ms-overflow-style:none;"></textarea>
-            </div>
-
-            <!-- Action Buttons Inline Row -->
-            <div style="display:flex; gap:8px;">
-                <button type="submit" id="testimony-submit-btn" class="btn-primary" style="flex:1; padding:12px 14px; font-size:13.5px; background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); border:none !important; outline:none !important; color:#fff; border-radius:12px; font-weight:800; cursor:pointer; box-shadow:none; display:flex; align-items:center; justify-content:center; gap:6px;">
+            <!-- Footer (The Buttons) -->
+            <div style="background:#f8fafc; border-top:1px solid #e2e8f0; padding:14px 20px 16px 20px; display:flex; gap:10px; flex-shrink:0;">
+                <button type="submit" id="testimony-submit-btn" style="flex:1; padding:12px 14px; font-size:13.5px; background:linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%); border:none !important; outline:none !important; color:#fff; border-radius:12px; font-weight:800; cursor:pointer; box-shadow:0 4px 12px rgba(37,99,235,0.25); display:flex; align-items:center; justify-content:center; gap:6px;">
                     <i class="fa-solid fa-paper-plane" style="font-size:11px;"></i> <span id="testimony-submit-text">Submit Review</span>
                 </button>
-                <button type="button" style="padding:12px 16px; border-radius:12px; border:none !important; outline:none !important; background:rgba(255,255,255,0.18); color:#ffffff; font-size:13px; font-weight:700; cursor:pointer;" onclick="window.closeWriteTestimonyModal()">Cancel</button>
+                <button type="button" style="padding:12px 18px; border-radius:12px; border:1px solid #e2e8f0 !important; outline:none !important; background:#ffffff; color:#475569; font-size:13px; font-weight:700; cursor:pointer;" onclick="window.closeWriteTestimonyModal()">Cancel</button>
             </div>
         </form>
     </div>
@@ -162,12 +166,11 @@ window.syncReviewedButtons = function() {
         const spotId = Number(btn.getAttribute('data-spot-id'));
         if (spotId && window.userReviewedSpotIds.has(spotId)) {
             btn.innerHTML = '<i class="fa-solid fa-check" style="font-size:10px; margin-right:4px;"></i> Reviewed';
-            btn.style.background = 'rgba(255, 255, 255, 0.18)';
+            btn.style.background = '#e2e8f0';
+            btn.style.color = '#64748b';
             btn.style.boxShadow = 'none';
         } else if (btn.getAttribute('data-spot-classification') && !btn.innerHTML.includes('fa-check')) {
-            const cls = btn.getAttribute('data-spot-classification');
-            const meta = (window.getRewardPointsForClassification) ? window.getRewardPointsForClassification(cls) : { points: 50 };
-            btn.innerHTML = `<i class="fa-solid fa-pen" style="font-size:10px; margin-right:4px;"></i> Review (+${meta.points} PTS)`;
+            btn.innerHTML = '<i class="fa-solid fa-pen" style="font-size:10px; margin-right:4px;"></i> Review';
         }
     });
 };
@@ -218,8 +221,8 @@ window.openWriteTestimonyModal = function(spotId, btnEl) {
         if (titleEl) titleEl.textContent = 'Update Destination Review';
         if (subEl) subEl.textContent = 'Modify your site feedback and policy recommendations for this destination.';
         if (bannerEl) {
-            bannerEl.style.background = 'rgba(255, 255, 255, 0.14)';
-            bannerEl.style.border = '1px solid rgba(255, 255, 255, 0.22)';
+            bannerEl.style.background = '#f8fafc';
+            bannerEl.style.border = '1px solid #e2e8f0';
             bannerEl.style.outline = 'none';
         }
         if (iconEl) {
@@ -247,8 +250,8 @@ window.openWriteTestimonyModal = function(spotId, btnEl) {
         if (titleEl) titleEl.textContent = 'Review Destination';
         if (subEl) subEl.textContent = `Share your site feedback for this ${classMeta.label.toLowerCase()} destination to help local tourism.`;
         if (bannerEl) {
-            bannerEl.style.background = 'rgba(255, 255, 255, 0.14)';
-            bannerEl.style.border = '1px solid rgba(255, 255, 255, 0.22)';
+            bannerEl.style.background = '#eff6ff';
+            bannerEl.style.border = '1px solid #bfdbfe';
             bannerEl.style.outline = 'none';
         }
         if (iconEl) {
@@ -271,9 +274,18 @@ window.openWriteTestimonyModal = function(spotId, btnEl) {
 
     const modal = document.getElementById('testimony-modal');
     if (modal) {
+        if (modal.parentElement !== document.body) {
+            document.body.appendChild(modal);
+        }
+        modal.style.zIndex = '2147483647';
         modal.style.display = 'flex';
         void modal.offsetHeight;
         modal.classList.add('active');
+        const card = modal.querySelector('.testimony-card-anim');
+        if (card) {
+            card.style.transform = 'scale(1) translateY(0)';
+            card.style.opacity = '1';
+        }
     }
 };
 
@@ -281,11 +293,21 @@ window.closeWriteTestimonyModal = function() {
     const modal = document.getElementById('testimony-modal');
     if (modal) {
         modal.classList.remove('active');
+        const card = modal.querySelector('.testimony-card-anim');
+        if (card) {
+            card.style.transform = 'scale(0.88) translateY(16px)';
+            card.style.opacity = '0';
+        }
         setTimeout(() => {
             if (!modal.classList.contains('active')) {
                 modal.style.display = 'none';
             }
         }, 320);
+    }
+    const compModal = document.getElementById('trip-completion-review-modal');
+    if (compModal) {
+        compModal.style.zIndex = '99998';
+        compModal.style.opacity = '1';
     }
 };
 
@@ -326,18 +348,18 @@ window.selectCleanliness = function(val) {
     document.querySelectorAll('#testimony-modal .clean-pill').forEach(btn => {
         if (btn.dataset.val === val) {
             btn.classList.add('active');
-            btn.style.border = 'none';
-            btn.style.outline = 'none';
+            btn.style.border = 'none !important';
+            btn.style.outline = 'none !important';
             btn.style.background = colorMap[val] || '#10b981';
             btn.style.color = '#ffffff';
             btn.style.fontWeight = '800';
             btn.style.boxShadow = 'none';
         } else {
             btn.classList.remove('active');
-            btn.style.border = 'none';
-            btn.style.outline = 'none';
-            btn.style.background = 'rgba(255,255,255,0.15)';
-            btn.style.color = '#ffffff';
+            btn.style.border = '1px solid #e2e8f0 !important';
+            btn.style.outline = 'none !important';
+            btn.style.background = '#f8fafc';
+            btn.style.color = '#475569';
             btn.style.fontWeight = '700';
             btn.style.boxShadow = 'none';
         }
@@ -359,18 +381,18 @@ window.selectSafety = function(val) {
     document.querySelectorAll('#testimony-modal .safety-pill').forEach(btn => {
         if (btn.dataset.val === val) {
             btn.classList.add('active');
-            btn.style.border = 'none';
-            btn.style.outline = 'none';
+            btn.style.border = 'none !important';
+            btn.style.outline = 'none !important';
             btn.style.background = colorMap[val] || '#10b981';
             btn.style.color = '#ffffff';
             btn.style.fontWeight = '800';
             btn.style.boxShadow = 'none';
         } else {
             btn.classList.remove('active');
-            btn.style.border = 'none';
-            btn.style.outline = 'none';
-            btn.style.background = 'rgba(255,255,255,0.15)';
-            btn.style.color = '#ffffff';
+            btn.style.border = '1px solid #e2e8f0 !important';
+            btn.style.outline = 'none !important';
+            btn.style.background = '#f8fafc';
+            btn.style.color = '#475569';
             btn.style.fontWeight = '700';
             btn.style.boxShadow = 'none';
         }
@@ -506,9 +528,9 @@ window.submitTestimony = async function(event) {
             }
 
             if (window._lastReviewedBtn) {
-                window._lastReviewedBtn.style.background = 'rgba(255, 255, 255, 0.18)';
+                window._lastReviewedBtn.style.background = '#e2e8f0';
                 window._lastReviewedBtn.style.border = 'none !important';
-                window._lastReviewedBtn.style.color = '#ffffff';
+                window._lastReviewedBtn.style.color = '#64748b';
                 window._lastReviewedBtn.style.boxShadow = 'none';
                 window._lastReviewedBtn.innerHTML = '<i class="fa-solid fa-check" style="font-size:10px; margin-right:4px;"></i> Reviewed';
                 window._lastReviewedBtn = null;
