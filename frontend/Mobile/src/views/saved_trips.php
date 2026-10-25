@@ -1298,18 +1298,13 @@ $backRoute = 'itinerary';
                                                 </div>` :
                                             (isLocVerified && isPendingProof ?
                                                 `<div style="display:flex; flex-direction:column; gap:8px; margin-top:4px;">
-                                                    <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
-                                                        <div>
-                                                            <span style="background:rgba(255,149,0,0.22); border:none !important; outline:none !important; color:#ff9f0a; font-size:11.5px; font-weight:800; padding:3px 10px; border-radius:100px; display:inline-flex; align-items:center; gap:5px;">
-                                                                <i class="fa-solid fa-hourglass-half"></i> Awaiting Admin Approval
-                                                            </span>
-                                                            <span style="font-size:10px; color:#ffffff; opacity:0.8; display:block; margin-top:4px;">
-                                                                <i class="fa-solid fa-circle-check" style="color:#34c759; margin-right:3px;"></i> Location Verified &bull; Photos submitted
-                                                            </span>
-                                                        </div>
-                                                        <button type="button" class="btn-primary" style="padding:7px 14px; font-size:11.5px; font-weight:800; border-radius:100px; background:rgba(255,255,255,0.18); border:none !important; outline:none !important; color:#fff; cursor:pointer;" onclick="event.stopPropagation(); window.openProofUploadModal('${item.id}', '${destEscaped}')">
-                                                            <i class="fa-solid fa-camera" style="margin-right:4px;"></i> Edit Proof
-                                                        </button>
+                                                    <div>
+                                                        <span style="background:rgba(255,149,0,0.22); border:none !important; outline:none !important; color:#ff9f0a; font-size:11.5px; font-weight:800; padding:3px 10px; border-radius:100px; display:inline-flex; align-items:center; gap:5px;">
+                                                            <i class="fa-solid fa-hourglass-half"></i> Awaiting Admin Approval
+                                                        </span>
+                                                        <span style="font-size:10px; color:#ffffff; opacity:0.8; display:block; margin-top:4px;">
+                                                            <i class="fa-solid fa-circle-check" style="color:#34c759; margin-right:3px;"></i> Location Verified &bull; Photos submitted
+                                                        </span>
                                                     </div>
                                                     ${photosStripHtml}
                                                 </div>` :
@@ -1322,14 +1317,9 @@ $backRoute = 'itinerary';
                                                             </span>
                                                             <span style="font-size:10px; color:#ffffff; opacity:0.8; display:block; margin-top:4px;">Please check in on-site to verify location</span>
                                                         </div>
-                                                        <div style="display:flex; gap:6px; align-items:center;">
-                                                            <button type="button" class="btn-primary" style="padding:7px 12px; font-size:11px; font-weight:800; border-radius:100px; background:rgba(255,255,255,0.18); border:none !important; outline:none !important; color:#fff; cursor:pointer;" onclick="event.stopPropagation(); window.openProofUploadModal('${item.id}', '${destEscaped}')">
-                                                                <i class="fa-solid fa-camera" style="margin-right:4px;"></i> Proof
-                                                            </button>
-                                                            <button type="button" class="btn-primary" style="padding:7px 14px; font-size:11.5px; font-weight:800; border-radius:100px; background:linear-gradient(135deg, #00f2fe, #0284c7); border:none !important; outline:none !important; color:#fff; cursor:pointer;" onclick="event.stopPropagation(); window.executeLocationCheckIn('${item.id}', '${destEscaped}', ${dest?.latitude || 'null'}, ${dest?.longitude || 'null'}, this)">
-                                                                <i class="fa-solid fa-location-crosshairs" style="margin-right:4px;"></i> Check In
-                                                            </button>
-                                                        </div>
+                                                        <button type="button" class="btn-primary" style="padding:7px 14px; font-size:11.5px; font-weight:800; border-radius:100px; background:linear-gradient(135deg, #00f2fe, #0284c7); border:none !important; outline:none !important; color:#fff; cursor:pointer;" onclick="event.stopPropagation(); window.executeLocationCheckIn('${item.id}', '${destEscaped}', ${dest?.latitude || 'null'}, ${dest?.longitude || 'null'}, this)">
+                                                            <i class="fa-solid fa-location-crosshairs" style="margin-right:4px;"></i> Check In
+                                                        </button>
                                                     </div>
                                                     ${photosStripHtml}
                                                 </div>` :

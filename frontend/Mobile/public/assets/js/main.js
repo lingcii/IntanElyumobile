@@ -3055,13 +3055,10 @@ window.renderSavedTrips = function (itineraries) {
                                     </div>` :
                                     (hasProof ?
                                         `<div style="display:flex; flex-direction:column; gap:8px; margin-top:4px;">
-                                            <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+                                            <div>
                                                 <span style="background:rgba(255,149,0,0.22); color:#ff9f0a; font-size:11.5px; font-weight:800; padding:3px 10px; border-radius:100px; display:inline-flex; align-items:center; gap:5px;">
                                                     <i class="fa-solid fa-hourglass-half"></i> Awaiting Approval
                                                 </span>
-                                                <button type="button" class="btn-primary" style="padding:7px 12px; font-size:11px; font-weight:800; border-radius:100px; background:rgba(255,255,255,0.18); border:none !important; outline:none !important; color:#fff; cursor:pointer;" onclick="event.stopPropagation(); if(typeof window.openProofUploadModal==='function') window.openProofUploadModal('${item.id}', '${destEscaped}')">
-                                                    <i class="fa-solid fa-camera" style="margin-right:4px;"></i> Edit Proof
-                                                </button>
                                             </div>
                                             ${photosStripHtml}
                                         </div>` :
