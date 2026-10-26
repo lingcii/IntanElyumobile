@@ -773,11 +773,15 @@ $backRoute = 'itinerary';
                         }
                     },
                     (itineraries) => {
-                        if (window._isStartingTrip) return;
                         if (itineraries && Array.isArray(itineraries)) {
-                            renderSavedTrips(itineraries);
+                            window._cachedSavedTrips = itineraries;
+                            if (!window._isStartingTrip) {
+                                renderSavedTrips(itineraries);
+                            }
                         } else {
-                            renderSavedTrips(getLocalTripsCombined());
+                            if (!window._isStartingTrip) {
+                                renderSavedTrips(getLocalTripsCombined());
+                            }
                         }
                     },
                     (forceRefresh || Boolean(window._hasPendingApprovalItems)),
@@ -1688,6 +1692,8 @@ $backRoute = 'itinerary';
                 } else {
                     window.location.href = '?view=trip_map&trip_id=' + encodeURIComponent(tripId) + transportParam + appParam;
                 }
+                // Release starting lock once navigation has taken place
+                setTimeout(() => { window._isStartingTrip = false; }, 300);
             }, 180);
         };
 
@@ -2900,7 +2906,8 @@ $backRoute = 'itinerary';
             };
 
             let saveSuccess = false;
-            if (navigator.onLine && token) {
+            let errorMsg = null;
+            if (navigator.onLine && token && !String(tripId).startsWith('offline_')) {
                 try {
                     const res = await fetch(`${activeBackend}/api/tourist/itineraries/${tripId}`, {
                         method: 'PUT',
@@ -2913,16 +2920,35 @@ $backRoute = 'itinerary';
                     });
                     if (res.ok) {
                         saveSuccess = true;
+                    } else {
+                        const errData = await res.json().catch(() => ({}));
+                        errorMsg = errData.message || `Failed to update trip (${res.status})`;
                     }
                 } catch (e) {
                     console.warn("Server update trip error, persisting locally:", e);
                 }
+            } else {
+                saveSuccess = true; // Offline or local trip
             }
+
+            if (navigator.onLine && token && !String(tripId).startsWith('offline_') && !saveSuccess && errorMsg) {
+                if (saveBtn) {
+                    saveBtn.disabled = false;
+                    saveBtn.innerHTML = 'Save Changes';
+                }
+                if (typeof showToast === 'function') {
+                    showToast(errorMsg, "error");
+                }
+                return;
+            }
+
+            // Invalidate signature so UI will always re-render cleanly
+            window._lastRenderedTripsSig = null;
 
             // Update in-memory cached trips
             if (Array.isArray(window._cachedSavedTrips)) {
                 window._cachedSavedTrips = window._cachedSavedTrips.map(t => {
-                    if (String(t.id) === String(tripId)) {
+                    if (String(t.id) === String(tripId) || String(t.local_id) === String(tripId)) {
                         return {
                             ...t,
                             title: title,
@@ -2937,9 +2963,9 @@ $backRoute = 'itinerary';
                 });
             }
 
-            // Invalidate/update localStorage caches
+            // Invalidate/update localStorage caches across ALL keys
             const tokenKey = token ? token.substring(0, 10) : 'default';
-            ['saved_trips_' + tokenKey, 'intan_elyu_saved_trips', 'intan_elyu_offline_saved_trips_backup'].forEach(k => {
+            ['saved_trips_' + tokenKey, 'intan_elyu_saved_trips', 'intan_elyu_offline_saved_trips_backup', 'intan_elyu_offline_saved_trips'].forEach(k => {
                 try {
                     const raw = localStorage.getItem(k);
                     if (raw) {
@@ -2947,7 +2973,7 @@ $backRoute = 'itinerary';
                         const arr = Array.isArray(parsed) ? parsed : (parsed.data || parsed.itineraries || []);
                         if (Array.isArray(arr)) {
                             const updated = arr.map(t => {
-                                if (String(t.id) === String(tripId)) {
+                                if (String(t.id) === String(tripId) || String(t.local_id) === String(tripId) || String(t.update_id) === String(tripId)) {
                                     return {
                                         ...t,
                                         title: title,
@@ -2955,16 +2981,44 @@ $backRoute = 'itinerary';
                                         trip_type: tripType,
                                         companion_males: males,
                                         companion_females: females,
-                                        total_pax: totalPax
+                                        total_pax: totalPax,
+                                        updated_at: new Date().toISOString()
                                     };
                                 }
                                 return t;
                             });
-                            localStorage.setItem(k, JSON.stringify(Array.isArray(parsed) ? updated : { ...parsed, data: updated }));
+                            localStorage.setItem(k, JSON.stringify(Array.isArray(parsed) ? updated : { ...parsed, data: updated, itineraries: updated, timestamp: Date.now() }));
                         }
                     }
                 } catch (e) { }
             });
+
+            // Sync with OfflineTripManager if present
+            if (window.OfflineTripManager && typeof window.OfflineTripManager.getQueuedTrips === 'function') {
+                try {
+                    const qTrips = window.OfflineTripManager.getQueuedTrips();
+                    let qChanged = false;
+                    const updatedQ = qTrips.map(t => {
+                        if (String(t.id) === String(tripId) || String(t.local_id) === String(tripId) || String(t.update_id) === String(tripId) || String(t.id) === ('offline_edit_' + tripId)) {
+                            qChanged = true;
+                            return {
+                                ...t,
+                                title: title,
+                                trip_date: date,
+                                trip_type: tripType,
+                                companion_males: males,
+                                companion_females: females,
+                                total_pax: totalPax,
+                                updated_at: new Date().toISOString()
+                            };
+                        }
+                        return t;
+                    });
+                    if (qChanged) {
+                        localStorage.setItem(window.OfflineTripManager.STORAGE_KEY || 'intan_elyu_offline_saved_trips', JSON.stringify(updatedQ));
+                    }
+                } catch (e) { }
+            }
 
             if (saveBtn) {
                 saveBtn.disabled = false;

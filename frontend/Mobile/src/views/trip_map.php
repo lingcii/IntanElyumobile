@@ -729,6 +729,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
 
         function loadTripData() {
             window.loadTripData = loadTripData;
+            window._isStartingTrip = false;
             const urlParams = new URLSearchParams(window.location.search);
             const tripId = urlParams.get('trip_id') || sessionStorage.getItem('active_trip_id') || window.currentTripId;
             window.currentTripId = tripId;
@@ -1001,6 +1002,16 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                 .then(data => {
                     if (timeoutId) clearTimeout(timeoutId);
                     if (data && data.itineraries) {
+                        try {
+                            const tokenKey = token ? token.substring(0, 10) : 'default';
+                            localStorage.setItem('saved_trips_' + tokenKey, JSON.stringify({ data: data.itineraries, itineraries: data.itineraries, timestamp: Date.now() }));
+                            localStorage.setItem('intan_elyu_saved_trips', JSON.stringify(data.itineraries));
+                            localStorage.setItem('intan_elyu_offline_saved_trips_backup', JSON.stringify(data.itineraries));
+                            if (Array.isArray(window._cachedSavedTrips)) {
+                                window._cachedSavedTrips = data.itineraries;
+                            }
+                        } catch (e) {}
+
                         const trip = data.itineraries.find(t => t.id == tripId || t.local_id == tripId);
                         if (trip) {
                             applyTripToMap(trip);

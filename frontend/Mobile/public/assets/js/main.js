@@ -5778,8 +5778,12 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                     const _curU = window.safeJsonParse ? window.safeJsonParse(localStorage.getItem('auth_user'), {}) : {};
                     window.updateDashboardProfileHeader(_isG, _curU);
                 }
-                if (targetView === 'saved_trips' && typeof window.fetchSavedTrips === 'function') {
-                    window.fetchSavedTrips(false);
+                if (targetView === 'saved_trips') {
+                    window._isStartingTrip = false;
+                    window._lastRenderedTripsSig = null;
+                    if (typeof window.fetchSavedTrips === 'function') {
+                        window.fetchSavedTrips(true);
+                    }
                 }
 
                 // Post-render scroll resets on next animation frames and timeouts to guarantee top placement
@@ -5916,6 +5920,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
      * @returns {boolean} True if back action was handled, false if app should exit.
      */
     window.handleAppBack = function (explicitFallback) {
+        window._isStartingTrip = false;
         // 0. If App Exit Modal is currently open, dismiss it
         const exitModal = document.getElementById('app-exit-confirm-modal');
         if (exitModal && exitModal.style.display !== 'none' && window.getComputedStyle(exitModal).display !== 'none') {
@@ -6069,6 +6074,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
     };
 
     window.navigateBack = function (fallbackRoute = 'dashboard') {
+        window._isStartingTrip = false;
         return window.handleAppBack(fallbackRoute);
     };
 

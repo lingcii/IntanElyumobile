@@ -4801,6 +4801,17 @@ try {
                                 window._cachedSavedTrips.unshift(tripObj);
                             }
                         }
+
+                        // 5. Clean up any queued offline update or stale copy in OfflineTripManager
+                        if (window.OfflineTripManager && typeof window.OfflineTripManager.removeQueuedTrip === 'function') {
+                            if (editingId) {
+                                window.OfflineTripManager.removeQueuedTrip('offline_edit_' + editingId);
+                                window.OfflineTripManager.removeQueuedTrip(editingId);
+                            }
+                            if (tripId) {
+                                window.OfflineTripManager.removeQueuedTrip(tripId);
+                            }
+                        }
                     } catch (err) {
                         console.warn("persistTripLocally error:", err);
                     }
@@ -4811,6 +4822,7 @@ try {
                     sessionStorage.setItem('active_trip_transport_' + finalTripId, effectiveTransport);
                     localStorage.setItem('selected_trip_vehicle_' + finalTripId, effectiveTransport);
                     window._lastRenderedTripsSig = null;
+                    window._isStartingTrip = false;
 
                     // If user updated an edited trip, restore their original pre-edit draft (if any was saved)
                     const backupDraftRaw = localStorage.getItem('intan_elyu_pre_edit_backup_draft') || sessionStorage.getItem('intan_elyu_pre_edit_backup_draft');
