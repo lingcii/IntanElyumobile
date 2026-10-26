@@ -7,19 +7,19 @@ include_once __DIR__ . '/../components/testimony_modal.php';
 
 <div id="trip-map" style="width: 100%; height: 100vh; background: #0a0f1c;"></div>
 
-<!-- Floating Destination Conveyor Carousel -->
+<!-- Destination Conveyor Carousel Container -->
 <div id="trip-conveyor-wrapper"
-    style="position: absolute; bottom: max(env(safe-area-inset-bottom), 16px); left: 0; right: 0; z-index: 1000; display: flex; flex-direction: column; align-items: center; gap: 12px; pointer-events: none; width: 100%; box-sizing: border-box; overflow: hidden;">
+    style="position: absolute; bottom: 0; left: 0; right: 0; z-index: 1000; display: flex; flex-direction: column; align-items: stretch; pointer-events: none; width: 100%; box-sizing: border-box; overflow: hidden;">
 
     <!-- Offline Navigation Status Pill -->
     <div id="trip-offline-badge"
-        style="display: none; align-self: center; background: #ffffff; border: 1.5px solid #fde68a; border-radius: 100px; padding: 5px 14px; color: #b45309; font-size: 11px; font-weight: 800; gap: 6px; align-items: center; pointer-events: auto; box-shadow: 0 4px 14px rgba(245, 158, 11, 0.18);">
+        style="display: none; align-self: center; background: #ffffff; border: 1.5px solid #fde68a; border-radius: 100px; padding: 5px 14px; color: #b45309; font-size: 11px; font-weight: 800; gap: 6px; align-items: center; pointer-events: auto; box-shadow: 0 4px 14px rgba(245, 158, 11, 0.18); margin-bottom: 6px;">
         <i class="fa-solid fa-cloud-slash"></i> Offline Navigation &bull; Geodesic Mode
     </div>
 
     <!-- Online Mode: Unsynced Offline Data Available Banner with Sync Now Button -->
     <div id="trip-sync-banner"
-        style="display: none; align-self: center; background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border: 1.5px solid #f59e0b; border-radius: 100px; padding: 4px 6px 4px 14px; color: #92400e; font-size: 11.5px; font-weight: 800; gap: 8px; align-items: center; pointer-events: auto; box-shadow: 0 4px 14px rgba(245, 158, 11, 0.25); max-width: calc(100vw - 32px); box-sizing: border-box;">
+        style="display: none; align-self: center; background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border: 1.5px solid #f59e0b; border-radius: 100px; padding: 4px 6px 4px 14px; color: #92400e; font-size: 11.5px; font-weight: 800; gap: 8px; align-items: center; pointer-events: auto; box-shadow: 0 4px 14px rgba(245, 158, 11, 0.25); max-width: calc(100vw - 32px); box-sizing: border-box; margin-bottom: 6px;">
         <div style="display:flex; align-items:center; gap:6px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
             <i class="fa-solid fa-cloud-arrow-up" style="color:#d97706; font-size:12px;"></i>
             <span id="trip-sync-banner-text">Offline check-in saved on device</span>
@@ -30,32 +30,36 @@ include_once __DIR__ . '/../components/testimony_modal.php';
         </button>
     </div>
 
-    <!-- Trip Overview Summary Header Pill -->
-    <div id="trip-summary-pill"
-        style="align-self: center; background: #ffffff !important; border: 1.5px solid #e2e8f0 !important; border-radius: 100px; padding: 6px 14px; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 10px 25px rgba(15, 23, 42, 0.12), 0 2px 6px rgba(15, 23, 42, 0.05); pointer-events: auto; max-width: calc(100vw - 32px); box-sizing: border-box;">
-        <div id="trip-info-vehicle-badge"
-            style="display:flex; align-items:center; gap:5px; color:#1e293b; font-size:12px; font-weight:800; background:#f1f5f9; border:1px solid #e2e8f0; border-radius:100px; padding:4px 11px; white-space:nowrap;">
-            <i id="trip-info-vehicle-icon" class="fa-solid fa-car" style="color:#f59e0b; font-size:11px;"></i>
-            <span id="trip-info-vehicle-name">Own Car</span>
-        </div>
-        <div id="trip-info-pax-divider" style="width:1px; height:14px; background:#e2e8f0; flex-shrink:0;"></div>
-        <div id="trip-info-pax-badge"
-            style="display:flex; align-items:center; gap:5px; color:#1d4ed8; font-size:12px; font-weight:800; background:#eff6ff; border:1px solid #bfdbfe; border-radius:100px; padding:4px 11px; white-space:nowrap;">
-            <i id="trip-info-pax-icon" class="fa-solid fa-user" style="color:#2563eb; font-size:11px;"></i>
-            <span id="trip-info-pax-text">Solo</span>
-        </div>
-        <!-- Distance and time kept in DOM hidden to ensure all JS route callbacks continue working safely -->
-        <div style="display:none !important;">
-            <span id="trip-info-distance">-- km</span>
-            <span id="trip-info-time">-- mins</span>
-        </div>
-    </div>
+    <!-- White Background Card Container behind Tourist Card -->
+    <div id="trip-card-container"
+        style="background: #ffffff !important; border-top-left-radius: 24px; border-top-right-radius: 24px; box-shadow: 0 -8px 30px rgba(15, 23, 42, 0.16) !important; overflow: hidden; pointer-events: auto; width: 100%; box-sizing: border-box; display: flex; flex-direction: column;">
 
-    <!-- Conveyor Cards Carousel Scroll Container -->
-    <div id="conveyor-cards-scroll"
-        style="display: flex; justify-content: flex-start; align-items: stretch; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding: 0 16px; padding: 4px 16px 12px 16px; pointer-events: auto; scroll-behavior: smooth; width: 100%; box-sizing: border-box;"
-        class="hide-scrollbar">
-        <!-- Injected via JS -->
+        <!-- Royal Blue Header above the Tourist Card -->
+        <div id="trip-card-header"
+            style="background: linear-gradient(180deg, #1e3a8a 0%, #193375 100%) !important; padding: 11px 18px; display: flex; justify-content: space-between; align-items: center; border-top-left-radius: 24px; border-top-right-radius: 24px; flex-shrink: 0; box-sizing: border-box;">
+            <div id="trip-info-vehicle-badge"
+                style="display:flex; align-items:center; gap:8px; color:#ffffff; font-weight:800; font-size:12.5px;">
+                <div style="width:24px; height:24px; border-radius:6px; background:rgba(255,255,255,0.18); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                    <i id="trip-info-vehicle-icon" class="fa-solid fa-car" style="color:#38bdf8; font-size:12px;"></i>
+                </div>
+                <span id="trip-info-vehicle-name">Own Car</span>
+            </div>
+            <div id="trip-info-pax-badge"
+                style="display:flex; align-items:center; gap:6px; color:#ffffff; font-weight:700; font-size:11.5px; background:rgba(255,255,255,0.18); padding:4px 11px; border-radius:100px;">
+                <i id="trip-info-pax-icon" class="fa-solid fa-user" style="color:#ffffff; font-size:10.5px;"></i>
+                <span id="trip-info-pax-text">Solo</span>
+            </div>
+            <!-- Distance and time kept in DOM hidden to ensure all JS route callbacks continue working safely -->
+            <span id="trip-info-distance" style="display:none !important;">-- km</span>
+            <span id="trip-info-time" style="display:none !important;">-- mins</span>
+        </div>
+
+        <!-- Conveyor Cards Carousel Scroll Container -->
+        <div id="conveyor-cards-scroll"
+            style="display: flex; justify-content: flex-start; align-items: stretch; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding: 0 16px; padding: 12px 16px max(env(safe-area-inset-bottom), 14px) 16px; pointer-events: auto; scroll-behavior: smooth; width: 100%; box-sizing: border-box; background: #ffffff !important;"
+            class="hide-scrollbar">
+            <!-- Injected via JS -->
+        </div>
     </div>
 </div>
 
@@ -615,10 +619,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                         </div>
                     </div>`;
                 } else if (isPendingApproval) {
-                    actionBtnHtml = `<div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
-                        ${proofThumbnailStrip}
-                        <span style="background:#fef3c7; border:1px solid #fde68a; color:#b45309; font-weight:800; font-size:10.5px; padding:4px 9px; border-radius:100px; display:inline-flex; align-items:center; gap:4px; white-space:nowrap;"><i class="fa-solid fa-clock"></i> Awaiting Approval</span>
-                    </div>`;
+                    actionBtnHtml = proofThumbnailStrip ? `<div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">${proofThumbnailStrip}</div>` : '';
                 } else if (isLocationVerified && !hasProof) {
                     actionBtnHtml = `<div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
                         <span style="background:#e0f2fe; border:1px solid #bae6fd; color:#0284c7; font-weight:800; font-size:10px; padding:4px 8px; border-radius:100px; white-space:nowrap;"><i class="fa-solid fa-location-dot"></i> Checked In</span>
@@ -696,7 +697,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                 }
 
                 conveyorHtml += `
-            <div id="conveyor-card-${idx}" class="conveyor-card ${isActive ? 'active' : ''}" onclick="window.flyToConveyorSpot(${lng}, ${lat}, ${idx})" style="scroll-snap-align: center; flex: 0 0 calc(100vw - 48px); max-width: 330px; min-width: 260px; box-sizing: border-box; background: #ffffff !important; border: 1.5px solid ${isActive ? '#0284c7' : '#e2e8f0'} !important; border-radius: 22px; padding: 15px 16px; box-shadow: 0 10px 28px rgba(15, 23, 42, ${isActive ? '0.14' : '0.08'}), 0 2px 6px rgba(15, 23, 42, 0.04) !important; overflow: hidden !important; cursor: pointer; transition: all 0.25s ease;">
+            <div id="conveyor-card-${idx}" class="conveyor-card ${isActive ? 'active' : ''}" onclick="window.flyToConveyorSpot(${lng}, ${lat}, ${idx})" style="scroll-snap-align: center; flex: 0 0 calc(100vw - 48px); max-width: 330px; min-width: 260px; box-sizing: border-box; background: ${isActive ? '#f8fafc' : '#ffffff'} !important; border: 1.5px solid ${isActive ? '#0284c7' : '#e2e8f0'} !important; border-radius: 18px; padding: 14px 16px; box-shadow: none !important; overflow: hidden !important; cursor: pointer; transition: all 0.25s ease;">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; gap:8px;">
                     ${badgeHtml}
                     ${classBadge}
@@ -1122,7 +1123,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                                     <i class="fa-solid fa-clock"></i>
                                 </div>
                                 <div style="background: #ffffff; border: 1.5px solid #fde68a; border-radius: 10px; padding: 4px 8px; margin-top: 5px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(245,158,11,0.18); z-index: 1;">
-                                    <span style="color: #b45309; font-size: 10px; font-weight: 800;">Pending Review</span>
+                                    <span style="color: #b45309; font-size: 11px; font-weight: 700; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${dest.name}</span>
                                 </div>
                             </div>
                         `;
@@ -1323,10 +1324,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                                     <div style="width: 26px; height: 26px; border-radius: 8px; background: #e0f2fe; display: flex; align-items: center; justify-content: center; color: #0284c7; font-size: 12px; flex-shrink: 0;">
                                         <i class="fa-solid ${activeVehicle.icon}"></i>
                                     </div>
-                                    <div style="display: flex; flex-direction: column; line-height: 1.15;">
-                                        <span style="font-size: 12px; font-weight: 800; color: #0f172a;">${activeLegVehicleName}</span>
-                                        <span style="font-size: 10.5px; font-weight: 700; color: ${activeLegCost > 0 ? '#059669' : '#64748b'};">${legCostDisplay}</span>
-                                    </div>
+                                    <span style="font-size: 12px; font-weight: 800; color: #0f172a;">${activeLegVehicleName}</span>
                                 </div>
                             `;
 
