@@ -373,7 +373,7 @@ try {
                         Transport Mode</div>
                     <div id="save-p2p-transit-label"
                         style="font-size:13.5px; font-weight:800; color:#0f172a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                        Own Car</div>
+                        No Vehicle Selected</div>
                     <div id="save-p2p-legs-count" style="font-size:11px; color:#64748b; margin-top:1px;">
                         Tap to view destination summary</div>
                 </div>
@@ -2563,11 +2563,11 @@ try {
                         </span>
                     `;
                 } else {
-                    const isSelected = Boolean(info && info.has_selection && !String(info.name).toLowerCase().includes('select your vehicle'));
+                    const isSelected = Boolean(info && info.has_selection && !String(info.name).toLowerCase().includes('select your vehicle') && !String(info.name).toLowerCase().includes('no vehicle'));
                     const iconMarkup = (isSelected && info.icon)
                         ? `<i class="fa-solid ${info.icon}" style="color:#00f2fe; font-size:12px;"></i>`
                         : '';
-                    const vehicleLabel = isSelected ? (info.full_names || info.name) : 'Select your vehicle';
+                    const vehicleLabel = isSelected ? (info.full_names || info.name) : 'No Vehicle Selected';
                     transportMarkup = `
                         <div style="display:inline-flex; align-items:center; gap:6px; background:rgba(255,255,255,0.16); color:#ffffff; font-size:11.5px; font-weight:700; padding:4px 10px; border-radius:100px; border:1px solid rgba(255,255,255,0.22);">
                             ${iconMarkup}
@@ -3848,7 +3848,7 @@ try {
                 ? window.getNormalizedTripModes()
                 : (currentGlobalTransport ? [currentGlobalTransport] : []);
 
-            const isNoVehTrip = (tripModes.length === 0 || tripModes.includes('no_vehicle'));
+            const isNoVehTrip = (tripModes.length === 0 || tripModes.includes('no_vehicle') || tripModes.every(m => !m || m === 'no_vehicle' || String(m).toLowerCase().includes('no vehicle')));
             const compositeTripTransport = isNoVehTrip ? 'No Vehicle Selected' : ((tripModes.length === 1) ? tripModes[0] : tripModes.join(' + '));
             if (transInput) transInput.value = compositeTripTransport;
 
@@ -3861,7 +3861,7 @@ try {
 
             if (p2pLabelEl) {
                 if (isNoVehTrip) {
-                    p2pLabelEl.textContent = 'Select your vehicle';
+                    p2pLabelEl.textContent = 'No Vehicle Selected';
                 } else if (tripModes.length === 1) {
                     p2pLabelEl.textContent = (typeof window.getVehicleDisplayName === 'function')
                         ? window.getVehicleDisplayName(tripModes[0])
@@ -4398,7 +4398,7 @@ try {
                     if (savedTransport) {
                         const transEl = document.getElementById('trip-transport');
                         const isNoVeh = savedTransport.toLowerCase().includes('no_vehicle') || savedTransport.toLowerCase().includes('no vehicle');
-                        if (transEl) transEl.value = isNoVeh ? '' : savedTransport;
+                        if (transEl) transEl.value = isNoVeh ? 'No Vehicle Selected' : savedTransport;
                     }
 
                     const savedTripType = sessionStorage.getItem('editing_trip_type') || 'solo';
