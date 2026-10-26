@@ -4824,13 +4824,13 @@ if (is_dir($imgDir)) {
                 }
                 const c = String(status || '').toUpperCase().trim();
                 if (c === 'EMERGE' || c === 'EMERGING') {
-                    return { label: 'Emerging', points: 100, color: '#ef4444', bg: 'rgba(239, 68, 68, 0.22)', border: 'rgba(239, 68, 68, 0.35)', icon: 'fa-sparkles' };
+                    return { label: 'Emerging', points: 45, color: '#ef4444', bg: 'rgba(239, 68, 68, 0.22)', border: 'rgba(239, 68, 68, 0.35)', icon: 'fa-sparkles' };
                 }
                 if (c === 'POTENTIAL') {
-                    return { label: 'Potential', points: 75, color: '#10b981', bg: 'rgba(16, 185, 129, 0.22)', border: 'rgba(16, 185, 129, 0.35)', icon: 'fa-compass' };
+                    return { label: 'Potential', points: 35, color: '#10b981', bg: 'rgba(16, 185, 129, 0.22)', border: 'rgba(16, 185, 129, 0.35)', icon: 'fa-compass' };
                 }
                 // Default: EXISTING (Blue)
-                return { label: 'Existing', points: 50, color: '#0284c7', bg: 'rgba(2, 132, 199, 0.22)', border: 'rgba(2, 132, 199, 0.35)', icon: 'fa-location-dot' };
+                return { label: 'Existing', points: 25, color: '#0284c7', bg: 'rgba(2, 132, 199, 0.22)', border: 'rgba(2, 132, 199, 0.35)', icon: 'fa-location-dot' };
             };
 
             let classMeta = resolveClassification(spotClassStatus);

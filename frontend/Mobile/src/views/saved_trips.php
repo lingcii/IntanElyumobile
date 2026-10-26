@@ -570,6 +570,43 @@ $backRoute = 'itinerary';
                 });
             }
 
+            // Helper to merge fresh server trips with any pending offline-queued trips so offline trips NEVER disappear on wifi reconnect!
+            function mergeServerWithQueuedTrips(serverList) {
+                if (!Array.isArray(serverList)) return getLocalTripsCombined();
+                const list = [...serverList];
+                const serverIds = new Set();
+                list.forEach(t => {
+                    if (!t) return;
+                    if (t.id != null) serverIds.add(String(t.id));
+                    if (t.trip_id != null) serverIds.add(String(t.trip_id));
+                    if (t.local_id != null) serverIds.add(String(t.local_id));
+                });
+
+                const localTrips = getLocalTripsCombined();
+                localTrips.forEach(lTrip => {
+                    if (!lTrip) return;
+                    const lId = String(lTrip.id || lTrip.local_id || '');
+                    const uId = String(lTrip.update_id || '');
+
+                    // If this was an offline edit of an existing server trip, override server trip in-place
+                    if (uId && serverIds.has(uId)) {
+                        const sIdx = list.findIndex(st => String(st.id) === uId || String(st.trip_id) === uId);
+                        if (sIdx !== -1) {
+                            list[sIdx] = { ...list[sIdx], ...lTrip, id: uId, is_offline_queued: true };
+                        }
+                        return;
+                    }
+
+                    // If it's a new offline-created trip that hasn't synced to server yet, prepend to keep it visible!
+                    if (lId && !serverIds.has(lId)) {
+                        serverIds.add(lId);
+                        list.unshift(lTrip);
+                    }
+                });
+
+                return list;
+            }
+
             // 1. Instant pre-hydrate and render immediately with 0ms delay!
             const localTrips = getLocalTripsCombined();
             renderSavedTrips(localTrips);
@@ -764,19 +801,21 @@ $backRoute = 'itinerary';
                                 }
                             }
 
+                            const fullMergedItins = mergeServerWithQueuedTrips(mergedItins);
                             try {
-                                localStorage.setItem('intan_elyu_offline_saved_trips_backup', JSON.stringify(mergedItins));
+                                localStorage.setItem('intan_elyu_offline_saved_trips_backup', JSON.stringify(fullMergedItins));
                             } catch (e) { }
-                            return mergedItins;
+                            return fullMergedItins;
                         } finally {
                             if (timeoutId) clearTimeout(timeoutId);
                         }
                     },
                     (itineraries) => {
-                        if (itineraries && Array.isArray(itineraries)) {
-                            window._cachedSavedTrips = itineraries;
+                        const mergedFinal = mergeServerWithQueuedTrips(itineraries);
+                        if (mergedFinal && Array.isArray(mergedFinal)) {
+                            window._cachedSavedTrips = mergedFinal;
                             if (!window._isStartingTrip) {
-                                renderSavedTrips(itineraries);
+                                renderSavedTrips(mergedFinal);
                             }
                         } else {
                             if (!window._isStartingTrip) {
@@ -1220,13 +1259,13 @@ $backRoute = 'itinerary';
 
                                 const spotIdVal = item.tourist_spot_id || item.destination_id || (item.destination ? item.destination.id : null);
                                 const queuedItem = window.OfflineCheckinManager ? window.OfflineCheckinManager.getQueuedItem(item.id, spotIdVal) : null;
-                                const isQueued = Boolean(queuedItem || item.is_offline_queued);
-                                if (isQueued) {
+                                const isCheckinQueued = Boolean(queuedItem);
+                                if (isCheckinQueued) {
                                     hasQueuedCheckins = true;
                                 }
 
                                 // If proofImages is empty but queuedItem has an image, include it so the proof is visible
-                                if (proofImages.length === 0 && isQueued && queuedItem && (queuedItem.previewUrl || queuedItem.image)) {
+                                if (proofImages.length === 0 && isCheckinQueued && queuedItem && (queuedItem.previewUrl || queuedItem.image)) {
                                     proofImages = [queuedItem.previewUrl || queuedItem.image];
                                 }
 
@@ -1236,9 +1275,9 @@ $backRoute = 'itinerary';
                                 const isPhotoApproved = (proofStatus === 'approved');
                                 const isApproved = Boolean(item.is_visited || isPhotoApproved || item.proof_status === 'approved' || (item.is_visited && isLocVerified));
                                 const isRejected = (proofStatus === 'rejected');
-                                const isPendingProof = !isApproved && !isRejected && !isQueued && hasProof && (proofStatus === 'pending');
-                                const isNextStop = (!isApproved && !isPendingProof && !isQueued && index === firstUnvisitedIdx);
-                                if (!isApproved && !isQueued) unvisitedCount++;
+                                const isPendingProof = !isApproved && !isRejected && !isCheckinQueued && hasProof && (proofStatus === 'pending');
+                                const isNextStop = (!isApproved && !isPendingProof && !isCheckinQueued && index === firstUnvisitedIdx);
+                                if (!isApproved && !isCheckinQueued) unvisitedCount++;
 
                                 // Build multi-photo gallery strip
                                 let photosStripHtml = '';
@@ -1283,7 +1322,7 @@ $backRoute = 'itinerary';
                                 const sClass = (dest && dest.classification_status) ? dest.classification_status : '';
                                 const sMeta = (typeof window.getRewardPointsForClassification === 'function')
                                     ? window.getRewardPointsForClassification(sClass)
-                                    : { points: (sClass === 'POTENTIAL' ? 75 : (sClass === 'EMERGE' ? 50 : 25)) };
+                                    : { points: ((sClass === 'EMERGE' || sClass === 'EMERGING') ? 45 : (sClass === 'POTENTIAL' ? 35 : 25)) };
 
                                 const itemMode = item.transport_mode || item.transport_type || '';
                                 if (itemMode) {
@@ -1497,7 +1536,7 @@ $backRoute = 'itinerary';
                             <button class="btn-primary" style="width:100%; white-space:nowrap; background: rgba(16,185,129,0.25); border: none !important; outline: none !important; color: #ffffff; padding: 13px 14px; border-radius: 14px; font-weight: 800; font-size: 13px; cursor: default;" disabled>
                                 <i class="fa-solid fa-circle-check" style="margin-right:6px; color:#34c759;"></i> Completed
                             </button>`;
-                        } else if (unvisitedCount === 0 && trip.items && trip.items.length > 0) {
+                        } else if (!trip.is_offline_queued && unvisitedCount === 0 && trip.items && trip.items.length > 0) {
                             html += `
                             <button class="btn-primary" id="btn-complete-trip-${trip.id}" style="width:100%; white-space:nowrap; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none !important; outline: none !important; color: #fff; padding: 13px 14px; border-radius: 14px; font-weight: 800; font-size: 13px; box-shadow: none; cursor: pointer;" onclick="window.markTripCompleted('${trip.id}')">
                                 <i class="fa-solid fa-flag-checkered" style="margin-right:6px;"></i> Complete

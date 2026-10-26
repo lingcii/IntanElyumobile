@@ -1890,7 +1890,7 @@ $activeTab = 'profile';
                 const spotId = item.tourist_spot_id || (dest ? dest.id : item.id);
                 const isReviewed = spotId && window.userReviewedSpotIds && window.userReviewedSpotIds.has(Number(spotId));
                 const sClass = (dest && dest.classification_status) ? dest.classification_status : '';
-                const sMeta = (typeof window.getRewardPointsForClassification === 'function') ? window.getRewardPointsForClassification(sClass) : { points: 50 };
+                const sMeta = (typeof window.getRewardPointsForClassification === 'function') ? window.getRewardPointsForClassification(sClass) : { points: 25 };
 
                 destHtml += `
                 <div style="display:flex; align-items:center; gap:10px; padding:12px 14px; background:linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border:none !important; outline:none !important; box-shadow:none !important; border-radius:14px; margin-bottom:8px;">

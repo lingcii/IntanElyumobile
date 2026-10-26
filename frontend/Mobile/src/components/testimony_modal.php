@@ -120,13 +120,13 @@ window.userReviewedSpotData = window.userReviewedSpotData || {};
 window.getRewardPointsForClassification = function(status) {
     const c = String(status || '').toUpperCase().trim();
     if (c === 'EMERGE' || c === 'EMERGING') {
-        return { label: 'Emerging', points: 100, color: '#ef4444', bg: 'rgba(239, 68, 68, 0.22)', border: 'rgba(239, 68, 68, 0.35)', icon: 'fa-sparkles' };
+        return { label: 'Emerging', points: 45, color: '#ef4444', bg: 'rgba(239, 68, 68, 0.22)', border: 'rgba(239, 68, 68, 0.35)', icon: 'fa-sparkles' };
     }
     if (c === 'POTENTIAL') {
-        return { label: 'Potential', points: 75, color: '#10b981', bg: 'rgba(16, 185, 129, 0.22)', border: 'rgba(16, 185, 129, 0.35)', icon: 'fa-compass' };
+        return { label: 'Potential', points: 35, color: '#10b981', bg: 'rgba(16, 185, 129, 0.22)', border: 'rgba(16, 185, 129, 0.35)', icon: 'fa-compass' };
     }
     // Default: EXISTING (Blue)
-    return { label: 'Existing', points: 50, color: '#0284c7', bg: 'rgba(2, 132, 199, 0.22)', border: 'rgba(2, 132, 199, 0.35)', icon: 'fa-circle-check' };
+    return { label: 'Existing', points: 25, color: '#0284c7', bg: 'rgba(2, 132, 199, 0.22)', border: 'rgba(2, 132, 199, 0.35)', icon: 'fa-circle-check' };
 };
 
 // Fetch spot IDs reviewed by user to keep UI synchronized across Trip Map, Saved Trips, and Trip History
@@ -214,7 +214,7 @@ window.openWriteTestimonyModal = function(spotId, btnEl) {
 
     const classMeta = (window.getRewardPointsForClassification)
         ? window.getRewardPointsForClassification(spotClassification)
-        : { label: 'Existing', points: 50, color: '#10b981', bg: 'rgba(16, 185, 129, 0.22)', border: 'rgba(16, 185, 129, 0.35)', icon: 'fa-circle-check' };
+        : { label: 'Existing', points: 25, color: '#10b981', bg: 'rgba(16, 185, 129, 0.22)', border: 'rgba(16, 185, 129, 0.35)', icon: 'fa-circle-check' };
 
     if (isAlreadyReviewed) {
         // Repeated Review state: NO ADDITIONAL REWARDS
@@ -246,7 +246,7 @@ window.openWriteTestimonyModal = function(spotId, btnEl) {
             if (policyInput) policyInput.value = prevData.policy_recommendation || '';
         }
     } else {
-        // First Review state: EARN REWARDS based on classification (Existing 50, Emerging 100, Potential 75)
+        // First Review state: EARN REWARDS based on classification (Existing 25, Emerging 45, Potential 35)
         if (titleEl) titleEl.textContent = 'Review Destination';
         if (subEl) subEl.textContent = `Share your site feedback for this ${classMeta.label.toLowerCase()} destination to help local tourism.`;
         if (bannerEl) {

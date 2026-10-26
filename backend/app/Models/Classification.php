@@ -51,9 +51,9 @@ class Classification extends Model
             }
 
             return match ($canonical) {
-                'EMERGING'  => 100,
-                'POTENTIAL' => 75,
-                default     => 50,
+                'EMERGING'  => 45,
+                'POTENTIAL' => 35,
+                default     => 25,
             };
         });
     }

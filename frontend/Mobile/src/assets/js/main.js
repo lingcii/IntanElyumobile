@@ -3072,7 +3072,7 @@ window.renderSavedTrips = function (itineraries) {
                         const sClass = (dest && dest.classification_status) ? dest.classification_status : '';
                         const sMeta = (typeof window.getRewardPointsForClassification === 'function')
                             ? window.getRewardPointsForClassification(sClass)
-                            : { points: (sClass === 'POTENTIAL' ? 75 : (sClass === 'EMERGE' ? 50 : 25)) };
+                            : { points: ((sClass === 'EMERGE' || sClass === 'EMERGING') ? 45 : (sClass === 'POTENTIAL' ? 35 : 25)) };
 
                         const itemMode = item.transport_mode || item.transport_type || '';
                         if (itemMode) {

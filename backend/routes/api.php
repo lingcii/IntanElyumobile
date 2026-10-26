@@ -565,7 +565,7 @@ Route::prefix('admin')->middleware('tourist.auth')->group(function () {
 
         if ($item->tourist_spot_id) {
             try {
-                $spot = \App\Models\TouristSpot::find($item->tourist_spot_id);
+                $spot = TouristSpot::find($item->tourist_spot_id);
                 if ($spot) {
                     $paxIncrement = max(1, (int) ($item->total_pax ?? $item->itinerary?->total_pax ?? 1));
                     $spot->increment('visits', $paxIncrement);
@@ -1043,7 +1043,7 @@ foreach (['lupto', 'pitco', 'picto', 'municipal'] as $rolePrefix) {
 
             if ($item->tourist_spot_id) {
                 try {
-                    $spot = \App\Models\TouristSpot::find($item->tourist_spot_id);
+                    $spot = TouristSpot::find($item->tourist_spot_id);
                     if ($spot) {
                         $paxIncrement = max(1, (int) ($item->total_pax ?? $item->itinerary?->total_pax ?? 1));
                         $spot->increment('visits', $paxIncrement);

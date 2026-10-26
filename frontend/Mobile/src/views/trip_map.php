@@ -596,7 +596,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                     const sId = item.tourist_spot_id || (item.destination ? item.destination.id : '');
                     const isReviewed = sId && window.userReviewedSpotIds && window.userReviewedSpotIds.has(Number(sId));
                     const sClass = (dest && dest.classification_status) ? dest.classification_status : '';
-                    const sMeta = (window.getRewardPointsForClassification) ? window.getRewardPointsForClassification(sClass) : { points: 50 };
+                    const sMeta = (window.getRewardPointsForClassification) ? window.getRewardPointsForClassification(sClass) : { points: 25 };
                     actionBtnHtml = `<div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
                         ${proofThumbnailStrip}
                         <div style="display:flex; flex-direction:column; gap:2px;">
@@ -2275,20 +2275,104 @@ include_once __DIR__ . '/../components/testimony_modal.php';
             }
         }
 
+        window.syncAllOfflineTripData = async function (btnElement) {
+            if (!navigator.onLine || window.isAppOnline === false) {
+                if (btnElement && typeof showToast === 'function') {
+                    showToast("Still offline. Please check your internet connection.", "warning");
+                }
+                return;
+            }
+            const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+            if (!token || (typeof window.isGuestUser === 'function' && window.isGuestUser())) return;
+
+            let origHtml = '';
+            if (btnElement) {
+                origHtml = btnElement.innerHTML;
+                btnElement.disabled = true;
+                btnElement.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Syncing...';
+            }
+
+            try {
+                let syncedAny = false;
+                // 1. Sync offline trips first so any new trips/items exist on backend
+                if (window.OfflineTripManager && typeof window.OfflineTripManager.syncQueuedTrips === 'function') {
+                    const tCount = await window.OfflineTripManager.syncQueuedTrips();
+                    if (tCount > 0) syncedAny = true;
+                }
+                // 2. Sync queued check-ins and photo proofs
+                if (window.OfflineCheckinManager && typeof window.OfflineCheckinManager.processQueue === 'function') {
+                    const cCount = await window.OfflineCheckinManager.processQueue();
+                    if (cCount > 0) syncedAny = true;
+                }
+                // 3. Sync offline completed trips
+                if (window.OfflineCompletedTripsManager && typeof window.OfflineCompletedTripsManager.processQueue === 'function') {
+                    const compCount = await window.OfflineCompletedTripsManager.processQueue();
+                    if (compCount > 0) syncedAny = true;
+                }
+
+                // Invalidate local trip caches
+                const tokenKey = token.substring(0, 10);
+                localStorage.removeItem('saved_trips_' + tokenKey);
+                localStorage.removeItem('dashboard_trips_' + tokenKey);
+                localStorage.removeItem('dashboard_saved_trips_' + tokenKey);
+                if (typeof window._cachedSavedTrips !== 'undefined') window._cachedSavedTrips = null;
+
+                window.dispatchEvent(new CustomEvent('tripsSynced'));
+                window.dispatchEvent(new CustomEvent('checkins-synced'));
+
+                // Reload active trip on map if function available
+                const urlParams = new URLSearchParams(window.location.search);
+                const activeTripId = urlParams.get('id') || (window.currentTrip ? window.currentTrip.id : null);
+                if (activeTripId && typeof window.loadTripDetails === 'function') {
+                    await window.loadTripDetails(activeTripId);
+                }
+
+                updateTripOfflineStatus();
+                if (btnElement && typeof showToast === 'function') {
+                    showToast(syncedAny ? "Offline updates successfully synced to cloud!" : "All data is already up to date!", "success", 4000);
+                }
+            } catch (err) {
+                console.error("Auto/Manual sync error on trip map:", err);
+                if (btnElement && typeof showToast === 'function') {
+                    showToast("Failed to sync some offline data. Will auto-retry.", "warning");
+                }
+            } finally {
+                if (btnElement) {
+                    btnElement.disabled = false;
+                    btnElement.innerHTML = origHtml;
+                }
+                updateTripOfflineStatus();
+            }
+        };
+
         window.addEventListener('online', () => {
             updateTripOfflineStatus();
             if (typeof window.enforceAllOfflineBadgesHidden === 'function') window.enforceAllOfflineBadgesHidden();
+            if (typeof window.syncAllOfflineTripData === 'function') {
+                window.syncAllOfflineTripData();
+            }
         });
         window.addEventListener('offline', updateTripOfflineStatus);
         window.addEventListener('appOnline', () => {
             updateTripOfflineStatus();
             if (typeof window.enforceAllOfflineBadgesHidden === 'function') window.enforceAllOfflineBadgesHidden();
+            if (typeof window.syncAllOfflineTripData === 'function') {
+                window.syncAllOfflineTripData();
+            }
         });
         window.addEventListener('appOffline', updateTripOfflineStatus);
         window.addEventListener('checkins-synced', () => updateTripOfflineStatus());
         window.addEventListener('tripsSynced', () => updateTripOfflineStatus());
         window.addEventListener('offline-checkin-queued', () => updateTripOfflineStatus());
         setTimeout(updateTripOfflineStatus, 150);
+        setTimeout(() => {
+            updateTripOfflineStatus();
+            if (navigator.onLine && window.isAppOnline !== false) {
+                if (typeof window.syncAllOfflineTripData === 'function') {
+                    window.syncAllOfflineTripData();
+                }
+            }
+        }, 350);
 
         initTripMap();
     })();

@@ -389,10 +389,11 @@ try {
             <input type="hidden" id="trip-transport" value="">
             <div id="save-p2p-transit-summary" onclick="window.openTransitSummaryOpensheet()" role="button" tabindex="0"
                 title="Tap to view per-destination transit summary"
-                style="background:#f8fafc; border-radius:16px; padding:14px 16px; margin-bottom:16px; display:flex; align-items:center; justify-content:space-between; gap:12px; border:1.5px solid #e2e8f0; cursor:pointer; user-select:none; transition:background 0.2s ease, transform 0.15s ease;"
+                style="background:#f8fafc; border-radius:16px; padding:14px 16px; margin-bottom:16px; display:flex; align-items:center; justify-content:space-between; gap:12px; border:1.5px solid #e2e8f0; cursor:pointer; user-select:none; transition:background 0.2s ease, transform 0.15s ease; touch-action:manipulation; pointer-events:auto !important; -webkit-tap-highlight-color:transparent;"
                 onpointerdown="this.style.transform='scale(0.98)'; this.style.background='#f1f5f9';"
                 onpointerup="this.style.transform='scale(1)'; this.style.background='#f8fafc';"
-                onpointerleave="this.style.transform='scale(1)'; this.style.background='#f8fafc';">
+                onpointerleave="this.style.transform='scale(1)'; this.style.background='#f8fafc';"
+                onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault(); window.openTransitSummaryOpensheet();}">
                 <div style="min-width:0;">
                     <div
                         style="font-size:10px; font-weight:800; color:#0284c7; text-transform:uppercase; letter-spacing:0.6px; margin-bottom:2px;">
@@ -2566,6 +2567,9 @@ try {
         window.openTransitSummaryOpensheet = function () {
             const modal = document.getElementById('transit-summary-opensheet');
             if (!modal) return;
+            if (modal.parentElement !== document.body) {
+                document.body.appendChild(modal);
+            }
 
             const listEl = document.getElementById('transit-summary-items-list');
             const badgeEl = document.getElementById('transit-summary-badge');
@@ -2588,6 +2592,7 @@ try {
                 if (badgeEl) badgeEl.textContent = '0 Destinations';
                 if (totalFareEl) totalFareEl.textContent = '₱0.00';
                 modal.style.display = 'flex';
+                modal.style.pointerEvents = 'auto';
                 return;
             }
 
@@ -2598,121 +2603,125 @@ try {
             let grandTotal = 0;
             let cardsHtml = '';
 
-            draft.forEach((dest, idx) => {
-                const info = (typeof window.getLegTransportInfo === 'function')
-                    ? window.getLegTransportInfo(idx)
-                    : { mode: 'own_car', name: 'Own Car', cost: 0, distance_km: 2.0 };
+            try {
+                draft.forEach((dest, idx) => {
+                    const info = (typeof window.getLegTransportInfo === 'function')
+                        ? window.getLegTransportInfo(idx)
+                        : { mode: 'own_car', name: 'Own Car', cost: 0, distance_km: 2.0 };
 
-                const isMaintenance = Boolean(info && info.is_maintenance);
-                const cost = (info && !isMaintenance) ? parseFloat(info.cost || info.leg_cost || 0) : 0;
-                grandTotal += cost;
+                    const isMaintenance = Boolean(info && info.is_maintenance);
+                    const cost = (info && !isMaintenance) ? parseFloat(info.cost || info.leg_cost || 0) : 0;
+                    grandTotal += cost;
 
-                const fromName = (idx === 0) ? 'Your Starting Location' : (draft[idx - 1].name || `Stop ${idx}`);
-                const toName = dest.name || `Destination ${idx + 1}`;
-                const muni = (typeof window.getSpotMuniName === 'function') ? window.getSpotMuniName(dest) : '';
-                const distKm = (info && info.distance_km != null) ? parseFloat(info.distance_km).toFixed(1) : '—';
+                    const fromName = (idx === 0) ? 'Your Starting Location' : (draft[idx - 1].name || `Stop ${idx}`);
+                    const toName = dest.name || `Destination ${idx + 1}`;
+                    const muni = (typeof window.getSpotMuniName === 'function') ? window.getSpotMuniName(dest) : '';
+                    const distKm = (info && info.distance_km != null) ? parseFloat(info.distance_km).toFixed(1) : '—';
+                    const isSelected = Boolean(info && info.has_selection && !String(info.name || '').toLowerCase().includes('select your vehicle') && !String(info.name || '').toLowerCase().includes('no vehicle'));
 
-                // Vehicle badge / icon (Unavailable has NO icon as requested)
-                let transportMarkup = '';
-                if (isMaintenance) {
-                    transportMarkup = `
-                        <span style="display:inline-flex; align-items:center; gap:5px; background:#ef4444; color:#ffffff; font-size:11px; font-weight:800; padding:4px 10px; border-radius:100px; border:none !important; outline:none !important;">
-                            <i class="fa-solid fa-ban" style="font-size:10px;"></i> Unavailable
-                        </span>
-                    `;
-                } else {
-                    const isSelected = Boolean(info && info.has_selection && !String(info.name).toLowerCase().includes('select your vehicle') && !String(info.name).toLowerCase().includes('no vehicle'));
-                    let vehicleLabel = 'No Vehicle Selected';
-                    let iconMarkup = '<i class="fa-solid fa-ban" style="color:#f87171; font-size:11px;"></i>';
+                    // Vehicle badge / icon (Unavailable has NO icon as requested)
+                    let transportMarkup = '';
+                    if (isMaintenance) {
+                        transportMarkup = `
+                            <span style="display:inline-flex; align-items:center; gap:5px; background:#ef4444; color:#ffffff; font-size:11px; font-weight:800; padding:4px 10px; border-radius:100px; border:none !important; outline:none !important;">
+                                <i class="fa-solid fa-ban" style="font-size:10px;"></i> Unavailable
+                            </span>
+                        `;
+                    } else {
+                        let vehicleLabel = 'No Vehicle Selected';
+                        let iconMarkup = '<i class="fa-solid fa-ban" style="color:#f87171; font-size:11px;"></i>';
 
-                    if (isSelected) {
-                        const mCount = (info.transport_modes && Array.isArray(info.transport_modes)) ? info.transport_modes.length : 0;
-                        if (mCount > 1) {
-                            vehicleLabel = `${mCount} Vehicles`;
-                            iconMarkup = '<i class="fa-solid fa-shuffle" style="color:#00f2fe; font-size:12px;"></i>';
-                        } else if (info.name && info.name.includes('Vehicles')) {
-                            vehicleLabel = info.name;
-                            iconMarkup = '<i class="fa-solid fa-shuffle" style="color:#00f2fe; font-size:12px;"></i>';
-                        } else {
-                            vehicleLabel = info.full_names || info.name || 'Vehicle Selected';
-                            iconMarkup = info.icon ? `<i class="fa-solid ${info.icon}" style="color:#00f2fe; font-size:12px;"></i>` : '<i class="fa-solid fa-car" style="color:#00f2fe; font-size:12px;"></i>';
+                        if (isSelected) {
+                            const mCount = (info.transport_modes && Array.isArray(info.transport_modes)) ? info.transport_modes.length : 0;
+                            if (mCount > 1) {
+                                vehicleLabel = `${mCount} Vehicles`;
+                                iconMarkup = '<i class="fa-solid fa-shuffle" style="color:#00f2fe; font-size:12px;"></i>';
+                            } else if (info.name && info.name.includes('Vehicles')) {
+                                vehicleLabel = info.name;
+                                iconMarkup = '<i class="fa-solid fa-shuffle" style="color:#00f2fe; font-size:12px;"></i>';
+                            } else {
+                                vehicleLabel = info.full_names || info.name || 'Vehicle Selected';
+                                iconMarkup = info.icon ? `<i class="fa-solid ${info.icon}" style="color:#00f2fe; font-size:12px;"></i>` : '<i class="fa-solid fa-car" style="color:#00f2fe; font-size:12px;"></i>';
+                            }
                         }
+
+                        transportMarkup = `
+                            <div style="display:inline-flex; align-items:center; gap:6px; background:rgba(255,255,255,0.16); color:#ffffff; font-size:11.5px; font-weight:700; padding:4px 10px; border-radius:100px; border:1px solid rgba(255,255,255,0.22);">
+                                ${iconMarkup}
+                                <span style="max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${vehicleLabel}</span>
+                            </div>
+                        `;
                     }
 
-                    transportMarkup = `
-                        <div style="display:inline-flex; align-items:center; gap:6px; background:rgba(255,255,255,0.16); color:#ffffff; font-size:11.5px; font-weight:700; padding:4px 10px; border-radius:100px; border:1px solid rgba(255,255,255,0.22);">
-                            ${iconMarkup}
-                            <span style="max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${vehicleLabel}</span>
+                    // Fare display
+                    let fareMarkup = '';
+                    if (isMaintenance || !isSelected) {
+                        fareMarkup = `<span style="font-size:13px; font-weight:700; color:rgba(255,255,255,0.6);">—</span>`;
+                    } else if (cost === 0) {
+                        fareMarkup = `<span style="font-size:13.5px; font-weight:800; color:#34d399;">₱0.00</span> <span style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.72);">(Free)</span>`;
+                    } else {
+                        fareMarkup = `<span style="font-size:15px; font-weight:900; color:#00f2fe;">₱${cost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>`;
+                    }
+
+                    // Warning or note
+                    let noteMarkup = '';
+                    if (isMaintenance) {
+                        noteMarkup = `
+                            <div style="margin-top:6px; font-size:11px; font-weight:600; color:#fee2e2; background:rgba(239,68,68,0.25); padding:6px 10px; border-radius:8px; border:1px solid rgba(239,68,68,0.4); display:flex; align-items:center; gap:6px;">
+                                <i class="fa-solid fa-triangle-exclamation" style="font-size:11px; color:#fca5a5;"></i>
+                                <span>Destination temporarily closed / under maintenance</span>
+                            </div>
+                        `;
+                    } else if (info && info.warning) {
+                        noteMarkup = `
+                            <div style="margin-top:6px; font-size:11px; font-weight:600; color:#fef3c7; background:rgba(245,158,11,0.25); padding:6px 10px; border-radius:8px; border:1px solid rgba(245,158,11,0.4); display:flex; align-items:center; gap:6px;">
+                                <i class="fa-solid fa-circle-info" style="font-size:11px; color:#fcd34d;"></i>
+                                <span>${info.warning}</span>
+                            </div>
+                        `;
+                    }
+
+                    cardsHtml += `
+                        <div style="background:linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border-radius:16px; padding:13px 15px; border:none !important; outline:none !important; box-shadow:0 4px 14px rgba(32, 63, 141, 0.28) !important; display:flex; flex-direction:column; gap:8px; color:#ffffff;">
+                            <!-- Header: Stop Badge + Distance -->
+                            <div style="display:flex; align-items:center; justify-content:space-between;">
+                                <span style="font-size:11px; font-weight:800; color:#ffffff; background:rgba(255,255,255,0.2); padding:3px 10px; border-radius:100px; border:none !important; outline:none !important;">
+                                    Stop ${idx + 1}
+                                </span>
+                                <span style="font-size:11.5px; font-weight:700; color:rgba(255,255,255,0.9); display:inline-flex; align-items:center; gap:4px;">
+                                    <i class="fa-solid fa-route" style="font-size:10.5px; color:#00f2fe;"></i> ${distKm} km
+                                </span>
+                            </div>
+
+                            <!-- Route Segment: From -> To -->
+                            <div style="display:flex; flex-direction:column; gap:4px; padding:2px 0;">
+                                <div style="display:flex; align-items:center; gap:7px; font-size:11.5px; color:rgba(255,255,255,0.78); font-weight:600;">
+                                    <i class="fa-regular fa-circle-dot" style="font-size:9.5px; color:#38bdf8; flex-shrink:0;"></i>
+                                    <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${fromName}</span>
+                                </div>
+                                <div style="display:flex; align-items:center; gap:7px; font-size:13px; color:#ffffff; font-weight:800;">
+                                    <i class="fa-solid fa-location-dot" style="font-size:11px; color:#00f2fe; flex-shrink:0;"></i>
+                                    <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${toName}</span>
+                                    ${muni ? `<span style="font-size:10px; font-weight:700; color:#00f2fe; background:rgba(0, 242, 254, 0.2); padding:1px 6px; border-radius:4px; border:none !important; outline:none !important; flex-shrink:0;">${muni}</span>` : ''}
+                                </div>
+                            </div>
+
+                            <!-- Footer: Transport Mode & Price -->
+                            <div style="display:flex; align-items:center; justify-content:space-between; padding-top:6px; border-top:1px dashed rgba(255,255,255,0.22); margin-top:2px;">
+                                <div>${transportMarkup}</div>
+                                <div style="text-align:right;">
+                                    <div style="font-size:9.5px; font-weight:700; color:rgba(255,255,255,0.72); text-transform:uppercase;">Estimated Fare</div>
+                                    <div>${fareMarkup}</div>
+                                </div>
+                            </div>
+
+                            ${noteMarkup}
                         </div>
                     `;
-                }
-
-                // Fare display
-                let fareMarkup = '';
-                if (isMaintenance || !isSelected) {
-                    fareMarkup = `<span style="font-size:13px; font-weight:700; color:rgba(255,255,255,0.6);">—</span>`;
-                } else if (cost === 0) {
-                    fareMarkup = `<span style="font-size:13.5px; font-weight:800; color:#34d399;">₱0.00</span> <span style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.72);">(Free)</span>`;
-                } else {
-                    fareMarkup = `<span style="font-size:15px; font-weight:900; color:#00f2fe;">₱${cost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>`;
-                }
-
-                // Warning or note
-                let noteMarkup = '';
-                if (isMaintenance) {
-                    noteMarkup = `
-                        <div style="margin-top:6px; font-size:11px; font-weight:600; color:#fee2e2; background:rgba(239,68,68,0.25); padding:6px 10px; border-radius:8px; border:1px solid rgba(239,68,68,0.4); display:flex; align-items:center; gap:6px;">
-                            <i class="fa-solid fa-triangle-exclamation" style="font-size:11px; color:#fca5a5;"></i>
-                            <span>Destination temporarily closed / under maintenance</span>
-                        </div>
-                    `;
-                } else if (info && info.warning) {
-                    noteMarkup = `
-                        <div style="margin-top:6px; font-size:11px; font-weight:600; color:#fef3c7; background:rgba(245,158,11,0.25); padding:6px 10px; border-radius:8px; border:1px solid rgba(245,158,11,0.4); display:flex; align-items:center; gap:6px;">
-                            <i class="fa-solid fa-circle-info" style="font-size:11px; color:#fcd34d;"></i>
-                            <span>${info.warning}</span>
-                        </div>
-                    `;
-                }
-
-                cardsHtml += `
-                    <div style="background:linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border-radius:16px; padding:13px 15px; border:none !important; outline:none !important; box-shadow:0 4px 14px rgba(32, 63, 141, 0.28) !important; display:flex; flex-direction:column; gap:8px; color:#ffffff;">
-                        <!-- Header: Stop Badge + Distance -->
-                        <div style="display:flex; align-items:center; justify-content:space-between;">
-                            <span style="font-size:11px; font-weight:800; color:#ffffff; background:rgba(255,255,255,0.2); padding:3px 10px; border-radius:100px; border:none !important; outline:none !important;">
-                                Stop ${idx + 1}
-                            </span>
-                            <span style="font-size:11.5px; font-weight:700; color:rgba(255,255,255,0.9); display:inline-flex; align-items:center; gap:4px;">
-                                <i class="fa-solid fa-route" style="font-size:10.5px; color:#00f2fe;"></i> ${distKm} km
-                            </span>
-                        </div>
-
-                        <!-- Route Segment: From -> To -->
-                        <div style="display:flex; flex-direction:column; gap:4px; padding:2px 0;">
-                            <div style="display:flex; align-items:center; gap:7px; font-size:11.5px; color:rgba(255,255,255,0.78); font-weight:600;">
-                                <i class="fa-regular fa-circle-dot" style="font-size:9.5px; color:#38bdf8; flex-shrink:0;"></i>
-                                <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${fromName}</span>
-                            </div>
-                            <div style="display:flex; align-items:center; gap:7px; font-size:13px; color:#ffffff; font-weight:800;">
-                                <i class="fa-solid fa-location-dot" style="font-size:11px; color:#00f2fe; flex-shrink:0;"></i>
-                                <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${toName}</span>
-                                ${muni ? `<span style="font-size:10px; font-weight:700; color:#00f2fe; background:rgba(0, 242, 254, 0.2); padding:1px 6px; border-radius:4px; border:none !important; outline:none !important; flex-shrink:0;">${muni}</span>` : ''}
-                            </div>
-                        </div>
-
-                        <!-- Footer: Transport Mode & Price -->
-                        <div style="display:flex; align-items:center; justify-content:space-between; padding-top:6px; border-top:1px dashed rgba(255,255,255,0.22); margin-top:2px;">
-                            <div>${transportMarkup}</div>
-                            <div style="text-align:right;">
-                                <div style="font-size:9.5px; font-weight:700; color:rgba(255,255,255,0.72); text-transform:uppercase;">Estimated Fare</div>
-                                <div>${fareMarkup}</div>
-                            </div>
-                        </div>
-
-                        ${noteMarkup}
-                    </div>
-                `;
-            });
+                });
+            } catch (err) {
+                console.error("Error generating transit summary items:", err);
+            }
 
             if (listEl) listEl.innerHTML = cardsHtml;
             if (totalFareEl) {
@@ -2720,6 +2729,7 @@ try {
             }
 
             modal.style.display = 'flex';
+            modal.style.pointerEvents = 'auto';
         };
 
         window.closeTransitSummaryOpensheet = function () {
