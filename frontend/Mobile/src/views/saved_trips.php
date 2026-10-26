@@ -6,6 +6,7 @@ $backRoute = 'itinerary';
 <!-- Include Header Component -->
 <?php include __DIR__ . '/../components/header.php'; ?>
 <?php include __DIR__ . '/../components/testimony_modal.php'; ?>
+<?php include __DIR__ . '/../components/trip_guide_modal.php'; ?>
 
 
 <style>
@@ -120,9 +121,16 @@ $backRoute = 'itinerary';
             <p style="margin: 0; font-size: 13.5px; color: rgba(255, 255, 255, 0.88); line-height: 1.5; max-width: 260px; text-wrap: pretty;">
                 Your adventure starts here! Explore La Union tourist spots and plan your personalized itinerary.
             </p>
-            <button type="button" class="btn-open-map" onclick="if(typeof window.navigateTo==='function') window.navigateTo('itinerary');">
-                <i class="fa-solid fa-plus"></i> Create New Trip
-            </button>
+            <div style="display:flex; flex-direction:column; gap:10px; width:100%; max-width:280px; margin:14px auto 0;">
+                <button type="button" class="btn-open-map" onclick="if(typeof window.navigateTo==='function') window.navigateTo('itinerary');" style="width:100%; margin:0; justify-content:center;">
+                    <i class="fa-solid fa-plus"></i> Create New Trip
+                </button>
+                <button type="button" onclick="if(typeof window.openTripGuideModal==='function') window.openTripGuideModal();"
+                    style="width:100%; margin:0; padding:11px 16px; border-radius:14px; background:rgba(255,255,255,0.18) !important; border:1px solid rgba(255,255,255,0.35) !important; outline:none !important; color:#ffffff !important; font-weight:800; font-size:12.5px; display:flex; align-items:center; justify-content:center; gap:7px; cursor:pointer; backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); box-shadow:0 2px 8px rgba(0,0,0,0.12) !important; transition:all 0.15s ease;"
+                    onpointerdown="this.style.transform='scale(0.97)'" onpointerup="this.style.transform='scale(1)'">
+                    <i class="fa-solid fa-circle-question" style="color:#38bdf8;"></i> How to Add & Complete Trips
+                </button>
+            </div>
         </div>
     </div>
 </div>
@@ -1115,9 +1123,16 @@ $backRoute = 'itinerary';
                     <p style="margin: 0; font-size: 13.5px; color: rgba(255, 255, 255, 0.88); line-height: 1.5; max-width: 260px; text-wrap: pretty;">
                         Your adventure starts here! Explore La Union tourist spots and plan your personalized itinerary.
                     </p>
-                    <button type="button" class="btn-open-map" onclick="if(typeof window.navigateTo==='function') window.navigateTo('itinerary');">
-                        <i class="fa-solid fa-plus"></i> Create New Trip
-                    </button>
+                    <div style="display:flex; flex-direction:column; gap:10px; width:100%; max-width:280px; margin:14px auto 0;">
+                        <button type="button" class="btn-open-map" onclick="if(typeof window.navigateTo==='function') window.navigateTo('itinerary');" style="width:100%; margin:0; justify-content:center;">
+                            <i class="fa-solid fa-plus"></i> Create New Trip
+                        </button>
+                        <button type="button" onclick="if(typeof window.openTripGuideModal==='function') window.openTripGuideModal();"
+                            style="width:100%; margin:0; padding:11px 16px; border-radius:14px; background:rgba(255,255,255,0.18) !important; border:1px solid rgba(255,255,255,0.35) !important; outline:none !important; color:#ffffff !important; font-weight:800; font-size:12.5px; display:flex; align-items:center; justify-content:center; gap:7px; cursor:pointer; backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); box-shadow:0 2px 8px rgba(0,0,0,0.12) !important; transition:all 0.15s ease;"
+                            onpointerdown="this.style.transform='scale(0.97)'" onpointerup="this.style.transform='scale(1)'">
+                            <i class="fa-solid fa-circle-question" style="color:#38bdf8;"></i> How to Add & Complete Trips
+                        </button>
+                    </div>
                 </div>
             `;
 

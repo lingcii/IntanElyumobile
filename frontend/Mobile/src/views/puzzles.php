@@ -59,7 +59,7 @@ include __DIR__ . '/../components/header.php';
                 Puzzle</h3>
             <p id="puzzle-desc" style="margin: 0; font-size: 12px; color: rgba(255, 255, 255, 0.9); line-height: 1.4;">
                 Rearrange the tiles to reveal the crystal clear lagoons of Immuki Island in Balaoan! Solve to earn
-                <strong style="color: #38bdf8;">+100 Points</strong>.
+                <strong style="color: #38bdf8;">+30 Points</strong>.
             </p>
 
             <!-- Target Reference Image Preview -->
@@ -129,7 +129,7 @@ include __DIR__ . '/../components/header.php';
                 Spot Memory Match</h3>
             <p id="memory-desc" style="margin: 0; font-size: 12px; color: rgba(255, 255, 255, 0.9); line-height: 1.4;">
                 Flip cards and match all 6 pairs of famous La Union landmarks & activities to earn <strong
-                    style="color: #38bdf8;">+75 Points</strong>!
+                    style="color: #38bdf8;">+25 Points</strong>!
             </p>
             <div id="memory-stats-container"
                 style="display: flex; justify-content: center; gap: 20px; margin-top: 14px;">
@@ -178,7 +178,7 @@ include __DIR__ . '/../components/header.php';
                 Union Eco Explorer Scramble</h3>
             <p id="scramble-desc"
                 style="margin: 0; font-size: 12px; color: rgba(255, 255, 255, 0.9); line-height: 1.4;">
-                Unscramble all 4 La Union municipal & landmark names to earn <strong style="color: #38bdf8;">+75
+                Unscramble all 4 La Union municipal & landmark names to earn <strong style="color: #38bdf8;">+25
                     Points</strong>!
             </p>
 
@@ -629,13 +629,13 @@ include __DIR__ . '/../components/header.php';
                 name: "Immuki Island",
                 location: "Balaoan",
                 image: R2_PUBLIC_BASE + "spot_6a686f4d0f48b.jpg",
-                desc: 'Rearrange the tiles to reveal the crystal clear lagoons of Immuki Island in Balaoan! Solve to earn <strong style="color: #38bdf8;">+100 Points</strong>.'
+                desc: 'Rearrange the tiles to reveal the crystal clear lagoons of Immuki Island in Balaoan! Solve to earn <strong style="color: #38bdf8;">+30 Points</strong>.'
             },
             {
                 name: "Agoo Eco Fun World",
                 location: "Agoo",
                 image: R2_PUBLIC_BASE + "spot_6a689fe582fe5.jpg",
-                desc: 'Rearrange the tiles to reveal the lush pine trees of Agoo Eco Fun World! Solve to earn <strong style="color: #38bdf8;">+100 Points</strong>.'
+                desc: 'Rearrange the tiles to reveal the lush pine trees of Agoo Eco Fun World! Solve to earn <strong style="color: #38bdf8;">+30 Points</strong>.'
             }
         ];
 
@@ -840,7 +840,7 @@ include __DIR__ . '/../components/header.php';
                 if (titleEl) titleEl.style.display = 'block';
                 if (descEl) {
                     descEl.style.display = 'block';
-                    descEl.innerHTML = `Flip cards and match all 6 pairs of famous La Union landmarks & activities to earn <strong style="color: #00f2fe;">+75 Points</strong>!`;
+                    descEl.innerHTML = `Flip cards and match all 6 pairs of famous La Union landmarks & activities to earn <strong style="color: #00f2fe;">+25 Points</strong>!`;
                 }
                 if (statsContainer) statsContainer.style.display = 'flex';
                 if (boardEl) boardEl.style.display = 'grid';
@@ -872,7 +872,7 @@ include __DIR__ . '/../components/header.php';
                 if (titleEl) titleEl.style.display = 'block';
                 if (descEl) {
                     descEl.style.display = 'block';
-                    descEl.innerHTML = `Unscramble all 4 La Union municipal & landmark names to earn <strong style="color: #00f2fe;">+75 Points</strong>!`;
+                    descEl.innerHTML = `Unscramble all 4 La Union municipal & landmark names to earn <strong style="color: #00f2fe;">+25 Points</strong>!`;
                 }
                 if (containerEl) containerEl.style.display = 'flex';
                 if (submitBtn) submitBtn.style.display = 'block';
@@ -1618,12 +1618,12 @@ include __DIR__ . '/../components/header.php';
                 }
 
                 const defaultPointsMap = {
-                    'puzzle': 100,
-                    'memory_match': 75,
-                    'word_scramble': 75,
-                    'trivia': 50
+                    'puzzle': 30,
+                    'memory_match': 25,
+                    'word_scramble': 25,
+                    'trivia': 20
                 };
-                const expectedPts = defaultPointsMap[gameType] || 50;
+                const expectedPts = defaultPointsMap[gameType] || 25;
 
                 // Mark completed today in localStorage immediately
                 const todayStr = new Date().toDateString();
@@ -1631,6 +1631,29 @@ include __DIR__ . '/../components/header.php';
                 localStorage.setItem(gameKey, todayStr);
                 localStorage.removeItem('game_done_' + gameType);
                 updateAllGamesFinishedUI();
+
+                // Optimistically calculate total points immediately for instant UI feedback
+                let optimisticTotal = expectedPts;
+                try {
+                    const authUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
+                    const curPts = Math.max(Number(authUser.points ?? 0), Number(authUser.xp ?? 0));
+                    optimisticTotal = curPts + expectedPts;
+                    authUser.points = optimisticTotal;
+                    authUser.xp = optimisticTotal;
+                    localStorage.setItem('auth_user', JSON.stringify(authUser));
+                } catch (e) { }
+
+                // Animate points counter in header
+                animateHeaderPointsIncrease(expectedPts, optimisticTotal);
+
+                // Show Awesome Job modal IMMEDIATELY (no waiting for remote API network latency!)
+                openGameSuccess({
+                    title: "Awesome Job!",
+                    awardedPts: expectedPts,
+                    newTotalPoints: optimisticTotal,
+                    message: `Congratulations! You earned ${expectedPts} Points!`,
+                    comeBackTomorrow: true
+                });
 
                 // Ambient offline game queueing if solving while on a walk outside
                 if (!navigator.onLine || window.isAppOnline === false) {
@@ -1642,27 +1665,6 @@ include __DIR__ . '/../components/header.php';
                             localStorage.setItem(queueKey, JSON.stringify(queue));
                         }
                     } catch (e) { }
-
-                    let optimisticTotal = expectedPts;
-                    try {
-                        const authUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
-                        const curPts = Math.max(Number(authUser.points ?? 0), Number(authUser.xp ?? 0));
-                        optimisticTotal = curPts + expectedPts;
-                        authUser.points = optimisticTotal;
-                        authUser.xp = optimisticTotal;
-                        localStorage.setItem('auth_user', JSON.stringify(authUser));
-                    } catch (e) { }
-
-                    animateHeaderPointsIncrease(expectedPts, optimisticTotal);
-                    updateAllGamesFinishedUI();
-
-                    openGameSuccess({
-                        title: "Game Completed!",
-                        awardedPts: expectedPts,
-                        newTotalPoints: optimisticTotal,
-                        message: `Game completed offline! You earned +${expectedPts} Points. Your points will sync automatically when back online.`,
-                        comeBackTomorrow: true
-                    });
                     return;
                 }
 
@@ -1680,59 +1682,52 @@ include __DIR__ . '/../components/header.php';
                     bodyObj = {};
                 }
 
-                const r = await fetch(_baseUrl + endpoint, {
+                // Fire sync to server in background
+                fetch(_baseUrl + endpoint, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': 'Bearer ' + token
                     },
                     body: JSON.stringify(bodyObj)
-                });
-                const d = await r.json();
+                }).then(async (r) => {
+                    const d = await r.json();
+                    if (r.ok && d.status === 'success') {
+                        const awardedPts = Number(d.points_awarded ?? d.xp_awarded ?? expectedPts);
+                        const newTotalPoints = Number(d.points ?? d.xp ?? 0);
 
-                if (r.ok && d.status === 'success') {
-                    const awardedPts = Number(d.points_awarded ?? d.xp_awarded ?? expectedPts);
-                    const newTotalPoints = Number(d.points ?? d.xp ?? 0);
-
-                    // Update auth_user in localStorage so other tabs / views sync
-                    try {
-                        const authUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
-                        const curPts = Math.max(Number(authUser.points ?? 0), Number(authUser.xp ?? 0));
-                        const finalPts = newTotalPoints > 0 ? newTotalPoints : (curPts + awardedPts);
-                        authUser.points = finalPts;
-                        authUser.xp = finalPts;
-                        localStorage.setItem('auth_user', JSON.stringify(authUser));
-                        window.leaderboardNeedsRefresh = true;
-                        Object.keys(localStorage).forEach(k => {
-                            if (k.startsWith('leaderboard_data_')) localStorage.removeItem(k);
-                        });
-                    } catch (e) { }
-
-                    // Trigger smooth counter animation in header
-                    animateHeaderPointsIncrease(awardedPts, newTotalPoints);
-
-                    // Update UI banners to show finished mode
-                    updateAllGamesFinishedUI();
-
-                    // Open enhanced success modal
-                    openGameSuccess({
-                        title: "Awesome Job!",
-                        awardedPts: awardedPts,
-                        newTotalPoints: newTotalPoints,
-                        message: d.message || `Congratulations! You earned ${awardedPts} Points!`,
-                        comeBackTomorrow: true
-                    });
-                } else {
-                    if (r.status === 429) {
                         try {
-                            localStorage.setItem(getGameDoneKey(gameType), new Date().toDateString());
-                            localStorage.removeItem('game_done_' + gameType);
+                            const authUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
+                            const curPts = Math.max(Number(authUser.points ?? 0), Number(authUser.xp ?? 0));
+                            const finalPts = newTotalPoints > 0 ? newTotalPoints : (curPts + awardedPts);
+                            authUser.points = finalPts;
+                            authUser.xp = finalPts;
+                            localStorage.setItem('auth_user', JSON.stringify(authUser));
+                            window.leaderboardNeedsRefresh = true;
+                            Object.keys(localStorage).forEach(k => {
+                                if (k.startsWith('leaderboard_data_')) localStorage.removeItem(k);
+                            });
                         } catch (e) { }
+
+                        const totalPtsEl = document.getElementById('success-total-points-val');
+                        if (totalPtsEl && newTotalPoints > 0) {
+                            totalPtsEl.textContent = Number(newTotalPoints).toLocaleString() + ' PTS';
+                        }
+                        loadGamePoints();
+                    } else if (r.status === 429) {
                         updateAllGamesFinishedUI();
                     }
-                    const title = (r.status === 429) ? "Already Done!" : (r.status >= 500 ? "Server Error" : "Notice");
-                    openGameAlert(d.message || "Game already completed today! Come back tomorrow.", title);
-                }
+                }).catch(err => {
+                    console.warn("Points sync queued for background retry:", err);
+                    try {
+                        const queueKey = 'intan_elyu_offline_game_claims_' + (getGameDoneKey('claim').replace('game_done_claim_', ''));
+                        let queue = JSON.parse(localStorage.getItem(queueKey) || '[]');
+                        if (!queue.some(q => q.gameType === gameType)) {
+                            queue.push({ gameType: gameType, timestamp: Date.now() });
+                            localStorage.setItem(queueKey, JSON.stringify(queue));
+                        }
+                    } catch (e) { }
+                });
             } catch (e) {
                 console.error("Points claim error, saving offline:", e);
                 try {
@@ -1746,8 +1741,12 @@ include __DIR__ . '/../components/header.php';
                     localStorage.removeItem('game_done_' + gameType);
                     updateAllGamesFinishedUI();
                     openGameSuccess({
-                        title: "Game Completed!",
-                        awardedPts: 50,
+                        title: "Awesome Job!",
+                        awardedPts: 25,
+                        message: "Game completed! Your points will sync automatically when back online. Come back tomorrow!",
+                        comeBackTomorrow: true
+                    });
+                } catch (queueErr) { }
                         message: "Game completed! Your points will sync automatically when back online. Come back tomorrow!",
                         comeBackTomorrow: true
                     });

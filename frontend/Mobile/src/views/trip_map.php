@@ -37,19 +37,20 @@ include_once __DIR__ . '/../components/testimony_modal.php';
         <!-- Royal Blue Header above the Tourist Card -->
         <div id="trip-card-header"
             style="background: linear-gradient(180deg, #1e3a8a 0%, #193375 100%) !important; padding: 11px 18px; display: flex; justify-content: space-between; align-items: center; border-top-left-radius: 24px; border-top-right-radius: 24px; flex-shrink: 0; box-sizing: border-box;">
-            <div id="trip-info-vehicle-badge"
-                style="display:flex; align-items:center; gap:8px; color:#ffffff; font-weight:800; font-size:12.5px;">
-                <div style="width:24px; height:24px; border-radius:6px; background:rgba(255,255,255,0.18); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-                    <i id="trip-info-vehicle-icon" class="fa-solid fa-car" style="color:#38bdf8; font-size:12px;"></i>
-                </div>
-                <span id="trip-info-vehicle-name">Own Car</span>
+            <div style="display:flex; align-items:center; gap:7px; color:#ffffff; font-weight:800; font-size:13px; min-width:0;">
+                <i class="fa-solid fa-map-location-dot" style="color:#38bdf8; font-size:13px; flex-shrink:0;"></i>
+                <span id="trip-info-name" style="color:#ffffff; font-weight:800; font-size:13px; max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">Trip Itinerary</span>
             </div>
             <div id="trip-info-pax-badge"
-                style="display:flex; align-items:center; gap:6px; color:#ffffff; font-weight:700; font-size:11.5px; background:rgba(255,255,255,0.18); padding:4px 11px; border-radius:100px;">
+                style="display:flex; align-items:center; gap:6px; color:#ffffff; font-weight:700; font-size:11.5px; background:rgba(255,255,255,0.18); padding:4px 11px; border-radius:100px; flex-shrink:0;">
                 <i id="trip-info-pax-icon" class="fa-solid fa-user" style="color:#ffffff; font-size:10.5px;"></i>
                 <span id="trip-info-pax-text">Solo</span>
             </div>
-            <!-- Distance and time kept in DOM hidden to ensure all JS route callbacks continue working safely -->
+            <!-- Vehicle and distance/time kept in DOM with display:none to guarantee JS compatibility -->
+            <div id="trip-info-vehicle-badge" style="display:none !important;">
+                <i id="trip-info-vehicle-icon" class="fa-solid fa-car"></i>
+                <span id="trip-info-vehicle-name">Own Car</span>
+            </div>
             <span id="trip-info-distance" style="display:none !important;">-- km</span>
             <span id="trip-info-time" style="display:none !important;">-- mins</span>
         </div>
@@ -703,10 +704,8 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                     ${classBadge}
                 </div>
                 <h4 style="margin:0 0 4px 0; font-size:16px; font-weight:800; color:#0f172a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${dest.name}">${dest.name}</h4>
-                <p style="margin:0 0 8px 0; font-size:12px; color:#64748b; font-weight:600; display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                <p style="margin:0 0 8px 0; font-size:12px; color:#64748b; font-weight:600; display:flex; align-items:center; gap:8px;">
                     <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"><i class="fa-solid fa-location-dot" style="color:#0284c7; margin-right:4px;"></i>${dest.municipality || 'La Union'}</span>
-                    <span style="color:#cbd5e1;">&bull;</span>
-                    <span style="color:#1d4ed8; font-weight:700; white-space:nowrap;"><i class="fa-solid ${paxIcon}" style="color:#2563eb; margin-right:4px;"></i>${paxLabel}</span>
                 </p>
                 ${legTransitHtml}
                 <div style="display:flex; justify-content:space-between; align-items:center; gap:6px; min-width:0; padding-top:6px; border-top:1px solid #f1f5f9;">

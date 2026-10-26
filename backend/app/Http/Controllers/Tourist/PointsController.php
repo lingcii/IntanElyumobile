@@ -122,7 +122,7 @@ class PointsController extends Controller
             ], 429);
         }
 
-        $xp = 100;
+        $xp = 30;
         try {
             if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'xp')) {
                 $user->increment('xp', $xp);
@@ -185,7 +185,7 @@ class PointsController extends Controller
             ], 429);
         }
 
-        $xp = 50;
+        $xp = 20;
         try {
             if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'xp')) {
                 $user->increment('xp', $xp);
@@ -255,10 +255,10 @@ class PointsController extends Controller
         }
 
         $gameConfig = [
-            'memory_match'  => ['xp' => 75, 'points' => 75, 'desc' => 'Completed La Union Memory Card Match'],
-            'word_scramble' => ['xp' => 75, 'points' => 75, 'desc' => 'Unscrambled La Union Eco Explorer Words'],
-            'puzzle'        => ['xp' => 100, 'points' => 100, 'desc' => 'Successfully solved a sliding block puzzle'],
-            'trivia'        => ['xp' => 50, 'points' => 50, 'desc' => 'Answered La Union trivia questions correctly'],
+            'memory_match'  => ['xp' => 25, 'points' => 25, 'desc' => 'Completed La Union Memory Card Match'],
+            'word_scramble' => ['xp' => 25, 'points' => 25, 'desc' => 'Unscrambled La Union Eco Explorer Words'],
+            'puzzle'        => ['xp' => 30, 'points' => 30, 'desc' => 'Successfully solved a sliding block puzzle'],
+            'trivia'        => ['xp' => 20, 'points' => 20, 'desc' => 'Answered La Union trivia questions correctly'],
         ];
 
         $config = $gameConfig[$gameType] ?? ['xp' => 50, 'points' => 50, 'desc' => 'Completed Mini Game'];

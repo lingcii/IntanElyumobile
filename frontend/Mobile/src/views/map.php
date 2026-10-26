@@ -395,50 +395,42 @@ if (is_dir($imgDir)) {
 
     <!-- Nearby Tourist Sites Sheet (Triggered by Left Button) -->
     <div class="bottom-sheet" id="nearby-sites-sheet" style="display:none;">
-        <div class="sheet-drag-handle" id="nearby-drag-handle"><span class="sheet-drag-dot"></span></div>
-        <div class="draggable-content" id="nearby-sites-scroll"
-            style="max-height: calc(85vh - 80px); overflow-y: auto; padding: 0 6px calc(30px + env(safe-area-inset-bottom)) 6px;">
-
-            <!-- Header -->
-            <div
-                style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; padding: 2px 8px;">
-                <div>
-                    <h3
-                        style="margin:0; font-size:17px; font-weight:800; color:#ffffff; display:flex; align-items:center; gap:8px;">
-                        <i class="fa-solid fa-compass" style="color:#ffffff;"></i> Nearby Tourist Sites
+        <!-- Royal Blue Header -->
+        <div class="nearby-royal-header" id="nearby-royal-header">
+            <div class="sheet-drag-handle" id="nearby-drag-handle">
+                <span class="sheet-drag-dot"></span>
+            </div>
+            <div class="nearby-header-content">
+                <div class="nearby-header-main">
+                    <h3 class="sheet-title">
+                        <i class="fa-solid fa-compass" style="color:#60a5fa; font-size:16px;"></i> Nearby Tourist Sites
                     </h3>
-                    <p id="nearby-sites-subtext" style="margin:3px 0 0 0; font-size:12px; color:#ffffff; opacity:0.95;">
+                    <p id="nearby-sites-subtext" class="sheet-location">
                         Discover attractions close to your current location
                     </p>
                 </div>
-                <button type="button" onclick="window.closeNearbySitesSheet()"
-                    style="background:rgba(255,255,255,0.15); border:none !important; outline:none !important; color:#ffffff; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:14px; transition:background 0.2s;">
+                <button type="button" class="dest-sheet-close-btn" onclick="window.closeNearbySitesSheet()" aria-label="Close">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
+        </div>
 
+        <!-- Scrollable Middle Body (Clean White) -->
+        <div class="draggable-content nearby-sites-white-body" id="nearby-sites-scroll">
             <!-- Radius filter pills -->
-            <div style="display:flex; gap:8px; overflow-x:auto; padding: 4px 8px 16px 8px; scrollbar-width:none;">
+            <div class="nearby-radius-pills-row">
                 <button type="button" class="nearby-radius-btn active" data-radius="2"
-                    onclick="window.filterNearbyRadius(2, this)"
-                    style="padding:6px 14px; border-radius:100px; font-size:11.5px; font-weight:800; border:none !important; outline:none !important; background:linear-gradient(135deg, #00f2fe, #0284c7); color:#ffffff; cursor:pointer; white-space:nowrap;">Within
-                    2 km</button>
+                    onclick="window.filterNearbyRadius(2, this)">Within 2 km</button>
                 <button type="button" class="nearby-radius-btn" data-radius="5"
-                    onclick="window.filterNearbyRadius(5, this)"
-                    style="padding:6px 14px; border-radius:100px; font-size:11.5px; font-weight:700; border:none !important; outline:none !important; background:rgba(30,58,138,0.78); color:#ffffff; cursor:pointer; white-space:nowrap;">Within
-                    5 km</button>
+                    onclick="window.filterNearbyRadius(5, this)">Within 5 km</button>
                 <button type="button" class="nearby-radius-btn" data-radius="15"
-                    onclick="window.filterNearbyRadius(15, this)"
-                    style="padding:6px 14px; border-radius:100px; font-size:11.5px; font-weight:700; border:none !important; outline:none !important; background:rgba(30,58,138,0.78); color:#ffffff; cursor:pointer; white-space:nowrap;">Within
-                    15 km</button>
+                    onclick="window.filterNearbyRadius(15, this)">Within 15 km</button>
                 <button type="button" class="nearby-radius-btn" data-radius="all"
-                    onclick="window.filterNearbyRadius('all', this)"
-                    style="padding:6px 14px; border-radius:100px; font-size:11.5px; font-weight:700; border:none !important; outline:none !important; background:rgba(30,58,138,0.78); color:#ffffff; cursor:pointer; white-space:nowrap;">All
-                    Closest</button>
+                    onclick="window.filterNearbyRadius('all', this)">All Closest</button>
             </div>
 
             <!-- List container -->
-            <div id="nearby-sites-list" style="display:flex; flex-direction:column; gap:12px; padding: 0 4px 16px 4px;">
+            <div id="nearby-sites-list" class="nearby-sites-list" style="display:flex; flex-direction:column; gap:11px;">
                 <!-- Rendered dynamically -->
             </div>
         </div>
@@ -750,7 +742,6 @@ if (is_dir($imgDir)) {
                                     style="font-size:12.5px; font-weight:800; color:#ffffff; display:flex; align-items:center; gap:6px;">
                                     <i class="fa-solid fa-comments" style="color:#00f2fe;"></i> Tourist Feedback
                                 </span>
-                                <span class="dest-support-badge" id="sheet-testimonies-badge">Verified Reviews</span>
                             </div>
                             <div id="testimonies-summary-metrics" style="display:none; margin-bottom:10px;"></div>
                             <div id="testimonies-list-container" style="display:flex; flex-direction:column; gap:8px;">
@@ -1612,7 +1603,7 @@ if (is_dir($imgDir)) {
                 if (toggleText) toggleText.textContent = 'Show Less';
                 if (toggleChevron) toggleChevron.style.transform = 'rotate(180deg)';
             } else {
-                if (toggleText) toggleText.textContent = `Show All (${total} Nearby)`;
+                if (toggleText) toggleText.textContent = 'Show All';
                 if (toggleChevron) toggleChevron.style.transform = 'rotate(0deg)';
             }
         };
@@ -1876,7 +1867,7 @@ if (is_dir($imgDir)) {
                         if (toggleBtn) {
                             if (amenities.length > 4) {
                                 toggleBtn.style.display = 'flex';
-                                if (toggleText) toggleText.textContent = `Show All (${amenities.length} Nearby)`;
+                                if (toggleText) toggleText.textContent = 'Show All';
                                 if (toggleChevron) toggleChevron.style.transform = 'rotate(0deg)';
                                 window._sheetAmenitiesExpanded = false;
                             } else {
@@ -2707,8 +2698,8 @@ if (is_dir($imgDir)) {
                 if (!container) return;
 
                 container.innerHTML = `
-                <div style="text-align:center; padding:30px 10px; color:rgba(148,163,184,0.8); font-size:13px;">
-                    <i class="fa-solid fa-spinner fa-spin" style="font-size:22px; color:#38bdf8; margin-bottom:10px; display:block;"></i>
+                <div style="text-align:center; padding:38px 12px; color:#64748b; font-size:13px; font-weight:600;">
+                    <i class="fa-solid fa-spinner fa-spin" style="font-size:24px; color:#1e3a8a; margin-bottom:12px; display:block;"></i>
                     Locating nearby tourist attractions...
                 </div>
             `;
@@ -2810,15 +2801,15 @@ if (is_dir($imgDir)) {
                 if (filtered.length === 0) {
                     const catTitle = (window.currentActiveCategory && window.currentActiveCategory !== 'All') ? `No ${window.currentActiveCategory} Spots Within ${currentNearbyRadius} km` : `No Spots Within ${currentNearbyRadius} km`;
                     container.innerHTML = `
-                    <div style="text-align:center; padding:26px 16px 22px; margin-bottom:24px; background:rgba(255,255,255,0.15); border:none !important; outline:none !important; border-radius:18px; animation: nearbyCardSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;">
-                        <div style="width:48px; height:48px; margin:0 auto 12px; border-radius:50%; background:rgba(255,255,255,0.22); border:none !important; outline:none !important; display:flex; align-items:center; justify-content:center; color:#ffffff; font-size:20px;">
+                    <div style="text-align:center; padding:32px 20px 28px; margin:8px 0 24px; background:#f8fafc; border:1.5px dashed #cbd5e1 !important; outline:none !important; border-radius:20px; animation: nearbyCardSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;">
+                        <div style="width:50px; height:50px; margin:0 auto 12px; border-radius:50%; background:#eff6ff; display:flex; align-items:center; justify-content:center; color:#1e3a8a; font-size:20px; box-shadow:0 2px 8px rgba(30,58,138,0.08);">
                             <i class="fa-solid fa-location-dot"></i>
                         </div>
-                        <div style="font-size:15px; font-weight:800; color:#ffffff; margin-bottom:6px;">${catTitle}</div>
-                        <div style="font-size:12.5px; color:#ffffff; opacity:0.95; margin-bottom:18px; line-height:1.45; font-weight:500;">
+                        <div style="font-size:15px; font-weight:800; color:#0f172a; margin-bottom:6px;">${catTitle}</div>
+                        <div style="font-size:12.5px; color:#64748b; margin-bottom:18px; line-height:1.45; font-weight:500;">
                             Try expanding your search radius to discover attractions across La Union.
                         </div>
-                        <button type="button" onclick="window.filterNearbyRadius('all', document.querySelector('[data-radius=\\'all\\']'))" style="padding:10px 24px; border-radius:100px; background:linear-gradient(135deg, #1e3a8a, #3f7db7); border:none !important; outline:none !important; color:#ffffff; font-size:12.5px; font-weight:800; cursor:pointer; transition:transform 0.2s ease;">
+                        <button type="button" onclick="window.filterNearbyRadius('all', document.querySelector('[data-radius=\\'all\\']'))" style="padding:10px 24px; border-radius:100px; background:#1e3a8a; border:none !important; outline:none !important; color:#ffffff; font-size:12.5px; font-weight:800; cursor:pointer; box-shadow:0 4px 14px rgba(30,58,138,0.25); transition:transform 0.2s ease;">
                             Show All in La Union
                         </button>
                     </div>
@@ -2845,27 +2836,27 @@ if (is_dir($imgDir)) {
                     const delay = (idx * 0.04).toFixed(2);
 
                     html += `
-                    <div class="nearby-site-card" style="animation: nearbyCardSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) ${delay}s forwards; opacity: 0; background:rgba(255,255,255,0.14); border:none !important; outline:none !important; border-radius:18px; padding:10px 12px; display:flex; align-items:center; gap:12px;" onclick="window.selectNearbySite('${spot.id}')">
-                        <img src="${img}" alt="${spot.name}" loading="lazy" decoding="async" style="width:64px; height:64px; border-radius:12px; object-fit:cover; flex-shrink:0; transition: transform 0.3s ease;" onerror="this.onerror=null; this.src='assets/img/no_image.svg';">
-                        <div style="flex:1; min-width:0;">
-                            <div style="display:flex; align-items:center; justify-content:space-between; gap:6px; margin-bottom:3px;">
-                                <h4 style="margin:0; font-size:14px; font-weight:800; color:#ffffff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${spot.name}</h4>
+                    <div class="nearby-site-card" style="animation: nearbyCardSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) ${delay}s forwards; opacity: 0;" onclick="window.selectNearbySite('${spot.id}')">
+                        <img src="${img}" alt="${spot.name}" loading="lazy" decoding="async" class="nearby-site-img" onerror="this.onerror=null; this.src='assets/img/no_image.svg';">
+                        <div class="nearby-site-info">
+                            <div class="nearby-site-title-row">
+                                <h4 class="nearby-site-name">${spot.name}</h4>
                             </div>
-                            <div style="font-size:11.5px; color:#ffffff; opacity:0.92; margin-bottom:5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                                <i class="fa-solid fa-location-dot" style="color:#ffffff; margin-right:3px;"></i>${spot.municipality || spot.location || 'La Union'}
+                            <div class="nearby-site-location">
+                                <i class="fa-solid fa-location-dot"></i>${spot.municipality || spot.location || 'La Union'}
                             </div>
-                            <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
-                                <span style="font-size:10px; font-weight:800; color:#ffffff; background:rgba(255,255,255,0.22); border:none !important; outline:none !important; padding:2px 7px; border-radius:100px; display:inline-flex; align-items:center; gap:3px;">
-                                    <i class="fa-solid fa-location-arrow" style="font-size:9px; color:#ffffff;"></i> ${distBadge}
+                            <div class="nearby-site-tags">
+                                <span class="nearby-site-dist-badge">
+                                    <i class="fa-solid fa-location-arrow"></i> ${distBadge}
                                 </span>
-                                <span style="font-size:10.5px; font-weight:700; color:#fbbf24; display:inline-flex; align-items:center; gap:3px;">
-                                    <i class="fa-solid fa-star" style="font-size:9.5px;"></i> ${rating}
+                                <span class="nearby-site-rating">
+                                    <i class="fa-solid fa-star"></i> ${rating}
                                 </span>
-                                ${spot.category ? `<span style="font-size:10px; color:#ffffff; background:rgba(255,255,255,0.18); border:none !important; outline:none !important; padding:2px 6px; border-radius:6px; font-weight:600;">${spot.category}</span>` : ''}
+                                ${spot.category ? `<span class="nearby-site-cat-badge">${spot.category}</span>` : ''}
                             </div>
                         </div>
-                        <button type="button" class="nearby-site-action-btn" title="View on Map" style="background:rgba(255,255,255,0.22); border:none !important; outline:none !important; color:#ffffff; width:38px; height:38px; border-radius:12px; display:flex; align-items:center; justify-content:center; cursor:pointer;">
-                            <i class="fa-solid fa-chevron-right" style="font-size:13px; color:#ffffff;"></i>
+                        <button type="button" class="nearby-site-action-btn" title="View on Map">
+                            <i class="fa-solid fa-chevron-right" style="font-size:12px;"></i>
                         </button>
                     </div>
                 `;
@@ -4848,11 +4839,7 @@ if (is_dir($imgDir)) {
                 }
 
                 if (badge) {
-                    if (totalReviews > 0) {
-                        badge.textContent = `${totalReviews} Review${totalReviews > 1 ? 's' : ''}${isOfflineCached ? ' (Offline)' : ''}`;
-                    } else {
-                        badge.textContent = isOfflineCached ? 'Offline (No Reviews)' : 'No Reviews';
-                    }
+                    badge.style.display = 'none';
                 }
 
                 if (d.summary && d.summary.total_reviews > 0) {
@@ -4863,14 +4850,20 @@ if (is_dir($imgDir)) {
 
                     summary.style.display = 'block';
                     summary.innerHTML = `
-                    <div style="background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.18); border-radius:12px; padding:11px 14px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
-                        <div style="display:flex; align-items:center; gap:6px;">
-                            <span style="color:#fbbf24; font-size:16px; font-weight:800;">★ ${avgRating}</span>
-                            <span style="font-size:11.5px; color:rgba(255,255,255,0.75); font-weight:700;">/ 5.0</span>
+                    <div style="background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.2); border-radius:14px; padding:10px 14px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center; gap:8px;">
+                        <div style="display:inline-flex; align-items:center; gap:8px;">
+                            <div style="width:32px; height:32px; border-radius:10px; background:linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); display:flex; align-items:center; justify-content:center; color:#ffffff; font-size:13px; box-shadow:0 2px 8px rgba(245,158,11,0.35); flex-shrink:0;">
+                                <i class="fa-solid fa-star"></i>
+                            </div>
+                            <div style="display:inline-flex; align-items:baseline; gap:3px;">
+                                <span style="color:#ffffff; font-size:18px; font-weight:900; line-height:1;">${avgRating}</span>
+                                <span style="font-size:11px; color:rgba(255,255,255,0.7); font-weight:700;">/ 5.0</span>
+                            </div>
                         </div>
-                        <div style="display:flex; align-items:center; gap:6px;">
-                            <span style="font-size:11.5px; color:#ffffff; font-weight:800; display:inline-flex; align-items:center; gap:5px;"><i class="fa-solid fa-chart-simple" style="color:#00f2fe;"></i> Visitor Insights (${reviewText})</span>
-                            ${isOfflineCached ? '<span style="font-size:10px; color:#fde047; font-weight:800; background:rgba(250,204,21,0.2); padding:2px 6px; border-radius:6px;"><i class="fa-solid fa-cloud-arrow-down"></i> Cached</span>' : ''}
+                        <div style="display:inline-flex; align-items:center; gap:5px; background:rgba(0,242,254,0.15); border:1px solid rgba(0,242,254,0.3); padding:4px 10px; border-radius:100px;">
+                            <i class="fa-solid fa-chart-simple" style="color:#00f2fe; font-size:10px;"></i>
+                            <span style="font-size:11px; color:#ffffff; font-weight:800; white-space:nowrap;">Visitor Insights (${reviewText})</span>
+                            ${isOfflineCached ? '<span style="font-size:9.5px; color:#fde047; font-weight:800; background:rgba(250,204,21,0.2); padding:1px 5px; border-radius:4px; margin-left:2px;">Offline</span>' : ''}
                         </div>
                     </div>`;
                 } else {
@@ -4878,34 +4871,36 @@ if (is_dir($imgDir)) {
                 }
 
                 if (d.data && d.data.length > 0) {
-                    const maskUserName = (name) => {
+                    const maskUserName = (name, mode = 'shortcut') => {
                         if (!name || typeof name !== 'string') return 'Explorer';
                         const trimmed = name.trim();
                         if (!trimmed) return 'Explorer';
 
-                        const parts = trimmed.split(/\s+/);
-                        if (parts.length === 1) {
-                            const w = parts[0];
-                            if (w.length <= 2) return w.charAt(0) + '*';
-                            if (w.length <= 4) return w.slice(0, 2) + '*'.repeat(w.length - 2);
-                            return w.slice(0, 2) + '*'.repeat(w.length - 4) + w.slice(-2);
+                        const parts = trimmed.split(/\s+/).filter(Boolean);
+                        if (!parts.length) return 'Explorer';
+
+                        // Word-masking algorithm: first 2 chars + (len - 3) *'s + last char
+                        const maskWord = (str) => {
+                            const clean = str.replace(/[.,]/g, '');
+                            const len = clean.length;
+                            if (len <= 0) return str;
+                            if (len <= 2) return clean.charAt(0) + '*';
+                            if (len === 3) return clean.charAt(0) + '*' + clean.charAt(2);
+                            return clean.slice(0, 2) + '*'.repeat(len - 3) + clean.slice(-1);
+                        };
+
+                        if (mode === 'shortcut') {
+                            const firstMasked = maskWord(parts[0]);
+                            if (parts.length > 1) {
+                                const cleanSecond = parts[1].replace(/[^a-zA-Z]/g, '');
+                                const initial = (cleanSecond.charAt(0) || parts[1].charAt(0)).toUpperCase();
+                                return `${firstMasked} ${initial}.`;
+                            }
+                            return firstMasked;
                         }
 
-                        return parts.map((part, index) => {
-                            part = part || '';
-                            const len = part.length;
-                            if (len <= 2) return part.charAt(0) + '*';
-
-                            if (index === 0) {
-                                const visible = Math.min(2, Math.max(1, len - 2));
-                                return part.slice(0, visible) + '*'.repeat(len - visible);
-                            } else if (index === parts.length - 1) {
-                                const visible = Math.min(2, Math.max(1, len - 2));
-                                return '*'.repeat(len - visible) + part.slice(-visible);
-                            } else {
-                                return '*'.repeat(len);
-                            }
-                        }).join(' ');
+                        // Full masked mode (e.g. Ja**s Ve***l Ga****a)
+                        return parts.map(maskWord).join(' ');
                     };
 
                     const renderCard = (fb) => {
@@ -4933,47 +4928,46 @@ if (is_dir($imgDir)) {
                         const safeBg = safeVal === 'Safe' ? '#10b981' : (safeVal === 'Moderate' ? '#f59e0b' : '#ef4444');
 
                         const metricsHtml = `
-                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:9px 0 10px 0;">
-                            <div style="background:rgba(255,255,255,0.1); border-radius:10px; padding:7px 10px; display:flex; justify-content:space-between; align-items:center;">
-                                <span style="font-size:10px; color:rgba(255,255,255,0.85); text-transform:uppercase; font-weight:800; letter-spacing:0.4px;">Cleanliness</span>
-                                <span style="font-size:11px; font-weight:800; color:#ffffff; background:${cleanBg}; padding:2px 8px; border-radius:6px; display:inline-flex; align-items:center;">${cleanVal}</span>
+                        <div style="display:flex; align-items:center; gap:8px; margin:8px 0; flex-wrap:wrap;">
+                            <div style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.14); border-radius:8px; padding:3px 8px; display:inline-flex; align-items:center; gap:5px;">
+                                <span style="font-size:9.5px; color:rgba(255,255,255,0.75); text-transform:uppercase; font-weight:800; letter-spacing:0.3px;">Cleanliness</span>
+                                <span style="font-size:10px; font-weight:800; color:#ffffff; background:${cleanBg}; padding:1.5px 6px; border-radius:5px;">${cleanVal}</span>
                             </div>
-                            <div style="background:rgba(255,255,255,0.1); border-radius:10px; padding:7px 10px; display:flex; justify-content:space-between; align-items:center;">
-                                <span style="font-size:10px; color:rgba(255,255,255,0.85); text-transform:uppercase; font-weight:800; letter-spacing:0.4px;">Safety</span>
-                                <span style="font-size:11px; font-weight:800; color:#ffffff; background:${safeBg}; padding:2px 8px; border-radius:6px; display:inline-flex; align-items:center;">${safeVal}</span>
+                            <div style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.14); border-radius:8px; padding:3px 8px; display:inline-flex; align-items:center; gap:5px;">
+                                <span style="font-size:9.5px; color:rgba(255,255,255,0.75); text-transform:uppercase; font-weight:800; letter-spacing:0.3px;">Safety</span>
+                                <span style="font-size:10px; font-weight:800; color:#ffffff; background:${safeBg}; padding:1.5px 6px; border-radius:5px;">${safeVal}</span>
                             </div>
                         </div>`;
 
                         const policyHtml = fb.policy_recommendation ? `
-                        <div style="background:rgba(0,242,254,0.12); border-left:3px solid #00f2fe; border-radius:10px; padding:10px 12px; margin-top:10px;">
-                            <div style="display:flex; align-items:center; gap:5px; margin-bottom:4px;">
+                        <div style="background:linear-gradient(135deg, rgba(0,242,254,0.12) 0%, rgba(2,132,199,0.12) 100%); border-left:3px solid #00f2fe; border-radius:10px; padding:9px 12px; margin-top:9px;">
+                            <div style="display:flex; align-items:center; gap:5px; margin-bottom:3px;">
                                 <i class="fa-solid fa-lightbulb" style="color:#00f2fe; font-size:11px;"></i>
-                                <strong style="font-size:10px; color:#00f2fe; text-transform:uppercase; letter-spacing:0.5px; font-weight:800;">Policy Recommendation for LGU</strong>
+                                <strong style="font-size:10px; color:#00f2fe; text-transform:uppercase; letter-spacing:0.5px; font-weight:800;">Policy Recommendation</strong>
                             </div>
-                            <span style="color:#ffffff; font-size:12px; line-height:1.45; display:block;">${fb.policy_recommendation}</span>
+                            <span style="color:#ffffff; font-size:12px; line-height:1.45; display:block; font-weight:500;">${fb.policy_recommendation}</span>
                         </div>` : '';
 
                         return `
-                        <div style="background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.18); border-radius:14px; padding:14px; font-size:12px;">
-                            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
-                                <div style="display:flex; align-items:center; gap:8px;">
-                                    <div style="width:30px; height:30px; border-radius:50%; background:#ffffff; display:flex; align-items:center; justify-content:center; color:#1e3a8a; font-weight:800; font-size:11.5px; flex-shrink:0;">
+                        <div style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.16); border-radius:14px; padding:13px 14px; font-size:12px;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:8px;">
+                                <div style="display:flex; align-items:center; gap:9px; min-width:0; flex:1;">
+                                    <div style="width:32px; height:32px; border-radius:50%; background:linear-gradient(135deg, #ffffff 0%, #e2e8f0 100%); display:flex; align-items:center; justify-content:center; color:#1e3a8a; font-weight:900; font-size:12px; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.15);">
                                         ${initial}
                                     </div>
-                                    <div>
+                                    <div style="min-width:0; flex:1;">
                                         <div style="display:flex; align-items:center; gap:6px;">
-                                            <strong style="color:#ffffff; font-size:13px; font-weight:700;">${maskedName}</strong>
-                                            <span style="font-size:9.5px; font-weight:800; background:rgba(0,242,254,0.2); color:#00f2fe; border:1px solid rgba(0,242,254,0.35); padding:2px 6px; border-radius:4px; display:inline-flex; align-items:center;">Verified</span>
+                                            <strong style="color:#ffffff; font-size:13px; font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${maskedName}</strong>
                                         </div>
-                                        <div style="display:flex; align-items:center; gap:4px; margin-top:2px;">
+                                        <div style="display:flex; align-items:center; gap:3px; margin-top:2px;">
                                             ${starsHtml}
                                         </div>
                                     </div>
                                 </div>
-                                <span style="font-size:10px; color:rgba(255,255,255,0.7); font-weight:600;"><i class="fa-regular fa-clock" style="margin-right:3px; font-size:9px;"></i>${date}</span>
+                                <span style="font-size:10px; color:rgba(255,255,255,0.7); font-weight:600; white-space:nowrap; flex-shrink:0; display:inline-flex; align-items:center; gap:3px;"><i class="fa-regular fa-clock" style="font-size:9px; opacity:0.8;"></i>${date}</span>
                             </div>
                             ${metricsHtml}
-                            <p style="margin:0; color:#ffffff; font-size:12.5px; line-height:1.5;">${fb.testimony || 'Visited this destination.'}</p>
+                            <p style="margin:8px 0 0 0; color:#ffffff; font-size:12.5px; line-height:1.5; font-weight:500;">${fb.testimony || 'Visited this destination.'}</p>
                             ${policyHtml}
                         </div>`;
                     };
