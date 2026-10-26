@@ -3861,7 +3861,7 @@ try {
 
             if (p2pLabelEl) {
                 if (isNoVehTrip) {
-                    p2pLabelEl.textContent = 'No Vehicle Selected';
+                    p2pLabelEl.textContent = 'Select your vehicle';
                 } else if (tripModes.length === 1) {
                     p2pLabelEl.textContent = (typeof window.getVehicleDisplayName === 'function')
                         ? window.getVehicleDisplayName(tripModes[0])
