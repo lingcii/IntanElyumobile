@@ -301,13 +301,17 @@ class ProfileController extends Controller
 
         $request->validate([
             'name' => 'sometimes|string|max:255',
-            'phone' => 'nullable|string|max:50',
+            'phone' => ['nullable', 'string', 'max:50', 'regex:/^(\+63)[\s0-9\-]{9,15}$/'],
             'home_location' => 'nullable|string|max:255',
             'bio' => 'nullable|string|max:500',
-            'age' => 'nullable|integer|min:1|max:120',
+            'age' => 'nullable|integer|min:1|max:99',
             'gender' => 'nullable|string|in:Male,Female',
             'travel_preferences' => 'nullable|string|max:255',
             'avatar' => 'sometimes|file|mimes:jpeg,png,jpg,gif,webp,heic,heif|max:10240',
+        ], [
+            'age.max' => 'Age must be 2 digits only (maximum 99).',
+            'age.min' => 'Age must be at least 1.',
+            'phone.regex' => 'Contact number must start with +63 (e.g. +63 9XX XXX XXXX).',
         ]);
 
         if ($request->exists('name') && $request->filled('name')) {
@@ -327,11 +331,13 @@ class ProfileController extends Controller
         }
 
         if ($request->exists('phone') && Schema::hasColumn('users', 'phone')) {
-            $user->phone = $request->input('phone');
+            $rawPhone = $request->input('phone');
+            $user->phone = ($rawPhone !== null && trim($rawPhone) !== '' && trim($rawPhone) !== '+63') ? trim($rawPhone) : null;
         }
 
         if ($request->exists('home_location') && Schema::hasColumn('users', 'home_location')) {
-            $user->home_location = $request->input('home_location');
+            $rawLoc = $request->input('home_location');
+            $user->home_location = ($rawLoc !== null && trim($rawLoc) !== '') ? trim($rawLoc) : null;
         }
 
         if ($request->exists('bio') && Schema::hasColumn('users', 'bio')) {
@@ -349,7 +355,8 @@ class ProfileController extends Controller
         }
 
         if ($request->exists('travel_preferences') && Schema::hasColumn('users', 'travel_preferences')) {
-            $user->travel_preferences = $request->input('travel_preferences');
+            $rawPrefs = $request->input('travel_preferences');
+            $user->travel_preferences = ($rawPrefs !== null && trim($rawPrefs) !== '') ? trim($rawPrefs) : null;
         }
 
         if ($request->hasFile('avatar')) {

@@ -48,26 +48,81 @@ $backRoute = 'profile';
 
             <div class="form-group">
                 <label class="form-label" for="profile-phone">
-                    Phone / Mobile Number
+                    Phone / Mobile Number <span style="font-size:11px; font-weight:600; color:rgba(255,255,255,0.7);">(Starts with +63)</span>
                 </label>
-                <input class="form-control" id="profile-phone" type="tel" placeholder="+63 9XX XXX XXXX"
-                    autocomplete="tel">
+                <input class="form-control" id="profile-phone" type="tel" inputmode="tel" placeholder="+63 9XX XXX XXXX"
+                    autocomplete="tel" maxlength="16">
             </div>
 
             <div class="form-group">
                 <label class="form-label" for="profile-location">
                     Hometown / Origin
                 </label>
-                <input class="form-control" id="profile-location" type="text"
-                    placeholder="e.g. San Juan, La Union / Manila">
+                <select class="form-control" id="profile-location"
+                    style="cursor: pointer; background: rgba(255, 255, 255, 0.12) !important; color: #ffffff !important; border: none !important; outline: none !important; border-radius: 16px; padding: 13px 14px; font-size: 14px; font-weight: 600; width: 100%; box-sizing: border-box;"
+                    onchange="window.handleHometownChange(this)">
+                    <option value="" style="background: #1e3a8a; color: #ffffff;">Select hometown / origin</option>
+                    
+                    <optgroup label="📍 La Union Municipalities" style="background: #1e3a8a; color: #38bdf8; font-weight: 800;">
+                        <option value="Agoo, La Union" style="background: #1e3a8a; color: #ffffff;">Agoo, La Union</option>
+                        <option value="Aringay, La Union" style="background: #1e3a8a; color: #ffffff;">Aringay, La Union</option>
+                        <option value="Bacnotan, La Union" style="background: #1e3a8a; color: #ffffff;">Bacnotan, La Union</option>
+                        <option value="Bagulin, La Union" style="background: #1e3a8a; color: #ffffff;">Bagulin, La Union</option>
+                        <option value="Balaoan, La Union" style="background: #1e3a8a; color: #ffffff;">Balaoan, La Union</option>
+                        <option value="Bangar, La Union" style="background: #1e3a8a; color: #ffffff;">Bangar, La Union</option>
+                        <option value="Bauang, La Union" style="background: #1e3a8a; color: #ffffff;">Bauang, La Union</option>
+                        <option value="Burgos, La Union" style="background: #1e3a8a; color: #ffffff;">Burgos, La Union</option>
+                        <option value="Caba, La Union" style="background: #1e3a8a; color: #ffffff;">Caba, La Union</option>
+                        <option value="Luna, La Union" style="background: #1e3a8a; color: #ffffff;">Luna, La Union</option>
+                        <option value="Naguilian, La Union" style="background: #1e3a8a; color: #ffffff;">Naguilian, La Union</option>
+                        <option value="Pugo, La Union" style="background: #1e3a8a; color: #ffffff;">Pugo, La Union</option>
+                        <option value="Rosario, La Union" style="background: #1e3a8a; color: #ffffff;">Rosario, La Union</option>
+                        <option value="San Fernando City, La Union" style="background: #1e3a8a; color: #ffffff;">San Fernando City, La Union</option>
+                        <option value="San Gabriel, La Union" style="background: #1e3a8a; color: #ffffff;">San Gabriel, La Union</option>
+                        <option value="San Juan, La Union" style="background: #1e3a8a; color: #ffffff;">San Juan, La Union</option>
+                        <option value="Santo Tomas, La Union" style="background: #1e3a8a; color: #ffffff;">Santo Tomas, La Union</option>
+                        <option value="Santol, La Union" style="background: #1e3a8a; color: #ffffff;">Santol, La Union</option>
+                        <option value="Sudipen, La Union" style="background: #1e3a8a; color: #ffffff;">Sudipen, La Union</option>
+                        <option value="Tubao, La Union" style="background: #1e3a8a; color: #ffffff;">Tubao, La Union</option>
+                    </optgroup>
+                    
+                    <optgroup label="🇵🇭 Major Cities & Nearby Provinces" style="background: #1e3a8a; color: #38bdf8; font-weight: 800;">
+                        <option value="Metro Manila (NCR)" style="background: #1e3a8a; color: #ffffff;">Metro Manila (NCR)</option>
+                        <option value="Baguio City / Benguet" style="background: #1e3a8a; color: #ffffff;">Baguio City / Benguet</option>
+                        <option value="Pangasinan" style="background: #1e3a8a; color: #ffffff;">Pangasinan</option>
+                        <option value="Ilocos Sur" style="background: #1e3a8a; color: #ffffff;">Ilocos Sur</option>
+                        <option value="Ilocos Norte" style="background: #1e3a8a; color: #ffffff;">Ilocos Norte</option>
+                        <option value="Pampanga / Central Luzon" style="background: #1e3a8a; color: #ffffff;">Pampanga / Central Luzon</option>
+                        <option value="Bulacan" style="background: #1e3a8a; color: #ffffff;">Bulacan</option>
+                        <option value="Tarlac" style="background: #1e3a8a; color: #ffffff;">Tarlac</option>
+                        <option value="Bataan / Zambales" style="background: #1e3a8a; color: #ffffff;">Bataan / Zambales</option>
+                        <option value="Cavite / Laguna / Batangas" style="background: #1e3a8a; color: #ffffff;">Cavite / Laguna / Batangas (CALABARZON)</option>
+                        <option value="Rizal / Quezon" style="background: #1e3a8a; color: #ffffff;">Rizal / Quezon</option>
+                        <option value="Cebu / Central Visayas" style="background: #1e3a8a; color: #ffffff;">Cebu / Central Visayas</option>
+                        <option value="Iloilo / Western Visayas" style="background: #1e3a8a; color: #ffffff;">Iloilo / Western Visayas</option>
+                        <option value="Davao Region / Mindanao" style="background: #1e3a8a; color: #ffffff;">Davao Region / Mindanao</option>
+                        <option value="Cagayan de Oro / Northern Mindanao" style="background: #1e3a8a; color: #ffffff;">Cagayan de Oro / Northern Mindanao</option>
+                    </optgroup>
+
+                    <optgroup label="🌍 International & Other" style="background: #1e3a8a; color: #38bdf8; font-weight: 800;">
+                        <option value="International / Overseas" style="background: #1e3a8a; color: #ffffff;">International / Overseas</option>
+                        <option value="Other" style="background: #1e3a8a; color: #ffffff;">Other (Specify below...)</option>
+                    </optgroup>
+                </select>
+                <div id="hometown-custom-container" style="display:none; margin-top:8px;">
+                    <input class="form-control" id="profile-location-custom" type="text"
+                        placeholder="Type your hometown/origin here..."
+                        style="width: 100%; box-sizing: border-box;">
+                </div>
             </div>
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                 <div class="form-group">
                     <label class="form-label" for="profile-age">
-                        Age
+                        Age <span style="font-size:11px; font-weight:600; color:rgba(255,255,255,0.7);">(2 digits max)</span>
                     </label>
-                    <input class="form-control" id="profile-age" type="number" min="1" max="120" placeholder="e.g. 24">
+                    <input class="form-control" id="profile-age" type="tel" inputmode="numeric" pattern="[0-9]*" maxlength="2"
+                        placeholder="e.g. 24" oninput="this.value = this.value.replace(/\D/g, '').slice(0, 2);">
                 </div>
 
                 <div class="form-group">
@@ -277,19 +332,101 @@ $backRoute = 'profile';
         const nameInput = document.getElementById('profile-name');
         const emailInput = document.getElementById('profile-email');
         const phoneInput = document.getElementById('profile-phone');
-        const locationInput = document.getElementById('profile-location');
         const ageInput = document.getElementById('profile-age');
         const genderInput = document.getElementById('profile-gender');
         const bioInput = document.getElementById('profile-bio');
         const img = document.getElementById('avatar-img');
         const icon = document.getElementById('avatar-icon');
 
-        // Populate user values
+        function syncHometownDropdown(locStr) {
+            const locSelect = document.getElementById('profile-location');
+            const customBox = document.getElementById('hometown-custom-container');
+            const customInput = document.getElementById('profile-location-custom');
+            if (!locSelect) return;
+
+            if (!locStr || !String(locStr).trim()) {
+                locSelect.value = '';
+                if (customBox) customBox.style.display = 'none';
+                if (customInput) customInput.value = '';
+                return;
+            }
+
+            const target = String(locStr).trim().toLowerCase();
+            let matched = false;
+
+            for (let i = 0; i < locSelect.options.length; i++) {
+                const opt = locSelect.options[i];
+                if (!opt.value) continue;
+                const optVal = opt.value.toLowerCase();
+                if (optVal === target || optVal.includes(target) || target.includes(optVal)) {
+                    locSelect.selectedIndex = i;
+                    matched = true;
+                    break;
+                }
+            }
+
+            if (!matched && target) {
+                locSelect.value = 'Other';
+                if (customBox) customBox.style.display = 'block';
+                if (customInput) customInput.value = locStr;
+            } else {
+                if (customBox) customBox.style.display = 'none';
+            }
+        }
+
+        window.handleHometownChange = function (sel) {
+            const customBox = document.getElementById('hometown-custom-container');
+            const customInput = document.getElementById('profile-location-custom');
+            if (sel && sel.value === 'Other') {
+                if (customBox) customBox.style.display = 'block';
+                if (customInput) customInput.focus();
+            } else {
+                if (customBox) customBox.style.display = 'none';
+                if (customInput) customInput.value = '';
+            }
+        };
+
+        // Philippine Mobile Number (+63) Interactive Auto-Formatter
+        if (phoneInput) {
+            phoneInput.addEventListener('focus', function () {
+                if (!this.value || !this.value.trim()) {
+                    this.value = '+63 ';
+                }
+            });
+
+            phoneInput.addEventListener('input', function () {
+                let val = this.value;
+                if (!val) return;
+
+                // Strip illegal characters
+                let cleaned = val.replace(/[^\d+]/g, '');
+
+                if (cleaned.startsWith('09')) {
+                    cleaned = '+639' + cleaned.substring(2);
+                } else if (cleaned.startsWith('9')) {
+                    cleaned = '+639' + cleaned.substring(1);
+                } else if (cleaned.startsWith('63')) {
+                    cleaned = '+' + cleaned;
+                } else if (!cleaned.startsWith('+63')) {
+                    cleaned = '+63' + cleaned.replace(/^\+*6*3*/, '');
+                }
+
+                const digitsAfter63 = cleaned.replace(/^\+63/, '').replace(/\D/g, '').slice(0, 10);
+                let formatted = '+63';
+                if (digitsAfter63.length > 0) formatted += ' ' + digitsAfter63.substring(0, 3);
+                if (digitsAfter63.length > 3) formatted += ' ' + digitsAfter63.substring(3, 6);
+                if (digitsAfter63.length > 6) formatted += ' ' + digitsAfter63.substring(6, 10);
+
+                this.value = formatted;
+            });
+        }
+
+        // Populate initial user values
         if (nameInput && user.name) nameInput.value = user.name;
         if (emailInput && user.email) emailInput.value = user.email;
         if (phoneInput && user.phone) phoneInput.value = user.phone;
-        if (locationInput && user.home_location) locationInput.value = user.home_location;
-        if (ageInput && user.age !== undefined && user.age !== null) ageInput.value = user.age;
+        if (user.home_location) syncHometownDropdown(user.home_location);
+        if (ageInput && user.age !== undefined && user.age !== null) ageInput.value = String(user.age).slice(0, 2);
         if (genderInput && user.gender) genderInput.value = user.gender;
         if (bioInput && user.bio) bioInput.value = user.bio;
 
@@ -309,35 +446,20 @@ $backRoute = 'profile';
                 } catch (e) { }
             }
 
-            if (rawPrefs !== null && rawPrefs !== undefined) {
-                const prefList = String(rawPrefs).split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
-                chips.forEach(chip => {
-                    const val = (chip.getAttribute('data-value') || '').toLowerCase();
-                    const text = chip.textContent.toLowerCase();
+            // Only highlight chips that are explicitly saved in the user's preferences list
+            const prefList = (rawPrefs && typeof rawPrefs === 'string' && rawPrefs.trim())
+                ? rawPrefs.split(',').map(s => s.replace(/[\u{1F300}-\u{1F9FF}]/gu, '').trim().toLowerCase()).filter(Boolean)
+                : [];
 
-                    const isMatch = prefList.some(p => {
-                        const cleanP = p.replace(/[\u{1F300}-\u{1F9FF}]/gu, '').trim();
-                        if (!cleanP) return false;
-                        return val === cleanP || val.includes(cleanP) || cleanP.includes(val) ||
-                            text.includes(cleanP) || cleanP.includes(text) ||
-                            (cleanP.includes('surf') && val.includes('surf')) ||
-                            (cleanP.includes('beach') && val.includes('beach')) ||
-                            ((cleanP.includes('nature') || cleanP.includes('fall') || cleanP.includes('hike')) && val.includes('nature')) ||
-                            ((cleanP.includes('heritage') || cleanP.includes('cultur')) && val.includes('heritage')) ||
-                            ((cleanP.includes('food') || cleanP.includes('dine') || cleanP.includes('dining')) && val.includes('food')) ||
-                            ((cleanP.includes('sunset') || cleanP.includes('night')) && val.includes('sunset'));
-                    });
-
-                    if (isMatch) {
-                        chip.classList.add('active');
-                    } else {
-                        chip.classList.remove('active');
-                    }
-                });
-            } else {
-                // First time only when preferences have never been set: default to active
-                chips.forEach(chip => chip.classList.add('active'));
-            }
+            chips.forEach(chip => {
+                const val = (chip.getAttribute('data-value') || '').replace(/[\u{1F300}-\u{1F9FF}]/gu, '').trim().toLowerCase();
+                const isMatch = prefList.length > 0 && prefList.includes(val);
+                if (isMatch) {
+                    chip.classList.add('active');
+                } else {
+                    chip.classList.remove('active');
+                }
+            });
         }
 
         // Run initial sync from current user
@@ -345,7 +467,7 @@ $backRoute = 'profile';
 
         // Toggle chip helper
         window.toggleChip = function (el) {
-            el.classList.toggle('active');
+            if (el) el.classList.toggle('active');
         };
 
         // Immediately fetch fresh profile from API to ensure 100% accuracy from DB
@@ -366,8 +488,8 @@ $backRoute = 'profile';
                         if (nameInput && (!nameInput.value || nameInput.value === 'Explorer')) nameInput.value = u.name || '';
                         if (emailInput && (!emailInput.value || emailInput.value.includes('loading'))) emailInput.value = u.email || '';
                         if (phoneInput && u.phone) phoneInput.value = u.phone;
-                        if (locationInput && u.home_location) locationInput.value = u.home_location;
-                        if (ageInput && u.age !== undefined && u.age !== null) ageInput.value = u.age;
+                        if (u.home_location) syncHometownDropdown(u.home_location);
+                        if (ageInput && u.age !== undefined && u.age !== null) ageInput.value = String(u.age).slice(0, 2);
                         if (genderInput && u.gender) genderInput.value = u.gender;
                         if (bioInput && u.bio) bioInput.value = u.bio;
                         syncPreferencesFromData(u);
@@ -714,15 +836,48 @@ $backRoute = 'profile';
         window.saveProfile = async function (event) {
             event.preventDefault();
 
-            const name = document.getElementById('profile-name')?.value || '';
-            const email = document.getElementById('profile-email')?.value || '';
-            const phone = document.getElementById('profile-phone')?.value || '';
-            const homeLocation = document.getElementById('profile-location')?.value || '';
-            const age = document.getElementById('profile-age')?.value || '';
-            const gender = document.getElementById('profile-gender')?.value || '';
-            const bio = document.getElementById('profile-bio')?.value || '';
+            const name = document.getElementById('profile-name')?.value.trim() || '';
+            const email = document.getElementById('profile-email')?.value.trim() || '';
+            const phone = document.getElementById('profile-phone')?.value.trim() || '';
+            
+            const locSelect = document.getElementById('profile-location');
+            let homeLocation = locSelect?.value || '';
+            if (homeLocation === 'Other') {
+                const customVal = document.getElementById('profile-location-custom')?.value.trim();
+                homeLocation = customVal || 'Other';
+            }
 
-            // Active preferences chips
+            const age = document.getElementById('profile-age')?.value.trim() || '';
+            const gender = document.getElementById('profile-gender')?.value || '';
+            const bio = document.getElementById('profile-bio')?.value.trim() || '';
+
+            // Validation 1: Age must be 2 digits only (1 to 99)
+            if (age) {
+                const ageNum = parseInt(age, 10);
+                if (isNaN(ageNum) || ageNum < 1 || ageNum > 99 || age.length > 2) {
+                    if (typeof showToast === 'function') showToast("Age must be 2 digits only (1-99).");
+                    document.getElementById('profile-age')?.focus();
+                    return;
+                }
+            }
+
+            // Validation 2: Contact number must start with +63
+            if (phone && phone !== '+63') {
+                const cleanPhone = phone.replace(/[\s\-]/g, '');
+                if (!cleanPhone.startsWith('+63')) {
+                    if (typeof showToast === 'function') showToast("Contact number must start with +63 (e.g. +63 9XX XXX XXXX)");
+                    document.getElementById('profile-phone')?.focus();
+                    return;
+                }
+                const digitsAfter63 = cleanPhone.substring(3);
+                if (digitsAfter63.length !== 10) {
+                    if (typeof showToast === 'function') showToast("Please enter a valid 10-digit mobile number starting with +63 (e.g. +63 912 345 6789)");
+                    document.getElementById('profile-phone')?.focus();
+                    return;
+                }
+            }
+
+            // Active preferences chips (only explicitly selected ones)
             const activeChips = Array.from(document.querySelectorAll('#preferences-chips .chip-item.active'))
                 .map(chip => chip.getAttribute('data-value'));
             const travelPreferences = activeChips.join(', ');
