@@ -2184,6 +2184,19 @@ body[data-view="map"] .btn-locate-me {
     font-weight: 800 !important;
 }
 
+#place-details-sheet #sheet-visitors-stat-card .quick-stat-info {
+    overflow: visible !important;
+}
+
+#place-details-sheet #sheet-visitors {
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: unset !important;
+    font-size: 11px !important;
+    line-height: 1.25 !important;
+    word-break: normal !important;
+}
+
 #place-details-sheet .quick-stat-icon,
 #place-details-sheet .dest-fee-icon-box,
 #place-details-sheet .dest-section-icon,

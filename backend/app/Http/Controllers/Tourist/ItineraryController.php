@@ -195,16 +195,6 @@ class ItineraryController extends Controller
             ->orderByDesc('created_at')
             ->get();
 
-        // Deduplicate any accidental duplicate itineraries created within close time windows
-        $seenSignatures = [];
-        $rawItineraries = $rawItineraries->filter(function ($it) use (&$seenSignatures) {
-            $sig = trim(strtolower((string)$it->title)) . '|' . ($it->trip_date ? $it->trip_date->format('Y-m-d') : '');
-            if (isset($seenSignatures[$sig])) {
-                return false;
-            }
-            $seenSignatures[$sig] = true;
-            return true;
-        })->values();
 
         $spotIds = [];
         foreach ($rawItineraries as $it) {
@@ -329,10 +319,10 @@ class ItineraryController extends Controller
 
         $user = $request->user();
 
-        // Prevent duplicate creation from rapid concurrent sync or accidental double-submissions
+        // Prevent accidental double-clicks within 2 seconds
         $recentDuplicate = Itinerary::where('user_id', $user->id)
             ->where('title', trim($request->title))
-            ->where('created_at', '>=', now()->subSeconds(15))
+            ->where('created_at', '>=', now()->subSeconds(2))
             ->first();
 
         if ($recentDuplicate) {

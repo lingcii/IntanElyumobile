@@ -33,18 +33,9 @@ try {
 
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 16px;"
         class="stagger-1">
-        <div style="display:flex; align-items:center; gap: 8px;">
-            <h2 id="itinerary-page-title"
-                style="margin:0; font-size:22px; font-weight:800; letter-spacing:-0.5px; color:#0f172a !important;">Draft
-                Plan</h2>
-            <button type="button" id="btn-open-trip-guide" onclick="window.openTripGuideModal()"
-                title="Trip Guide: How to add and complete a trip"
-                aria-label="Trip Guide"
-                style="width: 28px; height: 28px; border-radius: 50%; background: #e0f2fe !important; border: 1.5px solid #bae6fd !important; outline: none !important; color: #0284c7 !important; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; cursor: pointer; transition: all 0.15s ease; box-shadow: 0 2px 6px rgba(2, 132, 199, 0.18) !important; flex-shrink: 0;"
-                onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">
-                <i class="fa-solid fa-question"></i>
-            </button>
-        </div>
+        <h2 id="itinerary-page-title"
+            style="margin:0; font-size:22px; font-weight:800; letter-spacing:-0.5px; color:#0f172a !important;">Draft
+            Plan</h2>
         <div style="display:flex; align-items:center; gap: 8px;">
             <!-- Saved Trips Button (Small) -->
             <button onclick="navigateTo('saved_trips')"
@@ -57,6 +48,13 @@ try {
             </span>
         </div>
     </div>
+
+    <!-- Floating '?' Guide Button (Positioned on the right directly above profile navigation button) -->
+    <button type="button" id="btn-floating-trip-guide" class="floating-trip-guide-btn"
+        onclick="window.openTripGuideModal()" title="Trip Guide: How to add and complete a trip"
+        aria-label="Trip Guide">
+        <i class="fa-solid fa-question"></i>
+    </button>
 
     <!-- Big Container from Recommended to Save Draft Plan -->
     <div id="draft-plan-card-wrapper" class="draft-plan-card-wrapper stagger-2 is-hidden" style="display:none;">
@@ -137,11 +135,6 @@ try {
             <button class="btn-open-map" onclick="navigateTo('map')"
                 style="width:100%; margin:0; justify-content:center;">
                 <i class="fa-solid fa-location-dot"></i> Browse Map & Add Stops
-            </button>
-            <button type="button" onclick="window.openTripGuideModal()"
-                style="width:100%; margin:0; padding:11px 16px; border-radius:14px; background:rgba(255,255,255,0.18) !important; border:1px solid rgba(255,255,255,0.35) !important; outline:none !important; color:#ffffff !important; font-weight:800; font-size:12.5px; display:flex; align-items:center; justify-content:center; gap:7px; cursor:pointer; backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); box-shadow:0 2px 8px rgba(0,0,0,0.12) !important; transition:all 0.15s ease;"
-                onpointerdown="this.style.transform='scale(0.97)'" onpointerup="this.style.transform='scale(1)'">
-                <i class="fa-solid fa-circle-question" style="color:#38bdf8;"></i> How to Add & Complete Trips
             </button>
         </div>
     </div>
@@ -4848,6 +4841,15 @@ try {
                     localStorage.setItem('selected_trip_vehicle_' + finalTripId, effectiveTransport);
                     window._lastRenderedTripsSig = null;
                     window._isStartingTrip = false;
+
+                    // Hard purge stale cache keys so saved_trips view fetches and renders fresh data immediately
+                    const curToken = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+                    if (curToken) {
+                        const tKey = curToken.substring(0, 10);
+                        localStorage.removeItem('saved_trips_' + tKey);
+                        localStorage.removeItem('dashboard_saved_trips_' + tKey);
+                        localStorage.removeItem('dashboard_trips_' + tKey);
+                    }
 
                     // If user updated an edited trip, restore their original pre-edit draft (if any was saved)
                     const backupDraftRaw = localStorage.getItem('intan_elyu_pre_edit_backup_draft') || sessionStorage.getItem('intan_elyu_pre_edit_backup_draft');

@@ -125,11 +125,6 @@ $backRoute = 'itinerary';
                 <button type="button" class="btn-open-map" onclick="if(typeof window.navigateTo==='function') window.navigateTo('itinerary');" style="width:100%; margin:0; justify-content:center;">
                     <i class="fa-solid fa-plus"></i> Create New Trip
                 </button>
-                <button type="button" onclick="if(typeof window.openTripGuideModal==='function') window.openTripGuideModal();"
-                    style="width:100%; margin:0; padding:11px 16px; border-radius:14px; background:rgba(255,255,255,0.18) !important; border:1px solid rgba(255,255,255,0.35) !important; outline:none !important; color:#ffffff !important; font-weight:800; font-size:12.5px; display:flex; align-items:center; justify-content:center; gap:7px; cursor:pointer; backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); box-shadow:0 2px 8px rgba(0,0,0,0.12) !important; transition:all 0.15s ease;"
-                    onpointerdown="this.style.transform='scale(0.97)'" onpointerup="this.style.transform='scale(1)'">
-                    <i class="fa-solid fa-circle-question" style="color:#38bdf8;"></i> How to Add & Complete Trips
-                </button>
             </div>
         </div>
     </div>
@@ -423,7 +418,18 @@ $backRoute = 'itinerary';
 
         window.getPersistentItemStates = function () {
             try {
-                return JSON.parse(localStorage.getItem('intan_elyu_verified_item_states') || '{}');
+                const raw = JSON.parse(localStorage.getItem('intan_elyu_verified_item_states') || '{}');
+                let changed = false;
+                Object.keys(raw).forEach(k => {
+                    if (k.startsWith('spot_')) {
+                        delete raw[k];
+                        changed = true;
+                    }
+                });
+                if (changed) {
+                    try { localStorage.setItem('intan_elyu_verified_item_states', JSON.stringify(raw)); } catch (e) {}
+                }
+                return raw;
             } catch (e) {
                 return {};
             }
@@ -440,9 +446,6 @@ $backRoute = 'itinerary';
                     ...stateUpdates,
                     updated_at: Date.now()
                 };
-                if (stateUpdates && stateUpdates.spot_id) {
-                    states['spot_' + stateUpdates.spot_id] = states[key];
-                }
                 localStorage.setItem('intan_elyu_verified_item_states', JSON.stringify(states));
             } catch (e) {
                 console.warn('savePersistentItemState error:', e);
@@ -685,8 +688,7 @@ $backRoute = 'itinerary';
                                         if (!it) return it;
                                         const itKey = String(it.id || '');
                                         const spotIdKey = String(it.tourist_spot_id || it.destination_id || (it.destination ? it.destination.id : ''));
-                                        const spotKey = 'spot_' + spotIdKey;
-                                        const override = persistentStates[itKey] || (spotIdKey ? persistentStates[spotKey] : null);
+                                        const override = persistentStates[itKey] || null;
 
                                         // Server status takes absolute precedence if server says approved or rejected
                                         const isServerApproved = Boolean(it.is_visited || it.proof_status === 'approved');
@@ -703,12 +705,6 @@ $backRoute = 'itinerary';
                                                 persistentStates[itKey].is_location_verified = true;
                                                 persistentStatesChanged = true;
                                             }
-                                            if (spotIdKey && persistentStates[spotKey] && persistentStates[spotKey].proof_status !== 'approved') {
-                                                persistentStates[spotKey].proof_status = 'approved';
-                                                persistentStates[spotKey].is_visited = true;
-                                                persistentStates[spotKey].is_location_verified = true;
-                                                persistentStatesChanged = true;
-                                            }
                                         } else if (isServerRejected) {
                                             if (persistentStates[itKey] && persistentStates[itKey].proof_status !== 'rejected') {
                                                 persistentStates[itKey].proof_status = 'rejected';
@@ -717,25 +713,16 @@ $backRoute = 'itinerary';
                                             }
                                         }
 
-                                        // Check queued check-in / photo upload in OfflineCheckinManager
-                                        const queued = queuedCheckins.find(q => {
-                                            if (!q) return false;
-                                            if (q.itemId && String(q.itemId) === itKey) return true;
-                                            if (q.spotId && spotIdKey && String(q.spotId) === spotIdKey) return true;
-                                            return false;
-                                        });
+                                        // Check queued check-in / photo upload in OfflineCheckinManager for this specific item
+                                        const queued = queuedCheckins.find(q => q && q.itemId && String(q.itemId) === itKey);
 
-                                        // Check in-memory cached trip item
+                                        // Check in-memory cached trip item strictly within the same trip ID
                                         let inMemoryItem = null;
                                         if (Array.isArray(window._cachedSavedTrips)) {
-                                            for (const t of window._cachedSavedTrips) {
-                                                if (t && Array.isArray(t.items)) {
-                                                    const match = t.items.find(m => m && (String(m.id) === itKey || (spotIdKey && String(m.tourist_spot_id || m.destination_id || (m.destination ? m.destination.id : '')) === spotIdKey)));
-                                                    if (match && (match.proof_image || (Array.isArray(match.proof_images) && match.proof_images.length > 0))) {
-                                                        inMemoryItem = match;
-                                                        break;
-                                                    }
-                                                }
+                                            const tripIdStr = String(trip.id || trip.local_id || '');
+                                            const sameTrip = window._cachedSavedTrips.find(t => t && String(t.id || t.local_id || '') === tripIdStr);
+                                            if (sameTrip && Array.isArray(sameTrip.items)) {
+                                                inMemoryItem = sameTrip.items.find(m => m && String(m.id) === itKey);
                                             }
                                         }
 
@@ -1057,7 +1044,7 @@ $backRoute = 'itinerary';
                             if (!it) return it;
                             const itId = String(it.id);
                             const spotIdKey = String(it.tourist_spot_id || it.destination_id || (it.destination ? it.destination.id : ''));
-                            const saved = localItemProofs[itId] || (spotIdKey ? localItemProofs[spotIdKey] : null);
+                            const saved = localItemProofs[itId] || null;
                             if (saved) {
                                 const currentProofs = (Array.isArray(it.proof_images) && it.proof_images.length)
                                     ? it.proof_images
@@ -1126,11 +1113,6 @@ $backRoute = 'itinerary';
                     <div style="display:flex; flex-direction:column; gap:10px; width:100%; max-width:280px; margin:14px auto 0;">
                         <button type="button" class="btn-open-map" onclick="if(typeof window.navigateTo==='function') window.navigateTo('itinerary');" style="width:100%; margin:0; justify-content:center;">
                             <i class="fa-solid fa-plus"></i> Create New Trip
-                        </button>
-                        <button type="button" onclick="if(typeof window.openTripGuideModal==='function') window.openTripGuideModal();"
-                            style="width:100%; margin:0; padding:11px 16px; border-radius:14px; background:rgba(255,255,255,0.18) !important; border:1px solid rgba(255,255,255,0.35) !important; outline:none !important; color:#ffffff !important; font-weight:800; font-size:12.5px; display:flex; align-items:center; justify-content:center; gap:7px; cursor:pointer; backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); box-shadow:0 2px 8px rgba(0,0,0,0.12) !important; transition:all 0.15s ease;"
-                            onpointerdown="this.style.transform='scale(0.97)'" onpointerup="this.style.transform='scale(1)'">
-                            <i class="fa-solid fa-circle-question" style="color:#38bdf8;"></i> How to Add & Complete Trips
                         </button>
                     </div>
                 </div>

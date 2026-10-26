@@ -500,7 +500,7 @@ if (is_dir($imgDir)) {
                     </div>
                     <div class="quick-stat-info">
                         <span class="quick-stat-label">Visitors</span>
-                        <span class="quick-stat-value" id="sheet-visitors">Less than 100 this month</span>
+                        <span class="quick-stat-value" id="sheet-visitors" style="white-space:normal !important; overflow:visible !important; text-overflow:unset !important; font-size:11px !important; line-height:1.25 !important; word-break:normal !important;">Less than 100 this month</span>
                     </div>
                 </div>
                 <div class="quick-stat-card" id="sheet-rating-stat-card">
@@ -3784,7 +3784,7 @@ if (is_dir($imgDir)) {
             const visitorsEl = document.getElementById('sheet-visitors');
             if (visitorsEl) {
                 const vCount = parseInt(locationData.visits) || 0;
-                visitorsEl.textContent = window.formatVisitorCount ? window.formatVisitorCount(vCount) : (vCount < 100 ? 'Less than 100 this month' : `${vCount.toLocaleString()} visitors this month`);
+                visitorsEl.textContent = vCount < 100 ? 'Less than 100 this month' : `${vCount.toLocaleString()} visitors this month`;
             }
 
             const ratingEl = document.getElementById('sheet-rating');
@@ -3917,7 +3917,7 @@ if (is_dir($imgDir)) {
                 }
             }
 
-            // 2. Fees & Pricing Breakdown (Adult, Child, PWD, Senior Citizen, Environmental Fee)
+            // 2. Fees & Pricing Breakdown (Adult, Child, PWD, Senior Citizen, Entrance Fee, Environmental Fee)
             const feeMainText = document.getElementById('sheet-fee-main-text');
             const feeTags = document.getElementById('sheet-fee-breakdown-tags');
             const feeOptionsContainer = document.getElementById('sheet-fee-options-container');
@@ -3934,29 +3934,25 @@ if (is_dir($imgDir)) {
                 const hasEntrance = feeTypes.includes('entrance') || feeTypes.includes('Entrance Fee') || entranceFee > 0 || adultFee > 0;
                 const hasEnvironmental = feeTypes.includes('environmental') || feeTypes.includes('Environmental Fee') || environmentalFee > 0;
 
-                // Determine effective rates
-                const effectiveAdult = adultFee > 0 ? adultFee : entranceFee;
-                const effectiveChild = kidsFee > 0 ? kidsFee : (entranceFee > 0 ? entranceFee : 0);
-                const effectivePwd = pwdFee > 0 ? pwdFee : (entranceFee > 0 ? (entranceFee * 0.8) : 0);
-                const effectiveSenior = seniorCitizenFee > 0 ? seniorCitizenFee : (entranceFee > 0 ? (entranceFee * 0.8) : 0);
+                // Determine rates for all categories and fees
+                const displayAdult = adultFee > 0 ? adultFee : 0;
+                const displayChild = kidsFee > 0 ? kidsFee : 0;
+                const displayPwd = pwdFee > 0 ? pwdFee : 0;
+                const displaySenior = seniorCitizenFee > 0 ? seniorCitizenFee : 0;
+                const displayEntrance = entranceFee > 0 ? entranceFee : 0;
+                const displayEnvi = environmentalFee > 0 ? environmentalFee : 0;
 
-                const hasAnyFees = effectiveAdult > 0 || effectiveChild > 0 || effectivePwd > 0 || effectiveSenior > 0 || (hasEnvironmental && environmentalFee > 0);
+                const hasAnyFees = displayAdult > 0 || displayChild > 0 || displayPwd > 0 || displaySenior > 0 || displayEntrance > 0 || displayEnvi > 0;
 
-                let tagsHtml = '';
-                if (hasEntrance && effectiveAdult > 0) {
-                    tagsHtml += `<span style="font-size:11px; font-weight:800; background:rgba(255,255,255,0.18); color:#ffffff; border:1px solid rgba(255,255,255,0.25); padding:4px 9px; border-radius:8px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-ticket" style="font-size:10px; color:#00f2fe;"></i> Entrance: ₱${effectiveAdult.toFixed(2)}</span>`;
-                }
-                if (hasEnvironmental && environmentalFee > 0) {
-                    tagsHtml += `<span style="font-size:11px; font-weight:800; background:rgba(255,255,255,0.18); color:#ffffff; border:1px solid rgba(255,255,255,0.25); padding:4px 9px; border-radius:8px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-leaf" style="font-size:10px; color:#34d399;"></i> Envi: ₱${environmentalFee.toFixed(2)}</span>`;
-                }
+                // User request: Remove envi: price and entrance beside site fees!
+                feeTags.innerHTML = '';
 
                 if (hasAnyFees) {
-                    const baseTotal = (hasEntrance ? effectiveAdult : 0) + (hasEnvironmental ? environmentalFee : 0);
-                    feeMainText.textContent = baseTotal > 0 ? `₱${baseTotal.toFixed(2)} Base Total` : 'Tiered Rates';
-                    feeTags.innerHTML = tagsHtml !== '' ? tagsHtml : `<span style="font-size:11px; font-weight:800; background:rgba(255,255,255,0.18); color:#ffffff; border:1px solid rgba(255,255,255,0.25); padding:4px 9px; border-radius:8px;">Special Pricing</span>`;
+                    // User request: Base total should calculate all fees even categories e.g adult child pwd and senior citizen
+                    const baseTotal = displayAdult + displayChild + displayPwd + displaySenior + displayEntrance + displayEnvi;
+                    feeMainText.textContent = baseTotal > 0 ? `₱${baseTotal.toFixed(2)} Base Total` : 'Free Admission';
                 } else {
                     feeMainText.textContent = 'Free Admission';
-                    feeTags.innerHTML = `<span style="font-size:11px; font-weight:800; background:rgba(255,255,255,0.18); color:#ffffff; border:1px solid rgba(255,255,255,0.25); padding:4px 9px; border-radius:8px;">No Entrance Fee</span>`;
                 }
 
                 if (feeOptionsContainer) {
@@ -3971,35 +3967,42 @@ if (is_dir($imgDir)) {
                                     <span style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.9); display:flex; align-items:center; gap:6px;">
                                         <i class="fa-solid fa-user" style="color:#00f2fe; font-size:11px;"></i> Adult
                                     </span>
-                                    <span style="font-size:11.5px; font-weight:800; color:#ffffff;">${effectiveAdult > 0 ? `₱${effectiveAdult.toFixed(2)}` : 'Free'}</span>
+                                    <span style="font-size:11.5px; font-weight:800; color:#ffffff;">${displayAdult > 0 ? `₱${displayAdult.toFixed(2)}` : 'Free'}</span>
                                 </div>
                                 <div style="background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.18); border-radius:10px; padding:7px 10px; display:flex; align-items:center; justify-content:space-between;">
                                     <span style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.9); display:flex; align-items:center; gap:6px;">
                                         <i class="fa-solid fa-child" style="color:#fed7aa; font-size:11px;"></i> Child
                                     </span>
-                                    <span style="font-size:11.5px; font-weight:800; color:#ffffff;">${effectiveChild > 0 ? `₱${effectiveChild.toFixed(2)}` : 'Free'}</span>
+                                    <span style="font-size:11.5px; font-weight:800; color:#ffffff;">${displayChild > 0 ? `₱${displayChild.toFixed(2)}` : 'Free'}</span>
                                 </div>
                                 <div style="background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.18); border-radius:10px; padding:7px 10px; display:flex; align-items:center; justify-content:space-between;">
                                     <span style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.9); display:flex; align-items:center; gap:6px;">
                                         <i class="fa-solid fa-wheelchair" style="color:#c4b5fd; font-size:11px;"></i> PWD
                                     </span>
-                                    <span style="font-size:11.5px; font-weight:800; color:#ffffff;">${effectivePwd > 0 ? `₱${effectivePwd.toFixed(2)}` : 'Free'}</span>
+                                    <span style="font-size:11.5px; font-weight:800; color:#ffffff;">${displayPwd > 0 ? `₱${displayPwd.toFixed(2)}` : 'Free'}</span>
                                 </div>
                                 <div style="background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.18); border-radius:10px; padding:7px 10px; display:flex; align-items:center; justify-content:space-between;">
                                     <span style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.9); display:flex; align-items:center; gap:6px;">
                                         <i class="fa-solid fa-person-cane" style="color:#fbcfe8; font-size:11px;"></i> Senior Citizen
                                     </span>
-                                    <span style="font-size:11.5px; font-weight:800; color:#ffffff;">${effectiveSenior > 0 ? `₱${effectiveSenior.toFixed(2)}` : 'Free'}</span>
+                                    <span style="font-size:11.5px; font-weight:800; color:#ffffff;">${displaySenior > 0 ? `₱${displaySenior.toFixed(2)}` : 'Free'}</span>
                                 </div>
                             </div>
-                            ${(hasEnvironmental && environmentalFee > 0) ? `
-                                <div style="background:rgba(255,255,255,0.14); border:1px solid rgba(255,255,255,0.2); border-radius:10px; padding:7px 10px; display:flex; align-items:center; justify-content:space-between; margin-top:2px;">
+                            <!-- User request: Entrance Fee next to Environmental Fee in a 2-column card -->
+                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; width:100%; margin-top:2px;">
+                                <div style="background:rgba(255,255,255,0.14); border:1px solid rgba(255,255,255,0.2); border-radius:10px; padding:7px 10px; display:flex; align-items:center; justify-content:space-between;">
+                                    <span style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.95); display:flex; align-items:center; gap:6px;">
+                                        <i class="fa-solid fa-ticket" style="color:#00f2fe; font-size:11px;"></i> Entrance Fee
+                                    </span>
+                                    <span style="font-size:11.5px; font-weight:800; color:#ffffff;">${displayEntrance > 0 ? `₱${displayEntrance.toFixed(2)}` : 'Free'}</span>
+                                </div>
+                                <div style="background:rgba(255,255,255,0.14); border:1px solid rgba(255,255,255,0.2); border-radius:10px; padding:7px 10px; display:flex; align-items:center; justify-content:space-between;">
                                     <span style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.95); display:flex; align-items:center; gap:6px;">
                                         <i class="fa-solid fa-leaf" style="color:#34d399; font-size:11px;"></i> Environmental Fee
                                     </span>
-                                    <span style="font-size:11.5px; font-weight:800; color:#ffffff;">₱${environmentalFee.toFixed(2)}</span>
+                                    <span style="font-size:11.5px; font-weight:800; color:#ffffff;">${displayEnvi > 0 ? `₱${displayEnvi.toFixed(2)}` : 'Free'}</span>
                                 </div>
-                            ` : ''}
+                            </div>
                         `;
                     } else {
                         feeOptionsContainer.style.display = 'flex';
@@ -4845,13 +4848,12 @@ if (is_dir($imgDir)) {
                 if (d.summary && d.summary.total_reviews > 0) {
                     const sm = d.summary;
                     const reviewCount = parseInt(sm.total_reviews) || 0;
-                    const reviewText = reviewCount === 1 ? '1 Review' : `${reviewCount} Reviews`;
                     const avgRating = (sm.average_rating !== undefined && sm.average_rating !== null && !isNaN(parseFloat(sm.average_rating))) ? parseFloat(sm.average_rating).toFixed(1) : '0.0';
 
                     summary.style.display = 'block';
                     summary.innerHTML = `
-                    <div style="background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.2); border-radius:14px; padding:10px 14px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center; gap:8px;">
-                        <div style="display:inline-flex; align-items:center; gap:8px;">
+                    <div style="background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.2); border-radius:14px; padding:10px 14px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center; gap:10px;">
+                        <div style="display:inline-flex; align-items:center; gap:8px; flex-shrink:0;">
                             <div style="width:32px; height:32px; border-radius:10px; background:linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); display:flex; align-items:center; justify-content:center; color:#ffffff; font-size:13px; box-shadow:0 2px 8px rgba(245,158,11,0.35); flex-shrink:0;">
                                 <i class="fa-solid fa-star"></i>
                             </div>
@@ -4860,10 +4862,9 @@ if (is_dir($imgDir)) {
                                 <span style="font-size:11px; color:rgba(255,255,255,0.7); font-weight:700;">/ 5.0</span>
                             </div>
                         </div>
-                        <div style="display:inline-flex; align-items:center; gap:5px; background:rgba(0,242,254,0.15); border:1px solid rgba(0,242,254,0.3); padding:4px 10px; border-radius:100px;">
-                            <i class="fa-solid fa-chart-simple" style="color:#00f2fe; font-size:10px;"></i>
-                            <span style="font-size:11px; color:#ffffff; font-weight:800; white-space:nowrap;">Visitor Insights (${reviewText})</span>
-                            ${isOfflineCached ? '<span style="font-size:9.5px; color:#fde047; font-weight:800; background:rgba(250,204,21,0.2); padding:1px 5px; border-radius:4px; margin-left:2px;">Offline</span>' : ''}
+                        <div style="display:inline-flex; align-items:center; background:rgba(0,242,254,0.15); border:1px solid rgba(0,242,254,0.3); padding:4px 10px; border-radius:100px; flex-shrink:0; margin-left:auto;">
+                            <span style="font-size:11px; color:#ffffff; font-weight:800; white-space:nowrap;">Visitor Insights (${reviewCount})</span>
+                            ${isOfflineCached ? '<span style="font-size:9.5px; color:#fde047; font-weight:800; background:rgba(250,204,21,0.2); padding:1px 5px; border-radius:4px; margin-left:4px;">Offline</span>' : ''}
                         </div>
                     </div>`;
                 } else {
@@ -4941,15 +4942,14 @@ if (is_dir($imgDir)) {
 
                         const policyHtml = fb.policy_recommendation ? `
                         <div style="background:linear-gradient(135deg, rgba(0,242,254,0.12) 0%, rgba(2,132,199,0.12) 100%); border-left:3px solid #00f2fe; border-radius:10px; padding:9px 12px; margin-top:9px;">
-                            <div style="display:flex; align-items:center; gap:5px; margin-bottom:3px;">
-                                <i class="fa-solid fa-lightbulb" style="color:#00f2fe; font-size:11px;"></i>
-                                <strong style="font-size:10px; color:#00f2fe; text-transform:uppercase; letter-spacing:0.5px; font-weight:800;">Policy Recommendation</strong>
+                            <div style="display:flex; align-items:center; margin-bottom:3px;">
+                                <strong style="font-size:10px; color:#ffffff; text-transform:uppercase; letter-spacing:0.5px; font-weight:800;">Policy Recommendation</strong>
                             </div>
                             <span style="color:#ffffff; font-size:12px; line-height:1.45; display:block; font-weight:500;">${fb.policy_recommendation}</span>
                         </div>` : '';
 
                         return `
-                        <div style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.16); border-radius:14px; padding:13px 14px; font-size:12px;">
+                        <div style="background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.2); border-radius:16px; padding:14px; font-size:12px; box-shadow:0 2px 8px rgba(0,0,0,0.08);">
                             <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:8px;">
                                 <div style="display:flex; align-items:center; gap:9px; min-width:0; flex:1;">
                                     <div style="width:32px; height:32px; border-radius:50%; background:linear-gradient(135deg, #ffffff 0%, #e2e8f0 100%); display:flex; align-items:center; justify-content:center; color:#1e3a8a; font-weight:900; font-size:12px; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.15);">
@@ -4967,7 +4967,9 @@ if (is_dir($imgDir)) {
                                 <span style="font-size:10px; color:rgba(255,255,255,0.7); font-weight:600; white-space:nowrap; flex-shrink:0; display:inline-flex; align-items:center; gap:3px;"><i class="fa-regular fa-clock" style="font-size:9px; opacity:0.8;"></i>${date}</span>
                             </div>
                             ${metricsHtml}
-                            <p style="margin:8px 0 0 0; color:#ffffff; font-size:12.5px; line-height:1.5; font-weight:500;">${fb.testimony || 'Visited this destination.'}</p>
+                            <div style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.14); border-radius:12px; padding:10px 12px; margin-top:9px;">
+                                <p style="margin:0; color:#ffffff; font-size:12.5px; line-height:1.5; font-weight:500;">${fb.testimony || 'Visited this destination.'}</p>
+                            </div>
                             ${policyHtml}
                         </div>`;
                     };
@@ -5238,7 +5240,7 @@ if (is_dir($imgDir)) {
                     const newVisits = data.visits || ((parseInt(dest.visits) || 0) + 1);
                     dest.visits = newVisits;
                     const visitorsEl = document.getElementById('sheet-visitors');
-                    if (visitorsEl) visitorsEl.textContent = window.formatVisitorCount ? window.formatVisitorCount(newVisits) : (newVisits < 100 ? 'Less than 100 this month' : `${newVisits.toLocaleString()} visitors this month`);
+                    if (visitorsEl) visitorsEl.textContent = newVisits < 100 ? 'Less than 100 this month' : `${newVisits.toLocaleString()} visitors this month`;
 
                     if (btn) {
                         btn.innerHTML = '<i class="fa-solid fa-check"></i> Checked In!';

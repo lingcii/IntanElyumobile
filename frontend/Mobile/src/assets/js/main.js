@@ -2380,7 +2380,18 @@ if (typeof window.getTouristSpotById !== 'function') {
 if (typeof window.getPersistentItemStates !== 'function') {
     window.getPersistentItemStates = function () {
         try {
-            return JSON.parse(localStorage.getItem('intan_elyu_verified_item_states') || '{}');
+            const raw = JSON.parse(localStorage.getItem('intan_elyu_verified_item_states') || '{}');
+            let changed = false;
+            Object.keys(raw).forEach(k => {
+                if (k.startsWith('spot_')) {
+                    delete raw[k];
+                    changed = true;
+                }
+            });
+            if (changed) {
+                try { localStorage.setItem('intan_elyu_verified_item_states', JSON.stringify(raw)); } catch (e) {}
+            }
+            return raw;
         } catch (e) {
             return {};
         }
@@ -2399,9 +2410,6 @@ if (typeof window.savePersistentItemState !== 'function') {
                 ...stateUpdates,
                 updated_at: Date.now()
             };
-            if (stateUpdates && stateUpdates.spot_id) {
-                states['spot_' + stateUpdates.spot_id] = states[key];
-            }
             localStorage.setItem('intan_elyu_verified_item_states', JSON.stringify(states));
         } catch (e) {
             console.warn('savePersistentItemState error:', e);
