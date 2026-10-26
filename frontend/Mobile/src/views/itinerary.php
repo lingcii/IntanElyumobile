@@ -143,15 +143,18 @@ try {
         #save-trip-modal .save-trip-modal-body {
             color: #0f172a !important;
         }
+
         #save-trip-modal label,
         .save-trip-modal-body label {
             color: #1e293b !important;
             font-weight: 700 !important;
         }
+
         #save-trip-modal label span:first-child,
         .save-trip-modal-body label span:first-child {
             color: #1e293b !important;
         }
+
         #save-trip-modal #trip-title,
         #save-trip-modal #trip-budget,
         .save-trip-modal-body input[type="text"],
@@ -162,6 +165,7 @@ try {
             border-color: #cbd5e1 !important;
             font-weight: 600 !important;
         }
+
         #save-trip-modal input::placeholder,
         #save-trip-modal input::-webkit-input-placeholder,
         #save-trip-modal input::-moz-placeholder,
@@ -175,9 +179,11 @@ try {
             opacity: 1 !important;
             font-weight: 500 !important;
         }
+
         #modal-donut-pct {
             color: #0f172a !important;
         }
+
         #custom-calendar-dropdown {
             background: #ffffff !important;
             border: 1.5px solid #0284c7 !important;
@@ -186,6 +192,7 @@ try {
             overflow: visible !important;
             max-height: none !important;
         }
+
         .calendar-day-cell {
             color: #0f172a !important;
             font-weight: 700 !important;
@@ -217,7 +224,9 @@ try {
         <div class="save-trip-modal-body hide-scrollbar"
             style="background:#ffffff !important; color:#0f172a; padding:18px 20px 20px 20px; flex:1; overflow-y:auto; display:flex; flex-direction:column; box-sizing:border-box;">
 
-            <label style="font-size:12.5px; color:#1e293b !important; margin-bottom:6px; display:block; font-weight:700;">Trip Name</label>
+            <label
+                style="font-size:12.5px; color:#1e293b !important; margin-bottom:6px; display:block; font-weight:700;">Trip
+                Name</label>
             <input type="text" id="trip-title" placeholder="Enter your trip name"
                 style="width:100%; padding:12px 14px; border-radius:14px; border:1.5px solid #cbd5e1 !important; outline:none !important; background:#ffffff !important; color:#0f172a !important; -webkit-text-fill-color:#0f172a !important; margin-bottom:16px; font-family:inherit; font-size:14px; font-weight:600; box-sizing:border-box; box-shadow:none !important; transition:border-color 0.2s;"
                 onfocus="this.style.borderColor='#0284c7'" onblur="this.style.borderColor='#cbd5e1'">
@@ -241,7 +250,9 @@ try {
             <input type="hidden" id="trip-date" value="">
 
             <!-- Floating Sleek Custom Calendar Card with Crystal-Clear Contrast -->
-            <div id="custom-calendar-dropdown" style="display:none; background:#ffffff !important; border:1.5px solid #0284c7 !important; border-radius:18px !important; padding:14px !important; margin-top:-8px !important; margin-bottom:16px !important; box-shadow:0 10px 25px rgba(2, 132, 199, 0.12) !important; box-sizing:border-box;" onclick="event.stopPropagation()">
+            <div id="custom-calendar-dropdown"
+                style="display:none; background:#ffffff !important; border:1.5px solid #0284c7 !important; border-radius:18px !important; padding:14px !important; margin-top:-8px !important; margin-bottom:16px !important; box-shadow:0 10px 25px rgba(2, 132, 199, 0.12) !important; box-sizing:border-box;"
+                onclick="event.stopPropagation()">
                 <!-- Month & Year Navigation -->
                 <div
                     style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; padding:0 4px;">
@@ -293,20 +304,25 @@ try {
             </div>
 
             <!-- Travel Group / Companions Section -->
-            <label style="font-size:12.5px; color:#1e293b !important; margin-bottom:8px; display:block; font-weight:700;">
+            <label
+                style="font-size:12.5px; color:#1e293b !important; margin-bottom:8px; display:block; font-weight:700;">
                 <span style="color:#1e293b !important;">Travel Group Type</span>
             </label>
 
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:14px;">
-                <label id="opt-trip-solo" onclick="window.setTripType('solo')" style="display:flex; align-items:center; gap:8px; padding:10px 14px; border-radius:14px; background:#f0f9ff; border:1.5px solid #0284c7; cursor:pointer; transition:all 0.2s ease;">
-                    <input type="radio" name="trip_companion_type" id="radio-trip-solo" value="solo" checked style="accent-color:#0284c7; cursor:pointer; width:16px; height:16px;">
+                <label id="opt-trip-solo" onclick="window.setTripType('solo')"
+                    style="display:flex; align-items:center; gap:8px; padding:10px 14px; border-radius:14px; background:#f0f9ff; border:1.5px solid #0284c7; cursor:pointer; transition:all 0.2s ease;">
+                    <input type="radio" name="trip_companion_type" id="radio-trip-solo" value="solo" checked
+                        style="accent-color:#0284c7; cursor:pointer; width:16px; height:16px;">
                     <div>
                         <div style="color:#0f172a; font-size:13px; font-weight:800;">Solo Trip</div>
                         <div style="color:#64748b; font-size:10px;">Just myself</div>
                     </div>
                 </label>
-                <label id="opt-trip-group" onclick="window.setTripType('group')" style="display:flex; align-items:center; gap:8px; padding:10px 14px; border-radius:14px; background:#f8fafc; border:1.5px solid #e2e8f0; cursor:pointer; transition:all 0.2s ease;">
-                    <input type="radio" name="trip_companion_type" id="radio-trip-group" value="group" style="accent-color:#0284c7; cursor:pointer; width:16px; height:16px;">
+                <label id="opt-trip-group" onclick="window.setTripType('group')"
+                    style="display:flex; align-items:center; gap:8px; padding:10px 14px; border-radius:14px; background:#f8fafc; border:1.5px solid #e2e8f0; cursor:pointer; transition:all 0.2s ease;">
+                    <input type="radio" name="trip_companion_type" id="radio-trip-group" value="group"
+                        style="accent-color:#0284c7; cursor:pointer; width:16px; height:16px;">
                     <div>
                         <div style="color:#0f172a; font-size:13px; font-weight:800;">With Companions</div>
                         <div style="color:#64748b; font-size:10px;">Friends / Family</div>
@@ -315,45 +331,55 @@ try {
             </div>
 
             <!-- Collapsible Companion Stepper Box -->
-            <div id="companion-stepper-box" style="display:none; background:#f8fafc; border:1px solid #e2e8f0; border-radius:16px; padding:14px 16px; margin-bottom:16px;">
+            <div id="companion-stepper-box"
+                style="display:none; background:#f8fafc; border:1px solid #e2e8f0; border-radius:16px; padding:14px 16px; margin-bottom:16px;">
                 <div style="font-size:12px; color:#475569; font-weight:700; margin-bottom:12px;">
                     Additional Travelers:
                 </div>
-                
+
                 <div style="display:flex; flex-direction:column; gap:10px;">
                     <!-- Male -->
                     <div style="display:flex; align-items:center; justify-content:space-between;">
                         <div style="display:flex; align-items:center; gap:10px;">
-                            <div style="width:30px; height:30px; border-radius:8px; background:#2563eb; display:flex; align-items:center; justify-content:center; color:#ffffff; box-shadow:0 2px 6px rgba(37,99,235,0.35);">
+                            <div
+                                style="width:30px; height:30px; border-radius:8px; background:#2563eb; display:flex; align-items:center; justify-content:center; color:#ffffff; box-shadow:0 2px 6px rgba(37,99,235,0.35);">
                                 <i class="fa-solid fa-mars" style="font-size:14px;"></i>
                             </div>
                             <span style="font-size:13px; font-weight:700; color:#1e293b;">Male</span>
                         </div>
                         <div style="display:flex; align-items:center; gap:8px;">
-                            <button type="button" onclick="window.adjustCompanionCount('males', -1)" style="width:32px; height:32px; border-radius:50%; background:#334155; border:none; outline:none; color:#ffffff; font-size:15px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:transform 0.1s; box-shadow:0 2px 4px rgba(0,0,0,0.2);">−</button>
-                            <span id="companion-males-count" style="font-size:15px; font-weight:800; color:#0f172a; min-width:24px; text-align:center;">0</span>
-                            <button type="button" onclick="window.adjustCompanionCount('males', 1)" style="width:32px; height:32px; border-radius:50%; background:#0284c7; border:none; outline:none; color:#ffffff; font-size:15px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:transform 0.1s; box-shadow:0 2px 6px rgba(2,132,199,0.35);">+</button>
+                            <button type="button" onclick="window.adjustCompanionCount('males', -1)"
+                                style="width:32px; height:32px; border-radius:50%; background:#334155; border:none; outline:none; color:#ffffff; font-size:15px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:transform 0.1s; box-shadow:0 2px 4px rgba(0,0,0,0.2);">−</button>
+                            <span id="companion-males-count"
+                                style="font-size:15px; font-weight:800; color:#0f172a; min-width:24px; text-align:center;">0</span>
+                            <button type="button" onclick="window.adjustCompanionCount('males', 1)"
+                                style="width:32px; height:32px; border-radius:50%; background:#0284c7; border:none; outline:none; color:#ffffff; font-size:15px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:transform 0.1s; box-shadow:0 2px 6px rgba(2,132,199,0.35);">+</button>
                         </div>
                     </div>
 
                     <!-- Female -->
                     <div style="display:flex; align-items:center; justify-content:space-between;">
                         <div style="display:flex; align-items:center; gap:10px;">
-                            <div style="width:30px; height:30px; border-radius:8px; background:#db2777; display:flex; align-items:center; justify-content:center; color:#ffffff; box-shadow:0 2px 6px rgba(219,39,119,0.35);">
+                            <div
+                                style="width:30px; height:30px; border-radius:8px; background:#db2777; display:flex; align-items:center; justify-content:center; color:#ffffff; box-shadow:0 2px 6px rgba(219,39,119,0.35);">
                                 <i class="fa-solid fa-venus" style="font-size:14px;"></i>
                             </div>
                             <span style="font-size:13px; font-weight:700; color:#1e293b;">Female</span>
                         </div>
                         <div style="display:flex; align-items:center; gap:8px;">
-                            <button type="button" onclick="window.adjustCompanionCount('females', -1)" style="width:32px; height:32px; border-radius:50%; background:#334155; border:none; outline:none; color:#ffffff; font-size:15px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:transform 0.1s; box-shadow:0 2px 4px rgba(0,0,0,0.2);">−</button>
-                            <span id="companion-females-count" style="font-size:15px; font-weight:800; color:#0f172a; min-width:24px; text-align:center;">0</span>
-                            <button type="button" onclick="window.adjustCompanionCount('females', 1)" style="width:32px; height:32px; border-radius:50%; background:#db2777; border:none; outline:none; color:#ffffff; font-size:15px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:transform 0.1s; box-shadow:0 2px 6px rgba(219,39,119,0.35);">+</button>
+                            <button type="button" onclick="window.adjustCompanionCount('females', -1)"
+                                style="width:32px; height:32px; border-radius:50%; background:#334155; border:none; outline:none; color:#ffffff; font-size:15px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:transform 0.1s; box-shadow:0 2px 4px rgba(0,0,0,0.2);">−</button>
+                            <span id="companion-females-count"
+                                style="font-size:15px; font-weight:800; color:#0f172a; min-width:24px; text-align:center;">0</span>
+                            <button type="button" onclick="window.adjustCompanionCount('females', 1)"
+                                style="width:32px; height:32px; border-radius:50%; background:#db2777; border:none; outline:none; color:#ffffff; font-size:15px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:transform 0.1s; box-shadow:0 2px 6px rgba(219,39,119,0.35);">+</button>
                         </div>
                     </div>
                 </div>
 
                 <!-- Group Headcount Summary -->
-                <div id="companion-summary-note" style="margin-top:12px; padding-top:10px; border-top:1px solid #e2e8f0; font-size:11px; color:#64748b; display:flex; align-items:center; justify-content:space-between;">
+                <div id="companion-summary-note"
+                    style="margin-top:12px; padding-top:10px; border-top:1px solid #e2e8f0; font-size:11px; color:#64748b; display:flex; align-items:center; justify-content:space-between;">
                     <span>Total Party:</span>
                     <span id="companion-summary-text" style="color:#0284c7; font-weight:800;">1 Traveler (You)</span>
                 </div>
@@ -373,13 +399,12 @@ try {
                         Transport Mode</div>
                     <div id="save-p2p-transit-label"
                         style="font-size:13.5px; font-weight:800; color:#0f172a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                        No Vehicle Selected</div>
+                        Select your vehicle</div>
                     <div id="save-p2p-legs-count" style="font-size:11px; color:#64748b; margin-top:1px;">
                         Tap to view destination summary</div>
                 </div>
                 <div style="text-align:right; flex-shrink:0;">
-                    <div
-                        style="font-size:10px; color:#64748b; font-weight:700; text-transform:uppercase;">
+                    <div style="font-size:10px; color:#64748b; font-weight:700; text-transform:uppercase;">
                         Transit Total</div>
                     <div id="save-p2p-transit-cost"
                         style="font-size:16px; font-weight:800; color:#0284c7; margin-top:2px;">₱0.00</div>
@@ -428,7 +453,8 @@ try {
                             <span
                                 style="font-size:10px; color:#64748b; font-weight:800; text-transform:uppercase; letter-spacing:0.5px;">Estimated
                                 Cost</span>
-                            <h4 style="margin:0; font-size:15px; color:#0f172a; font-weight:900;" id="save-estimated-cost">
+                            <h4 style="margin:0; font-size:15px; color:#0f172a; font-weight:900;"
+                                id="save-estimated-cost">
                                 ₱0.00</h4>
                         </div>
                         <div id="save-budget-remaining-row"
@@ -450,12 +476,12 @@ try {
             style="padding:12px 16px max(12px, env(safe-area-inset-bottom)) 16px; background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%) !important; border:none !important; outline:none !important; flex-shrink:0; display:flex; justify-content:space-between; gap:12px; align-items:center; box-sizing:border-box;">
             <button type="button"
                 style="flex:1; background:#ffffff !important; border:none !important; outline:none !important; color:#ef4444 !important; font-size:12.5px; font-weight:800; padding:10px 18px; border-radius:100px; box-shadow:0 2px 8px rgba(0, 0, 0, 0.15) !important; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:6px; transition:transform 0.15s ease;"
-                onclick="closeSaveModal()"
-                onpointerdown="this.style.transform='scale(0.94)'" onpointerup="this.style.transform='scale(1)'">Cancel</button>
+                onclick="closeSaveModal()" onpointerdown="this.style.transform='scale(0.94)'"
+                onpointerup="this.style.transform='scale(1)'">Cancel</button>
             <button type="button"
                 style="flex:1.4; background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; font-size:12.5px; font-weight:800; padding:10px 22px; border-radius:100px; box-shadow:0 2px 8px rgba(0, 0, 0, 0.15) !important; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:6px; transition:transform 0.15s ease;"
-                onclick="submitItinerary()" id="btn-submit-trip"
-                onpointerdown="this.style.transform='scale(0.94)'" onpointerup="this.style.transform='scale(1)'">Save Trip</button>
+                onclick="submitItinerary()" id="btn-submit-trip" onpointerdown="this.style.transform='scale(0.94)'"
+                onpointerup="this.style.transform='scale(1)'">Save Trip</button>
         </div>
     </div>
 </div>
@@ -557,8 +583,7 @@ try {
             </div>
             <div style="display:flex; align-items:center; justify-content:space-between;">
                 <div>
-                    <h3
-                        style="margin:0; font-size:16.5px; font-weight:800; color:#ffffff; letter-spacing:-0.2px;">
+                    <h3 style="margin:0; font-size:16.5px; font-weight:800; color:#ffffff; letter-spacing:-0.2px;">
                         Choose Leg Transports</h3>
                     <div id="leg-modal-subtitle"
                         style="font-size:11.5px; color:rgba(255,255,255,0.85); font-weight:600; margin-top:3px;">
@@ -581,8 +606,7 @@ try {
             <div id="leg-modal-selection-bar"
                 style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; background:#f8fafc; padding:8px 12px; border-radius:12px; border:1px solid #e2e8f0;">
                 <div style="display:flex; align-items:center; gap:8px;">
-                    <span
-                        style="font-size:12px; font-weight:700; color:#1e3a8a; display:flex; align-items:center;">
+                    <span style="font-size:12px; font-weight:700; color:#1e3a8a; display:flex; align-items:center;">
                         Select vehicles:
                     </span>
                     <button type="button" id="leg-modal-unselect-btn" onclick="window.unselectAllLegCandidates()"
@@ -649,8 +673,7 @@ try {
             </div>
             <div style="display:flex; align-items:center; justify-content:space-between;">
                 <div>
-                    <h3
-                        style="margin:0; font-size:16.5px; font-weight:800; color:#ffffff; letter-spacing:-0.2px;">
+                    <h3 style="margin:0; font-size:16.5px; font-weight:800; color:#ffffff; letter-spacing:-0.2px;">
                         Choose Your Vehicle</h3>
                     <div style="font-size:11.5px; color:rgba(255,255,255,0.85); font-weight:600; margin-top:3px;">
                         Select one or more vehicles for your trip
@@ -671,8 +694,7 @@ try {
             <!-- Multi-Select Selection Info Bar -->
             <div id="starter-modal-selection-bar"
                 style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; background:#f8fafc; padding:8px 12px; border-radius:12px; border:1px solid #e2e8f0;">
-                <span
-                    style="font-size:12px; font-weight:700; color:#1e3a8a; display:flex; align-items:center;">
+                <span style="font-size:12px; font-weight:700; color:#1e3a8a; display:flex; align-items:center;">
                     Select multiple vehicles if needed:
                 </span>
                 <span id="starter-modal-selection-count"
@@ -1942,12 +1964,48 @@ try {
             }
 
             const isNonDrivable = Boolean(toSpot && (toSpot.accessible_by_private_vehicle === 0 || toSpot.accessible_by_private_vehicle === false || toSpot.accessible_by_private_vehicle === '0'));
+
+            const tripModes = (typeof window.getNormalizedTripModes === 'function')
+                ? window.getNormalizedTripModes()
+                : (curGlobalTransport ? window.parseCompositeTransportModes(curGlobalTransport) : []);
+
+            const isGlobalNoVeh = (tripModes.length === 0 || tripModes.includes('no_vehicle') || tripModes.every(m => !m || m === 'no_vehicle' || String(m).toLowerCase().includes('no vehicle')));
+
+            if (!isGlobalNoVeh && typeof window.resolveLegOptimalTransport === 'function') {
+                const resolved = window.resolveLegOptimalTransport(fromSpot, toSpot, distKm, curGlobalTransport || tripModes.join(' + '));
+                const check = window.isVehicleAllowedForSpot(resolved.mode, toSpot);
+                const subModes = (Array.isArray(resolved.transport_modes) && resolved.transport_modes.length > 0)
+                    ? resolved.transport_modes
+                    : window.parseCompositeTransportModes(resolved.mode);
+
+                let name = resolved.name;
+                if (subModes.length > 1) {
+                    name = `${subModes.length} Vehicles`;
+                }
+
+                return {
+                    ...resolved,
+                    transport_mode: resolved.mode,
+                    transport_modes: subModes,
+                    name: name,
+                    full_names: subModes.map(m => window.getVehicleDisplayName(m)).join(', '),
+                    cost: resolved.cost,
+                    leg_cost: resolved.cost,
+                    distance_km: distKm,
+                    warning: check.allowed ? resolved.warning : check.reason,
+                    is_inaccessible: !check.allowed,
+                    is_non_drivable: isNonDrivable,
+                    is_custom: false,
+                    has_selection: true
+                };
+            }
+
             return {
                 mode: 'no_vehicle',
                 transport_mode: 'no_vehicle',
                 transport_modes: [],
                 name: 'Select your vehicle',
-                full_names: 'Select your vehicle',
+                full_names: 'No Vehicle Selected',
                 icon: '',
                 cost: 0,
                 leg_cost: 0,
@@ -2356,7 +2414,7 @@ try {
                     btnApply.style.justifyContent = 'flex-start';
                     btnApply.innerHTML = selectedModes.length > 0
                         ? `<i class="fa-solid fa-check"></i> Done (${selectedModes.length})`
-                        : `<i class="fa-solid fa-check"></i> Done (No Vehicle)`;
+                        : `<i class="fa-solid fa-check"></i> Done`;
                 }
             }
         };
@@ -2564,10 +2622,23 @@ try {
                     `;
                 } else {
                     const isSelected = Boolean(info && info.has_selection && !String(info.name).toLowerCase().includes('select your vehicle') && !String(info.name).toLowerCase().includes('no vehicle'));
-                    const iconMarkup = (isSelected && info.icon)
-                        ? `<i class="fa-solid ${info.icon}" style="color:#00f2fe; font-size:12px;"></i>`
-                        : '';
-                    const vehicleLabel = isSelected ? (info.full_names || info.name) : 'No Vehicle Selected';
+                    let vehicleLabel = 'No Vehicle Selected';
+                    let iconMarkup = '<i class="fa-solid fa-ban" style="color:#f87171; font-size:11px;"></i>';
+
+                    if (isSelected) {
+                        const mCount = (info.transport_modes && Array.isArray(info.transport_modes)) ? info.transport_modes.length : 0;
+                        if (mCount > 1) {
+                            vehicleLabel = `${mCount} Vehicles`;
+                            iconMarkup = '<i class="fa-solid fa-shuffle" style="color:#00f2fe; font-size:12px;"></i>';
+                        } else if (info.name && info.name.includes('Vehicles')) {
+                            vehicleLabel = info.name;
+                            iconMarkup = '<i class="fa-solid fa-shuffle" style="color:#00f2fe; font-size:12px;"></i>';
+                        } else {
+                            vehicleLabel = info.full_names || info.name || 'Vehicle Selected';
+                            iconMarkup = info.icon ? `<i class="fa-solid ${info.icon}" style="color:#00f2fe; font-size:12px;"></i>` : '<i class="fa-solid fa-car" style="color:#00f2fe; font-size:12px;"></i>';
+                        }
+                    }
+
                     transportMarkup = `
                         <div style="display:inline-flex; align-items:center; gap:6px; background:rgba(255,255,255,0.16); color:#ffffff; font-size:11.5px; font-weight:700; padding:4px 10px; border-radius:100px; border:1px solid rgba(255,255,255,0.22);">
                             ${iconMarkup}
@@ -3848,6 +3919,23 @@ try {
                 ? window.getNormalizedTripModes()
                 : (currentGlobalTransport ? [currentGlobalTransport] : []);
 
+            // Also check if any leg has custom selection if global tripModes is empty
+            if (tripModes.length === 0 || tripModes.includes('no_vehicle') || tripModes.every(m => !m || m === 'no_vehicle' || String(m).toLowerCase().includes('no vehicle'))) {
+                const legModes = [];
+                legInfos.forEach(info => {
+                    if (info && info.has_selection && info.transport_modes && Array.isArray(info.transport_modes)) {
+                        info.transport_modes.forEach(m => {
+                            if (m && m !== 'no_vehicle' && !m.toLowerCase().includes('no vehicle') && !legModes.includes(m)) {
+                                legModes.push(m);
+                            }
+                        });
+                    }
+                });
+                if (legModes.length > 0) {
+                    tripModes = legModes;
+                }
+            }
+
             const isNoVehTrip = (tripModes.length === 0 || tripModes.includes('no_vehicle') || tripModes.every(m => !m || m === 'no_vehicle' || String(m).toLowerCase().includes('no vehicle')));
             const compositeTripTransport = isNoVehTrip ? 'No Vehicle Selected' : ((tripModes.length === 1) ? tripModes[0] : tripModes.join(' + '));
             if (transInput) transInput.value = compositeTripTransport;
@@ -4690,7 +4778,7 @@ try {
                                     const parsed = JSON.parse(raw);
                                     tList = Array.isArray(parsed) ? parsed : (parsed.data || parsed.itineraries || []);
                                 }
-                            } catch (e) {}
+                            } catch (e) { }
                             if (!Array.isArray(tList)) tList = [];
                             const tIdx = tList.findIndex(t => t && (String(t.id) === tripId || String(t.local_id) === tripId));
                             if (tIdx >= 0) {
@@ -4700,7 +4788,7 @@ try {
                             }
                             try {
                                 localStorage.setItem(tKey, JSON.stringify({ data: tList, itineraries: tList, timestamp: Date.now() }));
-                            } catch(e) {}
+                            } catch (e) { }
                         }
 
                         // 4. Invalidate signature & update in-memory cache
