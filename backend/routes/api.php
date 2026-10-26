@@ -538,9 +538,40 @@ Route::prefix('admin')->middleware('tourist.auth')->group(function () {
             'reviewed_at'  => now(),
         ]);
 
-        $item->loadMissing('destination');
+        $item->loadMissing(['destination', 'itinerary.user']);
         $rewardPoints = \App\Models\Classification::getPointsForStatus($item->destination?->classification_status);
         $canonical = \App\Models\Classification::normalizeStatus($item->destination?->classification_status);
+
+        $tourist = $item->itinerary ? $item->itinerary->user : null;
+        if ($tourist) {
+            try {
+                $tourist->increment('xp', $rewardPoints);
+                $tourist->increment('completed_activities');
+                \App\Models\UserPoint::awardPointsSafely(
+                    $tourist->id,
+                    $rewardPoints,
+                    'check_in',
+                    "Proof Check-in Approved at " . ($item->destination?->name ?? 'Spot') . " ({$canonical})",
+                    $item->tourist_spot_id
+                );
+                \App\Models\Notification::createSafely(
+                    $tourist->id,
+                    'checkin_approved',
+                    'Photo Check-in Approved!',
+                    "Your photo proof check-in at " . ($item->destination?->name ?? 'destination') . " was approved by Admin! +{$rewardPoints} Points awarded."
+                );
+            } catch (\Throwable $e) {}
+        }
+
+        if ($item->tourist_spot_id) {
+            try {
+                $spot = \App\Models\TouristSpot::find($item->tourist_spot_id);
+                if ($spot) {
+                    $paxIncrement = max(1, (int) ($item->total_pax ?? $item->itinerary?->total_pax ?? 1));
+                    $spot->increment('visits', $paxIncrement);
+                }
+            } catch (\Throwable $e) {}
+        }
 
         return response()->json([
             'success' => true,
@@ -985,9 +1016,40 @@ foreach (['lupto', 'pitco', 'picto', 'municipal'] as $rolePrefix) {
                 'reviewed_at'  => now(),
             ]);
 
-            $item->loadMissing('destination');
+            $item->loadMissing(['destination', 'itinerary.user']);
             $rewardPoints = \App\Models\Classification::getPointsForStatus($item->destination?->classification_status);
             $canonical = \App\Models\Classification::normalizeStatus($item->destination?->classification_status);
+
+            $tourist = $item->itinerary ? $item->itinerary->user : null;
+            if ($tourist) {
+                try {
+                    $tourist->increment('xp', $rewardPoints);
+                    $tourist->increment('completed_activities');
+                    \App\Models\UserPoint::awardPointsSafely(
+                        $tourist->id,
+                        $rewardPoints,
+                        'check_in',
+                        "Proof Check-in Approved at " . ($item->destination?->name ?? 'Spot') . " ({$canonical})",
+                        $item->tourist_spot_id
+                    );
+                    \App\Models\Notification::createSafely(
+                        $tourist->id,
+                        'checkin_approved',
+                        'Photo Check-in Approved!',
+                        "Your photo proof check-in at " . ($item->destination?->name ?? 'destination') . " was approved by Admin! +{$rewardPoints} Points awarded."
+                    );
+                } catch (\Throwable $e) {}
+            }
+
+            if ($item->tourist_spot_id) {
+                try {
+                    $spot = \App\Models\TouristSpot::find($item->tourist_spot_id);
+                    if ($spot) {
+                        $paxIncrement = max(1, (int) ($item->total_pax ?? $item->itinerary?->total_pax ?? 1));
+                        $spot->increment('visits', $paxIncrement);
+                    }
+                } catch (\Throwable $e) {}
+            }
 
             return response()->json([
                 'success' => true,

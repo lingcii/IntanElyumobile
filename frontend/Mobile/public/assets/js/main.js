@@ -2570,6 +2570,8 @@ window.fetchSavedTrips = async function (forceRefresh = false) {
                     const data = await response.json();
                     const itins = data.itineraries || [];
                     const persistentStates = (typeof window.getPersistentItemStates === 'function') ? window.getPersistentItemStates() : {};
+                    let persistentStatesChanged = false;
+                    const newlyApprovedItems = [];
                     const queuedCheckins = (window.OfflineCheckinManager && typeof window.OfflineCheckinManager.getQueue === 'function')
                         ? window.OfflineCheckinManager.getQueue()
                         : [];
@@ -2584,6 +2586,33 @@ window.fetchSavedTrips = async function (forceRefresh = false) {
                                 const spotIdKey = String(it.tourist_spot_id || it.destination_id || (it.destination ? it.destination.id : ''));
                                 const spotKey = 'spot_' + spotIdKey;
                                 const override = persistentStates[itKey] || (spotIdKey ? persistentStates[spotKey] : null);
+
+                                const isServerApproved = Boolean(it.is_visited || it.proof_status === 'approved');
+                                const isServerRejected = (it.proof_status === 'rejected');
+
+                                if (isServerApproved) {
+                                    if (override && (override.proof_status === 'pending' || !override.proof_status) && override.proof_status !== 'approved') {
+                                        newlyApprovedItems.push(it);
+                                    }
+                                    if (persistentStates[itKey] && persistentStates[itKey].proof_status !== 'approved') {
+                                        persistentStates[itKey].proof_status = 'approved';
+                                        persistentStates[itKey].is_visited = true;
+                                        persistentStates[itKey].is_location_verified = true;
+                                        persistentStatesChanged = true;
+                                    }
+                                    if (spotIdKey && persistentStates[spotKey] && persistentStates[spotKey].proof_status !== 'approved') {
+                                        persistentStates[spotKey].proof_status = 'approved';
+                                        persistentStates[spotKey].is_visited = true;
+                                        persistentStates[spotKey].is_location_verified = true;
+                                        persistentStatesChanged = true;
+                                    }
+                                } else if (isServerRejected) {
+                                    if (persistentStates[itKey] && persistentStates[itKey].proof_status !== 'rejected') {
+                                        persistentStates[itKey].proof_status = 'rejected';
+                                        persistentStates[itKey].rejection_reason = it.rejection_reason;
+                                        persistentStatesChanged = true;
+                                    }
+                                }
 
                                 const queued = queuedCheckins.find(q => {
                                     if (!q) return false;
@@ -2625,13 +2654,27 @@ window.fetchSavedTrips = async function (forceRefresh = false) {
                                     ? serverProofs
                                     : (queuedProofs.length > 0 ? queuedProofs : (localProofs.length > 0 ? localProofs : inMemProofs));
 
-                                const activeStatus = (serverProofs.length > 0 && it.proof_status)
-                                    ? it.proof_status
-                                    : (it.proof_status || (override ? override.proof_status : null) || (queued ? 'pending' : null) || (inMemoryItem ? inMemoryItem.proof_status : null) || (activeProofs.length > 0 ? 'pending' : null));
+                                let activeStatus;
+                                if (isServerApproved) {
+                                    activeStatus = 'approved';
+                                } else if (isServerRejected) {
+                                    activeStatus = 'rejected';
+                                } else if (it.proof_status) {
+                                    activeStatus = it.proof_status;
+                                } else if (override && override.proof_status) {
+                                    activeStatus = override.proof_status;
+                                } else if (queued) {
+                                    activeStatus = 'pending';
+                                } else if (inMemoryItem && inMemoryItem.proof_status) {
+                                    activeStatus = inMemoryItem.proof_status;
+                                } else {
+                                    activeStatus = (activeProofs.length > 0 ? 'pending' : null);
+                                }
 
                                 return {
                                     ...it,
-                                    is_location_verified: Boolean(it.is_location_verified || it.visited_at || (override && (override.is_location_verified || override.visited_at)) || (queued && queued.status) || (inMemoryItem && inMemoryItem.is_location_verified)),
+                                    is_visited: isServerApproved ? true : Boolean(it.is_visited || (override && override.is_visited)),
+                                    is_location_verified: Boolean(isServerApproved || it.is_location_verified || it.visited_at || (override && (override.is_location_verified || override.visited_at)) || (queued && queued.status) || (inMemoryItem && inMemoryItem.is_location_verified)),
                                     visited_at: it.visited_at || (override ? override.visited_at : null) || (queued ? queued.capturedAt : null) || (inMemoryItem ? inMemoryItem.visited_at : null),
                                     proof_image: activeProofs.length > 0 ? activeProofs[0] : null,
                                     proof_images: activeProofs,
@@ -2641,6 +2684,25 @@ window.fetchSavedTrips = async function (forceRefresh = false) {
                             })
                         };
                     });
+
+                    if (persistentStatesChanged) {
+                        try {
+                            localStorage.setItem('intan_elyu_verified_item_states', JSON.stringify(persistentStates));
+                        } catch (e) { }
+                    }
+
+                    if (newlyApprovedItems.length > 0) {
+                        newlyApprovedItems.forEach(itemApproved => {
+                            const destName = (itemApproved.destination && itemApproved.destination.name) ? itemApproved.destination.name : 'Your destination';
+                            if (typeof showToast === 'function') {
+                                showToast(`🎉 Verified! Photo proof for ${destName} was approved by Admin!`, 'success', 5000);
+                            }
+                        });
+                        if (typeof window.fetchUserProfile === 'function') {
+                            window.fetchUserProfile();
+                        }
+                    }
+
                     try {
                         localStorage.setItem('intan_elyu_offline_saved_trips_backup', JSON.stringify(mergedItins));
                     } catch (e) { }
@@ -2657,8 +2719,8 @@ window.fetchSavedTrips = async function (forceRefresh = false) {
                     window.renderSavedTrips(getLocalTripsCombined());
                 }
             },
-            forceRefresh,
-            60000
+            (forceRefresh || Boolean(window._hasPendingApprovalItems)),
+            (window._hasPendingApprovalItems ? 3000 : 30000)
         );
     } catch (fetchErr) {
         console.warn("fetchSavedTrips handled offline fallback:", fetchErr);

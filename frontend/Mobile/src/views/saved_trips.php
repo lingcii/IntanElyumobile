@@ -626,6 +626,8 @@ $backRoute = 'itinerary';
                             const data = await response.json();
                             const itins = data.itineraries || [];
                             const persistentStates = (typeof window.getPersistentItemStates === 'function') ? window.getPersistentItemStates() : {};
+                            let persistentStatesChanged = false;
+                            const newlyApprovedItems = [];
                             const queuedCheckins = (window.OfflineCheckinManager && typeof window.OfflineCheckinManager.getQueue === 'function')
                                 ? window.OfflineCheckinManager.getQueue()
                                 : [];
@@ -640,6 +642,35 @@ $backRoute = 'itinerary';
                                         const spotIdKey = String(it.tourist_spot_id || it.destination_id || (it.destination ? it.destination.id : ''));
                                         const spotKey = 'spot_' + spotIdKey;
                                         const override = persistentStates[itKey] || (spotIdKey ? persistentStates[spotKey] : null);
+
+                                        // Server status takes absolute precedence if server says approved or rejected
+                                        const isServerApproved = Boolean(it.is_visited || it.proof_status === 'approved');
+                                        const isServerRejected = (it.proof_status === 'rejected');
+
+                                        // Detect newly approved proof to celebrate to the user
+                                        if (isServerApproved) {
+                                            if (override && (override.proof_status === 'pending' || !override.proof_status) && override.proof_status !== 'approved') {
+                                                newlyApprovedItems.push(it);
+                                            }
+                                            if (persistentStates[itKey] && persistentStates[itKey].proof_status !== 'approved') {
+                                                persistentStates[itKey].proof_status = 'approved';
+                                                persistentStates[itKey].is_visited = true;
+                                                persistentStates[itKey].is_location_verified = true;
+                                                persistentStatesChanged = true;
+                                            }
+                                            if (spotIdKey && persistentStates[spotKey] && persistentStates[spotKey].proof_status !== 'approved') {
+                                                persistentStates[spotKey].proof_status = 'approved';
+                                                persistentStates[spotKey].is_visited = true;
+                                                persistentStates[spotKey].is_location_verified = true;
+                                                persistentStatesChanged = true;
+                                            }
+                                        } else if (isServerRejected) {
+                                            if (persistentStates[itKey] && persistentStates[itKey].proof_status !== 'rejected') {
+                                                persistentStates[itKey].proof_status = 'rejected';
+                                                persistentStates[itKey].rejection_reason = it.rejection_reason;
+                                                persistentStatesChanged = true;
+                                            }
+                                        }
 
                                         // Check queued check-in / photo upload in OfflineCheckinManager
                                         const queued = queuedCheckins.find(q => {
@@ -684,13 +715,27 @@ $backRoute = 'itinerary';
                                             ? serverProofs
                                             : (queuedProofs.length > 0 ? queuedProofs : (localProofs.length > 0 ? localProofs : inMemProofs));
 
-                                        const activeStatus = (serverProofs.length > 0 && it.proof_status)
-                                            ? it.proof_status
-                                            : (it.proof_status || (override ? override.proof_status : null) || (queued ? 'pending' : null) || (inMemoryItem ? inMemoryItem.proof_status : null) || (activeProofs.length > 0 ? 'pending' : null));
+                                        let activeStatus;
+                                        if (isServerApproved) {
+                                            activeStatus = 'approved';
+                                        } else if (isServerRejected) {
+                                            activeStatus = 'rejected';
+                                        } else if (it.proof_status) {
+                                            activeStatus = it.proof_status;
+                                        } else if (override && override.proof_status) {
+                                            activeStatus = override.proof_status;
+                                        } else if (queued) {
+                                            activeStatus = 'pending';
+                                        } else if (inMemoryItem && inMemoryItem.proof_status) {
+                                            activeStatus = inMemoryItem.proof_status;
+                                        } else {
+                                            activeStatus = (activeProofs.length > 0 ? 'pending' : null);
+                                        }
 
                                         return {
                                             ...it,
-                                            is_location_verified: Boolean(it.is_location_verified || it.visited_at || (override && (override.is_location_verified || override.visited_at)) || (queued && queued.status) || (inMemoryItem && inMemoryItem.is_location_verified)),
+                                            is_visited: isServerApproved ? true : Boolean(it.is_visited || (override && override.is_visited)),
+                                            is_location_verified: Boolean(isServerApproved || it.is_location_verified || it.visited_at || (override && (override.is_location_verified || override.visited_at)) || (queued && queued.status) || (inMemoryItem && inMemoryItem.is_location_verified)),
                                             visited_at: it.visited_at || (override ? override.visited_at : null) || (queued ? queued.capturedAt : null) || (inMemoryItem ? inMemoryItem.visited_at : null),
                                             proof_image: activeProofs.length > 0 ? activeProofs[0] : null,
                                             proof_images: activeProofs,
@@ -700,6 +745,25 @@ $backRoute = 'itinerary';
                                     })
                                 };
                             });
+
+                            if (persistentStatesChanged) {
+                                try {
+                                    localStorage.setItem('intan_elyu_verified_item_states', JSON.stringify(persistentStates));
+                                } catch (e) { }
+                            }
+
+                            if (newlyApprovedItems.length > 0) {
+                                newlyApprovedItems.forEach(itemApproved => {
+                                    const destName = (itemApproved.destination && itemApproved.destination.name) ? itemApproved.destination.name : 'Your destination';
+                                    if (typeof showToast === 'function') {
+                                        showToast(`🎉 Verified! Photo proof for ${destName} was approved by Admin!`, 'success', 5000);
+                                    }
+                                });
+                                if (typeof window.fetchUserProfile === 'function') {
+                                    window.fetchUserProfile();
+                                }
+                            }
+
                             try {
                                 localStorage.setItem('intan_elyu_offline_saved_trips_backup', JSON.stringify(mergedItins));
                             } catch (e) { }
@@ -716,8 +780,8 @@ $backRoute = 'itinerary';
                             renderSavedTrips(getLocalTripsCombined());
                         }
                     },
-                    forceRefresh,
-                    60000 // 1 minute TTL
+                    (forceRefresh || Boolean(window._hasPendingApprovalItems)),
+                    (window._hasPendingApprovalItems ? 3000 : 30000)
                 );
             } catch (fetchErr) {
                 console.warn("fetchSavedTrips handled offline fallback:", fetchErr);
@@ -947,14 +1011,31 @@ $backRoute = 'itinerary';
                                 const currentProofs = (Array.isArray(it.proof_images) && it.proof_images.length)
                                     ? it.proof_images
                                     : (it.proof_image ? [it.proof_image] : []);
-                                const mergedProofs = currentProofs.length > 0 ? currentProofs : saved.proof_images;
+                                const mergedProofs = currentProofs.length > 0 ? currentProofs : (saved.proof_images || []);
+                                const isServerApproved = Boolean(it.is_visited || it.proof_status === 'approved' || (saved && (saved.proof_status === 'approved' || saved.is_visited)));
+                                const isServerRejected = (it.proof_status === 'rejected' || (saved && saved.proof_status === 'rejected'));
+
+                                let resolvedStatus;
+                                if (isServerApproved) {
+                                    resolvedStatus = 'approved';
+                                } else if (isServerRejected) {
+                                    resolvedStatus = 'rejected';
+                                } else if (it.proof_status) {
+                                    resolvedStatus = it.proof_status;
+                                } else if (saved && saved.proof_status) {
+                                    resolvedStatus = saved.proof_status;
+                                } else {
+                                    resolvedStatus = (mergedProofs.length > 0 ? 'pending' : null);
+                                }
+
                                 return {
                                     ...it,
+                                    is_visited: isServerApproved ? true : Boolean(it.is_visited || (saved && saved.is_visited)),
                                     proof_image: (mergedProofs && mergedProofs.length > 0) ? mergedProofs[0] : (saved.proof_image || it.proof_image),
                                     proof_images: mergedProofs || [],
-                                    proof_status: (it.proof_status && it.proof_status !== 'pending' && it.proof_status !== null) ? it.proof_status : (saved.proof_status || 'pending'),
-                                    is_location_verified: Boolean(it.is_location_verified || saved.is_location_verified || it.visited_at || saved.visited_at),
-                                    visited_at: it.visited_at || saved.visited_at,
+                                    proof_status: resolvedStatus,
+                                    is_location_verified: Boolean(isServerApproved || it.is_location_verified || (saved && saved.is_location_verified) || it.visited_at || (saved && saved.visited_at)),
+                                    visited_at: it.visited_at || (saved ? saved.visited_at : null),
                                     is_offline_queued: Boolean(saved.is_queued)
                                 };
                             }
@@ -1437,6 +1518,10 @@ $backRoute = 'itinerary';
                 initSavedTripsSwipe();
                 if (typeof window.syncReviewedButtons === 'function') {
                     window.syncReviewedButtons();
+                }
+
+                if (typeof window.checkAndManageApprovalPolling === 'function') {
+                    window.checkAndManageApprovalPolling(dedupedTrips);
                 }
 
                 // If a trip was just saved, auto-expand it smoothly so user sees it instantly
@@ -3506,6 +3591,65 @@ $backRoute = 'itinerary';
 
         // Fetch and sync in background
         window.fetchSavedTrips();
+
+        // ── Fast Polling Manager for Pending Proof Approvals ──
+        window._pendingProofPollingInterval = null;
+        window.checkAndManageApprovalPolling = function (trips) {
+            const list = document.getElementById('saved-trips-list');
+            const currentView = document.body.getAttribute('data-view');
+            if (!list || (currentView && currentView !== 'saved_trips')) {
+                if (window._pendingProofPollingInterval) {
+                    clearInterval(window._pendingProofPollingInterval);
+                    window._pendingProofPollingInterval = null;
+                }
+                return;
+            }
+
+            const tripList = trips || window._cachedSavedTrips || [];
+            let hasPending = false;
+            if (Array.isArray(tripList)) {
+                for (const t of tripList) {
+                    if (t && Array.isArray(t.items)) {
+                        for (const it of t.items) {
+                            if (!it) continue;
+                            const hasProof = (Array.isArray(it.proof_images) && it.proof_images.length > 0) || it.proof_image;
+                            const isApproved = Boolean(it.is_visited || it.proof_status === 'approved');
+                            const isRejected = (it.proof_status === 'rejected');
+                            if (!isApproved && !isRejected && hasProof && (it.proof_status === 'pending' || !it.proof_status)) {
+                                hasPending = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (hasPending) break;
+                }
+            }
+
+            window._hasPendingApprovalItems = hasPending;
+
+            if (hasPending) {
+                if (!window._pendingProofPollingInterval) {
+                    console.log("⚡ Starting fast pending-approval polling (every 3.5s)...");
+                    window._pendingProofPollingInterval = setInterval(() => {
+                        const curView = document.body.getAttribute('data-view');
+                        if (curView && curView !== 'saved_trips') {
+                            clearInterval(window._pendingProofPollingInterval);
+                            window._pendingProofPollingInterval = null;
+                            return;
+                        }
+                        if (document.visibilityState === 'visible' && !window._isStartingTrip) {
+                            window.fetchSavedTrips(true);
+                        }
+                    }, 3500);
+                }
+            } else {
+                if (window._pendingProofPollingInterval) {
+                    clearInterval(window._pendingProofPollingInterval);
+                    window._pendingProofPollingInterval = null;
+                    console.log("⚡ All proof items verified or none pending; cleared fast polling.");
+                }
+            }
+        };
 
         // ── Auto-refresh setup for Saved Trips ──
         if (window._savedTripsInterval) {

@@ -794,13 +794,28 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                                 proofImgs = [queuedEntry.previewUrl || queuedEntry.image];
                             }
 
-                            let pStatus = (it.proof_status && it.proof_status !== 'pending' && it.proof_status !== null)
-                                ? it.proof_status
-                                : ((override && override.proof_status) || it.proof_status || (queuedEntry ? 'pending' : (proofImgs.length > 0 ? 'pending' : null)));
+                            const isServerApproved = Boolean(it.is_visited || it.proof_status === 'approved' || (override && (override.proof_status === 'approved' || override.is_visited)));
+                            const isServerRejected = (it.proof_status === 'rejected' || (override && override.proof_status === 'rejected'));
+
+                            let pStatus;
+                            if (isServerApproved) {
+                                pStatus = 'approved';
+                            } else if (isServerRejected) {
+                                pStatus = 'rejected';
+                            } else if (it.proof_status) {
+                                pStatus = it.proof_status;
+                            } else if (override && override.proof_status) {
+                                pStatus = override.proof_status;
+                            } else if (queuedEntry) {
+                                pStatus = 'pending';
+                            } else {
+                                pStatus = (proofImgs.length > 0 ? 'pending' : null);
+                            }
 
                             return {
                                 ...it,
-                                is_location_verified: isLocVerified,
+                                is_visited: isServerApproved ? true : Boolean(it.is_visited),
+                                is_location_verified: Boolean(isServerApproved || isLocVerified),
                                 visited_at: visitedAt,
                                 proof_image: proofImgs[0] || null,
                                 proof_images: proofImgs,
@@ -853,6 +868,73 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                     plotTrip(window.currentTripItems, window.currentRouteType);
                 } else {
                     if (typeof showToast === 'function') showToast("This trip has no destinations yet.");
+                }
+
+                if (typeof checkAndManageTripMapApprovalPolling === 'function') {
+                    checkAndManageTripMapApprovalPolling(trip);
+                }
+            };
+
+            window._tripMapApprovalPollingInterval = null;
+            function checkAndManageTripMapApprovalPolling(trip) {
+                const curTrip = trip || window.currentTrip;
+                const currentView = document.body.getAttribute('data-view');
+                if (!curTrip || (currentView && currentView !== 'trip_map')) {
+                    if (window._tripMapApprovalPollingInterval) {
+                        clearInterval(window._tripMapApprovalPollingInterval);
+                        window._tripMapApprovalPollingInterval = null;
+                    }
+                    return;
+                }
+
+                let hasPending = false;
+                if (curTrip && Array.isArray(curTrip.items)) {
+                    for (const it of curTrip.items) {
+                        if (!it) continue;
+                        const hasProof = (Array.isArray(it.proof_images) && it.proof_images.length > 0) || it.proof_image;
+                        const isApproved = Boolean(it.is_visited || it.proof_status === 'approved');
+                        const isRejected = (it.proof_status === 'rejected');
+                        if (!isApproved && !isRejected && hasProof && (it.proof_status === 'pending' || !it.proof_status)) {
+                            hasPending = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (hasPending) {
+                    if (!window._tripMapApprovalPollingInterval) {
+                        window._tripMapApprovalPollingInterval = setInterval(() => {
+                            const curView = document.body.getAttribute('data-view');
+                            if (curView && curView !== 'trip_map') {
+                                clearInterval(window._tripMapApprovalPollingInterval);
+                                window._tripMapApprovalPollingInterval = null;
+                                return;
+                            }
+                            if (document.visibilityState === 'visible' && !window._isStartingTrip) {
+                                const tok = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+                                if (!tok) return;
+                                const bUrl = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
+                                fetch(bUrl + '/api/tourist/itineraries', {
+                                    headers: { 'Accept': 'application/json', 'Authorization': 'Bearer ' + tok, 'ngrok-skip-browser-warning': 'true' }
+                                })
+                                .then(r => r.json())
+                                .then(d => {
+                                    if (d && Array.isArray(d.itineraries)) {
+                                        const freshTrip = d.itineraries.find(t => t.id == tripId || t.local_id == tripId);
+                                        if (freshTrip) {
+                                            applyTripToMap(freshTrip);
+                                        }
+                                    }
+                                })
+                                .catch(() => {});
+                            }
+                        }, 3500);
+                    }
+                } else {
+                    if (window._tripMapApprovalPollingInterval) {
+                        clearInterval(window._tripMapApprovalPollingInterval);
+                        window._tripMapApprovalPollingInterval = null;
+                    }
                 }
             };
 
