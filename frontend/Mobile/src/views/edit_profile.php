@@ -48,7 +48,7 @@ $backRoute = 'profile';
 
             <div class="form-group">
                 <label class="form-label" for="profile-phone">
-                    Phone / Mobile Number <span style="font-size:11px; font-weight:600; color:rgba(255,255,255,0.7);">(Starts with +63)</span>
+                    Phone / Mobile Number
                 </label>
                 <input class="form-control" id="profile-phone" type="tel" inputmode="tel" placeholder="+63 9XX XXX XXXX"
                     autocomplete="tel" maxlength="16">
@@ -63,28 +63,26 @@ $backRoute = 'profile';
                     onchange="window.handleHometownChange(this)">
                     <option value="" style="background: #1e3a8a; color: #ffffff;">Select hometown / origin</option>
                     
-                    <optgroup label="📍 La Union Municipalities" style="background: #1e3a8a; color: #38bdf8; font-weight: 800;">
-                        <option value="Agoo, La Union" style="background: #1e3a8a; color: #ffffff;">Agoo, La Union</option>
-                        <option value="Aringay, La Union" style="background: #1e3a8a; color: #ffffff;">Aringay, La Union</option>
-                        <option value="Bacnotan, La Union" style="background: #1e3a8a; color: #ffffff;">Bacnotan, La Union</option>
-                        <option value="Bagulin, La Union" style="background: #1e3a8a; color: #ffffff;">Bagulin, La Union</option>
-                        <option value="Balaoan, La Union" style="background: #1e3a8a; color: #ffffff;">Balaoan, La Union</option>
-                        <option value="Bangar, La Union" style="background: #1e3a8a; color: #ffffff;">Bangar, La Union</option>
-                        <option value="Bauang, La Union" style="background: #1e3a8a; color: #ffffff;">Bauang, La Union</option>
-                        <option value="Burgos, La Union" style="background: #1e3a8a; color: #ffffff;">Burgos, La Union</option>
-                        <option value="Caba, La Union" style="background: #1e3a8a; color: #ffffff;">Caba, La Union</option>
-                        <option value="Luna, La Union" style="background: #1e3a8a; color: #ffffff;">Luna, La Union</option>
-                        <option value="Naguilian, La Union" style="background: #1e3a8a; color: #ffffff;">Naguilian, La Union</option>
-                        <option value="Pugo, La Union" style="background: #1e3a8a; color: #ffffff;">Pugo, La Union</option>
-                        <option value="Rosario, La Union" style="background: #1e3a8a; color: #ffffff;">Rosario, La Union</option>
-                        <option value="San Fernando City, La Union" style="background: #1e3a8a; color: #ffffff;">San Fernando City, La Union</option>
-                        <option value="San Gabriel, La Union" style="background: #1e3a8a; color: #ffffff;">San Gabriel, La Union</option>
-                        <option value="San Juan, La Union" style="background: #1e3a8a; color: #ffffff;">San Juan, La Union</option>
-                        <option value="Santo Tomas, La Union" style="background: #1e3a8a; color: #ffffff;">Santo Tomas, La Union</option>
-                        <option value="Santol, La Union" style="background: #1e3a8a; color: #ffffff;">Santol, La Union</option>
-                        <option value="Sudipen, La Union" style="background: #1e3a8a; color: #ffffff;">Sudipen, La Union</option>
-                        <option value="Tubao, La Union" style="background: #1e3a8a; color: #ffffff;">Tubao, La Union</option>
-                    </optgroup>
+                    <option value="Agoo" style="background: #1e3a8a; color: #ffffff;">Agoo</option>
+                    <option value="Aringay" style="background: #1e3a8a; color: #ffffff;">Aringay</option>
+                    <option value="Bacnotan" style="background: #1e3a8a; color: #ffffff;">Bacnotan</option>
+                    <option value="Bagulin" style="background: #1e3a8a; color: #ffffff;">Bagulin</option>
+                    <option value="Balaoan" style="background: #1e3a8a; color: #ffffff;">Balaoan</option>
+                    <option value="Bangar" style="background: #1e3a8a; color: #ffffff;">Bangar</option>
+                    <option value="Bauang" style="background: #1e3a8a; color: #ffffff;">Bauang</option>
+                    <option value="Burgos" style="background: #1e3a8a; color: #ffffff;">Burgos</option>
+                    <option value="Caba" style="background: #1e3a8a; color: #ffffff;">Caba</option>
+                    <option value="Luna" style="background: #1e3a8a; color: #ffffff;">Luna</option>
+                    <option value="Naguilian" style="background: #1e3a8a; color: #ffffff;">Naguilian</option>
+                    <option value="Pugo" style="background: #1e3a8a; color: #ffffff;">Pugo</option>
+                    <option value="Rosario" style="background: #1e3a8a; color: #ffffff;">Rosario</option>
+                    <option value="San Fernando City" style="background: #1e3a8a; color: #ffffff;">San Fernando City</option>
+                    <option value="San Gabriel" style="background: #1e3a8a; color: #ffffff;">San Gabriel</option>
+                    <option value="San Juan" style="background: #1e3a8a; color: #ffffff;">San Juan</option>
+                    <option value="Santo Tomas" style="background: #1e3a8a; color: #ffffff;">Santo Tomas</option>
+                    <option value="Santol" style="background: #1e3a8a; color: #ffffff;">Santol</option>
+                    <option value="Sudipen" style="background: #1e3a8a; color: #ffffff;">Sudipen</option>
+                    <option value="Tubao" style="background: #1e3a8a; color: #ffffff;">Tubao</option>
                     
                     <optgroup label="🇵🇭 Major Cities & Nearby Provinces" style="background: #1e3a8a; color: #38bdf8; font-weight: 800;">
                         <option value="Metro Manila (NCR)" style="background: #1e3a8a; color: #ffffff;">Metro Manila (NCR)</option>
@@ -351,24 +349,26 @@ $backRoute = 'profile';
                 return;
             }
 
-            const target = String(locStr).trim().toLowerCase();
+            const rawTarget = String(locStr).trim();
+            const cleanTarget = rawTarget.replace(/,\s*La\s*Union/i, '').trim().toLowerCase();
+            const target = rawTarget.toLowerCase();
             let matched = false;
 
             for (let i = 0; i < locSelect.options.length; i++) {
                 const opt = locSelect.options[i];
                 if (!opt.value) continue;
                 const optVal = opt.value.toLowerCase();
-                if (optVal === target || optVal.includes(target) || target.includes(optVal)) {
+                if (optVal === cleanTarget || optVal === target || optVal.includes(cleanTarget) || cleanTarget.includes(optVal)) {
                     locSelect.selectedIndex = i;
                     matched = true;
                     break;
                 }
             }
 
-            if (!matched && target) {
+            if (!matched && rawTarget) {
                 locSelect.value = 'Other';
                 if (customBox) customBox.style.display = 'block';
-                if (customInput) customInput.value = locStr;
+                if (customInput) customInput.value = rawTarget;
             } else {
                 if (customBox) customBox.style.display = 'none';
             }

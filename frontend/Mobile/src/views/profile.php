@@ -275,8 +275,6 @@ $activeTab = 'profile';
         const elMeta = document.getElementById('profile-meta');
         if (!elMeta || !u) return;
         let metaParts = [];
-        const tNum = u.tourist_number || u.tourist_id || (u.role === 'tourist' ? 1 : '');
-        if (tNum) metaParts.push(`<span style="background:#2563eb; color:#ffffff; padding:3px 10px; border-radius:100px; font-size:11px; font-weight:800; border:none !important; outline:none !important; box-shadow:0 2px 6px rgba(0,0,0,0.2);">ID: #${tNum}</span>`);
         if (u.age) metaParts.push(`<span style="display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-cake-candles" style="color:#00f2fe;"></i> ${u.age} yrs old</span>`);
         if (u.gender) {
             const gLow = String(u.gender).toLowerCase();
