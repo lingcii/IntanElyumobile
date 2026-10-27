@@ -1,0 +1,28 @@
+INTAN ELYU - LOCAL RUN COMMANDS (PowerShell)
+
+Terminal 1 - Laravel backend (uses the database configured in backend/.env)
+
+cd C:\xamp\htdocs\IntanElyumobile-james\backend
+php artisan optimize:clear
+php artisan migrate
+php artisan serve --host=127.0.0.1 --port=8000
+
+Terminal 2 - Mobile frontend
+
+cd C:\xamp\htdocs\IntanElyumobile-james\frontend\Mobile
+$env:BACKEND_URL="http://127.0.0.1:8000"
+npm install
+npm run start
+
+Open in the browser:
+http://127.0.0.1:3000/?view=auth
+
+Run the proof-isolation regression test:
+
+cd C:\xamp\htdocs\IntanElyumobile-james\frontend\Mobile
+npm test
+
+Notes:
+- Run npm install only on the first setup or after package.json/package-lock.json changes.
+- If backend/.env points to Railway, php artisan migrate applies pending migrations to Railway.
+- Stop either development server with Ctrl+C in its terminal.

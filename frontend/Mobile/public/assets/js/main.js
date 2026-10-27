@@ -268,34 +268,54 @@ window.OfflineCheckinManager = {
         } catch (e) { }
     },
 
-    isItemQueued: function (itemId, spotId = null) {
-        if (!itemId && !spotId) return false;
-        const q = this.getQueue();
-        const target = itemId ? String(itemId) : '';
+    matchesItem: function (entry, itemId, spotId = null, itineraryId = null) {
+        if (!entry) return false;
+        const targetItem = itemId ? String(itemId) : '';
         const targetSpot = spotId ? String(spotId) : '';
-        return q.some(entry => {
-            if (!entry) return false;
-            const eItem = String(entry.itemId || '');
-            const eSpot = String(entry.spotId || '');
-            if (target && (eItem === target || eSpot === target)) return true;
-            if (targetSpot && (eSpot === targetSpot || eItem === targetSpot)) return true;
-            return false;
-        });
+        const targetTrip = itineraryId ? String(itineraryId) : '';
+        const entryItem = entry.itemId ? String(entry.itemId) : '';
+        const entrySpot = entry.spotId ? String(entry.spotId) : '';
+        const entryTrip = entry.itineraryId ? String(entry.itineraryId) : '';
+
+        // A server itinerary-item ID is globally unique and is always authoritative.
+        if (targetItem && entryItem && targetItem === entryItem) {
+            return !targetTrip || !entryTrip || targetTrip === entryTrip;
+        }
+
+        // Offline item IDs may not survive trip creation. Spot fallback is safe only
+        // when it is constrained to the same itinerary.
+        return Boolean(targetTrip && entryTrip && targetTrip === entryTrip && targetSpot && entrySpot === targetSpot);
     },
 
-    getQueuedItem: function (itemId, spotId = null) {
+    isItemQueued: function (itemId, spotId = null, itineraryId = null) {
+        if (!itemId && !spotId) return false;
+        return this.getQueue().some(entry => this.matchesItem(entry, itemId, spotId, itineraryId));
+    },
+
+    getQueuedItem: function (itemId, spotId = null, itineraryId = null) {
         if (!itemId && !spotId) return null;
-        const q = this.getQueue();
-        const target = itemId ? String(itemId) : '';
-        const targetSpot = spotId ? String(spotId) : '';
-        return q.find(entry => {
-            if (!entry) return false;
-            const eItem = String(entry.itemId || '');
-            const eSpot = String(entry.spotId || '');
-            if (target && (eItem === target || eSpot === target)) return true;
-            if (targetSpot && (eSpot === targetSpot || eItem === targetSpot)) return true;
-            return false;
-        }) || null;
+        return this.getQueue().find(entry => this.matchesItem(entry, itemId, spotId, itineraryId)) || null;
+    },
+
+    remapItineraryItems: function (localItineraryId, syncedItinerary) {
+        if (!localItineraryId || !syncedItinerary || !syncedItinerary.id || !Array.isArray(syncedItinerary.items)) return;
+        const localTrip = String(localItineraryId);
+        const queue = this.getQueue();
+        let changed = false;
+
+        queue.forEach(entry => {
+            if (!entry || entry.type !== 'itinerary' || String(entry.itineraryId || '') !== localTrip) return;
+            const serverItem = syncedItinerary.items.find(item => {
+                const serverSpot = item.tourist_spot_id || item.destination_id || (item.destination && item.destination.id);
+                return serverSpot && entry.spotId && String(serverSpot) === String(entry.spotId);
+            });
+            if (!serverItem || !serverItem.id) return;
+            entry.itineraryId = syncedItinerary.id;
+            entry.itemId = serverItem.id;
+            changed = true;
+        });
+
+        if (changed) this.saveQueue(queue);
     },
 
     createThumbnail: function (blobOrFile, maxDim = 120, quality = 0.6) {
@@ -414,10 +434,11 @@ window.OfflineCheckinManager = {
 
         const queue = this.getQueue();
         const existingIdx = queue.findIndex(q => {
-            if (!q) return false;
-            if (entry.itemId && q.itemId && String(q.itemId) === String(entry.itemId)) return true;
-            if (entry.spotId && q.spotId && String(q.spotId) === String(entry.spotId)) return true;
-            return false;
+            if (!q || q.type !== entry.type) return false;
+            if (entry.type === 'itinerary') {
+                return this.matchesItem(q, entry.itemId, entry.spotId, entry.itineraryId);
+            }
+            return Boolean(entry.spotId && q.spotId && String(q.spotId) === String(entry.spotId));
         });
 
         if (existingIdx !== -1) {
@@ -501,7 +522,8 @@ window.OfflineCheckinManager = {
 
                 let resolvedItemId = item.itemId;
 
-                // If itemId starts with offline_, attempt to resolve real numeric item ID from cached trips using spotId
+                // Resolve an offline item only inside its own itinerary. Matching by spot
+                // alone can attach an older trip's proof to a newly-created trip.
                 if ((!resolvedItemId || String(resolvedItemId).startsWith('offline_')) && item.spotId) {
                     try {
                         const tokenKey = (token || '').substring(0, 10);
@@ -512,6 +534,8 @@ window.OfflineCheckinManager = {
                             const list = Array.isArray(parsed) ? parsed : (parsed.itineraries || parsed.data || []);
                             if (Array.isArray(list)) {
                                 list.forEach(t => {
+                                    const tripIds = [t.id, t.local_id, t.trip_id, t.update_id].filter(Boolean).map(String);
+                                    if (!item.itineraryId || !tripIds.includes(String(item.itineraryId))) return;
                                     if (t.items && Array.isArray(t.items)) {
                                         const match = t.items.find(i => {
                                             const sId = String(i.tourist_spot_id || i.destination_id || (i.destination && i.destination.id) || '');
@@ -602,8 +626,9 @@ window.OfflineCheckinManager = {
                     } catch (fbProofErr) { }
                 }
 
-                // If itinerary item check-in 404s (e.g. temporary offline item ID) and spotId is known, fallback to destination check-in
-                if (!isResolved && response && response.status === 404 && item.spotId) {
+                // Destination-only check-ins may use the destination endpoint. Itinerary
+                // proofs must never fall back to a destination-only lookup.
+                if (!isResolved && response && response.status === 404 && item.type !== 'itinerary' && item.spotId) {
                     try {
                         const fallbackUrl = `${baseUrl}/api/tourist/destinations/${item.spotId}/check-in`;
                         const res2 = await fetch(fallbackUrl, {
@@ -632,7 +657,7 @@ window.OfflineCheckinManager = {
                     const finalStatus = data.proof_status || data.status || 'pending';
                     const isApproved = finalStatus === 'approved' || finalStatus === 'success';
 
-                    if (item.itemId || item.spotId) {
+                    if (resolvedItemId && !String(resolvedItemId).startsWith('offline_')) {
                         try {
                             const tokenKey = token.substring(0, 10);
                             ['saved_trips_' + tokenKey, 'dashboard_saved_trips_' + tokenKey, 'dashboard_trips_' + tokenKey].forEach(cacheKey => {
@@ -642,15 +667,10 @@ window.OfflineCheckinManager = {
                                 const list = Array.isArray(parsed) ? parsed : (parsed.itineraries || parsed.data || null);
                                 if (Array.isArray(list)) {
                                     list.forEach(trip => {
+                                        const tripIds = [trip.id, trip.local_id, trip.trip_id, trip.update_id].filter(Boolean).map(String);
+                                        if (item.type === 'itinerary' && item.itineraryId && !tripIds.includes(String(item.itineraryId))) return;
                                         if (trip.items && Array.isArray(trip.items)) {
-                                            const match = trip.items.find(i => {
-                                                if (!i) return false;
-                                                const itId = String(i.id || '');
-                                                const itSpot = String(i.tourist_spot_id || i.destination_id || (i.destination ? i.destination.id : ''));
-                                                if (item.itemId && (itId === String(item.itemId) || itSpot === String(item.itemId))) return true;
-                                                if (item.spotId && (itSpot === String(item.spotId) || itId === String(item.spotId))) return true;
-                                                return false;
-                                            });
+                                            const match = trip.items.find(i => i && String(i.id || '') === String(resolvedItemId));
                                             if (match) {
                                                 match.proof_status = finalStatus;
                                                 if (returnedPhoto) match.proof_image = returnedPhoto;
@@ -667,7 +687,7 @@ window.OfflineCheckinManager = {
                                 }
                             });
                             if (typeof window.savePersistentItemState === 'function') {
-                                window.savePersistentItemState(item.itemId || item.spotId, {
+                                window.savePersistentItemState(resolvedItemId, {
                                     proof_image: returnedPhoto,
                                     proof_images: returnedPhoto ? [returnedPhoto] : [],
                                     proof_status: finalStatus,
@@ -1528,6 +1548,9 @@ window.OfflineTripManager = {
                 if (res.ok) {
                     const serverData = await res.json().catch(() => ({}));
                     const syncedItin = serverData.itinerary || { ...trip, is_offline_queued: false, updated_at: new Date().toISOString() };
+                    if (window.OfflineCheckinManager && typeof window.OfflineCheckinManager.remapItineraryItems === 'function') {
+                        window.OfflineCheckinManager.remapItineraryItems(trip.id || trip.local_id, syncedItin);
+                    }
                     this.removeQueuedTrip(trip.id);
                     if (trip.update_id) this.removeQueuedTrip(trip.update_id);
                     this.removeQueuedTrip('offline_edit_' + trip.id);
@@ -1671,6 +1694,9 @@ window.OfflineTripManager = {
                             if (res.ok) {
                                 const serverData = await res.json().catch(() => ({}));
                                 const syncedItin = serverData.itinerary || { ...trip, is_offline_queued: false, updated_at: new Date().toISOString() };
+                                if (window.OfflineCheckinManager && typeof window.OfflineCheckinManager.remapItineraryItems === 'function') {
+                                    window.OfflineCheckinManager.remapItineraryItems(trip.id || trip.local_id, syncedItin);
+                                }
                                 this.removeQueuedTrip(trip.id);
                                 if (trip.update_id) this.removeQueuedTrip(trip.update_id);
                                 this.removeQueuedTrip('offline_edit_' + trip.id);
@@ -2466,6 +2492,84 @@ window.OfflineProfileManager = {
     }
 })();
 
+// Sync the mobile lock screen with Laravel maintenance mode (HTTP 503).
+(function initMobileMaintenanceModeSync() {
+    const MAINTENANCE_CHECK_INTERVAL_MS = 2000;
+    let maintenanceCheckInFlight = false;
+
+    function ensureMaintenanceOverlay() {
+        if (!document.body) return null;
+        let overlay = document.getElementById('mobile-maintenance-overlay');
+        if (overlay) return overlay;
+
+        overlay = document.createElement('div');
+        overlay.id = 'mobile-maintenance-overlay';
+        overlay.setAttribute('role', 'alertdialog');
+        overlay.setAttribute('aria-modal', 'true');
+        overlay.setAttribute('aria-labelledby', 'mobile-maintenance-title');
+        overlay.style.cssText = 'display:none; position:fixed; inset:0; z-index:2147483647; padding:24px; background:linear-gradient(160deg,#0b1a3d 0%,#1e3a8a 55%,#1689d8 100%); color:#fff; align-items:center; justify-content:center; text-align:center; font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;';
+        overlay.innerHTML = `
+            <div style="width:100%; max-width:390px; padding:32px 24px; border-radius:28px; background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.22); box-shadow:0 18px 50px rgba(0,0,0,0.28); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);">
+                <div style="width:72px; height:72px; margin:0 auto 20px; border-radius:22px; display:flex; align-items:center; justify-content:center; background:#fff; color:#1e3a8a; font-size:31px;"><i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i></div>
+                <h1 id="mobile-maintenance-title" style="margin:0 0 12px; font-size:25px; line-height:1.2; font-weight:900;">Under Maintenance</h1>
+                <p style="margin:0 0 24px; color:rgba(255,255,255,0.88); font-size:14px; line-height:1.65;">Intan Elyu is temporarily unavailable while our team performs maintenance. Please check again shortly.</p>
+                <button id="mobile-maintenance-retry" type="button" style="width:100%; padding:14px 18px; border:0; border-radius:15px; background:#fff; color:#1e3a8a; font-size:14px; font-weight:900; cursor:pointer;"><i class="fa-solid fa-rotate" aria-hidden="true" style="margin-right:7px;"></i> Check Again</button>
+            </div>`;
+        document.body.appendChild(overlay);
+        document.getElementById('mobile-maintenance-retry')?.addEventListener('click', () => window.checkMobileMaintenanceMode());
+        return overlay;
+    }
+
+    window.setMobileMaintenanceMode = function (enabled) {
+        const overlay = ensureMaintenanceOverlay();
+        if (!overlay) return;
+        window.isMobileMaintenanceMode = Boolean(enabled);
+        overlay.style.display = enabled ? 'flex' : 'none';
+        document.documentElement.style.overflow = enabled ? 'hidden' : '';
+        document.body.style.overflow = enabled ? 'hidden' : '';
+    };
+
+    window.checkMobileMaintenanceMode = async function () {
+        if (maintenanceCheckInFlight || (typeof navigator.onLine === 'boolean' && !navigator.onLine)) return;
+        maintenanceCheckInFlight = true;
+        try {
+            const baseUrl = (typeof window.getBackendUrl === 'function'
+                ? window.getBackendUrl()
+                : (window.backendUrl || window.BACKEND_URL || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
+            const response = await fetch(baseUrl + '/api/public/map?maintenance_probe=' + Date.now(), {
+                method: 'HEAD',
+                cache: 'no-store',
+                headers: { 'Accept': 'application/json', 'Cache-Control': 'no-cache' }
+            });
+            if (response.status === 503) {
+                window.setMobileMaintenanceMode(true);
+            } else if (response.ok) {
+                window.setMobileMaintenanceMode(false);
+            }
+        } catch (error) {
+            // Offline mode owns network failures; they are not maintenance signals.
+        } finally {
+            maintenanceCheckInFlight = false;
+        }
+    };
+
+    function startMaintenanceSync() {
+        window.checkMobileMaintenanceMode();
+        if (window._mobileMaintenanceInterval) clearInterval(window._mobileMaintenanceInterval);
+        window._mobileMaintenanceInterval = setInterval(window.checkMobileMaintenanceMode, MAINTENANCE_CHECK_INTERVAL_MS);
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', startMaintenanceSync, { once: true });
+    } else {
+        startMaintenanceSync();
+    }
+    window.addEventListener('online', window.checkMobileMaintenanceMode);
+    document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) window.checkMobileMaintenanceMode();
+    });
+})();
+
 window.setTxt = function (id, val) {
     const el = (typeof id === 'string') ? document.getElementById(id) : id;
     if (el) el.textContent = (val !== undefined && val !== null) ? val : '';
@@ -2820,8 +2924,7 @@ window.fetchSavedTrips = async function (forceRefresh = false) {
                                 if (!it) return it;
                                 const itKey = String(it.id || '');
                                 const spotIdKey = String(it.tourist_spot_id || it.destination_id || (it.destination ? it.destination.id : ''));
-                                const spotKey = 'spot_' + spotIdKey;
-                                const override = persistentStates[itKey] || (spotIdKey ? persistentStates[spotKey] : null);
+                                const override = persistentStates[itKey] || null;
 
                                 const isServerApproved = Boolean(it.is_visited || it.proof_status === 'approved');
                                 const isServerRejected = (it.proof_status === 'rejected');
@@ -2836,12 +2939,6 @@ window.fetchSavedTrips = async function (forceRefresh = false) {
                                         persistentStates[itKey].is_location_verified = true;
                                         persistentStatesChanged = true;
                                     }
-                                    if (spotIdKey && persistentStates[spotKey] && persistentStates[spotKey].proof_status !== 'approved') {
-                                        persistentStates[spotKey].proof_status = 'approved';
-                                        persistentStates[spotKey].is_visited = true;
-                                        persistentStates[spotKey].is_location_verified = true;
-                                        persistentStatesChanged = true;
-                                    }
                                 } else if (isServerRejected) {
                                     if (persistentStates[itKey] && persistentStates[itKey].proof_status !== 'rejected') {
                                         persistentStates[itKey].proof_status = 'rejected';
@@ -2852,16 +2949,15 @@ window.fetchSavedTrips = async function (forceRefresh = false) {
 
                                 const queued = queuedCheckins.find(q => {
                                     if (!q) return false;
-                                    if (q.itemId && String(q.itemId) === itKey) return true;
-                                    if (q.spotId && spotIdKey && String(q.spotId) === spotIdKey) return true;
-                                    return false;
+                                    return Boolean(q.itemId && String(q.itemId) === itKey);
                                 });
 
                                 let inMemoryItem = null;
                                 if (Array.isArray(window._cachedSavedTrips)) {
                                     for (const t of window._cachedSavedTrips) {
+                                        if (!t || String(t.id || t.local_id || t.trip_id || '') !== String(trip.id || '')) continue;
                                         if (t && Array.isArray(t.items)) {
-                                            const match = t.items.find(m => m && (String(m.id) === itKey || (spotIdKey && String(m.tourist_spot_id || m.destination_id || (m.destination ? m.destination.id : '')) === spotIdKey)));
+                                            const match = t.items.find(m => m && String(m.id) === itKey);
                                             if (match && (match.proof_image || (Array.isArray(match.proof_images) && match.proof_images.length > 0))) {
                                                 inMemoryItem = match;
                                                 break;
@@ -3072,8 +3168,7 @@ window.renderSavedTrips = function (itineraries) {
                 tripObj.items = tripObj.items.map(it => {
                     if (!it) return it;
                     const itId = String(it.id);
-                    const spotIdKey = String(it.tourist_spot_id || it.destination_id || (it.destination ? it.destination.id : ''));
-                    const saved = localItemProofs[itId] || (spotIdKey ? localItemProofs[spotIdKey] : null);
+                    const saved = localItemProofs[itId] || null;
                     if (saved) {
                         const currentProofs = (Array.isArray(it.proof_images) && it.proof_images.length)
                             ? it.proof_images
@@ -3249,7 +3344,7 @@ window.renderSavedTrips = function (itineraries) {
                         }
 
                         const spotIdVal = item.tourist_spot_id || item.destination_id || (item.destination ? item.destination.id : null);
-                        const queuedItem = window.OfflineCheckinManager ? window.OfflineCheckinManager.getQueuedItem(item.id, spotIdVal) : null;
+                        const queuedItem = window.OfflineCheckinManager ? window.OfflineCheckinManager.getQueuedItem(item.id, spotIdVal, trip.id || trip.local_id) : null;
                         const isQueued = Boolean(queuedItem || item.is_offline_queued);
                         if (isQueued) hasQueuedCheckins = true;
                         if (proofImages.length === 0 && isQueued && queuedItem && (queuedItem.previewUrl || queuedItem.image)) {

@@ -213,7 +213,9 @@ class ItineraryController extends Controller
             return $this->formatItineraryResponse($itinerary, $spotPublicVehicles, $spotPrivateVehicles, $spotAllVehicles);
         });
 
-        return response()->json(['itineraries' => $itineraries]);
+        return response()->json(['itineraries' => $itineraries])
+            ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+            ->header('Pragma', 'no-cache');
     }
 
     /**
@@ -235,7 +237,8 @@ class ItineraryController extends Controller
 
         return response()->json([
             'itinerary' => $this->formatItineraryResponse($itinerary, $spotPublicVehicles, $spotPrivateVehicles, $spotAllVehicles)
-        ]);
+        ])->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+          ->header('Pragma', 'no-cache');
     }
 
     /**
@@ -867,4 +870,3 @@ class ItineraryController extends Controller
         ]);
     }
 }
-

@@ -438,7 +438,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                     const isPending = Boolean(item.proof_image && (item.proof_status === 'pending' || !item.proof_status));
                     const isRejected = (item.proof_status === 'rejected');
                     const spotIdVal = item.tourist_spot_id || item.destination_id || (item.destination ? item.destination.id : null);
-                    const isQueued = Boolean((window.OfflineCheckinManager && window.OfflineCheckinManager.isItemQueued(item.id, spotIdVal)) || item.is_offline_queued);
+                    const isQueued = Boolean((window.OfflineCheckinManager && window.OfflineCheckinManager.isItemQueued(item.id, spotIdVal, window.currentTripId)) || item.is_offline_queued);
                     const isActive = idx === activeIndex;
                     if (isActive) {
                         card.classList.add('active');
@@ -515,7 +515,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                 const isVisited = Boolean(item.is_visited || isPhotoApproved || item.proof_status === 'approved' || (item.is_visited && isLocationVerified));
                 const isRejected = (item.proof_status === 'rejected');
                 const spotIdVal = item.tourist_spot_id || item.destination_id || (item.destination ? item.destination.id : null);
-                const queuedItem = window.OfflineCheckinManager ? window.OfflineCheckinManager.getQueuedItem(item.id, spotIdVal) : null;
+                const queuedItem = window.OfflineCheckinManager ? window.OfflineCheckinManager.getQueuedItem(item.id, spotIdVal, window.currentTripId) : null;
                 const isQueued = Boolean(queuedItem || item.is_offline_queued);
                 const isActive = idx === activeIndex;
 
@@ -761,13 +761,13 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                             // Check offline queued check-in / photo
                             const queuedEntry = queuedCheckins.find(q => {
                                 if (!q) return false;
-                                const qItem = String(q.itemId || '');
-                                const qSpot = String(q.spotId || '');
-                                return (itKey && (qItem === itKey || qSpot === itKey)) ||
-                                       (spotKey && (qSpot === spotKey || qItem === spotKey));
+                                if (window.OfflineCheckinManager && typeof window.OfflineCheckinManager.matchesItem === 'function') {
+                                    return window.OfflineCheckinManager.matchesItem(q, it.id, sId, trip.id || trip.local_id);
+                                }
+                                return Boolean(q.itemId && itKey && String(q.itemId) === itKey);
                             });
 
-                            const override = persistentStates[itKey] || (spotKey ? persistentStates['spot_' + spotKey] : null) || (spotKey ? persistentStates[spotKey] : null);
+                            const override = persistentStates[itKey] || null;
 
                             const isLocVerified = Boolean(
                                 it.is_location_verified || 
@@ -1063,7 +1063,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
 
             const activeIndex = items.findIndex(i => {
                 const sId = i.tourist_spot_id || i.destination_id || (i.destination ? i.destination.id : null);
-                const isQueued = Boolean((window.OfflineCheckinManager && window.OfflineCheckinManager.isItemQueued(i.id, sId)) || i.is_offline_queued);
+                const isQueued = Boolean((window.OfflineCheckinManager && window.OfflineCheckinManager.isItemQueued(i.id, sId, window.currentTripId)) || i.is_offline_queued);
                 return !(i.is_visited || i.proof_status === 'approved' || isQueued);
             });
 
@@ -1090,7 +1090,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                         const isLocOnly = Boolean(isLocationVerified && !hasProof && !isVisited);
                         const isPhotoOnly = Boolean(!isLocationVerified && hasProof && !isVisited && !isPhotoApproved);
                         const sId = item.tourist_spot_id || item.destination_id || (item.destination ? item.destination.id : null);
-                        const isQueued = Boolean((window.OfflineCheckinManager && window.OfflineCheckinManager.isItemQueued(item.id, sId)) || item.is_offline_queued);
+                        const isQueued = Boolean((window.OfflineCheckinManager && window.OfflineCheckinManager.isItemQueued(item.id, sId, window.currentTripId)) || item.is_offline_queued);
 
                         if (isQueued) {
                             // QUEUED OFFLINE - Amber Cloud / Clock

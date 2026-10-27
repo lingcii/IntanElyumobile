@@ -504,7 +504,7 @@ try {
             style="width:56px; height:56px; border-radius:50%; background:#ffffff !important; display:flex; align-items:center; justify-content:center; margin:0 auto 16px; border:none !important; outline:none !important; box-shadow:none !important;">
             <i class="fa-solid fa-triangle-exclamation" style="color:#1e3a8a !important; font-size:26px;"></i>
         </div>
-        <h3 style="margin:0 0 8px; color:#ffffff; font-size:20px; font-weight:800; letter-spacing:-0.3px;">Missing
+        <h3 id="confirm-modal-title" style="margin:0 0 8px; color:#ffffff; font-size:20px; font-weight:800; letter-spacing:-0.3px;">Missing
             Details</h3>
         <p id="confirm-modal-msg"
             style="margin:0 0 24px; color:rgba(255,255,255,0.95); font-size:13.5px; line-height:1.55; font-weight:500;">
@@ -1132,7 +1132,8 @@ try {
         };
 
         // ---- Custom confirm modal (replaces native confirm) ----
-        window.showConfirmModal = function (msg) {
+        window.showConfirmModal = function (msg, options) {
+            options = options || {};
             // Prevent stacking multiple confirm modals
             var existing = document.getElementById('confirm-modal');
             if (existing && existing.style.display === 'flex') {
@@ -1141,10 +1142,15 @@ try {
             return new Promise(function (resolve) {
                 var modal = document.getElementById('confirm-modal');
                 var msgEl = document.getElementById('confirm-modal-msg');
+                var titleEl = document.getElementById('confirm-modal-title');
                 var btnOk = document.getElementById('btn-confirm-ok');
                 var btnCancel = document.getElementById('btn-confirm-cancel');
                 if (!modal || !msgEl || !btnOk || !btnCancel) { resolve(true); return; }
                 msgEl.textContent = msg;
+                if (titleEl) titleEl.textContent = options.title || 'Missing Details';
+                btnOk.textContent = options.confirmText || 'Save Anyway';
+                btnCancel.textContent = options.cancelText || 'Cancel';
+                btnCancel.style.display = options.hideCancel ? 'none' : '';
                 modal.style.display = 'flex';
                 function cleanup() {
                     modal.style.display = 'none';
@@ -3571,6 +3577,15 @@ try {
                 const item = container.closest('.timeline-item');
                 if (!content || !item) return;
                 let startX = 0, currentX = 0, isSwiping = false;
+                const resetSwipe = () => {
+                    content.style.transform = '';
+                    content.style.borderRadius = '20px';
+                    if (bg) {
+                        bg.style.opacity = '0';
+                        bg.style.pointerEvents = 'none';
+                        bg.style.transform = 'translateX(100%)';
+                    }
+                };
 
                 content.addEventListener('touchstart', (e) => {
                     if (e.target.closest('.fa-grip-vertical')) return;
@@ -3601,15 +3616,10 @@ try {
                     const diff = startX - currentX;
                     if (diff > 60 && isSwiping) {
                         const id = item.dataset.id;
-                        if (id) window.removeItineraryItem(id);
+                        resetSwipe();
+                        if (id) window.confirmRemoveItineraryItem(id);
                     } else {
-                        content.style.transform = '';
-                        content.style.borderRadius = '20px';
-                        if (bg) {
-                            bg.style.opacity = '0';
-                            bg.style.pointerEvents = 'none';
-                            bg.style.transform = 'translateX(100%)';
-                        }
+                        resetSwipe();
                     }
                     startX = 0;
                     currentX = 0;
@@ -3621,8 +3631,28 @@ try {
                     const id = item.dataset.id;
                     if (id) window.routeToPlace(id);
                 });
+
+                if (bg) {
+                    bg.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const id = item.dataset.id;
+                        resetSwipe();
+                        if (id) window.confirmRemoveItineraryItem(id);
+                    });
+                }
             });
         }
+
+        window.confirmRemoveItineraryItem = async function (id) {
+            const confirmed = await window.showConfirmModal('Are you sure you want to delete this?', {
+                title: 'Delete Destination?',
+                confirmText: 'Yes',
+                cancelText: 'No'
+            });
+            if (confirmed) window.removeItineraryItem(id);
+            return confirmed;
+        };
 
         window.removeItineraryItem = function (id) {
             let draft = JSON.parse(localStorage.getItem('intan_elyu_draft_itinerary') || '[]');
@@ -4454,6 +4484,19 @@ try {
             if (e && typeof e.preventDefault === 'function') e.preventDefault();
             try {
                 const draft = window.getEffectiveDraft ? window.getEffectiveDraft() : JSON.parse(localStorage.getItem('intan_elyu_draft_itinerary') || '[]');
+
+                const hasMissingVehicle = draft.some((_, index) => {
+                    const leg = (typeof window.getLegTransportInfo === 'function') ? window.getLegTransportInfo(index) : null;
+                    return !leg || (!leg.is_maintenance && !leg.has_selection);
+                });
+                if (hasMissingVehicle) {
+                    window.showConfirmModal('Please choose vehicle type.', {
+                        title: 'Vehicle Required',
+                        confirmText: 'OK',
+                        hideCancel: true
+                    });
+                    return;
+                }
 
                 // Reset calendar dropdown state on modal open
                 const cal = document.getElementById('custom-calendar-dropdown');
@@ -5622,15 +5665,6 @@ try {
 
             if (window.calculateModalBudget) window.calculateModalBudget();
         };
-
-        // Attach direct click listener to Save Draft Plan button
-        const fabBtn = document.getElementById('btn-save-itinerary');
-        if (fabBtn) {
-            fabBtn.addEventListener('click', function (e) {
-                if (e) e.preventDefault();
-                window.openSaveModal(e);
-            });
-        }
 
         // Initial render on load
         if (window.renderItinerary) {

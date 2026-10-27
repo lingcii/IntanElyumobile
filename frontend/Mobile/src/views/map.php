@@ -3620,7 +3620,8 @@ if (is_dir($imgDir)) {
                         loc.is_maintenance == 1 ||
                         loc.is_maintenance === true ||
                         loc.is_maintenance === '1' ||
-                        (loc.status && String(loc.status).toLowerCase().includes('maint'))
+                        (loc.status && String(loc.status).toLowerCase().includes('maint')) ||
+                        (loc.operating_status && String(loc.operating_status).toLowerCase().includes('maint'))
                     );
                     if (isMaint) {
                         return { isMaint: true, isClosed: true, label: 'Unavailable' };
@@ -3684,7 +3685,7 @@ if (is_dir($imgDir)) {
                 }
             }
 
-            // Action Button: Add to Trip (Always enabled so tourists can plan future visits or plan at night)
+            // Action Button: maintenance sites cannot be added to a trip.
             const addItinBtn = document.getElementById('btn-add-itinerary');
             if (addItinBtn) {
                 let isAlreadyInDraft = false;
@@ -3693,18 +3694,30 @@ if (is_dir($imgDir)) {
                     isAlreadyInDraft = draft.some(item => String(item.id) === String(locationData.id));
                 } catch (e) { }
 
-                addItinBtn.disabled = false;
-                addItinBtn.style.removeProperty('pointer-events');
-                addItinBtn.style.setProperty('cursor', 'pointer', 'important');
                 addItinBtn.style.setProperty('color', '#ffffff', 'important');
-                addItinBtn.style.setProperty('opacity', '1', 'important');
-
-                if (isAlreadyInDraft) {
+                if (opState.isMaint) {
+                    addItinBtn.disabled = true;
+                    addItinBtn.style.setProperty('pointer-events', 'none', 'important');
+                    addItinBtn.style.setProperty('cursor', 'not-allowed', 'important');
+                    addItinBtn.style.setProperty('opacity', '0.72', 'important');
+                    addItinBtn.style.setProperty('background', 'linear-gradient(135deg, #b45309 0%, #d97706 100%)', 'important');
+                    addItinBtn.style.setProperty('box-shadow', 'none', 'important');
+                    addItinBtn.innerHTML = '<i class="fa-solid fa-screwdriver-wrench" style="margin-right:6px;"></i> Under Maintenance';
+                    addItinBtn.title = 'This destination is under maintenance and cannot be added';
+                } else if (isAlreadyInDraft) {
+                    addItinBtn.disabled = false;
+                    addItinBtn.style.removeProperty('pointer-events');
+                    addItinBtn.style.setProperty('cursor', 'pointer', 'important');
+                    addItinBtn.style.setProperty('opacity', '1', 'important');
                     addItinBtn.style.setProperty('background', 'linear-gradient(135deg, #059669 0%, #10b981 100%)', 'important');
                     addItinBtn.style.setProperty('box-shadow', '0 4px 14px rgba(16,185,129,0.35)', 'important');
                     addItinBtn.innerHTML = '<i class="fa-solid fa-check" style="margin-right:6px;"></i> In Trip';
                     addItinBtn.title = 'Already added to itinerary draft';
                 } else {
+                    addItinBtn.disabled = false;
+                    addItinBtn.style.removeProperty('pointer-events');
+                    addItinBtn.style.setProperty('cursor', 'pointer', 'important');
+                    addItinBtn.style.setProperty('opacity', '1', 'important');
                     addItinBtn.style.setProperty('background', 'linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%)', 'important');
                     addItinBtn.style.setProperty('box-shadow', '0 4px 14px rgba(32,63,141,0.35)', 'important');
                     addItinBtn.innerHTML = '<i class="fa-solid fa-calendar-plus" style="margin-right:6px;"></i> Add to Trip';
@@ -4674,7 +4687,19 @@ if (is_dir($imgDir)) {
 
             const opState = (typeof window.checkSiteOperationalState === 'function')
                 ? window.checkSiteOperationalState(dest)
-                : { isMaint: false, isClosed: false };
+                : {
+                    isMaint: Boolean(
+                        dest.is_maintenance == 1 ||
+                        (dest.status && String(dest.status).toLowerCase().includes('maint')) ||
+                        (dest.operating_status && String(dest.operating_status).toLowerCase().includes('maint'))
+                    ),
+                    isClosed: false
+                };
+
+            if (opState.isMaint) {
+                if (typeof showToast === 'function') showToast('This tourist site is under maintenance and cannot be added to a trip.');
+                return;
+            }
 
             // Save to localStorage draft
             let draft = [];

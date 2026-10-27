@@ -1,4 +1,4 @@
-const CACHE_NAME = 'Intan_Elyu_cache-v24';
+const CACHE_NAME = 'Intan_Elyu_cache-v25';
 const ASSETS = [
     './',
     './index.php',

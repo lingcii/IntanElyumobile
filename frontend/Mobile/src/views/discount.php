@@ -238,6 +238,7 @@ $backRoute = 'profile';
 (function() {
 const VOUCHERS_CACHE_KEY = 'intan_elyu_cached_vouchers';
 const VOUCHERS_CACHE_TTL = 900000; // 15 mins
+const VOUCHERS_SYNC_INTERVAL_MS = 1500;
 
 let activeStatus = 'All';
 let activeCategory = 'All';
@@ -249,6 +250,7 @@ let userPointsBalance = 0;
 let isStatusDropdownOpen = false;
 let isCatDropdownOpen = false;
 let isMuniDropdownOpen = false;
+let voucherFetchInFlight = false;
 
 // ── Guest Mode detection (guests must never see a previous account's cached data) ──
 function isDiscountGuest() {
@@ -632,10 +634,14 @@ function isVoucherFullyClaimed(v) {
 function isVoucherClaimed(v) {
     if (!v) return false;
 
-    // 1. If this object is already a specific redemption item:
+    // 1. Only redemption records may use "active" to mean already claimed.
+    // Catalog vouchers also use status=active to mean available for claiming.
+    const isRedemptionItem = v.redemptionStatus !== undefined || v.redemptionId !== undefined || String(v.id || '').startsWith('rdm_');
     const rStatus = (v.redemptionStatus || v.status || '').toLowerCase().trim();
-    if (['redeemed', 'used', 'completed'].includes(rStatus)) return false; // Already redeemed, not active claimed!
-    if (rStatus === 'claimed' || rStatus === 'active') return true;
+    if (isRedemptionItem) {
+        if (['redeemed', 'used', 'completed'].includes(rStatus)) return false;
+        if (rStatus === 'claimed' || rStatus === 'active') return true;
+    }
 
     // 2. If it has a specific unique voucher code:
     const vcode = (v.code || v.voucher_code || '').toUpperCase().trim();
@@ -1677,39 +1683,76 @@ async function handleModalRedeem() {
     }
 }
 
-async function fetchLiveDatabaseVouchers() {
-    // 1. Try SWR Cache first for instant render
-    let cached = null;
+async function fetchLiveDatabaseVouchers(forceRefresh = false) {
+    if (voucherFetchInFlight) return;
+    voucherFetchInFlight = true;
+
     try {
-        const raw = localStorage.getItem(VOUCHERS_CACHE_KEY);
-        if (raw) {
-            const parsed = (typeof window.safeJsonParse === 'function') ? window.safeJsonParse(raw, null) : JSON.parse(raw);
-            if (parsed && Array.isArray(parsed.data)) {
-                cached = parsed;
-                processVouchersData(parsed.data);
-            }
+        // Show cached cards immediately on initial load, then replace them with the live catalog.
+        if (!forceRefresh) {
+            try {
+                const raw = localStorage.getItem(VOUCHERS_CACHE_KEY);
+                if (raw) {
+                    const parsed = (typeof window.safeJsonParse === 'function') ? window.safeJsonParse(raw, null) : JSON.parse(raw);
+                    if (parsed && Array.isArray(parsed.data)) processVouchersData(parsed.data);
+                }
+            } catch(e) {}
         }
-    } catch(e) {}
 
-    // Render cached vouchers instantly, but always fetch fresh vouchers in background so other devices see updates immediately
-
-    try {
-        const baseUrl = (window.backendUrl || 'https://api.intan-elyu.online').replace(/\/+$/, '');
-        const res = await fetch(baseUrl + '/api/vouchers', {
-            headers: { 'Accept': 'application/json', 'ngrok-skip-browser-warning': 'true' }
-        });
-        if (res.ok) {
-            const data = await res.json();
-            if (data.status === 'success' && Array.isArray(data.data)) {
-                try {
-                    localStorage.setItem(VOUCHERS_CACHE_KEY, JSON.stringify({ data: data.data, timestamp: Date.now() }));
-                } catch(e) {}
-                processVouchersData(data.data);
+        const baseUrl = (typeof window.getBackendUrl === 'function'
+            ? window.getBackendUrl()
+            : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
+        const res = await fetch(baseUrl + '/api/vouchers?fresh=' + Date.now(), {
+            cache: 'no-store',
+            headers: {
+                'Accept': 'application/json',
+                'Cache-Control': 'no-cache',
+                'ngrok-skip-browser-warning': 'true'
             }
+        });
+        if (!res.ok) throw new Error('Voucher catalog request failed: ' + res.status);
+
+        const data = await res.json();
+        if (data.status === 'success' && Array.isArray(data.data)) {
+            try {
+                localStorage.setItem(VOUCHERS_CACHE_KEY, JSON.stringify({ data: data.data, timestamp: Date.now() }));
+            } catch(e) {}
+            processVouchersData(data.data);
         }
     } catch(e) {
         console.warn('Could not load live database vouchers:', e);
+    } finally {
+        voucherFetchInFlight = false;
     }
+}
+
+function isDiscountViewActive() {
+    const current = (document.body ? document.body.getAttribute('data-view') : '') || (window.currentView || '');
+    return current === 'discount' && Boolean(document.getElementById('discounts-grid'));
+}
+
+function stopVoucherCatalogSync() {
+    if (window._discountVoucherCatalogInterval) {
+        clearInterval(window._discountVoucherCatalogInterval);
+        window._discountVoucherCatalogInterval = null;
+    }
+}
+
+function startVoucherCatalogSync() {
+    stopVoucherCatalogSync();
+    if (!isDiscountViewActive()) return;
+
+    window.discountNeedsRefresh = false;
+    fetchLiveDatabaseVouchers(true);
+    window._discountVoucherCatalogInterval = setInterval(() => {
+        if (!isDiscountViewActive()) {
+            stopVoucherCatalogSync();
+            return;
+        }
+        if (document.visibilityState === 'visible' && navigator.onLine !== false) {
+            fetchLiveDatabaseVouchers(true);
+        }
+    }, VOUCHERS_SYNC_INTERVAL_MS);
 }
 
 function processVouchersData(rawList) {
@@ -2027,7 +2070,7 @@ function populateStatusDropdown() {
     const statusList = [
         {
             value: 'All',
-            label: 'All Vouchers',
+            label: 'Available Vouchers',
             desc: 'Available reward deals to claim',
             count: countAll
         },
@@ -2241,6 +2284,9 @@ window.closeFloatingCategory = closeFloatingCategory;
 window.closeFloatingMunicipality = closeFloatingMunicipality;
 window.populateCategoryDropdown = populateCategoryDropdown;
 window.populateMunicipalityDropdown = populateMunicipalityDropdown;
+window.fetchLiveDatabaseVouchers = fetchLiveDatabaseVouchers;
+window.fetchUserPointsAndRedemptions = fetchUserPointsAndRedemptions;
+window.startVoucherCatalogSync = startVoucherCatalogSync;
 
 // Synchronously populate default dropdown items right away
 populateStatusDropdown();
@@ -2249,6 +2295,7 @@ populateMunicipalityDropdown();
 
 fetchLiveDatabaseVouchers();
 fetchUserPointsAndRedemptions();
+startVoucherCatalogSync();
 
 // Offline Indicator Status Management
 function updateDiscountOfflineStatus() {
@@ -2275,24 +2322,35 @@ window.addEventListener('appOffline', updateDiscountOfflineStatus);
 window.addEventListener('app-connection-changed', updateDiscountOfflineStatus);
 setTimeout(updateDiscountOfflineStatus, 150);
 
-window.addEventListener('online', function () {
+if (window._discountOnlineCatalogHandler) window.removeEventListener('online', window._discountOnlineCatalogHandler);
+window._discountOnlineCatalogHandler = function () {
     const current = (document.body ? document.body.getAttribute('data-view') : '') || (window.currentView || '');
     if (current !== 'discount') {
         window.discountNeedsRefresh = true;
         return;
     }
-    fetchLiveDatabaseVouchers();
+    startVoucherCatalogSync();
     fetchUserPointsAndRedemptions();
-});
-window.addEventListener('appOnline', function () {
+};
+window.addEventListener('online', window._discountOnlineCatalogHandler);
+
+if (window._discountAppOnlineCatalogHandler) window.removeEventListener('appOnline', window._discountAppOnlineCatalogHandler);
+window._discountAppOnlineCatalogHandler = function () {
     const current = (document.body ? document.body.getAttribute('data-view') : '') || (window.currentView || '');
     if (current !== 'discount') {
         window.discountNeedsRefresh = true;
         return;
     }
-    fetchLiveDatabaseVouchers();
+    startVoucherCatalogSync();
     fetchUserPointsAndRedemptions();
-});
+};
+window.addEventListener('appOnline', window._discountAppOnlineCatalogHandler);
+
+if (window._discountVisibilityCatalogHandler) document.removeEventListener('visibilitychange', window._discountVisibilityCatalogHandler);
+window._discountVisibilityCatalogHandler = function () {
+    if (document.visibilityState === 'visible' && isDiscountViewActive()) startVoucherCatalogSync();
+};
+document.addEventListener('visibilitychange', window._discountVisibilityCatalogHandler);
 
 // Real-time synchronization when a voucher is claimed in Profile or anywhere in the app
 window.addEventListener('voucherClaimed', function (e) {
@@ -2353,7 +2411,8 @@ window.addEventListener('voucherClaimed', function (e) {
 });
 
 // Real-time synchronization when navigating to the Discounts & Vouchers view
-window.addEventListener('viewLoaded', function(e) {
+if (window._discountViewLoadedHandler) window.removeEventListener('viewLoaded', window._discountViewLoadedHandler);
+window._discountViewLoadedHandler = function(e) {
     if (e && e.detail && e.detail.view === 'discount') {
         const token = localStorage.getItem('intan_elyu_token');
         if (token) {
@@ -2379,8 +2438,12 @@ window.addEventListener('viewLoaded', function(e) {
         updateClaimedBadge();
         populateStatusDropdown();
         renderDiscounts();
+        startVoucherCatalogSync();
         fetchUserPointsAndRedemptions();
+    } else if (e && e.detail && e.detail.view) {
+        stopVoucherCatalogSync();
     }
-});
+};
+window.addEventListener('viewLoaded', window._discountViewLoadedHandler);
 })();
 </script>

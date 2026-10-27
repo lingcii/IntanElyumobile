@@ -1080,7 +1080,7 @@ $backRoute = 'itinerary';
                         queuedCheckins.forEach(q => {
                             if (!q) return;
                             const qImg = q.previewUrl || q.image;
-                            const keys = [q.itemId, q.spotId].filter(Boolean).map(String);
+                            const keys = [q.itemId].filter(Boolean).map(String);
                             keys.forEach(targetKey => {
                                 const existing = (localItemProofs[targetKey] && localItemProofs[targetKey].proof_images) ? localItemProofs[targetKey].proof_images : [];
                                 const merged = qImg ? ((existing.length > 0) ? existing : [qImg]) : existing;
@@ -1337,7 +1337,7 @@ $backRoute = 'itinerary';
                                 }
 
                                 const spotIdVal = item.tourist_spot_id || item.destination_id || (item.destination ? item.destination.id : null);
-                                const queuedItem = window.OfflineCheckinManager ? window.OfflineCheckinManager.getQueuedItem(item.id, spotIdVal) : null;
+                                const queuedItem = window.OfflineCheckinManager ? window.OfflineCheckinManager.getQueuedItem(item.id, spotIdVal, trip.id || trip.local_id) : null;
                                 const isCheckinQueued = Boolean(queuedItem);
                                 if (isCheckinQueued) {
                                     hasQueuedCheckins = true;
