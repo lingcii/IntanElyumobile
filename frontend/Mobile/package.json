@@ -5,13 +5,14 @@
   "main": "index.js",
   "scripts": {
     "start": "cd src && php -S 0.0.0.0:3000 router.php",
-    "test": "node tests/offline-proof-isolation.test.js && node tests/mobile-voucher-sync.test.js && node tests/itinerary-guardrails.test.js && node tests/maintenance-mode-sync.test.js && node tests/saved-trip-review-ux.test.js && node tests/mobile-performance.test.js",
+    "test": "node tests/offline-proof-isolation.test.js && node tests/mobile-voucher-sync.test.js && node tests/itinerary-guardrails.test.js && node tests/maintenance-mode-sync.test.js && node tests/saved-trip-review-ux.test.js && node tests/mobile-performance.test.js && node tests/map-directions.test.js",
     "test:proof-sync": "node tests/offline-proof-isolation.test.js",
     "test:voucher-sync": "node tests/mobile-voucher-sync.test.js",
     "test:itinerary-guardrails": "node tests/itinerary-guardrails.test.js",
     "test:maintenance-sync": "node tests/maintenance-mode-sync.test.js",
     "test:saved-trip-review-ux": "node tests/saved-trip-review-ux.test.js",
-    "test:performance": "node tests/mobile-performance.test.js"
+    "test:performance": "node tests/mobile-performance.test.js",
+    "test:map-directions": "node tests/map-directions.test.js"
   },
   "keywords": [],
   "author": "",

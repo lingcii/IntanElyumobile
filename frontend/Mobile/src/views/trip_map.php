@@ -1947,6 +1947,14 @@ include_once __DIR__ . '/../components/testimony_modal.php';
             if (!itemId) return;
 
             const originalHtml = btnEl ? btnEl.innerHTML : '';
+            const lockCheckedInButton = () => {
+                if (!btnEl) return;
+                btnEl.innerHTML = '<i class="fa-solid fa-circle-check"></i> Checked In';
+                btnEl.disabled = true;
+                btnEl.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+                btnEl.style.cursor = 'default';
+                btnEl.removeAttribute('onclick');
+            };
 
             if (typeof window.isGuestUser === 'function' && window.isGuestUser()) {
                 window.promptGuestLogin('check-in');
@@ -1980,6 +1988,10 @@ include_once __DIR__ . '/../components/testimony_modal.php';
 
             const parentTrip = (window._cachedTrip || window._activeTrip || (window._cachedSavedTrips || []).find(t => (t.items || []).some(i => String(i.id) === String(itemId))));
             const targetItem = (window.currentTripItems || []).find(it => String(it.id) === String(itemId));
+            if (targetItem && (targetItem.is_location_verified || targetItem.visited_at)) {
+                lockCheckedInButton();
+                return;
+            }
             const spotId = targetItem ? (targetItem.tourist_spot_id || targetItem.destination_id || (targetItem.destination ? targetItem.destination.id : null)) : null;
             const tripId = window.currentTripId || (parentTrip ? parentTrip.id : null);
             const tPax = parentTrip ? (parentTrip.total_pax || 1) : 1;
@@ -2035,10 +2047,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                     if (window.confetti) {
                         try { window.confetti({ particleCount: 70, spread: 60, origin: { y: 0.7 } }); } catch (e) { }
                     }
-                    if (btnEl) {
-                        btnEl.innerHTML = originalHtml;
-                        btnEl.disabled = false;
-                    }
+                    lockCheckedInButton();
                     return;
                 }
 
@@ -2070,6 +2079,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
 
                     if (response.ok && (data.success || data.is_location_verified)) {
                         window.applyLocationCheckinLocally(itemId);
+                        lockCheckedInButton();
                         if (typeof showToast === 'function') {
                             showToast(data.message || `📍 Location verified at ${spotName}! Photo proof is required to verify your visit.`, 'success');
                         }
@@ -2081,7 +2091,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                             showToast(data.message || 'Check-in failed. Please ensure you are within 200m of the destination.', 'error');
                         }
                     }
-                    if (btnEl) {
+                    if (btnEl && !(response.ok && (data.success || data.is_location_verified))) {
                         btnEl.innerHTML = originalHtml;
                         btnEl.disabled = false;
                     }
@@ -2090,6 +2100,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                     console.warn('Location check-in error, queuing offline:', err);
                     if (window.OfflineCheckinManager) {
                         window.applyLocationCheckinLocally(itemId);
+                        lockCheckedInButton();
                         await window.OfflineCheckinManager.queueOfflineCheckin({
                             type: 'itinerary',
                             itemId: itemId,
@@ -2106,7 +2117,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                     } else {
                         if (typeof showToast === 'function') showToast('Network error during check-in.');
                     }
-                    if (btnEl) {
+                    if (btnEl && !window.OfflineCheckinManager) {
                         btnEl.innerHTML = originalHtml;
                         btnEl.disabled = false;
                     }
@@ -2145,7 +2156,12 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                 }
             };
 
-            if (navigator.geolocation) {
+            const cachedPosition = window.deviceLastPos;
+            if (cachedPosition && cachedPosition.coords &&
+                Date.now() - Number(cachedPosition.timestamp || 0) < 60000 &&
+                Number(cachedPosition.coords.accuracy || 9999) <= 150) {
+                checkAndProceed(cachedPosition.coords.latitude, cachedPosition.coords.longitude);
+            } else if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(
                     (pos) => {
                         window.myLat = pos.coords.latitude;
@@ -2159,7 +2175,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                             handleGpsErr(err);
                         }
                     },
-                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                    { enableHighAccuracy: true, timeout: 7000, maximumAge: 30000 }
                 );
             } else if (window.myLat && window.myLng) {
                 checkAndProceed(window.myLat, window.myLng);

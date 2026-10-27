@@ -393,6 +393,152 @@ if (is_dir($imgDir)) {
         <i class="fa-solid fa-crosshairs"></i>
     </div>
 
+    <!-- Directions button: opens selection without rebuilding the map. -->
+    <button type="button" id="btn-map-directions" class="animate-slide-up" onclick="window.openMapDirections()"
+        aria-label="Get directions" title="Directions"
+        style="position:absolute; bottom:calc(175px + env(safe-area-inset-bottom)); left:10px; width:48px; height:48px; z-index:900; display:flex; align-items:center; justify-content:center; border:0; border-radius:14px; background:#ffffff !important; color:#1e3a8a !important; box-shadow:0 8px 22px rgba(10,25,60,0.28); cursor:pointer; transition:transform .18s ease;"
+        onpointerdown="this.style.transform='scale(.92)'" onpointerup="this.style.transform='scale(1)'"
+        onpointercancel="this.style.transform='scale(1)'">
+        <i class="fa-solid fa-diamond-turn-right" style="color:#1e3a8a !important; font-size:21px;"></i>
+    </button>
+
+    <section id="map-directions-panel" class="map-directions-panel" role="dialog" aria-modal="true"
+        aria-hidden="true" aria-label="Choose route destination">
+        <div class="directions-topbar">
+            <button type="button" class="directions-back" onclick="window.closeMapDirectionsPanel()" aria-label="Back to map">
+                <i class="fa-solid fa-arrow-left"></i>
+            </button>
+            <div class="directions-fields">
+                <label class="directions-field-row">
+                    <span class="directions-dot directions-dot-start"></span>
+                    <input id="directions-start-input" type="text" value="Your location" autocomplete="off"
+                        aria-label="Starting location">
+                </label>
+                <span class="directions-connector"></span>
+                <label class="directions-field-row">
+                    <i class="fa-solid fa-location-dot directions-dot-destination"></i>
+                    <input id="directions-destination-input" type="text" placeholder="Choose destination" autocomplete="off"
+                        aria-label="Destination">
+                </label>
+            </div>
+            <button type="button" class="directions-swap" onclick="window.swapMapDirections()" aria-label="Swap locations">
+                <i class="fa-solid fa-arrow-right-arrow-left"></i>
+            </button>
+        </div>
+
+        <div class="directions-modes" role="group" aria-label="Transportation mode">
+            <button type="button" class="directions-mode active" data-mode="driving" onclick="window.selectDirectionsMode('driving', this)" aria-label="Driving">
+                <i class="fa-solid fa-car"></i><span>Car</span>
+            </button>
+            <button type="button" class="directions-mode" data-mode="motorcycle" onclick="window.selectDirectionsMode('motorcycle', this)" aria-label="Motorcycle">
+                <i class="fa-solid fa-motorcycle"></i><span>Motorcycle</span>
+            </button>
+            <button type="button" class="directions-mode" data-mode="public" onclick="window.selectDirectionsMode('public', this)" aria-label="Public transportation">
+                <i class="fa-solid fa-bus-simple"></i><span>Public</span>
+            </button>
+        </div>
+
+        <div class="directions-results-header">
+            <strong id="directions-results-title">Recent destinations</strong>
+            <button type="button" id="directions-clear-history" onclick="window.clearDirectionsHistory()">Clear</button>
+        </div>
+        <div id="directions-results" class="directions-results"></div>
+        <button type="button" id="directions-more-history" class="directions-more" onclick="window.toggleMoreDirectionsHistory()">
+            More from recent history
+        </button>
+    </section>
+
+    <div id="map-route-endpoints" class="map-route-endpoints">
+        <button type="button" onclick="window.openMapDirections()" aria-label="Edit route">
+            <span class="route-endpoint-dot start"></span>
+            <span id="map-route-start-name">Your location</span>
+            <span class="route-endpoint-divider"></span>
+            <i class="fa-solid fa-location-dot"></i>
+            <strong id="map-route-destination-name">Destination</strong>
+        </button>
+        <button type="button" onclick="window.swapMapDirections()" aria-label="Swap route locations"><i class="fa-solid fa-arrow-right-arrow-left"></i></button>
+    </div>
+
+    <aside id="map-route-summary" class="map-route-summary" aria-live="polite">
+        <span class="route-sheet-handle"></span>
+        <div class="route-sheet-header">
+            <strong id="map-route-summary-title">Drive</strong>
+            <div>
+                <button type="button" onclick="window.openMapDirections()" aria-label="Edit route"><i class="fa-solid fa-sliders"></i></button>
+                <button type="button" onclick="window.shareMapDirectionsRoute()" aria-label="Share route"><i class="fa-solid fa-share-nodes"></i></button>
+                <button type="button" onclick="window.clearMapDirectionsRoute()" aria-label="Close route preview"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+        </div>
+        <div class="route-sheet-modes">
+            <button type="button" class="active" data-route-mode="driving" onclick="window.selectDirectionsMode('driving', this)"><i class="fa-solid fa-car"></i><span id="map-route-car-time">--</span></button>
+            <button type="button" data-route-mode="motorcycle" onclick="window.selectDirectionsMode('motorcycle', this)"><i class="fa-solid fa-motorcycle"></i><span>--</span></button>
+            <button type="button" data-route-mode="public" onclick="window.selectDirectionsMode('public', this)"><i class="fa-solid fa-bus-simple"></i><span>--</span></button>
+        </div>
+        <div class="route-sheet-overview">
+            <strong><span id="map-route-primary-time">--</span> <span id="map-route-primary-distance"></span></strong>
+            <span id="map-route-summary-meta">Calculating route…</span>
+        </div>
+        <div class="route-sheet-actions">
+            <button type="button" onclick="window.focusMapDirectionsRoute()"><i class="fa-solid fa-route"></i> Route preview</button>
+            <button type="button" onclick="window.showDirectionsDestinationDetails()"><i class="fa-solid fa-location-dot"></i> Place details</button>
+            <button type="button" onclick="window.shareMapDirectionsRoute()"><i class="fa-solid fa-share-nodes"></i> Share</button>
+        </div>
+    </aside>
+
+    <style>
+        .map-directions-panel{position:absolute;inset:0;z-index:1200;background:#fff;color:#0f172a;display:flex;visibility:hidden;pointer-events:none;flex-direction:column;overflow:hidden;padding-top:max(14px,env(safe-area-inset-top));transform:translateX(18px);opacity:0;transition:transform .22s cubic-bezier(.16,1,.3,1),opacity .18s ease,visibility 0s linear .22s}.map-directions-panel.open{visibility:visible;pointer-events:auto;transform:translateX(0);opacity:1;transition-delay:0s}.directions-topbar{display:grid;grid-template-columns:42px minmax(0,1fr) 42px;align-items:center;gap:8px;padding:12px 14px 8px}.directions-back,.directions-swap{width:42px;height:42px;border:0;background:transparent;color:#1e3a8a;font-size:18px;border-radius:50%;display:flex;align-items:center;justify-content:center}.directions-swap i{transform:rotate(90deg)}.directions-fields{position:relative;display:flex;flex-direction:column;gap:8px}.directions-field-row{height:46px;border:1.5px solid #d5dce8;border-radius:9px;display:flex;align-items:center;gap:11px;padding:0 12px;background:#fff;box-shadow:0 1px 3px rgba(15,23,42,.05)}.directions-field-row:focus-within{border-color:#1e3a8a;box-shadow:0 0 0 3px rgba(30,58,138,.1)}.directions-field-row input{width:100%;min-width:0;border:0!important;outline:0!important;background:transparent!important;color:#0f172a;font-size:15px;padding:0;box-shadow:none!important}.directions-dot-start{width:9px;height:9px;border-radius:50%;background:#2563eb;box-shadow:0 0 0 5px #dbeafe;flex:0 0 auto}.directions-dot-destination{color:#1e3a8a;font-size:15px;width:12px;text-align:center}.directions-connector{position:absolute;left:16px;top:43px;height:13px;border-left:2px dotted #94a3b8}.directions-modes{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:6px 18px 14px;border-bottom:1px solid #e2e8f0}.directions-mode{min-height:48px;border:0;border-radius:16px;background:#f1f5f9;color:#1e3a8a;display:flex;align-items:center;justify-content:center;gap:7px;font-size:12px;font-weight:800}.directions-mode i{font-size:16px;color:#1e3a8a}.directions-mode.active{background:#dbeafe;box-shadow:inset 0 0 0 1px #93c5fd}.directions-results-header{display:flex;justify-content:space-between;align-items:center;padding:18px 22px 7px}.directions-results-header strong{font-size:13px;color:#334155;text-transform:uppercase;letter-spacing:.35px}.directions-results-header button{border:0;background:transparent;color:#1e3a8a;font-size:12px;font-weight:800}.directions-results{flex:1;overflow-y:auto;padding:0 18px}.directions-result{width:100%;display:flex;align-items:center;gap:13px;padding:13px 4px;border:0;border-bottom:1px solid #e2e8f0;background:#fff;text-align:left;color:#0f172a}.directions-result-icon{width:34px;height:34px;flex:0 0 34px;border-radius:50%;background:#eef2f7;color:#1e3a8a;display:flex;align-items:center;justify-content:center}.directions-result strong,.directions-result span{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.directions-result strong{font-size:14px;font-weight:700}.directions-result span{font-size:12px;color:#64748b;margin-top:3px}.directions-empty{text-align:center;color:#64748b;font-size:13px;padding:46px 20px;line-height:1.5}.directions-more{border:0;border-top:1px solid #e2e8f0;background:#fff;color:#1e3a8a;font-size:13px;font-weight:800;padding:15px 20px max(16px,env(safe-area-inset-bottom));display:none}.map-route-summary{position:absolute;left:12px;right:12px;bottom:calc(105px + env(safe-area-inset-bottom));z-index:910;display:none;align-items:center;justify-content:space-between;gap:10px;background:#fff;border-radius:18px;padding:11px 12px;box-shadow:0 10px 30px rgba(10,25,60,.3)}.map-route-summary.open{display:flex}.map-route-summary-main{display:flex;align-items:center;gap:10px;min-width:0;flex:1}.map-route-summary-icon{width:38px;height:38px;flex:0 0 38px;border-radius:12px;background:#dbeafe;color:#1e3a8a;display:flex;align-items:center;justify-content:center}.map-route-summary strong,.map-route-summary span{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.map-route-summary strong{font-size:13px;color:#0f172a}.map-route-summary span{font-size:11px;color:#64748b;margin-top:2px}.map-route-summary-actions{display:flex;gap:5px}.map-route-summary-actions button{height:34px;border:0;border-radius:10px;background:#1e3a8a;color:#fff;padding:0 10px;font-size:11px;font-weight:800}.map-route-summary-actions button:last-child{width:34px;padding:0}.map-directions-open #magic-nav,.map-directions-open #bottom-navigation{visibility:hidden!important;pointer-events:none!important}
+        .map-route-active #magic-nav,.map-route-active #bottom-navigation,.map-route-active .map-floating-header{visibility:hidden!important;pointer-events:none!important}.map-route-endpoints{position:absolute;left:14px;right:14px;top:max(14px,env(safe-area-inset-top));z-index:920;display:none;gap:7px}.map-route-endpoints.open{display:flex}.map-route-endpoints>button:first-child{min-width:0;flex:1;border:0;border-radius:18px;background:#fff;padding:10px 14px;display:grid;grid-template-columns:12px minmax(0,1fr);align-items:center;gap:4px 10px;text-align:left;box-shadow:0 8px 24px rgba(10,25,60,.28);color:#334155}.map-route-endpoints>button:last-child{width:48px;border:0;border-radius:16px;background:#fff;color:#1e3a8a;font-size:18px;box-shadow:0 8px 24px rgba(10,25,60,.28)}.map-route-endpoints span,.map-route-endpoints strong{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:13px}.map-route-endpoints strong{color:#0f172a}.route-endpoint-dot{width:8px;height:8px;border-radius:50%;background:#2563eb;box-shadow:0 0 0 3px #dbeafe}.map-route-endpoints .fa-location-dot{color:#dc2626}.route-endpoint-divider{grid-column:2;height:1px;background:#e2e8f0;width:100%}.map-route-summary{left:0;right:0;bottom:0;z-index:930;display:none!important;align-items:stretch;justify-content:flex-start;gap:0;background:#fff;border-radius:26px 26px 0 0;padding:9px 18px max(18px,env(safe-area-inset-bottom));box-shadow:0 -10px 34px rgba(10,25,60,.3);flex-direction:column}.map-route-summary.open{display:flex!important}.route-sheet-handle{width:54px;height:5px;border-radius:5px;background:#cbd5e1;margin:0 auto 11px}.route-sheet-header{display:flex;align-items:center;justify-content:space-between}.route-sheet-header>strong{font-size:24px;color:#0f172a}.route-sheet-header>div{display:flex;gap:7px}.route-sheet-header button{width:38px;height:38px;border:0;border-radius:50%;background:#f1f5f9;color:#1e3a8a;font-size:14px}.route-sheet-modes{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:13px -4px 12px;border-bottom:1px solid #e2e8f0}.route-sheet-modes button{border:0;background:transparent;color:#64748b;padding:8px 4px 11px;font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:6px;border-bottom:3px solid transparent}.route-sheet-modes button.active{color:#1e3a8a;border-bottom-color:#1e3a8a}.route-sheet-overview strong{font-size:22px;color:#0f172a;display:block}.route-sheet-overview>span{font-size:12px;color:#64748b;display:block;margin-top:4px}.route-sheet-actions{display:grid;grid-template-columns:1.15fr 1.15fr .8fr;gap:7px;margin-top:15px}.route-sheet-actions button{min-height:44px;border:0;border-radius:15px;background:#dbeafe;color:#1e3a8a;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:6px}.route-sheet-actions button:first-child{background:#1e3a8a;color:#fff}
+        /* Route mode owns the map viewport: keep the sheet crisp, above the app nav, and animate it in. */
+        body.map-route-active #magic-nav,
+        body.map-route-active #bottom-navigation {
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+            filter: none !important;
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+        }
+        .map-directions-panel { z-index: 9800; }
+        .map-route-endpoints { z-index: 9701; }
+        .map-route-summary {
+            z-index: 9700;
+            display: flex !important;
+            visibility: hidden;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(calc(100% + 24px));
+            transition: transform .32s cubic-bezier(.16,1,.3,1), opacity .2s ease, visibility 0s linear .32s;
+            filter: none !important;
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+        }
+        .map-route-summary.open {
+            visibility: visible;
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0);
+            transition-delay: 0s;
+        }
+        .route-sheet-actions,
+        .route-sheet-actions button {
+            filter: none !important;
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+        }
+        .directions-result-icon {
+            width: 42px;
+            height: 42px;
+            flex-basis: 42px;
+            overflow: hidden;
+        }
+        .directions-result-icon img {
+            width: 100%;
+            height: 100%;
+            display: block;
+            object-fit: cover;
+        }
+    </style>
+
     <!-- Nearby Tourist Sites Sheet (Triggered by Left Button) -->
     <div class="bottom-sheet" id="nearby-sites-sheet" style="display:none;">
         <!-- Royal Blue Header -->
@@ -1431,11 +1577,23 @@ if (is_dir($imgDir)) {
 
         window.mountedMarkersMap = window.mountedMarkersMap || new Map();
 
+        function setDirectionsBaseMarkersVisible(visible) {
+            if (!window.mountedMarkersMap) return;
+            window.mountedMarkersMap.forEach(marker => {
+                const element = marker && marker.getElement ? marker.getElement() : null;
+                if (element) element.style.display = visible ? 'flex' : 'none';
+            });
+        }
+
         window.updateVisibleMarkers = function () {
             if (!window.mapInstance) return;
             if (_viewportUpdateRaf) cancelAnimationFrame(_viewportUpdateRaf);
 
             _viewportUpdateRaf = requestAnimationFrame(() => {
+                if (document.body.classList.contains('map-route-active')) {
+                    setDirectionsBaseMarkersVisible(false);
+                    return;
+                }
                 const locations = (window.currentFilteredLocations && window.currentFilteredLocations.length > 0)
                     ? window.currentFilteredLocations
                     : (window.allMapLocations || []);
@@ -5331,6 +5489,428 @@ if (is_dir($imgDir)) {
                 btn.innerHTML = '<i class="fa-solid fa-check"></i> Checked In!';
                 btn.style.background = 'linear-gradient(135deg, #059669, #047857)';
             }
+        });
+
+        const mapDirectionsState = window.mapDirectionsState || {
+            start: { name: 'Your location', address: 'Current GPS position', isCurrent: true },
+            destination: null,
+            mode: 'driving',
+            activeField: 'destination',
+            showAllHistory: false
+        };
+        window.mapDirectionsState = mapDirectionsState;
+
+        function escapeDirectionsText(value) {
+            return String(value || '').replace(/[&<>"']/g, char => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
+            })[char]);
+        }
+
+        function normalizeDirectionsPlace(place) {
+            if (!place) return null;
+            if (place.isCurrent) return { name: 'Your location', address: 'Current GPS position', isCurrent: true };
+            const lat = parseFloat(place.lat !== undefined && place.lat !== null ? place.lat : place.latitude);
+            const lng = parseFloat(place.lng !== undefined && place.lng !== null ? place.lng : place.longitude);
+            if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+            const municipality = place.municipality || place.city || '';
+            const barangay = place.barangay || '';
+            const address = place.address || place.location || [barangay, municipality, municipality ? 'La Union' : ''].filter(Boolean).join(', ');
+            return {
+                id: place.id || place.destination_id || `${lat},${lng}`,
+                name: place.name || place.title || 'Selected destination',
+                address: address || 'La Union',
+                category: place.category || '',
+                image: typeof window.getDestImage === 'function'
+                    ? window.getDestImage(place, 160)
+                    : (place.photo_url || place.image_url || place.image || ''),
+                lat,
+                lng
+            };
+        }
+
+        function getDirectionsPlaceImage(place) {
+            if (!place) return '';
+            const livePlace = (window.allMapLocations || []).find(item =>
+                String(item.id || item.destination_id) === String(place.id)
+            );
+            const source = livePlace || place;
+            if (typeof window.getDestImage === 'function') return window.getDestImage(source, 160);
+            return source.photo_url || source.image_url || source.image || '';
+        }
+
+        function getDirectionsHistoryKey() {
+            let userKey = 'guest';
+            try {
+                const user = JSON.parse(localStorage.getItem('auth_user') || '{}');
+                const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('api_token') || '';
+                userKey = String(user.id || user.user_id || (token ? 'tok_' + token.substring(0, 12) : 'guest'));
+            } catch (e) { }
+            return 'intan_elyu_route_history_' + userKey;
+        }
+
+        function getDirectionsHistory() {
+            try {
+                const history = JSON.parse(localStorage.getItem(getDirectionsHistoryKey()) || '[]');
+                return Array.isArray(history) ? history.map(normalizeDirectionsPlace).filter(Boolean) : [];
+            } catch (e) { return []; }
+        }
+
+        function saveDirectionsRecent(place) {
+            const normalized = normalizeDirectionsPlace(place);
+            if (!normalized || normalized.isCurrent) return;
+            const history = getDirectionsHistory().filter(item =>
+                String(item.id) !== String(normalized.id) &&
+                !(Math.abs(item.lat - normalized.lat) < 0.00001 && Math.abs(item.lng - normalized.lng) < 0.00001)
+            );
+            history.unshift(normalized);
+            try { localStorage.setItem(getDirectionsHistoryKey(), JSON.stringify(history.slice(0, 20))); } catch (e) { }
+        }
+
+        function directionsIcon(place, isRecent) {
+            if (isRecent) return 'fa-clock-rotate-left';
+            const category = String(place.category || '').toLowerCase();
+            if (category.includes('beach')) return 'fa-umbrella-beach';
+            if (category.includes('park') || category.includes('nature')) return 'fa-tree';
+            if (category.includes('church')) return 'fa-place-of-worship';
+            return 'fa-location-dot';
+        }
+
+        function renderDirectionsResults(query = '') {
+            const resultsEl = document.getElementById('directions-results');
+            const titleEl = document.getElementById('directions-results-title');
+            const clearBtn = document.getElementById('directions-clear-history');
+            const moreBtn = document.getElementById('directions-more-history');
+            if (!resultsEl) return;
+
+            const cleanQuery = String(query || '').trim().toLowerCase();
+            const isSearch = cleanQuery.length > 0;
+            let results;
+            if (isSearch) {
+                results = (window.allMapLocations || []).map(normalizeDirectionsPlace).filter(Boolean).filter(place =>
+                    [place.name, place.address, place.category].some(text => String(text || '').toLowerCase().includes(cleanQuery))
+                ).slice(0, 12);
+            } else {
+                const history = getDirectionsHistory();
+                results = mapDirectionsState.showAllHistory ? history : history.slice(0, 5);
+            }
+
+            window._directionsRenderedResults = results;
+            if (titleEl) titleEl.textContent = isSearch ? 'Matching destinations' : 'Recent destinations';
+            if (clearBtn) clearBtn.style.display = !isSearch && results.length ? 'block' : 'none';
+            if (moreBtn) {
+                const historyCount = getDirectionsHistory().length;
+                moreBtn.style.display = !isSearch && historyCount > 0 ? 'block' : 'none';
+                moreBtn.textContent = mapDirectionsState.showAllHistory ? 'Show less history' : 'More from recent history';
+            }
+
+            if (!results.length) {
+                resultsEl.innerHTML = `<div class="directions-empty"><i class="fa-solid ${isSearch ? 'fa-magnifying-glass' : 'fa-clock-rotate-left'}" style="font-size:22px;color:#1e3a8a;margin-bottom:10px;display:block;"></i>${isSearch ? 'No matching tourist sites found.' : 'Your recently selected destinations will appear here.'}</div>`;
+                return;
+            }
+
+            resultsEl.innerHTML = results.map((place, index) => {
+                const imageUrl = getDirectionsPlaceImage(place);
+                const visual = imageUrl
+                    ? `<img src="${escapeDirectionsText(imageUrl)}" alt="" loading="lazy" onerror="this.onerror=null;this.src='assets/img/no_image.svg'">`
+                    : `<i class="fa-solid ${directionsIcon(place, !isSearch)}"></i>`;
+                return `
+                <button type="button" class="directions-result" onclick="window.chooseMapDirectionsResult(${index})">
+                    <span class="directions-result-icon">${visual}</span>
+                    <span style="min-width:0;flex:1;">
+                        <strong>${escapeDirectionsText(place.name)}</strong>
+                        <span>${escapeDirectionsText(place.address || place.category || 'La Union')}</span>
+                    </span>
+                </button>
+            `;
+            }).join('');
+        }
+
+        function syncDirectionsInputs() {
+            const startInput = document.getElementById('directions-start-input');
+            const destinationInput = document.getElementById('directions-destination-input');
+            if (startInput) startInput.value = mapDirectionsState.start ? mapDirectionsState.start.name : '';
+            if (destinationInput) destinationInput.value = mapDirectionsState.destination ? mapDirectionsState.destination.name : '';
+        }
+
+        window.openMapDirections = function () {
+            const panel = document.getElementById('map-directions-panel');
+            if (!panel) return;
+            panel.classList.add('open');
+            panel.setAttribute('aria-hidden', 'false');
+            document.body.classList.add('map-directions-open');
+            mapDirectionsState.activeField = 'destination';
+            mapDirectionsState.showAllHistory = false;
+            syncDirectionsInputs();
+            document.querySelectorAll('.directions-mode').forEach(el =>
+                el.classList.toggle('active', el.dataset.mode === mapDirectionsState.mode)
+            );
+            renderDirectionsResults('');
+            setTimeout(() => {
+                const input = document.getElementById('directions-destination-input');
+                if (input) { input.focus(); input.select(); }
+            }, 80);
+        };
+
+        window.closeMapDirectionsPanel = function () {
+            const panel = document.getElementById('map-directions-panel');
+            if (panel) {
+                panel.classList.remove('open');
+                panel.setAttribute('aria-hidden', 'true');
+            }
+            document.body.classList.remove('map-directions-open');
+            const active = document.activeElement;
+            if (active && typeof active.blur === 'function') active.blur();
+        };
+
+        window.chooseMapDirectionsResult = function (index) {
+            const place = (window._directionsRenderedResults || [])[index];
+            if (!place) return;
+            if (mapDirectionsState.activeField === 'start') {
+                mapDirectionsState.start = place;
+            } else {
+                mapDirectionsState.destination = place;
+                saveDirectionsRecent(place);
+            }
+            syncDirectionsInputs();
+            if (mapDirectionsState.start && mapDirectionsState.destination) {
+                window.previewMapDirectionsRoute();
+            }
+        };
+
+        window.swapMapDirections = function () {
+            const previousStart = mapDirectionsState.start;
+            mapDirectionsState.start = mapDirectionsState.destination;
+            mapDirectionsState.destination = previousStart;
+            syncDirectionsInputs();
+            if (mapDirectionsState.start && mapDirectionsState.destination) window.previewMapDirectionsRoute();
+        };
+
+        window.selectDirectionsMode = function (mode, button) {
+            mapDirectionsState.mode = mode;
+            document.querySelectorAll('[data-mode], [data-route-mode]').forEach(el => {
+                const elementMode = el.dataset.mode || el.dataset.routeMode;
+                el.classList.toggle('active', elementMode === mode);
+            });
+            if (mapDirectionsState.start && mapDirectionsState.destination && document.getElementById('map-route-summary')?.classList.contains('open')) {
+                window.previewMapDirectionsRoute();
+            }
+        };
+
+        window.toggleMoreDirectionsHistory = function () {
+            mapDirectionsState.showAllHistory = !mapDirectionsState.showAllHistory;
+            renderDirectionsResults('');
+        };
+
+        window.clearDirectionsHistory = function () {
+            try { localStorage.removeItem(getDirectionsHistoryKey()); } catch (e) { }
+            mapDirectionsState.showAllHistory = false;
+            renderDirectionsResults('');
+        };
+
+        async function resolveDirectionsPoint(point) {
+            if (!point) throw new Error('Choose both a starting point and destination.');
+            if (!point.isCurrent) return point;
+            if (window.deviceLastPos && window.deviceLastPos.coords) {
+                return { ...point, lat: window.deviceLastPos.coords.latitude, lng: window.deviceLastPos.coords.longitude };
+            }
+            if (typeof window.getDeviceLocation !== 'function') throw new Error('Location is not ready yet.');
+            const position = await window.getDeviceLocation(false);
+            return { ...point, lat: position.coords.latitude, lng: position.coords.longitude };
+        }
+
+        function setDirectionsMarkers(start, destination) {
+            (window._directionsMarkers || []).forEach(marker => { try { marker.remove(); } catch (e) { } });
+            window._directionsMarkers = [];
+            if (!window.mapInstance || typeof maplibregl === 'undefined') return;
+            [
+                { point: start, color: '#1e3a8a', icon: 'fa-circle' },
+                { point: destination, color: '#dc2626', icon: 'fa-location-dot' }
+            ].forEach(item => {
+                const element = document.createElement('div');
+                element.style.cssText = `width:34px;height:34px;border-radius:50%;background:#fff;border:3px solid ${item.color};color:${item.color};display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(15,23,42,.3);font-size:14px;`;
+                element.innerHTML = `<i class="fa-solid ${item.icon}"></i>`;
+                const marker = new maplibregl.Marker({ element, anchor: 'center' }).setLngLat([item.point.lng, item.point.lat]).addTo(window.mapInstance);
+                window._directionsMarkers.push(marker);
+            });
+        }
+
+        function drawMapDirectionsRoutes(routes, start, destination) {
+            if (!window.mapInstance || !routes.length) return;
+            const map = window.mapInstance;
+            const features = routes.slice(0, 3).map((route, index) => ({
+                type: 'Feature',
+                properties: { primary: index === 0 },
+                geometry: route.geometry
+            })).reverse();
+            const data = { type: 'FeatureCollection', features };
+            const draw = () => {
+                if (map.getSource('map-directions-route')) {
+                    map.getSource('map-directions-route').setData(data);
+                } else {
+                    map.addSource('map-directions-route', { type: 'geojson', data });
+                    map.addLayer({
+                        id: 'map-directions-route-line',
+                        type: 'line',
+                        source: 'map-directions-route',
+                        layout: { 'line-cap': 'round', 'line-join': 'round' },
+                        paint: {
+                            'line-color': ['case', ['==', ['get', 'primary'], true], '#1e3a8a', '#60a5fa'],
+                            'line-width': ['case', ['==', ['get', 'primary'], true], 6, 3],
+                            'line-opacity': ['case', ['==', ['get', 'primary'], true], 0.95, 0.55]
+                        }
+                    });
+                }
+                const bounds = new maplibregl.LngLatBounds();
+                routes[0].geometry.coordinates.forEach(coord => bounds.extend(coord));
+                map.fitBounds(bounds, { padding: { top: 160, right: 45, bottom: 325, left: 45 }, maxZoom: 16, duration: 750 });
+                setDirectionsMarkers(start, destination);
+            };
+            if (map.isStyleLoaded()) draw();
+            else map.once('load', draw);
+        }
+
+        window.previewMapDirectionsRoute = async function () {
+            window.closeMapDirectionsPanel();
+            const summary = document.getElementById('map-route-summary');
+            const endpoints = document.getElementById('map-route-endpoints');
+            const title = document.getElementById('map-route-summary-title');
+            const meta = document.getElementById('map-route-summary-meta');
+            const primaryTime = document.getElementById('map-route-primary-time');
+            const primaryDistance = document.getElementById('map-route-primary-distance');
+            const startName = document.getElementById('map-route-start-name');
+            const destinationName = document.getElementById('map-route-destination-name');
+            const modeLabels = { driving: 'Drive', motorcycle: 'Motorcycle', public: 'Public transport' };
+            document.body.classList.add('map-route-active');
+            setDirectionsBaseMarkersVisible(false);
+            if (summary) summary.classList.add('open');
+            if (endpoints) endpoints.classList.add('open');
+            if (title) title.textContent = modeLabels[mapDirectionsState.mode] || 'Route';
+            if (startName) startName.textContent = mapDirectionsState.start?.name || 'Choose starting point';
+            if (destinationName) destinationName.textContent = mapDirectionsState.destination?.name || 'Choose destination';
+            if (primaryTime) primaryTime.textContent = 'Calculating…';
+            if (primaryDistance) primaryDistance.textContent = '';
+            if (meta) meta.textContent = 'Finding the fastest available route';
+
+            if (window._directionsRouteController) window._directionsRouteController.abort();
+            const controller = new AbortController();
+            window._directionsRouteController = controller;
+            const routeTimeout = setTimeout(() => controller.abort(), 12000);
+
+            try {
+                const [start, destination] = await Promise.all([
+                    resolveDirectionsPoint(mapDirectionsState.start),
+                    resolveDirectionsPoint(mapDirectionsState.destination)
+                ]);
+                if (!navigator.onLine || window.isAppOnline === false) throw new Error('Route preview needs an internet connection.');
+                const url = `https://router.project-osrm.org/route/v1/driving/${start.lng},${start.lat};${destination.lng},${destination.lat}?overview=full&geometries=geojson&alternatives=true&steps=false`;
+                const response = await fetch(url, { signal: controller.signal });
+                if (!response.ok) throw new Error('The route service is unavailable.');
+                const data = await response.json();
+                if (data.code !== 'Ok' || !Array.isArray(data.routes) || !data.routes.length) throw new Error('No route was found for these locations.');
+
+                drawMapDirectionsRoutes(data.routes, start, destination);
+                window._directionsLastRoutes = data.routes;
+                window._directionsLastStart = start;
+                window._directionsLastDestination = destination;
+                const primary = data.routes[0];
+                const distance = (primary.distance / 1000).toFixed(1) + ' km';
+                const routeCount = data.routes.length > 1 ? ` · ${data.routes.length} routes` : '';
+                const durationMinutes = Math.max(1, Math.round(primary.duration / 60));
+                if (primaryTime) primaryTime.textContent = mapDirectionsState.mode === 'driving' ? `${durationMinutes} min` : 'Route preview';
+                if (primaryDistance) primaryDistance.textContent = `(${distance})`;
+                const drivingTime = document.getElementById('map-route-car-time');
+                if (drivingTime) drivingTime.textContent = `${durationMinutes} min`;
+                if (meta) meta.textContent = mapDirectionsState.mode === 'driving'
+                    ? `Fastest available road route${routeCount}`
+                    : `${modeLabels[mapDirectionsState.mode]} route shown · exact travel time unavailable${routeCount}`;
+            } catch (error) {
+                if (error.name === 'AbortError') {
+                    if (window._directionsRouteController === controller && summary?.classList.contains('open')) {
+                        if (meta) meta.textContent = 'Route request timed out. Please try again.';
+                    }
+                    return;
+                }
+                if (meta) meta.textContent = error.message || 'Unable to calculate route.';
+                if (typeof showToast === 'function') showToast(error.message || 'Unable to calculate route.', 'warning');
+            } finally {
+                clearTimeout(routeTimeout);
+            }
+        };
+
+        window.clearMapDirectionsRoute = function () {
+            if (window._directionsRouteController) window._directionsRouteController.abort();
+            const map = window.mapInstance;
+            if (map) {
+                try { if (map.getLayer('map-directions-route-line')) map.removeLayer('map-directions-route-line'); } catch (e) { }
+                try { if (map.getSource('map-directions-route')) map.removeSource('map-directions-route'); } catch (e) { }
+            }
+            (window._directionsMarkers || []).forEach(marker => { try { marker.remove(); } catch (e) { } });
+            window._directionsMarkers = [];
+            window._directionsLastRoutes = null;
+            window._directionsLastStart = null;
+            window._directionsLastDestination = null;
+            const summary = document.getElementById('map-route-summary');
+            if (summary) summary.classList.remove('open');
+            const endpoints = document.getElementById('map-route-endpoints');
+            if (endpoints) endpoints.classList.remove('open');
+            document.body.classList.remove('map-route-active');
+            setDirectionsBaseMarkersVisible(true);
+            if (typeof window.updateVisibleMarkers === 'function') window.updateVisibleMarkers();
+        };
+
+        window.focusMapDirectionsRoute = function () {
+            if (window._directionsLastRoutes && window._directionsLastStart && window._directionsLastDestination) {
+                drawMapDirectionsRoutes(window._directionsLastRoutes, window._directionsLastStart, window._directionsLastDestination);
+            }
+        };
+
+        window.showDirectionsDestinationDetails = function () {
+            const selected = mapDirectionsState.destination;
+            if (!selected) return;
+            const destination = (window.allMapLocations || []).find(place => {
+                const normalized = normalizeDirectionsPlace(place);
+                return normalized && (
+                    String(normalized.id) === String(selected.id) ||
+                    (Math.abs(normalized.lat - selected.lat) < 0.00001 && Math.abs(normalized.lng - selected.lng) < 0.00001)
+                );
+            });
+            if (!destination || typeof window.openSheet !== 'function') {
+                if (typeof showToast === 'function') showToast('Tourist-site details are unavailable.', 'warning');
+                return;
+            }
+            const summary = document.getElementById('map-route-summary');
+            if (summary) summary.classList.remove('open');
+            window.openSheet(destination);
+        };
+
+        window.shareMapDirectionsRoute = async function () {
+            const start = mapDirectionsState.start?.name || 'Your location';
+            const destination = mapDirectionsState.destination?.name || 'destination';
+            const distance = document.getElementById('map-route-primary-distance')?.textContent || '';
+            const shareData = { title: `Directions to ${destination}`, text: `${start} to ${destination} ${distance}`.trim() };
+            try {
+                if (navigator.share) await navigator.share(shareData);
+                else if (navigator.clipboard) {
+                    await navigator.clipboard.writeText(shareData.text);
+                    if (typeof showToast === 'function') showToast('Route details copied.');
+                }
+            } catch (error) {
+                if (error.name !== 'AbortError' && typeof showToast === 'function') showToast('Unable to share this route.', 'warning');
+            }
+        };
+
+        const directionsStartInput = document.getElementById('directions-start-input');
+        const directionsDestinationInput = document.getElementById('directions-destination-input');
+        [
+            { input: directionsStartInput, field: 'start' },
+            { input: directionsDestinationInput, field: 'destination' }
+        ].forEach(item => {
+            if (!item.input) return;
+            item.input.addEventListener('focus', () => {
+                mapDirectionsState.activeField = item.field;
+                renderDirectionsResults(item.input.value === 'Your location' ? '' : item.input.value);
+            });
+            item.input.addEventListener('input', () => renderDirectionsResults(item.input.value));
         });
 
         setTimeout(window.initMap, 50);

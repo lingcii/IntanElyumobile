@@ -31,22 +31,16 @@ try {
 
 <div class="itinerary-container has-header has-bottom-nav animate-slide-up">
 
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 16px;"
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; gap:8px;"
         class="stagger-1">
-        <h2 id="itinerary-page-title"
-            style="margin:0; font-size:22px; font-weight:800; letter-spacing:-0.5px; color:#0f172a !important;">Draft
-            Plan</h2>
-        <div style="display:flex; align-items:center; gap: 8px;">
-            <!-- Saved Trips Button (Small) -->
+            <span
+                style="background:#f1f5f9 !important; border: none !important; outline: none !important; color:#1e3a8a !important; height: 32px; padding: 0 14px; border-radius:20px; font-size:12px; font-weight:800; display:flex; align-items:center; box-sizing: border-box; box-shadow: none !important;">
+                <i class="fa-solid fa-location-dot" style="margin-right:6px;"></i><span id="itinerary-count" style="margin-right:4px;">0</span> Places
+            </span>
             <button onclick="navigateTo('saved_trips')"
                 style="background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline: none !important; color: #ffffff !important; font-weight:700; height: 32px; padding: 0 14px; border-radius:20px; font-size:12px; cursor:pointer; display:flex; align-items:center; box-sizing: border-box; box-shadow: none !important;">
                 <i class="fa-solid fa-bookmark" style="margin-right:6px;"></i> Saved Trips
             </button>
-            <span
-                style="background:#f1f5f9 !important; border: none !important; outline: none !important; color:#1e3a8a !important; height: 32px; padding: 0 14px; border-radius:20px; font-size:12px; font-weight:800; display:flex; align-items:center; box-sizing: border-box; box-shadow: none !important;">
-                <span id="itinerary-count" style="margin-right:4px;">0</span> Places
-            </span>
-        </div>
     </div>
 
     <!-- Floating '?' Guide Button (Positioned on the right directly above profile navigation button) -->

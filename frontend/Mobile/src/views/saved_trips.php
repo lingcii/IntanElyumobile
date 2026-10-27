@@ -91,6 +91,11 @@ $backRoute = 'itinerary';
     #saved-trips-list {
         touch-action: pan-y !important;
     }
+    .saved-trips-tabs { display:grid; grid-template-columns:1fr 1fr; gap:6px; padding:5px; margin:0 0 14px; background:#eef2f7; border-radius:16px; flex-shrink:0; }
+    .saved-trips-tab { border:0; border-radius:12px; padding:10px 8px; background:transparent !important; color:#64748b !important; font-size:12px; font-weight:800; cursor:pointer; transition:background-color .18s ease,color .18s ease; }
+    .saved-trips-tab.active { background:#1e3a8a !important; color:#fff !important; box-shadow:0 3px 10px rgba(30,58,138,.22); }
+    .saved-trips-tab span { margin-left:4px; padding:2px 7px; border-radius:99px; background:rgba(148,163,184,.18); }
+    .saved-trips-tab.active span { background:rgba(255,255,255,.2); }
     #edit-trip-details-modal {
         -webkit-overflow-scrolling: touch;
         touch-action: manipulation;
@@ -111,6 +116,14 @@ $backRoute = 'itinerary';
     <div id="saved-trips-offline-badge" style="display: none; align-items: center; justify-content: center; gap: 8px; margin: 0 auto 14px auto; padding: 7px 16px; border-radius: 100px; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.35); color: #d97706; font-size: 11.5px; font-weight: 800; text-align: center; width: fit-content;">
         <i class="fa-solid fa-cloud-slash" style="color: #f59e0b;"></i>
         <span>Offline Mode &bull; Cached Trips & Queued Check-ins</span>
+    </div>
+    <div class="saved-trips-tabs" role="tablist" aria-label="Trip status">
+        <button type="button" id="saved-trips-tab-active" class="saved-trips-tab active" role="tab" aria-selected="true" onclick="window.switchSavedTripsTab('saved')">
+            <i class="fa-solid fa-bookmark"></i> Saved Trips <span id="saved-trips-active-count">0</span>
+        </button>
+        <button type="button" id="saved-trips-tab-history" class="saved-trips-tab" role="tab" aria-selected="false" onclick="window.switchSavedTripsTab('history')">
+            <i class="fa-solid fa-clock-rotate-left"></i> Trip History <span id="saved-trips-history-count">0</span>
+        </button>
     </div>
     <div id="saved-trips-list">
         <div class="empty-state-card" style="margin-top: 30px; margin-bottom: 30px; opacity: 1 !important; visibility: visible !important;">
@@ -597,8 +610,7 @@ $backRoute = 'itinerary';
 
                 return combined.filter(t => {
                     const isDeleted = (typeof window.isTripDeleted === 'function') ? window.isTripDeleted(t) : false;
-                    const isCompleted = (typeof window.isTripCompletedLocally === 'function') ? window.isTripCompletedLocally(t) : (t && t.status === 'completed');
-                    return !isDeleted && !isCompleted;
+                    return !isDeleted;
                 });
             }
 
@@ -999,6 +1011,23 @@ $backRoute = 'itinerary';
             return `<span style="background: rgba(255,255,255,0.22); border: none !important; outline: none !important; color: #ffffff; padding: 3px 10px; border-radius: 100px; font-weight: 700; font-size: 12px; display: inline-flex; align-items: center; gap: 5px;"><i class="fa-solid ${info.icon}" style="font-size:11px; color:${info.color};"></i>${info.name}</span>`;
         }
 
+        window._savedTripsTab = 'saved';
+        window.switchSavedTripsTab = function (tab) {
+            window._savedTripsTab = tab === 'history' ? 'history' : 'saved';
+            const activeTab = document.getElementById('saved-trips-tab-active');
+            const historyTab = document.getElementById('saved-trips-tab-history');
+            if (activeTab) {
+                activeTab.classList.toggle('active', window._savedTripsTab === 'saved');
+                activeTab.setAttribute('aria-selected', String(window._savedTripsTab === 'saved'));
+            }
+            if (historyTab) {
+                historyTab.classList.toggle('active', window._savedTripsTab === 'history');
+                historyTab.setAttribute('aria-selected', String(window._savedTripsTab === 'history'));
+            }
+            window._lastRenderedTripsSig = '';
+            renderSavedTrips(window._cachedSavedTrips || []);
+        };
+
         function renderSavedTrips(itineraries) {
             window._isStartingTrip = false;
             try {
@@ -1183,16 +1212,24 @@ $backRoute = 'itinerary';
 
                 if (!list) return;
 
+                const activeTrips = dedupedTrips.filter(trip => trip && trip.status !== 'completed' && !(typeof window.isTripCompletedLocally === 'function' && window.isTripCompletedLocally(trip)));
+                const historyTrips = dedupedTrips.filter(trip => trip && (trip.status === 'completed' || (typeof window.isTripCompletedLocally === 'function' && window.isTripCompletedLocally(trip))));
+                const activeCount = document.getElementById('saved-trips-active-count');
+                const historyCount = document.getElementById('saved-trips-history-count');
+                if (activeCount) activeCount.textContent = String(activeTrips.length);
+                if (historyCount) historyCount.textContent = String(historyTrips.length);
+
+                const showingHistory = window._savedTripsTab === 'history';
                 const emptyStateHtml = `
                 <div class="empty-state-card" style="margin-top: 30px; margin-bottom: 30px; opacity: 1 !important; visibility: visible !important;">
                     <div class="empty-state-icon" style="background: #ffffff !important; color: #1e3a8a !important; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15) !important;">
                         <i class="fa-solid fa-route" style="color: #1e3a8a !important;"></i>
                     </div>
-                    <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: #ffffff; text-wrap: balance;">No Saved Trips Yet</h3>
+                    <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: #ffffff; text-wrap: balance;">${showingHistory ? 'No Completed Trips Yet' : 'No Saved Trips Yet'}</h3>
                     <p style="margin: 0; font-size: 13.5px; color: rgba(255, 255, 255, 0.88); line-height: 1.5; max-width: 260px; text-wrap: pretty;">
-                        Your adventure starts here! Explore La Union tourist spots and plan your personalized itinerary.
+                        ${showingHistory ? 'Trips you complete will appear here.' : 'Your adventure starts here! Explore La Union tourist spots and plan your personalized itinerary.'}
                     </p>
-                    <div style="display:flex; flex-direction:column; gap:10px; width:100%; max-width:280px; margin:14px auto 0;">
+                    <div style="display:${showingHistory ? 'none' : 'flex'}; flex-direction:column; gap:10px; width:100%; max-width:280px; margin:14px auto 0;">
                         <button type="button" class="btn-open-map" onclick="if(typeof window.navigateTo==='function') window.navigateTo('itinerary');" style="width:100%; margin:0; justify-content:center;">
                             <i class="fa-solid fa-plus"></i> Create New Trip
                         </button>
@@ -1206,7 +1243,7 @@ $backRoute = 'itinerary';
                     return;
                 }
 
-                let activeItineraries = dedupedTrips.filter(trip => trip && trip.status !== 'completed' && !(typeof window.isTripCompletedLocally === 'function' && window.isTripCompletedLocally(trip)));
+                let activeItineraries = showingHistory ? historyTrips : activeTrips;
 
                 if (activeItineraries.length === 0) {
                     list.innerHTML = emptyStateHtml;
@@ -1225,10 +1262,10 @@ $backRoute = 'itinerary';
                 }
 
                 // Silent signature check: prevent DOM rebuild and flicker if data has not changed
-                const currentRenderSig = JSON.stringify(activeItineraries.map(t => [
+                const currentRenderSig = JSON.stringify([window._savedTripsTab || 'saved', activeItineraries.map(t => [
                     t.id, t.title, t.trip_date, t.companion_males, t.companion_females, t.total_pax,
                     (t.items || []).map(i => [i.id, i.proof_status, i.is_visited, i.is_location_verified, i.proof_image, (i.proof_images || []).length])
-                ]));
+                ])]);
 
                 const hasExistingTripCards = list.querySelector('.trip-swipe-container') !== null;
                 if (!justSavedId && window._lastRenderedTripsSig === currentRenderSig && hasExistingTripCards) {
@@ -2372,6 +2409,14 @@ $backRoute = 'itinerary';
             if (!itemId) return;
 
             const originalHtml = btnEl ? btnEl.innerHTML : '';
+            const lockCheckedInButton = () => {
+                if (!btnEl) return;
+                btnEl.innerHTML = '<i class="fa-solid fa-circle-check"></i> Checked In';
+                btnEl.disabled = true;
+                btnEl.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+                btnEl.style.cursor = 'default';
+                btnEl.removeAttribute('onclick');
+            };
 
             if (typeof window.isGuestUser === 'function' && window.isGuestUser()) {
                 window.promptGuestLogin('check-in');
@@ -2406,6 +2451,10 @@ $backRoute = 'itinerary';
 
             const parentTrip = (window._cachedSavedTrips || []).find(t => (t.items || []).some(i => String(i.id) === String(itemId)));
             const targetItem = parentTrip ? (parentTrip.items || []).find(i => String(i.id) === String(itemId)) : null;
+            if (targetItem && (targetItem.is_location_verified || targetItem.visited_at)) {
+                lockCheckedInButton();
+                return;
+            }
             const spotId = targetItem ? (targetItem.tourist_spot_id || targetItem.destination_id || (targetItem.destination ? targetItem.destination.id : null)) : null;
             const tripId = parentTrip ? parentTrip.id : null;
             const tPax = parentTrip ? (parentTrip.total_pax || 1) : 1;
@@ -2470,10 +2519,7 @@ $backRoute = 'itinerary';
                     if (window.confetti) {
                         try { window.confetti({ particleCount: 70, spread: 60, origin: { y: 0.7 } }); } catch (e) { }
                     }
-                    if (btnEl) {
-                        btnEl.innerHTML = originalHtml;
-                        btnEl.disabled = false;
-                    }
+                    lockCheckedInButton();
                     return;
                 }
 
@@ -2505,6 +2551,7 @@ $backRoute = 'itinerary';
 
                     if (response.ok && (data.success || data.is_location_verified)) {
                         window.applyLocationCheckinLocally(itemId);
+                        lockCheckedInButton();
                         if (typeof showToast === 'function') {
                             showToast(data.message || `📍 Location verified at ${spotName}! Photo proof is required to earn points.`, 'success');
                         }
@@ -2516,7 +2563,7 @@ $backRoute = 'itinerary';
                             showToast(data.message || 'Check-in failed. Please ensure you are within 200m of the destination.', 'error');
                         }
                     }
-                    if (btnEl) {
+                    if (btnEl && !(response.ok && (data.success || data.is_location_verified))) {
                         btnEl.innerHTML = originalHtml;
                         btnEl.disabled = false;
                     }
@@ -2525,6 +2572,7 @@ $backRoute = 'itinerary';
                     console.warn('Location check-in error, queuing offline:', err);
                     if (window.OfflineCheckinManager) {
                         window.applyLocationCheckinLocally(itemId);
+                        lockCheckedInButton();
                         await window.OfflineCheckinManager.queueOfflineCheckin({
                             type: 'itinerary',
                             itemId: itemId,
@@ -2541,7 +2589,7 @@ $backRoute = 'itinerary';
                     } else {
                         if (typeof showToast === 'function') showToast('Network error during check-in. Please try again.');
                     }
-                    if (btnEl) {
+                    if (btnEl && !window.OfflineCheckinManager) {
                         btnEl.innerHTML = originalHtml;
                         btnEl.disabled = false;
                     }
@@ -2559,10 +2607,18 @@ $backRoute = 'itinerary';
                 }
             };
 
-            const options = { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 };
+            const options = { enableHighAccuracy: true, timeout: 7000, maximumAge: 30000 };
+
+            const cachedPosition = window.deviceLastPos;
+            if (cachedPosition && cachedPosition.coords &&
+                Date.now() - Number(cachedPosition.timestamp || 0) < 60000 &&
+                Number(cachedPosition.coords.accuracy || 9999) <= 150) {
+                doSubmitCheckin(cachedPosition.coords.latitude, cachedPosition.coords.longitude);
+                return;
+            }
 
             if (typeof window.requestPreciseLocation === 'function') {
-                window.requestPreciseLocation(true).then(loc => {
+                window.requestPreciseLocation(false).then(loc => {
                     if (loc && loc.lat && loc.lng) doSubmitCheckin(loc.lat, loc.lng);
                     else handleGpsFailure("No coords");
                 }).catch(() => {
@@ -2589,10 +2645,15 @@ $backRoute = 'itinerary';
 
         window.markTripCompleted = function (id) {
             window._pendingCompleteTripId = id;
-            const modal = document.getElementById('complete-trip-modal');
-            if (modal) {
-                modal.style.display = 'flex';
+            const trip = (window._cachedSavedTrips || []).find(t => t && (String(t.id) === String(id) || String(t.local_id) === String(id)));
+            const reviewItems = trip && Array.isArray(trip.items) ? trip.items.filter(item =>
+                item && (item.tourist_spot_id || item.destination_id || (item.destination && item.destination.id))
+            ) : [];
+            if (!reviewItems.length) {
+                if (typeof showToast === 'function') showToast('This trip has no destinations available for review.', 'warning');
+                return;
             }
+            showTripCompletionReviewModal(reviewItems, true);
         };
 
         window.closeCompleteTripModal = function () {
@@ -2608,26 +2669,6 @@ $backRoute = 'itinerary';
 
             window.closeCompleteTripModal();
             const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
-
-            // 1. Immediately mark the trip as completed locally so all caches & pre-hydration filters blacklist it permanently!
-            if (typeof window.markTripAsCompletedLocally === 'function') {
-                window.markTripAsCompletedLocally(id, 0, null);
-            }
-
-            // Immediately animate out and remove completed trip card from DOM
-            const tripCard = document.querySelector(`.trip-swipe-container[data-trip-id="${id}"]`);
-            if (tripCard) {
-                tripCard.style.transition = 'opacity 0.3s ease, transform 0.3s ease, max-height 0.4s ease, margin 0.4s ease';
-                tripCard.style.opacity = '0';
-                tripCard.style.transform = 'translateY(-10px) scale(0.95)';
-                setTimeout(() => {
-                    tripCard.remove();
-                    const list = document.getElementById('saved-trips-list');
-                    if (list && list.children.length === 0) {
-                        list.innerHTML = '<p style="text-align:center; color:#ffffff; margin-top: 20px;">No active trips found.</p>';
-                    }
-                }, 300);
-            }
 
             // Extract trip destinations from local cache in case we need them for review modal fallback
             let localVisitedItems = [];
@@ -2654,11 +2695,12 @@ $backRoute = 'itinerary';
             }
 
             if (!navigator.onLine || window.isAppOnline === false) {
+                if (typeof window.markTripAsCompletedLocally === 'function') window.markTripAsCompletedLocally(id, 0, null);
                 if (window.OfflineCompletedTripsManager) {
                     window.OfflineCompletedTripsManager.queueCompletion(id);
                 }
                 if (typeof showToast === 'function') {
-                    showToast("🎉 Trip completed! Please review your destinations to earn points.", "success", 5000);
+                    showToast("🎉 Trip completed and saved for cloud sync.", "success", 5000);
                 }
                 if (window.confetti) {
                     window.confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
@@ -2670,7 +2712,7 @@ $backRoute = 'itinerary';
                     localStorage.removeItem('dashboard_saved_trips_' + tokenKey);
                 }
                 window.fetchSavedTrips(true);
-                showTripCompletionReviewModal(localVisitedItems);
+                window.showTripCompletedSuccessModal();
                 return;
             }
 
@@ -2688,7 +2730,8 @@ $backRoute = 'itinerary';
 
                 const data = await response.json();
                 if (response.ok) {
-                    if (typeof showToast === 'function') showToast(data.message || "Trip completed! Please review your destinations to earn points.");
+                    if (typeof window.markTripAsCompletedLocally === 'function') window.markTripAsCompletedLocally(id, data?.points_awarded || 0, data?.total_points);
+                    if (typeof showToast === 'function') showToast(data.message || "Trip completed successfully!");
                     if (window.confetti) {
                         window.confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
                     }
@@ -2701,21 +2744,17 @@ $backRoute = 'itinerary';
                     }
                     window.fetchSavedTrips(true);
 
-                    // Show Trip Completed modal with Review buttons for visited spots
-                    let visitedItems = data.visited_items || data.visited_spots || [];
-                    if (!visitedItems || visitedItems.length === 0) {
-                        visitedItems = data.itinerary?.items || data.items || localVisitedItems;
-                    }
-                    showTripCompletionReviewModal(visitedItems);
+                    window.showTripCompletedSuccessModal();
                 } else {
                     if (typeof showToast === 'function') showToast(data.message || "Failed to complete trip.");
                 }
             } catch (error) {
                 console.error("Error completing trip, queuing offline:", error);
                 if (window.OfflineCompletedTripsManager) {
+                    if (typeof window.markTripAsCompletedLocally === 'function') window.markTripAsCompletedLocally(id, 0, null);
                     window.OfflineCompletedTripsManager.queueCompletion(id);
                     if (typeof showToast === 'function') {
-                        showToast("🎉 Trip completed! Please review your destinations to earn points.", "success", 5000);
+                        showToast("🎉 Trip completed and queued for cloud sync.", "success", 5000);
                     }
                     if (window.confetti) {
                         window.confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
@@ -2727,14 +2766,14 @@ $backRoute = 'itinerary';
                         localStorage.removeItem('dashboard_saved_trips_' + tokenKey);
                     }
                     window.fetchSavedTrips(true);
-                    showTripCompletionReviewModal(localVisitedItems);
+                    window.showTripCompletedSuccessModal();
                     return;
                 }
                 if (typeof showToast === 'function') showToast("Network error.");
             }
         };
 
-        function showTripCompletionReviewModal(visitedItems) {
+        function showTripCompletionReviewModal(visitedItems, requireBeforeCompletion = false) {
             // Remove any existing completion modal
             const existing = document.getElementById('trip-completion-review-modal');
             if (existing) existing.remove();
@@ -2743,6 +2782,8 @@ $backRoute = 'itinerary';
                 return;
             }
 
+            window._completionReviewRequiredIds = [];
+            window._completionReviewRequired = requireBeforeCompletion;
             let destListHtml = '';
             visitedItems.forEach((item, idx) => {
                 if (!item) return;
@@ -2752,6 +2793,7 @@ $backRoute = 'itinerary';
                 const destName = item.destination_name || (item.destination ? item.destination.name : (item.name || item.spot_name || 'Tourist Destination'));
                 const sClass = item.classification_status || (item.destination ? item.destination.classification_status : (item.classification || 'EXIST'));
                 const isReviewed = window.userReviewedSpotIds && window.userReviewedSpotIds.has(Number(spotId));
+                window._completionReviewRequiredIds.push(Number(spotId));
 
                 destListHtml += `
                 <div style="display:flex; align-items:center; gap:10px; padding:10px 12px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:14px; margin-bottom:8px;">
@@ -2781,10 +2823,10 @@ $backRoute = 'itinerary';
                 <div style="background:linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%) !important; padding:18px 20px; display:flex; justify-content:space-between; align-items:center; color:#ffffff; flex-shrink:0;">
                     <div>
                         <h4 style="margin:0; font-size:16px; font-weight:800; color:#ffffff; display:flex; align-items:center; gap:8px;">
-                            <i class="fa-solid fa-flag-checkered" style="color:#60a5fa;"></i> Trip Completed!
+                            <i class="fa-solid fa-star" style="color:#fbbf24;"></i> ${requireBeforeCompletion ? 'Reviews Required' : 'Trip Completed!'}
                         </h4>
                         <p style="margin:2px 0 0 0; font-size:11.5px; color:rgba(255,255,255,0.9);">
-                            Review destinations you visited
+                            ${requireBeforeCompletion ? 'Review every destination before completing' : 'Review destinations you visited'}
                         </p>
                     </div>
                     <button type="button" onclick="window.closeTripCompletionReviewModal()" style="background:rgba(255,255,255,0.2); border:none !important; outline:none !important; color:#ffffff; width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:13px; transition:background 0.2s;">
@@ -2808,8 +2850,8 @@ $backRoute = 'itinerary';
 
                 <!-- Footer (Royal Blue) -->
                 <div style="background:linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%) !important; padding:14px 20px; flex-shrink:0;">
-                    <button type="button" id="btn-trip-completion-close" onclick="window.closeTripCompletionReviewModal()" style="width:100%; padding:12px; border-radius:100px; border:none; outline:none; background:rgba(255,255,255,0.2); color:#ffffff; font-size:13px; font-weight:800; cursor:pointer; transition:all 0.2s ease;">
-                        Done
+                    <button type="button" id="btn-trip-completion-close" onclick="window.finishTripAfterReviews()" style="width:100%; padding:12px; border-radius:100px; border:none; outline:none; background:rgba(255,255,255,0.2); color:#ffffff; font-size:13px; font-weight:800; cursor:pointer; transition:all 0.2s ease;">
+                        ${requireBeforeCompletion ? 'Review all destinations first' : 'Done'}
                     </button>
                 </div>
             </div>
@@ -2825,8 +2867,65 @@ $backRoute = 'itinerary';
                     if (card) {
                         card.style.transform = 'scale(1) translateY(0)';
                     }
+                    window.refreshTripCompletionReviewState();
                 }
             });
+        }
+
+        window.refreshTripCompletionReviewState = function () {
+            const requiredIds = Array.from(new Set(window._completionReviewRequiredIds || []));
+            const remaining = requiredIds.filter(id => !(window.userReviewedSpotIds && window.userReviewedSpotIds.has(Number(id))));
+            const button = document.getElementById('btn-trip-completion-close');
+            if (!button) return;
+            if (!window._completionReviewRequired) {
+                button.disabled = false;
+                button.textContent = 'Done';
+                return;
+            }
+            button.disabled = remaining.length > 0;
+            button.textContent = remaining.length ? `Review ${remaining.length} destination${remaining.length === 1 ? '' : 's'} first` : 'Complete Trip';
+            button.style.background = remaining.length ? 'rgba(255,255,255,0.2)' : 'linear-gradient(135deg, #10b981, #059669)';
+            button.style.opacity = remaining.length ? '0.72' : '1';
+            button.style.cursor = remaining.length ? 'not-allowed' : 'pointer';
+        };
+
+        window.finishTripAfterReviews = function () {
+            if (!window._completionReviewRequired) {
+                window.closeTripCompletionReviewModal();
+                return;
+            }
+            const remaining = Array.from(new Set(window._completionReviewRequiredIds || [])).filter(id =>
+                !(window.userReviewedSpotIds && window.userReviewedSpotIds.has(Number(id)))
+            );
+            if (remaining.length) {
+                if (typeof showToast === 'function') showToast('Please review every destination before completing this trip.', 'warning');
+                return;
+            }
+            window.closeTripCompletionReviewModal();
+            window.executeConfirmCompleteTrip();
+        };
+
+        window.showTripCompletedSuccessModal = function () {
+            const old = document.getElementById('trip-completed-success-modal');
+            if (old) old.remove();
+            document.body.insertAdjacentHTML('beforeend', `
+                <div id="trip-completed-success-modal" style="position:fixed;inset:0;z-index:1000000;background:rgba(10,25,60,.78);backdrop-filter:blur(16px);display:flex;align-items:center;justify-content:center;padding:18px;">
+                    <div style="width:100%;max-width:360px;background:#fff;border-radius:24px;overflow:hidden;text-align:center;box-shadow:0 24px 60px rgba(10,25,60,.45);">
+                        <div style="padding:28px 22px 20px;background:linear-gradient(135deg,#1e3a8a,#2563eb);color:#fff;">
+                            <div style="width:64px;height:64px;border-radius:50%;margin:0 auto 14px;background:#dcfce7;color:#059669;display:flex;align-items:center;justify-content:center;font-size:30px;"><i class="fa-solid fa-circle-check"></i></div>
+                            <h3 style="margin:0;font-size:22px;color:#fff;">Trip Successfully Completed!</h3>
+                            <p style="margin:8px 0 0;color:rgba(255,255,255,.88);font-size:13px;">Your reviewed trip is now available in Trip History.</p>
+                        </div>
+                        <div style="padding:18px;">
+                            <button type="button" onclick="document.getElementById('trip-completed-success-modal')?.remove(); window.switchSavedTripsTab('history');" style="width:100%;border:0;border-radius:14px;padding:13px;background:#1e3a8a;color:#fff;font-weight:800;">View Trip History</button>
+                        </div>
+                    </div>
+                </div>`);
+        };
+
+        if (!window._completionReviewListenerBound) {
+            window._completionReviewListenerBound = true;
+            window.addEventListener('spot-reviewed', () => window.refreshTripCompletionReviewState());
         }
 
         window.closeTripCompletionReviewModal = function () {

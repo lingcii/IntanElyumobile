@@ -6119,6 +6119,11 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                 mainContent.innerHTML = html;
                 document.body.setAttribute('data-view', targetView);
 
+                // A replaced view must not inherit navigation-hiding state from the previous screen.
+                const transientNavClasses = ['keyboard-open', 'map-search-active', 'sheet-open', 'modal-blurred', 'itinerary-confirm-open', 'notif-open', 'logout-open', 'map-route-active'];
+                document.body.classList.remove(...transientNavClasses);
+                document.documentElement.classList.remove(...transientNavClasses);
+
                 // Execute any scripts in the new view
                 executeScripts(mainContent);
 
@@ -6127,7 +6132,10 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                 const noNavViews = ['splash', 'auth', 'about', 'terms', 'edit_profile', 'help', 'trip_map', 'saved_trips', 'saved_places', 'trending', 'reset-password', 'puzzles', 'discount', 'settings', 'user_manual'];
                 if (bottomNav) {
                     bottomNav.classList.toggle('nav-hidden', noNavViews.includes(targetView));
+                    bottomNav.classList.remove('keyboard-hidden');
                 }
+                const magicNav = document.getElementById('magic-nav');
+                if (magicNav) magicNav.classList.remove('keyboard-hidden');
 
                 // Animate in
                 if (fade) {
@@ -6343,6 +6351,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
 
         // 3. Check Known Modals by ID
         const knownModalClosers = [
+            { id: 'map-directions-panel', fn: window.closeMapDirectionsPanel },
             { id: 'spot-vehicles-modal', fn: window.closeSpotVehiclesModal },
             { id: 'itin-add-confirm', fn: window.closeAddConfirm },
             { id: 'leg-transport-modal', fn: window.closeLegTransportModal },
