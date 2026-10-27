@@ -543,13 +543,14 @@ $backRoute = 'itinerary';
                             if (updateId && (exId === updateId || exUpdateId === updateId)) return true;
                             if (exUpdateId && (exUpdateId === id)) return true;
                             if (exId === ('offline_edit_' + id) || id === ('offline_edit_' + exId)) return true;
+                            if (ex.title && t.title && ex.title.trim().toLowerCase() === t.title.trim().toLowerCase()) return true;
                             return false;
                         });
 
                         if (existingIdx !== -1) {
                             const exTime = combined[existingIdx].updated_at ? new Date(combined[existingIdx].updated_at).getTime() : 0;
                             const inTime = t.updated_at ? new Date(t.updated_at).getTime() : 0;
-                            if (inTime > exTime) {
+                            if (inTime >= exTime) {
                                 combined[existingIdx] = { ...combined[existingIdx], ...t };
                             }
                             return;
@@ -631,36 +632,32 @@ $backRoute = 'itinerary';
                         return (qId === lId || qUpdateId === lId || (uId && (qId === uId || qUpdateId === uId)) || qId === ('offline_edit_' + lId));
                     });
 
-                    // If this was an offline edit of an existing server trip and is genuinely queued
-                    if (uId && serverIds.has(uId) && isTrulyQueued) {
-                        const sIdx = list.findIndex(st => String(st.id) === uId || String(st.trip_id) === uId);
-                        if (sIdx !== -1) {
-                            list[sIdx] = { ...list[sIdx], ...lTrip, id: uId, is_offline_queued: true };
-                        }
-                        return;
-                    }
+                    // Match server trip by ID, updateId, or normalized title
+                    const sIdx = list.findIndex(st => {
+                        if (!st) return false;
+                        const sId = String(st.id || st.trip_id || '');
+                        if (sId === lId || (uId && sId === uId)) return true;
+                        if (st.title && lTrip.title && st.title.trim().toLowerCase() === lTrip.title.trim().toLowerCase()) return true;
+                        return false;
+                    });
 
-                    // If local trip has the same ID as a server trip:
-                    if (lId && serverIds.has(lId)) {
-                        const sIdx = list.findIndex(st => String(st.id) === lId || String(st.trip_id) === lId);
-                        if (sIdx !== -1) {
-                            const serverTrip = list[sIdx];
-                            const localUpdatedAt = lTrip.updated_at ? new Date(lTrip.updated_at).getTime() : 0;
-                            const serverUpdatedAt = serverTrip.updated_at ? new Date(serverTrip.updated_at).getTime() : 0;
-                            // Only override server trip if local trip has genuine pending offline edits
-                            if (localUpdatedAt > serverUpdatedAt && isTrulyQueued) {
-                                list[sIdx] = {
-                                    ...serverTrip,
-                                    ...lTrip,
-                                    id: serverTrip.id || lTrip.id
-                                };
-                            }
+                    if (sIdx !== -1) {
+                        const serverTrip = list[sIdx];
+                        const localUpdatedAt = lTrip.updated_at ? new Date(lTrip.updated_at).getTime() : 0;
+                        const serverUpdatedAt = serverTrip.updated_at ? new Date(serverTrip.updated_at).getTime() : 0;
+                        // Only override server trip if local trip has genuine pending offline edits and is newer
+                        if (localUpdatedAt > serverUpdatedAt && isTrulyQueued) {
+                            list[sIdx] = {
+                                ...serverTrip,
+                                ...lTrip,
+                                id: serverTrip.id || lTrip.id
+                            };
                         }
                         return;
                     }
 
                     // If it's a new offline-created trip that is genuinely in the offline queue, prepend to keep it visible!
-                    if (lId && !serverIds.has(lId) && isTrulyQueued) {
+                    if (lId && isTrulyQueued) {
                         serverIds.add(lId);
                         list.unshift(lTrip);
                     }
@@ -846,6 +843,35 @@ $backRoute = 'itinerary';
                                     window.fetchUserProfile();
                                 }
                             }
+
+                            // Dynamic Server Reconciliation: Any numeric server trip in local cache absent from server response was deleted on server -> prune!
+                            const serverIdSet = new Set(mergedItins.map(t => String(t.id || t.trip_id || '')));
+                            const trulyQueuedList = (window.OfflineTripManager && typeof window.OfflineTripManager.getQueuedTrips === 'function')
+                                ? window.OfflineTripManager.getQueuedTrips()
+                                : [];
+
+                            ['intan_elyu_saved_trips', 'intan_elyu_offline_saved_trips_backup'].forEach(k => {
+                                try {
+                                    const raw = localStorage.getItem(k);
+                                    if (raw) {
+                                        const parsed = JSON.parse(raw);
+                                        if (Array.isArray(parsed)) {
+                                            const pruned = parsed.filter(t => {
+                                                if (!t) return false;
+                                                const tid = String(t.id || t.trip_id || '');
+                                                if (/^\d+$/.test(tid)) {
+                                                    return serverIdSet.has(tid);
+                                                }
+                                                if (String(t.local_id || t.id).startsWith('offline_')) {
+                                                    return trulyQueuedList.some(q => String(q.id || q.local_id) === String(t.id || t.local_id));
+                                                }
+                                                return false;
+                                            });
+                                            localStorage.setItem(k, JSON.stringify(pruned));
+                                        }
+                                    }
+                                } catch (e) { }
+                            });
 
                             const fullMergedItins = mergeServerWithQueuedTrips(mergedItins);
                             try {

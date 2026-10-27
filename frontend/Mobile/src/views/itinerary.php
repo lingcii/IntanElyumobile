@@ -4816,13 +4816,22 @@ try {
                     window._lastRenderedTripsSig = null;
                     window._isStartingTrip = false;
 
-                    // Clear stale dashboard caches so dashboard renders fresh data
+                    // Clear stale trip and dashboard caches so saved_trips renders fresh data without flashing old data
                     const curToken = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
                     if (curToken) {
                         const tKey = curToken.substring(0, 10);
+                        localStorage.removeItem('saved_trips_' + tKey);
                         localStorage.removeItem('dashboard_saved_trips_' + tKey);
                         localStorage.removeItem('dashboard_trips_' + tKey);
                     }
+                    for (let i = 0; i < localStorage.length; i++) {
+                        const key = localStorage.key(i);
+                        if (key && (key.startsWith('saved_trips_') || key.startsWith('dashboard_saved_trips_') || key.startsWith('dashboard_trips_'))) {
+                            localStorage.removeItem(key);
+                            i--;
+                        }
+                    }
+                    window._cachedSavedTrips = null;
 
                     // Always clean up draft itinerary and pre-edit backup so old data never restores over new input!
                     localStorage.removeItem('intan_elyu_draft_itinerary');

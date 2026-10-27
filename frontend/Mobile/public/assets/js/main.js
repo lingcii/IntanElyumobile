@@ -1180,7 +1180,11 @@ window.syncTripToAllStorage = function (tripObj, options = {}) {
             if (!Array.isArray(arr)) arr = [];
             const idx = arr.findIndex(isMatch);
             if (idx >= 0) {
-                arr[idx] = { ...arr[idx], ...enriched };
+                const existingTime = arr[idx].updated_at ? new Date(arr[idx].updated_at).getTime() : 0;
+                const newTime = enriched.updated_at ? new Date(enriched.updated_at).getTime() : Date.now();
+                if (newTime >= existingTime) {
+                    arr[idx] = { ...arr[idx], ...enriched };
+                }
             } else {
                 arr.unshift(enriched);
             }
@@ -1221,7 +1225,11 @@ window.syncTripToAllStorage = function (tripObj, options = {}) {
         if (Array.isArray(window._cachedSavedTrips)) {
             const cIdx = window._cachedSavedTrips.findIndex(isMatch);
             if (cIdx >= 0) {
-                window._cachedSavedTrips[cIdx] = { ...window._cachedSavedTrips[cIdx], ...enriched };
+                const existingTime = window._cachedSavedTrips[cIdx].updated_at ? new Date(window._cachedSavedTrips[cIdx].updated_at).getTime() : 0;
+                const newTime = enriched.updated_at ? new Date(enriched.updated_at).getTime() : Date.now();
+                if (newTime >= existingTime) {
+                    window._cachedSavedTrips[cIdx] = { ...window._cachedSavedTrips[cIdx], ...enriched };
+                }
             } else {
                 window._cachedSavedTrips.unshift(enriched);
             }
@@ -1244,19 +1252,38 @@ window.syncTripToAllStorage = function (tripObj, options = {}) {
 
 window.sanitizeLocalTripQueues = function () {
     try {
+        const deletedTripIds = (typeof window.getDeletedTripIds === 'function')
+            ? window.getDeletedTripIds()
+            : [];
+        const deletedIdSet = new Set(deletedTripIds.map(String));
+
         const queuedTrips = (window.OfflineTripManager && typeof window.OfflineTripManager.getQueuedTrips === 'function')
             ? window.OfflineTripManager.getQueuedTrips()
             : [];
         const queuedIdSet = new Set(queuedTrips.map(q => String(q.id || q.local_id || q.update_id || '')));
 
+        // 1. Clean orphaned pre-edit draft backup if not actively editing
+        if (!sessionStorage.getItem('editing_itinerary_id')) {
+            localStorage.removeItem('intan_elyu_pre_edit_backup_draft');
+            sessionStorage.removeItem('intan_elyu_pre_edit_backup_draft');
+        }
+
+        // 2. Reconcile offline queued flag and purge known deleted trips
         ['intan_elyu_saved_trips', 'intan_elyu_offline_saved_trips_backup'].forEach(k => {
             const raw = localStorage.getItem(k);
             if (raw) {
                 const list = JSON.parse(raw);
                 if (Array.isArray(list)) {
                     let changed = false;
-                    const cleaned = list.map(t => {
-                        if (!t) return t;
+                    const cleaned = list.filter(t => {
+                        if (!t) return false;
+                        const tId = String(t.id || t.local_id || t.trip_id || '');
+                        if (deletedIdSet.has(tId) || (t.update_id && deletedIdSet.has(String(t.update_id)))) {
+                            changed = true;
+                            return false;
+                        }
+                        return true;
+                    }).map(t => {
                         const tId = String(t.id || t.local_id || '');
                         if (t.is_offline_queued && !queuedIdSet.has(tId) && !queuedIdSet.has(String(t.update_id || ''))) {
                             changed = true;
@@ -1270,7 +1297,31 @@ window.sanitizeLocalTripQueues = function () {
                 }
             }
         });
-    } catch(e) {}
+
+        // 3. Purge invalid or deleted trips from offline queue
+        if (queuedTrips.length > 0) {
+            let qChanged = false;
+            const validQueued = queuedTrips.filter(q => {
+                if (!q) return false;
+                const qId = String(q.id || q.local_id || q.update_id || '');
+                if (deletedIdSet.has(qId) || (q.update_id && deletedIdSet.has(String(q.update_id)))) {
+                    qChanged = true;
+                    return false;
+                }
+                const dests = (q.destinations || []).map(d => typeof d === 'object' ? (d.id || d.tourist_spot_id) : d).filter(Boolean);
+                if (dests.length === 0) {
+                    qChanged = true;
+                    return false;
+                }
+                return true;
+            });
+            if (qChanged && window.OfflineTripManager) {
+                localStorage.setItem(window.OfflineTripManager.STORAGE_KEY, JSON.stringify(validQueued));
+            }
+        }
+    } catch(e) {
+        console.warn("sanitizeLocalTripQueues error:", e);
+    }
 };
 try { window.sanitizeLocalTripQueues(); } catch(e) {}
 
@@ -1579,6 +1630,14 @@ window.OfflineTripManager = {
                         return isNaN(p) ? 0 : p;
                     }).filter(id => id > 0);
 
+                    if (cleanDests.length === 0) {
+                        console.warn("Purging queued trip with no valid spots:", trip.title);
+                        this.removeQueuedTrip(trip.id);
+                        if (trip.update_id) this.removeQueuedTrip(trip.update_id);
+                        this.removeQueuedTrip('offline_edit_' + trip.id);
+                        continue;
+                    }
+
                     const payload = {
                         title: trip.title,
                         trip_date: trip.trip_date || null,
@@ -1620,6 +1679,14 @@ window.OfflineTripManager = {
                                 }
                                 syncedCount++;
                                 tripSuccess = true;
+                                break;
+                            } else if (res.status === 422 || res.status === 404 || res.status === 400) {
+                                // Permanent unrecoverable failure (e.g. invalid spot or deleted entity)
+                                console.warn("Unrecoverable trip sync error (" + res.status + "):", trip.title);
+                                this.removeQueuedTrip(trip.id);
+                                if (trip.update_id) this.removeQueuedTrip(trip.update_id);
+                                this.removeQueuedTrip('offline_edit_' + trip.id);
+                                tripSuccess = false;
                                 break;
                             }
                         } catch (candErr) {
@@ -8125,8 +8192,10 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
             try {
                 cachedData = window.safeJsonParse(cached, null);
                 if (cachedData && cachedData.hasOwnProperty('data')) {
-                    // Call callback with cached data immediately
-                    callback(cachedData.data, true);
+                    // Call callback with cached data immediately only if not explicitly forcing a fresh fetch
+                    if (!forceRefresh) {
+                        callback(cachedData.data, true);
+                    }
                     const age = Date.now() - (cachedData.timestamp || 0);
                     isExpired = age > ttl;
                 }
