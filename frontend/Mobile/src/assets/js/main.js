@@ -6119,7 +6119,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                 document.body.setAttribute('data-view', targetView);
 
                 // A replaced view must not inherit navigation-hiding state from the previous screen.
-                const transientNavClasses = ['keyboard-open', 'map-search-active', 'sheet-open', 'modal-blurred', 'itinerary-confirm-open', 'notif-open', 'logout-open', 'map-route-active'];
+                const transientNavClasses = ['keyboard-open', 'map-search-active', 'sheet-open', 'modal-blurred', 'itinerary-confirm-open', 'itin-confirm-open', 'notif-open', 'logout-open', 'map-route-active', 'map-directions-open'];
                 document.body.classList.remove(...transientNavClasses);
                 document.documentElement.classList.remove(...transientNavClasses);
 

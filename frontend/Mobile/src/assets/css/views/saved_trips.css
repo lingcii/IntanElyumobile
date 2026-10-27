@@ -164,10 +164,6 @@ body[data-view="saved_trips"] .mobile-header .header-icon i {
     position: relative;
     overflow: hidden;
     border-radius: 24px !important;
-    -webkit-mask-image: -webkit-radial-gradient(white, black);
-    mask-image: radial-gradient(white, black);
-    isolation: isolate;
-    contain: paint;
     margin-bottom: 20px !important;
     animation: tripCardFade 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     touch-action: pan-y !important;

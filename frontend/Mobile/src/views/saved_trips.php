@@ -1277,6 +1277,10 @@ $backRoute = 'itinerary';
 
                 activeItineraries.forEach(trip => {
                     if (!trip) return;
+                    // Each card is appended atomically: if one card fails to render, drop its
+                    // partial markup instead of leaving unclosed tags that nest every card
+                    // that follows (which previously stacked the whole list on top of itself).
+                    const cardHtmlStart = html.length;
                     try {
                         let budgetIndicator = '';
                         if (trip.budget && trip.budget > 0) {
@@ -1319,7 +1323,7 @@ $backRoute = 'itinerary';
                         }
 
                         html += `
-                    <div class="trip-swipe-container" data-trip-id="${trip.id}" data-trip-title="${safeTitle}" style="position:relative; overflow:hidden; border-radius:24px; -webkit-mask-image:-webkit-radial-gradient(white, black); mask-image:radial-gradient(white, black); isolation:isolate; contain:paint; margin-bottom:20px; touch-action:pan-y;">
+                    <div class="trip-swipe-container" data-trip-id="${trip.id}" data-trip-title="${safeTitle}" style="position:relative; overflow:hidden; border-radius:24px; margin-bottom:20px; touch-action:pan-y;">
                         <!-- Red Delete Action Button (Slides smoothly in tandem from right wall) -->
                         <div class="trip-swipe-bg" onclick="event.stopPropagation(); window.confirmDeleteSavedTrip('${trip.id}', this.closest('.trip-swipe-container'), '${safeTitle}');" style="position:absolute; top:0; right:0; bottom:0; width:95px; background:linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border-radius:0 24px 24px 0; display:flex; align-items:center; justify-content:center; color:#ffffff; font-size:13px; font-weight:800; gap:6px; z-index:1; cursor:pointer; opacity:0; pointer-events:none; transform:translateX(95px); transition:transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease; touch-action:manipulation;">
                             <i class="fa-solid fa-trash-can"></i> Delete
@@ -1377,6 +1381,7 @@ $backRoute = 'itinerary';
                                 const spotIdVal = item.tourist_spot_id || item.destination_id || (item.destination ? item.destination.id : null);
                                 const queuedItem = window.OfflineCheckinManager ? window.OfflineCheckinManager.getQueuedItem(item.id, spotIdVal, trip.id || trip.local_id) : null;
                                 const isCheckinQueued = Boolean(queuedItem);
+                                const isQueued = isCheckinQueued; // alias used by the queued-proof status blocks below
                                 if (isCheckinQueued) {
                                     hasQueuedCheckins = true;
                                 }
@@ -1661,6 +1666,7 @@ $backRoute = 'itinerary';
 
                         html += `</div></div>`; // Close trip-swipe-content and trip-swipe-container
                     } catch (tripErr) {
+                        html = html.slice(0, cardHtmlStart);
                         console.error("Error rendering saved trip item:", tripErr, trip);
                     }
                 });
