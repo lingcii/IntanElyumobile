@@ -187,6 +187,7 @@ window.openWriteTestimonyModal = function(spotId, btnEl) {
     }
 
     const isAlreadyReviewed = targetSpotId && window.userReviewedSpotIds && window.userReviewedSpotIds.has(Number(targetSpotId));
+    const isCompletionReview = window._isCompletionReviewFlow === true;
     const titleEl = document.getElementById('testimony-modal-title');
     const subEl = document.getElementById('testimony-modal-subtitle');
     const bannerEl = document.getElementById('testimony-reward-banner');
@@ -274,6 +275,12 @@ window.openWriteTestimonyModal = function(spotId, btnEl) {
         if (policyInput) policyInput.value = '';
     }
 
+    if (isCompletionReview) {
+        if (titleEl) titleEl.textContent = 'Review Destination';
+        if (subEl) subEl.textContent = 'Share your experience before completing this trip.';
+        if (submitTextEl) submitTextEl.textContent = 'Save Review';
+    }
+
     const modal = document.getElementById('testimony-modal');
     if (modal) {
         if (modal.parentElement !== document.body) {
@@ -291,7 +298,8 @@ window.openWriteTestimonyModal = function(spotId, btnEl) {
     }
 };
 
-window.closeWriteTestimonyModal = function() {
+window.closeWriteTestimonyModal = function(preserveCompletion = false) {
+    const wasCompletionReview = window._isCompletionReviewFlow === true;
     const modal = document.getElementById('testimony-modal');
     if (modal) {
         modal.classList.remove('active');
@@ -311,6 +319,12 @@ window.closeWriteTestimonyModal = function() {
         compModal.style.zIndex = '99998';
         compModal.style.opacity = '1';
     }
+    if (wasCompletionReview && !preserveCompletion && !compModal) {
+        window._completionReviewRequired = false;
+        window._completionReviewRequiredIds = [];
+        window._pendingCompleteTripId = null;
+    }
+    window._isCompletionReviewFlow = false;
 };
 
 window.setStarRating = function(rating) {
@@ -460,7 +474,7 @@ window.submitTestimony = async function(event) {
 
         const data = await response.json();
         if (response.ok) {
-            window.closeWriteTestimonyModal();
+            window.closeWriteTestimonyModal(true);
 
             const isRewardAwarded = data.reward_awarded === true;
 

@@ -739,8 +739,22 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                 return;
             }
 
+            const clearLoadingTripToast = () => {
+                document.querySelectorAll('#toast-container .toast-card').forEach(toast => {
+                    if ((toast.textContent || '').includes('Loading trip route')) toast.remove();
+                });
+                const toastContainer = document.getElementById('toast-container');
+                if (toastContainer && toastContainer.children.length === 0) toastContainer.remove();
+            };
+
             const applyTripToMap = (trip) => {
+                clearLoadingTripToast();
                 if (!document.getElementById('trip-map')) return; // Page was unmounted
+                if (trip && (trip.status === 'completed' || (typeof window.isTripCompletedLocally === 'function' && window.isTripCompletedLocally(trip)))) {
+                    window._savedTripsTab = 'history';
+                    if (typeof window.navigateTo === 'function') window.navigateTo('saved_trips');
+                    return;
+                }
 
                 // Deep-merge persistent verified item states AND offline queued checkins/photos into trip.items
                 try {
@@ -985,7 +999,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                 return;
             }
 
-            if (typeof showToast === 'function') showToast("Loading trip route...");
+            if (typeof showToast === 'function') showToast("Loading trip route...", "info", 1400);
 
             const controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
             const timeoutId = controller ? setTimeout(() => controller.abort(), 8000) : null;
@@ -1045,7 +1059,8 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                     } else {
                         console.error("Failed to load trip", e);
                     }
-                });
+                })
+                .finally(clearLoadingTripToast);
         }
 
         function plotTrip(items, routeType = 'Recommended') {

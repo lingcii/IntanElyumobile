@@ -854,11 +854,9 @@ window.markTripAsCompletedLocally = function (tripId, earnedPoints = 0, newTotal
     try {
         const completed = window.getCompletedTripIds();
         const sId = String(tripId).trim();
-        if (!completed.includes(sId)) {
-            completed.push(sId);
-            if (completed.length > 250) completed.shift();
-            localStorage.setItem('intan_elyu_completed_trip_ids', JSON.stringify(completed));
-        }
+        if (!completed.includes(sId)) completed.push(sId);
+        if (completed.length > 250) completed.shift();
+        localStorage.setItem('intan_elyu_completed_trip_ids', JSON.stringify(completed));
 
         // 1. Update auth_user points and completed_activities in localStorage
         try {
@@ -896,14 +894,15 @@ window.markTripAsCompletedLocally = function (tripId, earnedPoints = 0, newTotal
         // 3. Mark completed in intan_elyu_offline_saved_trips_backup
         try {
             let backup = JSON.parse(localStorage.getItem('intan_elyu_offline_saved_trips_backup') || '[]');
-            if (Array.isArray(backup)) {
-                backup = backup.map(t => {
+            const backupList = Array.isArray(backup) ? backup : (backup.itineraries || backup.data || []);
+            if (Array.isArray(backupList)) {
+                const updatedBackup = backupList.map(t => {
                     if (t && (String(t.id) === sId || String(t.local_id) === sId)) {
                         return { ...t, status: 'completed' };
                     }
                     return t;
                 });
-                localStorage.setItem('intan_elyu_offline_saved_trips_backup', JSON.stringify(backup));
+                localStorage.setItem('intan_elyu_offline_saved_trips_backup', JSON.stringify(updatedBackup));
             }
         } catch (e) { }
 
@@ -6129,7 +6128,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
 
                 // Toggle bottom nav visibility
                 const bottomNav = document.getElementById('bottom-navigation');
-                const noNavViews = ['splash', 'auth', 'about', 'terms', 'edit_profile', 'help', 'trip_map', 'saved_trips', 'saved_places', 'trending', 'reset-password', 'puzzles', 'discount', 'settings', 'user_manual'];
+                const noNavViews = ['splash', 'auth', 'about', 'terms', 'edit_profile', 'help', 'trip_map', 'saved_places', 'trending', 'reset-password', 'puzzles', 'discount', 'settings', 'user_manual'];
                 if (bottomNav) {
                     bottomNav.classList.toggle('nav-hidden', noNavViews.includes(targetView));
                     bottomNav.classList.remove('keyboard-hidden');
@@ -7171,7 +7170,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
         document.documentElement.classList.remove('modal-blurred', 'logout-open');
         const bottomNav = document.getElementById('bottom-navigation');
         const currentView = document.body.getAttribute('data-view') || '';
-        const noNavViews = ['splash', 'auth', 'about', 'terms', 'edit_profile', 'help', 'trip_map', 'saved_trips', 'saved_places', 'trending', 'reset-password', 'puzzles', 'discount', 'settings', 'user_manual', 'download'];
+        const noNavViews = ['splash', 'auth', 'about', 'terms', 'edit_profile', 'help', 'trip_map', 'saved_places', 'trending', 'reset-password', 'puzzles', 'discount', 'settings', 'user_manual', 'download'];
         if (bottomNav && !noNavViews.includes(currentView) && !document.body.classList.contains('sheet-open')) {
             bottomNav.classList.remove('nav-hidden');
         }

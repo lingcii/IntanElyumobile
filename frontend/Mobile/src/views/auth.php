@@ -17,7 +17,8 @@
             <img id="auth-logo-img" src="assets/img/logo.png" alt="Intan Elyu Logo"
                 style="width: 100%; height: 100%; object-fit: contain; border-radius: 50%; display: block;">
         </div>
-        <h1 id="auth-title" style="color: #ffffff; font-weight: 800;">Welcome to Elyu</h1>
+        <h1 id="auth-title" style="color: #ffffff; font-weight: 800;">Welcome to <span>Elyu</span></h1>
+        <p id="auth-subtitle" class="auth-subtitle">Explore places. Create memories.<br>Discover La Union.</p>
 
         <!-- Animated Seamless SVG Wave -->
         <div class="wave-bottom">
@@ -72,7 +73,7 @@
             <div class="form-panel login-form">
                 <form id="form-login" onsubmit="handleLogin(event)">
                     <div class="input-group">
-                        <i class="fa-solid fa-mobile-screen"></i>
+                        <i class="fa-regular fa-envelope"></i>
                         <input type="email" id="login-email" class="auth-input" placeholder="Email Address" required>
                     </div>
                     <div class="input-group">
@@ -89,7 +90,7 @@
                         <a href="#" class="forgot-pwd" onclick="showForgotPassword(event)">Forgot Password?</a>
                     </div>
 
-                    <button type="submit" id="btn-login" class="btn-circle-submit">
+                    <button type="submit" id="btn-login" class="btn-circle-submit" data-label="Log In">
                         <i class="fa-solid fa-arrow-right"></i>
                     </button>
                 </form>
@@ -148,7 +149,7 @@
                         <i class="fa-solid fa-chevron-down select-arrow" id="reg-gender-arrow"></i>
                     </div>
                     <div class="input-group">
-                        <i class="fa-solid fa-mobile-screen"></i>
+                        <i class="fa-regular fa-envelope"></i>
                         <input type="email" id="reg-email" class="auth-input" placeholder="Email Address" required
                             oninput="validateRegisterFormInline()">
                         <i id="reg-email-status-icon" class="fa-solid field-status-icon"></i>
@@ -199,7 +200,7 @@
                         </div>
                     </div>
 
-                    <button type="submit" id="btn-register" class="btn-circle-submit">
+                    <button type="submit" id="btn-register" class="btn-circle-submit" data-label="Create Account">
                         <i class="fa-solid fa-arrow-right"></i>
                     </button>
                 </form>
@@ -1093,11 +1094,25 @@
 
     function updateTitleWithTransition(newText) {
         const titleEl = document.getElementById('auth-title');
+        const subtitleEl = document.getElementById('auth-subtitle');
         if (!titleEl || titleEl.textContent === newText) return;
         titleEl.classList.add('text-fade-out');
+        if (subtitleEl) subtitleEl.classList.add('text-fade-out');
         setTimeout(() => {
-            titleEl.textContent = newText;
+            const highlightedTitles = {
+                'Welcome to Elyu': 'Welcome to <span>Elyu</span>',
+                'Start your Journey': 'Start your <span>Journey</span>'
+            };
+            const subtitles = {
+                'Welcome to Elyu': 'Explore places. Create memories.<br>Discover La Union.',
+                'Start your Journey': 'Create your account and explore<br>the beauty of La Union.',
+                'Account Recovery': 'Recover your account securely.',
+                'Verify Your Email': 'Enter the verification code sent to you.'
+            };
+            titleEl.innerHTML = highlightedTitles[newText] || newText;
+            if (subtitleEl) subtitleEl.innerHTML = subtitles[newText] || '';
             titleEl.classList.remove('text-fade-out');
+            if (subtitleEl) subtitleEl.classList.remove('text-fade-out');
         }, 200);
     }
 
