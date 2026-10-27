@@ -534,7 +534,18 @@ $backRoute = 'itinerary';
                     if (!t) return;
                     const id = String(t.id || t.local_id || t.trip_id || '');
                     if (id) {
-                        if (seenIds.has(id)) return;
+                        if (seenIds.has(id)) {
+                            // If we already have this trip in combined, check if incoming one is newer
+                            const existingIdx = combined.findIndex(ex => String(ex.id || ex.local_id || ex.trip_id || '') === id);
+                            if (existingIdx !== -1) {
+                                const exTime = combined[existingIdx].updated_at ? new Date(combined[existingIdx].updated_at).getTime() : 0;
+                                const inTime = t.updated_at ? new Date(t.updated_at).getTime() : 0;
+                                if (inTime > exTime) {
+                                    combined[existingIdx] = { ...combined[existingIdx], ...t };
+                                }
+                            }
+                            return;
+                        }
                         seenIds.add(id);
                         if (id.startsWith('offline_edit_')) seenIds.add(id.replace('offline_edit_', ''));
                     }
@@ -604,6 +615,24 @@ $backRoute = 'itinerary';
                         const sIdx = list.findIndex(st => String(st.id) === uId || String(st.trip_id) === uId);
                         if (sIdx !== -1) {
                             list[sIdx] = { ...list[sIdx], ...lTrip, id: uId, is_offline_queued: true };
+                        }
+                        return;
+                    }
+
+                    // If local trip has the same ID as a server trip and local trip is newer or was modified locally
+                    if (lId && serverIds.has(lId)) {
+                        const sIdx = list.findIndex(st => String(st.id) === lId || String(st.trip_id) === lId);
+                        if (sIdx !== -1) {
+                            const serverTrip = list[sIdx];
+                            const localUpdatedAt = lTrip.updated_at ? new Date(lTrip.updated_at).getTime() : 0;
+                            const serverUpdatedAt = serverTrip.updated_at ? new Date(serverTrip.updated_at).getTime() : 0;
+                            if (localUpdatedAt > serverUpdatedAt || lTrip.is_offline_queued) {
+                                list[sIdx] = {
+                                    ...serverTrip,
+                                    ...lTrip,
+                                    id: serverTrip.id || lTrip.id
+                                };
+                            }
                         }
                         return;
                     }
@@ -3104,7 +3133,7 @@ $backRoute = 'itinerary';
                 }
             }
 
-            sessionStorage.setItem('editing_itinerary_id', trip.id);
+            sessionStorage.setItem('editing_itinerary_id', String(trip.id || trip.local_id || ''));
             sessionStorage.setItem('editing_trip_title', trip.title || '');
             sessionStorage.setItem('editing_trip_date', trip.trip_date || '');
             sessionStorage.setItem('editing_trip_budget', (trip.budget !== null && trip.budget !== undefined) ? trip.budget : '');

@@ -192,7 +192,7 @@ class ItineraryController extends Controller
                 'items.destination:id,name,photo_url,latitude,longitude,entrance_fee,adult_fee,kids_fee,pwd_fee,senior_citizen_fee,environmental_fee,classification_status,accessible_by_private_vehicle,municipality_id',
                 'items.destination.municipality:id,name'
             ])
-            ->orderByDesc('created_at')
+            ->orderByRaw('COALESCE(updated_at, created_at) DESC')
             ->get();
 
 
@@ -319,7 +319,7 @@ class ItineraryController extends Controller
 
         $user = $request->user();
 
-        // Prevent accidental double-clicks within 2 seconds
+        // Prevent accidental rapid double-clicks within 2 seconds with the EXACT same destinations
         $recentDuplicate = Itinerary::where('user_id', $user->id)
             ->where('title', trim($request->title))
             ->where('created_at', '>=', now()->subSeconds(2))
@@ -327,12 +327,17 @@ class ItineraryController extends Controller
 
         if ($recentDuplicate) {
             $spotIds = $recentDuplicate->items->pluck('tourist_spot_id')->filter()->unique()->values()->all();
-            [$spotPublicVehicles, $spotPrivateVehicles, $spotAllVehicles] = $this->getSpotVehiclesMap($spotIds);
-            return response()->json([
-                'message' => 'Itinerary already saved.',
-                'itinerary_id' => $recentDuplicate->id,
-                'itinerary' => $this->formatItineraryResponse($recentDuplicate, $spotPublicVehicles, $spotPrivateVehicles, $spotAllVehicles)
-            ], 200);
+            sort($spotIds);
+            $reqSpotIds = is_array($request->destinations) ? array_values(array_unique(array_filter($request->destinations))) : [];
+            sort($reqSpotIds);
+            if ($spotIds === $reqSpotIds) {
+                [$spotPublicVehicles, $spotPrivateVehicles, $spotAllVehicles] = $this->getSpotVehiclesMap($spotIds);
+                return response()->json([
+                    'message' => 'Itinerary already saved.',
+                    'itinerary_id' => $recentDuplicate->id,
+                    'itinerary' => $this->formatItineraryResponse($recentDuplicate, $spotPublicVehicles, $spotPrivateVehicles, $spotAllVehicles)
+                ], 200);
+            }
         }
 
         $itinerary = DB::transaction(function () use ($request, $user) {

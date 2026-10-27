@@ -4488,23 +4488,31 @@ try {
                     const savedTransport = sessionStorage.getItem('editing_trip_transport');
 
                     const titleInput = document.getElementById('trip-title');
-                    if (titleInput && savedTitle !== null && savedTitle !== undefined) {
-                        titleInput.value = savedTitle;
+                    if (titleInput) {
+                        if (!titleInput.value || titleInput.value.trim() === '' || titleInput.value === savedTitle) {
+                            titleInput.value = savedTitle || '';
+                        }
                     }
 
                     targetDateStr = savedDate ? savedDate.split(/[T ]/)[0] : '';
                     const dateInput = document.getElementById('trip-date');
                     if (dateInput) {
-                        dateInput.value = targetDateStr;
+                        if (!dateInput.value) {
+                            dateInput.value = targetDateStr;
+                        } else {
+                            targetDateStr = dateInput.value;
+                        }
                     }
                     const budgetInput = document.getElementById('trip-budget');
-                    if (budgetInput) {
+                    if (budgetInput && !budgetInput.value) {
                         budgetInput.value = (savedBudget !== null && savedBudget !== undefined && savedBudget !== '') ? savedBudget : '';
                     }
                     if (savedTransport) {
                         const transEl = document.getElementById('trip-transport');
                         const isNoVeh = savedTransport.toLowerCase().includes('no_vehicle') || savedTransport.toLowerCase().includes('no vehicle');
-                        if (transEl) transEl.value = isNoVeh ? 'No Vehicle Selected' : savedTransport;
+                        if (transEl && (!transEl.value || transEl.value === 'No Vehicle Selected')) {
+                            transEl.value = isNoVeh ? 'No Vehicle Selected' : savedTransport;
+                        }
                     }
 
                     const savedTripType = sessionStorage.getItem('editing_trip_type') || 'solo';
@@ -4763,14 +4771,20 @@ try {
                     if (!tripObj) return;
                     try {
                         const tripId = String(tripObj.id || tripObj.local_id || '');
+                        const nowIso = new Date().toISOString();
+                        const enrichedTrip = {
+                            ...tripObj,
+                            updated_at: tripObj.updated_at || nowIso
+                        };
+
                         // 1. intan_elyu_saved_trips
                         let localSaved = JSON.parse(localStorage.getItem('intan_elyu_saved_trips') || '[]');
                         if (!Array.isArray(localSaved)) localSaved = [];
                         const exIdx = localSaved.findIndex(t => t && (String(t.id) === tripId || String(t.local_id) === tripId));
                         if (exIdx >= 0) {
-                            localSaved[exIdx] = { ...localSaved[exIdx], ...tripObj };
+                            localSaved[exIdx] = enrichedTrip;
                         } else {
-                            localSaved.unshift(tripObj);
+                            localSaved.unshift(enrichedTrip);
                         }
                         localStorage.setItem('intan_elyu_saved_trips', JSON.stringify(localSaved));
 
@@ -4779,9 +4793,9 @@ try {
                         if (!Array.isArray(backup)) backup = [];
                         const bkIdx = backup.findIndex(t => t && (String(t.id) === tripId || String(t.local_id) === tripId));
                         if (bkIdx >= 0) {
-                            backup[bkIdx] = { ...backup[bkIdx], ...tripObj };
+                            backup[bkIdx] = enrichedTrip;
                         } else {
-                            backup.unshift(tripObj);
+                            backup.unshift(enrichedTrip);
                         }
                         localStorage.setItem('intan_elyu_offline_saved_trips_backup', JSON.stringify(backup));
 
@@ -4800,9 +4814,9 @@ try {
                             if (!Array.isArray(tList)) tList = [];
                             const tIdx = tList.findIndex(t => t && (String(t.id) === tripId || String(t.local_id) === tripId));
                             if (tIdx >= 0) {
-                                tList[tIdx] = { ...tList[tIdx], ...tripObj };
+                                tList[tIdx] = enrichedTrip;
                             } else {
-                                tList.unshift(tripObj);
+                                tList.unshift(enrichedTrip);
                             }
                             try {
                                 localStorage.setItem(tKey, JSON.stringify({ data: tList, itineraries: tList, timestamp: Date.now() }));
@@ -4814,9 +4828,9 @@ try {
                         if (Array.isArray(window._cachedSavedTrips)) {
                             const cIdx = window._cachedSavedTrips.findIndex(t => t && (String(t.id) === tripId || String(t.local_id) === tripId));
                             if (cIdx >= 0) {
-                                window._cachedSavedTrips[cIdx] = { ...window._cachedSavedTrips[cIdx], ...tripObj };
+                                window._cachedSavedTrips[cIdx] = enrichedTrip;
                             } else {
-                                window._cachedSavedTrips.unshift(tripObj);
+                                window._cachedSavedTrips.unshift(enrichedTrip);
                             }
                         }
 
@@ -4842,31 +4856,16 @@ try {
                     window._lastRenderedTripsSig = null;
                     window._isStartingTrip = false;
 
-                    // Hard purge stale cache keys so saved_trips view fetches and renders fresh data immediately
+                    // Clear stale dashboard caches so dashboard renders fresh data
                     const curToken = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
                     if (curToken) {
                         const tKey = curToken.substring(0, 10);
-                        localStorage.removeItem('saved_trips_' + tKey);
                         localStorage.removeItem('dashboard_saved_trips_' + tKey);
                         localStorage.removeItem('dashboard_trips_' + tKey);
                     }
 
-                    // If user updated an edited trip, restore their original pre-edit draft (if any was saved)
-                    const backupDraftRaw = localStorage.getItem('intan_elyu_pre_edit_backup_draft') || sessionStorage.getItem('intan_elyu_pre_edit_backup_draft');
-                    if (editingId && backupDraftRaw) {
-                        try {
-                            const parsed = JSON.parse(backupDraftRaw);
-                            if (Array.isArray(parsed) && parsed.length > 0) {
-                                localStorage.setItem('intan_elyu_draft_itinerary', backupDraftRaw);
-                            } else {
-                                localStorage.removeItem('intan_elyu_draft_itinerary');
-                            }
-                        } catch (e) {
-                            localStorage.removeItem('intan_elyu_draft_itinerary');
-                        }
-                    } else {
-                        localStorage.removeItem('intan_elyu_draft_itinerary');
-                    }
+                    // Always clean up draft itinerary and pre-edit backup so old data never restores over new input!
+                    localStorage.removeItem('intan_elyu_draft_itinerary');
                     localStorage.removeItem('intan_elyu_pre_edit_backup_draft');
                     sessionStorage.removeItem('intan_elyu_pre_edit_backup_draft');
                     sessionStorage.removeItem('editing_itinerary_id');

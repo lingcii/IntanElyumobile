@@ -1004,11 +1004,25 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                     if (data && data.itineraries) {
                         try {
                             const tokenKey = token ? token.substring(0, 10) : 'default';
-                            localStorage.setItem('saved_trips_' + tokenKey, JSON.stringify({ data: data.itineraries, itineraries: data.itineraries, timestamp: Date.now() }));
-                            localStorage.setItem('intan_elyu_saved_trips', JSON.stringify(data.itineraries));
-                            localStorage.setItem('intan_elyu_offline_saved_trips_backup', JSON.stringify(data.itineraries));
+                            let merged = Array.isArray(data.itineraries) ? [...data.itineraries] : [];
+                            const serverIdSet = new Set(merged.map(m => String(m.id || m.local_id || '')));
+                            if (window.OfflineTripManager && typeof window.OfflineTripManager.getQueuedTrips === 'function') {
+                                const queued = window.OfflineTripManager.getQueuedTrips();
+                                if (Array.isArray(queued)) {
+                                    queued.forEach(q => {
+                                        const qId = String(q.id || q.local_id || '');
+                                        if (qId && !serverIdSet.has(qId)) {
+                                            merged.unshift(q);
+                                            serverIdSet.add(qId);
+                                        }
+                                    });
+                                }
+                            }
+                            localStorage.setItem('saved_trips_' + tokenKey, JSON.stringify({ data: merged, itineraries: merged, timestamp: Date.now() }));
+                            localStorage.setItem('intan_elyu_saved_trips', JSON.stringify(merged));
+                            localStorage.setItem('intan_elyu_offline_saved_trips_backup', JSON.stringify(merged));
                             if (Array.isArray(window._cachedSavedTrips)) {
-                                window._cachedSavedTrips = data.itineraries;
+                                window._cachedSavedTrips = merged;
                             }
                         } catch (e) {}
 
