@@ -1381,7 +1381,6 @@ $backRoute = 'itinerary';
                                 const spotIdVal = item.tourist_spot_id || item.destination_id || (item.destination ? item.destination.id : null);
                                 const queuedItem = window.OfflineCheckinManager ? window.OfflineCheckinManager.getQueuedItem(item.id, spotIdVal, trip.id || trip.local_id) : null;
                                 const isCheckinQueued = Boolean(queuedItem);
-                                const isQueued = isCheckinQueued; // alias used by the queued-proof status blocks below
                                 if (isCheckinQueued) {
                                     hasQueuedCheckins = true;
                                 }
