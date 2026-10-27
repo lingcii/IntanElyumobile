@@ -1430,7 +1430,7 @@ $backRoute = 'itinerary';
                                 }
 
                                 let queuedThumbnailHtml = '';
-                                if (isQueued && queuedItem) {
+                                if (isCheckinQueued && queuedItem) {
                                     const qSrc = queuedItem.previewUrl || queuedItem.image || '';
                                     if (qSrc) {
                                         queuedThumbnailHtml = `<img src="${qSrc}" onerror="this.onerror=null; this.src='assets/img/no_image.svg';" onclick="event.stopPropagation(); if(typeof window.viewProofPhotoModal==='function') window.viewProofPhotoModal('${qSrc}', '${destEscaped}', 'Offline Proof (Queued on Device)');" alt="Proof" title="Tap to view offline proof photo" style="width:52px; height:52px; border-radius:12px; object-fit:cover; border:2px solid #f59e0b !important; outline:none !important; box-shadow:0 4px 12px rgba(0,0,0,0.3); flex-shrink:0; cursor:pointer;">`;
@@ -1548,7 +1548,7 @@ $backRoute = 'itinerary';
                                                 </div>
                                                 ${photosStripHtml}
                                             </div>` :
-                                            (isQueued ?
+                                            (isCheckinQueued ?
                                                 `<div style="display:flex; align-items:center; gap:10px; margin-top:4px;">
                                                     ${queuedThumbnailHtml}
                                                     <div>

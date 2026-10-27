@@ -45,6 +45,8 @@ assert.doesNotMatch(renderSource, /> Sync Now/,
     'saved-trip cards must not render a manual Sync Now button');
 assert.match(renderSource, /timeline-collapsible expanded/,
     'trip destinations must stay visible after removing View Details');
+assert.doesNotMatch(renderSource, /\bisQueued\b/,
+    'renderSavedTrips must use isCheckinQueued instead of an undeclared isQueued identifier so trip cards close properly');
 assert.match(renderSource, /button\[onclick\*="executeLocationCheckIn"\][\s\S]*button\[onclick\*="openProofUploadModal"\]/,
     'check-in and proof controls must be removed from the saved-trip summary card');
 assert.match(trips, /Saved Trips[\s\S]*Trip History/,
