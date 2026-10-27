@@ -643,7 +643,7 @@ $activeTab = 'profile';
         if (!catalogEl || !Array.isArray(allVouchers)) return;
         window._rawVouchersCatalog = allVouchers;
 
-        // Build set of claimed/redeemed voucher keys scoped to current user
+        // Build comprehensive set of claimed/redeemed voucher keys scoped to current user
         let claimedSet = new Set();
         try {
             const uid = (function() {
@@ -655,32 +655,95 @@ $activeTab = 'profile';
                 return (tok && tok.length > 10) ? 'tok_' + tok.substring(0, 12) : 'guest';
             })();
             const arr = JSON.parse(localStorage.getItem('intan_elyu_claimed_vouchers_' + uid) || '[]');
-            arr.forEach(id => claimedSet.add(String(id).toLowerCase()));
+            arr.forEach(id => {
+                if (!id) return;
+                const s = String(id).toLowerCase().trim();
+                claimedSet.add(s);
+                claimedSet.add(s.replace(/^db_/, ''));
+                claimedSet.add('db_' + s.replace(/^db_/, ''));
+            });
+            const legArr = JSON.parse(localStorage.getItem('intan_elyu_claimed_vouchers') || '[]');
+            legArr.forEach(id => {
+                if (!id) return;
+                const s = String(id).toLowerCase().trim();
+                claimedSet.add(s);
+                claimedSet.add(s.replace(/^db_/, ''));
+                claimedSet.add('db_' + s.replace(/^db_/, ''));
+            });
         } catch (e) { }
 
-        const userRedemptions = (window._cachedActiveVouchers || []).concat(window._cachedHistoryVouchers || []);
-        userRedemptions.forEach(v => {
-            if (v.voucher_id) {
-                claimedSet.add(String(v.voucher_id).toLowerCase());
-                claimedSet.add('db_' + String(v.voucher_id).toLowerCase());
+        // Merge from cached active/history vouchers, tourist redemptions, and points_balance_ cache
+        let allRedemptions = (window._cachedActiveVouchers || []).concat(window._cachedHistoryVouchers || []).concat(window._touristRedemptions || []);
+        try {
+            const tok = getProfileAuthToken();
+            if (tok) {
+                const ptsRaw = localStorage.getItem('points_balance_' + tok.substring(0, 10));
+                if (ptsRaw) {
+                    const ptsParsed = JSON.parse(ptsRaw);
+                    const list = (ptsParsed && (ptsParsed.data || ptsParsed).vouchers) || [];
+                    if (Array.isArray(list)) allRedemptions = allRedemptions.concat(list);
+                }
             }
-            if (v.id) claimedSet.add(String(v.id).toLowerCase());
-            if (v.voucher_code) claimedSet.add(String(v.voucher_code).toLowerCase());
-            if (v.type) claimedSet.add(String(v.type).toLowerCase());
+        } catch(e) {}
+
+        allRedemptions.forEach(v => {
+            if (!v) return;
+            const vid = v.voucher_id || v.dbId;
+            if (vid) {
+                const s = String(vid).toLowerCase().trim();
+                claimedSet.add(s);
+                claimedSet.add(s.replace(/^db_/, ''));
+                claimedSet.add('db_' + s.replace(/^db_/, ''));
+            }
+            if (v.id) {
+                const s = String(v.id).toLowerCase().trim();
+                claimedSet.add(s);
+                claimedSet.add(s.replace(/^db_/, ''));
+                claimedSet.add('db_' + s.replace(/^db_/, ''));
+            }
+            const code = v.voucher_code || v.code || v.redemption_code;
+            if (code) {
+                const c = String(code).toLowerCase().trim();
+                claimedSet.add(c);
+                const prefix = c.split('-')[0];
+                if (prefix) claimedSet.add(prefix);
+            }
+            const title = v.type || v.title || v.voucher_name || v.name;
+            if (title) {
+                claimedSet.add(String(title).toLowerCase().trim());
+            }
         });
 
         // Exclude already claimed or redeemed vouchers from available deals
         const availableVouchers = allVouchers.filter(v => {
-            const idStr = String(v.id || '').toLowerCase();
-            const dbIdStr = String(v.dbId || '').toLowerCase();
-            const titleStr = String(v.title || v.voucher_name || '').toLowerCase();
-            const codeStr = String(v.code || v.voucher_code || '').toLowerCase();
+            if (!v) return false;
+            const idStr = String(v.id || '').toLowerCase().trim();
+            const cleanId = idStr.replace(/^db_/, '');
+            const dbIdStr = String(v.dbId || '').toLowerCase().trim();
+            const titleStr = String(v.title || v.voucher_name || '').toLowerCase().trim();
+            const codeStr = String(v.code || v.voucher_code || '').toLowerCase().trim();
+            const codePrefix = codeStr.split('-')[0];
 
-            if (claimedSet.has(idStr) || claimedSet.has('db_' + idStr)) return false;
+            if (claimedSet.has(idStr) || claimedSet.has('db_' + idStr) || claimedSet.has(cleanId) || claimedSet.has('db_' + cleanId)) return false;
             if (dbIdStr && (claimedSet.has(dbIdStr) || claimedSet.has('db_' + dbIdStr))) return false;
-            if (codeStr && claimedSet.has(codeStr)) return false;
+            if (codeStr && (claimedSet.has(codeStr) || claimedSet.has(codePrefix))) return false;
             if (titleStr && claimedSet.has(titleStr)) return false;
             if (v.is_expired) return false;
+
+            // Direct check against any recorded redemptions
+            const isMatch = allRedemptions.some(r => {
+                if (!r) return false;
+                const rVid = String(r.voucher_id || r.dbId || '').replace(/^db_/, '');
+                if (cleanId && rVid && cleanId === rVid) return true;
+                const rCode = (r.voucher_code || r.code || '').toUpperCase().trim();
+                const vCode = (v.code || v.voucher_code || '').toUpperCase().trim();
+                if (rCode && vCode && (rCode === vCode || rCode.startsWith(vCode + '-'))) return true;
+                const rTitle = String(r.type || r.title || r.voucher_name || '').toLowerCase().trim();
+                if (rTitle && titleStr && rTitle === titleStr) return true;
+                return false;
+            });
+            if (isMatch) return false;
+
             return true;
         });
 
@@ -1001,6 +1064,7 @@ $activeTab = 'profile';
         }
 
         try {
+            const cleanId = parseInt(String(voucherId).replace(/^db_/, '').replace(/^rdm_/, ''));
             const bUrl = getProfileBackendUrl();
             const response = await fetch(bUrl + '/api/tourist/points/redeem-voucher', {
                 method: 'POST',
@@ -1010,16 +1074,71 @@ $activeTab = 'profile';
                     'ngrok-skip-browser-warning': 'true',
                     'Authorization': 'Bearer ' + token
                 },
-                body: JSON.stringify({ voucher_id: voucherId })
+                body: JSON.stringify({ voucher_id: cleanId })
             });
 
             const data = await response.json();
             if (response.ok && data.status === 'success') {
-                if (typeof showToast === 'function') showToast("Voucher claimed successfully!");
+                if (typeof showToast === 'function') showToast("🎉 Voucher claimed successfully!");
                 if (window.confetti) {
-                    window.confetti({ particleCount: 80, spread: 60, origin: { y: 0.6 } });
+                    window.confetti({ particleCount: 90, spread: 65, origin: { y: 0.6 } });
                 }
                 window.dashboardNeedsRefresh = true;
+                window.profileNeedsRefresh = false;
+
+                const newPoints = data.new_balance !== undefined ? data.new_balance : Math.max(0, currentPts - cost);
+                const claimCode = (data.data && data.data.voucher_code) || data.claim_code || ('ELYU-' + cleanId + '-' + Math.random().toString(36).substring(2, 6).toUpperCase());
+
+                // 1. Synchronously update user points everywhere
+                window._userPointsBalance = newPoints;
+                const ptsVal = document.getElementById('profile-points-val');
+                const elPts = document.getElementById('stat-points') || document.getElementById('stat-xp');
+                const dealsPts = document.getElementById('full-deals-user-points');
+                const discPts = document.getElementById('discount-user-pts');
+                const dashPts = document.getElementById('dash-stat-points');
+                if (ptsVal) ptsVal.textContent = newPoints.toLocaleString();
+                if (elPts) elPts.textContent = newPoints.toLocaleString();
+                if (dealsPts) dealsPts.textContent = newPoints.toLocaleString();
+                if (discPts) discPts.textContent = `${newPoints.toLocaleString()} Points`;
+                if (dashPts) dashPts.textContent = newPoints.toLocaleString();
+
+                try {
+                    let u = JSON.parse(localStorage.getItem('auth_user') || '{}');
+                    u.points = newPoints;
+                    localStorage.setItem('auth_user', JSON.stringify(u));
+                } catch(e) {}
+
+                // 2. Build the newly claimed voucher object
+                const newVoucherItem = {
+                    id: (data.data && data.data.id) || Date.now(),
+                    voucher_id: cleanId,
+                    dbId: cleanId,
+                    type: title || (data.data && data.data.type) || 'Partner Voucher',
+                    title: title || (data.data && data.data.type) || 'Partner Voucher',
+                    voucher_name: title || (data.data && data.data.type) || 'Partner Voucher',
+                    points_cost: cost,
+                    pointsCost: cost,
+                    voucher_code: claimCode,
+                    code: claimCode,
+                    status: 'claimed',
+                    redemptionStatus: 'claimed',
+                    redeemed_at: null,
+                    created_at: new Date().toISOString(),
+                    partner_establishment: (data.data && data.data.partner_establishment) || 'Official Partner Merchant',
+                    partner: (data.data && data.data.partner_establishment) || 'Official Partner Merchant',
+                    category: (data.data && data.data.category) || 'Food & Dining',
+                    expires_at: data.data && data.data.expires_at,
+                    expiration_type: (data.data && data.data.expiration_type) || 'until_unusable'
+                };
+
+                // 3. Put into in-memory caches
+                if (!Array.isArray(window._cachedActiveVouchers)) window._cachedActiveVouchers = [];
+                window._cachedActiveVouchers.unshift(newVoucherItem);
+
+                if (!Array.isArray(window._touristRedemptions)) window._touristRedemptions = [];
+                window._touristRedemptions.unshift(newVoucherItem);
+
+                // 4. Update scoped claimed vouchers storage
                 try {
                     const uid = (function() {
                         try {
@@ -1031,20 +1150,63 @@ $activeTab = 'profile';
                     })();
                     const storageKey = 'intan_elyu_claimed_vouchers_' + uid;
                     let claimed = JSON.parse(localStorage.getItem(storageKey) || '[]');
-                    const dbKey = 'db_' + voucherId;
-                    if (!claimed.includes(dbKey)) claimed.push(dbKey);
+                    [String(cleanId), 'db_' + cleanId, claimCode, title].forEach(k => {
+                        if (k && !claimed.includes(k)) claimed.push(k);
+                    });
                     localStorage.setItem(storageKey, JSON.stringify(claimed));
                     localStorage.removeItem('intan_elyu_cached_vouchers');
-                    localStorage.removeItem('intan_elyu_claimed_vouchers');
-
-                    for (let i = localStorage.length - 1; i >= 0; i--) {
-                        const k = localStorage.key(i);
-                        if (k && (k.startsWith('dashboard_data_') || k.startsWith('profile_data_') || k.startsWith('points_balance_'))) {
-                            localStorage.removeItem(k);
-                        }
-                    }
                 } catch (e) { }
-                fetchPointsAndVouchers(true);
+
+                // 5. Update cached points_balance_ so 0ms hydration across pages preserves claimed voucher
+                try {
+                    const tok = getProfileAuthToken();
+                    if (tok) {
+                        const ptsCacheKey = 'points_balance_' + tok.substring(0, 10);
+                        let cachedPtsObj = JSON.parse(localStorage.getItem(ptsCacheKey) || '{}');
+                        if (!cachedPtsObj || typeof cachedPtsObj !== 'object') cachedPtsObj = {};
+                        cachedPtsObj.points = newPoints;
+                        if (!Array.isArray(cachedPtsObj.vouchers)) cachedPtsObj.vouchers = [];
+                        cachedPtsObj.vouchers.unshift(newVoucherItem);
+                        localStorage.setItem(ptsCacheKey, JSON.stringify(cachedPtsObj));
+                    }
+                } catch(e) {}
+
+                // 6. Immediately re-render Active Vouchers on profile card
+                window.renderPointsAndVouchersData({
+                    points: newPoints,
+                    vouchers: (window._cachedActiveVouchers || []).concat(window._cachedHistoryVouchers || [])
+                });
+
+                // 7. Immediately re-filter and re-render Rewards Catalog (disappears instantly from Redeem Rewards)
+                if (window._rawVouchersCatalog) {
+                    window.renderCatalogRewards(window._rawVouchersCatalog);
+                }
+
+                // 8. Re-render deals modal if open
+                const dealsModal = document.getElementById('full-deals-modal');
+                if (dealsModal && dealsModal.style.display === 'flex' && Array.isArray(window._profileAvailableVouchers)) {
+                    window.renderFullDealsList(window._profileAvailableVouchers);
+                }
+
+                // 9. Close reward details modal
+                window.closeRewardDetailsModal();
+
+                // 10. Broadcast global event to sync all other views
+                window.dispatchEvent(new CustomEvent('voucherClaimed', {
+                    detail: {
+                        voucherId: cleanId,
+                        dbId: cleanId,
+                        code: claimCode,
+                        claimCode: claimCode,
+                        title: title,
+                        pointsCost: cost,
+                        newBalance: newPoints,
+                        voucher: newVoucherItem
+                    }
+                }));
+
+                // 11. Open active QR pass modal immediately
+                window.openActiveVoucherQrModal(newVoucherItem);
             } else {
                 if (typeof showToast === 'function') showToast(data.message || "Failed to redeem voucher.");
             }
@@ -1086,21 +1248,124 @@ $activeTab = 'profile';
             });
 
             const data = await response.json();
-            if (response.ok) {
-                if (typeof showToast === 'function') showToast("Reward redeemed successfully!");
+            if (response.ok && data.status === 'success') {
+                if (typeof showToast === 'function') showToast("🎉 Reward redeemed successfully!");
                 if (window.confetti) {
-                    window.confetti({ particleCount: 80, spread: 60, origin: { y: 0.6 } });
+                    window.confetti({ particleCount: 90, spread: 65, origin: { y: 0.6 } });
                 }
                 window.dashboardNeedsRefresh = true;
+                window.profileNeedsRefresh = false;
+
+                const newPoints = data.new_balance !== undefined ? data.new_balance : Math.max(0, currentPts - cost);
+                const claimCode = (data.data && data.data.voucher_code) || data.claim_code || ('ELYU-' + type.toUpperCase().substring(0, 4) + '-' + Math.random().toString(36).substring(2, 6).toUpperCase());
+                const rewardTitle = type === 'pasalubong_discount' ? '₱50 Pasalubong Discount' : (type === 'environmental_fee' ? 'Waived Environmental Fee' : type.replace(/_/g, ' '));
+
+                // 1. Synchronously update user points everywhere
+                window._userPointsBalance = newPoints;
+                const ptsVal = document.getElementById('profile-points-val');
+                const elPts = document.getElementById('stat-points') || document.getElementById('stat-xp');
+                const dealsPts = document.getElementById('full-deals-user-points');
+                const discPts = document.getElementById('discount-user-pts');
+                const dashPts = document.getElementById('dash-stat-points');
+                if (ptsVal) ptsVal.textContent = newPoints.toLocaleString();
+                if (elPts) elPts.textContent = newPoints.toLocaleString();
+                if (dealsPts) dealsPts.textContent = newPoints.toLocaleString();
+                if (discPts) discPts.textContent = `${newPoints.toLocaleString()} Points`;
+                if (dashPts) dashPts.textContent = newPoints.toLocaleString();
+
                 try {
-                    for (let i = localStorage.length - 1; i >= 0; i--) {
-                        const k = localStorage.key(i);
-                        if (k && (k.startsWith('dashboard_data_') || k.startsWith('profile_data_') || k.startsWith('points_balance_'))) {
-                            localStorage.removeItem(k);
-                        }
+                    let u = JSON.parse(localStorage.getItem('auth_user') || '{}');
+                    u.points = newPoints;
+                    localStorage.setItem('auth_user', JSON.stringify(u));
+                } catch(e) {}
+
+                // 2. Build the newly claimed voucher object
+                const newVoucherItem = {
+                    id: (data.data && data.data.id) || Date.now(),
+                    type: rewardTitle,
+                    title: rewardTitle,
+                    voucher_name: rewardTitle,
+                    points_cost: cost,
+                    pointsCost: cost,
+                    voucher_code: claimCode,
+                    code: claimCode,
+                    status: 'claimed',
+                    redemptionStatus: 'claimed',
+                    redeemed_at: null,
+                    created_at: new Date().toISOString(),
+                    partner_establishment: 'LUPTO Eco Tourism',
+                    partner: 'LUPTO Eco Tourism',
+                    category: type === 'environmental_fee' ? 'Activities' : 'Souvenirs',
+                    expiration_type: 'until_unusable'
+                };
+
+                // 3. Put into in-memory caches
+                if (!Array.isArray(window._cachedActiveVouchers)) window._cachedActiveVouchers = [];
+                window._cachedActiveVouchers.unshift(newVoucherItem);
+
+                if (!Array.isArray(window._touristRedemptions)) window._touristRedemptions = [];
+                window._touristRedemptions.unshift(newVoucherItem);
+
+                // 4. Update scoped claimed vouchers storage
+                try {
+                    const uid = (function() {
+                        try {
+                            const u = JSON.parse(localStorage.getItem('auth_user') || '{}');
+                            if (u && (u.id || u.user_id)) return String(u.id || u.user_id);
+                        } catch(e) {}
+                        const tok = getProfileAuthToken();
+                        return (tok && tok.length > 10) ? 'tok_' + tok.substring(0, 12) : 'guest';
+                    })();
+                    const storageKey = 'intan_elyu_claimed_vouchers_' + uid;
+                    let claimed = JSON.parse(localStorage.getItem(storageKey) || '[]');
+                    [type, claimCode, rewardTitle].forEach(k => {
+                        if (k && !claimed.includes(k)) claimed.push(k);
+                    });
+                    localStorage.setItem(storageKey, JSON.stringify(claimed));
+                } catch(e) {}
+
+                // 5. Update cached points_balance_
+                try {
+                    const tok = getProfileAuthToken();
+                    if (tok) {
+                        const ptsCacheKey = 'points_balance_' + tok.substring(0, 10);
+                        let cachedPtsObj = JSON.parse(localStorage.getItem(ptsCacheKey) || '{}');
+                        if (!cachedPtsObj || typeof cachedPtsObj !== 'object') cachedPtsObj = {};
+                        cachedPtsObj.points = newPoints;
+                        if (!Array.isArray(cachedPtsObj.vouchers)) cachedPtsObj.vouchers = [];
+                        cachedPtsObj.vouchers.unshift(newVoucherItem);
+                        localStorage.setItem(ptsCacheKey, JSON.stringify(cachedPtsObj));
                     }
-                } catch (e) { }
-                fetchPointsAndVouchers(true);
+                } catch(e) {}
+
+                // 6. Immediately re-render Active Vouchers on profile card
+                window.renderPointsAndVouchersData({
+                    points: newPoints,
+                    vouchers: (window._cachedActiveVouchers || []).concat(window._cachedHistoryVouchers || [])
+                });
+
+                // 7. Immediately re-filter and re-render Rewards Catalog
+                if (window._rawVouchersCatalog) {
+                    window.renderCatalogRewards(window._rawVouchersCatalog);
+                }
+
+                // 8. Close modal
+                window.closeRewardDetailsModal();
+
+                // 9. Broadcast global event
+                window.dispatchEvent(new CustomEvent('voucherClaimed', {
+                    detail: {
+                        voucherId: type,
+                        claimCode: claimCode,
+                        title: rewardTitle,
+                        pointsCost: cost,
+                        newBalance: newPoints,
+                        voucher: newVoucherItem
+                    }
+                }));
+
+                // 10. Open active QR pass modal immediately
+                window.openActiveVoucherQrModal(newVoucherItem);
             } else {
                 if (typeof showToast === 'function') showToast(data.message || "Failed to redeem reward.");
             }
@@ -1163,11 +1428,73 @@ $activeTab = 'profile';
             const isExpired = voucher.is_expired || (rawExp && new Date(String(rawExp).replace(' ', 'T')).getTime() < Date.now());
             const isOutOfStock = voucher.remaining_quantity !== null && voucher.remaining_quantity !== undefined && Number(voucher.remaining_quantity) <= 0;
 
+            // Check if this voucher is already claimed or redeemed
+            let isClaimed = false;
+            let isRedeemed = false;
+            let matchedClaimCode = voucher.voucher_code || voucher.code || '';
+
+            const userRedemptions = (window._cachedActiveVouchers || []).concat(window._cachedHistoryVouchers || []).concat(window._touristRedemptions || []);
+            const vidStr = String(voucher.dbId || voucher.id || '').replace(/^db_/, '');
+
+            const matchRedemption = userRedemptions.find(r => {
+                if (!r) return false;
+                const rVid = String(r.voucher_id || r.dbId || '').replace(/^db_/, '');
+                if (vidStr && rVid && vidStr === rVid) return true;
+                const rCode = (r.voucher_code || r.code || '').toUpperCase().trim();
+                const vCode = (voucher.code || voucher.voucher_code || '').toUpperCase().trim();
+                if (rCode && vCode && (rCode === vCode || rCode.startsWith(vCode + '-'))) return true;
+                const rTitle = String(r.type || r.title || r.voucher_name || '').toLowerCase().trim();
+                const vTitle = String(voucher.title || voucher.voucher_name || '').toLowerCase().trim();
+                if (rTitle && vTitle && rTitle === vTitle) return true;
+                return false;
+            });
+
+            if (matchRedemption) {
+                matchedClaimCode = matchRedemption.voucher_code || matchRedemption.code || matchedClaimCode;
+                const st = (matchRedemption.status || matchRedemption.redemptionStatus || '').toLowerCase().trim();
+                if (['redeemed', 'used', 'completed'].includes(st)) {
+                    isRedeemed = true;
+                } else {
+                    isClaimed = true;
+                }
+            } else {
+                try {
+                    const uid = (function() {
+                        try {
+                            const u = JSON.parse(localStorage.getItem('auth_user') || '{}');
+                            if (u && (u.id || u.user_id)) return String(u.id || u.user_id);
+                        } catch(e) {}
+                        const tok = getProfileAuthToken();
+                        return (tok && tok.length > 10) ? 'tok_' + tok.substring(0, 12) : 'guest';
+                    })();
+                    const arr = JSON.parse(localStorage.getItem('intan_elyu_claimed_vouchers_' + uid) || '[]');
+                    if (arr.some(k => String(k).toLowerCase() === vidStr.toLowerCase() || String(k).toLowerCase() === ('db_' + vidStr).toLowerCase())) {
+                        isClaimed = true;
+                    }
+                } catch(e) {}
+            }
+
             redeemBtn.disabled = false;
             redeemBtn.style.cursor = 'pointer';
             redeemBtn.style.opacity = '1';
 
-            if (isExpired) {
+            if (isRedeemed) {
+                redeemBtn.style.background = '#fef2f2 !important';
+                redeemBtn.style.color = '#dc2626 !important';
+                redeemBtn.innerHTML = '<i class="fa-solid fa-check-double" style="color:#dc2626 !important;"></i> <span style="color:#dc2626 !important; font-weight:800;">Redeemed & Recorded</span>';
+                redeemBtn.onclick = function() {
+                    window.closeRewardDetailsModal();
+                    if (matchedClaimCode) window.openActiveVoucherQrModal(matchedClaimCode);
+                };
+            } else if (isClaimed) {
+                redeemBtn.style.background = '#ecfdf5 !important';
+                redeemBtn.style.color = '#047857 !important';
+                redeemBtn.innerHTML = '<i class="fa-solid fa-qrcode" style="color:#10b981 !important;"></i> <span style="color:#047857 !important; font-weight:900;">Claimed • Open QR Pass</span>';
+                redeemBtn.onclick = function() {
+                    window.closeRewardDetailsModal();
+                    window.openActiveVoucherQrModal(matchedClaimCode || voucher);
+                };
+            } else if (isExpired) {
                 redeemBtn.style.background = '#fef2f2 !important';
                 redeemBtn.style.color = '#dc2626 !important';
                 redeemBtn.innerHTML = '<i class="fa-solid fa-lock" style="color:#dc2626 !important;"></i> <span style="color:#dc2626 !important; font-weight:800;">Voucher Expired (Details)</span>';
@@ -1210,10 +1537,11 @@ $activeTab = 'profile';
                 redeemBtn.innerHTML = `<i class="fa-solid fa-gift" style="color:#1e3a8a !important;"></i> <span style="color:#1e3a8a !important; font-weight:900;">Redeem for ${cost.toLocaleString()} Points</span>`;
                 redeemBtn.onclick = function () {
                     window.closeRewardDetailsModal();
-                    if (typeof voucher.id === 'string' && voucher.id.includes('_')) {
-                        redeemReward(voucher.id, voucher.pointsCost);
+                    const vid = voucher.dbId || voucher.id;
+                    if (vid === 'pasalubong_discount' || vid === 'environmental_fee') {
+                        window.redeemReward(vid, cost);
                     } else {
-                        window.redeemAdminVoucher(voucher.id, voucher.pointsCost, voucher.title);
+                        window.redeemAdminVoucher(vid, cost, voucher.title || voucher.voucher_name);
                     }
                 };
             }
@@ -1526,6 +1854,11 @@ $activeTab = 'profile';
     window.openFullDealsModal = function () {
         const modal = window.ensureProfileModalOnBody('full-deals-modal');
         if (!modal) return;
+
+        // Ensure catalog rewards are freshly re-filtered against claimed vouchers
+        if (window._rawVouchersCatalog && typeof window.renderCatalogRewards === 'function') {
+            window.renderCatalogRewards(window._rawVouchersCatalog);
+        }
 
         const pts = window._userPointsBalance || 0;
         const ptsEl = document.getElementById('full-deals-user-points');
@@ -1963,6 +2296,84 @@ $activeTab = 'profile';
             window.renderProfileUserMeta(u);
             window.renderProfileBio(u.bio);
             window.renderProfilePreferences(u.travel_preferences);
+        }
+    });
+
+    // Listen for real-time voucher claims across the app (e.g. from Discounts & Vouchers page)
+    window.addEventListener('voucherClaimed', function (e) {
+        const detail = e.detail || {};
+        const cost = Number(detail.pointsCost || (detail.voucher && (detail.voucher.points_cost || detail.voucher.pointsCost)) || 0);
+        const newBalance = detail.newBalance !== undefined ? detail.newBalance : Math.max(0, (window._userPointsBalance || 0) - cost);
+        window._userPointsBalance = newBalance;
+
+        // Synchronously update point elements on DOM
+        const ptsVal = document.getElementById('profile-points-val');
+        const elPts = document.getElementById('stat-points') || document.getElementById('stat-xp');
+        const dealsPts = document.getElementById('full-deals-user-points');
+        if (ptsVal) ptsVal.textContent = newBalance.toLocaleString();
+        if (elPts) elPts.textContent = newBalance.toLocaleString();
+        if (dealsPts) dealsPts.textContent = newBalance.toLocaleString();
+
+        const vId = detail.voucherId ? String(detail.voucherId).replace(/^db_/, '') : null;
+        const vCode = detail.claimCode || (detail.voucher && (detail.voucher.voucher_code || detail.voucher.code));
+        const vTitle = detail.title || (detail.voucher && (detail.voucher.title || detail.voucher.type));
+
+        // Add to scoped claimed storage
+        try {
+            const uid = (function() {
+                try {
+                    const u = JSON.parse(localStorage.getItem('auth_user') || '{}');
+                    if (u && (u.id || u.user_id)) return String(u.id || u.user_id);
+                } catch(e) {}
+                const tok = getProfileAuthToken();
+                return (tok && tok.length > 10) ? 'tok_' + tok.substring(0, 12) : 'guest';
+            })();
+            const storageKey = 'intan_elyu_claimed_vouchers_' + uid;
+            let claimed = JSON.parse(localStorage.getItem(storageKey) || '[]');
+            [vId, 'db_' + vId, vCode, vTitle].forEach(k => {
+                if (k && !claimed.includes(k)) claimed.push(k);
+            });
+            localStorage.setItem(storageKey, JSON.stringify(claimed));
+        } catch(e) {}
+
+        // Add to window._cachedActiveVouchers and window._touristRedemptions
+        if (detail.voucher) {
+            if (!Array.isArray(window._cachedActiveVouchers)) window._cachedActiveVouchers = [];
+            const dCode = (vCode || '').toUpperCase().trim();
+            const exists = window._cachedActiveVouchers.some(v => {
+                const c = (v.voucher_code || v.code || '').toUpperCase().trim();
+                return c && dCode && c === dCode;
+            });
+            if (!exists) {
+                window._cachedActiveVouchers.unshift(detail.voucher);
+            }
+            if (!Array.isArray(window._touristRedemptions)) window._touristRedemptions = [];
+            const rExists = window._touristRedemptions.some(r => {
+                const c = (r.voucher_code || r.code || '').toUpperCase().trim();
+                return c && dCode && c === dCode;
+            });
+            if (!rExists) {
+                window._touristRedemptions.unshift(detail.voucher);
+            }
+        }
+
+        // Re-render Active Vouchers
+        if (typeof window.renderPointsAndVouchersData === 'function') {
+            window.renderPointsAndVouchersData({
+                points: newBalance,
+                vouchers: (window._cachedActiveVouchers || []).concat(window._cachedHistoryVouchers || [])
+            });
+        }
+
+        // Re-filter and re-render Catalog Rewards
+        if (window._rawVouchersCatalog && typeof window.renderCatalogRewards === 'function') {
+            window.renderCatalogRewards(window._rawVouchersCatalog);
+        }
+
+        // If Deals modal is open, re-render it
+        const dealsModal = document.getElementById('full-deals-modal');
+        if (dealsModal && dealsModal.style.display === 'flex' && Array.isArray(window._profileAvailableVouchers)) {
+            window.renderFullDealsList(window._profileAvailableVouchers);
         }
     });
 
