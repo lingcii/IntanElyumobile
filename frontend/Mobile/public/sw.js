@@ -1,4 +1,4 @@
-const CACHE_NAME = 'Intan_Elyu_cache-v25';
+const CACHE_NAME = 'Intan_Elyu_cache-v26';
 const ASSETS = [
     './',
     './index.php',
@@ -12,22 +12,8 @@ const ASSETS = [
     './index.php?view=dashboard&ajax=1',
     './index.php?view=map&ajax=1',
     './index.php?view=itinerary&ajax=1',
-    './index.php?view=saved_trips&ajax=1',
-    './index.php?view=trip_map&ajax=1',
-    './index.php?view=saved_places&ajax=1',
     './index.php?view=leaderboard&ajax=1',
     './index.php?view=profile&ajax=1',
-    './index.php?view=discount&ajax=1',
-    './index.php?view=trending&ajax=1',
-    './index.php?view=puzzles&ajax=1',
-    './index.php?view=ar_checkin&ajax=1',
-    './index.php?view=settings&ajax=1',
-    './index.php?view=help&ajax=1',
-    './index.php?view=about&ajax=1',
-    './index.php?view=terms&ajax=1',
-    './index.php?view=user_manual&ajax=1',
-    './index.php?view=edit_profile&ajax=1',
-    './index.php?view=reset-password&ajax=1',
     './index.php?view=download',
     './index.php?view=download&ajax=1',
     './assets/css/style.css',
@@ -124,6 +110,30 @@ self.addEventListener('fetch', (event) => {
                       url.pathname === '/' || 
                       url.pathname === '/index.php' ||
                       isViewRequest;
+
+    // View templates are safe to show immediately; their scripts refresh live data.
+    // API calls remain network-first below so approval and validation states stay authoritative.
+    if (isViewRequest && url.searchParams.get('ajax') === '1') {
+        event.respondWith((async () => {
+            const cache = await caches.open(CACHE_NAME);
+            const normalizedUrl = normalizeUrl(event.request.url);
+            const cached = await cache.match(event.request) || await cache.match(normalizedUrl);
+            const network = fetch(event.request).then((response) => {
+                if (response && response.status === 200) {
+                    cache.put(event.request, response.clone());
+                    cache.put(normalizedUrl, response.clone());
+                }
+                return response;
+            }).catch(() => null);
+
+            if (cached) {
+                event.waitUntil(network);
+                return cached;
+            }
+            return await network || new Response('', { status: 503, statusText: 'Offline' });
+        })());
+        return;
+    }
 
     // SWR / Network-First with Normalized Cache for Views, App Shell and APIs
     if (isDynamic) {

@@ -765,7 +765,7 @@ $activeTab = 'profile';
             <div onclick="window.showRewardDetailsModal(${idx})" style="display:flex; justify-content:space-between; align-items:center; background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border:none !important; outline:none !important; padding:12px 14px; border-radius:18px; gap:12px; transition:transform 0.15s ease, box-shadow 0.15s ease; cursor:pointer; box-shadow:0 6px 18px rgba(10, 25, 60, 0.22);" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'" onpointercancel="this.style.transform='scale(1)'">
                 <div style="display:flex; align-items:center; gap:10px; min-width:0; text-align:left; flex:1;">
                     <div style="width:38px; height:38px; border-radius:12px; background:#ffffff; border:none; display:flex; align-items:center; justify-content:center; overflow:hidden; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.15);">
-                        <img src="${v.image || 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/logo/LUPTO.png'}" alt="${v.title}" style="width:100%; height:100%; object-fit:contain; padding:3px;" onerror="this.onerror=null; this.src='https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/logo/LOGO.png';">
+                        <img src="${window.getFullImageUrl(v.image || 'logo/LUPTO.png')}" alt="${v.title}" style="width:100%; height:100%; object-fit:contain; padding:3px;" onerror="this.onerror=null; this.src=window.getFullImageUrl('logo/LOGO.png');">
                     </div>
                     <div style="min-width:0; flex:1;">
                         <div style="display:flex; align-items:center; gap:6px;">
@@ -784,7 +784,12 @@ $activeTab = 'profile';
 
         const dealsModal = document.getElementById('full-deals-modal');
         if (dealsModal && dealsModal.style.display === 'flex') {
-            window.renderFullDealsList(availableVouchers);
+            const searchInput = document.getElementById('deals-search-input');
+            if (typeof window.handleDealsModalSearch === 'function') {
+                window.handleDealsModalSearch(searchInput ? searchInput.value : '');
+            } else {
+                window.renderFullDealsList(availableVouchers);
+            }
         }
     };
 
@@ -986,6 +991,24 @@ $activeTab = 'profile';
         );
     }
 
+    async function fetchProfileVoucherCatalog() {
+        try {
+            const resVouchers = await fetch(backendUrl + '/api/vouchers', {
+                cache: 'no-store',
+                headers: { 'Accept': 'application/json', 'ngrok-skip-browser-warning': 'true' }
+            });
+            if (!resVouchers.ok) return;
+
+            const vouchersPayload = await resVouchers.json();
+            if (vouchersPayload.status === 'success' && Array.isArray(vouchersPayload.data)) {
+                try {
+                    localStorage.setItem('intan_elyu_cached_vouchers', JSON.stringify(vouchersPayload.data));
+                } catch (e) { }
+                window.renderCatalogRewards(vouchersPayload.data);
+            }
+        } catch (e) { }
+    }
+
     async function fetchPointsAndVouchers(force = false) {
         const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('api_token');
         if (!token || token === 'guest_token' || token === 'offline_guest_token' || token.indexOf('offline_') === 0 || token.indexOf('guest_') === 0 || localStorage.getItem('intan_elyu_guest') === 'true') return;
@@ -1028,18 +1051,7 @@ $activeTab = 'profile';
                     window.renderCatalogRewards(cachedV);
                 }
 
-                const resVouchers = await fetch(backendUrl + '/api/vouchers', {
-                    headers: { 'Accept': 'application/json', 'ngrok-skip-browser-warning': 'true' }
-                });
-                if (resVouchers.ok) {
-                    const vouchersPayload = await resVouchers.json();
-                    if (vouchersPayload.status === 'success' && Array.isArray(vouchersPayload.data) && vouchersPayload.data.length > 0) {
-                        try {
-                            localStorage.setItem('intan_elyu_cached_vouchers', JSON.stringify(vouchersPayload.data));
-                        } catch (e) { }
-                        window.renderCatalogRewards(vouchersPayload.data);
-                    }
-                }
+                await fetchProfileVoucherCatalog();
             } catch (e) { }
         }
     }
@@ -1403,7 +1415,7 @@ $activeTab = 'profile';
         const idNotice = document.getElementById('reward-modal-id-notice');
 
         if (badge) badge.textContent = voucher.badge || 'PROMO';
-        if (img) img.src = voucher.image || 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/logo/LUPTO.png';
+        if (img) img.src = window.getFullImageUrl(voucher.image || 'logo/LUPTO.png');
         if (title) title.textContent = voucher.title || 'Exclusive Reward';
         if (partner) partner.textContent = voucher.partner || voucher.merchant || 'La Union Partner';
         if (idNotice) idNotice.style.display = voucher.id_needed ? 'block' : 'none';
@@ -1872,6 +1884,7 @@ $activeTab = 'profile';
         if (searchInput) searchInput.value = '';
 
         modal.style.display = 'flex';
+        fetchProfileVoucherCatalog();
     };
 
     window.closeFullDealsModal = function () {
@@ -1923,7 +1936,7 @@ $activeTab = 'profile';
             html += `
             <div onclick="window.showFullDealsRewardModal(${idx})" role="button" tabindex="0" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:11px 13px; margin-bottom:10px; display:flex; align-items:center; gap:10px; box-shadow:0 2px 8px rgba(0,0,0,0.04); cursor:pointer; transition:transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
                 <div style="width:36px; height:36px; border-radius:10px; background:#f1f5f9; border:1px solid #e2e8f0; display:flex; align-items:center; justify-content:center; overflow:hidden; flex-shrink:0;">
-                    <img src="${v.image || 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/logo/LUPTO.png'}" alt="${v.title}" style="width:100%; height:100%; object-fit:contain; padding:3px;" onerror="this.onerror=null; this.src='https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/logo/LOGO.png';">
+                    <img src="${window.getFullImageUrl(v.image || 'logo/LUPTO.png')}" alt="${v.title}" style="width:100%; height:100%; object-fit:contain; padding:3px;" onerror="this.onerror=null; this.src=window.getFullImageUrl('logo/LOGO.png');">
                 </div>
                 <div style="flex:1; min-width:0; text-align:left;">
                     <div style="display:flex; align-items:center; gap:5px; margin-bottom:2px;">
@@ -2755,7 +2768,7 @@ $activeTab = 'profile';
                 style="width:68px; height:68px; border-radius:18px; background:#ffffff; border:1.5px solid #e2e8f0; display:flex; align-items:center; justify-content:center; margin:0 auto 12px; overflow:hidden; box-shadow:0 4px 12px rgba(0,0,0,0.06);">
                 <img id="reward-modal-img" src="" alt="Reward Logo"
                     style="width:100%; height:100%; object-fit:contain; padding:6px;"
-                    onerror="this.onerror=null; this.src='https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/logo/LOGO.png';">
+                    onerror="this.onerror=null; this.src=window.getFullImageUrl('logo/LOGO.png');">
             </div>
             <h4 id="reward-modal-title"
                 style="margin:0 0 4px; font-size:17px; font-weight:800; color:#0f172a; line-height:1.3;">Reward Details

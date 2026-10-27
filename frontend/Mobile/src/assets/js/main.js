@@ -426,6 +426,7 @@ window.OfflineCheckinManager = {
             altitude: data.altitude || null,
             speed: data.speed || null,
             capturedAt: capturedAt,
+            isPhotoUploadOnly: Boolean(data.isPhotoUploadOnly),
             hasPhoto: hasPhoto || Boolean(previewUrl),
             previewUrl: previewUrl,
             status: 'queued',
@@ -3311,7 +3312,7 @@ window.renderSavedTrips = function (itineraries) {
                             ${trip.is_offline_queued ? `<span style="background: rgba(245, 158, 11, 0.28); border: 1px solid rgba(245, 158, 11, 0.5); color: #fef08a; padding: 3px 10px; border-radius: 100px; font-weight: 800; font-size: 11px; display: inline-flex; align-items: center; gap: 4px;"><i class="fa-solid fa-cloud-arrow-up"></i> Queued (Offline)</span>` : ''}
                             ${trip.budget ? `<span style="background: rgba(255,255,255,0.22); border: none !important; outline: none !important; color: #ffffff; padding: 3px 10px; border-radius: 100px; font-weight: 700; font-size: 12px; display: inline-flex; align-items: center; gap: 4px;"><i class="fa-solid fa-coins" style="font-size:10px; color:#fbbf24;"></i>Budget: ₱${parseFloat(trip.budget).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}${budgetIndicator}</span>` : ''}
                         </div>
-                        <div class="timeline-collapsible" id="timeline-${trip.id}">
+                        <div class="timeline-collapsible expanded" id="timeline-${trip.id}">
                             <div class="timeline-inner">
                                 <div class="timeline">`;
                 
@@ -3568,19 +3569,7 @@ window.renderSavedTrips = function (itineraries) {
 
                 // Action buttons
                 html += `<div style="display:flex; gap:8px; margin-top:16px; flex-wrap:wrap; align-items:center;">`;
-                html += `
-                <button class="btn-primary" style="flex:1; min-width:105px; background: rgba(255, 255, 255, 0.22); border: none !important; outline: none !important; color: #ffffff; padding: 13px 14px; border-radius: 14px; font-weight: 800; font-size: 13px; cursor: pointer; transition: all 0.25s ease;" onclick="window.toggleTripDetails('${trip.id}')">
-                    <i class="fa-solid fa-chevron-down" id="chevron-${trip.id}" style="margin-right:6px; transition:transform 0.3s ease;"></i> View Details
-                </button>`;
-
-                if (trip.is_offline_queued || hasQueuedCheckins) {
-                    html += `
-                    <button type="button" class="btn-primary" id="btn-sync-${trip.id}" onclick="event.stopPropagation(); window.syncSingleOfflineTrip('${trip.id}', this)" style="flex:1; min-width:115px; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border: none !important; outline: none !important; color: #ffffff; padding: 13px 14px; border-radius: 14px; font-weight: 800; font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35);">
-                        <i class="fa-solid fa-cloud-arrow-up"></i> Sync Now
-                    </button>`;
-                }
-
-                html += `<div class="start-collapsible" id="start-wrapper-${trip.id}" style="flex:1.2; min-width:120px;">`;
+                html += `<div class="start-collapsible expanded" id="start-wrapper-${trip.id}" style="flex:1; min-width:120px;">`;
                 if (isTripCompleted) {
                     html += `
                     <button class="btn-primary" style="width:100%; white-space:nowrap; background: rgba(16,185,129,0.25); border: none !important; outline: none !important; color: #ffffff; padding: 13px 14px; border-radius: 14px; font-weight: 800; font-size: 13px; cursor: default;" disabled>
@@ -3606,6 +3595,11 @@ window.renderSavedTrips = function (itineraries) {
         });
 
         list.innerHTML = html || emptyStateHtml;
+        list.querySelectorAll('button[onclick*="executeLocationCheckIn"], button[onclick*="openProofUploadModal"]').forEach(button => {
+            const row = button.parentElement;
+            button.remove();
+            if (row && row.children.length === 0 && !row.textContent.trim()) row.remove();
+        });
         if (typeof window.updateSavedTripsScrollview === 'function') {
             window.updateSavedTripsScrollview();
         }
@@ -4251,7 +4245,8 @@ window.submitProofPhotos = async function () {
                 lng: window.myLng || 120.3209,
                 image: firstFile,
                 previewUrl: previewUrls[0] || null,
-                capturedAt: new Date().toISOString()
+                capturedAt: new Date().toISOString(),
+                isPhotoUploadOnly: true
             });
         }
         window.closeProofUploadModal();
@@ -4285,7 +4280,8 @@ window.submitProofPhotos = async function () {
                 lng: window.myLng || 120.3209,
                 image: firstFile,
                 previewUrl: previewUrls[0] || null,
-                capturedAt: new Date().toISOString()
+                capturedAt: new Date().toISOString(),
+                isPhotoUploadOnly: true
             });
             window.closeProofUploadModal();
             if (typeof showToast === 'function') {
@@ -5326,11 +5322,26 @@ window.getBackendUrl = function () {
 
 window.getFullImageUrl = function (url) {
     if (!url) return window.placeholderImage || '';
-    if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:')) {
-        return url;
-    }
+    const value = String(url).trim();
+    if (value.startsWith('data:') || value.startsWith('blob:')) return value;
+
     const base = window.getBackendUrl();
-    const clean = url.replace(/^\/+/, '');
+    if (value.startsWith('http://') || value.startsWith('https://')) {
+        try {
+            const parsed = new URL(value);
+            // Some mobile networks cannot resolve the public R2 hostname. Stream
+            // those files through the backend's existing image endpoint instead.
+            if (/\.r2\.dev$/i.test(parsed.hostname)) {
+                const r2Path = parsed.pathname.replace(/^\/+/, '');
+                const proxyBase = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(base)
+                    ? 'https://api.intan-elyu.online'
+                    : base;
+                if (r2Path) return proxyBase + '/api/image/' + r2Path;
+            }
+        } catch (e) { }
+        return value;
+    }
+    const clean = value.replace(/^\/+/, '');
     if (clean.startsWith('api/image/') || clean.startsWith('api/serve')) return base + '/' + clean;
     return base + '/api/image/' + clean;
 };
@@ -5403,6 +5414,59 @@ function resetAppScrollTop() {
     if (epc) epc.scrollTop = 0;
 }
 window.resetAppScrollTop = resetAppScrollTop;
+
+window._viewScrollPositions = window._viewScrollPositions || {};
+window._viewFetches = window._viewFetches || new Map();
+
+function rememberViewScrollPosition(viewName) {
+    if (!viewName) return;
+    const mainContent = document.getElementById('main-content');
+    window._viewScrollPositions[viewName] = {
+        windowY: window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0,
+        contentY: mainContent ? mainContent.scrollTop : 0
+    };
+}
+
+function restoreViewScrollPosition(viewName) {
+    const saved = window._viewScrollPositions[viewName];
+    requestAnimationFrame(() => {
+        const mainContent = document.getElementById('main-content');
+        const windowY = saved ? saved.windowY : 0;
+        const contentY = saved ? saved.contentY : 0;
+        try { window.scrollTo({ top: windowY, left: 0, behavior: 'instant' }); }
+        catch (e) { window.scrollTo(0, windowY); }
+        if (mainContent) mainContent.scrollTop = contentY;
+    });
+}
+
+function fetchViewPartial(targetView, extraParams) {
+    let fetchUrl = `index.php?view=${encodeURIComponent(targetView)}&ajax=1`;
+    extraParams.forEach((val, key) => {
+        fetchUrl += `&${encodeURIComponent(key)}=${encodeURIComponent(val)}`;
+    });
+
+    if (window._viewFetches.has(fetchUrl)) return window._viewFetches.get(fetchUrl);
+
+    const request = (async () => {
+        const controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+        const timeoutId = controller ? setTimeout(() => controller.abort(), 7000) : null;
+        try {
+            const response = await fetch(fetchUrl, {
+                signal: controller ? controller.signal : undefined,
+                cache: 'no-cache',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            if (!response.ok) throw new Error(`View request failed (${response.status})`);
+            return await response.text();
+        } finally {
+            if (timeoutId) clearTimeout(timeoutId);
+            window._viewFetches.delete(fetchUrl);
+        }
+    })();
+
+    window._viewFetches.set(fetchUrl, request);
+    return request;
+}
 
 /**
  * Enhanced Navigation function that loads views via AJAX
@@ -5514,8 +5578,8 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
     // If we're already on this view with no extra params and it's not a back-button event, do nothing
     if (addToHistory && state.currentView === targetView && extraParams.toString() === '') return;
 
-    // Immediately reset scroll on navigation start
-    resetAppScrollTop();
+    // Preserve the screen position before replacing the current view.
+    rememberViewScrollPosition(state.currentView);
 
     state.isNavigating = true;
     const mainContent = document.getElementById('main-content');
@@ -5569,32 +5633,24 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
             } catch (e) {}
         }
 
-        // Only attempt network fetch if not explicitly offline, or if view is not yet available in cache
-        if (!isNetworkOffline || !html) {
+        // Cached templates render immediately. Revalidation happens in the background and
+        // is used on the next visit so live data cannot interrupt the current screen state.
+        if (html && !isNetworkOffline) {
+            fetchViewPartial(targetView, extraParams).then((freshHtml) => {
+                if (!isValidViewPartial(freshHtml)) return;
+                window._viewHtmlCache[targetView] = freshHtml;
+                try { localStorage.setItem('elyu_view_cache_v3_' + targetView, freshHtml); } catch (e) { }
+                window.dispatchEvent(new CustomEvent('viewCacheUpdated', { detail: { view: targetView } }));
+            }).catch((fetchErr) => {
+                console.warn(`Background view refresh for ${targetView} failed:`, fetchErr);
+            });
+        } else if (!isNetworkOffline || !html) {
             try {
-                let fetchUrl = `index.php?view=${encodeURIComponent(targetView)}&ajax=1&_t=${Date.now()}`;
-                extraParams.forEach((val, key) => {
-                    fetchUrl += `&${encodeURIComponent(key)}=${encodeURIComponent(val)}`;
-                });
-
-                const controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
-                const timeoutId = controller ? setTimeout(() => controller.abort(), isNetworkOffline ? 1500 : 7000) : null;
-
-                const response = await fetch(fetchUrl, {
-                    signal: controller ? controller.signal : undefined,
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                });
-                if (timeoutId) clearTimeout(timeoutId);
-
-                if (response.ok) {
-                    const freshHtml = await response.text();
-                    if (isValidViewPartial(freshHtml)) {
-                        html = freshHtml;
-                        window._viewHtmlCache[targetView] = html;
-                        try { localStorage.setItem('elyu_view_cache_v3_' + targetView, html); } catch(e) {}
-                    }
+                const freshHtml = await fetchViewPartial(targetView, extraParams);
+                if (isValidViewPartial(freshHtml)) {
+                    html = freshHtml;
+                    window._viewHtmlCache[targetView] = html;
+                    try { localStorage.setItem('elyu_view_cache_v3_' + targetView, html); } catch(e) {}
                 }
             } catch (fetchErr) {
                 console.warn(`View fetch for ${targetView} failed (using cache if available):`, fetchErr);
@@ -6033,6 +6089,14 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                 }
                 if (targetView !== 'map' && window.mapInstance) {
                     try {
+                        if (typeof window.mapInstance.getCenter === 'function' && typeof window.mapInstance.getZoom === 'function') {
+                            const center = window.mapInstance.getCenter();
+                            sessionStorage.setItem('intan_elyu_map_view_state', JSON.stringify({
+                                lng: center.lng,
+                                lat: center.lat,
+                                zoom: window.mapInstance.getZoom()
+                            }));
+                        }
                         if (window.mountedMarkersMap) {
                             window.mountedMarkersMap.forEach(m => {
                                 try { m.remove(); } catch (e) { }
@@ -6052,10 +6116,8 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                     window.mapInstance = null;
                 }
 
-                resetAppScrollTop();
                 mainContent.innerHTML = html;
                 document.body.setAttribute('data-view', targetView);
-                resetAppScrollTop();
 
                 // Execute any scripts in the new view
                 executeScripts(mainContent);
@@ -6117,11 +6179,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                     }
                 }
 
-                // Post-render scroll resets on next animation frames and timeouts to guarantee top placement
-                resetAppScrollTop();
-                requestAnimationFrame(resetAppScrollTop);
-                setTimeout(resetAppScrollTop, 50);
-                setTimeout(resetAppScrollTop, 150);
+                restoreViewScrollPosition(targetView);
             } catch (err) {
                 console.error("Error during view initialization:", err);
             } finally {
@@ -6130,12 +6188,8 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
             }
         };
 
-        // If fading, wait for the fade out to finish (200ms). Otherwise update instantly.
-        if (fade) {
-            setTimeout(updateContent, 200);
-        } else {
-            updateContent();
-        }
+        // Never hold navigation behind an artificial animation delay.
+        updateContent();
 
     } catch (error) {
         clearTimeout(failsafe);
@@ -7191,6 +7245,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                     k.startsWith('saved_trips_') ||
                     k.startsWith('saved_places_') ||
                     k.startsWith('leaderboard_data_') ||
+                    k.startsWith('elyu_view_cache_') ||
                     k.startsWith('intan_cache_') ||
                     k.startsWith('game_done_') ||
                     k.startsWith('intan_elyu_offline_game_claims') ||
@@ -7212,6 +7267,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                 }
             }
             keysToRemove.forEach(k => localStorage.removeItem(k));
+            window._viewHtmlCache = {};
             sessionStorage.removeItem('elyu_show_offline_bypass_notice');
         } catch (e) {
             localStorage.removeItem('api_token');
@@ -8302,7 +8358,15 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
         // Fetch from network if expired, forceRefresh is true, or no cache exists
         if (!cachedData || isExpired || forceRefresh) {
             try {
-                const data = await fetchFn();
+                window._cacheFetchInflight = window._cacheFetchInflight || new Map();
+                let request = window._cacheFetchInflight.get(cacheKey);
+                if (!request) {
+                    request = Promise.resolve().then(fetchFn).finally(() => {
+                        window._cacheFetchInflight.delete(cacheKey);
+                    });
+                    window._cacheFetchInflight.set(cacheKey, request);
+                }
+                const data = await request;
                 if (data !== undefined) {
                     localStorage.setItem(cacheKey, JSON.stringify({
                         data: data,
@@ -8526,39 +8590,145 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
     });
 
     // =========================================================================
-    // Universal Ambient View Pre-Warming Engine (Zero-Latency Offline Support)
+    // Native-feeling pull-to-refresh using each view's existing targeted loader
+    // =========================================================================
+    window.refreshCurrentView = async function () {
+        if (window._pullRefreshPromise) return window._pullRefreshPromise;
+        const currentView = (document.body && document.body.getAttribute('data-view')) || state.currentView;
+        if (navigator.onLine === false || window.isAppOnline === false) {
+            if (typeof showToast === 'function') showToast('You are offline. Showing saved data.', 'info', 2500);
+            return false;
+        }
+
+        const refreshers = {
+            dashboard: () => window.dashboardInit && window.dashboardInit(true),
+            map: () => window.refreshMapSpots && window.refreshMapSpots(true),
+            itinerary: () => window.renderItinerary && window.renderItinerary(true),
+            saved_trips: () => window.fetchSavedTrips && window.fetchSavedTrips(true),
+            saved_places: () => window.fetchSavedPlaces && window.fetchSavedPlaces(true),
+            leaderboard: () => window.refreshLeaderboard && window.refreshLeaderboard(true),
+            profile: () => Promise.all([
+                window.fetchProfileData && window.fetchProfileData(true),
+                window.fetchPointsAndVouchers && window.fetchPointsAndVouchers(true)
+            ]),
+            discount: () => Promise.all([
+                window.fetchLiveDatabaseVouchers && window.fetchLiveDatabaseVouchers(true),
+                window.fetchUserPointsAndRedemptions && window.fetchUserPointsAndRedemptions(true)
+            ]),
+            trending: () => window.fetchTrendingSpots && window.fetchTrendingSpots(true)
+        };
+        const refresher = refreshers[currentView];
+        if (!refresher) return false;
+
+        window._pullRefreshPromise = Promise.resolve().then(refresher).then(() => {
+            window.dispatchEvent(new CustomEvent('appRefreshed', { detail: { view: currentView } }));
+            return true;
+        }).catch((error) => {
+            console.warn(`Refresh for ${currentView} failed:`, error);
+            if (typeof showToast === 'function') showToast('Could not refresh. Existing data was kept.', 'error', 3000);
+            return false;
+        }).finally(() => {
+            window._pullRefreshPromise = null;
+        });
+        return window._pullRefreshPromise;
+    };
+
+    (function initPullToRefresh() {
+        if (!document.body) {
+            document.addEventListener('DOMContentLoaded', initPullToRefresh, { once: true });
+            return;
+        }
+        if (window._pullToRefreshBound) return;
+        window._pullToRefreshBound = true;
+        const indicator = document.createElement('div');
+        indicator.id = 'app-pull-refresh';
+        indicator.setAttribute('aria-hidden', 'true');
+        indicator.innerHTML = '<i class="fa-solid fa-rotate-right"></i>';
+        document.body.appendChild(indicator);
+
+        let startX = 0;
+        let startY = 0;
+        let distance = 0;
+        let eligible = false;
+
+        function scrollParent(element) {
+            let node = element;
+            while (node && node !== document.body) {
+                const style = window.getComputedStyle(node);
+                if (/(auto|scroll)/.test(style.overflowY) && node.scrollHeight > node.clientHeight) return node;
+                node = node.parentElement;
+            }
+            return document.scrollingElement || document.documentElement;
+        }
+
+        document.addEventListener('touchstart', (event) => {
+            const touch = event.touches && event.touches[0];
+            const target = event.target;
+            if (!touch || !target || target.closest('input, textarea, select, [contenteditable="true"], .maplibregl-canvas-container, .leaflet-container, #tourist-map, .modal, [role="dialog"]')) {
+                eligible = false;
+                return;
+            }
+            const scroller = scrollParent(target);
+            eligible = !window._pullRefreshPromise && (!scroller || scroller.scrollTop <= 0);
+            startX = touch.clientX;
+            startY = touch.clientY;
+            distance = 0;
+        }, { passive: true });
+
+        document.addEventListener('touchmove', (event) => {
+            if (!eligible || !event.touches || !event.touches[0]) return;
+            const touch = event.touches[0];
+            const deltaY = touch.clientY - startY;
+            const deltaX = Math.abs(touch.clientX - startX);
+            if (deltaY <= 0 || deltaX > deltaY) return;
+            distance = Math.min(92, deltaY * 0.55);
+            if (distance > 8) event.preventDefault();
+            indicator.classList.add('is-visible');
+            indicator.classList.toggle('is-ready', distance >= 64);
+            indicator.style.transform = `translate3d(-50%, ${distance}px, 0)`;
+        }, { passive: false });
+
+        const finishPull = async () => {
+            if (!eligible) return;
+            eligible = false;
+            if (distance >= 64) {
+                indicator.classList.add('is-refreshing');
+                indicator.style.transform = 'translate3d(-50%, 64px, 0)';
+                await window.refreshCurrentView();
+            }
+            distance = 0;
+            indicator.classList.remove('is-visible', 'is-ready', 'is-refreshing');
+            indicator.style.transform = '';
+        };
+        document.addEventListener('touchend', finishPull, { passive: true });
+        document.addEventListener('touchcancel', finishPull, { passive: true });
+    })();
+
+    // =========================================================================
+    // Low-cost view pre-warming: only primary navigation, during browser idle time
     // =========================================================================
     window.prewarmAllViews = async function () {
         if (!navigator.onLine) return;
-        const viewsToPrewarm = [
-            'splash', 'auth', 'dashboard', 'itinerary', 'saved_trips', 'trip_map',
-            'leaderboard', 'profile', 'map', 'trending', 'discount',
-            'puzzles', 'saved_places', 'settings', 'about', 'help',
-            'terms', 'user_manual', 'edit_profile', 'ar_checkin'
-        ];
+        const viewsToPrewarm = ['dashboard', 'map', 'itinerary', 'leaderboard', 'profile'];
         window._viewHtmlCache = window._viewHtmlCache || {};
 
-        for (const v of viewsToPrewarm) {
+        for (const v of viewsToPrewarm.filter(view => view !== state.currentView)) {
             try {
                 if (!window._viewHtmlCache[v] && !localStorage.getItem('elyu_view_cache_v3_' + v)) {
-                    const res = await fetch(`index.php?view=${encodeURIComponent(v)}&ajax=1`, {
-                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                    });
-                    if (res.ok) {
-                        const text = await res.text();
-                        if (text && text.length > 50) {
-                            window._viewHtmlCache[v] = text;
-                            try { localStorage.setItem('elyu_view_cache_v3_' + v, text); } catch (e) { }
-                        }
+                    const text = await fetchViewPartial(v, new URLSearchParams());
+                    if (text && text.length > 50) {
+                        window._viewHtmlCache[v] = text;
+                        try { localStorage.setItem('elyu_view_cache_v3_' + v, text); } catch (e) { }
                     }
                 }
             } catch (e) { }
         }
     };
 
-    if (document.readyState === 'complete') {
-        setTimeout(window.prewarmAllViews, 1000);
-    } else {
-        window.addEventListener('load', () => setTimeout(window.prewarmAllViews, 1000));
-    }
+    const schedulePrewarm = () => {
+        if ('requestIdleCallback' in window) requestIdleCallback(window.prewarmAllViews, { timeout: 4000 });
+        else setTimeout(window.prewarmAllViews, 1800);
+    };
+    if (document.readyState === 'complete') schedulePrewarm();
+    else window.addEventListener('load', schedulePrewarm, { once: true });
 }

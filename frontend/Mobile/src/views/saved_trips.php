@@ -1304,7 +1304,7 @@ $backRoute = 'itinerary';
                                 ${trip.is_offline_queued ? `<span style="background: rgba(245, 158, 11, 0.28); border: 1px solid rgba(245, 158, 11, 0.5); color: #fef08a; padding: 3px 10px; border-radius: 100px; font-weight: 800; font-size: 11px; display: inline-flex; align-items: center; gap: 4px;"><i class="fa-solid fa-cloud-arrow-up"></i> Queued (Offline)</span>` : ''}
                                 ${trip.budget ? `<span style="background: rgba(255,255,255,0.22); border: none !important; outline: none !important; color: #ffffff; padding: 3px 10px; border-radius: 100px; font-weight: 700; font-size: 12px; display: inline-flex; align-items: center; gap: 4px;"><i class="fa-solid fa-coins" style="font-size:10px; color:#fbbf24;"></i>Budget: ₱${parseFloat(trip.budget).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}${budgetIndicator}</span>` : ''}
                             </div>
-                            <div class="timeline-collapsible" id="timeline-${trip.id}">
+                            <div class="timeline-collapsible expanded" id="timeline-${trip.id}">
                                 <div class="timeline-inner">
                                     <div class="timeline">`;
                         let unvisitedCount = 0;
@@ -1594,22 +1594,8 @@ $backRoute = 'itinerary';
                         // Action buttons
                         html += `<div style="display:flex; gap:8px; margin-top:16px; flex-wrap:wrap; align-items:center;">`;
 
-                        // View Details button
-                        html += `
-                        <button class="btn-primary" style="flex:1; min-width:105px; background: rgba(255, 255, 255, 0.22); border: none !important; outline: none !important; color: #ffffff; padding: 13px 14px; border-radius: 14px; font-weight: 800; font-size: 13px; cursor: pointer; transition: all 0.25s ease;" onclick="window.toggleTripDetails('${trip.id}')">
-                            <i class="fa-solid fa-chevron-down" id="chevron-${trip.id}" style="margin-right:6px; transition:transform 0.3s ease;"></i> View Details
-                        </button>`;
-
-                        // If trip is queued offline, or has queued offline check-ins / photos, show prominent "Sync Now" button
-                        if (trip.is_offline_queued || hasQueuedCheckins) {
-                            html += `
-                            <button type="button" class="btn-primary" id="btn-sync-${trip.id}" onclick="event.stopPropagation(); window.syncSingleOfflineTrip('${trip.id}', this)" style="flex:1; min-width:115px; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border: none !important; outline: none !important; color: #ffffff; padding: 13px 14px; border-radius: 14px; font-weight: 800; font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35);">
-                                <i class="fa-solid fa-cloud-arrow-up"></i> Sync Now
-                            </button>`;
-                        }
-
                         // Start / Complete button wrapper (always visible)
-                        html += `<div class="start-collapsible" id="start-wrapper-${trip.id}" style="flex:1.2; min-width:120px;">`;
+                        html += `<div class="start-collapsible expanded" id="start-wrapper-${trip.id}" style="flex:1; min-width:120px;">`;
                         if (isTripCompleted) {
                             html += `
                             <button class="btn-primary" style="width:100%; white-space:nowrap; background: rgba(16,185,129,0.25); border: none !important; outline: none !important; color: #ffffff; padding: 13px 14px; border-radius: 14px; font-weight: 800; font-size: 13px; cursor: default;" disabled>
@@ -1636,6 +1622,11 @@ $backRoute = 'itinerary';
                 });
 
                 list.innerHTML = html || emptyStateHtml;
+                list.querySelectorAll('button[onclick*="executeLocationCheckIn"], button[onclick*="openProofUploadModal"]').forEach(button => {
+                    const row = button.parentElement;
+                    button.remove();
+                    if (row && row.children.length === 0 && !row.textContent.trim()) row.remove();
+                });
                 updateScrollviewState();
                 initSavedTripsSwipe();
                 if (typeof window.syncReviewedButtons === 'function') {
@@ -2280,7 +2271,8 @@ $backRoute = 'itinerary';
                         lng: window.myLng || 120.3209,
                         image: firstFile,
                         previewUrl: previewUrls[0] || null,
-                        capturedAt: new Date().toISOString()
+                        capturedAt: new Date().toISOString(),
+                        isPhotoUploadOnly: true
                     });
                 }
                 window.closeProofUploadModal();
@@ -2316,7 +2308,8 @@ $backRoute = 'itinerary';
                         lng: window.myLng || 120.3209,
                         image: firstFile,
                         previewUrl: previewUrls[0] || null,
-                        capturedAt: new Date().toISOString()
+                        capturedAt: new Date().toISOString(),
+                        isPhotoUploadOnly: true
                     });
                     window.closeProofUploadModal();
                     if (typeof showToast === 'function') {

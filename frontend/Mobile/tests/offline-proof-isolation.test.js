@@ -52,8 +52,10 @@ assert.equal(manager.getQueuedItem(111, 9, 11).id, 'a');
 assert.equal(manager.getQueuedItem(202, 9, 2).id, 'b');
 
 (async () => {
-    await manager.queueOfflineCheckin({ type: 'itinerary', itemId: 303, spotId: 9, itineraryId: 3 });
+    await manager.queueOfflineCheckin({ type: 'itinerary', itemId: 303, spotId: 9, itineraryId: 3, isPhotoUploadOnly: true });
     assert.equal(manager.getQueue().length, 3, 'same destination in a different itinerary must create a separate queue entry');
+    assert.equal(manager.getQueuedItem(303, 9, 3).isPhotoUploadOnly, true,
+        'offline proof uploads must retain proof-only sync intent');
     console.log('offline proof isolation tests passed');
 })().catch(error => {
     console.error(error);

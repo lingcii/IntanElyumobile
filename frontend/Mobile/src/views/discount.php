@@ -319,14 +319,10 @@ function hydrateDiscountUser() {
 hydrateDiscountUser();
 
 function getVoucherImageUrl(v) {
-    if (!v) return 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/logo/LUPTO.png';
-    const r2Base = 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev';
+    const imageUrl = (path) => window.getFullImageUrl ? window.getFullImageUrl(path) : path;
+    if (!v) return imageUrl('logo/LUPTO.png');
     if (v.image && typeof v.image === 'string' && v.image.trim() !== '') {
-        const clean = v.image.trim();
-        if (clean.startsWith('http://') || clean.startsWith('https://') || clean.startsWith('data:')) {
-            return clean;
-        }
-        return `${r2Base}/${clean.replace(/^\/+/, '')}`;
+        return imageUrl(v.image.trim());
     }
 
     const text = ((v.partner || '') + ' ' + (v.location || '') + ' ' + (v.title || '')).toLowerCase();
@@ -355,11 +351,11 @@ function getVoucherImageUrl(v) {
 
     for (const [muni, logo] of Object.entries(muniMap)) {
         if (text.includes(muni)) {
-            return `${r2Base}/logo/${logo}`;
+            return imageUrl(`logo/${logo}`);
         }
     }
 
-    return `${r2Base}/logo/LUPTO.png`;
+    return imageUrl('logo/LUPTO.png');
 }
 
 function getExpiryInfo(dateStr, isExpiredExplicit, isUpcomingExplicit, validFromStr, validFromFormatted, isNoExpiration, expirationType) {
@@ -1083,7 +1079,7 @@ function renderDiscounts() {
             <div>
                 <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 12px; gap: 8px;">
                     <div style="width: 44px; height: 44px; border-radius: 14px; background: #ffffff; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.14);">
-                        <img src="${imgUrl}" alt="${v.title}" style="width: 100%; height: 100%; object-fit: contain; padding: 4px;" onerror="this.onerror=null; this.src='https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/logo/LUPTO.png';">
+                        <img src="${imgUrl}" alt="${v.title}" style="width: 100%; height: 100%; object-fit: contain; padding: 4px;" onerror="this.onerror=null; this.src=window.getFullImageUrl('logo/LUPTO.png');">
                     </div>
                     <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
                         <span style="font-size: 11px; font-weight: 900; background: ${topBadgeBg} !important; color: ${topBadgeColor} !important; padding: 4px 10px; border-radius: 8px; text-transform: uppercase; box-shadow: 0 2px 6px rgba(0,0,0,0.12);">${topBadgeText}</span>
@@ -1240,7 +1236,7 @@ function openVoucherModal(id) {
     const iconWrap = document.getElementById('modal-icon-wrap');
     if (iconWrap) {
         const modalImg = getVoucherImageUrl(item);
-        iconWrap.innerHTML = `<img src="${modalImg}" alt="${item.title}" style="width: 100%; height: 100%; object-fit: contain; padding: 6px;" onerror="this.onerror=null; this.src='https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/logo/LUPTO.png';">`;
+        iconWrap.innerHTML = `<img src="${modalImg}" alt="${item.title}" style="width: 100%; height: 100%; object-fit: contain; padding: 6px;" onerror="this.onerror=null; this.src=window.getFullImageUrl('logo/LUPTO.png');">`;
     }
 
     // Claimed Box & QR Code

@@ -160,6 +160,7 @@ if (is_dir($imgDir)) {
                 renderSavedPlaces(fallback);
             }
         }
+        window.fetchSavedPlaces = fetchSavedPlaces;
 
         function renderSavedPlaces(spots) {
             const list = document.getElementById('saved-places-list');

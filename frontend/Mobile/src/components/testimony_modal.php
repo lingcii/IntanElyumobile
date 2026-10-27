@@ -35,13 +35,13 @@
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
                     <label style="font-size:11px; font-weight:800; color:#334155; text-transform:uppercase; letter-spacing:0.4px;">Your Rating (1 to 5 Stars):</label>
                     <div style="display:flex; gap:6px; font-size:20px; color:#f59e0b;">
-                        <i class="fa-solid fa-star star-btn" data-star="1" style="cursor:pointer;" onclick="window.setStarRating(1)"></i>
-                        <i class="fa-solid fa-star star-btn" data-star="2" style="cursor:pointer;" onclick="window.setStarRating(2)"></i>
-                        <i class="fa-solid fa-star star-btn" data-star="3" style="cursor:pointer;" onclick="window.setStarRating(3)"></i>
-                        <i class="fa-solid fa-star star-btn" data-star="4" style="cursor:pointer;" onclick="window.setStarRating(4)"></i>
-                        <i class="fa-solid fa-star star-btn" data-star="5" style="cursor:pointer;" onclick="window.setStarRating(5)"></i>
+                        <i class="fa-regular fa-star star-btn" data-star="1" style="cursor:pointer; opacity:0.35;" onclick="window.setStarRating(1)"></i>
+                        <i class="fa-regular fa-star star-btn" data-star="2" style="cursor:pointer; opacity:0.35;" onclick="window.setStarRating(2)"></i>
+                        <i class="fa-regular fa-star star-btn" data-star="3" style="cursor:pointer; opacity:0.35;" onclick="window.setStarRating(3)"></i>
+                        <i class="fa-regular fa-star star-btn" data-star="4" style="cursor:pointer; opacity:0.35;" onclick="window.setStarRating(4)"></i>
+                        <i class="fa-regular fa-star star-btn" data-star="5" style="cursor:pointer; opacity:0.35;" onclick="window.setStarRating(5)"></i>
                     </div>
-                    <input type="hidden" id="testimony-rating" value="5">
+                    <input type="hidden" id="testimony-rating" value="0">
                 </div>
 
                 <!-- Cleanliness, Safety parameters -->
@@ -198,6 +198,8 @@ window.openWriteTestimonyModal = function(spotId, btnEl) {
     const commentInput = document.getElementById('testimony-comment');
     const policyInput = document.getElementById('testimony-policy');
 
+    if (typeof window.setStarRating === 'function') window.setStarRating(0);
+
     // Detect classification status
     let spotClassification = '';
     if (btnEl && btnEl.getAttribute('data-spot-classification')) {
@@ -239,7 +241,7 @@ window.openWriteTestimonyModal = function(spotId, btnEl) {
         // Pre-fill existing data if available
         const prevData = window.userReviewedSpotData && window.userReviewedSpotData[targetSpotId];
         if (prevData) {
-            if (typeof window.setStarRating === 'function') window.setStarRating(prevData.rating || 5);
+            if (typeof window.setStarRating === 'function') window.setStarRating(prevData.rating || 0);
             if (typeof window.selectCleanliness === 'function') window.selectCleanliness(prevData.cleanliness_level || 'clean');
             if (typeof window.selectSafety === 'function') window.selectSafety(prevData.safety_level || 'safe');
             if (commentInput) commentInput.value = prevData.testimony || '';
@@ -265,7 +267,7 @@ window.openWriteTestimonyModal = function(spotId, btnEl) {
         }
         if (submitTextEl) submitTextEl.textContent = 'Submit Review';
 
-        if (typeof window.setStarRating === 'function') window.setStarRating(5);
+        if (typeof window.setStarRating === 'function') window.setStarRating(0);
         if (typeof window.selectCleanliness === 'function') window.selectCleanliness('clean');
         if (typeof window.selectSafety === 'function') window.selectSafety('safe');
         if (commentInput) commentInput.value = '';
@@ -414,11 +416,23 @@ window.submitTestimony = async function(event) {
     const originalText = submitBtn ? submitBtn.innerHTML : '';
 
     const spotId = document.getElementById('testimony-spot-id').value;
-    const rating = document.getElementById('testimony-rating').value;
+    const rating = Number(document.getElementById('testimony-rating').value || 0);
     const testimony = document.getElementById('testimony-comment').value;
     const policy = document.getElementById('testimony-policy').value;
     const cleanliness = document.getElementById('testimony-cleanliness').value;
     const safety = document.getElementById('testimony-safety').value;
+
+    if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
+        if (typeof showToast === 'function') showToast('Please choose a rating from 1 to 5 stars.');
+        const starRow = document.querySelector('#testimony-modal .star-btn')?.closest('div');
+        if (starRow && typeof starRow.animate === 'function') {
+            starRow.animate(
+                [{ transform: 'translateX(0)' }, { transform: 'translateX(-6px)' }, { transform: 'translateX(6px)' }, { transform: 'translateX(0)' }],
+                { duration: 260 }
+            );
+        }
+        return;
+    }
 
     try {
         window._isSubmittingTestimony = true;

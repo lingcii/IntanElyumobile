@@ -1078,11 +1078,22 @@ if (is_dir($imgDir)) {
                 ]
             };
 
+            let restoredMapState = null;
+            try {
+                restoredMapState = JSON.parse(sessionStorage.getItem('intan_elyu_map_view_state') || 'null');
+            } catch (e) { }
+            const initialCenter = restoredMapState && Number.isFinite(Number(restoredMapState.lng)) && Number.isFinite(Number(restoredMapState.lat))
+                ? [Number(restoredMapState.lng), Number(restoredMapState.lat)]
+                : [120.3167, 16.6159];
+            const initialZoom = restoredMapState && Number.isFinite(Number(restoredMapState.zoom))
+                ? Number(restoredMapState.zoom)
+                : 11;
+
             window.mapInstance = new maplibregl.Map({
                 container: 'tourist-map',
                 style: style,
-                center: [120.3167, 16.6159],
-                zoom: 11,
+                center: initialCenter,
+                zoom: initialZoom,
                 pitch: 0,
                 fadeDuration: 0,
                 attributionControl: false

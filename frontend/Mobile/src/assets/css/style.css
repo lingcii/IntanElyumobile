@@ -1086,3 +1086,31 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   border-color: rgba(52, 211, 153, 0.35) !important;
   color: #ecfdf5 !important;
 }
+/* Small global pull-to-refresh indicator; hidden unless the user pulls from the top. */
+#app-pull-refresh {
+    position: fixed;
+    top: -48px;
+    left: 50%;
+    width: 34px;
+    height: 34px;
+    z-index: 9400;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    color: #1e3a8a;
+    background: rgba(255, 255, 255, 0.96);
+    box-shadow: 0 5px 18px rgba(15, 23, 42, 0.2);
+    opacity: 0;
+    pointer-events: none;
+    transform: translate3d(-50%, 0, 0);
+    transition: opacity 0.16s ease, transform 0.2s ease;
+}
+
+#app-pull-refresh.is-visible { opacity: 1; }
+#app-pull-refresh.is-ready { color: #0284c7; }
+#app-pull-refresh.is-refreshing i { animation: app-pull-refresh-spin 0.75s linear infinite; }
+
+@keyframes app-pull-refresh-spin {
+    to { transform: rotate(360deg); }
+}

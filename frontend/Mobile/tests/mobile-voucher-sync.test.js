@@ -4,6 +4,8 @@ const path = require('node:path');
 const vm = require('node:vm');
 
 const source = fs.readFileSync(path.join(__dirname, '..', 'src', 'views', 'discount.php'), 'utf8');
+const profileSource = fs.readFileSync(path.join(__dirname, '..', 'src', 'views', 'profile.php'), 'utf8');
+const mainSource = fs.readFileSync(path.join(__dirname, '..', 'src', 'assets', 'js', 'main.js'), 'utf8');
 const start = source.indexOf('function isVoucherUpcoming');
 const end = source.indexOf('function isVoucherFullyClaimed', start);
 assert.ok(start >= 0 && end > start, 'upcoming voucher classifier must exist');
@@ -33,5 +35,32 @@ assert.match(source, /window\.fetchLiveDatabaseVouchers\s*=\s*fetchLiveDatabaseV
 assert.match(source, /cache:\s*'no-store'/);
 assert.match(source, /VOUCHERS_SYNC_INTERVAL_MS\s*=\s*1500/);
 assert.match(source, /startVoucherCatalogSync\(\);\s*fetchUserPointsAndRedemptions\(\);/);
+assert.ok(mainSource.includes("if (/\\.r2\\.dev$/i.test(parsed.hostname))"),
+    'R2 images must be routed through the backend proxy on mobile networks');
+assert.match(mainSource, /proxyBase \+ '\/api\/image\/' \+ r2Path/);
+assert.match(mainSource, /\? 'https:\/\/api\.intan-elyu\.online'/,
+    'local development must use the working hosted proxy for public R2 voucher images');
+const imageResolverStart = mainSource.indexOf('window.getFullImageUrl = function');
+const imageResolverEnd = mainSource.indexOf('// Extract initial view name', imageResolverStart);
+const imageContext = {
+    URL,
+    window: { getBackendUrl: () => 'http://127.0.0.1:8000', placeholderImage: '' }
+};
+vm.createContext(imageContext);
+vm.runInContext(mainSource.slice(imageResolverStart, imageResolverEnd), imageContext);
+assert.equal(
+    imageContext.window.getFullImageUrl('https://public-bucket.r2.dev/logo/BAUANG.png'),
+    'https://api.intan-elyu.online/api/image/logo/BAUANG.png'
+);
+assert.match(profileSource, /window\.getFullImageUrl\(v\.image \|\| 'logo\/LUPTO\.png'\)/,
+    'profile reward cards must use the shared image URL resolver');
+assert.match(profileSource, /window\.openFullDealsModal[\s\S]*?modal\.style\.display = 'flex';\s*fetchProfileVoucherCatalog\(\);/,
+    'View All Deals must refresh the complete live voucher catalog when opened');
+assert.match(profileSource, /window\.renderFullDealsList = function \(deals\)[\s\S]*?deals\.forEach\(/,
+    'View All Deals must render every voucher passed to it without a three-item limit');
+assert.doesNotMatch(profileSource, /Array\.isArray\(vouchersPayload\.data\) && vouchersPayload\.data\.length > 0/,
+    'an empty live catalog must be allowed to replace stale cached deals');
+assert.match(source, /return imageUrl\(v\.image\.trim\(\)\)/,
+    'discount voucher cards must use the shared image URL resolver');
 
 console.log('mobile voucher sync tests passed');
