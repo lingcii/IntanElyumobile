@@ -1264,7 +1264,7 @@ if (is_dir($imgDir)) {
         }
     }, 100);
 
-    async function dashboardInit(forceRefresh = false) {
+    async function dashboardInitOnce(forceRefresh = false) {
         const setTxt = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
         const setHtml = (id, html) => { const el = document.getElementById(id); if (el) el.innerHTML = html; };
         const setSrc = (id, src) => { const el = document.getElementById(id); if (el) el.src = src; };
@@ -2574,28 +2574,42 @@ if (is_dir($imgDir)) {
             handleDashboardEmptyOrError();
         }
     }
+    function dashboardInit(forceRefresh = false) {
+        if (window._dashboardInitPromise) return window._dashboardInitPromise;
+
+        const now = Date.now();
+        if (!forceRefresh && window._dashboardLastInitCompletedAt && now - window._dashboardLastInitCompletedAt < 1500) {
+            return Promise.resolve(window._lastDashboardPayload || null);
+        }
+
+        const request = dashboardInitOnce(forceRefresh).finally(() => {
+            if (window._dashboardInitPromise === request) {
+                window._dashboardInitPromise = null;
+                window._dashboardLastInitCompletedAt = Date.now();
+            }
+        });
+        window._dashboardInitPromise = request;
+        return request;
+    }
     window.dashboardInit = dashboardInit;
 
     // Ambient automatic reconnect & lifecycle listeners (bound once)
     if (!window._dashboardLifecycleListenersBound) {
         window._dashboardLifecycleListenersBound = true;
 
-        window.addEventListener('online', function () {
+        const refreshDashboardAfterReconnect = function () {
+            const now = Date.now();
+            if (window._dashboardLastReconnectRefreshAt && now - window._dashboardLastReconnectRefreshAt < 2000) return;
+            window._dashboardLastReconnectRefreshAt = now;
             const current = (document.body ? document.body.getAttribute('data-view') : '') || (window.currentView || '');
             if (current !== 'dashboard') {
                 window.dashboardNeedsRefresh = true;
                 return;
             }
             if (typeof window.dashboardInit === 'function') window.dashboardInit(true);
-        });
-        window.addEventListener('appOnline', function () {
-            const current = (document.body ? document.body.getAttribute('data-view') : '') || (window.currentView || '');
-            if (current !== 'dashboard') {
-                window.dashboardNeedsRefresh = true;
-                return;
-            }
-            if (typeof window.dashboardInit === 'function') window.dashboardInit(true);
-        });
+        };
+        window.addEventListener('online', refreshDashboardAfterReconnect);
+        window.addEventListener('appOnline', refreshDashboardAfterReconnect);
         window.addEventListener('checkins-synced', function () {
             const current = (document.body ? document.body.getAttribute('data-view') : '') || (window.currentView || '');
             if (current !== 'dashboard') {

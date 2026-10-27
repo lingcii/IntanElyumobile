@@ -53,8 +53,36 @@ assert.match(trips, /Saved Trips[\s\S]*Trip History/,
     'saved trips must provide active and completed trip tabs');
 assert.match(trips, /showingHistory \? historyTrips : activeTrips/,
     'trip history must render completed trips separately');
-assert.match(trips, /hasSubmittedProof[\s\S]*shouldShowTripAction = isTripCompleted \|\| unvisitedCount === 0 \|\| !hasSubmittedProof/,
-    'a proof-submitted trip must no longer offer Start Trip while validation is pending');
+assert.match(trips, /function hasConfirmedProofSubmission\(item\)[\s\S]*item\.is_offline_queued[\s\S]*\['pending', 'approved', 'rejected'\]\.includes\(proofStatus\)/,
+    'only backend-confirmed pending, approved, or rejected proof states may hide Start Trip');
+assert.match(trips, /is_queued: Boolean\(it\.is_offline_queued \|\| \(previous && previous\.is_queued\)\)/,
+    'queued proof state must survive cache merging without being mistaken for a confirmed submission');
+assert.match(trips, /items\.length > 0 && items\.every\(hasConfirmedProofSubmission\)/,
+    'Start Trip must hide only after every stop in that specific itinerary has submitted proof');
+assert.match(trips, /shouldShowTripAction = isTripCompleted \|\| unvisitedCount === 0 \|\| !shouldHideStartTripForTrip\(trip\)/,
+    'a new draft or unfinished multi-stop trip must continue to offer Start Trip');
+assert.doesNotMatch(trips, /targetIdStr\.includes\(itIdStr\)/,
+    'local proof and check-in updates must use exact itinerary-item IDs');
+assert.doesNotMatch(main, /targetIdStr\.includes\(itIdStr\)/,
+    'shared proof and check-in updates must not match partial IDs from another trip');
+const proofSubmitStart = trips.indexOf('window.submitProofPhotos = async function');
+const proofSuccessStart = trips.indexOf('if (response.ok && data.success)', proofSubmitStart);
+assert.ok(proofSubmitStart >= 0 && proofSuccessStart > proofSubmitStart,
+    'proof submission workflow must be present');
+assert.doesNotMatch(trips.slice(proofSubmitStart, proofSuccessStart), /applyPhotoProofUpdateLocally/,
+    'failed or queued uploads must not be marked as backend-submitted optimistically');
+assert.match(trips.slice(proofSuccessStart), /applyPhotoProofUpdateLocally\(itemId, permanentUrls, data\.proof_status \|\| 'pending'\)[\s\S]*fetchSavedTrips\(true\)/,
+    'successful backend proof submission must update immediately and refresh authoritative state');
+assert.match(trips, /const resolvedStatus = serverStatus \|\|/,
+    'fresh backend proof status must take precedence over stale local state');
+assert.match(trips, /if \(window\._savedTripsFetchPromise\) return window\._savedTripsFetchPromise/,
+    'overlapping Saved Trips refresh triggers must share one in-flight request');
+assert.doesNotMatch(trips, /}, 3500\)/,
+    'pending proof approval must not trigger an aggressive 3.5-second refresh loop');
+assert.match(trips, /window\._savedTripsInterval = setInterval[\s\S]*}, 30000\)/,
+    'Saved Trips must retain one quiet 30-second background refresh');
+assert.match(trips, /_savedTripsReconnectStartedAt[\s\S]*< 2000\) return/,
+    'duplicate online and appOnline events must not start repeated synchronization');
 assert.match(trips, /showTripCompletionReviewModal\(reviewItems, true\)/,
     'Complete must open the required-review workflow first');
 assert.match(trips, /reviewItems\.length === 1[\s\S]*startReviewFromCompletion/,

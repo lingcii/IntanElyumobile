@@ -20,11 +20,6 @@ $activeTab = 'leaderboard';
             <i class="fa-solid fa-trophy" style="color: #fbbf24;"></i> La Union Top Explorers
         </h2>
         <p>Earn Points across Elyu</p>
-        <button id="leaderboard-refresh-btn" type="button" onclick="window.refreshLeaderboard(true)" aria-label="Refresh Leaderboard"
-            style="position: absolute; right: 4px; top: 2px; background: rgba(30, 58, 138, 0.08); border: none; color: #1e3a8a; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; cursor: pointer; transition: transform 0.25s ease;"
-            onpointerdown="this.style.transform='rotate(180deg) scale(0.9)'" onpointerup="this.style.transform='rotate(0deg) scale(1)'">
-            <i class="fa-solid fa-rotate-right" id="leaderboard-refresh-icon"></i>
-        </button>
     </div>
 
     <!-- Your Current Standing Banner -->
@@ -870,19 +865,15 @@ $activeTab = 'leaderboard';
 
     let _isFetchingLeaderboard = false;
 
-    // Explicit manual refresh: Triggered when user taps the refresh button at the top right or changes filter
-    window.refreshLeaderboard = async function (force = true, requestedSort = null) {
+    // Targeted refresh used by filters, pull-to-refresh, and connectivity recovery.
+    const refreshLeaderboardOnce = async function (force = true, requestedSort = null) {
         if (_isFetchingLeaderboard) return;
         _isFetchingLeaderboard = true;
-
-        const refreshIcon = document.getElementById('leaderboard-refresh-icon');
-        if (refreshIcon) refreshIcon.classList.add('fa-spin');
 
         if (!navigator.onLine || window.isAppOnline === false) {
             if (force && typeof showToast === 'function') {
                 showToast('Currently offline. Showing cached standings.', 'info', 3000);
             }
-            if (refreshIcon) refreshIcon.classList.remove('fa-spin');
             _isFetchingLeaderboard = false;
             return;
         }
@@ -990,8 +981,25 @@ $activeTab = 'leaderboard';
             }
         } finally {
             _isFetchingLeaderboard = false;
-            if (refreshIcon) refreshIcon.classList.remove('fa-spin');
         }
+    };
+
+    window.refreshLeaderboard = function (force = true, requestedSort = null) {
+        if (window._leaderboardFetchPromise) return window._leaderboardFetchPromise;
+
+        const now = Date.now();
+        if (!force && window._leaderboardLastFetchCompletedAt && now - window._leaderboardLastFetchCompletedAt < 1500) {
+            return Promise.resolve();
+        }
+
+        const request = refreshLeaderboardOnce(force, requestedSort).finally(() => {
+            if (window._leaderboardFetchPromise === request) {
+                window._leaderboardFetchPromise = null;
+                window._leaderboardLastFetchCompletedAt = Date.now();
+            }
+        });
+        window._leaderboardFetchPromise = request;
+        return request;
     };
 
     window.initLeaderboardView = async function (forceRefresh = false) {
@@ -1014,32 +1022,35 @@ $activeTab = 'leaderboard';
             } catch(e) {}
         }
     }
-    window.addEventListener('online', () => {
-        updateLeaderboardOfflineStatus();
-        if (typeof window.enforceAllOfflineBadgesHidden === 'function') window.enforceAllOfflineBadgesHidden();
-        if (typeof window.refreshLeaderboard === 'function') {
-            window.refreshLeaderboard(false);
-        }
-    });
-    window.addEventListener('offline', updateLeaderboardOfflineStatus);
-    window.addEventListener('appOnline', () => {
-        updateLeaderboardOfflineStatus();
-        if (typeof window.enforceAllOfflineBadgesHidden === 'function') window.enforceAllOfflineBadgesHidden();
-        if (typeof window.refreshLeaderboard === 'function') {
-            window.refreshLeaderboard(false);
-        }
-    });
-    window.addEventListener('appOffline', updateLeaderboardOfflineStatus);
-    window.addEventListener('app-connection-changed', updateLeaderboardOfflineStatus);
+    window.updateLeaderboardOfflineStatus = updateLeaderboardOfflineStatus;
+    window.renderLeaderboardUI = renderLeaderboardUI;
     setTimeout(updateLeaderboardOfflineStatus, 150);
 
-    // Re-render UI when switching back to leaderboard tab (no network fetch)
-    function handleLeaderboardViewLoaded(e) {
-        if (e && e.detail && e.detail.view === 'leaderboard') {
-            updateLeaderboardOfflineStatus();
-            renderLeaderboardUI();
-        }
+    if (!window._leaderboardLifecycleListenersBound) {
+        window._leaderboardLifecycleListenersBound = true;
+        const handleOnline = () => {
+            if (typeof window.updateLeaderboardOfflineStatus === 'function') window.updateLeaderboardOfflineStatus();
+            if (typeof window.enforceAllOfflineBadgesHidden === 'function') window.enforceAllOfflineBadgesHidden();
+            if (typeof window.refreshLeaderboard === 'function') window.refreshLeaderboard(false);
+        };
+        const handleOffline = () => {
+            if (typeof window.updateLeaderboardOfflineStatus === 'function') window.updateLeaderboardOfflineStatus();
+        };
+        const handleLeaderboardViewLoaded = (e) => {
+            if (!e || !e.detail || e.detail.view !== 'leaderboard') return;
+            const now = Date.now();
+            if (window._leaderboardLastViewRenderAt && now - window._leaderboardLastViewRenderAt < 250) return;
+            window._leaderboardLastViewRenderAt = now;
+            handleOffline();
+            if (typeof window.renderLeaderboardUI === 'function') window.renderLeaderboardUI();
+        };
+
+        window.addEventListener('online', handleOnline);
+        window.addEventListener('offline', handleOffline);
+        window.addEventListener('appOnline', handleOnline);
+        window.addEventListener('appOffline', handleOffline);
+        window.addEventListener('app-connection-changed', handleOffline);
+        window.addEventListener('viewLoaded', handleLeaderboardViewLoaded);
+        document.addEventListener('viewLoaded', handleLeaderboardViewLoaded);
     }
-    window.addEventListener('viewLoaded', handleLeaderboardViewLoaded);
-    document.addEventListener('viewLoaded', handleLeaderboardViewLoaded);
 </script>

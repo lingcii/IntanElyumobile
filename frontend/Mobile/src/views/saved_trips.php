@@ -530,7 +530,7 @@ $backRoute = 'itinerary';
         window.updateSavedTripsScrollview = updateScrollviewState;
         window.addEventListener('resize', updateScrollviewState);
 
-        window.fetchSavedTrips = async function (forceRefresh = false) {
+        const fetchSavedTripsOnce = async function (forceRefresh = false) {
             const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
             const isGuest = !token || token === 'guest_token' || token.startsWith('guest_') || token.startsWith('offline_') || localStorage.getItem('intan_elyu_guest') === 'true';
             const isOfflineMode = localStorage.getItem('intan_elyu_offline_mode') === 'true' || localStorage.getItem('intan_elyu_offline_guest') === 'true';
@@ -921,6 +921,24 @@ $backRoute = 'itinerary';
             }
         };
 
+        window.fetchSavedTrips = function (forceRefresh = false) {
+            if (window._savedTripsFetchPromise) return window._savedTripsFetchPromise;
+
+            const now = Date.now();
+            if (window._savedTripsLastFetchCompletedAt && now - window._savedTripsLastFetchCompletedAt < 750) {
+                return Promise.resolve(window._cachedSavedTrips || []);
+            }
+
+            const request = fetchSavedTripsOnce(forceRefresh).finally(() => {
+                if (window._savedTripsFetchPromise === request) {
+                    window._savedTripsFetchPromise = null;
+                    window._savedTripsLastFetchCompletedAt = Date.now();
+                }
+            });
+            window._savedTripsFetchPromise = request;
+            return request;
+        };
+
         window.loadSavedTrips = window.fetchSavedTrips;
 
         const VEHICLE_CATALOG = {
@@ -1028,6 +1046,25 @@ $backRoute = 'itinerary';
             renderSavedTrips(window._cachedSavedTrips || []);
         };
 
+        function hasConfirmedProofSubmission(item) {
+            if (!item || item.is_offline_queued) return false;
+
+            const proofStatus = String(item.proof_status || '').toLowerCase();
+            const hasServerProof = Boolean(
+                item.proof_image ||
+                (Array.isArray(item.proof_images) && item.proof_images.length > 0)
+            );
+            const hasConfirmedCheckin = Boolean(item.visited_at || item.is_location_verified);
+
+            return ['pending', 'approved', 'rejected'].includes(proofStatus) ||
+                (hasServerProof && hasConfirmedCheckin);
+        }
+
+        function shouldHideStartTripForTrip(trip) {
+            const items = trip && Array.isArray(trip.items) ? trip.items.filter(Boolean) : [];
+            return items.length > 0 && items.every(hasConfirmedProofSubmission);
+        }
+
         function renderSavedTrips(itineraries) {
             window._isStartingTrip = false;
             try {
@@ -1056,12 +1093,14 @@ $backRoute = 'itinerary';
                             const hasProofs = (proofs.length > 0);
                             const hasCheckin = Boolean(it.is_location_verified || it.visited_at);
                             if (hasProofs || hasCheckin) {
+                                const previous = localItemProofs[itId] || null;
                                 localItemProofs[itId] = {
                                     proof_image: it.proof_image || proofs[0] || null,
                                     proof_images: proofs,
                                     proof_status: it.proof_status || (hasProofs ? 'pending' : null),
                                     is_location_verified: hasCheckin,
-                                    visited_at: it.visited_at || null
+                                    visited_at: it.visited_at || null,
+                                    is_queued: Boolean(it.is_offline_queued || (previous && previous.is_queued))
                                 };
                             }
                         });
@@ -1074,11 +1113,12 @@ $backRoute = 'itinerary';
                     Object.keys(persistentStates).forEach(k => {
                         const st = persistentStates[k];
                         if (!st) return;
+                        const stProofs = st.proof_images || (st.proof_image ? [st.proof_image] : []);
                         if (!localItemProofs[k]) {
                             localItemProofs[k] = {
                                 proof_image: st.proof_image || null,
-                                proof_images: st.proof_images || (st.proof_image ? [st.proof_image] : []),
-                                proof_status: st.proof_status || 'pending',
+                                proof_images: stProofs,
+                                proof_status: st.proof_status || (stProofs.length > 0 ? 'pending' : null),
                                 is_location_verified: Boolean(st.is_location_verified || st.visited_at),
                                 visited_at: st.visited_at || null
                             };
@@ -1161,29 +1201,18 @@ $backRoute = 'itinerary';
                                     ? it.proof_images
                                     : (it.proof_image ? [it.proof_image] : []);
                                 const mergedProofs = currentProofs.length > 0 ? currentProofs : (saved.proof_images || []);
-                                const isServerApproved = Boolean(it.is_visited || it.proof_status === 'approved' || (saved && (saved.proof_status === 'approved' || saved.is_visited)));
-                                const isServerRejected = (it.proof_status === 'rejected' || (saved && saved.proof_status === 'rejected'));
-
-                                let resolvedStatus;
-                                if (isServerApproved) {
-                                    resolvedStatus = 'approved';
-                                } else if (isServerRejected) {
-                                    resolvedStatus = 'rejected';
-                                } else if (it.proof_status) {
-                                    resolvedStatus = it.proof_status;
-                                } else if (saved && saved.proof_status) {
-                                    resolvedStatus = saved.proof_status;
-                                } else {
-                                    resolvedStatus = (mergedProofs.length > 0 ? 'pending' : null);
-                                }
+                                const serverStatus = String(it.proof_status || '').toLowerCase();
+                                const savedStatus = String((saved && saved.proof_status) || '').toLowerCase();
+                                const resolvedStatus = serverStatus || (it.is_visited ? 'approved' : '') || savedStatus || (mergedProofs.length > 0 ? 'pending' : null);
+                                const isResolvedApproved = resolvedStatus === 'approved';
 
                                 return {
                                     ...it,
-                                    is_visited: isServerApproved ? true : Boolean(it.is_visited || (saved && saved.is_visited)),
+                                    is_visited: isResolvedApproved ? true : Boolean(!serverStatus && (it.is_visited || (saved && saved.is_visited))),
                                     proof_image: (mergedProofs && mergedProofs.length > 0) ? mergedProofs[0] : (saved.proof_image || it.proof_image),
                                     proof_images: mergedProofs || [],
                                     proof_status: resolvedStatus,
-                                    is_location_verified: Boolean(isServerApproved || it.is_location_verified || (saved && saved.is_location_verified) || it.visited_at || (saved && saved.visited_at)),
+                                    is_location_verified: Boolean(isResolvedApproved || it.is_location_verified || (saved && saved.is_location_verified) || it.visited_at || (saved && saved.visited_at)),
                                     visited_at: it.visited_at || (saved ? saved.visited_at : null),
                                     is_offline_queued: Boolean(saved.is_queued)
                                 };
@@ -1349,7 +1378,6 @@ $backRoute = 'itinerary';
                                 <div class="timeline-inner">
                                     <div class="timeline">`;
                         let unvisitedCount = 0;
-                        let hasSubmittedProof = false;
                         let hasQueuedCheckins = false;
                         const isTripCompleted = (trip.status === 'completed');
                         if (trip.items && trip.items.length) {
@@ -1391,9 +1419,6 @@ $backRoute = 'itinerary';
                                 }
 
                                 const hasProof = (proofImages.length > 0);
-                                if (hasProof || isCheckinQueued || item.proof_status === 'pending' || item.proof_status === 'approved') {
-                                    hasSubmittedProof = true;
-                                }
                                 const isLocVerified = Boolean(item.visited_at || item.is_location_verified);
                                 const proofStatus = item.proof_status || (hasProof ? (item.is_visited ? 'approved' : 'pending') : null);
                                 const isPhotoApproved = (proofStatus === 'approved');
@@ -1639,8 +1664,9 @@ $backRoute = 'itinerary';
                         // Action buttons
                         html += `<div style="display:flex; gap:8px; margin-top:16px; flex-wrap:wrap; align-items:center;">`;
 
-                        // Once proof is submitted, never offer to restart the trip while validation is pending.
-                        const shouldShowTripAction = isTripCompleted || unvisitedCount === 0 || !hasSubmittedProof;
+                        // Hide Start only when every stop in this exact itinerary has a server-confirmed proof workflow.
+                        // A queued upload is not submitted yet, and one finished stop must not block a multi-stop trip.
+                        const shouldShowTripAction = isTripCompleted || unvisitedCount === 0 || !shouldHideStartTripForTrip(trip);
                         if (shouldShowTripAction) {
                         html += `<div class="start-collapsible expanded" id="start-wrapper-${trip.id}" style="flex:1; min-width:120px;">`;
                         if (isTripCompleted) {
@@ -1799,10 +1825,8 @@ $backRoute = 'itinerary';
         window.startTrip = function (tripId, btnElement) {
             if (window._isStartingTrip) return;
             const requestedTrip = (window._cachedSavedTrips || []).find(t => t && (t.id == tripId || t.local_id == tripId));
-            const proofWasSubmitted = requestedTrip && Array.isArray(requestedTrip.items) && requestedTrip.items.some(item =>
-                item && ((Array.isArray(item.proof_images) && item.proof_images.length > 0) || item.proof_image || item.proof_status === 'pending' || item.proof_status === 'approved')
-            );
-            if ((requestedTrip && (requestedTrip.status === 'completed' || (typeof window.isTripCompletedLocally === 'function' && window.isTripCompletedLocally(requestedTrip)))) || proofWasSubmitted) {
+            const allStopsSubmitted = shouldHideStartTripForTrip(requestedTrip);
+            if ((requestedTrip && (requestedTrip.status === 'completed' || (typeof window.isTripCompletedLocally === 'function' && window.isTripCompletedLocally(requestedTrip)))) || allStopsSubmitted) {
                 if (typeof showToast === 'function') showToast(requestedTrip && requestedTrip.status === 'completed' ? 'This trip is already completed.' : 'Proof submitted. Please wait for validation.', 'info');
                 renderSavedTrips(window._cachedSavedTrips || []);
                 return;
@@ -2129,6 +2153,7 @@ $backRoute = 'itinerary';
                     proof_image: urls[0],
                     proof_images: urls,
                     proof_status: proofStatus,
+                    is_queued: false,
                     spot_id: spotId
                 });
             }
@@ -2140,12 +2165,13 @@ $backRoute = 'itinerary';
                     const updatedItems = trip.items.map(it => {
                         if (!it) return it;
                         const itIdStr = String(it.id || '');
-                        if (itIdStr === targetIdStr || (targetIdStr && itIdStr && targetIdStr.includes(itIdStr))) {
+                        if (itIdStr === targetIdStr) {
                             return {
                                 ...it,
                                 proof_image: urls[0],
                                 proof_images: urls,
                                 proof_status: proofStatus,
+                                is_offline_queued: false,
                                 rejection_reason: null
                             };
                         }
@@ -2230,7 +2256,7 @@ $backRoute = 'itinerary';
                     const updatedItems = trip.items.map(it => {
                         if (!it) return it;
                         const itIdStr = String(it.id || '');
-                        if (itIdStr === targetIdStr || (targetIdStr && itIdStr && targetIdStr.includes(itIdStr))) {
+                        if (itIdStr === targetIdStr) {
                             return {
                                 ...it,
                                 is_location_verified: true,
@@ -2297,9 +2323,6 @@ $backRoute = 'itinerary';
             const previewUrls = window.selectedProofPhotos.map(p => p.dataUrl).filter(Boolean);
             const firstFile = window.selectedProofPhotos[0].file;
             const spotName = window._currentProofSpotName || 'Destination';
-
-            // Optimistically update memory and DOM right now!
-            window.applyPhotoProofUpdateLocally(itemId, previewUrls, 'pending');
 
             const parentTrip = (window._cachedSavedTrips || []).find(t => (t.items || []).some(i => String(i.id) === String(itemId)));
             const targetItem = parentTrip ? (parentTrip.items || []).find(i => String(i.id) === String(itemId)) : null;
@@ -2408,6 +2431,9 @@ $backRoute = 'itinerary';
                     // Replace preview URLs with permanent server URLs from response
                     const permanentUrls = data.proof_images || (data.proof_image ? [data.proof_image] : previewUrls);
                     window.applyPhotoProofUpdateLocally(itemId, permanentUrls, data.proof_status || 'pending');
+                    if (typeof window.fetchSavedTrips === 'function') {
+                        window.fetchSavedTrips(true);
+                    }
 
                     if (typeof showToast === 'function') {
                         showToast(data.message || 'Photo proof submitted! Awaiting for approval.', 'success');
@@ -3906,10 +3932,10 @@ $backRoute = 'itinerary';
         }
         renderSavedTrips(initialTrips);
 
-        // Fetch and sync in background
-        window.fetchSavedTrips();
-
-        // ── Fast Polling Manager for Pending Proof Approvals ──
+        // Pending approvals use the normal background refresh below.
+        if (window._pendingProofPollingInterval) {
+            clearInterval(window._pendingProofPollingInterval);
+        }
         window._pendingProofPollingInterval = null;
         window.checkAndManageApprovalPolling = function (trips) {
             const list = document.getElementById('saved-trips-list');
@@ -3944,27 +3970,9 @@ $backRoute = 'itinerary';
 
             window._hasPendingApprovalItems = hasPending;
 
-            if (hasPending) {
-                if (!window._pendingProofPollingInterval) {
-                    console.log("⚡ Starting fast pending-approval polling (every 3.5s)...");
-                    window._pendingProofPollingInterval = setInterval(() => {
-                        const curView = document.body.getAttribute('data-view');
-                        if (curView && curView !== 'saved_trips') {
-                            clearInterval(window._pendingProofPollingInterval);
-                            window._pendingProofPollingInterval = null;
-                            return;
-                        }
-                        if (document.visibilityState === 'visible' && !window._isStartingTrip) {
-                            window.fetchSavedTrips(true);
-                        }
-                    }, 3500);
-                }
-            } else {
-                if (window._pendingProofPollingInterval) {
-                    clearInterval(window._pendingProofPollingInterval);
-                    window._pendingProofPollingInterval = null;
-                    console.log("⚡ All proof items verified or none pending; cleared fast polling.");
-                }
+            if (window._pendingProofPollingInterval) {
+                clearInterval(window._pendingProofPollingInterval);
+                window._pendingProofPollingInterval = null;
             }
         };
 
@@ -4028,6 +4036,10 @@ $backRoute = 'itinerary';
             }
 
             async function handleSavedTripsReconnect() {
+                const reconnectStartedAt = Date.now();
+                if (window._savedTripsReconnectStartedAt && reconnectStartedAt - window._savedTripsReconnectStartedAt < 2000) return;
+                window._savedTripsReconnectStartedAt = reconnectStartedAt;
+
                 if (typeof window.enforceAllOfflineBadgesHidden === 'function') {
                     window.enforceAllOfflineBadgesHidden();
                 }
@@ -4105,11 +4117,6 @@ $backRoute = 'itinerary';
                 }
             });
             setTimeout(updateSavedTripsOfflineStatus, 100);
-        }
-
-        // Immediately fetch fresh saved trips from network and update cache
-        if (typeof window.fetchSavedTrips === 'function') {
-            window.fetchSavedTrips(true);
         }
 
     })();

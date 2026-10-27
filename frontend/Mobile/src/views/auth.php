@@ -2,8 +2,8 @@
 <script>
     (function () {
         var winH = window.innerHeight || 0;
-        var scrH = (window.screen && window.screen.height) ? window.screen.height : 0;
-        var h = Math.max(winH, scrH > 300 ? scrH : winH);
+        var viewportH = window.visualViewport ? window.visualViewport.height : winH;
+        var h = Math.max(winH, viewportH || 0);
         if (h > 0) {
             document.documentElement.style.setProperty('--auth-screen-h', h + 'px');
         }
@@ -74,11 +74,13 @@
                 <form id="form-login" onsubmit="handleLogin(event)">
                     <div class="input-group">
                         <i class="fa-regular fa-envelope"></i>
-                        <input type="email" id="login-email" class="auth-input" placeholder="Email Address" required>
+                        <input type="email" id="login-email" class="auth-input" placeholder="Email Address" required
+                            autocomplete="email" inputmode="email" enterkeyhint="next" data-auth-focus-order="1">
                     </div>
                     <div class="input-group">
                         <i class="fa-solid fa-lock"></i>
-                        <input type="password" id="login-password" class="auth-input" placeholder="Password" required>
+                        <input type="password" id="login-password" class="auth-input" placeholder="Password" required
+                            autocomplete="current-password" enterkeyhint="done" data-auth-focus-order="2">
                         <i class="fa-regular fa-eye password-toggle"
                             onclick="togglePasswordVisibility('login-password', this)"></i>
                     </div>
@@ -135,11 +137,13 @@
                     <div class="input-group">
                         <i class="fa-regular fa-user"></i>
                         <input type="text" id="reg-first-name" class="auth-input" placeholder="First Name" required
+                            autocomplete="given-name" enterkeyhint="next" data-auth-focus-order="1"
                             oninput="validateRegisterFormInline()">
                     </div>
                     <div class="input-group">
                         <i class="fa-regular fa-user"></i>
                         <input type="text" id="reg-last-name" class="auth-input" placeholder="Last Name" required
+                            autocomplete="family-name" enterkeyhint="next" data-auth-focus-order="2"
                             oninput="validateRegisterFormInline()">
                     </div>
                     <div class="input-group" id="reg-gender-trigger" onclick="openGenderModal(event)" style="cursor: pointer;">
@@ -151,6 +155,7 @@
                     <div class="input-group">
                         <i class="fa-regular fa-envelope"></i>
                         <input type="email" id="reg-email" class="auth-input" placeholder="Email Address" required
+                            autocomplete="email" inputmode="email" enterkeyhint="next" data-auth-focus-order="3"
                             oninput="validateRegisterFormInline()">
                         <i id="reg-email-status-icon" class="fa-solid field-status-icon"></i>
                     </div>
@@ -159,7 +164,7 @@
                     <div class="input-group">
                         <i class="fa-solid fa-lock"></i>
                         <input type="password" id="reg-password" class="auth-input" placeholder="Create Password"
-                            autocomplete="off" required oninput="validateRegisterFormInline()"
+                            autocomplete="new-password" enterkeyhint="done" data-auth-focus-order="4" required oninput="validateRegisterFormInline()"
                             onfocus="onPasswordFocus()" onblur="onPasswordBlur()">
                         <i id="reg-password-status-icon" class="fa-solid field-status-icon password-offset"></i>
                         <i class="fa-regular fa-eye password-toggle"
@@ -395,6 +400,11 @@
         </div>
     </div>
 </div>
+
+<button type="button" id="auth-keyboard-dismiss" class="auth-keyboard-dismiss"
+    aria-label="Dismiss keyboard" hidden>
+    <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+</button>
 
 <!-- Login Success Modal -->
 <div id="login-success-modal" class="login-success-overlay" style="display: none;">
@@ -1939,6 +1949,8 @@
     });
 
     window.submitRegistrationAndTrigger2FA = async function () {
+        if (window._isRegistering) return;
+        window._isRegistering = true;
         const pwd = document.getElementById('reg-password')?.value || '';
         const firstName = (document.getElementById('reg-first-name')?.value || '').trim();
         const lastName = (document.getElementById('reg-last-name')?.value || '').trim();
@@ -1947,6 +1959,7 @@
         const email = (document.getElementById('reg-email')?.value || '').trim();
 
         if (!navigator.onLine || window.isAppOnline === false) {
+            window._isRegistering = false;
             if (typeof showToast === 'function') {
                 showToast('Internet connection is required to register. Please connect to the internet and try again.', 'warning', 5000);
             }
@@ -2052,6 +2065,7 @@
                     btn.innerHTML = '<i class="fa-solid fa-arrow-right"></i>';
                     btn.disabled = false;
                 }
+                window._isRegistering = false;
 
                 // Switch back to Login view
                 if (typeof toggleAuthMode === 'function') {
@@ -2096,6 +2110,7 @@
                 btn.innerHTML = '<i class="fa-solid fa-arrow-right"></i>';
                 btn.disabled = false;
             }
+            window._isRegistering = false;
         }
     };
 
@@ -2895,17 +2910,133 @@
         }
     };
 
-    // Keep login layout 100% intact with splash branding without shrinking header or logo
+    // Keyboard-aware scrolling, sequential focus, and an explicit keyboard dismiss control.
     (function setupKeyboardAdaptiveAuth() {
-        document.addEventListener('focusin', function (e) {
-            if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) {
-                setTimeout(function () {
-                    try {
-                        e.target.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                    } catch (err) { }
-                }, 180);
+        var dismissButton = document.getElementById('auth-keyboard-dismiss');
+        var authContainer = document.querySelector('.auth-container');
+        var viewport = window.visualViewport;
+        var largestViewportHeight = viewport ? viewport.height : window.innerHeight;
+
+        function isEditable(element) {
+            if (!element) return false;
+            return element.matches('input:not([type="hidden"]):not([type="checkbox"]):not([readonly]), textarea');
+        }
+
+        function keepFocusedFieldVisible(element) {
+            if (!isEditable(element)) return;
+            var visibleTop = viewport ? viewport.offsetTop : 0;
+            var visibleBottom = visibleTop + (viewport ? viewport.height : window.innerHeight);
+            var controlSpace = 72;
+            var rect = element.closest('.input-group')?.getBoundingClientRect() || element.getBoundingClientRect();
+            var delta = 0;
+
+            if (rect.bottom > visibleBottom - controlSpace) {
+                delta = rect.bottom - (visibleBottom - controlSpace);
+            } else if (rect.top < visibleTop + 16) {
+                delta = rect.top - (visibleTop + 16);
             }
+
+            if (Math.abs(delta) > 1) {
+                var scroller = authContainer && authContainer.scrollHeight > authContainer.clientHeight
+                    ? authContainer
+                    : document.scrollingElement;
+                if (scroller && typeof scroller.scrollBy === 'function') {
+                    scroller.scrollBy({ top: delta, behavior: 'smooth' });
+                }
+            }
+        }
+
+        function setKeyboardState(visible, keyboardHeight) {
+            document.body.classList.toggle('auth-keyboard-visible', visible);
+            if (!dismissButton) return;
+
+            dismissButton.hidden = !visible;
+            if (!visible) {
+                dismissButton.style.removeProperty('top');
+                document.documentElement.style.setProperty('--auth-keyboard-height', '0px');
+                return;
+            }
+
+            var height = Math.max(0, keyboardHeight || 0);
+            document.documentElement.style.setProperty('--auth-keyboard-height', height + 'px');
+            var buttonTop = (viewport ? viewport.offsetTop + viewport.height : window.innerHeight) - 58;
+            dismissButton.style.top = Math.max(12, buttonTop) + 'px';
+            window.requestAnimationFrame(function () {
+                keepFocusedFieldVisible(document.activeElement);
+            });
+        }
+
+        function updateFromVisualViewport() {
+            if (!viewport) return;
+            if (!isEditable(document.activeElement)) {
+                largestViewportHeight = Math.max(largestViewportHeight, viewport.height);
+                setKeyboardState(false, 0);
+                return;
+            }
+            var keyboardHeight = Math.max(0, largestViewportHeight - viewport.height - viewport.offsetTop);
+            setKeyboardState(keyboardHeight > 100, keyboardHeight);
+        }
+
+        function dismissKeyboard() {
+            var activeElement = document.activeElement;
+            if (isEditable(activeElement)) activeElement.blur();
+            try {
+                var keyboard = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Keyboard;
+                if (keyboard && typeof keyboard.hide === 'function') keyboard.hide();
+            } catch (err) { }
+            setKeyboardState(false, 0);
+        }
+
+        if (dismissButton) dismissButton.addEventListener('click', dismissKeyboard);
+
+        document.addEventListener('focusin', function (event) {
+            if (!isEditable(event.target)) return;
+            window.setTimeout(function () {
+                updateFromVisualViewport();
+                keepFocusedFieldVisible(event.target);
+            }, 180);
+        }, true);
+
+        document.addEventListener('focusout', function () {
+            window.setTimeout(function () {
+                if (!isEditable(document.activeElement)) setKeyboardState(false, 0);
+            }, 120);
+        }, true);
+
+        document.querySelectorAll('#form-login, #form-register').forEach(function (form) {
+            form.addEventListener('keydown', function (event) {
+                if (event.key !== 'Enter' || !isEditable(event.target)) return;
+                var fields = Array.from(form.querySelectorAll('[data-auth-focus-order]'))
+                    .filter(function (field) { return !field.disabled && field.offsetParent !== null; });
+                var index = fields.indexOf(event.target);
+                if (index < 0) return;
+                event.preventDefault();
+                if (index < fields.length - 1) {
+                    fields[index + 1].focus();
+                } else {
+                    dismissKeyboard();
+                }
+            });
         });
+
+        if (viewport) {
+            viewport.addEventListener('resize', updateFromVisualViewport);
+            viewport.addEventListener('scroll', updateFromVisualViewport);
+        }
+
+        try {
+            var nativeKeyboard = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Keyboard;
+            if (nativeKeyboard) {
+                nativeKeyboard.addListener('keyboardWillShow', function (event) {
+                    setKeyboardState(true, event && event.keyboardHeight);
+                });
+                nativeKeyboard.addListener('keyboardDidShow', function (event) {
+                    setKeyboardState(true, event && event.keyboardHeight);
+                });
+                nativeKeyboard.addListener('keyboardWillHide', function () { setKeyboardState(false, 0); });
+                nativeKeyboard.addListener('keyboardDidHide', function () { setKeyboardState(false, 0); });
+            }
+        } catch (err) { }
     })();
 
     if (typeof window.initAuthView === 'function') {

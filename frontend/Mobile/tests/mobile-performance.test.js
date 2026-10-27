@@ -8,6 +8,8 @@ const publicMain = fs.readFileSync(path.join(root, 'public', 'assets', 'js', 'ma
 const style = fs.readFileSync(path.join(root, 'src', 'assets', 'css', 'style.css'), 'utf8');
 const publicStyle = fs.readFileSync(path.join(root, 'public', 'assets', 'css', 'style.css'), 'utf8');
 const mapView = fs.readFileSync(path.join(root, 'src', 'views', 'map.php'), 'utf8');
+const dashboardView = fs.readFileSync(path.join(root, 'src', 'views', 'dashboard.php'), 'utf8');
+const leaderboardView = fs.readFileSync(path.join(root, 'src', 'views', 'leaderboard.php'), 'utf8');
 const serviceWorker = fs.readFileSync(path.join(root, 'src', 'sw.js'), 'utf8');
 const publicServiceWorker = fs.readFileSync(path.join(root, 'public', 'sw.js'), 'utf8');
 
@@ -32,5 +34,17 @@ assert.match(serviceWorker, /isViewRequest && url\.searchParams\.get\('ajax'\) =
     'view templates must use stale-while-revalidate without applying it to live APIs');
 assert.doesNotMatch(serviceWorker, /'\.\/index\.php\?view=(?:discount|trending|puzzles|settings)&ajax=1'/,
     'service-worker install must not preload every secondary module');
+assert.match(dashboardView, /if \(window\._dashboardInitPromise\) return window\._dashboardInitPromise/,
+    'Home must coalesce overlapping initialization requests');
+assert.match(dashboardView, /!forceRefresh && window\._dashboardLastInitCompletedAt[\s\S]*< 1500/,
+    'Home lifecycle events must not immediately repeat a completed refresh');
+assert.match(dashboardView, /_dashboardLastReconnectRefreshAt[\s\S]*< 2000[\s\S]*addEventListener\('online', refreshDashboardAfterReconnect\)[\s\S]*addEventListener\('appOnline', refreshDashboardAfterReconnect\)/,
+    'Home must coalesce duplicate browser and app reconnect events');
+assert.match(leaderboardView, /if \(window\._leaderboardFetchPromise\) return window\._leaderboardFetchPromise/,
+    'Leaderboard must coalesce overlapping refresh requests');
+assert.match(leaderboardView, /if \(!window\._leaderboardLifecycleListenersBound\)/,
+    'Leaderboard lifecycle listeners must only be registered once');
+assert.match(leaderboardView, /_leaderboardLastViewRenderAt[\s\S]*< 250/,
+    'duplicate document and window viewLoaded events must render Leaderboard once');
 
 console.log('mobile performance tests passed');

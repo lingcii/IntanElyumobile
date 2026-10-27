@@ -692,6 +692,7 @@ window.OfflineCheckinManager = {
                                     proof_image: returnedPhoto,
                                     proof_images: returnedPhoto ? [returnedPhoto] : [],
                                     proof_status: finalStatus,
+                                    is_queued: false,
                                     is_location_verified: true,
                                     is_visited: isApproved,
                                     spot_id: item.spotId
@@ -3114,12 +3115,14 @@ window.renderSavedTrips = function (itineraries) {
                     const hasProofs = (proofs.length > 0);
                     const hasCheckin = Boolean(it.is_location_verified || it.visited_at);
                     if (hasProofs || hasCheckin) {
+                        const previous = localItemProofs[itId] || null;
                         localItemProofs[itId] = {
                             proof_image: it.proof_image || proofs[0] || null,
                             proof_images: proofs,
                             proof_status: it.proof_status || (hasProofs ? 'pending' : null),
                             is_location_verified: hasCheckin,
-                            visited_at: it.visited_at || null
+                            visited_at: it.visited_at || null,
+                            is_queued: Boolean(it.is_offline_queued || (previous && previous.is_queued))
                         };
                     }
                 });
@@ -3131,11 +3134,12 @@ window.renderSavedTrips = function (itineraries) {
             Object.keys(persistentStates).forEach(k => {
                 const st = persistentStates[k];
                 if (!st) return;
+                const stProofs = st.proof_images || (st.proof_image ? [st.proof_image] : []);
                 if (!localItemProofs[k]) {
                     localItemProofs[k] = {
                         proof_image: st.proof_image || null,
-                        proof_images: st.proof_images || (st.proof_image ? [st.proof_image] : []),
-                        proof_status: st.proof_status || 'pending',
+                        proof_images: stProofs,
+                        proof_status: st.proof_status || (stProofs.length > 0 ? 'pending' : null),
                         is_location_verified: Boolean(st.is_location_verified || st.visited_at),
                         visited_at: st.visited_at || null
                     };
@@ -3174,11 +3178,13 @@ window.renderSavedTrips = function (itineraries) {
                             ? it.proof_images
                             : (it.proof_image ? [it.proof_image] : []);
                         const mergedProofs = currentProofs.length > 0 ? currentProofs : saved.proof_images;
+                        const serverStatus = String(it.proof_status || '').toLowerCase();
+                        const savedStatus = String(saved.proof_status || '').toLowerCase();
                         return {
                             ...it,
                             proof_image: (mergedProofs && mergedProofs.length > 0) ? mergedProofs[0] : (saved.proof_image || it.proof_image),
                             proof_images: mergedProofs || [],
-                            proof_status: (it.proof_status && it.proof_status !== 'pending' && it.proof_status !== null) ? it.proof_status : (saved.proof_status || 'pending'),
+                            proof_status: serverStatus || savedStatus || (mergedProofs.length > 0 ? 'pending' : null),
                             is_location_verified: Boolean(it.is_location_verified || saved.is_location_verified || it.visited_at || saved.visited_at),
                             visited_at: it.visited_at || saved.visited_at,
                             is_offline_queued: Boolean(saved.is_queued)
@@ -4051,6 +4057,7 @@ window.applyPhotoProofUpdateLocally = function (itemId, proofUrls, proofStatus =
             proof_image: urls[0],
             proof_images: urls,
             proof_status: proofStatus,
+            is_queued: false,
             spot_id: spotId
         });
     }
@@ -4062,12 +4069,13 @@ window.applyPhotoProofUpdateLocally = function (itemId, proofUrls, proofStatus =
             const updatedItems = trip.items.map(it => {
                 if (!it) return it;
                 const itIdStr = String(it.id || '');
-                if (itIdStr === targetIdStr || (targetIdStr && itIdStr && targetIdStr.includes(itIdStr))) {
+                if (itIdStr === targetIdStr) {
                     return {
                         ...it,
                         proof_image: urls[0],
                         proof_images: urls,
                         proof_status: proofStatus,
+                        is_offline_queued: false,
                         rejection_reason: null
                     };
                 }
@@ -4148,7 +4156,7 @@ window.applyLocationCheckinLocally = function (itemId) {
             const updatedItems = trip.items.map(it => {
                 if (!it) return it;
                 const itIdStr = String(it.id || '');
-                if (itIdStr === targetIdStr || (targetIdStr && itIdStr && targetIdStr.includes(itIdStr))) {
+                if (itIdStr === targetIdStr) {
                     return {
                         ...it,
                         is_location_verified: true,
@@ -4214,8 +4222,6 @@ window.submitProofPhotos = async function () {
     const previewUrls = window.selectedProofPhotos.map(p => p.dataUrl).filter(Boolean);
     const firstFile = window.selectedProofPhotos[0].file;
     const spotName = window._currentProofSpotName || 'Destination';
-
-    window.applyPhotoProofUpdateLocally(itemId, previewUrls, 'pending');
 
     const parentTrip = (window._cachedSavedTrips || []).find(t => (t.items || []).some(i => String(i.id) === String(itemId)));
     const targetItem = parentTrip ? (parentTrip.items || []).find(i => String(i.id) === String(itemId)) : null;
@@ -4320,6 +4326,9 @@ window.submitProofPhotos = async function () {
             window.closeProofUploadModal();
             const permanentUrls = data.proof_images || (data.proof_image ? [data.proof_image] : previewUrls);
             window.applyPhotoProofUpdateLocally(itemId, permanentUrls, data.proof_status || 'pending');
+            if (typeof window.fetchSavedTrips === 'function') {
+                window.fetchSavedTrips(true);
+            }
 
             if (typeof showToast === 'function') {
                 showToast(data.message || 'Photo proof submitted! Awaiting for approval.', 'success');
@@ -8579,11 +8588,11 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
         if (view !== 'auth' && view !== 'reset-password') return;
 
         const winH = window.innerHeight || 0;
-        const scrH = (window.screen && window.screen.height) ? window.screen.height : 0;
-        let storedH = parseInt(sessionStorage.getItem('auth_locked_screen_h') || '0', 10);
-        if (!storedH || winH > storedH) {
-            storedH = Math.max(winH, scrH > 300 ? scrH : winH);
-            try { sessionStorage.setItem('auth_locked_screen_h', storedH); } catch (e) { }
+        const viewportH = window.visualViewport ? window.visualViewport.height : winH;
+        let storedH = parseInt(sessionStorage.getItem('auth_layout_h_v2') || '0', 10);
+        if (!storedH || viewportH > storedH) {
+            storedH = Math.max(winH, viewportH || 0);
+            try { sessionStorage.setItem('auth_layout_h_v2', storedH); } catch (e) { }
         }
         if (storedH > 0) {
             document.documentElement.style.setProperty('--auth-screen-h', storedH + 'px');
@@ -8593,7 +8602,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
     document.addEventListener('DOMContentLoaded', window.freezeAuthLayout);
     window.addEventListener('load', window.freezeAuthLayout);
     window.addEventListener('orientationchange', function () {
-        try { sessionStorage.removeItem('auth_locked_screen_h'); } catch (e) { }
+        try { sessionStorage.removeItem('auth_layout_h_v2'); } catch (e) { }
         setTimeout(window.freezeAuthLayout, 250);
     });
 
