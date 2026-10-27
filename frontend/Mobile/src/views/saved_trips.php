@@ -533,26 +533,35 @@ $backRoute = 'itinerary';
                 const addTrip = (t) => {
                     if (!t) return;
                     const id = String(t.id || t.local_id || t.trip_id || '');
+                    const updateId = t.update_id ? String(t.update_id) : '';
                     if (id) {
-                        if (seenIds.has(id)) {
-                            // If we already have this trip in combined, check if incoming one is newer
-                            const existingIdx = combined.findIndex(ex => String(ex.id || ex.local_id || ex.trip_id || '') === id);
-                            if (existingIdx !== -1) {
-                                const exTime = combined[existingIdx].updated_at ? new Date(combined[existingIdx].updated_at).getTime() : 0;
-                                const inTime = t.updated_at ? new Date(t.updated_at).getTime() : 0;
-                                if (inTime > exTime) {
-                                    combined[existingIdx] = { ...combined[existingIdx], ...t };
-                                }
+                        const existingIdx = combined.findIndex(ex => {
+                            if (!ex) return false;
+                            const exId = String(ex.id || ex.local_id || ex.trip_id || '');
+                            const exUpdateId = ex.update_id ? String(ex.update_id) : '';
+                            if (exId === id) return true;
+                            if (updateId && (exId === updateId || exUpdateId === updateId)) return true;
+                            if (exUpdateId && (exUpdateId === id)) return true;
+                            if (exId === ('offline_edit_' + id) || id === ('offline_edit_' + exId)) return true;
+                            return false;
+                        });
+
+                        if (existingIdx !== -1) {
+                            const exTime = combined[existingIdx].updated_at ? new Date(combined[existingIdx].updated_at).getTime() : 0;
+                            const inTime = t.updated_at ? new Date(t.updated_at).getTime() : 0;
+                            if (inTime > exTime) {
+                                combined[existingIdx] = { ...combined[existingIdx], ...t };
                             }
                             return;
                         }
                         seenIds.add(id);
+                        if (updateId) seenIds.add(updateId);
                         if (id.startsWith('offline_edit_')) seenIds.add(id.replace('offline_edit_', ''));
                     }
                     combined.push(t);
                 };
 
-                // A. Offline queued trips
+                // A. Offline queued trips (highest priority for offline edits)
                 if (window.OfflineTripManager && typeof window.OfflineTripManager.getQueuedTrips === 'function') {
                     try {
                         const queued = window.OfflineTripManager.getQueuedTrips();
@@ -592,7 +601,7 @@ $backRoute = 'itinerary';
                 });
             }
 
-            // Helper to merge fresh server trips with any pending offline-queued trips so offline trips NEVER disappear on wifi reconnect!
+            // Helper to merge fresh server trips with genuine pending offline-queued trips
             function mergeServerWithQueuedTrips(serverList) {
                 if (!Array.isArray(serverList)) return getLocalTripsCombined();
                 const list = [...serverList];
@@ -604,14 +613,26 @@ $backRoute = 'itinerary';
                     if (t.local_id != null) serverIds.add(String(t.local_id));
                 });
 
+                const queuedTrips = (window.OfflineTripManager && typeof window.OfflineTripManager.getQueuedTrips === 'function')
+                    ? window.OfflineTripManager.getQueuedTrips()
+                    : [];
+
                 const localTrips = getLocalTripsCombined();
                 localTrips.forEach(lTrip => {
                     if (!lTrip) return;
                     const lId = String(lTrip.id || lTrip.local_id || '');
                     const uId = String(lTrip.update_id || '');
 
-                    // If this was an offline edit of an existing server trip, override server trip in-place
-                    if (uId && serverIds.has(uId)) {
+                    // Check if this trip is genuinely waiting in the OfflineTripManager queue
+                    const isTrulyQueued = queuedTrips.some(q => {
+                        if (!q) return false;
+                        const qId = String(q.id || q.local_id || '');
+                        const qUpdateId = String(q.update_id || '');
+                        return (qId === lId || qUpdateId === lId || (uId && (qId === uId || qUpdateId === uId)) || qId === ('offline_edit_' + lId));
+                    });
+
+                    // If this was an offline edit of an existing server trip and is genuinely queued
+                    if (uId && serverIds.has(uId) && isTrulyQueued) {
                         const sIdx = list.findIndex(st => String(st.id) === uId || String(st.trip_id) === uId);
                         if (sIdx !== -1) {
                             list[sIdx] = { ...list[sIdx], ...lTrip, id: uId, is_offline_queued: true };
@@ -619,14 +640,15 @@ $backRoute = 'itinerary';
                         return;
                     }
 
-                    // If local trip has the same ID as a server trip and local trip is newer or was modified locally
+                    // If local trip has the same ID as a server trip:
                     if (lId && serverIds.has(lId)) {
                         const sIdx = list.findIndex(st => String(st.id) === lId || String(st.trip_id) === lId);
                         if (sIdx !== -1) {
                             const serverTrip = list[sIdx];
                             const localUpdatedAt = lTrip.updated_at ? new Date(lTrip.updated_at).getTime() : 0;
                             const serverUpdatedAt = serverTrip.updated_at ? new Date(serverTrip.updated_at).getTime() : 0;
-                            if (localUpdatedAt > serverUpdatedAt || lTrip.is_offline_queued) {
+                            // Only override server trip if local trip has genuine pending offline edits
+                            if (localUpdatedAt > serverUpdatedAt && isTrulyQueued) {
                                 list[sIdx] = {
                                     ...serverTrip,
                                     ...lTrip,
@@ -637,8 +659,8 @@ $backRoute = 'itinerary';
                         return;
                     }
 
-                    // If it's a new offline-created trip that hasn't synced to server yet, prepend to keep it visible!
-                    if (lId && !serverIds.has(lId)) {
+                    // If it's a new offline-created trip that is genuinely in the offline queue, prepend to keep it visible!
+                    if (lId && !serverIds.has(lId) && isTrulyQueued) {
                         serverIds.add(lId);
                         list.unshift(lTrip);
                     }
@@ -828,6 +850,7 @@ $backRoute = 'itinerary';
                             const fullMergedItins = mergeServerWithQueuedTrips(mergedItins);
                             try {
                                 localStorage.setItem('intan_elyu_offline_saved_trips_backup', JSON.stringify(fullMergedItins));
+                                localStorage.setItem('intan_elyu_saved_trips', JSON.stringify(fullMergedItins));
                             } catch (e) { }
                             return fullMergedItins;
                         } finally {
@@ -838,6 +861,10 @@ $backRoute = 'itinerary';
                         const mergedFinal = mergeServerWithQueuedTrips(itineraries);
                         if (mergedFinal && Array.isArray(mergedFinal)) {
                             window._cachedSavedTrips = mergedFinal;
+                            try {
+                                localStorage.setItem('intan_elyu_offline_saved_trips_backup', JSON.stringify(mergedFinal));
+                                localStorage.setItem('intan_elyu_saved_trips', JSON.stringify(mergedFinal));
+                            } catch (e) { }
                             if (!window._isStartingTrip) {
                                 renderSavedTrips(mergedFinal);
                             }

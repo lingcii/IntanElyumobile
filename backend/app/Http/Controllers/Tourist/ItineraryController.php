@@ -163,11 +163,11 @@ class ItineraryController extends Controller
         });
 
         return [
-            'id'             => $itinerary->id,
-            'title'          => $itinerary->title,
-            'trip_date'      => $itinerary->trip_date?->format('Y-m-d'),
-            'budget'         => $itinerary->budget,
-            'total_cost'     => $itinerary->total_cost,
+            'id'                => $itinerary->id,
+            'title'             => $itinerary->title,
+            'trip_date'         => $itinerary->trip_date?->format('Y-m-d'),
+            'budget'            => $itinerary->budget,
+            'total_cost'        => $itinerary->total_cost,
             'status'            => $itinerary->status,
             'route_type'        => $itinerary->route_type,
             'transport_mode'    => $itinerary->transport_mode,
@@ -175,6 +175,8 @@ class ItineraryController extends Controller
             'companion_males'   => (int) ($itinerary->companion_males ?? 0),
             'companion_females' => (int) ($itinerary->companion_females ?? 0),
             'total_pax'         => (int) ($itinerary->total_pax ?? 1),
+            'created_at'        => $itinerary->created_at?->toIso8601String(),
+            'updated_at'        => $itinerary->updated_at?->toIso8601String(),
             'items'             => $items,
         ];
     }
@@ -765,6 +767,7 @@ class ItineraryController extends Controller
         Cache::forget("profile:trips:{$user->id}");
         Cache::forget("profile:trips:v2:{$user->id}");
 
+        $itinerary->touch();
         $freshItinerary = $itinerary->fresh()->load([
             'items.destination:id,name,photo_url,latitude,longitude,entrance_fee,adult_fee,kids_fee,pwd_fee,senior_citizen_fee,environmental_fee,classification_status,accessible_by_private_vehicle,municipality_id',
             'items.destination.municipality:id,name'

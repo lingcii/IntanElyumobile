@@ -4772,70 +4772,30 @@ try {
                     try {
                         const tripId = String(tripObj.id || tripObj.local_id || '');
                         const nowIso = new Date().toISOString();
+                        const isQueued = Boolean(tripObj.is_offline_queued);
                         const enrichedTrip = {
                             ...tripObj,
-                            updated_at: tripObj.updated_at || nowIso
+                            id: tripId,
+                            updated_at: tripObj.updated_at || nowIso,
+                            is_offline_queued: isQueued
                         };
 
-                        // 1. intan_elyu_saved_trips
-                        let localSaved = JSON.parse(localStorage.getItem('intan_elyu_saved_trips') || '[]');
-                        if (!Array.isArray(localSaved)) localSaved = [];
-                        const exIdx = localSaved.findIndex(t => t && (String(t.id) === tripId || String(t.local_id) === tripId));
-                        if (exIdx >= 0) {
-                            localSaved[exIdx] = enrichedTrip;
+                        if (typeof window.syncTripToAllStorage === 'function') {
+                            window.syncTripToAllStorage(enrichedTrip, { clearQueuedFlag: !isQueued, matchTitle: true });
                         } else {
-                            localSaved.unshift(enrichedTrip);
-                        }
-                        localStorage.setItem('intan_elyu_saved_trips', JSON.stringify(localSaved));
-
-                        // 2. intan_elyu_offline_saved_trips_backup
-                        let backup = JSON.parse(localStorage.getItem('intan_elyu_offline_saved_trips_backup') || '[]');
-                        if (!Array.isArray(backup)) backup = [];
-                        const bkIdx = backup.findIndex(t => t && (String(t.id) === tripId || String(t.local_id) === tripId));
-                        if (bkIdx >= 0) {
-                            backup[bkIdx] = enrichedTrip;
-                        } else {
-                            backup.unshift(enrichedTrip);
-                        }
-                        localStorage.setItem('intan_elyu_offline_saved_trips_backup', JSON.stringify(backup));
-
-                        // 3. User token cache
-                        const curToken = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
-                        if (curToken) {
-                            const tKey = 'saved_trips_' + curToken.substring(0, 10);
-                            let tList = [];
-                            try {
-                                const raw = localStorage.getItem(tKey);
-                                if (raw) {
-                                    const parsed = JSON.parse(raw);
-                                    tList = Array.isArray(parsed) ? parsed : (parsed.data || parsed.itineraries || []);
-                                }
-                            } catch (e) { }
-                            if (!Array.isArray(tList)) tList = [];
-                            const tIdx = tList.findIndex(t => t && (String(t.id) === tripId || String(t.local_id) === tripId));
-                            if (tIdx >= 0) {
-                                tList[tIdx] = enrichedTrip;
-                            } else {
-                                tList.unshift(enrichedTrip);
-                            }
-                            try {
-                                localStorage.setItem(tKey, JSON.stringify({ data: tList, itineraries: tList, timestamp: Date.now() }));
-                            } catch (e) { }
+                            // Direct fallback if main.js helper is not loaded
+                            ['intan_elyu_saved_trips', 'intan_elyu_offline_saved_trips_backup'].forEach(k => {
+                                let list = JSON.parse(localStorage.getItem(k) || '[]');
+                                if (!Array.isArray(list)) list = [];
+                                const idx = list.findIndex(t => t && (String(t.id) === tripId || String(t.local_id) === tripId || (editingId && String(t.id) === String(editingId))));
+                                if (idx >= 0) list[idx] = enrichedTrip;
+                                else list.unshift(enrichedTrip);
+                                localStorage.setItem(k, JSON.stringify(list));
+                            });
                         }
 
-                        // 4. Invalidate signature & update in-memory cache
-                        window._lastRenderedTripsSig = null;
-                        if (Array.isArray(window._cachedSavedTrips)) {
-                            const cIdx = window._cachedSavedTrips.findIndex(t => t && (String(t.id) === tripId || String(t.local_id) === tripId));
-                            if (cIdx >= 0) {
-                                window._cachedSavedTrips[cIdx] = enrichedTrip;
-                            } else {
-                                window._cachedSavedTrips.unshift(enrichedTrip);
-                            }
-                        }
-
-                        // 5. Clean up any queued offline update or stale copy in OfflineTripManager
-                        if (window.OfflineTripManager && typeof window.OfflineTripManager.removeQueuedTrip === 'function') {
+                        // Clean up any queued offline update in OfflineTripManager if saving online
+                        if (!isQueued && window.OfflineTripManager && typeof window.OfflineTripManager.removeQueuedTrip === 'function') {
                             if (editingId) {
                                 window.OfflineTripManager.removeQueuedTrip('offline_edit_' + editingId);
                                 window.OfflineTripManager.removeQueuedTrip(editingId);

@@ -1141,6 +1141,140 @@ window.syncAllOfflineTripData = async function (btnEl = null) {
 };
 
 // ══════════════════════════════════════════════════════════════════════════
+// UNIFIED LOCAL STORAGE TRIP SYNCHRONIZER
+// ══════════════════════════════════════════════════════════════════════════
+window.syncTripToAllStorage = function (tripObj, options = {}) {
+    if (!tripObj) return;
+    try {
+        const tripId = String(tripObj.id || tripObj.local_id || tripObj.trip_id || '');
+        if (!tripId) return;
+
+        const updateId = tripObj.update_id ? String(tripObj.update_id) : null;
+        const nowIso = new Date().toISOString();
+        const clearQueued = Boolean(options.clearQueuedFlag);
+
+        const enriched = {
+            ...tripObj,
+            id: tripId,
+            updated_at: tripObj.updated_at || nowIso,
+            is_offline_queued: clearQueued ? false : Boolean(tripObj.is_offline_queued)
+        };
+        if (clearQueued) {
+            delete enriched.is_offline_update;
+        }
+
+        const isMatch = (item) => {
+            if (!item) return false;
+            const itemId = String(item.id || item.local_id || item.trip_id || '');
+            if (itemId === tripId) return true;
+            if (updateId && (itemId === updateId || String(item.update_id) === updateId)) return true;
+            if (itemId === ('offline_edit_' + tripId) || tripId === ('offline_edit_' + itemId)) return true;
+            if (updateId && (itemId === ('offline_edit_' + updateId) || String(item.update_id) === ('offline_edit_' + updateId))) return true;
+            if (options.matchTitle && item.title && enriched.title && item.title.trim().toLowerCase() === enriched.title.trim().toLowerCase()) {
+                return true;
+            }
+            return false;
+        };
+
+        const updateArray = (arr) => {
+            if (!Array.isArray(arr)) arr = [];
+            const idx = arr.findIndex(isMatch);
+            if (idx >= 0) {
+                arr[idx] = { ...arr[idx], ...enriched };
+            } else {
+                arr.unshift(enriched);
+            }
+            return arr;
+        };
+
+        // 1. intan_elyu_saved_trips
+        try {
+            const raw = localStorage.getItem('intan_elyu_saved_trips');
+            const parsed = raw ? JSON.parse(raw) : [];
+            localStorage.setItem('intan_elyu_saved_trips', JSON.stringify(updateArray(parsed)));
+        } catch(e) {}
+
+        // 2. intan_elyu_offline_saved_trips_backup
+        try {
+            const raw = localStorage.getItem('intan_elyu_offline_saved_trips_backup');
+            const parsed = raw ? JSON.parse(raw) : [];
+            localStorage.setItem('intan_elyu_offline_saved_trips_backup', JSON.stringify(updateArray(parsed)));
+        } catch(e) {}
+
+        // 3. Token-specific cache
+        const curToken = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+        if (curToken) {
+            const tKey = 'saved_trips_' + curToken.substring(0, 10);
+            try {
+                const raw = localStorage.getItem(tKey);
+                let list = [];
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    list = Array.isArray(parsed) ? parsed : (parsed.data || parsed.itineraries || []);
+                }
+                const updatedList = updateArray(list);
+                localStorage.setItem(tKey, JSON.stringify({ data: updatedList, itineraries: updatedList, timestamp: Date.now() }));
+            } catch(e) {}
+        }
+
+        // 4. In-memory cache
+        if (Array.isArray(window._cachedSavedTrips)) {
+            const cIdx = window._cachedSavedTrips.findIndex(isMatch);
+            if (cIdx >= 0) {
+                window._cachedSavedTrips[cIdx] = { ...window._cachedSavedTrips[cIdx], ...enriched };
+            } else {
+                window._cachedSavedTrips.unshift(enriched);
+            }
+        }
+
+        // 5. Invalidate signature
+        window._lastRenderedTripsSig = null;
+
+        // 6. If clearQueued was requested, also prune from OfflineTripManager queue
+        if (clearQueued && window.OfflineTripManager && typeof window.OfflineTripManager.removeQueuedTrip === 'function') {
+            window.OfflineTripManager.removeQueuedTrip(tripId);
+            if (updateId) window.OfflineTripManager.removeQueuedTrip(updateId);
+            window.OfflineTripManager.removeQueuedTrip('offline_edit_' + tripId);
+            if (updateId) window.OfflineTripManager.removeQueuedTrip('offline_edit_' + updateId);
+        }
+    } catch (err) {
+        console.warn("syncTripToAllStorage error:", err);
+    }
+};
+
+window.sanitizeLocalTripQueues = function () {
+    try {
+        const queuedTrips = (window.OfflineTripManager && typeof window.OfflineTripManager.getQueuedTrips === 'function')
+            ? window.OfflineTripManager.getQueuedTrips()
+            : [];
+        const queuedIdSet = new Set(queuedTrips.map(q => String(q.id || q.local_id || q.update_id || '')));
+
+        ['intan_elyu_saved_trips', 'intan_elyu_offline_saved_trips_backup'].forEach(k => {
+            const raw = localStorage.getItem(k);
+            if (raw) {
+                const list = JSON.parse(raw);
+                if (Array.isArray(list)) {
+                    let changed = false;
+                    const cleaned = list.map(t => {
+                        if (!t) return t;
+                        const tId = String(t.id || t.local_id || '');
+                        if (t.is_offline_queued && !queuedIdSet.has(tId) && !queuedIdSet.has(String(t.update_id || ''))) {
+                            changed = true;
+                            return { ...t, is_offline_queued: false };
+                        }
+                        return t;
+                    });
+                    if (changed) {
+                        localStorage.setItem(k, JSON.stringify(cleaned));
+                    }
+                }
+            }
+        });
+    } catch(e) {}
+};
+try { window.sanitizeLocalTripQueues(); } catch(e) {}
+
+// ══════════════════════════════════════════════════════════════════════════
 // OFFLINE PLANNING STRATEGY: OFFLINE TRIP & ITINERARY MANAGER
 // ══════════════════════════════════════════════════════════════════════════
 window.OfflineTripManager = {
@@ -1159,23 +1293,11 @@ window.OfflineTripManager = {
         try {
             const trips = this.getQueuedTrips();
             const updateId = tripData.update_id ? String(tripData.update_id) : null;
-
-            // Prevent duplicate queued trips with identical title and destinations
-            const destStr = JSON.stringify(tripData.destinations || []);
-            const existingDuplicate = trips.findIndex(t => t && t.title === tripData.title && JSON.stringify(t.destinations || []) === destStr);
-            if (existingDuplicate !== -1 && !updateId) {
-                trips[existingDuplicate] = {
-                    ...trips[existingDuplicate],
-                    ...tripData,
-                    updated_at: new Date().toISOString()
-                };
-                localStorage.setItem(this.STORAGE_KEY, JSON.stringify(trips));
-                return trips[existingDuplicate];
-            }
+            const nowIso = new Date().toISOString();
 
             // 1. If updating an already-queued offline trip (e.g. offline_1729...)
             if (updateId && updateId.startsWith('offline_')) {
-                const existingIdx = trips.findIndex(t => t.id === updateId || t.local_id === updateId);
+                const existingIdx = trips.findIndex(t => t && (String(t.id) === updateId || String(t.local_id) === updateId || String(t.update_id) === updateId));
                 if (existingIdx !== -1) {
                     trips[existingIdx] = {
                         ...trips[existingIdx],
@@ -1183,10 +1305,13 @@ window.OfflineTripManager = {
                         id: updateId,
                         local_id: updateId,
                         is_offline_queued: true,
-                        updated_at: new Date().toISOString()
+                        updated_at: nowIso
                     };
                     localStorage.setItem(this.STORAGE_KEY, JSON.stringify(trips));
                     window.dispatchEvent(new CustomEvent('offlineTripQueued', { detail: trips[existingIdx] }));
+                    if (typeof window.syncTripToAllStorage === 'function') {
+                        window.syncTripToAllStorage(trips[existingIdx], { clearQueuedFlag: false });
+                    }
                     return trips[existingIdx];
                 }
             }
@@ -1194,7 +1319,7 @@ window.OfflineTripManager = {
             // 2. If editing an existing server-synced trip while offline
             if (updateId && !updateId.startsWith('offline_')) {
                 const editTempId = 'offline_edit_' + updateId;
-                const existingEditIdx = trips.findIndex(t => t.id === editTempId || String(t.update_id) === updateId);
+                const existingEditIdx = trips.findIndex(t => t && (String(t.id) === editTempId || String(t.local_id) === editTempId || String(t.update_id) === updateId));
                 const updatedTrip = {
                     ...tripData,
                     id: editTempId,
@@ -1202,7 +1327,7 @@ window.OfflineTripManager = {
                     update_id: updateId,
                     is_offline_queued: true,
                     is_offline_update: true,
-                    updated_at: new Date().toISOString()
+                    updated_at: nowIso
                 };
 
                 if (existingEditIdx !== -1) {
@@ -1212,21 +1337,51 @@ window.OfflineTripManager = {
                 }
                 localStorage.setItem(this.STORAGE_KEY, JSON.stringify(trips));
                 window.dispatchEvent(new CustomEvent('offlineTripQueued', { detail: updatedTrip }));
+                if (typeof window.syncTripToAllStorage === 'function') {
+                    window.syncTripToAllStorage(updatedTrip, { clearQueuedFlag: false });
+                }
                 return updatedTrip;
             }
 
-            // 3. Brand new offline trip
+            // 3. If there is already an offline-queued trip with the SAME TITLE, replace that queued trip with new data
+            const titleNorm = String(tripData.title || '').trim().toLowerCase();
+            if (titleNorm && !updateId) {
+                const existingSameTitleIdx = trips.findIndex(t => t && t.title && t.title.trim().toLowerCase() === titleNorm);
+                if (existingSameTitleIdx !== -1) {
+                    const existingId = trips[existingSameTitleIdx].id || trips[existingSameTitleIdx].local_id;
+                    trips[existingSameTitleIdx] = {
+                        ...trips[existingSameTitleIdx],
+                        ...tripData,
+                        id: existingId,
+                        local_id: existingId,
+                        is_offline_queued: true,
+                        updated_at: nowIso
+                    };
+                    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(trips));
+                    window.dispatchEvent(new CustomEvent('offlineTripQueued', { detail: trips[existingSameTitleIdx] }));
+                    if (typeof window.syncTripToAllStorage === 'function') {
+                        window.syncTripToAllStorage(trips[existingSameTitleIdx], { clearQueuedFlag: false });
+                    }
+                    return trips[existingSameTitleIdx];
+                }
+            }
+
+            // 4. Brand new offline trip
             const tempId = 'offline_' + Date.now();
             const newTrip = {
                 ...tripData,
                 id: tempId,
                 local_id: tempId,
                 is_offline_queued: true,
-                created_at: new Date().toISOString()
+                created_at: nowIso,
+                updated_at: nowIso
             };
             trips.unshift(newTrip);
             localStorage.setItem(this.STORAGE_KEY, JSON.stringify(trips));
             window.dispatchEvent(new CustomEvent('offlineTripQueued', { detail: newTrip }));
+            if (typeof window.syncTripToAllStorage === 'function') {
+                window.syncTripToAllStorage(newTrip, { clearQueuedFlag: false });
+            }
             return newTrip;
         } catch (e) {
             console.error('Failed to queue offline trip:', e);
@@ -1320,7 +1475,14 @@ window.OfflineTripManager = {
                 });
                 if (timeoutId) clearTimeout(timeoutId);
                 if (res.ok) {
+                    const serverData = await res.json().catch(() => ({}));
+                    const syncedItin = serverData.itinerary || { ...trip, is_offline_queued: false, updated_at: new Date().toISOString() };
                     this.removeQueuedTrip(trip.id);
+                    if (trip.update_id) this.removeQueuedTrip(trip.update_id);
+                    this.removeQueuedTrip('offline_edit_' + trip.id);
+                    if (typeof window.syncTripToAllStorage === 'function') {
+                        window.syncTripToAllStorage(syncedItin, { clearQueuedFlag: true });
+                    }
                     synced = true;
                     break;
                 }
@@ -1330,10 +1492,6 @@ window.OfflineTripManager = {
         }
 
         if (synced) {
-            const tokenKey = token.substring(0, 10);
-            localStorage.removeItem('saved_trips_' + tokenKey);
-            localStorage.removeItem('dashboard_trips_' + tokenKey);
-            localStorage.removeItem('dashboard_saved_trips_' + tokenKey);
             if (typeof window._cachedSavedTrips !== 'undefined') {
                 window._cachedSavedTrips = null;
             }
@@ -1452,7 +1610,14 @@ window.OfflineTripManager = {
                             });
                             if (timeoutId) clearTimeout(timeoutId);
                             if (res.ok) {
+                                const serverData = await res.json().catch(() => ({}));
+                                const syncedItin = serverData.itinerary || { ...trip, is_offline_queued: false, updated_at: new Date().toISOString() };
                                 this.removeQueuedTrip(trip.id);
+                                if (trip.update_id) this.removeQueuedTrip(trip.update_id);
+                                this.removeQueuedTrip('offline_edit_' + trip.id);
+                                if (typeof window.syncTripToAllStorage === 'function') {
+                                    window.syncTripToAllStorage(syncedItin, { clearQueuedFlag: true });
+                                }
                                 syncedCount++;
                                 tripSuccess = true;
                                 break;
@@ -1467,10 +1632,6 @@ window.OfflineTripManager = {
             }
 
             if (syncedCount > 0) {
-                const tokenKey = token.substring(0, 10);
-                localStorage.removeItem('saved_trips_' + tokenKey);
-                localStorage.removeItem('dashboard_trips_' + tokenKey);
-                localStorage.removeItem('dashboard_saved_trips_' + tokenKey);
                 if (typeof window._cachedSavedTrips !== 'undefined') {
                     window._cachedSavedTrips = null;
                 }
