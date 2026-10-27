@@ -31,7 +31,7 @@ try {
 
 <div class="itinerary-container has-header has-bottom-nav animate-slide-up">
 
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; gap:8px;"
+    <div style="display:flex; justify-content:flex-end; align-items:center; margin-bottom:16px; gap:8px;"
         class="stagger-1">
             <span
                 style="background:#f1f5f9 !important; border: none !important; outline: none !important; color:#1e3a8a !important; height: 32px; padding: 0 14px; border-radius:20px; font-size:12px; font-weight:800; display:flex; align-items:center; box-sizing: border-box; box-shadow: none !important;">
