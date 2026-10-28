@@ -494,13 +494,25 @@ class PointsController extends Controller
                 });
             }
 
-            // Merge both collections so no user vouchers are dropped
+            // Merge both collections so no user vouchers are dropped. When the same
+            // code exists in both tables, a redeemed status from either row wins.
             $merged = collect($voucherRedemptions);
             $seenCodes = $voucherRedemptions->pluck('voucher_code')->filter()->map(fn($c) => strtoupper(trim($c)))->all();
 
             foreach ($pointRedemptions as $pr) {
                 $code = strtoupper(trim($pr->voucher_code ?? ''));
                 if ($code && in_array($code, $seenCodes)) {
+                    $pointStatus = strtolower($pr->status ?? '');
+                    if (in_array($pointStatus, ['redeemed', 'used', 'completed'])) {
+                        $matchingVoucher = $merged->first(function ($voucher) use ($code) {
+                            return strtoupper(trim($voucher->voucher_code ?? '')) === $code;
+                        });
+                        if ($matchingVoucher) {
+                            $matchingVoucher->status = 'redeemed';
+                            $matchingVoucher->redeemed_at = $matchingVoucher->redeemed_at
+                                ?? ($pr->updated_at ? $pr->updated_at->toIso8601String() : null);
+                        }
+                    }
                     continue;
                 }
                 $type = $pr->type ?? 'Voucher';
@@ -536,4 +548,3 @@ class PointsController extends Controller
         }
     }
 }
-

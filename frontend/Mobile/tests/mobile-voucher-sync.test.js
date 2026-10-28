@@ -54,10 +54,20 @@ assert.equal(
 );
 assert.match(profileSource, /window\.getFullImageUrl\(v\.image \|\| 'logo\/LUPTO\.png'\)/,
     'profile reward cards must use the shared image URL resolver');
-assert.match(profileSource, /window\.openFullDealsModal[\s\S]*?modal\.style\.display = 'flex';\s*fetchProfileVoucherCatalog\(\);/,
-    'View All Deals must refresh the complete live voucher catalog when opened');
+assert.match(profileSource, /onclick="navigateTo\('discount'\)"[\s\S]*?View All Deals/,
+    'View All Deals must open the complete Discounts & Vouchers page');
 assert.match(profileSource, /window\.renderFullDealsList = function \(deals\)[\s\S]*?deals\.forEach\(/,
     'View All Deals must render every voucher passed to it without a three-item limit');
+assert.doesNotMatch(profileSource, /const topVouchers = availableVouchers\.slice\(0, 3\)/,
+    'profile rewards must show every latest available voucher');
+assert.match(profileSource, />My Vouchers<\/h5>/,
+    'profile claimed voucher section must be labelled My Vouchers');
+assert.match(source, /localRedemption\.status = 'redeemed';[\s\S]*?fetchUserPointsAndRedemptions\(\);/,
+    'a live merchant redemption must immediately update and refresh the mobile voucher list');
+assert.match(source, /public\/redemptions\/\$\{encodeURIComponent\(code\)\}\/status`, \{\s*cache: 'no-store'/,
+    'discount QR status polling must never reuse a stale claimed response');
+assert.match(profileSource, /public\/redemptions\/\$\{encodeURIComponent\(code\)\}\/status`, \{\s*cache: 'no-store'/,
+    'profile QR status polling must never reuse a stale claimed response');
 assert.doesNotMatch(profileSource, /Array\.isArray\(vouchersPayload\.data\) && vouchersPayload\.data\.length > 0/,
     'an empty live catalog must be allowed to replace stale cached deals');
 assert.match(source, /return imageUrl\(v\.image\.trim\(\)\)/,

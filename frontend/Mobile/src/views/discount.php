@@ -872,6 +872,7 @@ async function fetchUserPointsAndRedemptions() {
     try {
         const baseUrl = getDiscountBaseUrl();
         const res = await fetch(baseUrl + '/api/tourist/points/balance', {
+            cache: 'no-store',
             headers: {
                 'Accept': 'application/json',
                 'ngrok-skip-browser-warning': 'true',
@@ -1141,6 +1142,7 @@ function startLiveRedemptionSync(code) {
         try {
             const baseUrl = getDiscountBaseUrl();
             const res = await fetch(`${baseUrl}/api/public/redemptions/${encodeURIComponent(code)}/status`, {
+                cache: 'no-store',
                 headers: { 'Accept': 'application/json', 'ngrok-skip-browser-warning': 'true' }
             });
             if (res.ok) {
@@ -1157,6 +1159,22 @@ function startLiveRedemptionSync(code) {
                         window.confetti({ particleCount: 50, spread: 60, origin: { y: 0.6 } });
                     }
                     stopLiveRedemptionSync();
+
+                    // Move the voucher out of Active immediately, then reconcile
+                    // against the authenticated balance endpoint in the background.
+                    const normalizedCode = String(code).toUpperCase().trim();
+                    const localRedemption = (window._touristRedemptions || []).find(r => {
+                        return String(r.voucher_code || r.code || '').toUpperCase().trim() === normalizedCode;
+                    });
+                    if (localRedemption) {
+                        localRedemption.status = 'redeemed';
+                        localRedemption.redeemed_at = data.redeemed_at || new Date().toISOString();
+                    }
+                    syncClaimedVouchersWithData();
+                    updateClaimedBadge();
+                    populateStatusDropdown();
+                    renderDiscounts();
+                    fetchUserPointsAndRedemptions();
                 }
             }
         } catch(e) {}

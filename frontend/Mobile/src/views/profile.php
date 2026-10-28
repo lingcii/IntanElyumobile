@@ -179,7 +179,7 @@ $activeTab = 'profile';
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
                 <h5 style="margin: 0; font-size: 14.5px; font-weight: 800; color: #0f172a; text-align: left;">Redeem
                     Rewards</h5>
-                <button type="button" onclick="window.openFullDealsModal()"
+                <button type="button" onclick="navigateTo('discount')"
                     style="background: #eff6ff !important; border: 1px solid #bfdbfe !important; outline: none !important; color: #1e3a8a !important; font-size: 11px; font-weight: 800; cursor: pointer; padding: 4px 12px; border-radius: 100px; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s ease;"
                     onpointerdown="this.style.transform='scale(0.95)'" onpointerup="this.style.transform='scale(1)'">
                     View All Deals <i class="fa-solid fa-chevron-right" style="font-size: 9px; color: #1e3a8a;"></i>
@@ -188,13 +188,12 @@ $activeTab = 'profile';
             <div id="profile-rewards-catalog"
                 style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;"></div>
 
-            <!-- Divider Line Above Active Vouchers -->
+            <!-- Divider Line Above My Vouchers -->
             <div style="height: 1px; background: #e2e8f0; margin-bottom: 20px;"></div>
 
-            <!-- Active Claimed Vouchers -->
+            <!-- Claimed Vouchers -->
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 6px; flex-wrap: wrap;">
-                <h5 style="margin: 0; font-size: 14.5px; font-weight: 800; color: #0f172a; text-align: left;">Active
-                    Vouchers</h5>
+                <h5 style="margin: 0; font-size: 14.5px; font-weight: 800; color: #0f172a; text-align: left;">My Vouchers</h5>
                 <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
                     <span id="active-vouchers-count" onclick="window.openFullVouchersModal('all')"
                         style="font-size: 11px; font-weight: 800; background: #eff6ff !important; border: 1px solid #bfdbfe !important; color: #1e3a8a !important; padding: 3px 10px; border-radius: 100px; cursor: pointer; user-select: none;">0
@@ -748,7 +747,7 @@ $activeTab = 'profile';
         });
 
         window._profileAvailableVouchers = availableVouchers;
-        window._profileVouchersList = availableVouchers.slice(0, 3);
+        window._profileVouchersList = availableVouchers;
 
         if (availableVouchers.length === 0) {
             catalogEl.innerHTML = `
@@ -758,7 +757,7 @@ $activeTab = 'profile';
             return;
         }
 
-        const topVouchers = availableVouchers.slice(0, 3);
+        const topVouchers = availableVouchers;
         catalogEl.innerHTML = topVouchers.map((v, idx) => {
             const ptsCost = parseInt(v.pointsCost || v.required_points || 100);
             return `
@@ -1024,6 +1023,7 @@ $activeTab = 'profile';
             ptsCacheKey,
             async () => {
                 const r = await fetch(backendUrl + '/api/tourist/points/balance', {
+                    cache: 'no-store',
                     headers: {
                         'Accept': 'application/json',
                         'ngrok-skip-browser-warning': 'true',
@@ -2172,6 +2172,7 @@ $activeTab = 'profile';
             try {
                 const baseUrl = getProfileBackendUrl();
                 const res = await fetch(`${baseUrl}/api/public/redemptions/${encodeURIComponent(code)}/status`, {
+                    cache: 'no-store',
                     headers: { 'Accept': 'application/json', 'ngrok-skip-browser-warning': 'true' }
                 });
                 if (res.ok) {
@@ -2201,7 +2202,7 @@ $activeTab = 'profile';
                         }
                         stopActiveQrSync();
                         // Refresh vouchers cache on profile page
-                        fetchPointsAndVouchers();
+                        fetchPointsAndVouchers(true);
                     }
                 }
             } catch (e) { }

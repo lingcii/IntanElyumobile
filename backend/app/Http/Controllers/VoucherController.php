@@ -450,7 +450,8 @@ class VoucherController extends Controller
     {
         try {
             $user = $request->user();
-            $record = null;
+            $voucherRecord = null;
+            $pointRecord = null;
 
             if (\Illuminate\Support\Facades\Schema::hasTable('voucher_redemptions')) {
                 $query = \Illuminate\Support\Facades\DB::table('voucher_redemptions')
@@ -463,26 +464,33 @@ class VoucherController extends Controller
                     $query->where('user_id', $user->id);
                 }
 
-                $record = $query->first();
+                $voucherRecord = $query->first();
             }
 
-            if (!$record && \Illuminate\Support\Facades\Schema::hasTable('point_redemptions')) {
+            if (\Illuminate\Support\Facades\Schema::hasTable('point_redemptions')) {
                 $query = \Illuminate\Support\Facades\DB::table('point_redemptions')
                     ->where('voucher_code', $code);
                 if ($user) {
                     $query->where('user_id', $user->id);
                 }
-                $record = $query->first();
+                $pointRecord = $query->first();
             }
 
-            if (!$record) {
+            if (!$voucherRecord && !$pointRecord) {
                 return response()->json([
                     'status' => 'not_found',
                     'message' => 'Redemption record not found.'
                 ], 404);
             }
 
-            $isRedeemed = in_array(strtolower($record->status ?? ''), ['redeemed', 'used', 'completed']);
+            // A claim may exist in both tables. Merchant tools do not always update
+            // both rows, so a redeemed state from either source must win.
+            $redeemedStatuses = ['redeemed', 'used', 'completed'];
+            $voucherIsRedeemed = $voucherRecord && in_array(strtolower($voucherRecord->status ?? ''), $redeemedStatuses);
+            $pointIsRedeemed = $pointRecord && in_array(strtolower($pointRecord->status ?? ''), $redeemedStatuses);
+            $isRedeemed = $voucherIsRedeemed || $pointIsRedeemed;
+            $record = $voucherRecord ?: $pointRecord;
+            $redeemedRecord = $voucherIsRedeemed ? $voucherRecord : ($pointIsRedeemed ? $pointRecord : $record);
             $partnerName = 'Official Partner Merchant';
             if (!empty($record->redeemed_by_partner_id)) {
                 $partner = \Illuminate\Support\Facades\DB::table('partner_establishments')->where('id', $record->redeemed_by_partner_id)->first();
@@ -500,10 +508,10 @@ class VoucherController extends Controller
                 'status'               => 'success',
                 'redemption_status'    => $isRedeemed ? 'redeemed' : 'claimed',
                 'is_redeemed'          => $isRedeemed,
-                'redeemed_at'          => $record->redeemed_at ?? null,
+                'redeemed_at'          => $redeemedRecord->redeemed_at ?? ($redeemedRecord->updated_at ?? null),
                 'redeemed_by_partner'  => $partnerName,
                 'code'                 => $code
-            ]);
+            ])->header('Cache-Control', 'no-store, no-cache, must-revalidate');
         } catch (\Throwable $e) {
             return response()->json([
                 'status' => 'error',
