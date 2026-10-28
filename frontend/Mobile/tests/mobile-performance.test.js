@@ -21,8 +21,8 @@ assert.doesNotMatch(main, /setTimeout\(updateContent,\s*200\)/, 'navigation must
 assert.match(main, /if \(html && !isNetworkOffline\)[\s\S]*fetchViewPartial\(targetView, extraParams\)/,
     'cached screens must render while their template revalidates in the background');
 assert.match(main, /window\._viewFetches\.has\(fetchUrl\)/, 'identical view requests must be deduplicated');
-assert.match(main, /elyu_view_cache_v6_/, 'SPA templates must use the current cache generation');
-assert.match(main, /k\.startsWith\('elyu_view_cache_v5_'\)/, 'stale executable view templates must be invalidated');
+assert.match(main, /elyu_view_cache_v10_/, 'SPA templates must use the current cache generation');
+assert.match(main, /k\.startsWith\('elyu_view_cache_v9_'\)/, 'stale executable view templates must be invalidated');
 assert.match(main, /window\.isExpectedAbortError/, 'expected request cancellation must be recognized');
 assert.match(main, /if \(window\.isExpectedAbortError\(err\)\) return;/,
     'expected request cancellation must not be logged as a fetch failure');

@@ -351,21 +351,17 @@
             </div>
 
             <!-- Panel 4: Email OTP Verification -->
-            <div class="form-panel otp-form" id="panel-otp" style="padding: 0 10px;">
-                <a href="#" class="back-link" onclick="hideOtpPanel(event)"
-                    style="display: inline-flex; align-items: center; gap: 6px; color: rgba(255,255,255,0.7); text-decoration: none; font-size: 13px; font-weight: 600; margin-bottom: 16px; transition: color 0.2s;">
+            <div class="form-panel otp-form" id="panel-otp">
+                <a href="#" class="back-link otp-back-link" onclick="hideOtpPanel(event)">
                     <i class="fa-solid fa-arrow-left"></i> Back
                 </a>
 
-                <div style="text-align: center; margin-bottom: 16px;">
-                    <div
-                        style="width: 54px; height: 54px; border-radius: 16px; background: rgba(56,189,248,0.15); border: 1px solid rgba(56,189,248,0.3); display: flex; align-items: center; justify-content: center; color: #38bdf8; font-size: 22px; margin: 0 auto 10px auto;">
+                <div class="otp-panel-header">
+                    <div class="otp-panel-icon">
                         <i class="fa-solid fa-envelope-circle-check"></i>
                     </div>
-                    <h3 style="margin: 0 0 4px 0; color: white; font-size: 20px; font-weight: 800;">Verify Your Email
-                    </h3>
-                    <p style="color: rgba(255,255,255,0.7); font-size: 13px; margin: 0;">We sent a 6-digit code to
-                        <br><strong id="otp-target-email" style="color: #38bdf8; font-family: monospace;"></strong></p>
+                    <h3>Enter Verification Code</h3>
+                    <p>We sent a secure 6-digit code to<br><strong id="otp-target-email"></strong></p>
                 </div>
 
                 <form id="form-otp" onsubmit="handleVerifyOtp(event)">
@@ -391,8 +387,8 @@
                             onpaste="handleOtpPaste(event)">
                     </div>
 
-                    <button type="submit" id="btn-otp" class="btn-circle-submit" style="margin-top: 10px;">
-                        <i class="fa-solid fa-check"></i>
+                    <button type="submit" id="btn-otp" class="btn-circle-submit otp-submit-btn" data-label="Verify Code">
+                        <i class="fa-solid fa-arrow-right"></i>
                     </button>
                 </form>
             </div>
@@ -420,6 +416,26 @@
         </div>
         <h2 class="success-modal-title" id="login-modal-title">Logging in...</h2>
         <p class="success-modal-sub" id="login-success-user-name">Authenticating your account</p>
+    </div>
+</div>
+
+<!-- Registration email verification result modals -->
+<div id="otp-success-modal" class="auth-result-overlay" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="otp-success-title">
+    <div class="auth-result-card auth-result-card--success">
+        <div class="auth-result-icon"><i class="fa-solid fa-check"></i></div>
+        <h2 id="otp-success-title">Email Verified!</h2>
+        <p>Your account was created successfully. Taking you to your dashboard...</p>
+        <div class="auth-result-progress"><span></span></div>
+    </div>
+</div>
+
+<div id="otp-invalid-modal" class="auth-result-overlay" style="display:none;" role="alertdialog" aria-modal="true" aria-labelledby="otp-invalid-title">
+    <div class="auth-result-card auth-result-card--invalid">
+        <button type="button" class="auth-result-close" onclick="closeOtpInvalidModal()" aria-label="Close invalid code message"><i class="fa-solid fa-xmark"></i></button>
+        <div class="auth-result-icon"><i class="fa-solid fa-shield-halved"></i></div>
+        <h2 id="otp-invalid-title">Invalid Code</h2>
+        <p id="otp-invalid-message">The verification code is incorrect or expired. Please check your email and try again.</p>
+        <button type="button" class="auth-result-action" onclick="closeOtpInvalidModal()">Try Again</button>
     </div>
 </div>
 
@@ -1117,7 +1133,7 @@
                 'Welcome to Elyu': 'Explore places. Create memories.<br>Discover La Union.',
                 'Start your Journey': 'Create your account and explore<br>the beauty of La Union.',
                 'Account Recovery': 'Recover your account securely.',
-                'Verify Your Email': 'Enter the verification code sent to you.'
+                'Verify Your Email': 'Check your inbox and enter the 6-digit code below.'
             };
             titleEl.innerHTML = highlightedTitles[newText] || newText;
             if (subtitleEl) subtitleEl.innerHTML = subtitles[newText] || '';
@@ -1588,6 +1604,14 @@
         }
     };
 
+    window.isCompleteRegistrationEmail = function (email) {
+        const completeEmailPattern = /^[^\s@]+@[^\s@.]+(?:\.[^\s@.]+)*\.[A-Za-z]{2,63}$/;
+        const normalizedEmail = String(email || '').trim().toLowerCase();
+        if (!completeEmailPattern.test(normalizedEmail)) return false;
+        const domain = normalizedEmail.split('@')[1];
+        return !domain.startsWith('gmail.') || domain === 'gmail.com';
+    };
+
     window.validateRegisterFormInline = function () {
         const emailEl = document.getElementById('reg-email');
         const emailIcon = document.getElementById('reg-email-status-icon');
@@ -1603,8 +1627,7 @@
                 if (emailIcon) emailIcon.className = 'fa-solid field-status-icon';
                 if (emailHint) { emailHint.innerHTML = ''; emailHint.style.display = 'none'; }
             } else {
-                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                if (emailRegex.test(val)) {
+                if (window.isCompleteRegistrationEmail(val)) {
                     if (emailIcon) emailIcon.className = 'fa-solid fa-circle-check field-status-icon valid';
                     if (emailHint) { emailHint.innerHTML = ''; emailHint.style.display = 'none'; }
                 } else {
@@ -1701,8 +1724,7 @@
             return;
         }
 
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
+        if (!window.isCompleteRegistrationEmail(email)) {
             const emailHint = document.getElementById('reg-email-hint');
             if (emailHint) {
                 emailHint.style.display = 'block';
@@ -1983,12 +2005,10 @@
             modal.style.display = 'flex';
             setTimeout(() => { modal.classList.add('active'); }, 10);
         }
-        if (titleEl) titleEl.textContent = 'Registering your account...';
-        if (subEl) subEl.textContent = 'Please wait while we create your tourist profile';
+        if (titleEl) titleEl.textContent = 'Sending your code...';
+        if (subEl) subEl.textContent = "We're emailing your secure 6-digit verification code.";
         if (spinnerSvg) spinnerSvg.style.display = 'block';
         if (checkmarkIcon) checkmarkIcon.style.display = 'none';
-
-        const startTime = Date.now();
 
         try {
             const response = await fetch(backendUrl + '/api/auth/register', {
@@ -2019,74 +2039,18 @@
                 throw new Error(errMsg);
             }
 
-            // Guarantee spinner stays visible for at least 5 seconds
-            const elapsedTime = Date.now() - startTime;
-            const minSpinnerTime = 5000;
-            if (elapsedTime < minSpinnerTime) {
-                await new Promise(r => setTimeout(r, minSpinnerTime - elapsedTime));
+            if (!data.requires_otp) throw new Error('The server did not start email verification. Please try again.');
+
+            if (modal) {
+                modal.classList.remove('active');
+                setTimeout(() => { modal.style.display = 'none'; }, 250);
             }
-
-            // Animate checkmark success in modal
-            if (titleEl) titleEl.textContent = 'Account Created Successfully!';
-            if (subEl) subEl.textContent = 'Please log in with your credentials...';
-            if (spinnerSvg) spinnerSvg.style.display = 'none';
-            if (checkmarkIcon) checkmarkIcon.style.display = 'block';
-
-            setTimeout(() => {
-                if (modal) {
-                    modal.classList.remove('active');
-                    setTimeout(() => { modal.style.display = 'none'; }, 300);
-                }
-
-                // Ensure user is not auto-logged in, requiring manual login first
-                try {
-                    localStorage.removeItem('intan_elyu_token');
-                    localStorage.removeItem('auth_user');
-                    localStorage.removeItem('intan_elyu_claimed_vouchers');
-                    localStorage.removeItem('intan_elyu_cached_vouchers');
-                } catch (e) { }
-
-                sessionStorage.setItem('show_onboarding', '1');
-                sessionStorage.setItem('pending_reg_email', data.email || email);
-
-                // Reset registration form inputs & validation hints
-                const regForm = document.getElementById('form-register');
-                if (regForm) regForm.reset();
-                const regEmailStatusIcon = document.getElementById('reg-email-status-icon');
-                if (regEmailStatusIcon) regEmailStatusIcon.className = 'fa-solid field-status-icon';
-                const regPwdStatusIcon = document.getElementById('reg-password-status-icon');
-                if (regPwdStatusIcon) regPwdStatusIcon.className = 'fa-solid field-status-icon password-offset';
-                const regEmailHint = document.getElementById('reg-email-hint');
-                if (regEmailHint) regEmailHint.style.display = 'none';
-                const regPwdHint = document.getElementById('reg-password-hint');
-                if (regPwdHint) regPwdHint.style.display = 'none';
-
-                if (btn) {
-                    btn.innerHTML = '<i class="fa-solid fa-arrow-right"></i>';
-                    btn.disabled = false;
-                }
-                window._isRegistering = false;
-
-                // Switch back to Login view
-                if (typeof toggleAuthMode === 'function') {
-                    toggleAuthMode(false);
-                }
-
-                // Pre-fill email in Login Credentials
-                const loginEmailEl = document.getElementById('login-email');
-                if (loginEmailEl && email) {
-                    loginEmailEl.value = email;
-                }
-                const loginPwdEl = document.getElementById('login-password');
-                if (loginPwdEl) {
-                    loginPwdEl.value = '';
-                    setTimeout(() => { loginPwdEl.focus(); }, 350);
-                }
-
-                if (typeof showToast === 'function') {
-                    showToast('Account created successfully! Please log in to your account.', 'success', 5000);
-                }
-            }, 1800);
+            if (btn) {
+                btn.innerHTML = '<i class="fa-solid fa-arrow-right"></i>';
+                btn.disabled = false;
+            }
+            window._isRegistering = false;
+            window.showRegistrationOtpPanel(data.email || email);
 
         } catch (error) {
             console.error('Register Error:', error);
@@ -2114,13 +2078,53 @@
         }
     };
 
+    window.showRegistrationOtpPanel = function (email) {
+        const wrapper = document.getElementById('forms-wrapper');
+        const tabs = document.getElementById('auth-tabs');
+        const target = document.getElementById('otp-target-email');
+        const authContainer = document.querySelector('.auth-container');
+        const keyboardDismiss = document.getElementById('auth-keyboard-dismiss');
+        if (!wrapper || !target) return;
+
+        const resetOtpViewport = function () {
+            document.body.classList.remove('keyboard-open', 'auth-keyboard-visible');
+            document.documentElement.classList.remove('keyboard-open');
+            document.documentElement.style.setProperty('--auth-keyboard-height', '0px');
+            if (keyboardDismiss) keyboardDismiss.hidden = true;
+            if (authContainer) authContainer.scrollTop = 0;
+            window.scrollTo(0, 0);
+        };
+
+        target.textContent = email;
+        sessionStorage.setItem('pending_reg_email', email);
+        wrapper.classList.remove('show-register', 'show-forgot');
+        wrapper.classList.add('show-otp');
+        if (tabs) tabs.style.display = 'none';
+        document.activeElement?.blur();
+        if (authContainer) {
+            authContainer.classList.add('mode-otp');
+        }
+        resetOtpViewport();
+        window.requestAnimationFrame(resetOtpViewport);
+        window.setTimeout(resetOtpViewport, 320);
+        document.querySelectorAll('.otp-box').forEach((box) => { box.value = ''; });
+        updateTitleWithTransition('Verify Your Email');
+    };
+
     window.hideOtpPanel = function (e) {
         if (e) e.preventDefault();
-        tabsContainer.style.display = 'flex';
+        const tabsContainer = document.getElementById('auth-tabs');
+        const wrapper = document.getElementById('forms-wrapper');
+        const tabLogin = document.getElementById('tab-login');
+        const tabRegister = document.getElementById('tab-register');
+        const authContainer = document.querySelector('.auth-container');
+        if (tabsContainer) tabsContainer.style.display = 'flex';
+        if (!wrapper) return;
         wrapper.classList.remove('show-forgot', 'show-otp');
         wrapper.classList.add('show-register');
-        tabLogin.classList.remove('active');
-        tabRegister.classList.add('active');
+        if (tabLogin) tabLogin.classList.remove('active');
+        if (tabRegister) tabRegister.classList.add('active');
+        if (authContainer) authContainer.classList.remove('mode-otp');
         updateTitleWithTransition('Start your Journey');
     };
 
@@ -2268,21 +2272,60 @@
                 window.seedUserVouchersAndPoints(data.token, data.user, data.vouchers);
             }
 
-            showLoginSuccessModal(data.user);
+            window.showOtpSuccessModal(data.user);
         } catch (error) {
             console.error('OTP Verification Error:', error);
             let errText = error.message || 'Invalid verification code';
-            if (!navigator.onLine || window.isAppOnline === false ||
+            const networkError = !navigator.onLine || window.isAppOnline === false ||
                 errText.toLowerCase().includes('failed to fetch') ||
                 errText.toLowerCase().includes('networkerror') ||
                 errText.toLowerCase().includes('load failed') ||
-                errText.toLowerCase().includes('typeerror')) {
+                errText.toLowerCase().includes('typeerror');
+            if (networkError) {
                 errText = 'Internet connection is required to verify your account. Please connect to the internet and try again.';
+                if (typeof showToast === 'function') showToast(errText, 'warning', 5000);
+            } else {
+                window.showOtpInvalidModal(errText);
             }
-            if (typeof showToast === 'function') showToast(errText, 'warning', 5000);
             btn.innerHTML = oldHtml;
             btn.disabled = false;
         }
+    };
+
+    window.showOtpInvalidModal = function (message) {
+        const modal = document.getElementById('otp-invalid-modal');
+        const messageEl = document.getElementById('otp-invalid-message');
+        if (messageEl) messageEl.textContent = message || 'The verification code is incorrect or expired. Please try again.';
+        if (!modal) return;
+        modal.style.display = 'flex';
+        requestAnimationFrame(() => modal.classList.add('active'));
+    };
+
+    window.closeOtpInvalidModal = function () {
+        const modal = document.getElementById('otp-invalid-modal');
+        if (!modal) return;
+        modal.classList.remove('active');
+        setTimeout(() => {
+            modal.style.display = 'none';
+            const boxes = document.querySelectorAll('.otp-box');
+            boxes.forEach((box) => { box.value = ''; });
+            boxes[0]?.focus();
+        }, 220);
+    };
+
+    window.showOtpSuccessModal = function (user) {
+        const modal = document.getElementById('otp-success-modal');
+        if (modal) {
+            modal.style.display = 'flex';
+            requestAnimationFrame(() => modal.classList.add('active'));
+        }
+        const regForm = document.getElementById('form-register');
+        if (regForm) regForm.reset();
+        sessionStorage.removeItem('pending_reg_email');
+        setTimeout(() => {
+            if (typeof navigateTo === 'function') navigateTo('dashboard');
+            else window.location.href = '?view=dashboard';
+        }, 1800);
     };
 
     var fpTimerInterval = null;

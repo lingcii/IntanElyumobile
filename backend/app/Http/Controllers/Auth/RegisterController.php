@@ -3,11 +3,13 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Mail\EmailVerificationOtpMail;
 use App\Mail\TouristWelcomeMail;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
@@ -34,11 +36,12 @@ class RegisterController extends Controller
             'last_name'  => 'nullable|string|min:2|max:50',
             'name'       => 'nullable|string|min:4|max:100',
             'gender'     => 'required|string|in:Male,Female',
-            'email'      => 'required|email|unique:users,email',
+            'email'      => ['required', 'email', 'regex:/^[^\s@]+@[^\s@.]+(?:\.[^\s@.]+)*\.[A-Za-z]{2,63}$/', 'unique:users,email'],
             'password'   => 'required|string|min:8|confirmed',
         ], [
             'gender.required' => 'Gender is required for official tourist registration.',
             'gender.in'       => 'Please select Male or Female.',
+            'email.regex'     => 'Please enter a complete email address, such as name@example.com.',
         ]);
 
         $firstName = trim($request->first_name ?? '');
@@ -68,6 +71,13 @@ class RegisterController extends Controller
             ], 422);
         }
 
+        if (str_starts_with($domain, 'gmail.') && $domain !== 'gmail.com') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gmail addresses must end with @gmail.com.'
+            ], 422);
+        }
+
         // 3. Password strength check
         if (!preg_match('/[A-Za-z]/', $request->password) || !preg_match('/[0-9]/', $request->password)) {
             return response()->json([
@@ -78,49 +88,33 @@ class RegisterController extends Controller
 
         $emailKey = strtolower(trim($request->email));
 
-        // Create active user account directly
-        $token = Str::random(60);
-        $now = now();
-        $user = User::create([
-            'name'       => $trimmedName,
-            'email'      => $emailKey,
-            'password'   => Hash::make($request->password),
-            'gender'     => $request->gender,
-            'role'       => 'tourist',
-            'status'     => 'active',
-            'api_token'  => $token,
-            'created_at' => $now,
-            'updated_at' => $now,
-        ]);
+        $otp = (string) random_int(100000, 999999);
+        $cacheKey = "pending_reg_{$emailKey}";
+        Cache::put($cacheKey, [
+            'name'     => $trimmedName,
+            'email'    => $emailKey,
+            'password' => Hash::make($request->password),
+            'gender'   => $request->gender,
+            'otp'      => $otp,
+        ], now()->addMinutes(10));
 
-        // Send Welcome Mail
         try {
-            Mail::to($user->email)->send(new TouristWelcomeMail($user));
-        } catch (\Throwable $e) {}
+            Mail::to($emailKey)->send(new EmailVerificationOtpMail($trimmedName, $otp));
+        } catch (\Throwable $e) {
+            Cache::forget($cacheKey);
+            Log::error('Registration OTP email failed', ['email' => $emailKey, 'error' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'We could not send the verification email. Please try again.'
+            ], 500);
+        }
 
         return response()->json([
             'success' => true,
-            'token'   => $token,
-            'user'    => [
-                'id'             => $user->id,
-                'tourist_number' => method_exists($user, 'getTouristNumber') ? $user->getTouristNumber() : 1,
-                'tourist_id'     => method_exists($user, 'getTouristNumber') ? $user->getTouristNumber() : 1,
-                'name'           => $user->name,
-                'email'          => $user->email,
-                'gender'         => $user->gender,
-                'role'           => $user->role,
-                'points'         => 0,
-                'xp'             => 0,
-                'level'          => 1,
-                'completed_activities' => 0,
-                'places_visited' => 0,
-                'avatar'         => null,
-                'created_at'     => $user->created_at ? $user->created_at->toIso8601String() : $now->toIso8601String(),
-                'created_at_formatted' => $user->created_at ? $user->created_at->format('M d, Y h:i A') : $now->format('M d, Y h:i A'),
-                'date_created'   => $user->created_at ? $user->created_at->format('M d, Y h:i A') : $now->format('M d, Y h:i A'),
-            ],
-            'message' => 'Account created successfully! Welcome to Intan Elyu!',
-        ], 201);
+            'requires_otp' => true,
+            'email' => $emailKey,
+            'message' => 'A 6-digit verification code was sent to your email.',
+        ], 202);
     }
 
     /**
@@ -167,6 +161,7 @@ class RegisterController extends Controller
             'name'       => $pending['name'],
             'email'      => $pending['email'],
             'password'   => $pending['password'],
+            'gender'     => $pending['gender'] ?? null,
             'role'       => 'tourist',
             'status'     => 'active',
             'api_token'  => $token,

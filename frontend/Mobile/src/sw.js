@@ -1,4 +1,4 @@
-const CACHE_NAME = 'Intan_Elyu_cache-v30-onboarding';
+const CACHE_NAME = 'Intan_Elyu_cache-v35-auth-otp-layout';
 const ASSETS = [
     './',
     './index.php',

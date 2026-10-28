@@ -82,6 +82,10 @@ try {
             k.startsWith('elyu_view_cache_v3_') ||
             k.startsWith('elyu_view_cache_v4_') ||
             k.startsWith('elyu_view_cache_v5_') ||
+            k.startsWith('elyu_view_cache_v6_') ||
+            k.startsWith('elyu_view_cache_v7_') ||
+            k.startsWith('elyu_view_cache_v8_') ||
+            k.startsWith('elyu_view_cache_v9_') ||
             k.startsWith('leaderboard_data_v15_') || 
             k.startsWith('leaderboard_data_v16_') || 
             k.startsWith('leaderboard_data_v17_')
@@ -5658,12 +5662,12 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
 
         if (!html) {
             try {
-                const cached = localStorage.getItem('elyu_view_cache_v6_' + targetView);
+                const cached = localStorage.getItem('elyu_view_cache_v10_' + targetView);
                 if (isValidViewPartial(cached)) {
                     html = cached;
                     window._viewHtmlCache[targetView] = html;
                 } else if (cached) {
-                    localStorage.removeItem('elyu_view_cache_v6_' + targetView);
+                    localStorage.removeItem('elyu_view_cache_v10_' + targetView);
                 }
             } catch (e) {}
         }
@@ -5674,7 +5678,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
             fetchViewPartial(targetView, extraParams).then((freshHtml) => {
                 if (!isValidViewPartial(freshHtml)) return;
                 window._viewHtmlCache[targetView] = freshHtml;
-                try { localStorage.setItem('elyu_view_cache_v6_' + targetView, freshHtml); } catch (e) { }
+                try { localStorage.setItem('elyu_view_cache_v10_' + targetView, freshHtml); } catch (e) { }
                 window.dispatchEvent(new CustomEvent('viewCacheUpdated', { detail: { view: targetView } }));
             }).catch((fetchErr) => {
                 if (!window.isExpectedAbortError(fetchErr)) {
@@ -5687,7 +5691,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                 if (isValidViewPartial(freshHtml)) {
                     html = freshHtml;
                     window._viewHtmlCache[targetView] = html;
-                    try { localStorage.setItem('elyu_view_cache_v6_' + targetView, html); } catch(e) {}
+                    try { localStorage.setItem('elyu_view_cache_v10_' + targetView, html); } catch(e) {}
                 }
             } catch (fetchErr) {
                 if (!window.isExpectedAbortError(fetchErr)) {
@@ -6847,7 +6851,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
         window.initGoogleOAuthHandler();
 
         // Auto-invalidate stale caches from previous builds
-        const CACHE_VER = 'v1.0.7_itinerary_pill_layout';
+        const CACHE_VER = 'v1.0.8_auth_otp_layout';
         if (localStorage.getItem('intan_elyu_cache_ver') !== CACHE_VER) {
             Object.keys(localStorage).forEach(k => {
                 if (k.startsWith('dashboard_') || k.startsWith('trending_') || k.startsWith('map_') || k.startsWith('spots_') || k.startsWith('destinations_') || k.includes('cache')) {
@@ -8763,11 +8767,11 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
 
         for (const v of viewsToPrewarm.filter(view => view !== state.currentView)) {
             try {
-                if (!window._viewHtmlCache[v] && !localStorage.getItem('elyu_view_cache_v6_' + v)) {
+                if (!window._viewHtmlCache[v] && !localStorage.getItem('elyu_view_cache_v10_' + v)) {
                     const text = await fetchViewPartial(v, new URLSearchParams());
                     if (text && text.length > 50) {
                         window._viewHtmlCache[v] = text;
-                        try { localStorage.setItem('elyu_view_cache_v6_' + v, text); } catch (e) { }
+                        try { localStorage.setItem('elyu_view_cache_v10_' + v, text); } catch (e) { }
                     }
                 }
             } catch (e) { }
