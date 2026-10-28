@@ -390,6 +390,13 @@
                     <button type="submit" id="btn-otp" class="btn-circle-submit otp-submit-btn" data-label="Verify Code">
                         <i class="fa-solid fa-arrow-right"></i>
                     </button>
+
+                    <div class="registration-otp-resend">
+                        <span>Didn't receive the email?</span>
+                        <button type="button" id="registration-otp-resend-btn"
+                            onclick="handleResendRegistrationOtp(event)">Resend Code</button>
+                        <span id="registration-otp-resend-countdown" hidden></span>
+                    </div>
                 </form>
             </div>
 
@@ -2108,7 +2115,75 @@
         window.requestAnimationFrame(resetOtpViewport);
         window.setTimeout(resetOtpViewport, 320);
         document.querySelectorAll('.otp-box').forEach((box) => { box.value = ''; });
+        startRegistrationOtpResendCooldown(45);
         updateTitleWithTransition('Verify Your Email');
+    };
+
+    let registrationOtpResendTimer = null;
+
+    function startRegistrationOtpResendCooldown(seconds) {
+        const button = document.getElementById('registration-otp-resend-btn');
+        const countdown = document.getElementById('registration-otp-resend-countdown');
+        if (!button || !countdown) return;
+
+        if (registrationOtpResendTimer) clearInterval(registrationOtpResendTimer);
+        let remaining = Math.max(0, Number(seconds) || 0);
+
+        const render = () => {
+            button.hidden = remaining > 0;
+            countdown.hidden = remaining <= 0;
+            countdown.textContent = remaining > 0 ? `Resend in ${remaining}s` : '';
+        };
+
+        render();
+        if (remaining <= 0) return;
+
+        registrationOtpResendTimer = setInterval(() => {
+            remaining -= 1;
+            render();
+            if (remaining <= 0) {
+                clearInterval(registrationOtpResendTimer);
+                registrationOtpResendTimer = null;
+            }
+        }, 1000);
+    }
+
+    window.handleResendRegistrationOtp = async function (event) {
+        if (event) event.preventDefault();
+        const email = (document.getElementById('otp-target-email')?.textContent || '').trim();
+        const button = document.getElementById('registration-otp-resend-btn');
+        if (!email || !button || button.disabled) return;
+
+        const oldText = button.textContent;
+        button.disabled = true;
+        button.textContent = 'Sending...';
+
+        try {
+            const response = await fetch(backendUrl + '/api/auth/register/resend-otp', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                body: JSON.stringify({ email: email })
+            });
+            const data = await response.json();
+
+            if (!response.ok) {
+                if (response.status === 429) {
+                    startRegistrationOtpResendCooldown(data.retry_after || 45);
+                }
+                throw new Error(data.message || 'Unable to resend the verification code.');
+            }
+
+            document.querySelectorAll('.otp-box').forEach((box) => { box.value = ''; });
+            startRegistrationOtpResendCooldown(45);
+            if (typeof showToast === 'function') showToast(data.message, 'success', 3500);
+        } catch (error) {
+            if (typeof showToast === 'function') {
+                showToast(error.message || 'Unable to resend the verification code.', 'warning', 4500);
+            }
+        } finally {
+            button.disabled = false;
+            button.textContent = oldText;
+        }
     };
 
     window.hideOtpPanel = function (e) {

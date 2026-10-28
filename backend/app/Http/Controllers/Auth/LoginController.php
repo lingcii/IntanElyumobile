@@ -430,8 +430,8 @@ class LoginController extends Controller
                         'host'       => 'smtp.gmail.com',
                         'port'       => 587,
                         'encryption' => 'tls',
-                        'username'   => 'acekillersmile@gmail.com',
-                        'password'   => 'egnrijvxdqdanlwc',
+                        'username'   => config('mail.mailers.smtp.username'),
+                        'password'   => config('mail.mailers.smtp.password'),
                         'timeout'    => 20,
                     ]);
                     $altMailer->to($user->email)->send($mailable);
@@ -466,7 +466,7 @@ class LoginController extends Controller
      */
     public function testEmail(Request $request): JsonResponse
     {
-        $to = $request->query('to', 'acekillersmile@gmail.com');
+        $to = $request->query('to', config('mail.from.address'));
         $results = [];
 
         // Test 1: Resend HTTPS API (Port 443)
@@ -489,13 +489,13 @@ class LoginController extends Controller
                 'host'       => 'smtp.gmail.com',
                 'port'       => 465,
                 'encryption' => 'ssl',
-                'username'   => 'acekillersmile@gmail.com',
-                'password'   => 'egnrijvxdqdanlwc',
+                'username'   => config('mail.mailers.smtp.username'),
+                'password'   => config('mail.mailers.smtp.password'),
                 'timeout'    => 10,
             ]);
             $mailer465->raw("Live test email via Port 465 SSL sent at " . now(), function ($m) use ($to) {
                 $m->to($to)->subject('🧪 Intan Elyu SMTP Test (Port 465 SSL)');
-                $m->from('acekillersmile@gmail.com', 'Intan-Elyu Customer Support');
+                $m->from(config('mail.from.address'), config('mail.from.name'));
             });
             $results['smtp_port_465_ssl'] = 'SUCCESS: Email delivered to ' . $to;
         } catch (\Throwable $e) {
@@ -509,13 +509,13 @@ class LoginController extends Controller
                 'host'       => 'smtp.gmail.com',
                 'port'       => 587,
                 'encryption' => 'tls',
-                'username'   => 'acekillersmile@gmail.com',
-                'password'   => 'egnrijvxdqdanlwc',
+                'username'   => config('mail.mailers.smtp.username'),
+                'password'   => config('mail.mailers.smtp.password'),
                 'timeout'    => 15,
             ]);
             $mailer587->raw("This is a live test email from Intan Elyu (Port 587 TLS) sent at " . now(), function ($m) use ($to) {
                 $m->to($to)->subject('🧪 Intan Elyu SMTP Test (Port 587 TLS)');
-                $m->from('acekillersmile@gmail.com', 'Intan-Elyu Customer Support');
+                $m->from(config('mail.from.address'), config('mail.from.name'));
             });
             $results['port_587_tls'] = 'SUCCESS: Email delivered to ' . $to;
         } catch (\Throwable $e) {

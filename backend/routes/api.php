@@ -179,6 +179,7 @@ Route::prefix('auth')->group(function () {
     Route::middleware('auth.throttle:5,60')->group(function () {
         Route::post('/login', [LoginController::class, 'login']);
         Route::post('/register', [RegisterController::class, 'register']);
+        Route::post('/register/resend-otp', [RegisterController::class, 'resendOtp']);
         Route::post('/verify-otp', [RegisterController::class, 'verifyOtp']);
     });
 
@@ -1641,7 +1642,6 @@ Route::get('/lupto/tourists', $touristsHandler);
 Route::get('/picto/tourists', $touristsHandler);
 Route::get('/pitco/tourists', $touristsHandler);
 Route::get('/municipal/tourists', $touristsHandler);
-
 
 
 

@@ -20,7 +20,7 @@ class EmailVerificationOtpMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: "🔒 {$this->otp} is your Intan Elyu Verification Code",
+            subject: "{$this->otp} is your Intan Elyu verification code",
         );
     }
 

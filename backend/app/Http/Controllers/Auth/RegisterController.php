@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Mail\EmailVerificationOtpMail;
 use App\Mail\TouristWelcomeMail;
 use App\Models\User;
+use App\Services\ResendMailService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -99,7 +100,7 @@ class RegisterController extends Controller
         ], now()->addMinutes(10));
 
         try {
-            Mail::to($emailKey)->send(new EmailVerificationOtpMail($trimmedName, $otp));
+            $this->sendRegistrationOtpEmail($emailKey, $trimmedName, $otp);
         } catch (\Throwable $e) {
             Cache::forget($cacheKey);
             Log::error('Registration OTP email failed', ['email' => $emailKey, 'error' => $e->getMessage()]);
@@ -114,6 +115,60 @@ class RegisterController extends Controller
             'requires_otp' => true,
             'email' => $emailKey,
             'message' => 'A 6-digit verification code was sent to your email.',
+        ], 202);
+    }
+
+    /**
+     * POST /api/auth/register/resend-otp
+     * Sends a fresh code for an existing pending registration.
+     */
+    public function resendOtp(Request $request): JsonResponse
+    {
+        $request->validate([
+            'email' => 'required|email',
+        ]);
+
+        $emailKey = strtolower(trim($request->email));
+        $cacheKey = "pending_reg_{$emailKey}";
+        $pending = Cache::get($cacheKey);
+
+        if (!$pending) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Your registration session expired. Please register again.',
+            ], 400);
+        }
+
+        $cooldownKey = "pending_reg_resend_cooldown_{$emailKey}";
+        if (!Cache::add($cooldownKey, true, now()->addSeconds(45))) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Please wait before requesting another code.',
+                'retry_after' => 45,
+            ], 429);
+        }
+
+        $previousPending = $pending;
+        $otp = (string) random_int(100000, 999999);
+        $pending['otp'] = $otp;
+        Cache::put($cacheKey, $pending, now()->addMinutes(10));
+
+        try {
+            $this->sendRegistrationOtpEmail($emailKey, $pending['name'], $otp);
+        } catch (\Throwable $e) {
+            Cache::put($cacheKey, $previousPending, now()->addMinutes(10));
+            Cache::forget($cooldownKey);
+            Log::error('Registration OTP resend failed', ['email' => $emailKey, 'error' => $e->getMessage()]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'We could not resend the verification email. Please try again.',
+            ], 500);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'A new verification code was sent to your email.',
         ], 202);
     }
 
@@ -171,10 +226,14 @@ class RegisterController extends Controller
 
         \Illuminate\Support\Facades\Cache::forget("pending_reg_{$emailKey}");
 
-        // Send Welcome Mail
-        try {
-            Mail::to($user->email)->send(new TouristWelcomeMail($user));
-        } catch (\Throwable $e) {}
+        // Send the non-critical welcome email after the verification response.
+        app()->terminating(function () use ($user): void {
+            try {
+                Mail::to($user->email)->send(new TouristWelcomeMail($user));
+            } catch (\Throwable $e) {
+                Log::warning('Tourist welcome email failed', ['user_id' => $user->id, 'error' => $e->getMessage()]);
+            }
+        });
 
         // Create Welcome in-app notification in notifications table
         try {
@@ -213,5 +272,43 @@ class RegisterController extends Controller
                 'date_created'   => $user->created_at ? $user->created_at->format('M d, Y h:i A') : $now->format('M d, Y h:i A'),
             ],
         ], 201);
+    }
+
+    private function sendRegistrationOtpEmail(string $email, string $name, string $otp): void
+    {
+        $startedAt = microtime(true);
+        $mailable = new EmailVerificationOtpMail($name, $otp);
+
+        if (config('services.resend.key')) {
+            try {
+                $result = ResendMailService::send(
+                    $email,
+                    "{$otp} is your Intan Elyu verification code",
+                    $mailable->render()
+                );
+
+                if ($result['success']) {
+                    Log::info('Registration OTP email dispatched', [
+                        'mailer' => 'resend',
+                        'duration_ms' => (int) round((microtime(true) - $startedAt) * 1000),
+                    ]);
+                    return;
+                }
+
+                Log::warning('Resend OTP delivery failed; falling back to default mailer', [
+                    'error' => $result['error'],
+                ]);
+            } catch (\Throwable $e) {
+                Log::warning('Resend OTP delivery exception; falling back to default mailer', [
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
+        Mail::to($email)->send($mailable);
+        Log::info('Registration OTP email dispatched', [
+            'mailer' => config('mail.default'),
+            'duration_ms' => (int) round((microtime(true) - $startedAt) * 1000),
+        ]);
     }
 }

@@ -25,9 +25,9 @@ return [
             'host' => env('MAIL_HOST', 'smtp.gmail.com'),
             'port' => (int) env('MAIL_PORT', 465),
             'encryption' => env('MAIL_ENCRYPTION', 'ssl'),
-            'username' => (env('MAIL_USERNAME') && trim(env('MAIL_USERNAME')) !== '') ? trim(env('MAIL_USERNAME')) : 'acekillersmile@gmail.com',
-            'password' => (env('MAIL_PASSWORD') && trim(env('MAIL_PASSWORD')) !== '') ? trim(env('MAIL_PASSWORD')) : 'egnrijvxdqdanlwc',
-            'timeout' => 30,
+            'username' => env('MAIL_USERNAME'),
+            'password' => env('MAIL_PASSWORD'),
+            'timeout' => (int) env('MAIL_TIMEOUT', 10),
             'local_domain' => env('MAIL_EHLO_DOMAIN', parse_url((string) env('APP_URL', 'http://localhost'), PHP_URL_HOST)),
         ],
 
@@ -45,7 +45,7 @@ return [
 
         'resend' => [
             'transport' => 'resend',
-            'key' => env('RESEND_API_KEY') ?: base64_decode('cmVfN3p1VFVlRkRfRnJ4RFVtUlg5TVhoYUpLemVUeUNVQURT'),
+            'key' => env('RESEND_API_KEY'),
         ],
 
         'sendmail' => [

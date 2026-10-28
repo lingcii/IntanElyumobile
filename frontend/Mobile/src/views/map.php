@@ -1080,14 +1080,37 @@ if (is_dir($imgDir)) {
         window.mapMarkers = [];
 
         const getAppBackendUrl = () => (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
+        const mapCacheKey = 'public_map_data';
+        let latestMapData = null;
+        const normalizeMapDestinations = (destinations) => (Array.isArray(destinations) ? destinations : [])
+            .filter(destination => !destination.status || !['pending', 'draft', 'rejected'].includes(String(destination.status).toLowerCase()));
+        const getMapDataSignature = (destinations) => JSON.stringify(
+            normalizeMapDestinations(destinations)
+                .slice()
+                .sort((a, b) => String(a.id ?? '').localeCompare(String(b.id ?? ''), undefined, { numeric: true }))
+        );
+        const fetchPublicMapData = async () => {
+            const response = await fetch(`${getAppBackendUrl()}/api/public/map?_t=${Date.now()}`, {
+                cache: 'no-store',
+                headers: { 'Accept': 'application/json', 'Cache-Control': 'no-cache' }
+            });
+            if (!response.ok) throw new Error(`Map request failed (${response.status})`);
+            const data = await response.json();
+            if (!data || !Array.isArray(data.destinations)) throw new Error('Map response is invalid');
+            data.destinations = normalizeMapDestinations(data.destinations);
+            return data;
+        };
+        const storeMapData = (data) => {
+            try { localStorage.setItem(mapCacheKey, JSON.stringify({ data, timestamp: Date.now() })); } catch (e) { }
+        };
 
         window.initMap = async function () {
             const mapEl = document.getElementById('tourist-map');
             if (!mapEl) return;
+            let mapReady = false;
 
             // Fetch data immediately (Cache + SWR in parallel with MapLibre initialization)
             const _backendBase = getAppBackendUrl();
-            const mapCacheKey = 'public_map_data';
             let cachedMapData = null;
             try {
                 const cachedRaw = localStorage.getItem(mapCacheKey);
@@ -1105,52 +1128,51 @@ if (is_dir($imgDir)) {
                 try {
                     const fallbackSpotsRaw = localStorage.getItem('intan_elyu_cached_spots_map');
                     if (fallbackSpotsRaw) {
-                        const fallbackList = JSON.parse(fallbackSpotsRaw);
+                        const fallbackCache = JSON.parse(fallbackSpotsRaw);
+                        const fallbackList = Array.isArray(fallbackCache)
+                            ? fallbackCache
+                            : (fallbackCache?.data?.destinations || fallbackCache?.data?.spots || fallbackCache?.destinations || fallbackCache?.spots || []);
                         if (Array.isArray(fallbackList) && fallbackList.length > 0) {
-                            cachedMapData = { destinations: fallbackList };
+                            cachedMapData = { destinations: normalizeMapDestinations(fallbackList) };
                         }
                     }
                 } catch (e) { }
             }
 
+            latestMapData = cachedMapData;
+            const applyFreshMapData = (fresh, previousData) => {
+                latestMapData = fresh;
+                storeMapData(fresh);
+                if (getMapDataSignature(previousData?.destinations) === getMapDataSignature(fresh.destinations)) return;
+                if (!mapEl.isConnected || document.body.getAttribute('data-view') !== 'map') return;
+                if (!window.mapInstance || !mapReady) return;
+
+                const prevCatEl = document.querySelector('.category-pill.active');
+                const prevCat = prevCatEl ? prevCatEl.innerText : 'All';
+                window.allMapLocations = fresh.destinations;
+                if (typeof setupFilters === 'function') setupFilters();
+                const newCatEl = Array.from(document.querySelectorAll('.category-pill')).find(el => el.innerText === prevCat);
+                if (typeof window.filterCategory === 'function') {
+                    window.filterCategory(prevCat, newCatEl || document.querySelector('.category-pill'));
+                } else {
+                    window.currentFilteredLocations = fresh.destinations;
+                    if (typeof window.updateVisibleMarkers === 'function') window.updateVisibleMarkers();
+                }
+            };
+
             const mapDataPromise = (async () => {
                 if (cachedMapData && cachedMapData.destinations && cachedMapData.destinations.length > 0) {
                     if (navigator.onLine) {
-                        setTimeout(() => {
-                            fetch(_backendBase + '/api/public/map', { headers: { 'Accept': 'application/json' } })
-                                .then(r => r.json())
-                                .then(fresh => {
-                                    if (fresh && fresh.destinations) {
-                                        fresh.destinations = (fresh.destinations || []).filter(d => !d.status || !['pending', 'draft', 'rejected'].includes(d.status.toLowerCase()));
-                                        try { localStorage.setItem(mapCacheKey, JSON.stringify({ data: fresh, timestamp: Date.now() })); } catch (e) { }
-                                        const oldIds = (cachedMapData.destinations || []).map(d => Number(d.id)).sort((a, b) => a - b).join(',');
-                                        const freshIds = (fresh.destinations || []).map(d => Number(d.id)).sort((a, b) => a - b).join(',');
-                                        if (oldIds !== freshIds || (cachedMapData.destinations || []).length !== fresh.destinations.length) {
-                                            window.allMapLocations = fresh.destinations;
-                                            const prevCatEl = document.querySelector('.category-pill.active');
-                                            const prevCat = prevCatEl ? prevCatEl.innerText : 'All';
-                                            if (typeof setupFilters === 'function') setupFilters();
-                                            const newCatEl = Array.from(document.querySelectorAll('.category-pill')).find(el => el.innerText === prevCat);
-                                            if (typeof window.filterCategory === 'function') {
-                                                window.filterCategory(prevCat, newCatEl || document.querySelector('.category-pill'));
-                                            } else {
-                                                window.currentFilteredLocations = fresh.destinations;
-                                                if (typeof window.updateVisibleMarkers === 'function') window.updateVisibleMarkers();
-                                            }
-                                        }
-                                    }
-                                }).catch(() => { });
-                        }, 800);
+                        fetchPublicMapData()
+                            .then(fresh => applyFreshMapData(fresh, cachedMapData))
+                            .catch(() => { });
                     }
                     return cachedMapData;
                 }
                 try {
-                    const res = await fetch(_backendBase + '/api/public/map', { headers: { 'Accept': 'application/json' } });
-                    const fresh = await res.json();
-                    if (fresh && fresh.destinations) {
-                        fresh.destinations = (fresh.destinations || []).filter(d => !d.status || !['pending', 'draft', 'rejected'].includes(d.status.toLowerCase()));
-                        try { localStorage.setItem(mapCacheKey, JSON.stringify({ data: fresh, timestamp: Date.now() })); } catch (e) { }
-                    }
+                    const fresh = await fetchPublicMapData();
+                    latestMapData = fresh;
+                    storeMapData(fresh);
                     return fresh;
                 } catch (fetchErr) {
                     console.warn("Map fetch offline fallback:", fetchErr);
@@ -1348,11 +1370,13 @@ if (is_dir($imgDir)) {
 
             // Map Load Initialization
             window.mapInstance.on('load', async () => {
+                mapReady = true;
                 // Render markers immediately
                 try {
                     const data = await mapDataPromise;
-                    if (data && data.destinations) {
-                        window.allMapLocations = (data.destinations || []).filter(d => !d.status || d.status.toLowerCase() !== 'pending');
+                    const resolvedData = latestMapData || data;
+                    if (resolvedData && resolvedData.destinations) {
+                        window.allMapLocations = normalizeMapDestinations(resolvedData.destinations);
                         setupFilters();
                         window.renderMarkers(window.allMapLocations);
 
@@ -6130,24 +6154,20 @@ if (is_dir($imgDir)) {
             window._mapSpotsCheckInterval = null;
         }
 
-        let _lastSpotsCheckTime = Date.now();
-        const MIN_SPOTS_REFRESH_INTERVAL = 900000; // 15 minutes minimum between checks
+        let _lastSpotsCheckTime = 0;
+        const MIN_SPOTS_REFRESH_INTERVAL = 30000; // Avoid duplicate taps while still refreshing promptly.
 
         async function checkForNewSpots() {
             if (!window.mapInstance || document.visibilityState !== 'visible' || document.body.getAttribute('data-view') !== 'map') return;
             try {
-                const res = await fetch(getAppBackendUrl() + '/api/public/map', {
-                    headers: { 'Accept': 'application/json' }
-                });
-                const text = await res.text();
-                const data = (typeof window.safeJsonParse === 'function') ? window.safeJsonParse(text, null) : JSON.parse(text);
-                if (!data || !data.destinations) return;
-                const newIds = data.destinations.map(d => String(d.id)).sort().join(',');
-                const oldIds = (window.allMapLocations || []).map(d => String(d.id)).sort().join(',');
-                if (newIds !== oldIds) {
+                const data = await fetchPublicMapData();
+                const previousData = { destinations: window.allMapLocations || [] };
+                storeMapData(data);
+                if (getMapDataSignature(data.destinations) !== getMapDataSignature(previousData.destinations)) {
                     const prevCatEl = document.querySelector('.category-pill.active');
                     const prevCat = prevCatEl ? prevCatEl.innerText : 'All';
                     window.allMapLocations = data.destinations;
+                    latestMapData = data;
                     setupFilters();
                     const newCatEl = Array.from(document.querySelectorAll('.category-pill')).find(el => el.innerText === prevCat);
                     window.filterCategory(prevCat, newCatEl || document.querySelector('.category-pill'));
@@ -6164,11 +6184,15 @@ if (is_dir($imgDir)) {
             checkForNewSpots();
         };
 
-        // Check only when tourist returns to the map tab after being away >= 15 minutes
-        document.addEventListener('visibilitychange', () => {
+        // Recheck immediately when the tourist returns; the request itself is not a page refresh.
+        if (window._mapSpotsVisibilityHandler) {
+            document.removeEventListener('visibilitychange', window._mapSpotsVisibilityHandler);
+        }
+        window._mapSpotsVisibilityHandler = () => {
             if (document.visibilityState === 'visible' && document.body.getAttribute('data-view') === 'map') {
-                window.refreshMapSpots(false);
+                window.refreshMapSpots(true);
             }
-        });
+        };
+        document.addEventListener('visibilitychange', window._mapSpotsVisibilityHandler);
     })();
 </script>

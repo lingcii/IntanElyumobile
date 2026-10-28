@@ -97,4 +97,17 @@ assert.match(mapSource, /primaryDistance\.textContent = `\(\$\{distance\}\)`[\s\
 assert.match(mainSource, /id: 'map-directions-panel', fn: window\.closeMapDirectionsPanel/,
     'Android and browser back actions must close the directions screen first');
 
+assert.match(mapSource, /api\/public\/map\?_t=\$\{Date\.now\(\)\}[\s\S]*?cache: 'no-store'/,
+    'map refreshes must bypass stale browser and proxy responses');
+assert.match(mapSource, /const getMapDataSignature/,
+    'tourist-site refreshes must compare complete records, not IDs only');
+assert.doesNotMatch(mapSource, /const (?:oldIds|freshIds|newIds) =/,
+    'an edit to an existing tourist site must not be ignored by an ID-only comparison');
+assert.match(mapSource, /const resolvedData = latestMapData \|\| data/,
+    'a fast fresh response must not be overwritten by cached startup data');
+assert.match(mapSource, /fallbackCache\?\.data\?\.destinations/,
+    'the map must understand the shared wrapped offline cache format');
+assert.match(mapSource, /visibilitychange[\s\S]*?window\.refreshMapSpots\(true\)/,
+    'returning to the visible map must silently request current tourist sites');
+
 console.log('map directions tests passed');

@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use Illuminate\Support\Facades\Http;
+
 class ResendMailService
 {
     /**
@@ -15,7 +17,7 @@ class ResendMailService
      */
     public static function send(string $to, string $subject, string $htmlContent, ?string $from = null): array
     {
-        $apiKey = env('RESEND_API_KEY') ?: (config('mail.mailers.resend.key') ?: base64_decode('cmVfN3p1VFVlRkRfRnJ4RFVtUlg5TVhoYUpLemVUeUNVQURT'));
+        $apiKey = config('services.resend.key');
         if (empty($apiKey)) {
             return ['success' => false, 'error' => 'RESEND_API_KEY environment variable not configured'];
         }
@@ -34,33 +36,22 @@ class ResendMailService
             'html'    => $htmlContent,
         ];
 
-        $ch = curl_init('https://api.resend.com/emails');
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            'Authorization: Bearer ' . $apiKey,
-            'Content-Type: application/json',
-        ]);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
-        curl_setopt($ch, CURLOPT_TIMEOUT, 15);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-
-        $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $curlErr = curl_error($ch);
-        curl_close($ch);
-
-        if ($curlErr) {
-            return ['success' => false, 'error' => 'cURL Error: ' . $curlErr];
+        try {
+            $response = Http::withToken($apiKey)
+                ->acceptJson()
+                ->connectTimeout(3)
+                ->timeout(10)
+                ->post('https://api.resend.com/emails', $payload);
+        } catch (\Throwable $e) {
+            return ['success' => false, 'id' => null, 'error' => $e->getMessage()];
         }
 
-        $result = json_decode($response, true) ?? [];
-        if ($httpCode >= 200 && $httpCode < 300 && isset($result['id'])) {
+        $result = $response->json() ?? [];
+        if ($response->successful() && isset($result['id'])) {
             return ['success' => true, 'id' => $result['id'], 'error' => null];
         }
 
-        $msg = $result['message'] ?? ($result['error'] ?? "HTTP Status $httpCode");
-        return ['success' => false, 'error' => $msg];
+        $msg = $result['message'] ?? ($result['error'] ?? "HTTP Status {$response->status()}");
+        return ['success' => false, 'id' => null, 'error' => $msg];
     }
 }

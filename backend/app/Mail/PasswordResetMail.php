@@ -26,7 +26,7 @@ class PasswordResetMail extends Mailable
      */
     public function envelope(): Envelope
     {
-        $fromAddress = config('mail.from.address', 'acekillersmile@gmail.com');
+        $fromAddress = config('mail.from.address');
         $fromName = config('mail.from.name', 'Intan-Elyu Customer Support');
 
         return new Envelope(
