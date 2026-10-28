@@ -316,6 +316,7 @@ class ItineraryController extends Controller
             'companion_males'   => 'nullable|integer|min:0',
             'companion_females' => 'nullable|integer|min:0',
             'total_pax'         => 'nullable|integer|min:1',
+            'client_request_id' => 'nullable|string|max:100',
             'leg_transports'    => 'nullable|array',
         ], [
             'destinations.*.exists' => 'One or more selected destinations is invalid or no longer available.',
@@ -323,6 +324,33 @@ class ItineraryController extends Controller
         ]);
 
         $user = $request->user();
+
+        // The key survives offline retries and ambiguous network responses, so one
+        // Save action always resolves to the same itinerary without a schema change.
+        $clientRequestId = trim((string) $request->input('client_request_id', ''));
+        $idempotencyCacheKey = $clientRequestId !== ''
+            ? 'itinerary:create:' . $user->id . ':' . hash('sha256', $clientRequestId)
+            : null;
+        if ($idempotencyCacheKey) {
+            $existingId = Cache::get($idempotencyCacheKey);
+            if ($existingId) {
+                $existing = Itinerary::where('user_id', $user->id)
+                    ->with([
+                        'items.destination:id,name,photo_url,latitude,longitude,entrance_fee,adult_fee,kids_fee,pwd_fee,senior_citizen_fee,environmental_fee,classification_status,accessible_by_private_vehicle,municipality_id',
+                        'items.destination.municipality:id,name'
+                    ])
+                    ->find($existingId);
+                if ($existing) {
+                    $spotIds = $existing->items->pluck('tourist_spot_id')->filter()->unique()->values()->all();
+                    [$spotPublicVehicles, $spotPrivateVehicles, $spotAllVehicles] = $this->getSpotVehiclesMap($spotIds);
+                    return response()->json([
+                        'message' => 'Itinerary already saved.',
+                        'itinerary_id' => $existing->id,
+                        'itinerary' => $this->formatItineraryResponse($existing, $spotPublicVehicles, $spotPrivateVehicles, $spotAllVehicles),
+                    ], 200);
+                }
+            }
+        }
 
         // Prevent accidental rapid double-clicks within 2 seconds with the EXACT same destinations
         $recentDuplicate = Itinerary::where('user_id', $user->id)
@@ -336,6 +364,9 @@ class ItineraryController extends Controller
             $reqSpotIds = is_array($request->destinations) ? array_values(array_unique(array_filter($request->destinations))) : [];
             sort($reqSpotIds);
             if ($spotIds === $reqSpotIds) {
+                if ($idempotencyCacheKey) {
+                    Cache::put($idempotencyCacheKey, $recentDuplicate->id, now()->addDay());
+                }
                 [$spotPublicVehicles, $spotPrivateVehicles, $spotAllVehicles] = $this->getSpotVehiclesMap($spotIds);
                 return response()->json([
                     'message' => 'Itinerary already saved.',
@@ -462,6 +493,10 @@ class ItineraryController extends Controller
 
             return $itinerary;
         });
+
+        if ($idempotencyCacheKey) {
+            Cache::put($idempotencyCacheKey, $itinerary->id, now()->addDay());
+        }
 
         $itinerary->load([
             'items.destination:id,name,photo_url,latitude,longitude,entrance_fee,adult_fee,kids_fee,pwd_fee,senior_citizen_fee,environmental_fee,classification_status,accessible_by_private_vehicle,municipality_id',

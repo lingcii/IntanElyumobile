@@ -116,12 +116,18 @@ assert.match(trips, /if \(window\._savedTripsFetchPromise\) return window\._save
     'overlapping Saved Trips refresh triggers must share one in-flight request');
 assert.doesNotMatch(trips, /}, 3500\)/,
     'pending proof approval must not trigger an aggressive 3.5-second refresh loop');
-assert.match(trips, /window\._savedTripsInterval = setInterval[\s\S]*}, 30000\)/,
-    'Saved Trips must retain one quiet 30-second background refresh');
-assert.match(trips, /window\._savedTripsInterval = setInterval[\s\S]*window\.fetchSavedTrips\(false\)[\s\S]*}, 30000\)/,
-    'Saved Trips and Trip History background polling must refresh silently');
-assert.match(trips, /_savedTripsReconnectStartedAt[\s\S]*< 2000\) return/,
-    'duplicate online and appOnline events must not start repeated synchronization');
+assert.doesNotMatch(trips, /window\._savedTripsInterval = setInterval/,
+    'Saved Trips and Trip History must not poll in the background');
+assert.doesNotMatch(trips, /addEventListener\('(?:visibilitychange|focus)'[\s\S]*fetchSavedTrips/,
+    'focus and visibility events must not cause unnecessary Saved Trips requests');
+assert.match(trips, /Single initial request[\s\S]*window\.fetchSavedTrips\(false\)\.finally/,
+    'opening Saved Trips must issue one guarded initial request');
+assert.match(trips, /saved-trips-loading-state[\s\S]*Loading Your Trips/,
+    'Saved Trips must show a loading state while the initial request is pending');
+assert.match(trips, /function renderSavedTripsLoadError\(\)[\s\S]*Could Not Load Trips[\s\S]*Try Again/,
+    'Saved Trips must show a retryable error when no cached data is available');
+assert.doesNotMatch(trips, /syncQueuedTrips\(\)[\s\S]*addEventListener\('online'/,
+    'Saved Trips must defer reconnect queue processing to the single app-wide orchestrator');
 assert.match(trips, /showTripCompletionReviewModal\(reviewItems, true\)/,
     'Complete must open the required-review workflow first');
 assert.match(trips, /reviewItems\.length === 1[\s\S]*startReviewFromCompletion/,

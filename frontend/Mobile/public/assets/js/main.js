@@ -1554,6 +1554,7 @@ window.OfflineTripManager = {
             destinations: cleanDests,
             route_type: trip.route_type || 'Recommended',
             transport_mode: trip.transport_mode || 'No Vehicle Selected',
+            client_request_id: trip.client_request_id || null,
             leg_transports: trip.leg_transports || []
         };
 
@@ -1700,6 +1701,7 @@ window.OfflineTripManager = {
                         destinations: cleanDests,
                         route_type: trip.route_type || 'Recommended',
                         transport_mode: trip.transport_mode || 'No Vehicle Selected',
+                        client_request_id: trip.client_request_id || null,
                         leg_transports: trip.leg_transports || []
                     };
 
@@ -6222,14 +6224,6 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                     const _curU = window.safeJsonParse ? window.safeJsonParse(localStorage.getItem('auth_user'), {}) : {};
                     window.updateDashboardProfileHeader(_isG, _curU);
                 }
-                if (targetView === 'saved_trips') {
-                    window._isStartingTrip = false;
-                    window._lastRenderedTripsSig = null;
-                    if (typeof window.fetchSavedTrips === 'function') {
-                        window.fetchSavedTrips(false);
-                    }
-                }
-
                 restoreViewScrollPosition(targetView);
             } catch (err) {
                 console.error("Error during view initialization:", err);

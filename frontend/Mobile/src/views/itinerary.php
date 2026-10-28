@@ -67,7 +67,7 @@ try {
             </button>
         </div>
 
-        <!-- Map Visualization Container -->
+        <!-- Visualization Container -->
         <div id="draft-map-wrapper" style="display:none; margin-top:0; margin-bottom:14px;">
             <!-- Route Type Container with Smooth Sliding Pill -->
             <div class="route-toggle-container" id="route-toggle-container">
@@ -78,13 +78,13 @@ try {
                     onclick="setRouteType('alternative', this)">Alternative</button>
             </div>
 
-            <!-- The Map -->
+        
             <div id="draft-map-container"
                 style="height: 260px; width:100%; border-radius: 20px; overflow: hidden; border: none !important; outline: none !important; position:relative; background:#cadce4; box-shadow: none;">
                 <div id="itinerary-map" style="width:100%; height:100%;"></div>
             </div>
 
-            <!-- Map Route Stats -->
+         
             <div
                 style="display:flex; justify-content:space-around; align-items:center; margin-top:12px; background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border: none !important; outline: none !important; border-radius:18px; padding:14px; box-shadow:none !important;">
                 <div style="color:white; font-size:14px; font-weight:700;">
@@ -233,7 +233,7 @@ try {
                 style="width:100%; padding:12px 14px; border-radius:14px; border:1.5px solid #cbd5e1 !important; outline:none !important; background:#ffffff !important; color:#0f172a !important; -webkit-text-fill-color:#0f172a !important; margin-bottom:16px; font-family:inherit; font-size:14px; font-weight:600; box-sizing:border-box; box-shadow:none !important; transition:border-color 0.2s;"
                 onfocus="this.style.borderColor='#0284c7'" onblur="this.style.borderColor='#cbd5e1'">
 
-            <!-- Custom Designed Calendar Date Picker -->
+           
             <label
                 style="font-size:12.5px; color:#1e293b !important; margin-bottom:6px; display:flex; align-items:center; justify-content:space-between; font-weight:700;">
                 <span style="color:#1e293b !important;">Trip Date (Optional)</span>
@@ -4671,6 +4671,8 @@ try {
         };
 
         window.submitItinerary = async function () {
+            if (window._isSubmittingItinerary) return;
+
             const title = document.getElementById('trip-title').value.trim();
             const date = document.getElementById('trip-date').value;
             const budgetStr = document.getElementById('trip-budget').value;
@@ -4680,12 +4682,15 @@ try {
             const draft = window.getEffectiveDraft();
             if (draft.length === 0) return showToast("Your itinerary is empty!");
 
+            window._isSubmittingItinerary = true;
+
             const transport = document.getElementById('trip-transport').value;
             const isNoVeh = !transport || !transport.trim() || transport.toLowerCase().includes('no_vehicle') || transport.toLowerCase().includes('no vehicle');
             const effectiveTransport = isNoVeh ? 'No Vehicle Selected' : transport.trim();
 
             const btn = document.getElementById('btn-submit-trip');
             const editingId = sessionStorage.getItem('editing_itinerary_id');
+            const clientRequestId = editingId ? null : ('trip_' + Date.now() + '_' + Math.random().toString(36).slice(2, 12));
             btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> ${editingId ? 'Updating...' : 'Saving...'}`;
             btn.disabled = true;
 
@@ -4786,6 +4791,7 @@ try {
                     companion_males: compMales,
                     companion_females: compFemales,
                     total_pax: totalPax,
+                    client_request_id: clientRequestId,
                     leg_transports: legTransports,
                     update_id: editingId || null,
                     items: draft.map((place, idx) => ({
@@ -4938,6 +4944,7 @@ try {
                         companion_males: compMales,
                         companion_females: compFemales,
                         total_pax: totalPax,
+                        client_request_id: clientRequestId,
                         leg_transports: legTransports
                     })
                 });
@@ -4997,6 +5004,7 @@ try {
             } finally {
                 btn.innerHTML = editingId ? 'Update Trip' : 'Save Trip';
                 btn.disabled = false;
+                window._isSubmittingItinerary = false;
             }
         };
 

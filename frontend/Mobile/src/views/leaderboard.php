@@ -911,7 +911,7 @@ $activeTab = 'leaderboard';
             candidates.push(`/api/public/leaderboard?limit=10&sort=${apiSort}`);
 
             let fetchedData = null;
-            for (const url of candidates) {
+            for (const url of [...new Set(candidates)]) {
                 const controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
                 const timeoutId = controller ? setTimeout(() => controller.abort(), 8000) : null;
                 try {

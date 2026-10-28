@@ -133,19 +133,14 @@ $backRoute = 'itinerary';
         </button>
     </div>
     <div id="saved-trips-list">
-        <div class="empty-state-card" style="margin-top: 30px; margin-bottom: 30px; opacity: 1 !important; visibility: visible !important;">
+        <div class="empty-state-card saved-trips-loading-state" role="status" aria-live="polite" style="margin-top: 30px; margin-bottom: 30px; opacity: 1 !important; visibility: visible !important;">
             <div class="empty-state-icon" style="background: #ffffff !important; color: #1e3a8a !important; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15) !important;">
-                <i class="fa-solid fa-route" style="color: #1e3a8a !important;"></i>
+                <i class="fa-solid fa-spinner fa-spin" style="color: #1e3a8a !important;"></i>
             </div>
-            <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: #ffffff; text-wrap: balance;">No Saved Trips Yet</h3>
+            <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: #ffffff; text-wrap: balance;">Loading Your Trips</h3>
             <p style="margin: 0; font-size: 13.5px; color: rgba(255, 255, 255, 0.88); line-height: 1.5; max-width: 260px; text-wrap: pretty;">
-                Your adventure starts here! Explore La Union tourist spots and plan your personalized itinerary.
+                Retrieving your saved trips and trip history.
             </p>
-            <div style="display:flex; flex-direction:column; gap:10px; width:100%; max-width:280px; margin:14px auto 0;">
-                <button type="button" class="btn-open-map" onclick="if(typeof window.navigateTo==='function') window.navigateTo('itinerary');" style="width:100%; margin:0; justify-content:center;">
-                    <i class="fa-solid fa-plus"></i> Create New Trip
-                </button>
-            </div>
         </div>
     </div>
 </div>
@@ -537,6 +532,23 @@ $backRoute = 'itinerary';
         window.updateSavedTripsScrollview = updateScrollviewState;
         window.addEventListener('resize', updateScrollviewState);
 
+        function renderSavedTripsLoadError() {
+            const list = document.getElementById('saved-trips-list');
+            if (!list) return;
+            list.innerHTML = `
+                <div class="empty-state-card" role="alert" style="margin-top:30px; margin-bottom:30px; opacity:1 !important; visibility:visible !important;">
+                    <div class="empty-state-icon" style="background:#ffffff !important; color:#dc2626 !important; box-shadow:0 4px 14px rgba(0,0,0,0.15) !important;">
+                        <i class="fa-solid fa-cloud-exclamation" style="color:#dc2626 !important;"></i>
+                    </div>
+                    <h3 style="margin:0; font-size:18px; font-weight:800; color:#ffffff;">Could Not Load Trips</h3>
+                    <p style="margin:0; font-size:13.5px; color:rgba(255,255,255,0.88); line-height:1.5; max-width:260px;">Check your connection, then try again. No saved data was changed.</p>
+                    <button type="button" class="btn-open-map" onclick="if(typeof window.fetchSavedTrips==='function') window.fetchSavedTrips(true);" style="margin:14px auto 0; justify-content:center;">
+                        <i class="fa-solid fa-rotate-right"></i> Try Again
+                    </button>
+                </div>`;
+            updateScrollviewState();
+        }
+
         const fetchSavedTripsOnce = async function (forceRefresh = false) {
             const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
             const isGuest = !token || token === 'guest_token' || token.startsWith('guest_') || token.startsWith('offline_') || localStorage.getItem('intan_elyu_guest') === 'true';
@@ -687,7 +699,9 @@ $backRoute = 'itinerary';
 
             // 1. Instant pre-hydrate and render immediately with 0ms delay!
             const localTrips = getLocalTripsCombined();
-            renderSavedTrips(localTrips);
+            if (localTrips.length > 0 || !window._savedTripsInitialLoadPending) {
+                renderSavedTrips(localTrips);
+            }
 
             // 2. If offline, ensure offline badge displays and do NOT attempt blocking network fetch
             if (isOffline) {
@@ -695,6 +709,7 @@ $backRoute = 'itinerary';
                 if (badge) {
                     badge.style.setProperty('display', 'inline-flex', 'important');
                 }
+                if (localTrips.length === 0) renderSavedTrips([]);
                 return;
             }
 
@@ -903,6 +918,18 @@ $backRoute = 'itinerary';
                         }
                     },
                     (itineraries) => {
+                        if (itineraries === null) {
+                            const localFallback = getLocalTripsCombined();
+                            if (localFallback.length > 0) {
+                                renderSavedTrips(localFallback);
+                            } else {
+                                renderSavedTripsLoadError();
+                                if (typeof showToast === 'function') {
+                                    showToast('Could not load saved trips. Please try again.', 'error', 3500);
+                                }
+                            }
+                            return;
+                        }
                         const mergedFinal = mergeServerWithQueuedTrips(itineraries);
                         if (mergedFinal && Array.isArray(mergedFinal)) {
                             window._cachedSavedTrips = mergedFinal;
@@ -924,7 +951,9 @@ $backRoute = 'itinerary';
                 );
             } catch (fetchErr) {
                 console.warn("fetchSavedTrips handled offline fallback:", fetchErr);
-                renderSavedTrips(getLocalTripsCombined());
+                const localFallback = getLocalTripsCombined();
+                if (localFallback.length > 0) renderSavedTrips(localFallback);
+                else renderSavedTripsLoadError();
             }
         };
 
@@ -932,7 +961,7 @@ $backRoute = 'itinerary';
             if (window._savedTripsFetchPromise) return window._savedTripsFetchPromise;
 
             const now = Date.now();
-            if (window._savedTripsLastFetchCompletedAt && now - window._savedTripsLastFetchCompletedAt < 750) {
+            if (!forceRefresh && window._savedTripsLastFetchCompletedAt && now - window._savedTripsLastFetchCompletedAt < 750) {
                 return Promise.resolve(window._cachedSavedTrips || []);
             }
 
@@ -4020,9 +4049,14 @@ $backRoute = 'itinerary';
                 } catch (e) { }
             }
         }
-        renderSavedTrips(initialTrips);
+        if (initialTrips.length > 0) {
+            renderSavedTrips(initialTrips);
+        } else {
+            window._savedTripsInitialLoadPending = true;
+        }
 
-        // Pending approvals use the normal background refresh below.
+        // Legacy pending-approval timer cleanup. Approval state now updates through
+        // explicit sync events or a user-initiated refresh.
         if (window._pendingProofPollingInterval) {
             clearInterval(window._pendingProofPollingInterval);
         }
@@ -4072,39 +4106,10 @@ $backRoute = 'itinerary';
             window._savedTripsInterval = null;
         }
 
-        // Periodic background sync every 30 seconds
-        window._savedTripsInterval = setInterval(() => {
-            const list = document.getElementById('saved-trips-list');
-            const currentView = document.body.getAttribute('data-view');
-            if (!list || (currentView && currentView !== 'saved_trips')) {
-                clearInterval(window._savedTripsInterval);
-                window._savedTripsInterval = null;
-                return;
-            }
-            if (document.visibilityState === 'visible' && !window._isStartingTrip) {
-                window.fetchSavedTrips(false);
-            }
-        }, 30000);
-
-        // Event-based auto-refresh (visibility change, window focus, view loaded)
+        // Refresh only after data-changing sync operations. Opening the view is
+        // handled once at the end of this script; focus and visibility do not fetch.
         if (!window._savedTripsVisibilityBound) {
             window._savedTripsVisibilityBound = true;
-            document.addEventListener('visibilitychange', () => {
-                if (document.visibilityState === 'visible' && document.body.getAttribute('data-view') === 'saved_trips' && !window._isStartingTrip) {
-                    window.fetchSavedTrips(false);
-                }
-            });
-            window.addEventListener('focus', () => {
-                if (document.body.getAttribute('data-view') === 'saved_trips' && !window._isStartingTrip) {
-                    window.fetchSavedTrips(false);
-                }
-            });
-            window.addEventListener('viewLoaded', (e) => {
-                if (e && e.detail && e.detail.view === 'saved_trips') {
-                    window._isStartingTrip = false;
-                    window.fetchSavedTrips(false);
-                }
-            });
             window.addEventListener('checkins-synced', () => {
                 if (document.body.getAttribute('data-view') === 'saved_trips') {
                     window.fetchSavedTrips(false);
@@ -4125,64 +4130,19 @@ $backRoute = 'itinerary';
                 }
             }
 
-            async function handleSavedTripsReconnect() {
-                const reconnectStartedAt = Date.now();
-                if (window._savedTripsReconnectStartedAt && reconnectStartedAt - window._savedTripsReconnectStartedAt < 2000) return;
-                window._savedTripsReconnectStartedAt = reconnectStartedAt;
-
-                if (typeof window.enforceAllOfflineBadgesHidden === 'function') {
-                    window.enforceAllOfflineBadgesHidden();
-                }
-                updateSavedTripsOfflineStatus();
-                try {
-                    localStorage.removeItem('intan_elyu_offline_mode');
-                    localStorage.removeItem('intan_elyu_offline_guest');
-                } catch(e) {}
-                try {
-                    const queuedTrips = (window.OfflineTripManager && typeof window.OfflineTripManager.getQueuedTrips === 'function')
-                        ? window.OfflineTripManager.getQueuedTrips()
-                        : [];
-                    if (queuedTrips.length > 0 && window.OfflineTripManager && typeof window.OfflineTripManager.syncQueuedTrips === 'function') {
-                        if (typeof showToast === 'function') {
-                            showToast("Connection restored. Syncing your offline trips...", "info", 3000);
-                        }
-                        const synced = await window.OfflineTripManager.syncQueuedTrips();
-                        if (synced > 0 && typeof showToast === 'function') {
-                            showToast(`${synced} offline trip(s) synced to cloud!`, "success", 4000);
-                        }
-                    }
-                } catch (e) {
-                    console.warn("Auto-sync error on reconnect:", e);
-                }
-
-                // Sync queued offline check-ins & photo proofs
-                try {
-                    if (window.OfflineCheckinManager && typeof window.OfflineCheckinManager.processQueue === 'function') {
-                        await window.OfflineCheckinManager.processQueue();
-                    }
-                } catch (chkErr) {
-                    console.warn("Auto-sync offline checkins error:", chkErr);
-                }
-
-                const currentView = (document.body ? document.body.getAttribute('data-view') : '') || (window.currentView || '');
-                if (currentView === 'saved_trips' || !currentView) {
-                    if (typeof window.fetchSavedTrips === 'function') {
-                        window.fetchSavedTrips(false);
-                    }
-                }
-            }
-
-            window.addEventListener('online', handleSavedTripsReconnect);
+            // The app-wide reconnect orchestrator owns queue processing and the
+            // active-view refresh. This view only updates its status badge.
+            window.addEventListener('online', updateSavedTripsOfflineStatus);
             window.addEventListener('offline', updateSavedTripsOfflineStatus);
-            window.addEventListener('appOnline', handleSavedTripsReconnect);
+            window.addEventListener('appOnline', updateSavedTripsOfflineStatus);
             window.addEventListener('appOffline', updateSavedTripsOfflineStatus);
             window.addEventListener('tripsSynced', () => {
-                if (typeof window.fetchSavedTrips === 'function') {
+                if (document.body.getAttribute('data-view') === 'saved_trips' && typeof window.fetchSavedTrips === 'function') {
                     window.fetchSavedTrips(false);
                 }
             });
             window.addEventListener('offlineTripQueued', () => {
-                if (typeof window.fetchSavedTrips === 'function') {
+                if (document.body.getAttribute('data-view') === 'saved_trips' && typeof window.fetchSavedTrips === 'function') {
                     window.fetchSavedTrips(false);
                 }
             });
@@ -4208,6 +4168,13 @@ $backRoute = 'itinerary';
             });
             setTimeout(updateSavedTripsOfflineStatus, 100);
         }
+
+        // Single initial request for both Saved Trips and its Trip History tab.
+        // Any simultaneous action-driven refresh shares the same in-flight promise.
+        window._isStartingTrip = false;
+        window.fetchSavedTrips(false).finally(() => {
+            window._savedTripsInitialLoadPending = false;
+        });
 
     })();
 </script>

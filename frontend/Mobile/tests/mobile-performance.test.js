@@ -65,9 +65,13 @@ assert.match(leaderboardView, /_leaderboardLastViewRenderAt[\s\S]*< 250/,
     'duplicate document and window viewLoaded events must render Leaderboard once');
 assert.match(main, /activeView === 'leaderboard'[\s\S]*window\.refreshLeaderboard\(false\)/,
     'ambient Leaderboard refreshes must remain silent');
-assert.match(main, /targetView === 'saved_trips'[\s\S]*window\.fetchSavedTrips\(false\)/,
-    'opening Saved Trips must revalidate silently');
+assert.doesNotMatch(main, /targetView === 'saved_trips'[\s\S]{0,300}window\.fetchSavedTrips\(false\)/,
+    'navigation must not duplicate the Saved Trips view-owned initial request');
 assert.match(main, /saved_trips: \(\) => window\.fetchSavedTrips && window\.fetchSavedTrips\(true\)[\s\S]*leaderboard: \(\) => window\.refreshLeaderboard && window\.refreshLeaderboard\(true\)/,
     'pull-to-refresh must still force a user-visible Saved Trips or Leaderboard refresh');
+assert.doesNotMatch(leaderboardView, /setInterval\(/,
+    'Leaderboard must remain event-driven without an automatic polling interval');
+assert.match(leaderboardView, /for \(const url of \[\.\.\.new Set\(candidates\)\]\)/,
+    'Leaderboard fallback requests must not retry the same endpoint twice');
 
 console.log('mobile performance tests passed');
