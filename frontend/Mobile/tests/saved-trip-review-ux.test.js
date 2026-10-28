@@ -9,8 +9,9 @@ const trips = fs.readFileSync(path.join(root, 'src', 'views', 'saved_trips.php')
 const main = fs.readFileSync(path.join(root, 'src', 'assets', 'js', 'main.js'), 'utf8');
 const itinerary = fs.readFileSync(path.join(root, 'src', 'views', 'itinerary.php'), 'utf8');
 const tripMap = fs.readFileSync(path.join(root, 'src', 'views', 'trip_map.php'), 'utf8');
+const puzzles = fs.readFileSync(path.join(root, 'src', 'views', 'puzzles.php'), 'utf8');
 
-for (const [name, source] of [['saved_trips.php', trips], ['trip_map.php', tripMap], ['testimony_modal.php', testimony]]) {
+for (const [name, source] of [['saved_trips.php', trips], ['trip_map.php', tripMap], ['testimony_modal.php', testimony], ['puzzles.php', puzzles]]) {
     const scripts = [...source.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/gi)];
     scripts.forEach((match, index) => {
         assert.doesNotThrow(() => new vm.Script(match[1], { filename: `${name}#${index + 1}` }),

@@ -1746,10 +1746,6 @@ include __DIR__ . '/../components/header.php';
                         message: "Game completed! Your points will sync automatically when back online. Come back tomorrow!",
                         comeBackTomorrow: true
                     });
-                } catch (queueErr) { }
-                        message: "Game completed! Your points will sync automatically when back online. Come back tomorrow!",
-                        comeBackTomorrow: true
-                    });
                     return;
                 } catch (queueErr) { }
                 openGameAlert("Connection issue. Please try again.", "Error");
