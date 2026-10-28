@@ -1,4 +1,4 @@
-const CACHE_NAME = 'Intan_Elyu_cache-v35-auth-otp-layout';
+const CACHE_NAME = 'Intan_Elyu_cache-v36-auth-login-height';
 const ASSETS = [
     './',
     './index.php',

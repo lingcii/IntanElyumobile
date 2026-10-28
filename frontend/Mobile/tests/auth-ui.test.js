@@ -66,6 +66,8 @@ assert.match(sourceCss, /\.auth-keyboard-dismiss[\s\S]*body\.auth-keyboard-visib
     'the themed keyboard control must only become interactive while the keyboard is visible');
 assert.match(sourceCss, /\.forms-wrapper:not\(\.show-register\):not\(\.show-forgot\):not\(\.show-otp\)[\s\S]*flex: 0 0 auto/,
     'the Login slider must wrap its content without changing Register, Forgot, or OTP sizing');
+assert.match(sourceCss, /\.forms-wrapper:not\(\.show-register\):not\(\.show-forgot\):not\(\.show-otp\) \.register-form,[\s\S]*height: 0;[\s\S]*overflow: hidden !important;/,
+    'hidden auth panels must not stretch the Login card');
 assert.match(sourceCss, /\.auth-result-card--success[\s\S]*\.auth-result-card--invalid/,
     'email verification result dialogs must have distinct success and invalid states');
 assert.equal(publicCss, sourceCss,

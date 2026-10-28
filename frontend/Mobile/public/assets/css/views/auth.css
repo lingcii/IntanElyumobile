@@ -2861,6 +2861,15 @@ body[data-view="auth"] .forms-wrapper:not(.show-register):not(.show-forgot):not(
     padding-bottom: 8px !important;
 }
 
+body[data-view="auth"] .forms-wrapper:not(.show-register):not(.show-forgot):not(.show-otp) .register-form,
+body[data-view="auth"] .forms-wrapper:not(.show-register):not(.show-forgot):not(.show-otp) .forgot-form,
+body[data-view="auth"] .forms-wrapper:not(.show-register):not(.show-forgot):not(.show-otp) .otp-form {
+    height: 0;
+    min-height: 0;
+    overflow: hidden !important;
+    padding-block: 0 !important;
+}
+
 body[data-view="auth"].keyboard-open .auth-bottom,
 body[data-view="auth"].auth-keyboard-visible .auth-bottom,
 body[data-view="auth"].keyboard-open .form-panel,

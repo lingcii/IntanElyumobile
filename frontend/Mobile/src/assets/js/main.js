@@ -6851,7 +6851,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
         window.initGoogleOAuthHandler();
 
         // Auto-invalidate stale caches from previous builds
-        const CACHE_VER = 'v1.0.8_auth_otp_layout';
+        const CACHE_VER = 'v1.0.9_auth_login_height';
         if (localStorage.getItem('intan_elyu_cache_ver') !== CACHE_VER) {
             Object.keys(localStorage).forEach(k => {
                 if (k.startsWith('dashboard_') || k.startsWith('trending_') || k.startsWith('map_') || k.startsWith('spots_') || k.startsWith('destinations_') || k.includes('cache')) {
