@@ -1143,10 +1143,12 @@ body[data-view="map"].keyboard-open .btn-locate-me,
 body[data-view="map"].keyboard-open .btn-nearby-sites,
 body[data-view="map"].keyboard-open .btn-layer-toggle,
 body[data-view="map"].keyboard-open .btn-3d-view,
+body[data-view="map"].keyboard-open #btn-map-directions,
 html.keyboard-open body[data-view="map"] .btn-locate-me,
 html.keyboard-open body[data-view="map"] .btn-nearby-sites,
 html.keyboard-open body[data-view="map"] .btn-layer-toggle,
-html.keyboard-open body[data-view="map"] .btn-3d-view {
+html.keyboard-open body[data-view="map"] .btn-3d-view,
+html.keyboard-open body[data-view="map"] #btn-map-directions {
     opacity: 0 !important;
     pointer-events: none !important;
     visibility: hidden !important;
@@ -2398,5 +2400,4 @@ body[data-view="map"] .btn-locate-me {
     border: 1px solid #cbd5e1 !important;
     color: #1e3a8a !important;
 }
-
 

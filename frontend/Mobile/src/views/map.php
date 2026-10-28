@@ -396,10 +396,10 @@ if (is_dir($imgDir)) {
     <!-- Directions button: opens selection without rebuilding the map. -->
     <button type="button" id="btn-map-directions" class="animate-slide-up" onclick="window.openMapDirections()"
         aria-label="Get directions" title="Directions"
-        style="position:absolute; bottom:calc(175px + env(safe-area-inset-bottom)); left:10px; width:48px; height:48px; z-index:900; display:flex; align-items:center; justify-content:center; border:0; border-radius:14px; background:#ffffff !important; color:#1e3a8a !important; box-shadow:0 8px 22px rgba(10,25,60,0.28); cursor:pointer; transition:transform .18s ease;"
+        style="position:absolute; bottom:calc(175px + env(safe-area-inset-bottom)); left:10px; width:44px; height:44px; z-index:900; display:flex; align-items:center; justify-content:center; border:0; border-radius:12px; background:linear-gradient(135deg, rgba(30, 58, 138, 0.9) 0%, rgba(63, 125, 183, 0.88) 100%) !important; backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); color:#ffffff !important; box-shadow:0 8px 20px rgba(10,25,60,0.3); cursor:pointer; transition:all .2s ease;"
         onpointerdown="this.style.transform='scale(.92)'" onpointerup="this.style.transform='scale(1)'"
         onpointercancel="this.style.transform='scale(1)'">
-        <i class="fa-solid fa-diamond-turn-right" style="color:#1e3a8a !important; font-size:21px;"></i>
+        <i class="fa-solid fa-diamond-turn-right" style="color:#ffffff !important; font-size:18px;"></i>
     </button>
 
     <section id="map-directions-panel" class="map-directions-panel" role="dialog" aria-modal="true"

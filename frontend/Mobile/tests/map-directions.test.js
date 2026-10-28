@@ -7,8 +7,13 @@ const mainSource = fs.readFileSync(path.join(__dirname, '..', 'src', 'assets', '
 
 assert.match(mapSource, /id="btn-map-directions"[\s\S]*?onclick="window\.openMapDirections\(\)"/,
     'the map must expose a directions button');
-assert.match(mapSource, /fa-diamond-turn-right" style="color:#1e3a8a/,
-    'the directions icon must use the requested dark-blue color');
+assert.match(mapSource, /id="btn-map-directions"[\s\S]*?width:44px; height:44px[\s\S]*?border-radius:12px; background:linear-gradient\(135deg, rgba\(30, 58, 138, 0\.9\)[\s\S]*?color:#ffffff !important/,
+    'the directions control must match the dark-blue map-control stack');
+assert.match(mapSource, /fa-diamond-turn-right" style="color:#ffffff/,
+    'the directions icon must remain white on the dark-blue control');
+const mapCss = fs.readFileSync(path.join(__dirname, '..', 'src', 'assets', 'css', 'views', 'map.css'), 'utf8');
+assert.match(mapCss, /keyboard-open #btn-map-directions[\s\S]*?opacity:\s*0 !important/,
+    'the directions control must hide instead of moving upward when map search opens the keyboard');
 assert.match(mapSource, /id="directions-start-input"[\s\S]*?value="Your location"/);
 assert.match(mapSource, /id="directions-destination-input"[\s\S]*?placeholder="Choose destination"/);
 assert.match(mapSource, /data-vehicle="own_car"[\s\S]*?data-vehicle="tricycle"[\s\S]*?data-vehicle="car"[\s\S]*?data-vehicle="jeepney"[\s\S]*?directions-more-vehicles-btn/,
