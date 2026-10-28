@@ -656,7 +656,6 @@ if (is_dir($imgDir)) {
                 <div id="sheet-badges-overlay" class="dest-badges-overlay">
                     <div id="sheet-category-badge" class="dest-cat-badge-wrap" style="display:none;"></div>
                     <div id="sheet-status-badge" class="sheet-status-pill" style="display:none;"></div>
-                    <div id="sheet-open-badge" class="sheet-open-pill" style="display:none;"></div>
                 </div>
                 <div id="sheet-slider-track" class="dest-slider-track">
                     <img src="" alt="Place Image" class="sheet-img" id="sheet-img">
@@ -675,13 +674,13 @@ if (is_dir($imgDir)) {
                         <span class="quick-stat-value" id="sheet-distance">Calculating...</span>
                     </div>
                 </div>
-                <div class="quick-stat-card" id="sheet-hours-stat-card">
+                <div class="quick-stat-card" id="sheet-points-stat-card">
                     <div class="quick-stat-icon emerald">
-                        <i class="fa-regular fa-clock"></i>
+                        <i class="fa-solid fa-coins"></i>
                     </div>
                     <div class="quick-stat-info">
-                        <span class="quick-stat-label">Hours</span>
-                        <span class="quick-stat-value" id="sheet-hours">--</span>
+                        <span class="quick-stat-label">Points</span>
+                        <span class="quick-stat-value" id="sheet-points">--</span>
                     </div>
                 </div>
                 <div class="quick-stat-card" id="sheet-visitors-stat-card">
@@ -3930,22 +3929,6 @@ if (is_dir($imgDir)) {
 
             const opState = window.checkSiteOperationalState(locationData);
 
-            // Open/Closed badge with pulse indicator
-            const openBadge = document.getElementById('sheet-open-badge');
-            if (openBadge) {
-                openBadge.style.display = 'inline-flex';
-                if (opState.isMaint) {
-                    openBadge.className = 'sheet-open-pill status-maint';
-                    openBadge.innerHTML = '<span class="pulse-dot dot-amber"></span>Unavailable';
-                } else if (opState.isClosed) {
-                    openBadge.className = 'sheet-open-pill status-closed';
-                    openBadge.innerHTML = '<span class="pulse-dot dot-red"></span>Closed';
-                } else {
-                    openBadge.className = 'sheet-open-pill status-open';
-                    openBadge.innerHTML = `<span class="pulse-dot dot-green"></span>${opState.label}`;
-                }
-            }
-
             // Action Button: maintenance sites cannot be added to a trip.
             const addItinBtn = document.getElementById('btn-add-itinerary');
             if (addItinBtn) {
@@ -4384,19 +4367,11 @@ if (is_dir($imgDir)) {
             const distanceEl = document.getElementById('sheet-distance');
             if (distanceEl) distanceEl.textContent = 'Calculating...';
 
-            const hoursCard = document.getElementById('sheet-hours-stat-card');
-            const hoursEl = document.getElementById('sheet-hours');
-            if (hoursEl) {
-                if (locationData.is_open_24_hours) {
-                    if (hoursCard) hoursCard.style.display = 'flex';
-                    hoursEl.textContent = '24 Hours';
-                } else if (locationData.opening_time && locationData.closing_time) {
-                    if (hoursCard) hoursCard.style.display = 'flex';
-                    const fmt = (t) => { const p = t.split(':'); const h = parseInt(p[0]), m = p[1]; return (h % 12 || 12) + ':' + m + (h < 12 ? ' AM' : ' PM'); };
-                    hoursEl.textContent = fmt(locationData.opening_time) + ' — ' + fmt(locationData.closing_time);
-                } else {
-                    if (hoursCard) hoursCard.style.display = 'none';
-                }
+            const pointsEl = document.getElementById('sheet-points');
+            if (pointsEl) {
+                const status = String(locationData.classification_status || locationData.classification || 'EXIST').toUpperCase();
+                const rewardPoints = (status === 'EMERGE' || status === 'EMERGING') ? 45 : (status === 'POTENTIAL' ? 35 : 25);
+                pointsEl.textContent = `${rewardPoints} Points`;
             }
 
             if (window.getDeviceLocation) {

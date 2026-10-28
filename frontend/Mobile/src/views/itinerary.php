@@ -4485,6 +4485,16 @@ try {
             if (e && typeof e.preventDefault === 'function') e.preventDefault();
             try {
                 const draft = window.getEffectiveDraft ? window.getEffectiveDraft() : JSON.parse(localStorage.getItem('intan_elyu_draft_itinerary') || '[]');
+                const transport = document.getElementById('trip-transport')?.value || '';
+                const hasVehicle = transport.trim() && !/no[_ ]vehicle/i.test(transport);
+                if (!hasVehicle) {
+                    window.showConfirmModal('Please choose a vehicle before saving your draft plan.', {
+                        title: 'Vehicle Required',
+                        confirmText: 'OK',
+                        hideCancel: true
+                    });
+                    return;
+                }
 
                 // Reset calendar dropdown state on modal open
                 const cal = document.getElementById('custom-calendar-dropdown');
@@ -4676,11 +4686,19 @@ try {
             const draft = window.getEffectiveDraft();
             if (draft.length === 0) return showToast("Your itinerary is empty!");
 
-            window._isSubmittingItinerary = true;
-
             const transport = document.getElementById('trip-transport').value;
             const isNoVeh = !transport || !transport.trim() || transport.toLowerCase().includes('no_vehicle') || transport.toLowerCase().includes('no vehicle');
-            const effectiveTransport = isNoVeh ? 'No Vehicle Selected' : transport.trim();
+            if (isNoVeh) {
+                window.showConfirmModal('Please choose a vehicle before saving your draft plan.', {
+                    title: 'Vehicle Required',
+                    confirmText: 'OK',
+                    hideCancel: true
+                });
+                return;
+            }
+            const effectiveTransport = transport.trim();
+
+            window._isSubmittingItinerary = true;
 
             const btn = document.getElementById('btn-submit-trip');
             const editingId = sessionStorage.getItem('editing_itinerary_id');

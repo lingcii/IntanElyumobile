@@ -447,6 +447,13 @@ include_once __DIR__ . '/../components/testimony_modal.php';
             return 12742000 * Math.asin(Math.sqrt(a));
         }
 
+        function hasSubmittedStopProof(item) {
+            if (!item) return false;
+            const hasCheckin = Boolean(item.is_location_verified || item.visited_at);
+            const hasProof = Boolean((Array.isArray(item.proof_images) && item.proof_images.length > 0) || item.proof_image);
+            return hasCheckin && hasProof && String(item.proof_status || 'pending').toLowerCase() !== 'rejected';
+        }
+
         function renderConveyorCards(items, activeIndex) {
             const conveyorScroll = document.getElementById('conveyor-cards-scroll');
             if (!conveyorScroll) return;
@@ -543,7 +550,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                 const queuedItem = window.OfflineCheckinManager ? window.OfflineCheckinManager.getQueuedItem(item.id, spotIdVal, window.currentTripId) : null;
                 const isQueued = Boolean(queuedItem || item.is_offline_queued);
                 const isActive = idx === activeIndex;
-                const isStopUnlocked = isVisited || isQueued || isActive;
+                const isStopUnlocked = isVisited || isQueued || hasSubmittedStopProof(item) || isActive;
 
                 let proofImages = [];
                 if (Array.isArray(item.proof_images) && item.proof_images.length > 0) {
@@ -1109,7 +1116,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
             const activeIndex = items.findIndex(i => {
                 const sId = i.tourist_spot_id || i.destination_id || (i.destination ? i.destination.id : null);
                 const isQueued = Boolean((window.OfflineCheckinManager && window.OfflineCheckinManager.isItemQueued(i.id, sId, window.currentTripId)) || i.is_offline_queued);
-                return !(i.is_visited && i.visited_at && i.proof_status === 'approved');
+                return !hasSubmittedStopProof(i) && !isQueued;
             });
 
             items.forEach((item, idx) => {
@@ -1781,7 +1788,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                     return it;
                 });
                 window.currentTripItems = window.currentTrip.items;
-                const activeIndex = window.currentTripItems.findIndex(i => !(i.is_visited && i.visited_at && i.proof_status === 'approved'));
+                const activeIndex = window.currentTripItems.findIndex(i => !hasSubmittedStopProof(i));
                 if (typeof renderConveyorCards === 'function') {
                     renderConveyorCards(window.currentTripItems, activeIndex >= 0 ? activeIndex : 0);
                 }
@@ -1844,7 +1851,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                     return it;
                 });
                 window.currentTripItems = window.currentTrip.items;
-                const activeIndex = window.currentTripItems.findIndex(i => !(i.is_visited && i.visited_at && i.proof_status === 'approved'));
+                const activeIndex = window.currentTripItems.findIndex(i => !hasSubmittedStopProof(i));
                 if (typeof renderConveyorCards === 'function') {
                     renderConveyorCards(window.currentTripItems, activeIndex >= 0 ? activeIndex : 0);
                 }

@@ -177,6 +177,8 @@ class VoucherController extends Controller
                     'code'                     => $v->voucher_code,
                     'valid_from'               => $v->valid_from ? $v->valid_from->toIso8601String() : null,
                     'valid_from_formatted'     => $v->valid_from ? $v->valid_from->format('M d, Y') : null,
+                    'created_at'               => $v->created_at ? $v->created_at->toIso8601String() : null,
+                    'updated_at'               => $v->updated_at ? $v->updated_at->toIso8601String() : null,
                     'expiration_type'          => $expType,
                     'is_no_expiration'         => $isNoExpiration,
                     'expires'                  => $expiresIso,

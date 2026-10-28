@@ -450,6 +450,24 @@ $activeTab = 'profile';
         }
     };
 
+    function sortVouchersNewestFirst(vouchers, mode = 'claimed') {
+        const fields = mode === 'redeemed'
+            ? ['redeemed_at', 'updated_at', 'created_at', 'claimed_at']
+            : ['claimed_at', 'created_at', 'updated_at', 'valid_from'];
+        return [...(vouchers || [])].sort((a, b) => {
+            const timestamp = (voucher) => {
+                for (const field of fields) {
+                    const value = voucher && voucher[field];
+                    if (!value) continue;
+                    const parsed = new Date(String(value).replace(' ', 'T')).getTime();
+                    if (Number.isFinite(parsed)) return parsed;
+                }
+                return Number(voucher && (voucher.redemptionId || voucher.id || voucher.dbId)) || 0;
+            };
+            return timestamp(b) - timestamp(a);
+        });
+    }
+
     window.renderPointsAndVouchersData = function (d) {
         if (!d) return;
         const pointsBalance = (d.points !== undefined) ? d.points : (d.xp ?? 0);
@@ -484,12 +502,22 @@ $activeTab = 'profile';
                 const rUserId = Number(r.user_id || 0);
                 return !rUserId || !curId || rUserId === curId;
             });
-            const existingCodes = new Set(rawVouchers.map(v => (v.voucher_code || v.code || v.redemption_code || '').toUpperCase().trim()).filter(Boolean));
+            const existingByCode = new Map(rawVouchers.map(v => [
+                (v.voucher_code || v.code || v.redemption_code || '').toUpperCase().trim(),
+                v
+            ]).filter(([code]) => Boolean(code)));
             validRedemptions.forEach(r => {
                 const rCode = (r.voucher_code || r.code || r.redemption_code || '').toUpperCase().trim();
-                if (rCode && !existingCodes.has(rCode)) {
+                const existing = rCode ? existingByCode.get(rCode) : null;
+                if (existing) {
+                    const incomingStatus = String(r.status || '').toLowerCase();
+                    const existingStatus = String(existing.status || '').toLowerCase();
+                    if (['redeemed', 'used', 'completed'].includes(incomingStatus) && !['redeemed', 'used', 'completed'].includes(existingStatus)) {
+                        Object.assign(existing, r);
+                    }
+                } else if (rCode) {
                     rawVouchers.unshift(r);
-                    existingCodes.add(rCode);
+                    existingByCode.set(rCode, r);
                 }
             });
         }
@@ -514,8 +542,11 @@ $activeTab = 'profile';
             }
         });
 
-        window._cachedActiveVouchers = activeVouchers;
-        window._cachedHistoryVouchers = historyVouchers;
+        const sortedActiveVouchers = sortVouchersNewestFirst(activeVouchers, 'claimed');
+        const sortedHistoryVouchers = sortVouchersNewestFirst(historyVouchers, 'redeemed');
+
+        window._cachedActiveVouchers = sortedActiveVouchers;
+        window._cachedHistoryVouchers = sortedHistoryVouchers;
 
         // Sync claimed vouchers IDs scoped to this authenticated user
         try {
@@ -568,9 +599,9 @@ $activeTab = 'profile';
         const headerBtn = document.getElementById('view-all-vouchers-header-btn');
 
         if (badge) {
-            badge.textContent = `${activeVouchers.length} Active`;
+            badge.textContent = `${sortedActiveVouchers.length} Active`;
             badge.style.display = 'inline-flex';
-            if (activeVouchers.length > 0) {
+            if (sortedActiveVouchers.length > 0) {
                 badge.style.background = '#ecfdf5';
                 badge.style.borderColor = '#a7f3d0';
                 badge.style.color = '#047857';
@@ -581,14 +612,14 @@ $activeTab = 'profile';
             }
         }
         if (headerBtn) {
-            const totalCount = activeVouchers.length + historyVouchers.length;
+            const totalCount = sortedActiveVouchers.length + sortedHistoryVouchers.length;
             headerBtn.style.display = (totalCount > 0) ? 'inline-flex' : 'none';
         }
 
         // Render Active Vouchers on profile card (ONLY active, NOT redeemed)
         if (list) {
-            if (activeVouchers.length > 0) {
-                const displayVouchers = activeVouchers.slice(0, 2);
+            if (sortedActiveVouchers.length > 0) {
+                const displayVouchers = sortedActiveVouchers.slice(0, 2);
                 let html = '';
                 displayVouchers.forEach(v => {
                     const voucherTitle = v.type === 'pasalubong_discount' ? '₱50 Pasalubong Discount' : (v.type === 'environmental_fee' ? 'Waived Environmental Fee' : (v.title || v.voucher_name || v.name || v.type || 'Tourist Voucher'));
@@ -624,8 +655,8 @@ $activeTab = 'profile';
                 list.innerHTML = html;
             } else {
                 let emptyHistoryMsg = '';
-                if (historyVouchers.length > 0) {
-                    emptyHistoryMsg = `<div style="margin-top: 10px;"><button type="button" onclick="window.openFullVouchersModal('all')" style="background: #eff6ff !important; border: 1px solid #bfdbfe !important; color: #1e3a8a !important; padding: 6px 14px; border-radius: 100px; font-size: 11.5px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;"><i class="fa-solid fa-ticket"></i> View All Vouchers (${historyVouchers.length} History)</button></div>`;
+                if (sortedHistoryVouchers.length > 0) {
+                    emptyHistoryMsg = `<div style="margin-top: 10px;"><button type="button" onclick="window.openFullVouchersModal('all')" style="background: #eff6ff !important; border: 1px solid #bfdbfe !important; color: #1e3a8a !important; padding: 6px 14px; border-radius: 100px; font-size: 11.5px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;"><i class="fa-solid fa-ticket"></i> View All Vouchers (${sortedHistoryVouchers.length} History)</button></div>`;
                 }
                 list.innerHTML = `<div style="font-size:12.5px; color:#64748b; font-weight:600; text-align:center; padding:18px; background:#f8fafc !important; border:1.5px dashed #cbd5e1 !important; border-radius:14px;">No active vouchers right now.${emptyHistoryMsg}</div>`;
             }
@@ -746,8 +777,9 @@ $activeTab = 'profile';
             return true;
         });
 
-        window._profileAvailableVouchers = availableVouchers;
-        window._profileVouchersList = availableVouchers;
+        const newestAvailableVouchers = sortVouchersNewestFirst(availableVouchers, 'claimed');
+        window._profileAvailableVouchers = newestAvailableVouchers;
+        window._profileVouchersList = newestAvailableVouchers;
 
         if (availableVouchers.length === 0) {
             catalogEl.innerHTML = `
@@ -757,7 +789,7 @@ $activeTab = 'profile';
             return;
         }
 
-        const topVouchers = availableVouchers;
+        const topVouchers = newestAvailableVouchers;
         catalogEl.innerHTML = topVouchers.map((v, idx) => {
             const ptsCost = parseInt(v.pointsCost || v.required_points || 100);
             return `
@@ -787,7 +819,7 @@ $activeTab = 'profile';
             if (typeof window.handleDealsModalSearch === 'function') {
                 window.handleDealsModalSearch(searchInput ? searchInput.value : '');
             } else {
-                window.renderFullDealsList(availableVouchers);
+                window.renderFullDealsList(newestAvailableVouchers);
             }
         }
     };
@@ -1665,7 +1697,7 @@ $activeTab = 'profile';
         modal.style.display = 'flex';
 
         if (typeof fetchPointsAndVouchers === 'function') {
-            fetchPointsAndVouchers(false);
+            fetchPointsAndVouchers(true);
         }
     };
 

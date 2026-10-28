@@ -5,6 +5,7 @@ const vm = require('node:vm');
 
 const source = fs.readFileSync(path.join(__dirname, '..', 'src', 'views', 'discount.php'), 'utf8');
 const profileSource = fs.readFileSync(path.join(__dirname, '..', 'src', 'views', 'profile.php'), 'utf8');
+const pointsControllerSource = fs.readFileSync(path.join(__dirname, '..', '..', '..', 'backend', 'app', 'Http', 'Controllers', 'Tourist', 'PointsController.php'), 'utf8');
 const mainSource = fs.readFileSync(path.join(__dirname, '..', 'src', 'assets', 'js', 'main.js'), 'utf8');
 const start = source.indexOf('function isVoucherUpcoming');
 const end = source.indexOf('function isVoucherFullyClaimed', start);
@@ -82,5 +83,37 @@ assert.match(profileSource, /fetch\(backendUrl \+ '\/api\/vouchers\?fresh=' \+ D
     'profile voucher catalog fetch must bust proxy/CDN cache');
 assert.match(profileSource, /JSON\.stringify\(\{ data: vouchersPayload\.data, timestamp: Date\.now\(\) \}\)/,
     'profile and discount views must share the same cached voucher shape');
+
+const voucherSortStart = profileSource.indexOf('function sortVouchersNewestFirst');
+const voucherSortEnd = profileSource.indexOf('window.renderPointsAndVouchersData', voucherSortStart);
+assert.ok(voucherSortStart >= 0 && voucherSortEnd > voucherSortStart,
+    'profile must provide deterministic newest-first voucher sorting');
+const voucherSortContext = { Date, Number };
+vm.createContext(voucherSortContext);
+vm.runInContext(profileSource.slice(voucherSortStart, voucherSortEnd), voucherSortContext);
+assert.deepEqual(
+    Array.from(voucherSortContext.sortVouchersNewestFirst([
+        { id: 1, claimed_at: '2026-10-20T09:00:00+08:00' },
+        { id: 2, claimed_at: '2026-10-28T09:00:00+08:00' }
+    ], 'claimed'), voucher => voucher.id),
+    [2, 1],
+    'My Vouchers preview must show the latest claimed voucher first'
+);
+assert.deepEqual(
+    Array.from(voucherSortContext.sortVouchersNewestFirst([
+        { id: 1, redeemed_at: '2026-10-28T08:00:00+08:00' },
+        { id: 2, redeemed_at: '2026-10-28T10:00:00+08:00' }
+    ], 'redeemed'), voucher => voucher.id),
+    [2, 1],
+    'voucher history must show the latest redeemed voucher first'
+);
+assert.match(profileSource, /const displayVouchers = sortedActiveVouchers\.slice\(0, 2\)/,
+    'profile My Vouchers preview must contain the two latest claimed vouchers');
+assert.match(profileSource, /window\.openFullVouchersModal[\s\S]*?fetchPointsAndVouchers\(true\)/,
+    'opening My Vouchers must force a live refresh instead of accepting cached data');
+assert.match(profileSource, /Default: 'all' -> shows BOTH active vouchers and history vouchers[\s\S]*?activeVouchers\.map\(renderActiveCard\)[\s\S]*?historyVouchers\.map\(renderHistoryCard\)/,
+    'the All tab must include every claimed and redeemed voucher');
+assert.match(pointsControllerSource, /\['redeemed', 'used', 'completed'\][\s\S]*?redeemed_at[\s\S]*?claimed_at/,
+    'backend voucher ordering must use the appropriate redeemed or claimed timestamp');
 
 console.log('mobile voucher sync tests passed');

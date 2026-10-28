@@ -466,7 +466,9 @@ class PointsController extends Controller
                         'voucher_redemptions.redemption_code as voucher_code',
                         'voucher_redemptions.status',
                         'voucher_redemptions.redeemed_at',
+                        'voucher_redemptions.claimed_at',
                         'voucher_redemptions.created_at',
+                        'voucher_redemptions.updated_at',
                         'vouchers.partner_establishment',
                         'vouchers.description',
                         'vouchers.discount_value',
@@ -527,8 +529,12 @@ class PointsController extends Controller
                     'points_cost' => (int) ($pr->points_cost ?? 0),
                     'voucher_code' => $pr->voucher_code,
                     'status' => $pr->status ?? 'active',
-                    'redeemed_at' => null,
+                    'redeemed_at' => in_array(strtolower($pr->status ?? ''), ['redeemed', 'used', 'completed'])
+                        ? ($pr->updated_at ? $pr->updated_at->toIso8601String() : null)
+                        : null,
+                    'claimed_at' => $pr->created_at ? $pr->created_at->toIso8601String() : null,
                     'created_at' => $pr->created_at ? $pr->created_at->toIso8601String() : now()->toIso8601String(),
+                    'updated_at' => $pr->updated_at ? $pr->updated_at->toIso8601String() : null,
                     'partner_establishment' => 'LUPTO Eco Tourism',
                     'description' => $type === 'pasalubong_discount' ? '₱50 Pasalubong Discount' : ($type === 'environmental_fee' ? 'Waived Environmental Fee' : 'Tourist Voucher'),
                     'discount_value' => '50.00',
@@ -541,7 +547,13 @@ class PointsController extends Controller
                 ]);
             }
 
-            return $merged->sortByDesc('created_at')->values();
+            return $merged->sortByDesc(function ($voucher) {
+                $status = strtolower($voucher->status ?? '');
+                $date = in_array($status, ['redeemed', 'used', 'completed'])
+                    ? ($voucher->redeemed_at ?? $voucher->updated_at ?? $voucher->created_at ?? null)
+                    : ($voucher->claimed_at ?? $voucher->created_at ?? $voucher->updated_at ?? null);
+                return $date ? strtotime((string) $date) : 0;
+            })->values();
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::warning('PointsController getUserVouchers error: ' . $e->getMessage());
             return collect();

@@ -24,10 +24,10 @@ class ItineraryItemController extends Controller
         return ItineraryItem::where('itinerary_id', $item->itinerary_id)
             ->where('order_index', '<', $item->order_index)
             ->where(function ($query) {
-                $query->where('is_visited', false)
-                    ->orWhereNull('visited_at')
-                    ->orWhereNull('proof_status')
-                    ->orWhere('proof_status', '!=', 'approved');
+                $query->whereNull('visited_at')
+                    ->orWhereNull('proof_image')
+                    ->orWhere('proof_image', '')
+                    ->orWhere('proof_status', 'rejected');
             })
             ->exists();
     }
@@ -35,7 +35,7 @@ class ItineraryItemController extends Controller
     private function lockedStopResponse(): JsonResponse
     {
         return response()->json([
-            'message' => 'Complete the previous destination before checking in or uploading proof for this stop.',
+            'message' => 'Check in and submit proof for the previous destination before continuing to this stop.',
         ], 409);
     }
 

@@ -92,11 +92,17 @@ assert.match(trips, /function hasConfirmedProofSubmission\(item\)[\s\S]*proofSta
 const proofGuardStart = trips.indexOf('function hasConfirmedProofSubmission(item)');
 const proofGuardEnd = trips.indexOf('const SAVED_TRIP_CHECKIN_RADIUS_METERS', proofGuardStart);
 const proofGuardContext = {};
-vm.runInNewContext(`${trips.slice(proofGuardStart, proofGuardEnd)}; this.hasConfirmedProofSubmission = hasConfirmedProofSubmission;`, proofGuardContext);
+vm.runInNewContext(`${trips.slice(proofGuardStart, proofGuardEnd)}; this.hasConfirmedProofSubmission = hasConfirmedProofSubmission; this.hasProgressedPastStop = hasProgressedPastStop;`, proofGuardContext);
 assert.equal(proofGuardContext.hasConfirmedProofSubmission({ proof_status: 'pending', proof_images: [] }), false,
     'a fresh draft with a stale pending label must retain Start Trip');
 assert.equal(proofGuardContext.hasConfirmedProofSubmission({ proof_status: 'pending', proof_images: ['proof.jpg'] }), true,
     'a genuinely submitted pending proof may hide Start Trip');
+assert.equal(proofGuardContext.hasProgressedPastStop({ visited_at: '2026-10-29T00:00:00Z', proof_status: 'pending', proof_images: ['proof.jpg'] }), true,
+    'a checked-in stop with pending proof must unlock the next destination');
+assert.equal(proofGuardContext.hasProgressedPastStop({ visited_at: '2026-10-29T00:00:00Z', proof_status: 'pending', proof_images: [] }), false,
+    'check-in without submitted proof must not unlock the next destination');
+assert.equal(proofGuardContext.hasProgressedPastStop({ visited_at: '2026-10-29T00:00:00Z', proof_status: 'rejected', proof_images: ['proof.jpg'] }), false,
+    'a rejected proof must lock route progression until it is resubmitted');
 assert.match(trips, /is_queued: Boolean\(it\.is_offline_queued \|\| \(previous && previous\.is_queued\)\)/,
     'queued proof state must survive cache merging without being mistaken for a confirmed submission');
 assert.match(trips, /items\.length > 0 && items\.every\(hasConfirmedProofSubmission\)/,
@@ -125,6 +131,8 @@ assert.doesNotMatch(trips, /window\._savedTripsInterval = setInterval/,
     'Saved Trips and Trip History must not poll in the background');
 assert.doesNotMatch(trips, /addEventListener\('(?:visibilitychange|focus)'[\s\S]*fetchSavedTrips/,
     'focus and visibility events must not cause unnecessary Saved Trips requests');
+assert.doesNotMatch(trips, /addEventListener\('(?:tripsSynced|checkins-synced|offlineTripQueued)'[\s\S]{0,250}fetchSavedTrips/,
+    'global sync events must not spam Saved Trips with duplicate refreshes');
 assert.match(trips, /Single initial request[\s\S]*window\.fetchSavedTrips\(false\)\.finally/,
     'opening Saved Trips must issue one guarded initial request');
 assert.match(trips, /saved-trips-loading-state[\s\S]*Loading Your Trips/,
@@ -139,6 +147,8 @@ assert.match(trips, /reviewItems\.length === 1[\s\S]*startReviewFromCompletion/,
     'a one-stop trip must open Review Destination directly from Complete');
 assert.match(testimony, /isCompletionReview[\s\S]*Review Destination[\s\S]*Save Review/,
     'completion reviews must use Review Destination and Save Review labels');
+assert.match(testimony, /response\.json\(\)\.catch\(\(\) => \(\{\}\)\)/,
+    'review submission must handle non-JSON backend errors without breaking the modal');
 assert.match(trips, /spot-reviewed[\s\S]*remaining\.length === 0[\s\S]*finishTripAfterReviews/,
     'saving the final required review must finish the trip automatically');
 assert.match(trips, /Review every destination before completing[\s\S]*Complete Trip/,
@@ -153,6 +163,14 @@ assert.match(trips, /timeout: 7000, maximumAge: 30000/,
     'saved-trip check-in must allow a recent GPS fix and use a shorter timeout');
 assert.match(tripMap, /lockCheckedInButton[\s\S]*Checked In[\s\S]*removeAttribute\('onclick'\)/,
     'successful trip-map check-in must become inactive immediately');
+const tripProgressStart = tripMap.indexOf('function hasSubmittedStopProof(item)');
+const tripProgressEnd = tripMap.indexOf('function renderConveyorCards', tripProgressStart);
+const tripProgressContext = {};
+vm.runInNewContext(`${tripMap.slice(tripProgressStart, tripProgressEnd)}; this.hasSubmittedStopProof = hasSubmittedStopProof;`, tripProgressContext);
+assert.equal(tripProgressContext.hasSubmittedStopProof({ is_location_verified: true, proof_status: 'pending', proof_image: 'proof.jpg' }), true,
+    'Trip Map must advance to the next stop while submitted proof awaits approval');
+assert.equal(tripProgressContext.hasSubmittedStopProof({ is_location_verified: true, proof_status: 'rejected', proof_image: 'proof.jpg' }), false,
+    'Trip Map must not advance past rejected proof');
 assert.match(main, /transientNavClasses[\s\S]*classList\.remove\(\.\.\.transientNavClasses\)/,
     'navigation must clear stale modal and keyboard visibility state between screens');
 assert.doesNotMatch(main, /noNavViews = \[[^\]]*'saved_trips'/,

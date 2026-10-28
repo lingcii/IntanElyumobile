@@ -484,7 +484,7 @@ window.submitTestimony = async function(event) {
             })
         });
 
-        const data = await response.json();
+        const data = await response.json().catch(() => ({}));
         if (response.ok) {
             window.closeWriteTestimonyModal(true);
 
@@ -595,7 +595,7 @@ window.submitTestimony = async function(event) {
 
             if (typeof fetchTestimonies === 'function') fetchTestimonies(spotId);
         } else {
-            if (typeof showToast === 'function') showToast(data.message || "Failed to submit review.");
+            if (typeof showToast === 'function') showToast(data.message || `Failed to submit review (${response.status}).`);
         }
     } catch (error) {
         console.error("Testimony submission error:", error);

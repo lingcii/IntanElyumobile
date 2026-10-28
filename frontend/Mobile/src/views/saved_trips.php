@@ -1098,6 +1098,12 @@ $backRoute = 'itinerary';
                 (hasServerProof && hasConfirmedCheckin);
         }
 
+        function hasProgressedPastStop(item) {
+            if (!item) return false;
+            const hasCheckin = Boolean(item.is_location_verified || item.visited_at);
+            return hasCheckin && hasConfirmedProofSubmission(item) && String(item.proof_status || '').toLowerCase() !== 'rejected';
+        }
+
         function shouldHideStartTripForTrip(trip) {
             const items = trip && Array.isArray(trip.items) ? trip.items.filter(Boolean) : [];
             return items.length > 0 && items.every(hasConfirmedProofSubmission);
@@ -1483,7 +1489,7 @@ $backRoute = 'itinerary';
                         const isTripCompleted = (trip.status === 'completed');
                         if (trip.items && trip.items.length) {
                             const sortedTripItems = [...trip.items].sort((a, b) => (a.order_index || 0) - (b.order_index || 0));
-                            const firstUnvisitedIdx = sortedTripItems.findIndex(i => !(i.is_visited && i.visited_at && i.proof_status === 'approved'));
+                            const firstUnvisitedIdx = sortedTripItems.findIndex(i => !hasProgressedPastStop(i));
                             sortedTripItems.forEach((item, index) => {
                                 if (!item) return;
                                 const dest = item.destination || (typeof window.getTouristSpotById === 'function' ? window.getTouristSpotById(item.tourist_spot_id) : null);
@@ -1533,7 +1539,7 @@ $backRoute = 'itinerary';
                                 const isRejected = (proofStatus === 'rejected');
                                 const isPendingProof = !isApproved && !isRejected && !isCheckinQueued && hasProof && (proofStatus === 'pending');
                                 const isNextStop = (!isApproved && !isPendingProof && !isCheckinQueued && index === firstUnvisitedIdx);
-                                const isStopUnlocked = isApproved || isCheckinQueued || index === firstUnvisitedIdx;
+                                const isStopUnlocked = isApproved || isCheckinQueued || hasProgressedPastStop(item) || index === firstUnvisitedIdx;
                                 if (!isApproved && !isCheckinQueued) unvisitedCount++;
 
                                 // Build multi-photo gallery strip
@@ -4117,15 +4123,10 @@ $backRoute = 'itinerary';
             window._savedTripsInterval = null;
         }
 
-        // Refresh only after data-changing sync operations. Opening the view is
-        // handled once at the end of this script; focus and visibility do not fetch.
+        // Opening the view makes one guarded request. Sync managers update local
+        // state themselves, so global sync events must not trigger extra refetches.
         if (!window._savedTripsVisibilityBound) {
             window._savedTripsVisibilityBound = true;
-            window.addEventListener('checkins-synced', () => {
-                if (document.body.getAttribute('data-view') === 'saved_trips') {
-                    window.fetchSavedTrips(false);
-                }
-            });
 
             function updateSavedTripsOfflineStatus() {
                 var badge = document.getElementById('saved-trips-offline-badge');
@@ -4147,16 +4148,6 @@ $backRoute = 'itinerary';
             window.addEventListener('offline', updateSavedTripsOfflineStatus);
             window.addEventListener('appOnline', updateSavedTripsOfflineStatus);
             window.addEventListener('appOffline', updateSavedTripsOfflineStatus);
-            window.addEventListener('tripsSynced', () => {
-                if (document.body.getAttribute('data-view') === 'saved_trips' && typeof window.fetchSavedTrips === 'function') {
-                    window.fetchSavedTrips(false);
-                }
-            });
-            window.addEventListener('offlineTripQueued', () => {
-                if (document.body.getAttribute('data-view') === 'saved_trips' && typeof window.fetchSavedTrips === 'function') {
-                    window.fetchSavedTrips(false);
-                }
-            });
             window.addEventListener('tripDeleted', (e) => {
                 const deletedId = e?.detail?.id;
                 if (!deletedId) return;

@@ -8,6 +8,10 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::hasColumn('site_feedbacks', 'itinerary_item_id')) {
+            return;
+        }
+
         Schema::table('site_feedbacks', function (Blueprint $table) {
             $table->foreignId('itinerary_item_id')
                 ->nullable()
@@ -20,6 +24,10 @@ return new class extends Migration
 
     public function down(): void
     {
+        if (!Schema::hasColumn('site_feedbacks', 'itinerary_item_id')) {
+            return;
+        }
+
         Schema::table('site_feedbacks', function (Blueprint $table) {
             $table->dropIndex(['user_id', 'itinerary_item_id']);
             $table->dropConstrainedForeignId('itinerary_item_id');

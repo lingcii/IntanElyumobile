@@ -11,16 +11,18 @@ const feedbackController = fs.readFileSync(path.join(__dirname, '..', '..', '..'
 
 assert.match(itinerary, /id="trip-transport" value="no_vehicle"/,
     'a new draft must default to no vehicle');
-assert.doesNotMatch(itinerary, /hasMissingVehicle[\s\S]*Please choose vehicle type\./,
-    'Save Draft must allow the explicit no-vehicle default');
+assert.match(itinerary, /openSaveModal[\s\S]*Please choose a vehicle before saving your draft plan\.[\s\S]*Vehicle Required[\s\S]*return;/,
+    'Save Draft must show a modal and stop when no vehicle is selected');
 assert.match(itinerary, /if \(window\._isSubmittingItinerary\) return;[\s\S]*window\._isSubmittingItinerary = true;[\s\S]*window\._isSubmittingItinerary = false;/,
     'Save Trip must ignore repeated submissions until the active request finishes');
 assert.match(itinerary, /client_request_id: clientRequestId/,
     'new trips must carry a stable idempotency key into online and offline retries');
 assert.match(itineraryController, /client_request_id[\s\S]*idempotencyCacheKey[\s\S]*Cache::put\(\$idempotencyCacheKey, \$itinerary->id/,
     'the backend must resolve retried Save Trip requests to the original itinerary');
+assert.match(itemController, /hasIncompletePreviousStop[\s\S]*whereNull\('visited_at'\)[\s\S]*orWhereNull\('proof_image'\)[\s\S]*orWhere\('proof_status', 'rejected'\)/,
+    'the backend must unlock the next stop after check-in and proof submission, even while approval is pending');
 assert.match(itemController, /MAX_DISTANCE_METERS = 70[\s\S]*hasIncompletePreviousStop[\s\S]*lockedStopResponse/,
-    'the backend must enforce the 70-meter radius and sequential stop order');
+    'the backend must still enforce the 70-meter radius and sequential stop order');
 assert.match(itineraryController, /whereIn\('itinerary_item_id'[\s\S]*DB::transaction[\s\S]*increment\('visits', \$paxIncrement\)/,
     'completion must require per-stop reviews and count the full party exactly once');
 assert.match(feedbackController, /itinerary_item_id[\s\S]*whereHas\('itinerary'[\s\S]*updateOrCreate/,
@@ -31,5 +33,9 @@ assert.match(map, /if \(opState\.isMaint\)[\s\S]*addItinBtn\.disabled = true[\s\
     'Maintenance destinations must disable Add to Trip');
 assert.match(map, /if \(opState\.isMaint\) \{[\s\S]*under maintenance and cannot be added to a trip[\s\S]*return;/,
     'Add-to-trip handler must reject maintenance destinations');
+assert.doesNotMatch(map, /id="sheet-open-badge"/,
+    'the image overlay must not show an Open 24/7 badge');
+assert.match(map, /quick-stat-label">Points[\s\S]*id="sheet-points"[\s\S]*rewardPoints[\s\S]*Points/,
+    'the former Hours quick stat must show destination reward points');
 
 console.log('Itinerary guardrail checks passed.');
