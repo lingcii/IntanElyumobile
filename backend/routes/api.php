@@ -564,16 +564,6 @@ Route::prefix('admin')->middleware('tourist.auth')->group(function () {
             } catch (\Throwable $e) {}
         }
 
-        if ($item->tourist_spot_id) {
-            try {
-                $spot = TouristSpot::find($item->tourist_spot_id);
-                if ($spot) {
-                    $paxIncrement = max(1, (int) ($item->total_pax ?? $item->itinerary?->total_pax ?? 1));
-                    $spot->increment('visits', $paxIncrement);
-                }
-            } catch (\Throwable $e) {}
-        }
-
         return response()->json([
             'success' => true,
             'message' => "Proof check-in approved successfully! +{$rewardPoints} Points ({$canonical}) awarded to tourist.",
@@ -1042,16 +1032,6 @@ foreach (['lupto', 'pitco', 'picto', 'municipal'] as $rolePrefix) {
                 } catch (\Throwable $e) {}
             }
 
-            if ($item->tourist_spot_id) {
-                try {
-                    $spot = TouristSpot::find($item->tourist_spot_id);
-                    if ($spot) {
-                        $paxIncrement = max(1, (int) ($item->total_pax ?? $item->itinerary?->total_pax ?? 1));
-                        $spot->increment('visits', $paxIncrement);
-                    }
-                } catch (\Throwable $e) {}
-            }
-
             return response()->json([
                 'success' => true,
                 'message' => "Proof check-in approved successfully! +{$rewardPoints} Points ({$canonical}) awarded to tourist.",
@@ -1120,7 +1100,7 @@ Route::get('/weather', [WeatherController::class, 'getWeather']);
 Route::get('/seasons/status', [\App\Http\Controllers\SeasonController::class, 'getStatus']);
 Route::get('/seasons', [\App\Http\Controllers\SeasonController::class, 'index']);
 
-// Helper function for 200m radius distance calculation
+// Helper function for check-in radius distance calculation
 $validateSpotCheckinRadius = function (\Illuminate\Http\Request $request, $spot) {
     if (!$spot || !$spot->latitude || !$spot->longitude) {
         return null;
@@ -1142,14 +1122,14 @@ $validateSpotCheckinRadius = function (\Illuminate\Http\Request $request, $spot)
     $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
     $distanceMeters = $earthRadius * $c;
 
-    if ($distanceMeters > 200) {
+    if ($distanceMeters > 70) {
         return [
             'status' => 'error',
-            'message' => "You're too far from {$spot->name}. Get within 200m to check in! 📍",
+            'message' => "You're too far from {$spot->name}. Get within 70m to check in! 📍",
             'distance' => round($distanceMeters) . 'm away',
             'distance_m' => round($distanceMeters),
-            'required' => '200m',
-            'required_m' => 200,
+            'required' => '70m',
+            'required_m' => 70,
         ];
     }
     return null;
@@ -1642,8 +1622,6 @@ Route::get('/lupto/tourists', $touristsHandler);
 Route::get('/picto/tourists', $touristsHandler);
 Route::get('/pitco/tourists', $touristsHandler);
 Route::get('/municipal/tourists', $touristsHandler);
-
-
 
 
 

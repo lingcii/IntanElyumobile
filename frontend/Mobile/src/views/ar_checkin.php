@@ -150,7 +150,7 @@ $hideBottomNav = true; // Hide bottom nav for full immersive view
 
             document.getElementById('btn-scan').innerHTML = '<i class="fa-solid fa-spinner spinning"></i>';
 
-            // STRICT 200M RADIUS CHECK (Applies to both OFFLINE and ONLINE!)
+            // Strict 70m radius check (applies to both offline and online)
             if (spotLat !== null && spotLng !== null && !isNaN(spotLat) && !isNaN(spotLng)) {
                 const R = 6371e3;
                 const φ1 = userLat * Math.PI / 180;
@@ -160,11 +160,11 @@ $hideBottomNav = true; // Hide bottom nav for full immersive view
                 const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
                 const dist = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
-                if (dist > 200) {
+                if (dist > 70) {
                     const distM = Math.round(dist);
                     const distKm = (dist / 1000).toFixed(1);
                     const displayDist = dist >= 1000 ? `${distKm} km` : `${distM} meters`;
-                    alert(`⚠️ Too far! You are ${displayDist} away from this tourist site. You must be within 200m to check in! 📍`);
+                    alert(`⚠️ Too far! You are ${displayDist} away from this tourist site. You must be within 70m to check in! 📍`);
                     document.getElementById('btn-scan').innerHTML = '';
                     return; // Blocked!
                 }

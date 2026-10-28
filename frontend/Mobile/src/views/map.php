@@ -5454,12 +5454,12 @@ if (is_dir($imgDir)) {
                 const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
                 const dist = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
-                if (dist > 200) {
+                if (dist > 70) {
                     const distM = Math.round(dist);
                     const distKm = (dist / 1000).toFixed(1);
                     const displayDist = dist >= 1000 ? `${distKm} km` : `${distM} meters`;
                     if (typeof showToast === 'function') {
-                        showToast(`⚠️ You are ${displayDist} away from ${dest.name}. You must be within 200m of the tourist site to check in! 📍`, 'warning', 4500);
+                        showToast(`⚠️ You are ${displayDist} away from ${dest.name}. You must be within 70m of the tourist site to check in! 📍`, 'warning', 4500);
                     }
                     if (btn) { btn.innerHTML = origHtml; btn.disabled = false; }
                     return;

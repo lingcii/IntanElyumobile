@@ -15,9 +15,29 @@ class ItineraryItemController extends Controller
     private const XP_PER_VISIT = 50;
 
     /**
-     * Maximum allowed distance (in meters) for a valid GPS check-in (200m radius).
+     * Maximum allowed distance (in meters) for a valid GPS check-in.
      */
-    private const MAX_DISTANCE_METERS = 200;
+    private const MAX_DISTANCE_METERS = 70;
+
+    private function hasIncompletePreviousStop(ItineraryItem $item): bool
+    {
+        return ItineraryItem::where('itinerary_id', $item->itinerary_id)
+            ->where('order_index', '<', $item->order_index)
+            ->where(function ($query) {
+                $query->where('is_visited', false)
+                    ->orWhereNull('visited_at')
+                    ->orWhereNull('proof_status')
+                    ->orWhere('proof_status', '!=', 'approved');
+            })
+            ->exists();
+    }
+
+    private function lockedStopResponse(): JsonResponse
+    {
+        return response()->json([
+            'message' => 'Complete the previous destination before checking in or uploading proof for this stop.',
+        ], 409);
+    }
 
     /**
      * Helper to store multiple proof photos, compressing to WebP and uploading to R2 / local.
@@ -81,6 +101,10 @@ class ItineraryItemController extends Controller
 
             if (!$item) {
                 return response()->json(['message' => 'Itinerary item not found or unauthorized.'], 404);
+            }
+
+            if ($this->hasIncompletePreviousStop($item)) {
+                return $this->lockedStopResponse();
             }
 
             $spot = $item->destination;
@@ -162,13 +186,6 @@ class ItineraryItemController extends Controller
                 'total_pax'            => $totalPax,
             ]);
 
-            // Increment spot visits by totalPax so companions who didn't use the app are counted
-            try {
-                if ($spot) {
-                    $spot->increment('visits', $totalPax);
-                }
-            } catch (\Throwable $e) {}
-
             try {
                 $shouldUpdatePing = !$user->last_gps_ping_at || ($effectiveTime->gte(Carbon::parse($user->last_gps_ping_at)));
                 if ($shouldUpdatePing) {
@@ -219,6 +236,11 @@ class ItineraryItemController extends Controller
 
             if (!$item) {
                 return response()->json(['message' => 'Itinerary item not found or unauthorized.'], 404);
+            }
+
+
+            if ($this->hasIncompletePreviousStop($item)) {
+                return $this->lockedStopResponse();
             }
 
             // Gather all uploaded files (supports 'images[]', 'images', or single 'image')
@@ -299,6 +321,11 @@ class ItineraryItemController extends Controller
 
             if (!$item) {
                 return response()->json(['message' => 'Itinerary item not found or unauthorized.'], 404);
+            }
+
+
+            if ($this->hasIncompletePreviousStop($item)) {
+                return $this->lockedStopResponse();
             }
 
             $hasIncomingPhotos = $request->hasFile('images') || $request->hasFile('image');
@@ -413,12 +440,6 @@ class ItineraryItemController extends Controller
 
             $item->update($itemData);
             $item->refresh();
-
-            try {
-                if ($spot) {
-                    $spot->increment('visits', $totalPax);
-                }
-            } catch (\Throwable $e) {}
 
             try {
                 $shouldUpdatePing = !$user->last_gps_ping_at || ($effectiveTime->gte(Carbon::parse($user->last_gps_ping_at)));

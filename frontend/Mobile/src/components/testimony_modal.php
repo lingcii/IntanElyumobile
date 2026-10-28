@@ -114,6 +114,7 @@
 <script>
 // Global Set of Spot IDs already reviewed by the current user
 window.userReviewedSpotIds = window.userReviewedSpotIds || new Set();
+window.userReviewedItemIds = window.userReviewedItemIds || new Set();
 window.userReviewedSpotData = window.userReviewedSpotData || {};
 
 // Classification to Reward Points & Theme configuration
@@ -147,6 +148,9 @@ window.fetchUserReviewedSpots = async function() {
             if (json && json.data && Array.isArray(json.data)) {
                 json.data.forEach(id => window.userReviewedSpotIds.add(Number(id)));
             }
+            if (json && Array.isArray(json.reviewed_item_ids)) {
+                json.reviewed_item_ids.forEach(id => window.userReviewedItemIds.add(Number(id)));
+            }
             if (json && json.reviews) {
                 window.userReviewedSpotData = Object.assign({}, window.userReviewedSpotData, json.reviews);
             }
@@ -164,7 +168,11 @@ window.syncReviewedButtons = function() {
     if (!window.userReviewedSpotIds) return;
     document.querySelectorAll('[data-spot-id]').forEach(btn => {
         const spotId = Number(btn.getAttribute('data-spot-id'));
-        if (spotId && window.userReviewedSpotIds.has(spotId)) {
+        const itemId = Number(btn.getAttribute('data-itinerary-item-id'));
+        const isReviewed = itemId
+            ? window.userReviewedItemIds.has(itemId)
+            : (spotId && window.userReviewedSpotIds.has(spotId));
+        if (isReviewed) {
             btn.innerHTML = '<i class="fa-solid fa-check" style="font-size:10px; margin-right:4px;"></i> Reviewed';
             btn.style.background = '#e2e8f0';
             btn.style.color = '#64748b';
@@ -175,18 +183,21 @@ window.syncReviewedButtons = function() {
     });
 };
 
-window.openWriteTestimonyModal = function(spotId, btnEl) {
+window.openWriteTestimonyModal = function(spotId, btnEl, itineraryItemId = null) {
     if (btnEl) {
         window._lastReviewedBtn = btnEl;
     }
     const targetSpotId = spotId || window.currentSelectedSpotId;
+    window.currentReviewItineraryItemId = itineraryItemId ? Number(itineraryItemId) : null;
     if (targetSpotId) {
         window.currentSelectedSpotId = targetSpotId;
         const spotInput = document.getElementById('testimony-spot-id');
         if (spotInput) spotInput.value = targetSpotId;
     }
 
-    const isAlreadyReviewed = targetSpotId && window.userReviewedSpotIds && window.userReviewedSpotIds.has(Number(targetSpotId));
+    const isAlreadyReviewed = window.currentReviewItineraryItemId
+        ? window.userReviewedItemIds.has(window.currentReviewItineraryItemId)
+        : (targetSpotId && window.userReviewedSpotIds && window.userReviewedSpotIds.has(Number(targetSpotId)));
     const isCompletionReview = window._isCompletionReviewFlow === true;
     const titleEl = document.getElementById('testimony-modal-title');
     const subEl = document.getElementById('testimony-modal-subtitle');
@@ -464,6 +475,7 @@ window.submitTestimony = async function(event) {
             },
             body: JSON.stringify({
                 tourist_spot_id: spotId,
+                itinerary_item_id: window.currentReviewItineraryItemId,
                 rating: rating,
                 testimony: testimony,
                 policy_recommendation: policy,
@@ -488,6 +500,9 @@ window.submitTestimony = async function(event) {
                     cleanliness_level: cleanliness,
                     safety_level: safety
                 };
+            }
+            if (window.currentReviewItineraryItemId) {
+                window.userReviewedItemIds.add(Number(window.currentReviewItineraryItemId));
             }
 
             if (isRewardAwarded) {
@@ -575,7 +590,7 @@ window.submitTestimony = async function(event) {
 
             // Dispatch global spot-reviewed event
             window.dispatchEvent(new CustomEvent('spot-reviewed', { 
-                detail: { spotId: spotId, rewardAwarded: isRewardAwarded } 
+                detail: { spotId: spotId, itineraryItemId: window.currentReviewItineraryItemId, rewardAwarded: isRewardAwarded }
             }));
 
             if (typeof fetchTestimonies === 'function') fetchTestimonies(spotId);

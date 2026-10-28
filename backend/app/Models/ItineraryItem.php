@@ -136,9 +136,6 @@ class ItineraryItem extends Model
                 $user = $item->itinerary ? $item->itinerary->user : null;
 
                 if ($spot && $user) {
-                    // Increment spot visit count
-                    $spot->increment('visits');
-
                     // Determine Points & XP based on classification status
                     $rewardPoints = \App\Models\Classification::getPointsForStatus($spot->classification_status);
                     $canonical = \App\Models\Classification::normalizeStatus($spot->classification_status);

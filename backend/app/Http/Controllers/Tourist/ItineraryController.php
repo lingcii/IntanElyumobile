@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Tourist;
 use App\Http\Controllers\Controller;
 use App\Models\Itinerary;
 use App\Models\ItineraryItem;
+use App\Models\SiteFeedback;
 use App\Models\TouristSpot;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -521,10 +522,21 @@ class ItineraryController extends Controller
         $user = $request->user();
         $itinerary = Itinerary::where('user_id', $user->id)->findOrFail($id);
 
-        // Ensure tourist cannot complete trip unless all destinations have been visited or checked in on-site
+        if ($itinerary->status === 'completed') {
+            return response()->json([
+                'success' => true,
+                'message' => 'This trip is already completed.',
+            ]);
+        }
+
+        // Completion requires GPS verification and approved proof for every stop.
         $unvisitedCount = $itinerary->items()
-            ->where('is_visited', false)
-            ->whereNull('visited_at')
+            ->where(function ($query) {
+                $query->where('is_visited', false)
+                    ->orWhereNull('visited_at')
+                    ->orWhereNull('proof_status')
+                    ->orWhere('proof_status', '!=', 'approved');
+            })
             ->count();
 
         if ($unvisitedCount > 0) {
@@ -534,17 +546,30 @@ class ItineraryController extends Controller
             ], 422);
         }
 
-        $itinerary->update(['status' => 'completed']);
-
-        // Mark all items as visited and increment spot visits
         $itemsToVisit = $itinerary->items()->get();
-        foreach ($itemsToVisit as $item) {
-            if (!$item->is_visited) {
-                $item->update([
-                    'is_visited'   => true,
-                    'visited_at'   => $item->visited_at ?? now(),
-                    'proof_status' => 'approved',
-                ]);
+        $reviewedItemIds = SiteFeedback::where('user_id', $user->id)
+            ->whereIn('itinerary_item_id', $itemsToVisit->pluck('id'))
+            ->pluck('itinerary_item_id');
+        $missingReviewCount = $itemsToVisit->whereNotIn('id', $reviewedItemIds)->count();
+
+        if ($missingReviewCount > 0) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Please review every destination in this trip before completing it.',
+            ], 422);
+        }
+
+        $completedNow = DB::transaction(function () use ($itinerary, $itemsToVisit) {
+            $updated = Itinerary::whereKey($itinerary->id)
+                ->where('status', '!=', 'completed')
+                ->update(['status' => 'completed']);
+
+            if (!$updated) {
+                return false;
+            }
+
+            // Count the traveler and companions exactly once, after the trip is fully complete.
+            foreach ($itemsToVisit as $item) {
                 if ($item->tourist_spot_id) {
                     $spot = TouristSpot::find($item->tourist_spot_id);
                     if ($spot) {
@@ -553,6 +578,12 @@ class ItineraryController extends Controller
                     }
                 }
             }
+
+            return true;
+        });
+
+        if (!$completedNow) {
+            return response()->json(['success' => true, 'message' => 'This trip is already completed.']);
         }
 
         // Invalidate map and trending caches

@@ -36,6 +36,8 @@ assert.match(testimony, /setStarRating\(0\)/,
     'opening a new review must leave all stars unselected');
 assert.match(testimony, /rating < 1 \|\| rating > 5[\s\S]*Please choose a rating from 1 to 5 stars\.[\s\S]*return;/,
     'review submission must stop until a valid star rating is chosen');
+assert.match(testimony, /userReviewedItemIds[\s\S]*reviewed_item_ids[\s\S]*itinerary_item_id: window\.currentReviewItineraryItemId/,
+    'reviews must be tracked and submitted for the exact itinerary item');
 
 const renderStart = trips.indexOf('function renderSavedTrips(itineraries)');
 const renderEnd = trips.indexOf('window.toggleTripDetails', renderStart);
@@ -46,6 +48,8 @@ assert.doesNotMatch(renderSource, /> Sync Now/,
     'saved-trip cards must not render a manual Sync Now button');
 assert.match(renderSource, /timeline-collapsible expanded/,
     'trip destinations must stay visible after removing View Details');
+assert.match(renderSource, /isStopUnlocked[\s\S]*data-stop-unlocked[\s\S]*Complete the previous destination to unlock/,
+    'later destinations must remain visibly locked until the preceding stop is complete');
 assert.doesNotMatch(renderSource, /\bisQueued\b/,
     'renderSavedTrips must use isCheckinQueued instead of an undeclared isQueued identifier so trip cards close properly');
 assert.match(renderSource, /class="saved-trip-checkin-btn[\s\S]*data-dest-lat=[\s\S]*disabled[\s\S]*executeLocationCheckIn/,
@@ -56,9 +60,9 @@ assert.match(renderSource, /isLocVerified && \(!hasProof \|\| isRejected\)[\s\S]
     'a verified check-in must reveal the proof-of-validation upload beside it');
 assert.match(renderSource, /openProofUploadModal"\]:not\(\.saved-trip-proof-btn\)/,
     'legacy proof controls may be removed without deleting the post-check-in proof action');
-assert.match(trips, /SAVED_TRIP_CHECKIN_RADIUS_METERS = 200[\s\S]*gpsUpdated[\s\S]*updateSavedTripCheckinAvailability/,
-    'live GPS updates must enable check-in only within the backend 200-meter radius');
-const proximityStart = trips.indexOf('const SAVED_TRIP_CHECKIN_RADIUS_METERS = 200');
+assert.match(trips, /SAVED_TRIP_CHECKIN_RADIUS_METERS = 70[\s\S]*gpsUpdated[\s\S]*updateSavedTripCheckinAvailability/,
+    'live GPS updates must enable check-in only within the backend 70-meter radius');
+const proximityStart = trips.indexOf('const SAVED_TRIP_CHECKIN_RADIUS_METERS = 70');
 const proximityEnd = trips.indexOf('function renderSavedTrips(itineraries)', proximityStart);
 const proximityButton = {
     dataset: { checked: 'false', destLat: '16.6159', destLng: '120.3209' },
@@ -76,9 +80,9 @@ const proximityContext = {
 };
 vm.runInNewContext(`${trips.slice(proximityStart, proximityEnd)};`, proximityContext);
 proximityContext.window.updateSavedTripCheckinAvailability(16.6165, 120.3209, 20);
-assert.equal(proximityButton.disabled, false, 'check-in must enable automatically when GPS is within 200 meters');
+assert.equal(proximityButton.disabled, false, 'check-in must enable automatically when GPS is within 70 meters');
 proximityContext.window.updateSavedTripCheckinAvailability(16.6200, 120.3209, 20);
-assert.equal(proximityButton.disabled, true, 'check-in must remain disabled when GPS is outside 200 meters');
+assert.equal(proximityButton.disabled, true, 'check-in must remain disabled when GPS is outside 70 meters');
 assert.match(trips, /Saved Trips[\s\S]*Trip History/,
     'saved trips must provide active and completed trip tabs');
 assert.match(trips, /showingHistory \? historyTrips : activeTrips/,

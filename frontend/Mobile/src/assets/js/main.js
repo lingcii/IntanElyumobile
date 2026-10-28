@@ -401,7 +401,7 @@ window.OfflineCheckinManager = {
     },
 
     queueOfflineCheckin: async function (data) {
-        // Enforce 200m radius if destination coordinates are provided and this is a location checkin
+        // Enforce the same 70m radius offline and online.
         const destLat = data.destLat ?? data.dest_lat ?? null;
         const destLng = data.destLng ?? data.dest_lng ?? null;
         if (destLat != null && destLng != null && data.lat != null && data.lng != null && !data.isPhotoUploadOnly) {
@@ -412,9 +412,9 @@ window.OfflineCheckinManager = {
                       Math.sin(dLng / 2) * Math.sin(dLng / 2);
             const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
             const dist = 6371000 * c;
-            if (dist > 200) {
-                console.warn(`[OfflineCheckinManager] Check-in blocked: tourist is ${Math.round(dist)}m away (> 200m radius)`);
-                throw new Error(`You are ${Math.round(dist)}m away from ${data.spotName || 'the destination'}. You must be within 200m to check in! 📍`);
+            if (dist > 70) {
+                console.warn(`[OfflineCheckinManager] Check-in blocked: tourist is ${Math.round(dist)}m away (> 70m radius)`);
+                throw new Error(`You are ${Math.round(dist)}m away from ${data.spotName || 'the destination'}. You must be within 70m to check in! 📍`);
             }
         }
 
@@ -4441,12 +4441,12 @@ window.executeLocationCheckIn = function (itemId, spotName = '', spotLat = null,
     const doSubmitCheckin = async (lat, lng) => {
         if (destLat !== null && destLng !== null && !isNaN(destLat) && !isNaN(destLng)) {
             const dist = getHaversineDist(lat, lng, destLat, destLng);
-            if (dist > 200) {
+            if (dist > 70) {
                 const distM = Math.round(dist);
                 const distKm = (dist / 1000).toFixed(1);
                 const displayDist = dist >= 1000 ? `${distKm} km` : `${distM} meters`;
                 if (typeof showToast === 'function') {
-                    showToast(`⚠️ You are ${displayDist} away from ${spotName || 'the tourist site'}. You must be within 200m of the tourist site to check in! 📍`, 'warning', 4500);
+                    showToast(`⚠️ You are ${displayDist} away from ${spotName || 'the tourist site'}. You must be within 70m of the tourist site to check in! 📍`, 'warning', 4500);
                 }
                 if (btnEl) {
                     btnEl.innerHTML = originalHtml;
@@ -4523,7 +4523,7 @@ window.executeLocationCheckIn = function (itemId, spotName = '', spotLat = null,
                 }
             } else {
                 if (typeof showToast === 'function') {
-                    showToast(data.message || 'Check-in failed. Please ensure you are within 200m of the destination.', 'error');
+                    showToast(data.message || 'Check-in failed. Please ensure you are within 70m of the destination.', 'error');
                 }
             }
             if (btnEl) {

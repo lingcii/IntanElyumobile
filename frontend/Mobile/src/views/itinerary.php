@@ -388,7 +388,7 @@ try {
             </div>
 
             <!-- Point-to-Point Route & Transit Summary Card (Tap to view opensheet) -->
-            <input type="hidden" id="trip-transport" value="">
+            <input type="hidden" id="trip-transport" value="no_vehicle">
             <div id="save-p2p-transit-summary" onclick="window.openTransitSummaryOpensheet()" role="button" tabindex="0"
                 title="Tap to view per-destination transit summary"
                 style="background:#f8fafc; border-radius:16px; padding:14px 16px; margin-bottom:16px; display:flex; align-items:center; justify-content:space-between; gap:12px; border:1.5px solid #e2e8f0; cursor:pointer; user-select:none; transition:background 0.2s ease, transform 0.15s ease; touch-action:manipulation; pointer-events:auto !important; -webkit-tap-highlight-color:transparent;"
@@ -1522,8 +1522,8 @@ try {
                     mode: 'no_vehicle',
                     transport_mode: 'no_vehicle',
                     transport_modes: [],
-                    name: 'Select your vehicle',
-                    full_names: 'Select your vehicle',
+                    name: 'No Vehicle Selected',
+                    full_names: 'No Vehicle Selected',
                     icon: '',
                     cost: 0,
                     leg_cost: 0,
@@ -1684,7 +1684,7 @@ try {
                 mode: 'no_vehicle',
                 transport_mode: 'no_vehicle',
                 transport_modes: [],
-                name: 'Select your vehicle',
+                name: 'No Vehicle Selected',
                 icon: '',
                 cost: 0,
                 leg_cost: 0,
@@ -1824,7 +1824,7 @@ try {
                 : JSON.parse(localStorage.getItem('intan_elyu_draft_itinerary') || '[]');
 
             if (!draft || draft.length === 0 || legIdx >= draft.length) {
-                return { mode: 'no_vehicle', transport_mode: 'no_vehicle', name: 'Select your vehicle', icon: '', cost: 0, leg_cost: 0, distance_km: 0 };
+                return { mode: 'no_vehicle', transport_mode: 'no_vehicle', name: 'No Vehicle Selected', icon: '', cost: 0, leg_cost: 0, distance_km: 0 };
             }
 
             const curGlobalTransport = localStorage.getItem('intan_elyu_draft_trip_transport') || document.getElementById('trip-transport')?.value || '';
@@ -1887,8 +1887,8 @@ try {
                         mode: 'no_vehicle',
                         transport_mode: 'no_vehicle',
                         transport_modes: [],
-                        name: 'Select your vehicle',
-                        full_names: 'Select your vehicle',
+                        name: 'No Vehicle Selected',
+                        full_names: 'No Vehicle Selected',
                         icon: '',
                         cost: 0,
                         leg_cost: 0,
@@ -1907,8 +1907,8 @@ try {
                         mode: 'no_vehicle',
                         transport_mode: 'no_vehicle',
                         transport_modes: [],
-                        name: 'Select your vehicle',
-                        full_names: 'Select your vehicle',
+                        name: 'No Vehicle Selected',
+                        full_names: 'No Vehicle Selected',
                         icon: '',
                         cost: 0,
                         leg_cost: 0,
@@ -2013,7 +2013,7 @@ try {
                 mode: 'no_vehicle',
                 transport_mode: 'no_vehicle',
                 transport_modes: [],
-                name: 'Select your vehicle',
+                name: 'No Vehicle Selected',
                 full_names: 'No Vehicle Selected',
                 icon: '',
                 cost: 0,
@@ -3163,6 +3163,11 @@ try {
             document.getElementById('itinerary-count').innerText = rawDraft.length;
 
             if (rawDraft.length === 0) {
+                localStorage.removeItem('intan_elyu_draft_trip_transport');
+                localStorage.removeItem('intan_elyu_draft_trip_transports');
+                localStorage.removeItem('intan_elyu_draft_leg_vehicles');
+                const transportInput = document.getElementById('trip-transport');
+                if (transportInput) transportInput.value = 'no_vehicle';
                 if (draftPlanCard) {
                     draftPlanCard.classList.add('is-hidden');
                     draftPlanCard.style.setProperty('display', 'none', 'important');
@@ -3268,7 +3273,7 @@ try {
 
                 const leg0Info = (typeof window.getLegTransportInfo === 'function')
                     ? window.getLegTransportInfo(0)
-                    : { mode: 'no_vehicle', name: 'Select your vehicle', icon: '', cost: 0, has_selection: false };
+                    : { mode: 'no_vehicle', name: 'No Vehicle Selected', icon: '', cost: 0, has_selection: false };
 
                 const isLeg0Selected = Boolean(leg0Info.has_selection && !String(leg0Info.name).toLowerCase().includes('select your vehicle'));
                 const fareBadge = (leg0Info.is_maintenance || leg0Info.name === 'Unavailable' || !isLeg0Selected)
@@ -3367,7 +3372,7 @@ try {
 
                         const legInfo = (typeof window.getLegTransportInfo === 'function')
                             ? window.getLegTransportInfo(index)
-                            : { mode: 'no_vehicle', name: 'Select your vehicle', icon: '', cost: 0, has_selection: false };
+                            : { mode: 'no_vehicle', name: 'No Vehicle Selected', icon: '', cost: 0, has_selection: false };
 
                         const isLegSelected = Boolean(legInfo.has_selection && !String(legInfo.name).toLowerCase().includes('select your vehicle'));
                         const fareBadge = (legInfo.is_maintenance || legInfo.name === 'Unavailable' || !isLegSelected)
@@ -3669,6 +3674,8 @@ try {
         window.clearAllItinerary = function () {
             localStorage.removeItem('intan_elyu_draft_itinerary');
             localStorage.removeItem('intan_elyu_draft_leg_vehicles');
+            localStorage.removeItem('intan_elyu_draft_trip_transport');
+            localStorage.removeItem('intan_elyu_draft_trip_transports');
             window.renderItinerary();
             if (typeof showToast === 'function') showToast("Itinerary cleared");
         };
@@ -4397,7 +4404,7 @@ try {
             window.customClearDate();
             window.toggleCustomCalendar(null, false);
             const transInput = document.getElementById('trip-transport');
-            if (transInput) transInput.value = '';
+            if (transInput) transInput.value = 'no_vehicle';
             const budgetInput = document.getElementById('trip-budget');
             if (budgetInput) budgetInput.value = '';
             const remainingRow = document.getElementById('save-budget-remaining-row');
@@ -4478,19 +4485,6 @@ try {
             if (e && typeof e.preventDefault === 'function') e.preventDefault();
             try {
                 const draft = window.getEffectiveDraft ? window.getEffectiveDraft() : JSON.parse(localStorage.getItem('intan_elyu_draft_itinerary') || '[]');
-
-                const hasMissingVehicle = draft.some((_, index) => {
-                    const leg = (typeof window.getLegTransportInfo === 'function') ? window.getLegTransportInfo(index) : null;
-                    return !leg || (!leg.is_maintenance && !leg.has_selection);
-                });
-                if (hasMissingVehicle) {
-                    window.showConfirmModal('Please choose vehicle type.', {
-                        title: 'Vehicle Required',
-                        confirmText: 'OK',
-                        hideCancel: true
-                    });
-                    return;
-                }
 
                 // Reset calendar dropdown state on modal open
                 const cal = document.getElementById('custom-calendar-dropdown');
@@ -4891,6 +4885,8 @@ try {
                     sessionStorage.removeItem('editing_total_pax');
                     sessionStorage.removeItem('editing_transport_initialized');
                     localStorage.removeItem('intan_elyu_draft_leg_vehicles');
+                    localStorage.removeItem('intan_elyu_draft_trip_transport');
+                    localStorage.removeItem('intan_elyu_draft_trip_transports');
                     window.resetSaveModalInputs();
                     const modal = document.getElementById('save-trip-modal');
                     if (modal) modal.style.display = 'none';

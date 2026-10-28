@@ -1103,7 +1103,7 @@ $backRoute = 'itinerary';
             return items.length > 0 && items.every(hasConfirmedProofSubmission);
         }
 
-        const SAVED_TRIP_CHECKIN_RADIUS_METERS = 200;
+        const SAVED_TRIP_CHECKIN_RADIUS_METERS = 70;
 
         function getSavedTripDistanceMeters(lat1, lng1, lat2, lng2) {
             const R = 6371e3;
@@ -1123,6 +1123,12 @@ $backRoute = 'itinerary';
 
             document.querySelectorAll('.saved-trip-checkin-btn').forEach(button => {
                 if (button.dataset.checked === 'true') return;
+                if (button.dataset.stopUnlocked === 'false') {
+                    button.disabled = true;
+                    button.setAttribute('aria-disabled', 'true');
+                    button.title = 'Complete the previous destination first.';
+                    return;
+                }
                 const destinationLat = Number(button.dataset.destLat);
                 const destinationLng = Number(button.dataset.destLng);
                 const hasDestination = button.dataset.destLat !== '' && button.dataset.destLng !== '' &&
@@ -1132,7 +1138,7 @@ $backRoute = 'itinerary';
                 button.disabled = !inRange;
                 button.classList.toggle('is-available', inRange);
                 button.setAttribute('aria-disabled', String(!inRange));
-                button.title = inRange ? 'You are at this tourist site. Check in now.' : 'Available when you are within 200 meters of this tourist site.';
+                button.title = inRange ? 'You are at this tourist site. Check in now.' : 'Available when you are within 70 meters of this tourist site.';
             });
         };
 
@@ -1477,7 +1483,7 @@ $backRoute = 'itinerary';
                         const isTripCompleted = (trip.status === 'completed');
                         if (trip.items && trip.items.length) {
                             const sortedTripItems = [...trip.items].sort((a, b) => (a.order_index || 0) - (b.order_index || 0));
-                            const firstUnvisitedIdx = sortedTripItems.findIndex(i => !(i.is_visited || i.proof_status === 'approved'));
+                            const firstUnvisitedIdx = sortedTripItems.findIndex(i => !(i.is_visited && i.visited_at && i.proof_status === 'approved'));
                             sortedTripItems.forEach((item, index) => {
                                 if (!item) return;
                                 const dest = item.destination || (typeof window.getTouristSpotById === 'function' ? window.getTouristSpotById(item.tourist_spot_id) : null);
@@ -1523,10 +1529,11 @@ $backRoute = 'itinerary';
                                 const isLocVerified = Boolean(item.visited_at || item.is_location_verified);
                                 const proofStatus = item.proof_status || (hasProof ? (item.is_visited ? 'approved' : 'pending') : null);
                                 const isPhotoApproved = (proofStatus === 'approved');
-                                const isApproved = Boolean(item.is_visited || isPhotoApproved || item.proof_status === 'approved' || (item.is_visited && isLocVerified));
+                                const isApproved = Boolean(item.is_visited && isPhotoApproved && isLocVerified);
                                 const isRejected = (proofStatus === 'rejected');
                                 const isPendingProof = !isApproved && !isRejected && !isCheckinQueued && hasProof && (proofStatus === 'pending');
                                 const isNextStop = (!isApproved && !isPendingProof && !isCheckinQueued && index === firstUnvisitedIdx);
+                                const isStopUnlocked = isApproved || isCheckinQueued || index === firstUnvisitedIdx;
                                 if (!isApproved && !isCheckinQueued) unvisitedCount++;
 
                                 // Build multi-photo gallery strip
@@ -1629,9 +1636,9 @@ $backRoute = 'itinerary';
                                 }
 
                                 html += `
-                                <div class="timeline-item ${isApproved ? 'completed' : (isPendingProof ? 'pending' : (isNextStop ? 'is-next-stop' : ''))}" style="margin-bottom: 12px;">
+                                <div class="timeline-item ${isApproved ? 'completed' : (isPendingProof ? 'pending' : (isNextStop ? 'is-next-stop' : 'is-locked-stop'))}" data-stop-unlocked="${isStopUnlocked}" style="margin-bottom: 12px; ${!isStopUnlocked ? 'opacity:.68;' : ''}">
                                     <div class="timeline-dot"></div>
-                                    <div class="timeline-content" style="padding:14px; background: rgba(255,255,255,0.12); border: none !important; outline: none !important; border-radius: 16px; display:flex; flex-direction:column; gap:10px;">
+                                    <div class="timeline-content" ${!isStopUnlocked ? 'inert' : ''} style="padding:14px; background: rgba(255,255,255,0.12); border: none !important; outline: none !important; border-radius: 16px; display:flex; flex-direction:column; gap:10px;">
                                         <div style="display:flex; gap:12px; align-items:flex-start;">
                                             <div class="saved-trip-spot-thumb" style="width:56px; height:56px; border-radius:14px; overflow:hidden; flex-shrink:0; background:rgba(0,0,0,0.25); position:relative; box-shadow:0 3px 10px rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.18);">
                                                 <img src="${spotImgUrl}" alt="${destEscaped}" loading="lazy" style="width:100%; height:100%; object-fit:cover; display:block;" onerror="this.onerror=null; this.src='assets/img/no_image.svg';">
@@ -1657,8 +1664,8 @@ $backRoute = 'itinerary';
                                                 <span style="color:#34c759; font-size:12px; font-weight:800; display:inline-flex; align-items:center; gap:5px; background:rgba(52,199,89,0.18); padding:4px 10px; border-radius:100px;">
                                                     <i class="fa-solid fa-circle-check"></i> Visit Verified
                                                 </span>
-                                                <button type="button" data-spot-id="${item.tourist_spot_id || (dest ? dest.id : '')}" data-spot-classification="${sClass}" onclick="event.stopPropagation(); window.openWriteTestimonyModal('${item.tourist_spot_id || (dest ? dest.id : '')}', this)" style="background:rgba(255,255,255,0.16); border:none !important; outline:none !important; color:#ffffff; font-size:11px; font-weight:800; padding:6px 14px; border-radius:100px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; box-shadow:none; flex-shrink:0;">
-                                                    ${(window.userReviewedSpotIds && window.userReviewedSpotIds.has(Number(item.tourist_spot_id || (dest ? dest.id : '')))) ? '<i class="fa-solid fa-check" style="font-size:10px; margin-right:4px;"></i> Reviewed' : '<i class="fa-solid fa-pen" style="font-size:10px;"></i> Review'}
+                                                <button type="button" data-spot-id="${item.tourist_spot_id || (dest ? dest.id : '')}" data-itinerary-item-id="${item.id}" data-spot-classification="${sClass}" onclick="event.stopPropagation(); window.openWriteTestimonyModal('${item.tourist_spot_id || (dest ? dest.id : '')}', this, '${item.id}')" style="background:rgba(255,255,255,0.16); border:none !important; outline:none !important; color:#ffffff; font-size:11px; font-weight:800; padding:6px 14px; border-radius:100px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; box-shadow:none; flex-shrink:0;">
+                                                    ${(window.userReviewedItemIds && window.userReviewedItemIds.has(Number(item.id))) ? '<i class="fa-solid fa-check" style="font-size:10px; margin-right:4px;"></i> Reviewed' : '<i class="fa-solid fa-pen" style="font-size:10px;"></i> Review'}
                                                 </button>
                                             </div>
                                             ${photosStripHtml}
@@ -1751,9 +1758,10 @@ $backRoute = 'itinerary';
                                                     </button>
                                                 </div>`))))))
                                         }
-                                        ${!isCheckinQueued ? `<div class="saved-trip-validation-actions">
+                                        ${!isStopUnlocked ? `<div style="display:flex;align-items:center;gap:6px;color:#dbeafe;font-size:11px;font-weight:800;"><i class="fa-solid fa-lock"></i> Complete the previous destination to unlock</div>` : (!isCheckinQueued ? `<div class="saved-trip-validation-actions">
                                             <button type="button"
                                                 class="saved-trip-checkin-btn ${(isLocVerified || isApproved) ? 'is-checked' : ''}"
+                                                data-stop-unlocked="${isStopUnlocked}"
                                                 data-dest-lat="${destinationLatAttr}"
                                                 data-dest-lng="${destinationLngAttr}"
                                                 data-checked="${(isLocVerified || isApproved) ? 'true' : 'false'}"
@@ -1766,7 +1774,7 @@ $backRoute = 'itinerary';
                                             ${(isLocVerified && (!hasProof || isRejected)) ? `<button type="button" class="saved-trip-proof-btn" onclick="event.stopPropagation(); window.openProofUploadModal('${item.id}', '${destEscaped}')">
                                                 <i class="fa-solid fa-camera"></i> ${isRejected ? 'Re-upload Proof' : 'Proof of Validation'}
                                             </button>` : ''}
-                                        </div>` : ''}
+                                        </div>` : '')}
                                     </div>
                                 </div>`;
                             });
@@ -2643,15 +2651,15 @@ $backRoute = 'itinerary';
             }
 
             const doSubmitCheckin = async (lat, lng) => {
-                // Check if user is within destination radius (200m)
+                // Check if user is within destination radius (70m)
                 if (destLat !== null && destLng !== null && !isNaN(destLat) && !isNaN(destLng)) {
                     const dist = getHaversineDist(lat, lng, destLat, destLng);
-                    if (dist > 200) {
+                    if (dist > 70) {
                         const distM = Math.round(dist);
                         const distKm = (dist / 1000).toFixed(1);
                         const displayDist = dist >= 1000 ? `${distKm} km` : `${distM} meters`;
                         if (typeof showToast === 'function') {
-                            showToast(`⚠️ You are ${displayDist} away from ${spotName || 'the tourist site'}. You must be within 200m of the tourist site to check in! 📍`, 'warning', 4500);
+                            showToast(`⚠️ You are ${displayDist} away from ${spotName || 'the tourist site'}. You must be within 70m of the tourist site to check in! 📍`, 'warning', 4500);
                         }
                         if (btnEl) {
                             btnEl.innerHTML = originalHtml;
@@ -2726,7 +2734,7 @@ $backRoute = 'itinerary';
                         }
                     } else {
                         if (typeof showToast === 'function') {
-                            showToast(data.message || 'Check-in failed. Please ensure you are within 200m of the destination.', 'error');
+                            showToast(data.message || 'Check-in failed. Please ensure you are within 70m of the destination.', 'error');
                         }
                     }
                     if (btnEl && !(response.ok && (data.success || data.is_location_verified))) {
@@ -2824,11 +2832,12 @@ $backRoute = 'itinerary';
                 const spotId = item.tourist_spot_id || item.destination_id || (item.destination && item.destination.id);
                 const classification = item.classification_status || (item.destination && item.destination.classification_status) || '';
                 window._completionReviewRequired = true;
-                window._completionReviewRequiredIds = [Number(spotId)];
+                window._completionReviewRequiredIds = [Number(item.id)];
                 const reviewButton = document.createElement('button');
                 reviewButton.dataset.spotId = String(spotId);
+                reviewButton.dataset.itineraryItemId = String(item.id);
                 reviewButton.dataset.spotClassification = String(classification);
-                window.startReviewFromCompletion(String(spotId), reviewButton);
+                window.startReviewFromCompletion(String(spotId), String(item.id), reviewButton);
                 return;
             }
             showTripCompletionReviewModal(reviewItems, true);
@@ -2976,8 +2985,9 @@ $backRoute = 'itinerary';
 
                 const destName = item.destination_name || (item.destination ? item.destination.name : (item.name || item.spot_name || 'Tourist Destination'));
                 const sClass = item.classification_status || (item.destination ? item.destination.classification_status : (item.classification || 'EXIST'));
-                const isReviewed = window.userReviewedSpotIds && window.userReviewedSpotIds.has(Number(spotId));
-                window._completionReviewRequiredIds.push(Number(spotId));
+                const itemId = Number(item.id);
+                const isReviewed = window.userReviewedItemIds && window.userReviewedItemIds.has(itemId);
+                window._completionReviewRequiredIds.push(itemId);
 
                 destListHtml += `
                 <div style="display:flex; align-items:center; gap:10px; padding:10px 12px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:14px; margin-bottom:8px;">
@@ -2992,8 +3002,9 @@ $backRoute = 'itinerary';
                     </div>
                     <button type="button" 
                             data-spot-id="${spotId}" 
+                            data-itinerary-item-id="${itemId}"
                             data-spot-classification="${sClass}"
-                            onclick="window.startReviewFromCompletion('${spotId}', this)" 
+                            onclick="window.startReviewFromCompletion('${spotId}', '${itemId}', this)"
                             style="padding:6px 14px; border-radius:100px; background:${isReviewed ? '#e2e8f0' : 'linear-gradient(135deg, #1e3a8a, #2563eb)'}; border:none; outline:none; color:${isReviewed ? '#64748b' : '#ffffff'}; font-size:11.5px; font-weight:800; cursor:pointer; white-space:nowrap; box-shadow:none; display:inline-flex; align-items:center; gap:4px; flex-shrink:0;">
                         ${isReviewed ? '<i class="fa-solid fa-check" style="font-size:10px; margin-right:4px;"></i> Reviewed' : '<i class="fa-solid fa-pen" style="font-size:10px;"></i> Review'}
                     </button>
@@ -3058,7 +3069,7 @@ $backRoute = 'itinerary';
 
         window.refreshTripCompletionReviewState = function () {
             const requiredIds = Array.from(new Set(window._completionReviewRequiredIds || []));
-            const remaining = requiredIds.filter(id => !(window.userReviewedSpotIds && window.userReviewedSpotIds.has(Number(id))));
+            const remaining = requiredIds.filter(id => !(window.userReviewedItemIds && window.userReviewedItemIds.has(Number(id))));
             const button = document.getElementById('btn-trip-completion-close');
             if (!button) return;
             if (!window._completionReviewRequired) {
@@ -3079,7 +3090,7 @@ $backRoute = 'itinerary';
                 return;
             }
             const remaining = Array.from(new Set(window._completionReviewRequiredIds || [])).filter(id =>
-                !(window.userReviewedSpotIds && window.userReviewedSpotIds.has(Number(id)))
+                !(window.userReviewedItemIds && window.userReviewedItemIds.has(Number(id)))
             );
             if (remaining.length) {
                 if (typeof showToast === 'function') showToast('Please review every destination before completing this trip.', 'warning');
@@ -3112,7 +3123,7 @@ $backRoute = 'itinerary';
             window.addEventListener('spot-reviewed', () => {
                 window.refreshTripCompletionReviewState();
                 const remaining = Array.from(new Set(window._completionReviewRequiredIds || [])).filter(id =>
-                    !(window.userReviewedSpotIds && window.userReviewedSpotIds.has(Number(id)))
+                    !(window.userReviewedItemIds && window.userReviewedItemIds.has(Number(id)))
                 );
                 const completionIsOpen = document.getElementById('trip-completion-review-modal') || window._isCompletionReviewFlow || window._pendingCompleteTripId;
                 if (completionIsOpen && window._completionReviewRequired && remaining.length === 0 && !window._completionAutoFinishing) {
@@ -3133,7 +3144,7 @@ $backRoute = 'itinerary';
             }
         };
 
-        window.startReviewFromCompletion = function (spotId, btnEl) {
+        window.startReviewFromCompletion = function (spotId, itineraryItemId, btnEl) {
             if (btnEl) {
                 btnEl.dataset.reviewing = "true";
                 window._lastReviewedBtn = btnEl;
@@ -3144,7 +3155,7 @@ $backRoute = 'itinerary';
             }
             if (typeof window.openWriteTestimonyModal === 'function') {
                 window._isCompletionReviewFlow = true;
-                window.openWriteTestimonyModal(spotId, btnEl);
+                window.openWriteTestimonyModal(spotId, btnEl, itineraryItemId);
             }
         };
 

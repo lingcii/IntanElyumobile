@@ -11,6 +11,7 @@ class SiteFeedback extends Model
     protected $fillable = [
         'user_id',
         'tourist_spot_id',
+        'itinerary_item_id',
         'rating',
         'testimony',
         'policy_recommendation',
@@ -27,5 +28,10 @@ class SiteFeedback extends Model
     public function touristSpot()
     {
         return $this->belongsTo(TouristSpot::class, 'tourist_spot_id');
+    }
+
+    public function itineraryItem()
+    {
+        return $this->belongsTo(ItineraryItem::class);
     }
 }

@@ -453,13 +453,13 @@ include_once __DIR__ . '/../components/testimony_modal.php';
 
             // If conveyor is already rendered for this trip and count matches, only update active status
             const existingCards = conveyorScroll.querySelectorAll('.conveyor-card');
-            if (existingCards.length === items.length && window._conveyorRenderedTripId === window.currentTripId) {
+            if (existingCards.length === items.length && window._conveyorRenderedTripId === window.currentTripId && window._allowConveyorFastRefresh === true) {
                 items.forEach((item, idx) => {
                     const card = document.getElementById(`conveyor-card-${idx}`);
                     if (!card) return;
                     const isLocationVerified = Boolean(item.is_location_verified || item.visited_at);
                     const isPhotoApproved = (item.proof_status === 'approved');
-                    const isVisited = Boolean(item.is_visited || isPhotoApproved || item.proof_status === 'approved' || (item.is_visited && isLocationVerified));
+                    const isVisited = Boolean(item.is_visited && isPhotoApproved && isLocationVerified);
                     const isPending = Boolean(item.proof_image && (item.proof_status === 'pending' || !item.proof_status));
                     const isRejected = (item.proof_status === 'rejected');
                     const spotIdVal = item.tourist_spot_id || item.destination_id || (item.destination ? item.destination.id : null);
@@ -537,12 +537,13 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                 const isLocationVerified = Boolean(item.is_location_verified || item.visited_at);
                 const proofStatus = item.proof_status || (item.is_visited ? 'approved' : null);
                 const isPhotoApproved = (proofStatus === 'approved');
-                const isVisited = Boolean(item.is_visited || isPhotoApproved || item.proof_status === 'approved' || (item.is_visited && isLocationVerified));
+                const isVisited = Boolean(item.is_visited && isPhotoApproved && isLocationVerified);
                 const isRejected = (item.proof_status === 'rejected');
                 const spotIdVal = item.tourist_spot_id || item.destination_id || (item.destination ? item.destination.id : null);
                 const queuedItem = window.OfflineCheckinManager ? window.OfflineCheckinManager.getQueuedItem(item.id, spotIdVal, window.currentTripId) : null;
                 const isQueued = Boolean(queuedItem || item.is_offline_queued);
                 const isActive = idx === activeIndex;
+                const isStopUnlocked = isVisited || isQueued || isActive;
 
                 let proofImages = [];
                 if (Array.isArray(item.proof_images) && item.proof_images.length > 0) {
@@ -624,14 +625,14 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                     </div>`;
                 } else if (isVisited) {
                     const sId = item.tourist_spot_id || (item.destination ? item.destination.id : '');
-                    const isReviewed = sId && window.userReviewedSpotIds && window.userReviewedSpotIds.has(Number(sId));
+                    const isReviewed = window.userReviewedItemIds && window.userReviewedItemIds.has(Number(item.id));
                     const sClass = (dest && dest.classification_status) ? dest.classification_status : '';
                     const sMeta = (window.getRewardPointsForClassification) ? window.getRewardPointsForClassification(sClass) : { points: 25 };
                     actionBtnHtml = `<div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
                         ${proofThumbnailStrip}
                         <div style="display:flex; flex-direction:column; gap:2px;">
                             <span style="background:#dcfce7; border:1px solid #bbf7d0; color:#15803d; font-weight:800; font-size:10px; padding:2px 8px; border-radius:100px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-circle-check"></i> Visited</span>
-                            <button type="button" data-spot-id="${sId}" data-spot-classification="${sClass}" onclick="event.stopPropagation(); window.openWriteTestimonyModal('${sId}', this)" style="background:#eff6ff; border:1px solid #bfdbfe; color:#1d4ed8; font-size:9.5px; font-weight:800; padding:2px 8px; border-radius:100px; cursor:pointer; width:fit-content;">
+                            <button type="button" data-spot-id="${sId}" data-itinerary-item-id="${item.id}" data-spot-classification="${sClass}" onclick="event.stopPropagation(); window.openWriteTestimonyModal('${sId}', this, '${item.id}')" style="background:#eff6ff; border:1px solid #bfdbfe; color:#1d4ed8; font-size:9.5px; font-weight:800; padding:2px 8px; border-radius:100px; cursor:pointer; width:fit-content;">
                                 ${isReviewed ? '<i class="fa-solid fa-check"></i> Reviewed' : '<i class="fa-solid fa-pen"></i> Review'}
                             </button>
                         </div>
@@ -666,6 +667,10 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                         <button onclick="event.stopPropagation(); window.executeLocationCheckIn('${item.id}', '${destEscaped}', ${lat}, ${lng}, this)" style="background:linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color:#ffffff; border:none; padding:6px 11px; border-radius:100px; font-weight:800; font-size:10.5px; box-shadow:0 2px 8px rgba(2,132,199,0.3); cursor:pointer; white-space:nowrap;"><i class="fa-solid fa-location-crosshairs" style="margin-right:3px;"></i> Check In</button>
                         <button onclick="event.stopPropagation(); window.openProofUploadModal('${item.id}', '${destEscaped}')" style="background:#f1f5f9; color:#1e3a8a; border:1.5px solid #cbd5e1; padding:6px 11px; border-radius:100px; font-weight:800; font-size:10.5px; cursor:pointer; white-space:nowrap;"><i class="fa-solid fa-camera" style="margin-right:3px;"></i> Proof</button>
                     </div>`;
+                }
+
+                if (!isStopUnlocked) {
+                    actionBtnHtml = `<span style="background:#f1f5f9;border:1px solid #cbd5e1;color:#64748b;font-weight:800;font-size:10px;padding:6px 10px;border-radius:100px;white-space:nowrap;"><i class="fa-solid fa-lock" style="margin-right:4px;"></i> Complete previous stop</span>`;
                 }
 
                 const classBadge = dest.classification_status ? `<span style="padding: 3px 8px; border-radius: 100px; font-size: 8.5px; font-weight: 800; text-transform: uppercase; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#0284c7' : (dest.classification_status === 'EMERGE' ? '#ef4444' : '#10b981')}; border:none !important; outline:none !important; flex-shrink:0;">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</span>` : '';
@@ -1104,7 +1109,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
             const activeIndex = items.findIndex(i => {
                 const sId = i.tourist_spot_id || i.destination_id || (i.destination ? i.destination.id : null);
                 const isQueued = Boolean((window.OfflineCheckinManager && window.OfflineCheckinManager.isItemQueued(i.id, sId, window.currentTripId)) || i.is_offline_queued);
-                return !(i.is_visited || i.proof_status === 'approved' || isQueued);
+                return !(i.is_visited && i.visited_at && i.proof_status === 'approved');
             });
 
             items.forEach((item, idx) => {
@@ -1123,7 +1128,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                         let iconHtml = '';
                         const isLocationVerified = Boolean(item.is_location_verified || item.visited_at);
                         const isPhotoApproved = (item.proof_status === 'approved');
-                        const isVisited = Boolean(item.is_visited || isPhotoApproved || item.proof_status === 'approved' || (item.is_visited && isLocationVerified));
+                        const isVisited = Boolean(item.is_visited && isPhotoApproved && isLocationVerified);
                         const isRejected = (item.proof_status === 'rejected');
                         const hasProof = Boolean((Array.isArray(item.proof_images) && item.proof_images.length > 0) || item.proof_image);
                         const isPending = Boolean(isLocationVerified && hasProof && (item.proof_status === 'pending' || !item.proof_status) && !isVisited);
@@ -1776,7 +1781,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                     return it;
                 });
                 window.currentTripItems = window.currentTrip.items;
-                const activeIndex = window.currentTripItems.findIndex(i => !i.is_visited && i.proof_status !== 'approved');
+                const activeIndex = window.currentTripItems.findIndex(i => !(i.is_visited && i.visited_at && i.proof_status === 'approved'));
                 if (typeof renderConveyorCards === 'function') {
                     renderConveyorCards(window.currentTripItems, activeIndex >= 0 ? activeIndex : 0);
                 }
@@ -1839,7 +1844,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                     return it;
                 });
                 window.currentTripItems = window.currentTrip.items;
-                const activeIndex = window.currentTripItems.findIndex(i => !i.is_visited && i.proof_status !== 'approved');
+                const activeIndex = window.currentTripItems.findIndex(i => !(i.is_visited && i.visited_at && i.proof_status === 'approved'));
                 if (typeof renderConveyorCards === 'function') {
                     renderConveyorCards(window.currentTripItems, activeIndex >= 0 ? activeIndex : 0);
                 }
@@ -2051,12 +2056,12 @@ include_once __DIR__ . '/../components/testimony_modal.php';
             const doSubmitCheckin = async (lat, lng) => {
                 if (sLat !== null && sLng !== null && !isNaN(sLat) && !isNaN(sLng)) {
                     const dist = getDistance(lat, lng, sLat, sLng);
-                    if (dist > 200) {
+                    if (dist > 70) {
                         const distM = Math.round(dist);
                         const distKm = (dist / 1000).toFixed(1);
                         const displayDist = dist >= 1000 ? `${distKm} km` : `${distM} meters`;
                         if (typeof showToast === 'function') {
-                            showToast(`⚠️ You are ${displayDist} away from ${spotName || 'the destination'}. You must be within 200m to check in! 📍`, 'warning', 4500);
+                            showToast(`⚠️ You are ${displayDist} away from ${spotName || 'the destination'}. You must be within 70m to check in! 📍`, 'warning', 4500);
                         }
                         if (btnEl) {
                             btnEl.innerHTML = originalHtml;
@@ -2131,7 +2136,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                         }
                     } else {
                         if (typeof showToast === 'function') {
-                            showToast(data.message || 'Check-in failed. Please ensure you are within 200m of the destination.', 'error');
+                            showToast(data.message || 'Check-in failed. Please ensure you are within 70m of the destination.', 'error');
                         }
                     }
                     if (btnEl && !(response.ok && (data.success || data.is_location_verified))) {
@@ -2168,21 +2173,21 @@ include_once __DIR__ . '/../components/testimony_modal.php';
             };
 
             const checkAndProceed = (lat, lng) => {
-                // STRICT 200M RADIUS CHECK (Applies to both offline and online)
+                // Strict 70m radius check (applies to both offline and online)
                 if (sLat != null && sLng != null && !isNaN(sLat) && !isNaN(sLng)) {
                     const dist = getDistance(lat, lng, sLat, sLng);
-                    if (dist > 200) {
+                    if (dist > 70) {
                         const distM = Math.round(dist);
                         const distKm = (dist / 1000).toFixed(1);
                         const displayDist = dist >= 1000 ? `${distKm} km` : `${distM} meters`;
                         if (typeof showToast === 'function') {
-                            showToast(`⚠️ You are ${displayDist} away from ${spotName || 'the tourist site'}. You must be within 200m of the tourist site to check in! 📍`, 'warning', 4500);
+                            showToast(`⚠️ You are ${displayDist} away from ${spotName || 'the tourist site'}. You must be within 70m of the tourist site to check in! 📍`, 'warning', 4500);
                         }
                         if (btnEl) {
                             btnEl.innerHTML = originalHtml;
                             btnEl.disabled = false;
                         }
-                        return; // BLOCKED! Neither offline nor online checkin is allowed outside 200m!
+                        return; // Neither offline nor online check-in is allowed outside 70m.
                     }
                 }
                 doSubmitCheckin(lat, lng);

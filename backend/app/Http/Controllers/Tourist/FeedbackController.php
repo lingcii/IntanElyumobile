@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Tourist;
 use App\Http\Controllers\Controller;
 use App\Models\SiteFeedback;
 use App\Models\TouristSpot;
+use App\Models\ItineraryItem;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -113,15 +114,17 @@ class FeedbackController extends Controller
 
         $feedbacks = SiteFeedback::where('user_id', $user->id)
             ->whereNotNull('tourist_spot_id')
-            ->get(['tourist_spot_id', 'rating', 'testimony', 'policy_recommendation', 'cleanliness_level', 'safety_level', 'created_at']);
+            ->get(['tourist_spot_id', 'itinerary_item_id', 'rating', 'testimony', 'policy_recommendation', 'cleanliness_level', 'safety_level', 'created_at']);
 
         $reviewedIds = $feedbacks->pluck('tourist_spot_id')->map(fn($id) => (int) $id)->unique()->values()->toArray();
         $reviewsMap = $feedbacks->keyBy('tourist_spot_id');
+        $reviewedItemIds = $feedbacks->pluck('itinerary_item_id')->filter()->map(fn($id) => (int) $id)->unique()->values()->toArray();
 
         return response()->json([
             'status'  => 'success',
             'success' => true,
             'data'    => $reviewedIds,
+            'reviewed_item_ids' => $reviewedItemIds,
             'reviews' => $reviewsMap
         ]);
     }
@@ -145,6 +148,7 @@ class FeedbackController extends Controller
 
         $user = $request->user();
         $userId = $user ? $user->id : null;
+        $itineraryItemId = $request->filled('itinerary_item_id') ? (int) $request->input('itinerary_item_id') : null;
 
         if (!$userId) {
             $token = $request->bearerToken();
@@ -154,6 +158,15 @@ class FeedbackController extends Controller
                     $user = $foundUser;
                     $userId = $foundUser->id;
                 }
+            }
+        }
+
+        if ($itineraryItemId) {
+            $reviewItem = ItineraryItem::whereKey($itineraryItemId)
+                ->whereHas('itinerary', fn($query) => $query->where('user_id', $userId))
+                ->first();
+            if (!$reviewItem || (int) $reviewItem->tourist_spot_id !== (int) $spotId) {
+                return response()->json(['message' => 'This trip stop cannot be reviewed by this account.'], 422);
             }
         }
 
@@ -188,12 +201,15 @@ class FeedbackController extends Controller
             ], fn($v) => !is_null($v));
 
             if ($userId) {
+                $feedbackKey = $itineraryItemId
+                    ? ['user_id' => $userId, 'itinerary_item_id' => $itineraryItemId]
+                    : ['user_id' => $userId, 'tourist_spot_id' => $spotId];
                 $feedback = SiteFeedback::updateOrCreate(
-                    [
-                        'user_id'         => $userId,
+                    $feedbackKey,
+                    array_merge($feedbackData, [
                         'tourist_spot_id' => $spotId,
-                    ],
-                    $feedbackData
+                        'itinerary_item_id' => $itineraryItemId,
+                    ])
                 );
             } else {
                 $feedback = SiteFeedback::create(array_merge([
