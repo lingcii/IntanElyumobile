@@ -34,6 +34,8 @@ assert.match(sourceCss, /#btn-login\.btn-circle-submit,[\s\S]*width: 100% !impor
     'login and registration actions must use full-width reference buttons');
 assert.match(sourceCss, /\.auth-keyboard-dismiss[\s\S]*body\.auth-keyboard-visible \.auth-keyboard-dismiss/,
     'the themed keyboard control must only become interactive while the keyboard is visible');
+assert.match(sourceCss, /\.forms-wrapper:not\(\.show-register\):not\(\.show-forgot\):not\(\.show-otp\)[\s\S]*flex: 0 0 auto/,
+    'the Login slider must wrap its content without changing Register, Forgot, or OTP sizing');
 assert.equal(publicCss, sourceCss,
     'web source and packaged mobile auth styles must stay synchronized');
 assert.doesNotMatch(leaderboard, /leaderboard-refresh-(?:btn|icon)/,

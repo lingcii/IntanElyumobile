@@ -426,16 +426,43 @@ if (is_dir($imgDir)) {
             </button>
         </div>
 
-        <div class="directions-modes" role="group" aria-label="Transportation mode">
-            <button type="button" class="directions-mode active" data-mode="driving" onclick="window.selectDirectionsMode('driving', this)" aria-label="Driving">
-                <i class="fa-solid fa-car"></i><span>Car</span>
-            </button>
-            <button type="button" class="directions-mode" data-mode="motorcycle" onclick="window.selectDirectionsMode('motorcycle', this)" aria-label="Motorcycle">
-                <i class="fa-solid fa-motorcycle"></i><span>Motorcycle</span>
-            </button>
-            <button type="button" class="directions-mode" data-mode="public" onclick="window.selectDirectionsMode('public', this)" aria-label="Public transportation">
-                <i class="fa-solid fa-bus-simple"></i><span>Public</span>
-            </button>
+        <div class="directions-vehicle-picker">
+            <div class="directions-modes" role="group" aria-label="Vehicle">
+                <button type="button" class="directions-mode active" data-vehicle="own_car" onclick="window.selectDirectionsVehicle('own_car', this)">
+                    <i class="fa-solid fa-car-side"></i><span>Own Car</span>
+                </button>
+                <button type="button" class="directions-mode" data-vehicle="tricycle" onclick="window.selectDirectionsVehicle('tricycle', this)">
+                    <i class="fa-solid fa-motorcycle"></i><span>Tricycle</span>
+                </button>
+                <button type="button" class="directions-mode" data-vehicle="car" onclick="window.selectDirectionsVehicle('car', this)">
+                    <i class="fa-solid fa-car"></i><span>Car</span>
+                </button>
+                <button type="button" class="directions-mode" data-vehicle="jeepney" onclick="window.selectDirectionsVehicle('jeepney', this)">
+                    <i class="fa-solid fa-van-shuttle"></i><span>Jeep</span>
+                </button>
+                <button type="button" id="directions-more-vehicles-btn" class="directions-mode" onclick="window.toggleDirectionsVehicleMenu(event)" aria-expanded="false" aria-controls="directions-vehicle-menu">
+                    <i class="fa-solid fa-ellipsis"></i><span>More</span>
+                </button>
+            </div>
+            <div id="directions-vehicle-menu" class="directions-vehicle-menu" hidden>
+                <div class="directions-vehicle-group">
+                    <strong><i class="fa-solid fa-car-side"></i> Private vehicle</strong>
+                    <button type="button" data-vehicle="car" onclick="window.selectDirectionsVehicle('car', this)"><i class="fa-solid fa-car"></i>Car</button>
+                    <button type="button" data-vehicle="motorcycle" onclick="window.selectDirectionsVehicle('motorcycle', this)"><i class="fa-solid fa-motorcycle"></i>Motorcycle</button>
+                    <button type="button" data-vehicle="van" onclick="window.selectDirectionsVehicle('van', this)"><i class="fa-solid fa-van-shuttle"></i>Van</button>
+                    <button type="button" data-vehicle="tricycle" onclick="window.selectDirectionsVehicle('tricycle', this)"><i class="fa-solid fa-motorcycle"></i>Tricycle</button>
+                </div>
+                <div class="directions-vehicle-group">
+                    <strong><i class="fa-solid fa-bus-simple"></i> Public vehicle</strong>
+                    <button type="button" data-vehicle="tricycle" onclick="window.selectDirectionsVehicle('tricycle', this)"><i class="fa-solid fa-motorcycle"></i>Tricycle</button>
+                    <button type="button" data-vehicle="taxi" onclick="window.selectDirectionsVehicle('taxi', this)"><i class="fa-solid fa-taxi"></i>Taxi</button>
+                    <button type="button" data-vehicle="uve" onclick="window.selectDirectionsVehicle('uve', this)"><i class="fa-solid fa-van-shuttle"></i>Utility Vehicle Express (UVE)</button>
+                    <button type="button" data-vehicle="pub_regular" onclick="window.selectDirectionsVehicle('pub_regular', this)"><i class="fa-solid fa-bus-simple"></i>PUB Regular</button>
+                    <button type="button" data-vehicle="pub_aircon" onclick="window.selectDirectionsVehicle('pub_aircon', this)"><i class="fa-solid fa-bus"></i>PUB Aircon</button>
+                    <button type="button" data-vehicle="mpuj" onclick="window.selectDirectionsVehicle('mpuj', this)"><i class="fa-solid fa-van-shuttle"></i>Modern Jeepney (MPUJ)</button>
+                    <button type="button" data-vehicle="tpuj" onclick="window.selectDirectionsVehicle('tpuj', this)"><i class="fa-solid fa-van-shuttle"></i>Traditional Jeepney (TPUJ)</button>
+                </div>
+            </div>
         </div>
 
         <div class="directions-results-header">
@@ -537,6 +564,19 @@ if (is_dir($imgDir)) {
             display: block;
             object-fit: cover;
         }
+        .directions-vehicle-picker { position: relative; border-bottom: 1px solid #e2e8f0; }
+        .directions-vehicle-picker .directions-modes { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 5px; padding: 6px 12px 12px; border-bottom: 0; }
+        .directions-vehicle-picker .directions-mode { min-width: 0; min-height: 54px; padding: 6px 2px; flex-direction: column; gap: 3px; border-radius: 13px; font-size: 9.5px; line-height: 1.1; }
+        .directions-vehicle-picker .directions-mode i { font-size: 15px; }
+        .directions-vehicle-menu { position: absolute; z-index: 20; top: calc(100% - 4px); left: 12px; right: 12px; max-height: min(46dvh, 360px); overflow-y: auto; padding: 8px; border: 1px solid #dbe3ef; border-radius: 16px; background: #ffffff; box-shadow: 0 14px 32px rgba(15, 23, 42, .2); }
+        .directions-vehicle-menu[hidden] { display: none !important; }
+        .directions-vehicle-group { display: grid; gap: 3px; }
+        .directions-vehicle-group + .directions-vehicle-group { margin-top: 8px; padding-top: 8px; border-top: 1px solid #e2e8f0; }
+        .directions-vehicle-group strong { padding: 6px 9px; color: #64748b; font-size: 10px; letter-spacing: .45px; text-transform: uppercase; }
+        .directions-vehicle-group strong i { width: 17px; color: #2563eb; }
+        .directions-vehicle-group button { min-height: 38px; border: 0; border-radius: 10px; background: transparent; color: #0f172a; display: flex; align-items: center; gap: 10px; padding: 7px 10px; text-align: left; font-size: 12px; font-weight: 650; }
+        .directions-vehicle-group button i { width: 18px; color: #2563eb; text-align: center; }
+        .directions-vehicle-group button.active { background: #dbeafe; color: #1e3a8a; }
     </style>
 
     <!-- Nearby Tourist Sites Sheet (Triggered by Left Button) -->
@@ -1372,11 +1412,26 @@ if (is_dir($imgDir)) {
 
                 // ── TOURIST ZONES ────────────────────────────────────────────────
                 try {
+                    const municipalityMap = window.mapInstance;
                     const muniApiPromise = fetch(getAppBackendUrl() + '/api/public/municipalities', {
                         headers: { 'Accept': 'application/json' }
                     }).then(r => r.json()).catch(() => null);
 
                     const [muniGeoJson, muniApi] = await Promise.all([muniGeoJsonPromise, muniApiPromise]);
+
+                    // Ignore a completed request when its map view has already been
+                    // removed or replaced by a later SPA navigation.
+                    try {
+                        if (!municipalityMap ||
+                            window.mapInstance !== municipalityMap ||
+                            !document.getElementById('tourist-map') ||
+                            !municipalityMap.getContainer().isConnected ||
+                            !municipalityMap.getStyle()) {
+                            return;
+                        }
+                    } catch (e) {
+                        return;
+                    }
 
                     if (muniGeoJson && muniGeoJson.features) {
                         // Merge live spot counts from API
@@ -5491,13 +5546,35 @@ if (is_dir($imgDir)) {
             }
         });
 
+        const directionsVehicles = {
+            own_car: { label: 'Own Car', mode: 'driving' },
+            tricycle: { label: 'Tricycle', mode: 'public' },
+            car: { label: 'Car', mode: 'driving' },
+            jeepney: { label: 'Jeep', mode: 'public' },
+            motorcycle: { label: 'Motorcycle', mode: 'motorcycle' },
+            van: { label: 'Van', mode: 'driving' },
+            taxi: { label: 'Taxi', mode: 'driving' },
+            uve: { label: 'Utility Vehicle Express (UVE)', mode: 'public' },
+            pub_regular: { label: 'PUB Regular', mode: 'public' },
+            pub_aircon: { label: 'PUB Aircon', mode: 'public' },
+            mpuj: { label: 'Modern Jeepney (MPUJ)', mode: 'public' },
+            tpuj: { label: 'Traditional Jeepney (TPUJ)', mode: 'public' }
+        };
+
         const mapDirectionsState = window.mapDirectionsState || {
             start: { name: 'Your location', address: 'Current GPS position', isCurrent: true },
             destination: null,
+            vehicle: 'own_car',
             mode: 'driving',
             activeField: 'destination',
             showAllHistory: false
         };
+        if (!directionsVehicles[mapDirectionsState.vehicle]) {
+            mapDirectionsState.vehicle = mapDirectionsState.mode === 'motorcycle'
+                ? 'motorcycle'
+                : (mapDirectionsState.mode === 'public' ? 'mpuj' : 'own_car');
+        }
+        mapDirectionsState.mode = directionsVehicles[mapDirectionsState.vehicle].mode;
         window.mapDirectionsState = mapDirectionsState;
 
         function escapeDirectionsText(value) {
@@ -5632,6 +5709,46 @@ if (is_dir($imgDir)) {
             if (destinationInput) destinationInput.value = mapDirectionsState.destination ? mapDirectionsState.destination.name : '';
         }
 
+        function closeDirectionsVehicleMenu() {
+            const menu = document.getElementById('directions-vehicle-menu');
+            const button = document.getElementById('directions-more-vehicles-btn');
+            if (menu) menu.hidden = true;
+            if (button) button.setAttribute('aria-expanded', 'false');
+        }
+
+        function syncDirectionsVehicleButtons() {
+            document.querySelectorAll('.directions-vehicle-picker [data-vehicle]').forEach(el => {
+                el.classList.toggle('active', el.dataset.vehicle === mapDirectionsState.vehicle);
+            });
+            document.querySelectorAll('[data-route-mode]').forEach(el => {
+                el.classList.toggle('active', el.dataset.routeMode === mapDirectionsState.mode);
+            });
+            const quickVehicles = ['own_car', 'tricycle', 'car', 'jeepney'];
+            const moreButton = document.getElementById('directions-more-vehicles-btn');
+            if (moreButton) moreButton.classList.toggle('active', !quickVehicles.includes(mapDirectionsState.vehicle));
+        }
+
+        window.toggleDirectionsVehicleMenu = function (event) {
+            if (event) event.stopPropagation();
+            const menu = document.getElementById('directions-vehicle-menu');
+            const button = document.getElementById('directions-more-vehicles-btn');
+            if (!menu) return;
+            menu.hidden = !menu.hidden;
+            if (button) button.setAttribute('aria-expanded', String(!menu.hidden));
+        };
+
+        window.selectDirectionsVehicle = function (vehicleKey) {
+            const vehicle = directionsVehicles[vehicleKey];
+            if (!vehicle) return;
+            mapDirectionsState.vehicle = vehicleKey;
+            mapDirectionsState.mode = vehicle.mode;
+            syncDirectionsVehicleButtons();
+            closeDirectionsVehicleMenu();
+            if (mapDirectionsState.start && mapDirectionsState.destination && document.getElementById('map-route-summary')?.classList.contains('open')) {
+                window.previewMapDirectionsRoute();
+            }
+        };
+
         window.openMapDirections = function () {
             const panel = document.getElementById('map-directions-panel');
             if (!panel) return;
@@ -5641,9 +5758,8 @@ if (is_dir($imgDir)) {
             mapDirectionsState.activeField = 'destination';
             mapDirectionsState.showAllHistory = false;
             syncDirectionsInputs();
-            document.querySelectorAll('.directions-mode').forEach(el =>
-                el.classList.toggle('active', el.dataset.mode === mapDirectionsState.mode)
-            );
+            closeDirectionsVehicleMenu();
+            syncDirectionsVehicleButtons();
             renderDirectionsResults('');
             setTimeout(() => {
                 const input = document.getElementById('directions-destination-input');
@@ -5658,6 +5774,7 @@ if (is_dir($imgDir)) {
                 panel.setAttribute('aria-hidden', 'true');
             }
             document.body.classList.remove('map-directions-open');
+            closeDirectionsVehicleMenu();
             const active = document.activeElement;
             if (active && typeof active.blur === 'function') active.blur();
         };
@@ -5686,11 +5803,10 @@ if (is_dir($imgDir)) {
         };
 
         window.selectDirectionsMode = function (mode, button) {
+            const defaultVehicles = { driving: 'own_car', motorcycle: 'motorcycle', public: 'mpuj' };
+            mapDirectionsState.vehicle = defaultVehicles[mode] || 'own_car';
             mapDirectionsState.mode = mode;
-            document.querySelectorAll('[data-mode], [data-route-mode]').forEach(el => {
-                const elementMode = el.dataset.mode || el.dataset.routeMode;
-                el.classList.toggle('active', elementMode === mode);
-            });
+            syncDirectionsVehicleButtons();
             if (mapDirectionsState.start && mapDirectionsState.destination && document.getElementById('map-route-summary')?.classList.contains('open')) {
                 window.previewMapDirectionsRoute();
             }
@@ -5779,12 +5895,12 @@ if (is_dir($imgDir)) {
             const primaryDistance = document.getElementById('map-route-primary-distance');
             const startName = document.getElementById('map-route-start-name');
             const destinationName = document.getElementById('map-route-destination-name');
-            const modeLabels = { driving: 'Drive', motorcycle: 'Motorcycle', public: 'Public transport' };
+            const selectedVehicle = directionsVehicles[mapDirectionsState.vehicle] || directionsVehicles.own_car;
             document.body.classList.add('map-route-active');
             setDirectionsBaseMarkersVisible(false);
             if (summary) summary.classList.add('open');
             if (endpoints) endpoints.classList.add('open');
-            if (title) title.textContent = modeLabels[mapDirectionsState.mode] || 'Route';
+            if (title) title.textContent = selectedVehicle.label;
             if (startName) startName.textContent = mapDirectionsState.start?.name || 'Choose starting point';
             if (destinationName) destinationName.textContent = mapDirectionsState.destination?.name || 'Choose destination';
             if (primaryTime) primaryTime.textContent = 'Calculating…';
@@ -5822,7 +5938,7 @@ if (is_dir($imgDir)) {
                 if (drivingTime) drivingTime.textContent = `${durationMinutes} min`;
                 if (meta) meta.textContent = mapDirectionsState.mode === 'driving'
                     ? `Fastest available road route${routeCount}`
-                    : `${modeLabels[mapDirectionsState.mode]} route shown · exact travel time unavailable${routeCount}`;
+                    : `${selectedVehicle.label} route shown · exact travel time unavailable${routeCount}`;
             } catch (error) {
                 if (error.name === 'AbortError') {
                     if (window._directionsRouteController === controller && summary?.classList.contains('open')) {

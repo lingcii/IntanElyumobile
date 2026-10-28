@@ -1,0 +1,1116 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+:root {
+  /* Surface & Base (Black/White) */
+  --color-bg-base: #0B0F19;
+  --color-bg-card: #141C2E;
+  --color-text-main: #FFFFFF;
+
+  /* Dynamic derived text colors (OKLCH Color Mix - "Derive it, don't guess") */
+  --color-text-muted: color-mix(in oklch, var(--color-text-main, #FFFFFF), var(--color-bg-base, #0B0F19) 35%);
+  --color-text-subtle: color-mix(in oklch, var(--color-text-main, #FFFFFF), var(--color-bg-base, #0B0F19) 50%);
+
+  /* Primary Brand (Blue) */
+  --color-blue-primary: #2563EB;
+  --color-blue-glow: #60A5FA;
+
+  /* Gamification & Badges (Yellow, Green, Red) */
+  --color-yellow-pts: #EAB308;
+  --color-yellow-xp: #EAB308;
+  --color-green-status: #10B981;
+  --color-red-alert: #EF4444;
+
+  /* Design Token Aliases */
+  --bg-dark-base: #0B0F19;
+  --bg-card-surface: #141C2E;
+  --text-primary: #FFFFFF;
+  --text-secondary: color-mix(in oklch, var(--text-primary, #FFFFFF), var(--bg-dark-base, #0B0F19) 35%);
+  --brand-primary: #2563EB;
+  --brand-light: #60A5FA;
+  --gamify-yellow: #EAB308;
+  --accent-green: #10B981;
+  --accent-red: #EF4444;
+  /* Concentric Corner Design Tokens (Formula: inner = outer - padding) */
+  --radius-card-outer: 24px;
+  --card-padding-md: 14px;
+  --card-padding-sm: 10px;
+  --radius-card-inner-md: calc(var(--radius-card-outer) - var(--card-padding-md)); /* 10px */
+  --radius-card-inner-sm: calc(var(--radius-card-outer) - var(--card-padding-sm)); /* 14px */
+
+  --radius-sheet-outer: 28px;
+  --sheet-padding: 16px;
+  --radius-sheet-inner: calc(var(--radius-sheet-outer) - var(--sheet-padding)); /* 12px */
+
+  --radius-modal-outer: 24px;
+  --modal-padding: 16px;
+  --radius-modal-inner: calc(var(--radius-modal-outer) - var(--modal-padding)); /* 8px */
+
+  /* Rule #1: Systematic 4px/8px Spacing Scale */
+  --space-3xs: 2px;
+  --space-2xs: 4px;
+  --space-xs: 8px;
+  --space-sm: 12px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+
+  /* Rule #2: Proximity & Grouping Gaps */
+  --gap-tight: 4px;    /* Icon + Label, Title + Subtitle */
+  --gap-group: 8px;    /* Items in same component */
+  --gap-section: 20px; /* Separate content blocks */
+  --gap-layout: 32px;  /* Major page sections */
+
+  /* Rule #3: Generous Whitespace Padding */
+  --padding-card-generous: 20px 24px;
+  --padding-modal-generous: 24px;
+
+  /* Header & Navigation Spacing Tokens */
+  --safe-area-top: max(env(safe-area-inset-top, 0px), 36px);
+  --safe-area-bottom: max(18px, env(safe-area-inset-bottom, 18px));
+  --header-content-height: 48px;
+  --header-height: calc(var(--safe-area-top) + var(--header-content-height));
+  --header-gap: 12px;
+  --content-top-padding: calc(var(--header-height) + var(--header-gap));
+  --nav-bar-height: 66px;
+  --nav-clearance: calc(var(--safe-area-bottom) + var(--nav-bar-height) + 16px);
+  --page-top-padding: calc(var(--safe-area-top) + 52px);
+  --page-bottom-padding: var(--nav-clearance);
+  --page-inline-padding: clamp(12px, 3.8vw, 18px);
+}
+
+/* Fallback for legacy CSS engines that do not support OKLCH color-mix */
+@supports not (color: color-mix(in oklch, #ffffff, #0b0f19 35%)) {
+  :root {
+    --color-text-muted: #94A3B8;
+    --color-text-subtle: #64748B;
+    --text-secondary: #94A3B8;
+  }
+}
+
+/* Global Dynamic Text Utilities */
+.text-muted, .text-secondary {
+  color: var(--color-text-muted, #94A3B8) !important;
+}
+
+.text-subtle {
+  color: var(--color-text-subtle, #64748B) !important;
+}
+
+/* Concentric Corner Utility Helpers (Concentric curves: inner = outer - padding) */
+.concentric-card {
+  border-radius: var(--radius-card-outer) !important;
+  padding: var(--card-padding-md) !important;
+}
+
+.concentric-card > .concentric-inner,
+.concentric-card img,
+.concentric-card .card-badge {
+  border-radius: var(--radius-card-inner-md) !important;
+}
+
+.concentric-sheet {
+  border-radius: var(--radius-sheet-outer) var(--radius-sheet-outer) 0 0 !important;
+  padding: var(--sheet-padding) !important;
+}
+
+.concentric-sheet #sheet-slider-track,
+.concentric-sheet .sheet-img {
+  border-radius: var(--radius-sheet-inner) !important;
+}
+
+/* Layout Spacing & Grouping Utilities (Rule #1, #2, #3) */
+.gap-tight { gap: var(--gap-tight, 4px) !important; }
+.gap-group { gap: var(--gap-group, 8px) !important; }
+.gap-section { gap: var(--gap-section, 20px) !important; }
+
+.stacked-tight { display: flex; flex-direction: column; gap: var(--gap-tight, 4px); }
+.stacked-group { display: flex; flex-direction: column; gap: var(--gap-group, 8px); }
+.stacked-section { display: flex; flex-direction: column; gap: var(--gap-section, 20px); }
+
+.card-whitespace-generous {
+  padding: var(--padding-card-generous, 20px 24px) !important;
+}
+
+/* Global Style Base */
+html {
+  height: 100%;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', sans-serif;
+  background-color: var(--color-bg-base, #0B0F19);
+  color: var(--color-text-main, #FFFFFF);
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+}
+
+/* ============================================================
+ * Universal Mobile Viewport & Aspect Ratio Resilience
+ * Flexible across all aspect ratios (16:9, 18:9, 19.5:9, 20:9, 21:9, Foldables, Tablets)
+ * Eliminates dead gaps, unwanted voids, and collating spacing
+ * ============================================================ */
+#app-container {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100vh;
+  min-height: 100dvh;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  flex: 1 0 auto;
+}
+
+#main-content {
+  width: 100%;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  min-height: 0;
+}
+
+/* Responsive Header bounds matching container across all aspect ratios */
+.app-header,
+.mobile-header {
+  max-width: 480px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  width: 100% !important;
+  box-sizing: border-box;
+}
+
+/* Fluid Page Containers (Dashboard, Leaderboard, Profile, Itinerary, etc.) */
+.leaderboard-container,
+.profile-container,
+.dashboard-container,
+.itinerary-container,
+.merch-page-container,
+.merch-view,
+.saved-trips-page-container,
+.saved-places-container,
+.saved-places-page-container,
+.trending-container,
+.trending-page-container,
+.settings-container,
+.help-container,
+.about-container,
+.edit-profile-container {
+  width: 100%;
+  max-width: 480px;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  padding-left: var(--page-inline-padding, clamp(12px, 3.8vw, 18px)) !important;
+  padding-right: var(--page-inline-padding, clamp(12px, 3.8vw, 18px)) !important;
+  padding-top: var(--page-top-padding, calc(max(env(safe-area-inset-top, 0px), 36px) + 52px)) !important;
+  padding-bottom: var(--page-bottom-padding, calc(max(18px, env(safe-area-inset-bottom, 18px)) + 82px)) !important;
+  overflow-x: hidden;
+}
+
+/* 1. Tall aspect-ratio mobile phones (19.5:9, 20:9, 21:9 - Xperia, Galaxy, iPhones) */
+@media (min-aspect-ratio: 9/21) and (min-height: 800px) {
+  #main-content {
+    justify-content: flex-start;
+  }
+}
+
+/* 2. Short / compact screen ratios (16:9 or screens under 680px height) */
+@media (max-height: 680px) {
+  .leaderboard-container,
+  .profile-container,
+  .dashboard-container,
+  .itinerary-container,
+  .merch-page-container,
+  .merch-view,
+  .saved-trips-page-container,
+  .saved-places-page-container,
+  .trending-page-container,
+  .settings-container,
+  .help-container,
+  .about-container,
+  .edit-profile-container {
+    padding-top: calc(max(env(safe-area-inset-top, 0px), 24px) + 46px) !important;
+    padding-bottom: calc(max(14px, env(safe-area-inset-bottom, 14px)) + 74px) !important;
+  }
+}
+
+/* 3. Wide aspect ratios & Tablets (Foldables unfolded, Tablets, Landscape) */
+@media (min-width: 481px) {
+  #app-container {
+    box-shadow: 0 0 50px rgba(0, 0, 0, 0.4);
+  }
+}
+
+/* Toast Container & Glassmorphism Cards */
+#toast-container {
+    position: fixed;
+    top: max(env(safe-area-inset-top), 24px);
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 420px;
+    z-index: 999999 !important;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none;
+}
+
+.toast-card {
+    background: linear-gradient(145deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.98) 100%) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    border: 1px solid rgba(56, 189, 248, 0.3) !important;
+    border-radius: 18px !important;
+    padding: 14px 18px !important;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6), 0 0 24px rgba(56, 189, 248, 0.15) !important;
+    pointer-events: auto;
+    animation: toastIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes toastIn {
+    0% {
+        opacity: 0;
+        transform: translateY(-20px) scale(0.92);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes toastOut {
+    0% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(-16px) scale(0.94);
+    }
+}
+
+/* ============================================================
+ * Scroll-Driven Animations (Zero JS - scroll() & view())
+ * ============================================================ */
+
+/* Page & Container Reading Progress Bar */
+@keyframes scrollProgress {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+.scroll-progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, #38bdf8 0%, #818cf8 50%, #34d399 100%);
+  transform-origin: left center;
+  animation: scrollProgress linear;
+  animation-timeline: scroll(root);
+  z-index: 999999;
+  pointer-events: none;
+}
+
+/* Scroll View Reveal Animation (Fade + Lift in on scroll into view) */
+@keyframes viewReveal {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.reveal-on-scroll {
+  animation: viewReveal ease-out both;
+  animation-timeline: view();
+  animation-range: entry 10% cover 30%;
+}
+
+/* ============================================================
+ * Typographic Line Balancing & Stacking Context Isolation
+ * ============================================================ */
+
+/* Eliminate orphan words in headings & titles */
+h1, h2, h3, h4, h5, h6,
+.auth-top h1, .section-title, .fav-card-name, .sheet-title, .modal-title {
+  text-wrap: balance;
+}
+
+/* Prevent paragraph orphan words */
+p, .description, .body-text, .subtitle, .faq-answer {
+  text-wrap: pretty;
+}
+
+/* Stacking Context Isolation Helper (Prevents z-index traps) */
+.isolate-context {
+  isolation: isolate;
+}
+
+/* ============================================================
+ * Lumora Modern CSS Recipes (:user-invalid, Stagger, SVG Ring)
+ * ============================================================ */
+
+/* 1. Zero-JS Polite Validation (:user-invalid & :user-valid) */
+.auth-input:user-invalid, 
+input:not([type="checkbox"]):not([type="radio"]):user-invalid {
+  border-bottom-color: #f87171 !important;
+}
+
+.auth-input:user-valid, 
+input:not([type="checkbox"]):not([type="radio"]):user-valid {
+  border-bottom-color: #34d399 !important;
+}
+
+/* 2. Weightless Staggered List Entrance Animation */
+@keyframes fadeInUpStagger {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.stagger-item {
+  animation: fadeInUpStagger 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(var(--stagger-index, 0) * 50ms);
+}
+
+/* 3. Circular SVG Progress Ring (12 o'clock start + rounded caps) */
+.progress-ring-svg {
+  transform: rotate(-90deg);
+  transform-origin: center;
+}
+
+.progress-ring-circle {
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.5s ease-in-out;
+}
+
+/* ============================================================
+ * 60 / 30 / 10 UI Color Ratio Tokens & Utility Classes
+ * ============================================================ */
+
+:root {
+  --ratio-60-neutral: #0B0F19;     /* 60% Page Background Canvas */
+  --ratio-30-secondary: #141C2E;   /* 30% Structural Surface Panels & Cards */
+  --ratio-10-accent: #38BDF8;      /* 10% Focal CTA Accent */
+}
+
+.bg-canvas-60 { 
+  background-color: var(--ratio-60-neutral) !important; 
+}
+
+.panel-surface-30 { 
+  background-color: var(--ratio-30-secondary) !important; 
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+}
+
+.btn-cta-accent-10 {
+  background: var(--ratio-10-accent) !important;
+  color: #0f172a !important;
+  font-weight: 700 !important;
+  box-shadow: 0 8px 24px rgba(56, 189, 248, 0.25) !important;
+  border: none !important;
+  transition: transform 0.15s ease, box-shadow 0.15s ease !important;
+}
+
+.btn-cta-accent-10:active {
+  transform: scale(0.96) !important;
+}
+
+/* ============================================================
+ * Lumora CSS Grid Accordion (0fr -> 1fr) & Empty State Utilities
+ * ============================================================ */
+
+/* 1. Zero-Jank CSS Grid Accordion Transition (0fr -> 1fr) */
+.accordion-wrapper {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.accordion-wrapper.is-open {
+  grid-template-rows: 1fr;
+}
+
+.accordion-wrapper > .accordion-inner {
+  overflow: hidden;
+}
+
+/* 2. Premium Designed Empty State Card Utility */
+.empty-state-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 32px 24px;
+  background: var(--ratio-30-secondary, #141C2E);
+  border-radius: var(--radius-card-outer, 24px);
+  border: 1px dashed rgba(255, 255, 255, 0.12);
+  gap: 12px;
+}
+
+.empty-state-icon {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  background: #ffffff !important;
+  border: none !important;
+  outline: none !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #1e3a8a !important;
+  -webkit-text-fill-color: #1e3a8a !important;
+  font-size: 30px;
+  margin: 0 auto 12px auto;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15) !important;
+}
+
+.empty-state-icon i {
+  color: #1e3a8a !important;
+  -webkit-text-fill-color: #1e3a8a !important;
+  font-size: 28px !important;
+  display: inline-block;
+}
+
+/* ============================================================
+ * Lumora Premium Date Range Calendar (Grid + Cap Radius Recipe)
+ * ============================================================ */
+
+/* Native WebKit HTML Input Date Dark Mode Styling Override */
+input[type="date"] {
+  color-scheme: dark;
+  color: #ffffff !important;
+  background-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.8) sepia(100%) saturate(500%) hue-rotate(170deg);
+  cursor: pointer;
+  opacity: 0.9;
+  padding: 4px;
+  border-radius: 6px;
+  transition: opacity 0.2s ease, transform 0.15s ease;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+/* Lumora Date Range Picker Card & Grid */
+.calendar-card {
+  background: linear-gradient(145deg, #141C2E 0%, #0F172A 100%);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  border-radius: var(--radius-card-outer, 24px);
+  padding: 20px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), 0 0 30px rgba(56, 189, 248, 0.1);
+  width: 100%;
+  max-width: 340px;
+  box-sizing: border-box;
+}
+
+.calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding: 0 4px;
+}
+
+.calendar-header .month-title {
+  font-size: 15px;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: 0.3px;
+}
+
+.calendar-nav-btn {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #38bdf8;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.calendar-nav-btn:hover {
+  background: rgba(56, 189, 248, 0.2);
+  color: #ffffff;
+}
+
+/* 7-Column Calendar Grid */
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  row-gap: 6px;
+  column-gap: 0;
+  text-align: center;
+}
+
+.calendar-weekday {
+  font-size: 11px;
+  font-weight: 800;
+  color: rgba(148, 163, 184, 0.7);
+  padding-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.calendar-day {
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: #e2e8f0;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.15s ease;
+}
+
+.calendar-day.muted {
+  color: rgba(255, 255, 255, 0.25);
+  pointer-events: none;
+}
+
+.calendar-day:hover:not(.muted) {
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+  border-radius: 999px;
+}
+
+/* Lumora Continuous Date Range (Cap Radius Formula) */
+.calendar-day.in-range {
+  background: rgba(56, 189, 248, 0.25) !important;
+  color: #ffffff !important;
+  border-radius: 0 !important;
+}
+
+.calendar-day.range-start {
+  background: #38bdf8 !important;
+  color: #0f172a !important;
+  font-weight: 900 !important;
+  border-radius: 999px 0 0 999px !important;
+  box-shadow: 0 2px 10px rgba(56, 189, 248, 0.4);
+}
+
+.calendar-day.range-end {
+  background: #38bdf8 !important;
+  color: #0f172a !important;
+  font-weight: 900 !important;
+  border-radius: 0 999px 999px 0 !important;
+  box-shadow: 0 2px 10px rgba(56, 189, 248, 0.4);
+}
+
+.calendar-day.single-selected {
+  background: #38bdf8 !important;
+  color: #0f172a !important;
+  font-weight: 900 !important;
+  border-radius: 999px !important;
+  box-shadow: 0 4px 14px rgba(56, 189, 248, 0.4);
+}
+
+/* ============================================================
+ * Universal Glassmorphic Empty State Component
+ * ============================================================ */
+.dash-empty-state {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  padding: 24px 18px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: linear-gradient(145deg, rgba(20, 30, 48, 0.65) 0%, rgba(15, 23, 42, 0.85) 100%);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(56, 189, 248, 0.18);
+  border-radius: 22px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  animation: dashEmptyFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  margin: 0 !important;
+}
+
+@keyframes dashEmptyFadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.dash-empty-icon-wrap {
+  width: 50px;
+  height: 50px;
+  border-radius: 16px;
+  background: #ffffff !important;
+  border: none !important;
+  outline: none !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  color: #1e3a8a !important;
+  box-shadow: 0 4px 14px rgba(10, 25, 60, 0.18) !important;
+  margin-bottom: 2px;
+  flex-shrink: 0;
+}
+
+.dash-empty-icon-wrap i {
+  color: #1e3a8a !important;
+}
+
+.dash-empty-title {
+  font-size: 15px;
+  font-weight: 800;
+  color: #f8fafc;
+  letter-spacing: -0.2px;
+  line-height: 1.3;
+  margin: 0;
+}
+
+.dash-empty-desc {
+  font-size: 13px;
+  color: rgba(148, 163, 184, 0.85);
+  line-height: 1.45;
+  max-width: 380px;
+  margin: 0 auto;
+  text-wrap: pretty;
+}
+
+.dash-empty-btn {
+  margin-top: 6px;
+  padding: 10px 22px;
+  border-radius: 100px;
+  font-size: 12.5px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #38bdf8 0%, #2563eb 100%);
+  color: #ffffff !important;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 4px 16px rgba(56, 189, 248, 0.35);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, opacity 0.2s ease;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.dash-empty-btn:active {
+  transform: scale(0.96);
+  box-shadow: 0 2px 8px rgba(56, 189, 248, 0.25);
+}
+
+.dash-empty-btn:hover {
+  box-shadow: 0 6px 20px rgba(56, 189, 248, 0.45);
+  color: #ffffff !important;
+}
+
+/* ============================================================
+ * 3-Colors Google OAuth Modal (Clean Minimalist)
+ * Color 1: #00f2fe (Electric Cyan)
+ * Color 2: #38bdf8 (Ocean Sky Blue)
+ * Color 3: #74a3cf (Coastal Elyu Periwinkle)
+ * ============================================================ */
+
+#global-oauth-overlay {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  z-index: 999999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  text-align: center;
+  padding: 20px;
+  box-sizing: border-box;
+  overflow: hidden;
+  opacity: 0;
+  animation: oauthModalFadeIn 0.25s ease forwards;
+}
+
+@keyframes oauthModalFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Distinct Brand Gradient Container Card (No Outline) */
+.oauth-modal-content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  max-width: 310px;
+  width: 86%;
+  background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important;
+  border-radius: 26px;
+  padding: 34px 22px 28px 22px;
+  box-sizing: border-box;
+  box-shadow: 0 15px 35px rgba(10, 25, 60, 0.4), 0 0 25px rgba(63, 125, 183, 0.25);
+  border: none !important;
+  outline: none !important;
+  animation: oauthCardPop 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  text-align: center;
+}
+
+@keyframes oauthCardPop {
+  0% { transform: scale(0.85); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* Spinner Circle Container inside card */
+.oauth-spinner-circle {
+  position: relative;
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.22);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 2px solid rgba(255, 255, 255, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1), inset 0 1px 2px rgba(255, 255, 255, 0.5);
+}
+
+/* Rotating Spinner Ring */
+.oauth-spinner-ring {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 3.5px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #ffffff;
+  border-right-color: rgba(255, 255, 255, 0.85);
+  animation: oauthSpin 0.85s linear infinite;
+}
+
+@keyframes oauthSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* Title inside container */
+.oauth-modal-title {
+  margin: 4px 0 0 0;
+  font-size: 19px;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.2px;
+  text-shadow: 0 2px 6px rgba(15, 23, 42, 0.2);
+}
+
+/* Subtitle inside container */
+.oauth-modal-subtitle {
+  margin: 0;
+  font-size: 13.5px;
+  color: rgba(255, 255, 255, 0.95);
+  font-weight: 500;
+  text-shadow: 0 1px 3px rgba(15, 23, 42, 0.15);
+}
+
+/* Success Circle inside container */
+.oauth-success-circle {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.2), inset 0 1px 2px rgba(255, 255, 255, 0.8);
+  animation: oauthSuccessPop 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes oauthSuccessPop {
+  0% { transform: scale(0.7); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* ============================================================
+ * Password Metrics & Strength Meter (Reusable Component)
+ * ============================================================ */
+.pwd-strength-wrapper {
+  width: 100%;
+  margin-top: 6px;
+  margin-bottom: 11px;
+}
+
+.pwd-strength-card {
+  background: rgba(15, 23, 42, 0.52);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-radius: 14px;
+  padding: 10px 13px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pwd-strength-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.pwd-strength-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  transition: all 0.25s ease;
+}
+
+.pwd-strength-badge.status-weak {
+  background: rgba(239, 68, 68, 0.28);
+  border: 1px solid rgba(239, 68, 68, 0.75);
+  color: #fecaca;
+}
+
+.pwd-strength-badge.status-fair {
+  background: rgba(249, 115, 22, 0.28);
+  border: 1px solid rgba(249, 115, 22, 0.75);
+  color: #fed7aa;
+}
+
+.pwd-strength-badge.status-good {
+  background: rgba(234, 179, 8, 0.28);
+  border: 1px solid rgba(234, 179, 8, 0.75);
+  color: #fef08a;
+}
+
+.pwd-strength-badge.status-strong {
+  background: rgba(16, 185, 129, 0.28);
+  border: 1px solid rgba(16, 185, 129, 0.85);
+  color: #a7f3d0;
+}
+
+.pwd-score-pill {
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.pwd-strength-segments {
+  display: flex;
+  gap: 6px;
+  height: 6px;
+  width: 100%;
+}
+
+.pwd-segment {
+  flex: 1;
+  height: 100%;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: background 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
+}
+
+.pwd-strength-wrapper[data-score="1"] .pwd-segment.seg-1 {
+  background: #ef4444;
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.85);
+}
+
+.pwd-strength-wrapper[data-score="2"] .pwd-segment.seg-1,
+.pwd-strength-wrapper[data-score="2"] .pwd-segment.seg-2 {
+  background: #f97316;
+  box-shadow: 0 0 10px rgba(249, 115, 22, 0.85);
+}
+
+.pwd-strength-wrapper[data-score="3"] .pwd-segment.seg-1,
+.pwd-strength-wrapper[data-score="3"] .pwd-segment.seg-2,
+.pwd-strength-wrapper[data-score="3"] .pwd-segment.seg-3 {
+  background: #eab308;
+  box-shadow: 0 0 10px rgba(234, 179, 8, 0.85);
+}
+
+.pwd-strength-wrapper[data-score="4"] .pwd-segment.seg-1,
+.pwd-strength-wrapper[data-score="4"] .pwd-segment.seg-2,
+.pwd-strength-wrapper[data-score="4"] .pwd-segment.seg-3,
+.pwd-strength-wrapper[data-score="4"] .pwd-segment.seg-4 {
+  background: #10b981;
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.9);
+}
+
+.pwd-checklist {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px;
+}
+
+.pwd-chk-item {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  padding: 5px 8px;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 10.5px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.25s ease;
+}
+
+.pwd-chk-item i {
+  font-size: 9.5px;
+  color: rgba(255, 255, 255, 0.45);
+  transition: all 0.25s ease;
+  flex-shrink: 0;
+}
+
+.pwd-chk-item.passed {
+  background: rgba(16, 185, 129, 0.25) !important;
+  border-color: rgba(16, 185, 129, 0.7) !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+}
+
+.pwd-chk-item.passed i {
+  color: #34d399 !important;
+  font-size: 11px;
+}
+
+.pwd-chk-item.passed i {
+  color: #34d399 !important;
+}
+
+/* Scrollbar hiding utilities */
+.hide-scrollbar,
+.no-scrollbar {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}
+.hide-scrollbar::-webkit-scrollbar,
+.no-scrollbar::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+/* Ambient Offline Mode Banner */
+.elyu-offline-pill {
+  position: fixed;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%) translateY(0);
+  z-index: 99999;
+  background: rgba(15, 23, 42, 0.94);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  color: #f8fafc;
+  padding: 7px 16px;
+  border-radius: 100px;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.28), 0 1px 3px rgba(0, 0, 0, 0.1);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  pointer-events: none;
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  opacity: 1;
+}
+
+.elyu-offline-pill.hidden {
+  opacity: 0 !important;
+  transform: translateX(-50%) translateY(-14px) !important;
+  pointer-events: none !important;
+}
+
+.elyu-offline-pill.online-syncing {
+  background: rgba(6, 78, 59, 0.94) !important;
+  border-color: rgba(52, 211, 153, 0.35) !important;
+  color: #ecfdf5 !important;
+}
+/* Small global pull-to-refresh indicator; hidden unless the user pulls from the top. */
+#app-pull-refresh {
+    position: fixed;
+    top: -48px;
+    left: 50%;
+    width: 34px;
+    height: 34px;
+    z-index: 9400;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    color: #1e3a8a;
+    background: rgba(255, 255, 255, 0.96);
+    box-shadow: 0 5px 18px rgba(15, 23, 42, 0.2);
+    opacity: 0;
+    pointer-events: none;
+    transform: translate3d(-50%, 0, 0);
+    transition: opacity 0.16s ease, transform 0.2s ease;
+}
+
+#app-pull-refresh.is-visible { opacity: 1; }
+#app-pull-refresh.is-ready { color: #0284c7; }
+#app-pull-refresh.is-refreshing i { animation: app-pull-refresh-spin 0.75s linear infinite; }
+
+@keyframes app-pull-refresh-spin {
+    to { transform: rotate(360deg); }
+}

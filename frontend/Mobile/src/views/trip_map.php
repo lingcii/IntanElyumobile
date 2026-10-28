@@ -163,6 +163,30 @@ include_once __DIR__ . '/../components/testimony_modal.php';
         var backendUrl = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
         var tripMap;
 
+        // A cached SPA view can be mounted again while the previous map still has
+        // asynchronous routing callbacks in flight. Dispose that instance first.
+        if (window._tripMapInstance) {
+            try { window._tripMapInstance.remove(); } catch (e) { }
+            window._tripMapInstance = null;
+        }
+
+        function isTripMapActive(map) {
+            try {
+                return Boolean(
+                    map &&
+                    map === tripMap &&
+                    map === window._tripMapInstance &&
+                    document.getElementById('trip-map') &&
+                    map.getContainer &&
+                    map.getContainer().isConnected &&
+                    map.getStyle &&
+                    map.getStyle()
+                );
+            } catch (e) {
+                return false;
+            }
+        }
+
         window.myLat = window.myLat || window.currentGPSLat || null;
         window.myLng = window.myLng || window.currentGPSLng || null;
 
@@ -249,6 +273,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                 fadeDuration: 0,
                 attributionControl: false
             });
+            window._tripMapInstance = tripMap;
 
             // tripMap.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-right');
 
@@ -1296,10 +1321,11 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                         routeColor = '#38bdf8';
                     }
 
+                    const routeMap = tripMap;
                     fetch(`https://router.project-osrm.org/route/v1/${osrmProfile}/${coords.join(';')}?overview=full&geometries=geojson`)
                         .then(r => r.json())
                         .then(routeData => {
-                            if (!document.getElementById('trip-info-distance')) return; // Page was unmounted
+                            if (!document.getElementById('trip-info-distance') || !isTripMapActive(routeMap)) return;
 
                             if (routeData.code === 'Ok' && routeData.routes.length > 0) {
                                 const route = routeData.routes[0];
@@ -1364,7 +1390,8 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                                 // Safely update or add MapLibre sources/layers
                                 if (tripMap.getSource('route')) {
                                     tripMap.getSource('route').setData(geojson);
-                                    tripMap.getSource('route-bg').setData(geojson);
+                                    const routeBackground = tripMap.getSource('route-bg');
+                                    if (routeBackground) routeBackground.setData(geojson);
                                     tripMap.setPaintProperty('route-line', 'line-color', routeColor);
                                 } else {
                                     tripMap.addSource('route', { 'type': 'geojson', 'data': geojson });
@@ -1387,6 +1414,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                                 }
                             }
                         }).catch(e => {
+                            if (!isTripMapActive(routeMap)) return;
                             console.warn("Trip online routing failed, using geodesic route fallback:", e);
                             try {
                                 const directCoords = coords.map(c => c.split(',').map(Number));

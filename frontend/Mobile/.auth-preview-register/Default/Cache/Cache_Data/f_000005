@@ -1,0 +1,703 @@
+/* ============================================================
+ * Leaderboard View Styles - leaderboard.css
+ * Intan Elyu Mobile — Clean Pure White Theme with Royal Blue Accents
+ * ============================================================ */
+
+/* Full Page White Background */
+html:has(body[data-view="leaderboard"]),
+body[data-view="leaderboard"],
+html:has(.leaderboard-container),
+body:has(.leaderboard-container) {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+}
+
+body[data-view="leaderboard"] #app-container,
+body[data-view="leaderboard"] #main-content,
+body:has(.leaderboard-container) #app-container,
+body:has(.leaderboard-container) #main-content {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+}
+
+body[data-view="leaderboard"] .mobile-header {
+    background: #1e3a8a !important;
+    backdrop-filter: blur(24px) !important;
+    -webkit-backdrop-filter: blur(24px) !important;
+    border: none !important;
+    outline: none !important;
+    border-bottom: none !important;
+    box-shadow: none !important;
+}
+
+body[data-view="leaderboard"] .mobile-header .header-title {
+    color: #ffffff !important;
+    font-weight: 800 !important;
+}
+
+body[data-view="leaderboard"] .mobile-header .header-icon {
+    color: #1e3a8a !important;
+    background: #ffffff !important;
+    border: none !important;
+    outline: none !important;
+}
+
+body[data-view="leaderboard"] .mobile-header .header-icon i {
+    color: #1e3a8a !important;
+}
+
+/* Main Container: Pure White Background */
+.leaderboard-container {
+    width: 100%;
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding-top: var(--page-top-padding, calc(max(env(safe-area-inset-top, 0px), 36px) + 52px)) !important;
+    padding-left: var(--page-inline-padding, clamp(12px, 3.8vw, 18px)) !important;
+    padding-right: var(--page-inline-padding, clamp(12px, 3.8vw, 18px)) !important;
+    padding-bottom: var(--page-bottom-padding, calc(max(18px, env(safe-area-inset-bottom, 18px)) + 82px)) !important;
+    box-sizing: border-box;
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+    overflow-x: hidden;
+}
+
+/* Title & Subtitle */
+.leaderboard-title {
+    text-align: center;
+    margin-bottom: clamp(10px, 1.8vh, 16px);
+}
+
+.leaderboard-title h2 {
+    font-size: 22px !important;
+    font-weight: 900 !important;
+    color: #0f172a !important;
+    letter-spacing: -0.5px !important;
+    margin: 0 0 4px 0 !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.leaderboard-title p {
+    margin: 0;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #64748b !important;
+    opacity: 1 !important;
+    letter-spacing: 0.2px;
+}
+
+/* ── Interactive Filter Tabs with Sliding Glider ── */
+.leaderboard-tabs-wrapper {
+    position: relative;
+    display: flex;
+    background: #f1f5f9 !important;
+    border: none !important;
+    outline: none !important;
+    border-radius: 100px;
+    padding: 4px;
+    margin: 0 auto clamp(10px, 1.8vh, 16px);
+    max-width: 440px;
+    width: 100%;
+    gap: 0;
+    box-sizing: border-box;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+}
+
+.leaderboard-tab-glider {
+    position: absolute;
+    top: 4px;
+    bottom: 4px;
+    left: 4px;
+    width: calc((100% - 8px) / 2);
+    border-radius: 100px;
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 60%, #b45309 100%);
+    box-shadow: 0 4px 15px rgba(217, 119, 6, 0.4);
+    transition: transform 0.38s cubic-bezier(0.16, 1, 0.3, 1), background 0.3s ease;
+    z-index: 1;
+    pointer-events: none;
+}
+
+.leaderboard-tabs-wrapper.mode-points .leaderboard-tab-glider {
+    transform: translateX(0%);
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 60%, #b45309 100%);
+    box-shadow: 0 4px 15px rgba(217, 119, 6, 0.4);
+}
+
+.leaderboard-tabs-wrapper.mode-visited .leaderboard-tab-glider {
+    transform: translateX(100%);
+    background: linear-gradient(135deg, #00f2fe 0%, #06b6d4 50%, #0284c7 100%);
+    box-shadow: 0 4px 15px rgba(6, 182, 212, 0.4);
+}
+
+.leaderboard-tab-btn {
+    position: relative;
+    z-index: 2;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 9px 6px;
+    border-radius: 100px;
+    border: none !important;
+    outline: none !important;
+    background: transparent !important;
+    color: #64748b !important;
+    font-size: 12.5px;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: color 0.25s ease, transform 0.15s ease;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.leaderboard-tab-btn:active {
+    transform: scale(0.95);
+}
+
+.leaderboard-tab-btn.active {
+    color: #ffffff !important;
+    font-weight: 800 !important;
+}
+
+/* ── Your Current Standing Banner ── */
+.standing-banner-card {
+    background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important;
+    border: none !important;
+    outline: none !important;
+    border-radius: clamp(16px, 4vw, 22px);
+    padding: clamp(10px, 2.5vw, 14px) clamp(12px, 3.5vw, 16px);
+    margin-bottom: clamp(12px, 2vh, 18px);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: clamp(8px, 2.5vw, 12px);
+    cursor: pointer;
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.2s ease;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    box-shadow: 0 4px 16px rgba(32, 63, 141, 0.25) !important;
+}
+
+.standing-banner-card:active {
+    transform: scale(0.97);
+}
+
+.standing-rank-avatar-wrap {
+    position: relative;
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+}
+
+.standing-rank-avatar {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    border: none !important;
+}
+
+.standing-rank-badge {
+    position: absolute;
+    bottom: -3px;
+    right: -5px;
+    background: linear-gradient(135deg, #00f2fe, #0284c7);
+    color: #ffffff;
+    font-size: 10px;
+    font-weight: 900;
+    min-width: 22px;
+    height: 20px;
+    padding: 0 4px;
+    border-radius: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1.5px solid #203f8d !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+    z-index: 2;
+}
+
+.standing-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.standing-name-row {
+    font-size: 14px;
+    font-weight: 800;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 2px;
+}
+
+.standing-subtext {
+    font-size: 11.5px;
+    color: #ffffff !important;
+    opacity: 0.95 !important;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.standing-action-btn {
+    background: linear-gradient(135deg, #00f2fe 0%, #0284c7 100%) !important;
+    color: #ffffff !important;
+    border: none !important;
+    outline: none !important;
+    padding: 8px 14px;
+    border-radius: 100px;
+    font-size: 11.5px;
+    font-weight: 800;
+    cursor: pointer;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    white-space: nowrap;
+    box-shadow: none !important;
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.15s ease;
+}
+
+.standing-action-btn:active {
+    transform: scale(0.92);
+}
+
+/* ── Podium Section (Top 3) ── */
+.podium-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    gap: clamp(6px, 2vw, 12px);
+    margin-bottom: clamp(14px, 2.2vh, 20px);
+    margin-top: clamp(4px, 1vh, 8px);
+    padding: clamp(26px, 4.2vh, 36px) clamp(6px, 2vw, 12px) 14px clamp(6px, 2vw, 12px);
+    background: #f8fafc !important;
+    border: 1.5px solid #e2e8f0 !important;
+    outline: none !important;
+    border-radius: clamp(18px, 4.5vw, 26px) !important;
+    box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.06), 0 2px 8px -1px rgba(15, 23, 42, 0.04) !important;
+    box-sizing: border-box;
+    position: relative;
+}
+
+.podium-place {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+    max-width: clamp(90px, 28vw, 114px);
+    min-width: 0;
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.podium-place:active {
+    transform: scale(0.93) !important;
+}
+
+.podium-avatar-wrap {
+    position: relative;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.podium-avatar {
+    width: clamp(48px, 14vw, 62px);
+    height: clamp(48px, 14vw, 62px);
+    border-radius: 50%;
+    object-fit: cover;
+    border: none !important;
+    transition: transform 0.2s ease;
+}
+
+/* Gold - 1st Place */
+.podium-place.rank-1 .podium-avatar {
+    width: clamp(62px, 18vw, 78px);
+    height: clamp(62px, 18vw, 78px);
+    border: none !important;
+}
+
+/* Silver - 2nd Place */
+.podium-place.rank-2 .podium-avatar {
+    width: clamp(52px, 15vw, 64px);
+    height: clamp(52px, 15vw, 64px);
+    border: none !important;
+}
+
+/* Bronze - 3rd Place */
+.podium-place.rank-3 .podium-avatar {
+    width: clamp(48px, 14vw, 60px);
+    height: clamp(48px, 14vw, 60px);
+    border: none !important;
+}
+
+/* Floating Medals / Crown */
+.podium-crown-icon {
+    position: absolute;
+    top: -34px;
+    left: 50%;
+    transform: translateX(-50%);
+    animation: floatCrown 2.5s ease-in-out infinite;
+    z-index: 10;
+}
+
+.podium-medal-icon {
+    position: absolute;
+    top: -26px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+}
+
+/* Rank Badge on Avatar */
+.podium-rank-badge {
+    position: absolute;
+    bottom: -4px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    color: #ffffff;
+    font-size: 11.5px;
+    font-weight: 900;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none !important;
+}
+
+.rank-badge-1 {
+    background: linear-gradient(135deg, #ffd700, #d97706);
+}
+
+.rank-badge-2 {
+    background: linear-gradient(135deg, #cbd5e1, #64748b);
+}
+
+.rank-badge-3 {
+    background: linear-gradient(135deg, #fb923c, #c2410c);
+}
+
+.podium-name {
+    font-weight: 800;
+    font-size: 12.5px;
+    line-height: 1.25;
+    text-align: center;
+    max-width: 100px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #0f172a !important;
+}
+
+.podium-metric-pill,
+.podium-xp-pill {
+    margin: 3px 0 6px;
+    padding: 3px 8px;
+    border-radius: 100px;
+    font-size: 10.5px;
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.podium-metric-1,
+.podium-xp-1 {
+    background: #fef3c7 !important;
+    border: 1px solid #fde68a !important;
+    outline: none !important;
+    color: #b45309 !important;
+    font-weight: 800;
+}
+.podium-metric-1 i,
+.podium-xp-1 i { color: #d97706 !important; }
+
+.podium-metric-2,
+.podium-xp-2 {
+    background: #f1f5f9 !important;
+    border: 1px solid #e2e8f0 !important;
+    outline: none !important;
+    color: #475569 !important;
+    font-weight: 800;
+}
+.podium-metric-2 i,
+.podium-xp-2 i { color: #64748b !important; }
+
+.podium-metric-3,
+.podium-xp-3 {
+    background: #ffedd5 !important;
+    border: 1px solid #fed7aa !important;
+    outline: none !important;
+    color: #c2410c !important;
+    font-weight: 800;
+}
+.podium-metric-3 i,
+.podium-xp-3 i { color: #ea580c !important; }
+
+/* 3D Glassmorphic Podium Step Blocks - Bright, Clear, and Borderless */
+.podium-block {
+    width: 100%;
+    border-radius: 18px 18px 8px 8px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 12px;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    position: relative;
+    overflow: hidden;
+}
+
+.block-1 {
+    background: linear-gradient(180deg, #fbbf24 0%, #f59e0b 45%, #d97706 100%) !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: 0 12px 28px rgba(245, 158, 11, 0.4), inset 0 2px 4px rgba(255, 255, 255, 0.5) !important;
+    height: clamp(80px, 11vh, 112px) !important;
+}
+
+.block-2 {
+    background: linear-gradient(180deg, #cbd5e1 0%, #94a3b8 45%, #64748b 100%) !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: 0 12px 28px rgba(148, 163, 184, 0.35), inset 0 2px 4px rgba(255, 255, 255, 0.6) !important;
+    height: clamp(64px, 9vh, 88px) !important;
+}
+
+.block-3 {
+    background: linear-gradient(180deg, #fdba74 0%, #fb923c 45%, #ea580c 100%) !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: 0 12px 28px rgba(234, 88, 12, 0.35), inset 0 2px 4px rgba(255, 255, 255, 0.5) !important;
+    height: clamp(50px, 7vh, 70px) !important;
+}
+
+.block-label {
+    font-size: 15px;
+    font-weight: 900;
+    letter-spacing: 1px;
+    color: #ffffff !important;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+}
+
+.block-1 .block-label { color: #ffffff !important; }
+.block-2 .block-label { color: #ffffff !important; }
+.block-3 .block-label { color: #ffffff !important; }
+
+/* ── Rank List Section ── */
+.rank-list-wrapper {
+    background: #f8fafc !important;
+    border: 1.5px solid #e2e8f0 !important;
+    outline: none !important;
+    border-radius: clamp(18px, 4.5vw, 26px) !important;
+    padding: clamp(10px, 2.8vw, 14px) clamp(10px, 2.8vw, 14px) clamp(12px, 3vw, 16px) clamp(10px, 2.8vw, 14px) !important;
+    box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.07), 0 2px 8px -1px rgba(15, 23, 42, 0.04) !important;
+    box-sizing: border-box !important;
+}
+
+.rank-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* Rank List Item with Spring Active Effect */
+.rank-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: clamp(9px, 2.2vw, 12px) clamp(10px, 2.5vw, 14px);
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    outline: none !important;
+    border-radius: clamp(14px, 3.5vw, 18px) !important;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04) !important;
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease !important;
+    animation: none !important;
+    transform: none !important;
+}
+
+.rank-item:active {
+    transform: scale(0.98) !important;
+    background: #f1f5f9 !important;
+}
+
+.rank-item.is-me {
+    background: #eff6ff !important;
+    border: 1.5px solid #93c5fd !important;
+    outline: none !important;
+    box-shadow: 0 2px 10px rgba(37, 99, 235, 0.12) !important;
+}
+
+.rank-item.sticky-you-card,
+.rank-item.is-sticky-bottom {
+    position: sticky !important;
+    bottom: calc(68px + env(safe-area-inset-bottom, 12px)) !important;
+    z-index: 20 !important;
+    background: #eff6ff !important;
+    border: 2px solid #3b82f6 !important;
+    box-shadow: 0 -4px 18px rgba(37, 99, 235, 0.18), 0 4px 12px rgba(15, 23, 42, 0.1) !important;
+    margin-top: 10px !important;
+}
+
+.rank-number-box {
+    width: 26px;
+    font-size: 14px;
+    font-weight: 900;
+    color: #1e3a8a !important;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.rank-item.is-me .rank-number-box {
+    color: #2563eb !important;
+}
+
+.rank-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: none !important;
+    flex-shrink: 0;
+}
+
+.rank-item.is-me .rank-avatar {
+    border: none !important;
+}
+
+.rank-info {
+    flex: 1;
+    min-width: 0;
+    margin-left: 10px;
+}
+
+.rank-user-name {
+    font-size: 13.5px;
+    font-weight: 800;
+    color: #0f172a !important;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: flex;
+    align-items: center;
+}
+
+.rank-user-meta {
+    font-size: 11px;
+    color: #64748b !important;
+    opacity: 1 !important;
+    font-weight: 600;
+    margin-top: 1px;
+}
+
+.rank-metric-badge,
+.rank-xp-badge {
+    font-size: 13.5px;
+    font-weight: 800;
+    color: #0f172a !important;
+    flex-shrink: 0;
+    text-align: right;
+    margin-left: 10px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.rank-metric-badge span,
+.rank-xp-badge span {
+    font-size: 10.5px;
+    color: #d97706 !important;
+}
+
+/* ── Invite Button ── */
+.btn-invite-friends {
+    width: 100%;
+    margin-top: clamp(10px, 1.8vh, 14px);
+    padding: clamp(11px, 2.5vw, 14px);
+    border-radius: clamp(14px, 3.5vw, 18px) !important;
+    background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important;
+    border: none !important;
+    outline: none !important;
+    color: #ffffff !important;
+    font-weight: 800;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(32, 63, 141, 0.25) !important;
+    transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Note: User Profile Modal styles have been moved to assets/css/components/modals.css */
+
+
+
+/* ── Entrance Animations ── */
+.podium-place.rank-2 {
+    animation: podiumRise 0.65s cubic-bezier(0.16, 1, 0.3, 1) 0.05s forwards;
+}
+
+.podium-place.rank-1 {
+    animation: podiumRise 0.75s cubic-bezier(0.16, 1, 0.3, 1) 0.15s forwards;
+}
+
+.podium-place.rank-3 {
+    animation: podiumRise 0.65s cubic-bezier(0.16, 1, 0.3, 1) 0.25s forwards;
+}
+
+@keyframes podiumRise {
+    0% {
+        opacity: 0;
+        transform: translateY(60px) scale(0.9);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes floatCrown {
+    0%, 100% {
+        transform: translateX(-50%) translateY(0) scale(1);
+    }
+    50% {
+        transform: translateX(-50%) translateY(-6px) scale(1.06);
+    }
+}
+
+@keyframes rankSlideIn {
+    0% {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

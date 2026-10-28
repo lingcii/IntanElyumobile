@@ -863,18 +863,18 @@ $activeTab = 'leaderboard';
         }
     })();
 
-    let _isFetchingLeaderboard = false;
+    window._isFetchingLeaderboard = Boolean(window._isFetchingLeaderboard);
 
     // Targeted refresh used by filters, pull-to-refresh, and connectivity recovery.
-    const refreshLeaderboardOnce = async function (force = true, requestedSort = null) {
-        if (_isFetchingLeaderboard) return;
-        _isFetchingLeaderboard = true;
+    window._refreshLeaderboardOnce = async function (force = true, requestedSort = null) {
+        if (window._isFetchingLeaderboard) return;
+        window._isFetchingLeaderboard = true;
 
         if (!navigator.onLine || window.isAppOnline === false) {
             if (force && typeof showToast === 'function') {
                 showToast('Currently offline. Showing cached standings.', 'info', 3000);
             }
-            _isFetchingLeaderboard = false;
+            window._isFetchingLeaderboard = false;
             return;
         }
 
@@ -980,7 +980,7 @@ $activeTab = 'leaderboard';
                 showToast('Sync error. Retaining cached rankings.', 'warning', 3000);
             }
         } finally {
-            _isFetchingLeaderboard = false;
+            window._isFetchingLeaderboard = false;
         }
     };
 
@@ -992,7 +992,7 @@ $activeTab = 'leaderboard';
             return Promise.resolve();
         }
 
-        const request = refreshLeaderboardOnce(force, requestedSort).finally(() => {
+        const request = window._refreshLeaderboardOnce(force, requestedSort).finally(() => {
             if (window._leaderboardFetchPromise === request) {
                 window._leaderboardFetchPromise = null;
                 window._leaderboardLastFetchCompletedAt = Date.now();

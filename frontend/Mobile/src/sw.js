@@ -1,4 +1,4 @@
-const CACHE_NAME = 'Intan_Elyu_cache-v26';
+const CACHE_NAME = 'Intan_Elyu_cache-v30-onboarding';
 const ASSETS = [
     './',
     './index.php',
@@ -20,6 +20,9 @@ const ASSETS = [
     './assets/js/main.js',
     './assets/img/logo.png',
     './assets/img/no_image.svg',
+    './assets/img/onboarding/elyu-coast-morning.jpg',
+    './assets/img/onboarding/elyu-coast-island.jpg',
+    './assets/img/onboarding/elyu-coast-blue-hour.jpg',
     './assets/la_union_municipalities.json',
     // Component CSS
     './assets/css/components/header.css',

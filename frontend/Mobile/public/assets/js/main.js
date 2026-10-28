@@ -48,6 +48,30 @@
     };
 })();
 
+window.isExpectedAbortError = function (error) {
+    if (!error) return false;
+    return error.name === 'AbortError' || /\b(?:abort|aborted)\b/i.test(String(error.message || error));
+};
+
+// Clear only expired identity state. Saved trips, drafts, proof queues, and other
+// offline data intentionally remain untouched.
+window.clearExpiredAuthSession = function () {
+    [
+        'intan_elyu_token',
+        'Intan_Elyu_Token',
+        'api_token',
+        'auth_user',
+        'intan_elyu_user'
+    ].forEach(function (key) {
+        try { localStorage.removeItem(key); } catch (e) { }
+    });
+    try {
+        localStorage.removeItem('intan_elyu_guest');
+        localStorage.removeItem('intan_elyu_offline_guest');
+        localStorage.removeItem('intan_elyu_offline_mode');
+    } catch (e) { }
+};
+
 // Purge outdated view template and leaderboard caches to force fresh HTML and live ranking data
 try {
     for (let i = localStorage.length - 1; i >= 0; i--) {
@@ -55,6 +79,9 @@ try {
         if (k && (
             k.startsWith('elyu_view_cache_v1_') || 
             k.startsWith('elyu_view_cache_v2_') || 
+            k.startsWith('elyu_view_cache_v3_') ||
+            k.startsWith('elyu_view_cache_v4_') ||
+            k.startsWith('elyu_view_cache_v5_') ||
             k.startsWith('leaderboard_data_v15_') || 
             k.startsWith('leaderboard_data_v16_') || 
             k.startsWith('leaderboard_data_v17_')
@@ -2901,8 +2928,9 @@ window.fetchSavedTrips = async function (forceRefresh = false) {
                         }
                     });
                     if (response.status === 401) {
-                        localStorage.removeItem('intan_elyu_token');
-                        localStorage.removeItem('Intan_Elyu_Token');
+                        if (typeof window.clearExpiredAuthSession === 'function') {
+                            window.clearExpiredAuthSession();
+                        }
                         if (typeof showToast === 'function') showToast("Session expired. Please log in again.");
                         if (typeof window.navigateTo === 'function') window.navigateTo('auth');
                         return [];
@@ -5630,13 +5658,12 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
 
         if (!html) {
             try {
-                const cached = localStorage.getItem('elyu_view_cache_v3_' + targetView) || localStorage.getItem('elyu_view_cache_v2_' + targetView);
+                const cached = localStorage.getItem('elyu_view_cache_v6_' + targetView);
                 if (isValidViewPartial(cached)) {
                     html = cached;
                     window._viewHtmlCache[targetView] = html;
                 } else if (cached) {
-                    localStorage.removeItem('elyu_view_cache_v3_' + targetView);
-                    localStorage.removeItem('elyu_view_cache_v2_' + targetView);
+                    localStorage.removeItem('elyu_view_cache_v6_' + targetView);
                 }
             } catch (e) {}
         }
@@ -5647,10 +5674,12 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
             fetchViewPartial(targetView, extraParams).then((freshHtml) => {
                 if (!isValidViewPartial(freshHtml)) return;
                 window._viewHtmlCache[targetView] = freshHtml;
-                try { localStorage.setItem('elyu_view_cache_v3_' + targetView, freshHtml); } catch (e) { }
+                try { localStorage.setItem('elyu_view_cache_v6_' + targetView, freshHtml); } catch (e) { }
                 window.dispatchEvent(new CustomEvent('viewCacheUpdated', { detail: { view: targetView } }));
             }).catch((fetchErr) => {
-                console.warn(`Background view refresh for ${targetView} failed:`, fetchErr);
+                if (!window.isExpectedAbortError(fetchErr)) {
+                    console.warn(`Background view refresh for ${targetView} failed:`, fetchErr);
+                }
             });
         } else if (!isNetworkOffline || !html) {
             try {
@@ -5658,10 +5687,12 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                 if (isValidViewPartial(freshHtml)) {
                     html = freshHtml;
                     window._viewHtmlCache[targetView] = html;
-                    try { localStorage.setItem('elyu_view_cache_v3_' + targetView, html); } catch(e) {}
+                    try { localStorage.setItem('elyu_view_cache_v6_' + targetView, html); } catch(e) {}
                 }
             } catch (fetchErr) {
-                console.warn(`View fetch for ${targetView} failed (using cache if available):`, fetchErr);
+                if (!window.isExpectedAbortError(fetchErr)) {
+                    console.warn(`View fetch for ${targetView} failed (using cache if available):`, fetchErr);
+                }
             }
         }
 
@@ -8395,6 +8426,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                     }
                 }
             } catch (err) {
+                if (window.isExpectedAbortError(err)) return;
                 console.error("Fetch error for " + cacheKey, err);
                 // If no cache exists, report the error via callback (passing null)
                 if (!cachedData) {
@@ -8731,11 +8763,11 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
 
         for (const v of viewsToPrewarm.filter(view => view !== state.currentView)) {
             try {
-                if (!window._viewHtmlCache[v] && !localStorage.getItem('elyu_view_cache_v3_' + v)) {
+                if (!window._viewHtmlCache[v] && !localStorage.getItem('elyu_view_cache_v6_' + v)) {
                     const text = await fetchViewPartial(v, new URLSearchParams());
                     if (text && text.length > 50) {
                         window._viewHtmlCache[v] = text;
-                        try { localStorage.setItem('elyu_view_cache_v3_' + v, text); } catch (e) { }
+                        try { localStorage.setItem('elyu_view_cache_v6_' + v, text); } catch (e) { }
                     }
                 }
             } catch (e) { }

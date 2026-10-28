@@ -347,3 +347,379 @@ body.is-offline .splash-offline-pill,
 body[data-offline="true"] .splash-offline-pill {
     display: inline-flex;
 }
+
+/* Four-scene onboarding */
+body[data-view="splash"] {
+    background: #eaf7ff !important;
+}
+
+.elyu-onboarding {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    isolation: isolate;
+    height: 100dvh;
+    min-height: 100svh;
+    overflow: hidden;
+    background: #eaf7ff;
+    color: #0b255f;
+    transition: opacity 0.42s ease, transform 0.42s ease;
+}
+
+.elyu-onboarding .onboarding-slide {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    overflow: hidden;
+    opacity: 0;
+    visibility: hidden;
+    transform: translate3d(8%, 0, 0) scale(1.035);
+    transition: opacity 0.6s ease, transform 0.72s cubic-bezier(.22, .78, .22, 1), visibility 0.6s;
+}
+
+.elyu-onboarding .onboarding-slide.is-active {
+    z-index: 3;
+    opacity: 1;
+    visibility: visible;
+    transform: translate3d(0, 0, 0) scale(1);
+}
+
+.elyu-onboarding .onboarding-slide.is-before {
+    transform: translate3d(-8%, 0, 0) scale(1.025);
+}
+
+.onboarding-slide--brand {
+    display: grid;
+    place-items: center;
+    background: linear-gradient(180deg, #effaff 0%, #fff 51%, #d8efff 100%);
+}
+
+.brand-sky {
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(circle at 78% 16%, rgba(255,255,255,.95) 0 3%, transparent 13%),
+        linear-gradient(155deg, rgba(255,255,255,.72), transparent 48%),
+        linear-gradient(180deg, #d5f1ff 0%, #fff 58%, #c6e5ff 100%);
+}
+
+.onboarding-brand-lockup,
+.onboarding-mini-brand {
+    position: relative;
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    animation: onboardingFloat 3.4s ease-in-out infinite;
+}
+
+.onboarding-brand-lockup img {
+    width: clamp(108px, 31vw, 148px);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    object-fit: contain;
+    filter: drop-shadow(0 14px 24px rgba(30, 64, 175, .15));
+}
+
+.onboarding-brand-lockup strong,
+.onboarding-mini-brand strong {
+    margin-top: 3px;
+    color: #071d58;
+    font-size: clamp(39px, 11vw, 56px);
+    font-weight: 850;
+    line-height: .95;
+    letter-spacing: -2px;
+}
+
+.onboarding-brand-lockup span,
+.onboarding-mini-brand span {
+    margin-top: 13px;
+    color: #163b91;
+    font-size: 7px;
+    font-weight: 800;
+    letter-spacing: 5px;
+}
+
+.brand-waves {
+    position: absolute;
+    inset: auto -8% -2%;
+    z-index: 2;
+    height: 42%;
+}
+
+.brand-waves span {
+    position: absolute;
+    inset: auto -10% -18%;
+    height: 92%;
+    border-radius: 50% 50% 0 0 / 28% 28% 0 0;
+    transform: rotate(-4deg);
+    background: linear-gradient(155deg, #73bff8, #1f5bb6 68%, #0d2d83);
+    animation: onboardingWave 5.6s ease-in-out infinite alternate;
+}
+
+.brand-waves span:nth-child(2) {
+    bottom: -35%;
+    left: -30%;
+    background: linear-gradient(150deg, rgba(85,178,242,.88), #174ba7 70%);
+    animation-delay: -1.7s;
+}
+
+.brand-waves span:nth-child(3) {
+    bottom: -53%;
+    left: 18%;
+    background: linear-gradient(145deg, #4ba7e7, #082b76 72%);
+    animation-delay: -3.1s;
+}
+
+.onboarding-backdrop {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform: scale(1.06);
+    transition: transform 2.2s ease-out;
+}
+
+.onboarding-slide.is-active .onboarding-backdrop {
+    transform: scale(1);
+}
+
+.onboarding-photo-shade {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(239,249,255,.28), transparent 43%, rgba(0,55,129,.2));
+}
+
+.onboarding-photo-shade--soft {
+    background: linear-gradient(180deg, rgba(235,249,255,.3), rgba(255,255,255,.04) 45%, rgba(9,72,160,.28));
+}
+
+.onboarding-photo-shade--deep {
+    background: linear-gradient(180deg, rgba(0,29,82,.34), rgba(0,35,102,.08) 54%, rgba(0,24,78,.52));
+}
+
+.onboarding-mini-brand {
+    position: absolute;
+    top: max(8.5vh, 58px);
+    left: 50%;
+    transform: translateX(-50%);
+    animation-name: onboardingMiniFloat;
+}
+
+.onboarding-mini-brand img {
+    width: clamp(76px, 21vw, 102px);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    object-fit: contain;
+    filter: drop-shadow(0 8px 18px rgba(255,255,255,.45));
+}
+
+.onboarding-mini-brand strong {
+    font-size: clamp(32px, 9vw, 45px);
+}
+
+.onboarding-mini-brand span {
+    margin-top: 8px;
+    font-size: 5px;
+    letter-spacing: 4px;
+}
+
+.onboarding-explore {
+    position: absolute;
+    z-index: 3;
+    left: 0;
+    right: 0;
+    bottom: 30%;
+    margin: 0;
+    text-align: center;
+    color: #071d58;
+    font-size: clamp(20px, 5.5vw, 28px);
+    line-height: 1.03;
+    text-shadow: 0 2px 16px rgba(255,255,255,.92);
+}
+
+.onboarding-copy {
+    position: absolute;
+    z-index: 3;
+    color: #061c57;
+}
+
+.onboarding-copy--center {
+    top: max(11vh, 74px);
+    left: 10%;
+    right: 10%;
+    text-align: center;
+}
+
+.onboarding-copy h1 {
+    margin: 0;
+    font-size: clamp(27px, 7.2vw, 39px);
+    line-height: 1.02;
+    letter-spacing: -.8px;
+}
+
+.onboarding-copy p {
+    margin: 13px 0 0;
+    font-size: clamp(12px, 3.3vw, 16px);
+    line-height: 1.5;
+    font-weight: 500;
+}
+
+.onboarding-copy--discover {
+    top: max(9vh, 62px);
+    left: 8%;
+    color: #fff;
+    text-shadow: 0 3px 18px rgba(0,19,67,.44);
+}
+
+.onboarding-copy--discover strong {
+    color: #77d4ff;
+}
+
+.onboarding-copy--discover p b {
+    padding: 0 5px;
+    color: #8edcff;
+}
+
+.onboarding-route {
+    position: absolute;
+    z-index: 3;
+    top: 25%;
+    left: 6%;
+    width: 72%;
+    height: 48%;
+    overflow: visible;
+}
+
+.onboarding-route > path {
+    fill: none;
+    stroke: rgba(255,255,255,.88);
+    stroke-width: 2;
+    stroke-dasharray: 6 8;
+    stroke-linecap: round;
+    animation: routeDash 7s linear infinite;
+}
+
+.onboarding-route .route-pin circle:first-child {
+    fill: #f7fdff;
+    stroke: #5ed1ff;
+    stroke-width: 4;
+    filter: drop-shadow(0 0 9px #42c8ff);
+}
+
+.onboarding-route .route-pin circle:last-child {
+    fill: #168dce;
+}
+
+.route-pin {
+    animation: pinPulse 1.5s ease-in-out infinite alternate;
+    transform-box: fill-box;
+    transform-origin: center;
+}
+
+.route-pin--2 { animation-delay: -.4s; }
+.route-pin--3 { animation-delay: -.8s; }
+.route-pin--4 { animation-delay: -1.2s; }
+
+.onboarding-loader {
+    position: absolute;
+    z-index: 10;
+    left: 50%;
+    bottom: max(22px, calc(env(safe-area-inset-bottom) + 15px));
+    display: grid;
+    grid-template-columns: repeat(4, minmax(19px, 28px));
+    gap: 5px;
+    transform: translateX(-50%);
+}
+
+.onboarding-loader span {
+    position: relative;
+    height: 4px;
+    overflow: hidden;
+    border-radius: 20px;
+    background: rgba(255,255,255,.48);
+    box-shadow: 0 1px 5px rgba(0,38,99,.2);
+}
+
+.onboarding-loader span::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: #fff;
+    transform: scaleX(0);
+    transform-origin: left;
+}
+
+.onboarding-loader span.is-complete::after {
+    transform: scaleX(1);
+}
+
+.onboarding-loader span.is-loading::after {
+    animation: loaderFill 1.65s linear forwards;
+}
+
+.onboarding-slide--brand ~ .onboarding-loader span {
+    background: rgba(31,94,178,.26);
+}
+
+.onboarding-loader span.is-loading::after,
+.onboarding-loader span.is-complete::after {
+    background: #1f63c6;
+}
+
+.elyu-onboarding:has(.onboarding-slide--photo.is-active) .onboarding-loader span {
+    background: rgba(255,255,255,.38);
+}
+
+.elyu-onboarding:has(.onboarding-slide--photo.is-active) .onboarding-loader span::after {
+    background: #fff;
+}
+
+.elyu-onboarding .splash-offline-pill {
+    position: absolute;
+    z-index: 12;
+    top: max(48px, calc(env(safe-area-inset-top) + 16px));
+    margin: 0;
+}
+
+.elyu-onboarding .splash-offline-pill[hidden] {
+    display: none !important;
+}
+
+@keyframes onboardingFloat {
+    50% { transform: translateY(-7px); }
+}
+
+@keyframes onboardingMiniFloat {
+    0%, 100% { transform: translateX(-50%) translateY(0); }
+    50% { transform: translateX(-50%) translateY(-7px); }
+}
+
+@keyframes onboardingWave {
+    to { transform: translate3d(4%, -3%, 0) rotate(2deg) scale(1.04); }
+}
+
+@keyframes routeDash {
+    to { stroke-dashoffset: -84; }
+}
+
+@keyframes pinPulse {
+    to { transform: scale(1.18); }
+}
+
+@keyframes loaderFill {
+    to { transform: scaleX(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .elyu-onboarding *,
+    .elyu-onboarding *::before,
+    .elyu-onboarding *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+    }
+
+    .elyu-onboarding .onboarding-slide {
+        transition-duration: .15s;
+    }
+}

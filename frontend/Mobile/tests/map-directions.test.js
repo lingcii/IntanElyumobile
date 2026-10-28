@@ -11,7 +11,12 @@ assert.match(mapSource, /fa-diamond-turn-right" style="color:#1e3a8a/,
     'the directions icon must use the requested dark-blue color');
 assert.match(mapSource, /id="directions-start-input"[\s\S]*?value="Your location"/);
 assert.match(mapSource, /id="directions-destination-input"[\s\S]*?placeholder="Choose destination"/);
-assert.match(mapSource, /data-mode="driving"[\s\S]*?data-mode="motorcycle"[\s\S]*?data-mode="public"/);
+assert.match(mapSource, /data-vehicle="own_car"[\s\S]*?data-vehicle="tricycle"[\s\S]*?data-vehicle="car"[\s\S]*?data-vehicle="jeepney"[\s\S]*?directions-more-vehicles-btn/,
+    'the route search must show Own Car, Tricycle, Car, Jeep, then More');
+assert.match(mapSource, /id="directions-vehicle-menu"[\s\S]*?Utility Vehicle Express \(UVE\)[\s\S]*?PUB Regular[\s\S]*?PUB Aircon[\s\S]*?Modern Jeepney \(MPUJ\)[\s\S]*?Traditional Jeepney \(TPUJ\)/,
+    'More must expose the complete private and public vehicle list');
+assert.match(mapSource, /window\.toggleDirectionsVehicleMenu[\s\S]*?window\.selectDirectionsVehicle/,
+    'the More dropdown and vehicle selection must be interactive');
 assert.match(mapSource, /intan_elyu_route_history_/,
     'recent destinations must be stored per user');
 assert.match(mapSource, /getDirectionsHistory\(\)\.filter\([\s\S]*?history\.unshift\(normalized\)/,

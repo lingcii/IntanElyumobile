@@ -102,7 +102,7 @@
                         <hr style="flex:1; border:none; border-top:1.5px dashed rgba(255,255,255,0.25);">
                         <span
                             style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.8); text-transform:uppercase; letter-spacing:1px;">Or
-                            Connect With</span>
+                            Continue With</span>
                         <hr style="flex:1; border:none; border-top:1.5px dashed rgba(255,255,255,0.25);">
                     </div>
                     <button type="button" class="btn-google" onclick="window.triggerGoogleLogin(event)"
@@ -121,7 +121,7 @@
                     </button>
                     <button type="button" id="btn-offline-mode" class="btn-offline-guest" onclick="window.enterOfflineMode(event)"
                         style="background: #ffffff !important; color: #0f172a !important; border: 1.5px solid #cbd5e1 !important; box-shadow: 0 4px 14px rgba(0,0,0,0.08) !important;">
-                        <i class="fa-solid fa-compass" style="color: #0284c7; font-size: 14px;"></i>
+                        <i class="fa-regular fa-user" style="color: #1452d6; font-size: 16px;"></i>
                         <span style="color: #0f172a; font-weight: 700;">Continue as Guest</span>
                     </button>
                     <p class="auth-switch-prompt">
@@ -148,7 +148,7 @@
                     </div>
                     <div class="input-group" id="reg-gender-trigger" onclick="openGenderModal(event)" style="cursor: pointer;">
                         <i class="fa-solid fa-venus-mars"></i>
-                        <input type="text" id="reg-gender-display" class="auth-input" placeholder="Select Sex / Gender *" readonly style="cursor: pointer; background: transparent; caret-color: transparent; -webkit-user-select: none; user-select: none;" onclick="openGenderModal(event)">
+                        <input type="text" id="reg-gender-display" class="auth-input" placeholder="Select Sex / Gender" readonly style="cursor: pointer; background: transparent; caret-color: transparent; -webkit-user-select: none; user-select: none;" onclick="openGenderModal(event)">
                         <input type="hidden" id="reg-gender" value="">
                         <i class="fa-solid fa-chevron-down select-arrow" id="reg-gender-arrow"></i>
                     </div>
@@ -215,7 +215,7 @@
                         <hr style="flex:1; border:none; border-top:1.5px dashed rgba(255,255,255,0.15);">
                         <span
                             style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.4); text-transform:uppercase; letter-spacing:1px;">Or
-                            Connect With</span>
+                            Continue With</span>
                         <hr style="flex:1; border:none; border-top:1.5px dashed rgba(255,255,255,0.15);">
                     </div>
                     <button type="button" class="btn-google" onclick="window.triggerGoogleLogin(event)"
@@ -234,12 +234,12 @@
                     </button>
                     <button type="button" class="btn-offline-guest" onclick="window.enterOfflineMode(event)"
                         style="background: #ffffff !important; color: #0f172a !important; border: 1.5px solid #cbd5e1 !important; box-shadow: 0 4px 14px rgba(0,0,0,0.08) !important;">
-                        <i class="fa-solid fa-compass" style="color: #0284c7; font-size: 14px;"></i>
+                        <i class="fa-regular fa-user" style="color: #1452d6; font-size: 16px;"></i>
                         <span style="color: #0f172a; font-weight: 700;">Continue as Guest</span>
                     </button>
                     <p class="auth-switch-prompt">
                         Already have an account? <a href="#" onclick="toggleAuthMode(false); return false;"
-                            class="auth-switch-link">Log in</a>
+                            class="auth-switch-link">Log in now</a>
                     </p>
                 </div>
             </div>

@@ -2488,14 +2488,19 @@ if (is_dir($imgDir)) {
                     });
                     if (!res.ok) {
                         if (res.status === 401) {
-                            const isGuestToken = isOfflineGuest || !token || token === 'guest_token' || token === 'offline_guest_token' || token.indexOf('guest_') === 0 || token.indexOf('offline_') === 0 || localStorage.getItem('intan_elyu_guest') === 'true' || localStorage.getItem('intan_elyu_offline_guest') === 'true';
+                            const isOfflineGuest = localStorage.getItem('intan_elyu_offline_guest') === 'true' || localStorage.getItem('intan_elyu_offline_mode') === 'true';
+                            const isGuestToken = isOfflineGuest || !token || token === 'guest_token' || token === 'offline_guest_token' || token.indexOf('guest_') === 0 || token.indexOf('offline_') === 0 || localStorage.getItem('intan_elyu_guest') === 'true';
                             const isNetOffline = (typeof navigator.onLine === 'boolean' && !navigator.onLine) || window.isAppOnline === false || localStorage.getItem('intan_elyu_offline_mode') === 'true';
                             if (isGuestToken || isNetOffline) {
                                 console.warn("Guest mode or offline active; suppressing auth redirect.");
                                 throw new Error("Guest/Offline session");
                             } else {
-                                localStorage.removeItem('intan_elyu_token');
-                                localStorage.removeItem('auth_user');
+                                if (typeof window.clearExpiredAuthSession === 'function') {
+                                    window.clearExpiredAuthSession();
+                                } else {
+                                    localStorage.removeItem('intan_elyu_token');
+                                    localStorage.removeItem('auth_user');
+                                }
                                 window.location.href = '?view=auth';
                             }
                         }
