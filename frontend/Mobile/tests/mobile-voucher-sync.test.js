@@ -62,5 +62,15 @@ assert.doesNotMatch(profileSource, /Array\.isArray\(vouchersPayload\.data\) && v
     'an empty live catalog must be allowed to replace stale cached deals');
 assert.match(source, /return imageUrl\(v\.image\.trim\(\)\)/,
     'discount voucher cards must use the shared image URL resolver');
+assert.match(source, /function getDiscountBaseUrl\(\)/,
+    'discount view must resolve backend URL consistently via window.getBackendUrl');
+assert.match(source, /function getDiscountAuthToken\(\)/,
+    'discount view must check all auth token storage keys');
+assert.match(source, /nextSignature === lastVouchersCatalogSignature/,
+    'discount catalog polling must skip full DOM rebuilds when catalog payload is unchanged');
+assert.match(profileSource, /fetch\(backendUrl \+ '\/api\/vouchers\?fresh=' \+ Date\.now\(\)/,
+    'profile voucher catalog fetch must bust proxy/CDN cache');
+assert.match(profileSource, /JSON\.stringify\(\{ data: vouchersPayload\.data, timestamp: Date\.now\(\) \}\)/,
+    'profile and discount views must share the same cached voucher shape');
 
 console.log('mobile voucher sync tests passed');

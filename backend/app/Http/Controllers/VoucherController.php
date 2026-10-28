@@ -34,11 +34,11 @@ class VoucherController extends Controller
             // 2. Include active & upcoming vouchers created by Admin in Railway DB
             // (Exclude only explicitly deleted, inactive, or archived vouchers)
             $query->where(function($q) {
-                $q->whereIn(DB::raw('LOWER(COALESCE(status, "active"))'), ['active', 'upcoming'])
+                $q->whereIn(DB::raw("LOWER(COALESCE(status, 'active'))"), ['active', 'upcoming'])
                   ->orWhereNull('status')
                   ->orWhere('status', '');
             })->where(function($q) {
-                $q->whereNotIn(DB::raw('LOWER(COALESCE(status, ""))'), ['inactive', 'disabled', 'archived']);
+                $q->whereNotIn(DB::raw("LOWER(COALESCE(status, ''))"), ['inactive', 'disabled', 'archived']);
             });
 
             $vouchers = $query->latest()->get();

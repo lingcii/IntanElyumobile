@@ -884,7 +884,8 @@ $activeTab = 'profile';
         try {
             const cachedVouchersRaw = localStorage.getItem('intan_elyu_cached_vouchers');
             if (cachedVouchersRaw) {
-                const list = JSON.parse(cachedVouchersRaw);
+                const parsed = JSON.parse(cachedVouchersRaw);
+                const list = Array.isArray(parsed) ? parsed : (parsed && Array.isArray(parsed.data) ? parsed.data : null);
                 if (Array.isArray(list) && list.length > 0 && typeof window.renderCatalogRewards === 'function') {
                     window.renderCatalogRewards(list);
                 }
@@ -993,16 +994,16 @@ $activeTab = 'profile';
 
     async function fetchProfileVoucherCatalog() {
         try {
-            const resVouchers = await fetch(backendUrl + '/api/vouchers', {
+            const resVouchers = await fetch(backendUrl + '/api/vouchers?fresh=' + Date.now(), {
                 cache: 'no-store',
-                headers: { 'Accept': 'application/json', 'ngrok-skip-browser-warning': 'true' }
+                headers: { 'Accept': 'application/json', 'Cache-Control': 'no-cache', 'ngrok-skip-browser-warning': 'true' }
             });
             if (!resVouchers.ok) return;
 
             const vouchersPayload = await resVouchers.json();
             if (vouchersPayload.status === 'success' && Array.isArray(vouchersPayload.data)) {
                 try {
-                    localStorage.setItem('intan_elyu_cached_vouchers', JSON.stringify(vouchersPayload.data));
+                    localStorage.setItem('intan_elyu_cached_vouchers', JSON.stringify({ data: vouchersPayload.data, timestamp: Date.now() }));
                 } catch (e) { }
                 window.renderCatalogRewards(vouchersPayload.data);
             }
@@ -1046,7 +1047,10 @@ $activeTab = 'profile';
         if (catalogEl) {
             try {
                 let cachedV = null;
-                try { cachedV = JSON.parse(localStorage.getItem('intan_elyu_cached_vouchers')); } catch (e) { }
+                try {
+                    const parsed = JSON.parse(localStorage.getItem('intan_elyu_cached_vouchers'));
+                    cachedV = Array.isArray(parsed) ? parsed : (parsed && Array.isArray(parsed.data) ? parsed.data : null);
+                } catch (e) { }
                 if (Array.isArray(cachedV) && cachedV.length > 0) {
                     window.renderCatalogRewards(cachedV);
                 }

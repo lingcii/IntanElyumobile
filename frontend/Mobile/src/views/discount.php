@@ -251,11 +251,20 @@ let isStatusDropdownOpen = false;
 let isCatDropdownOpen = false;
 let isMuniDropdownOpen = false;
 let voucherFetchInFlight = false;
+let lastVouchersCatalogSignature = '';
+
+function getDiscountBaseUrl() {
+    return (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
+}
+
+function getDiscountAuthToken() {
+    return localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('api_token') || '';
+}
 
 // ── Guest Mode detection (guests must never see a previous account's cached data) ──
 function isDiscountGuest() {
     if (typeof window.isGuestUser === 'function') return window.isGuestUser();
-    const tok = localStorage.getItem('intan_elyu_token') || '';
+    const tok = getDiscountAuthToken();
     return !tok || tok === 'guest_token' || tok === 'offline_guest_token' ||
         tok.startsWith('guest_') || tok.startsWith('offline_') ||
         localStorage.getItem('intan_elyu_guest') === 'true' ||
@@ -521,7 +530,7 @@ function getAuthUserId() {
         const u = JSON.parse(localStorage.getItem('auth_user') || '{}');
         if (u && (u.id || u.user_id)) return String(u.id || u.user_id);
     } catch(e) {}
-    const tok = localStorage.getItem('intan_elyu_token');
+    const tok = getDiscountAuthToken();
     return (tok && tok.length > 10) ? 'tok_' + tok.substring(0, 12) : null;
 }
 
@@ -818,7 +827,7 @@ function syncClaimedVouchersWithData() {
 }
 
 async function fetchUserPointsAndRedemptions() {
-    const token = localStorage.getItem('intan_elyu_token');
+    const token = getDiscountAuthToken();
     if (isDiscountGuest()) {
         renderDiscountGuestHero();
         syncClaimedVouchersWithData();
@@ -861,7 +870,7 @@ async function fetchUserPointsAndRedemptions() {
     renderDiscounts();
 
     try {
-        const baseUrl = (window.backendUrl || 'https://api.intan-elyu.online').replace(/\/+$/, '');
+        const baseUrl = getDiscountBaseUrl();
         const res = await fetch(baseUrl + '/api/tourist/points/balance', {
             headers: {
                 'Accept': 'application/json',
@@ -1130,7 +1139,7 @@ function startLiveRedemptionSync(code) {
     const check = async () => {
         if (!navigator.onLine) return; // Ambient check: pause polling while offline
         try {
-            const baseUrl = (window.backendUrl || 'https://api.intan-elyu.online').replace(/\/+$/, '');
+            const baseUrl = getDiscountBaseUrl();
             const res = await fetch(`${baseUrl}/api/public/redemptions/${encodeURIComponent(code)}/status`, {
                 headers: { 'Accept': 'application/json', 'ngrok-skip-browser-warning': 'true' }
             });
@@ -1490,7 +1499,7 @@ async function handleModalRedeem() {
         return;
     }
 
-    const token = localStorage.getItem('intan_elyu_token');
+    const token = getDiscountAuthToken();
     if (!token || isDiscountGuest()) {
         if (typeof showToast === 'function') showToast("Login now to get your vouchers! Sign in to your tourist account to claim rewards.", "info", 4500);
         if (typeof closeVoucherModal === 'function') closeVoucherModal();
@@ -1520,7 +1529,7 @@ async function handleModalRedeem() {
     }
 
     try {
-        const baseUrl = (window.backendUrl || 'https://api.intan-elyu.online').replace(/\/+$/, '');
+        const baseUrl = getDiscountBaseUrl();
         const res = await fetch(baseUrl + '/api/tourist/points/redeem-voucher', {
             method: 'POST',
             headers: {
@@ -1690,14 +1699,13 @@ async function fetchLiveDatabaseVouchers(forceRefresh = false) {
                 const raw = localStorage.getItem(VOUCHERS_CACHE_KEY);
                 if (raw) {
                     const parsed = (typeof window.safeJsonParse === 'function') ? window.safeJsonParse(raw, null) : JSON.parse(raw);
-                    if (parsed && Array.isArray(parsed.data)) processVouchersData(parsed.data);
+                    const list = Array.isArray(parsed) ? parsed : (parsed && Array.isArray(parsed.data) ? parsed.data : null);
+                    if (list) processVouchersData(list);
                 }
             } catch(e) {}
         }
 
-        const baseUrl = (typeof window.getBackendUrl === 'function'
-            ? window.getBackendUrl()
-            : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
+        const baseUrl = getDiscountBaseUrl();
         const res = await fetch(baseUrl + '/api/vouchers?fresh=' + Date.now(), {
             cache: 'no-store',
             headers: {
@@ -1752,6 +1760,13 @@ function startVoucherCatalogSync() {
 }
 
 function processVouchersData(rawList) {
+    const nextSignature = JSON.stringify(rawList || []);
+    const gridEl = document.getElementById('discounts-grid');
+    if (nextSignature === lastVouchersCatalogSignature && vouchersData.length > 0 && gridEl && gridEl.children.length > 0) {
+        return;
+    }
+    lastVouchersCatalogSignature = nextSignature;
+
     // Strict deduplication by unique id or code
     const seenKeys = new Set();
     const uniqueRaw = (rawList || []).filter(v => {
@@ -2410,7 +2425,8 @@ window.addEventListener('voucherClaimed', function (e) {
 if (window._discountViewLoadedHandler) window.removeEventListener('viewLoaded', window._discountViewLoadedHandler);
 window._discountViewLoadedHandler = function(e) {
     if (e && e.detail && e.detail.view === 'discount') {
-        const token = localStorage.getItem('intan_elyu_token');
+        lastVouchersCatalogSignature = '';
+        const token = getDiscountAuthToken();
         if (token) {
             try {
                 const u = JSON.parse(localStorage.getItem('auth_user') || '{}');
