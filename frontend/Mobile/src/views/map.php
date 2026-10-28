@@ -498,8 +498,8 @@ if (is_dir($imgDir)) {
         </div>
         <div class="route-sheet-modes">
             <button type="button" class="active" data-route-mode="driving" onclick="window.selectDirectionsMode('driving', this)"><i class="fa-solid fa-car"></i><span id="map-route-car-time">--</span></button>
-            <button type="button" data-route-mode="motorcycle" onclick="window.selectDirectionsMode('motorcycle', this)"><i class="fa-solid fa-motorcycle"></i><span>--</span></button>
-            <button type="button" data-route-mode="public" onclick="window.selectDirectionsMode('public', this)"><i class="fa-solid fa-bus-simple"></i><span>--</span></button>
+            <button type="button" data-route-mode="motorcycle" onclick="window.selectDirectionsMode('motorcycle', this)"><i class="fa-solid fa-motorcycle"></i><span id="map-route-motorcycle-time">--</span></button>
+            <button type="button" data-route-mode="public" onclick="window.selectDirectionsMode('public', this)"><i class="fa-solid fa-bus-simple"></i><span id="map-route-public-time">--</span></button>
         </div>
         <div class="route-sheet-overview">
             <strong><span id="map-route-primary-time">--</span> <span id="map-route-primary-distance"></span></strong>
@@ -2804,7 +2804,7 @@ if (is_dir($imgDir)) {
                         _hasAutoCenteredGPS = true;
                         window.mapInstance.flyTo({ center: [parseFloat(lng), parseFloat(lat)], zoom: 15, duration: 1200 });
                         if (typeof showToast === 'function') {
-                            showToast("📍 Live GPS Tracking Active");
+                            showToast("GPS Active", "gps", 4000);
                         }
                     }
 
@@ -3649,7 +3649,15 @@ if (is_dir($imgDir)) {
             sheet.closeSheet = closeSheet;
         }
 
-        initDraggableSheet('place-details-sheet', 'place-drag-handle');
+        initDraggableSheet('place-details-sheet', 'place-drag-handle', () => {
+            if (window._returnToMapRouteAfterDetails !== true) return;
+            window._returnToMapRouteAfterDetails = false;
+            setTimeout(() => {
+                if (!document.body.classList.contains('map-route-active')) return;
+                document.getElementById('map-route-summary')?.classList.add('open');
+                document.getElementById('map-route-endpoints')?.classList.add('open');
+            }, 380);
+        });
         initDraggableSheet('nearby-sites-sheet', 'nearby-drag-handle');
 
 
@@ -3745,8 +3753,9 @@ if (is_dir($imgDir)) {
             });
         };
 
-        window.openSheet = function (locationData) {
+        window.openSheet = function (locationData, returnToMapRoute = false) {
             if (!locationData) return;
+            window._returnToMapRouteAfterDetails = returnToMapRoute === true;
             if (window.closeNearbySitesSheet) {
                 window.closeNearbySitesSheet();
             }
@@ -5932,13 +5941,22 @@ if (is_dir($imgDir)) {
                 const distance = (primary.distance / 1000).toFixed(1) + ' km';
                 const routeCount = data.routes.length > 1 ? ` · ${data.routes.length} routes` : '';
                 const durationMinutes = Math.max(1, Math.round(primary.duration / 60));
-                if (primaryTime) primaryTime.textContent = mapDirectionsState.mode === 'driving' ? `${durationMinutes} min` : 'Route preview';
+                const motorcycleMinutes = Math.max(1, Math.round(durationMinutes * 0.9));
+                const publicMinutes = Math.max(1, Math.round(durationMinutes * 1.35));
+                const selectedMinutes = mapDirectionsState.mode === 'motorcycle'
+                    ? motorcycleMinutes
+                    : (mapDirectionsState.mode === 'public' ? publicMinutes : durationMinutes);
+                if (primaryTime) primaryTime.textContent = `${selectedMinutes} min`;
                 if (primaryDistance) primaryDistance.textContent = `(${distance})`;
                 const drivingTime = document.getElementById('map-route-car-time');
                 if (drivingTime) drivingTime.textContent = `${durationMinutes} min`;
+                const motorcycleTime = document.getElementById('map-route-motorcycle-time');
+                if (motorcycleTime) motorcycleTime.textContent = `${motorcycleMinutes} min`;
+                const publicTime = document.getElementById('map-route-public-time');
+                if (publicTime) publicTime.textContent = `${publicMinutes} min`;
                 if (meta) meta.textContent = mapDirectionsState.mode === 'driving'
                     ? `Fastest available road route${routeCount}`
-                    : `${selectedVehicle.label} route shown · exact travel time unavailable${routeCount}`;
+                    : `${selectedVehicle.label} estimated travel time based on road distance${routeCount}`;
             } catch (error) {
                 if (error.name === 'AbortError') {
                     if (window._directionsRouteController === controller && summary?.classList.contains('open')) {
@@ -5954,6 +5972,7 @@ if (is_dir($imgDir)) {
         };
 
         window.clearMapDirectionsRoute = function () {
+            window._returnToMapRouteAfterDetails = false;
             if (window._directionsRouteController) window._directionsRouteController.abort();
             const map = window.mapInstance;
             if (map) {
@@ -5996,7 +6015,7 @@ if (is_dir($imgDir)) {
             }
             const summary = document.getElementById('map-route-summary');
             if (summary) summary.classList.remove('open');
-            window.openSheet(destination);
+            window.openSheet(destination, true);
         };
 
         window.shareMapDirectionsRoute = async function () {

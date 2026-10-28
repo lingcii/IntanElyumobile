@@ -6976,7 +6976,23 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
         const toast = document.createElement('div');
         toast.className = 'toast-card';
         toast.style.borderColor = borderColor;
-        toast.innerHTML = `<div style="display:flex; align-items:center; gap:10px;">${iconHTML}<span style="font-size:13px; font-weight:700; color:#ffffff; line-height:1.3;">${msgStr}</span></div>`;
+        if (type === 'gps') {
+            toast.classList.add('toast-card--gps');
+            toast.innerHTML = `
+                <div class="toast-gps-icon" aria-hidden="true">
+                    <i class="fa-solid fa-location-crosshairs"></i>
+                </div>
+                <div class="toast-gps-copy">
+                    <strong>${msgStr}</strong>
+                    <span>Live location tracking</span>
+                </div>
+                <div class="toast-gps-live" aria-label="Live">
+                    <span class="toast-gps-dot"></span>
+                    Live
+                </div>`;
+        } else {
+            toast.innerHTML = `<div style="display:flex; align-items:center; gap:10px;">${iconHTML}<span style="font-size:13px; font-weight:700; color:#ffffff; line-height:1.3;">${msgStr}</span></div>`;
+        }
 
         container.appendChild(toast);
 

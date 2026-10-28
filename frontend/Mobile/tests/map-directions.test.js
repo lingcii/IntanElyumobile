@@ -4,6 +4,14 @@ const path = require('node:path');
 
 const mapSource = fs.readFileSync(path.join(__dirname, '..', 'src', 'views', 'map.php'), 'utf8');
 const mainSource = fs.readFileSync(path.join(__dirname, '..', 'src', 'assets', 'js', 'main.js'), 'utf8');
+const sharedCss = fs.readFileSync(path.join(__dirname, '..', 'src', 'assets', 'css', 'style.css'), 'utf8');
+
+assert.match(mapSource, /showToast\("GPS Active", "gps", 4000\)/,
+    'the first real GPS lock must show the dedicated active-status notification');
+assert.match(mainSource, /type === 'gps'[\s\S]*?fa-location-crosshairs[\s\S]*?Live location tracking[\s\S]*?toast-gps-live/,
+    'the GPS notification must use clear location and live-status icons');
+assert.match(sharedCss, /\.toast-card--gps[\s\S]*?\.toast-gps-icon[\s\S]*?\.toast-gps-dot[\s\S]*?gpsLivePulse/,
+    'the GPS notification must have its own polished active-state styling');
 
 assert.match(mapSource, /id="btn-map-directions"[\s\S]*?onclick="window\.openMapDirections\(\)"/,
     'the map must expose a directions button');
@@ -48,12 +56,20 @@ assert.match(mapSource, /id="map-route-endpoints"[\s\S]*?id="map-route-start-nam
     'the route screen must display its exact start and destination');
 assert.match(mapSource, /id="map-route-primary-time"[\s\S]*?id="map-route-primary-distance"/,
     'the route detail sheet must display duration and distance');
-assert.match(mapSource, /window\.showDirectionsDestinationDetails[\s\S]*?window\.openSheet\(destination\)/,
+assert.match(mapSource, /window\.showDirectionsDestinationDetails[\s\S]*?window\.openSheet\(destination, true\)/,
     'the selected tourist site must open the existing full place-details sheet');
+assert.match(mapSource, /initDraggableSheet\('place-details-sheet',[\s\S]*?_returnToMapRouteAfterDetails[\s\S]*?map-route-summary'\)\?\.classList\.add\('open'\)/,
+    'closing route-opened place details must restore the route summary');
+assert.match(mapSource, /window\.openSheet = function \(locationData, returnToMapRoute = false\)[\s\S]*?_returnToMapRouteAfterDetails = returnToMapRoute === true/,
+    'place details opened directly from the map must not inherit route-return state');
 assert.match(mapSource, /window\.focusMapDirectionsRoute/,
     'the details sheet must allow the user to refocus the exact route');
-assert.match(mapSource, /mapDirectionsState\.mode === 'driving'[\s\S]*?exact travel time unavailable/,
-    'unsupported transport modes must not display fabricated travel times');
+assert.match(mapSource, /id="map-route-motorcycle-time"[\s\S]*?id="map-route-public-time"/,
+    'motorcycle and public-transport tabs must expose travel-time values');
+assert.match(mapSource, /const motorcycleMinutes[\s\S]*?const publicMinutes[\s\S]*?selectedMinutes[\s\S]*?primaryTime\.textContent = `\$\{selectedMinutes\} min`/,
+    'the selected jeep or motorcycle mode must display an estimated duration');
+assert.match(mapSource, /primaryDistance\.textContent = `\(\$\{distance\}\)`[\s\S]*?estimated travel time based on road distance/,
+    'non-car routes must retain real route kilometers and label their time as estimated');
 assert.match(mainSource, /id: 'map-directions-panel', fn: window\.closeMapDirectionsPanel/,
     'Android and browser back actions must close the directions screen first');
 
