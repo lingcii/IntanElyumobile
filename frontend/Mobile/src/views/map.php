@@ -496,11 +496,7 @@ if (is_dir($imgDir)) {
                 <button type="button" onclick="window.clearMapDirectionsRoute()" aria-label="Close route preview"><i class="fa-solid fa-xmark"></i></button>
             </div>
         </div>
-        <div class="route-sheet-modes">
-            <button type="button" class="active" data-route-mode="driving" onclick="window.selectDirectionsMode('driving', this)"><i class="fa-solid fa-car"></i><span id="map-route-car-time">--</span></button>
-            <button type="button" data-route-mode="motorcycle" onclick="window.selectDirectionsMode('motorcycle', this)"><i class="fa-solid fa-motorcycle"></i><span id="map-route-motorcycle-time">--</span></button>
-            <button type="button" data-route-mode="public" onclick="window.selectDirectionsMode('public', this)"><i class="fa-solid fa-bus-simple"></i><span id="map-route-public-time">--</span></button>
-        </div>
+        <div id="map-route-vehicle-strip" class="route-sheet-modes" aria-label="Vehicles available for this destination"></div>
         <div class="route-sheet-overview">
             <strong><span id="map-route-primary-time">--</span> <span id="map-route-primary-distance"></span></strong>
             <span id="map-route-summary-meta">Calculating route…</span>
@@ -577,6 +573,14 @@ if (is_dir($imgDir)) {
         .directions-vehicle-group button { min-height: 38px; border: 0; border-radius: 10px; background: transparent; color: #0f172a; display: flex; align-items: center; gap: 10px; padding: 7px 10px; text-align: left; font-size: 12px; font-weight: 650; }
         .directions-vehicle-group button i { width: 18px; color: #2563eb; text-align: center; }
         .directions-vehicle-group button.active { background: #dbeafe; color: #1e3a8a; }
+        #map-route-vehicle-strip.route-sheet-modes { display:flex; grid-template-columns:none; gap:7px; padding:0 4px 5px; overflow-x:auto; overscroll-behavior-x:contain; scroll-snap-type:x proximity; touch-action:pan-x; scrollbar-width:none; -webkit-overflow-scrolling:touch; }
+        #map-route-vehicle-strip::-webkit-scrollbar { display:none; }
+        #map-route-vehicle-strip button { flex:0 0 auto; min-width:88px; padding:7px 8px 10px; display:grid; grid-template-columns:20px minmax(0,1fr); grid-template-areas:'icon label' 'icon time'; align-items:center; column-gap:6px; text-align:left; scroll-snap-align:start; }
+        #map-route-vehicle-strip button i { grid-area:icon; width:auto; font-size:16px; text-align:center; }
+        #map-route-vehicle-strip .route-vehicle-label { grid-area:label; max-width:112px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:11px; }
+        #map-route-vehicle-strip .route-vehicle-time { grid-area:time; color:#94a3b8; font-size:10px; }
+        #map-route-vehicle-strip button.active { background:#eff6ff; border-radius:11px 11px 0 0; }
+        #map-route-vehicle-strip button.active .route-vehicle-time { color:#2563eb; }
     </style>
 
     <!-- Nearby Tourist Sites Sheet (Triggered by Left Button) -->
@@ -5556,18 +5560,18 @@ if (is_dir($imgDir)) {
         });
 
         const directionsVehicles = {
-            own_car: { label: 'Own Car', mode: 'driving' },
-            tricycle: { label: 'Tricycle', mode: 'public' },
-            car: { label: 'Car', mode: 'driving' },
-            jeepney: { label: 'Jeep', mode: 'public' },
-            motorcycle: { label: 'Motorcycle', mode: 'motorcycle' },
-            van: { label: 'Van', mode: 'driving' },
-            taxi: { label: 'Taxi', mode: 'driving' },
-            uve: { label: 'Utility Vehicle Express (UVE)', mode: 'public' },
-            pub_regular: { label: 'PUB Regular', mode: 'public' },
-            pub_aircon: { label: 'PUB Aircon', mode: 'public' },
-            mpuj: { label: 'Modern Jeepney (MPUJ)', mode: 'public' },
-            tpuj: { label: 'Traditional Jeepney (TPUJ)', mode: 'public' }
+            own_car: { label: 'Own Car', mode: 'driving', icon: 'fa-car' },
+            tricycle: { label: 'Tricycle', mode: 'public', icon: 'fa-motorcycle' },
+            car: { label: 'Car', mode: 'driving', icon: 'fa-car' },
+            jeepney: { label: 'Jeep', mode: 'public', icon: 'fa-bus-simple' },
+            motorcycle: { label: 'Motorcycle', mode: 'motorcycle', icon: 'fa-motorcycle' },
+            van: { label: 'Van', mode: 'driving', icon: 'fa-van-shuttle' },
+            taxi: { label: 'Taxi', mode: 'driving', icon: 'fa-taxi' },
+            uve: { label: 'Utility Vehicle Express (UVE)', mode: 'public', icon: 'fa-van-shuttle' },
+            pub_regular: { label: 'PUB Regular', mode: 'public', icon: 'fa-bus-simple' },
+            pub_aircon: { label: 'PUB Aircon', mode: 'public', icon: 'fa-bus' },
+            mpuj: { label: 'Modern Jeepney (MPUJ)', mode: 'public', icon: 'fa-van-shuttle' },
+            tpuj: { label: 'Traditional Jeepney (TPUJ)', mode: 'public', icon: 'fa-van-shuttle' }
         };
 
         const mapDirectionsState = window.mapDirectionsState || {
@@ -5609,9 +5613,74 @@ if (is_dir($imgDir)) {
                 image: typeof window.getDestImage === 'function'
                     ? window.getDestImage(place, 160)
                     : (place.photo_url || place.image_url || place.image || ''),
+                private_vehicles: Array.isArray(place.private_vehicles) ? place.private_vehicles : [],
+                public_vehicles: Array.isArray(place.public_vehicles) ? place.public_vehicles : [],
+                accessible_vehicles: Array.isArray(place.accessible_vehicles) ? place.accessible_vehicles : [],
+                accessible_by_private_vehicle: place.accessible_by_private_vehicle,
                 lat,
                 lng
             };
+        }
+
+        function getDirectionsVehicleKey(rawVehicle) {
+            const rawName = rawVehicle && typeof rawVehicle === 'object'
+                ? (rawVehicle.name || rawVehicle.vehicle_type || rawVehicle.type || '')
+                : rawVehicle;
+            const name = String(rawName || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+            if (!name) return null;
+            if (name.includes('own car')) return 'own_car';
+            if (name.includes('modern') || name.includes('mpuj')) return 'mpuj';
+            if (name.includes('traditional') || name.includes('tpuj')) return 'tpuj';
+            if (name.includes('aircon')) return 'pub_aircon';
+            if (name.includes('regular') || name.includes('ordinary')) return 'pub_regular';
+            if (name.includes('utility vehicle express') || name === 'uve' || name.includes('uv express')) return 'uve';
+            if (name.includes('tricycle') || name.includes('trike') || name.includes('trycicle')) return 'tricycle';
+            if (name.includes('motorcycle') || name === 'motor' || name.includes('scooter')) return 'motorcycle';
+            if (name.includes('taxi')) return 'taxi';
+            if (name.includes('jeep')) return 'jeepney';
+            if (name.includes('van')) return 'van';
+            if (name.includes('bus') || name === 'pub') return 'pub_regular';
+            if (name.includes('car') || name.includes('sedan') || name.includes('suv')) return 'car';
+            return null;
+        }
+
+        function getAvailableDirectionsVehicles(destination) {
+            if (!destination) return [mapDirectionsState.vehicle];
+            const liveDestination = (window.allMapLocations || []).find(place =>
+                String(place.id || place.destination_id) === String(destination.id)
+            );
+            const source = liveDestination || destination;
+            const privateVehicles = Array.isArray(source.private_vehicles) ? source.private_vehicles : [];
+            const publicVehicles = Array.isArray(source.public_vehicles) ? source.public_vehicles : [];
+            const accessibleVehicles = Array.isArray(source.accessible_vehicles) ? source.accessible_vehicles : [];
+            const declaredVehicles = accessibleVehicles.length
+                ? accessibleVehicles
+                : [...privateVehicles, ...publicVehicles];
+            const available = [];
+            declaredVehicles.forEach(vehicle => {
+                const key = getDirectionsVehicleKey(vehicle);
+                if (key && directionsVehicles[key] && !available.includes(key)) available.push(key);
+            });
+            return available.length ? available : [mapDirectionsState.vehicle];
+        }
+
+        function renderRouteVehicleStrip(destination) {
+            const strip = document.getElementById('map-route-vehicle-strip');
+            if (!strip) return;
+            const available = getAvailableDirectionsVehicles(destination);
+            if (!available.includes(mapDirectionsState.vehicle)) {
+                mapDirectionsState.vehicle = available[0];
+                mapDirectionsState.mode = directionsVehicles[available[0]].mode;
+            }
+            strip.innerHTML = available.map(key => {
+                const vehicle = directionsVehicles[key];
+                return `<button type="button" data-route-vehicle="${key}" onclick="window.selectDirectionsVehicle('${key}', this)" aria-label="${escapeDirectionsText(vehicle.label)}">
+                    <i class="fa-solid ${vehicle.icon}" aria-hidden="true"></i>
+                    <span class="route-vehicle-label">${escapeDirectionsText(vehicle.label)}</span>
+                    <span class="route-vehicle-time">--</span>
+                </button>`;
+            }).join('');
+            syncDirectionsVehicleButtons();
         }
 
         function getDirectionsPlaceImage(place) {
@@ -5729,8 +5798,10 @@ if (is_dir($imgDir)) {
             document.querySelectorAll('.directions-vehicle-picker [data-vehicle]').forEach(el => {
                 el.classList.toggle('active', el.dataset.vehicle === mapDirectionsState.vehicle);
             });
-            document.querySelectorAll('[data-route-mode]').forEach(el => {
-                el.classList.toggle('active', el.dataset.routeMode === mapDirectionsState.mode);
+            document.querySelectorAll('[data-route-vehicle]').forEach(el => {
+                const isActive = el.dataset.routeVehicle === mapDirectionsState.vehicle;
+                el.classList.toggle('active', isActive);
+                el.setAttribute('aria-pressed', String(isActive));
             });
             const quickVehicles = ['own_car', 'tricycle', 'car', 'jeepney'];
             const moreButton = document.getElementById('directions-more-vehicles-btn');
@@ -5904,6 +5975,7 @@ if (is_dir($imgDir)) {
             const primaryDistance = document.getElementById('map-route-primary-distance');
             const startName = document.getElementById('map-route-start-name');
             const destinationName = document.getElementById('map-route-destination-name');
+            renderRouteVehicleStrip(mapDirectionsState.destination);
             const selectedVehicle = directionsVehicles[mapDirectionsState.vehicle] || directionsVehicles.own_car;
             document.body.classList.add('map-route-active');
             setDirectionsBaseMarkersVisible(false);
@@ -5948,12 +6020,14 @@ if (is_dir($imgDir)) {
                     : (mapDirectionsState.mode === 'public' ? publicMinutes : durationMinutes);
                 if (primaryTime) primaryTime.textContent = `${selectedMinutes} min`;
                 if (primaryDistance) primaryDistance.textContent = `(${distance})`;
-                const drivingTime = document.getElementById('map-route-car-time');
-                if (drivingTime) drivingTime.textContent = `${durationMinutes} min`;
-                const motorcycleTime = document.getElementById('map-route-motorcycle-time');
-                if (motorcycleTime) motorcycleTime.textContent = `${motorcycleMinutes} min`;
-                const publicTime = document.getElementById('map-route-public-time');
-                if (publicTime) publicTime.textContent = `${publicMinutes} min`;
+                document.querySelectorAll('#map-route-vehicle-strip [data-route-vehicle]').forEach(button => {
+                    const vehicle = directionsVehicles[button.dataset.routeVehicle];
+                    const vehicleMinutes = vehicle?.mode === 'motorcycle'
+                        ? motorcycleMinutes
+                        : (vehicle?.mode === 'public' ? publicMinutes : durationMinutes);
+                    const time = button.querySelector('.route-vehicle-time');
+                    if (time) time.textContent = `${vehicleMinutes} min`;
+                });
                 if (meta) meta.textContent = mapDirectionsState.mode === 'driving'
                     ? `Fastest available road route${routeCount}`
                     : `${selectedVehicle.label} estimated travel time based on road distance${routeCount}`;

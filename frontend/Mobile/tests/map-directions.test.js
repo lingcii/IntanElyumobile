@@ -1,6 +1,7 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
+const vm = require('node:vm');
 
 const mapSource = fs.readFileSync(path.join(__dirname, '..', 'src', 'views', 'map.php'), 'utf8');
 const mainSource = fs.readFileSync(path.join(__dirname, '..', 'src', 'assets', 'js', 'main.js'), 'utf8');
@@ -64,10 +65,33 @@ assert.match(mapSource, /window\.openSheet = function \(locationData, returnToMa
     'place details opened directly from the map must not inherit route-return state');
 assert.match(mapSource, /window\.focusMapDirectionsRoute/,
     'the details sheet must allow the user to refocus the exact route');
-assert.match(mapSource, /id="map-route-motorcycle-time"[\s\S]*?id="map-route-public-time"/,
-    'motorcycle and public-transport tabs must expose travel-time values');
+assert.match(mapSource, /id="map-route-vehicle-strip"[\s\S]*?Vehicles available for this destination/,
+    'the route sheet must expose a destination-aware vehicle strip');
+assert.match(mapSource, /function getAvailableDirectionsVehicles[\s\S]*?private_vehicles[\s\S]*?public_vehicles[\s\S]*?accessible_vehicles/,
+    'route vehicles must come from the tourist site accessibility data');
+assert.match(mapSource, /if \(!available\.includes\(mapDirectionsState\.vehicle\)\)[\s\S]*?mapDirectionsState\.vehicle = available\[0\]/,
+    'an unsupported selected vehicle must switch to an available vehicle');
+assert.match(mapSource, /#map-route-vehicle-strip\.route-sheet-modes \{[^}]*overflow-x:auto[^}]*touch-action:pan-x/,
+    'all available vehicles must be horizontally swipeable');
 assert.match(mapSource, /const motorcycleMinutes[\s\S]*?const publicMinutes[\s\S]*?selectedMinutes[\s\S]*?primaryTime\.textContent = `\$\{selectedMinutes\} min`/,
     'the selected jeep or motorcycle mode must display an estimated duration');
+assert.match(mapSource, /#map-route-vehicle-strip \[data-route-vehicle\][\s\S]*?route-vehicle-time[\s\S]*?vehicleMinutes/,
+    'each available vehicle must display its estimated travel time');
+const vehicleHelperStart = mapSource.indexOf('const directionsVehicles =');
+const vehicleHelperEnd = mapSource.indexOf('function getDirectionsPlaceImage', vehicleHelperStart);
+const vehicleContext = {
+    window: {
+        allMapLocations: [{
+            id: 42,
+            private_vehicles: ['Car'],
+            public_vehicles: ['Tricycle', 'Modern Public Utility Jeepney (MPUJ)'],
+            accessible_vehicles: []
+        }]
+    }
+};
+vm.runInNewContext(`${mapSource.slice(vehicleHelperStart, vehicleHelperEnd)}; this.getAvailableDirectionsVehicles = getAvailableDirectionsVehicles;`, vehicleContext);
+assert.deepEqual(Array.from(vehicleContext.getAvailableDirectionsVehicles({ id: 42 })), ['car', 'tricycle', 'mpuj'],
+    'the route sheet must include only vehicles declared for the selected tourist site');
 assert.match(mapSource, /primaryDistance\.textContent = `\(\$\{distance\}\)`[\s\S]*?estimated travel time based on road distance/,
     'non-car routes must retain real route kilometers and label their time as estimated');
 assert.match(mainSource, /id: 'map-directions-panel', fn: window\.closeMapDirectionsPanel/,

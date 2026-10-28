@@ -96,6 +96,13 @@ $backRoute = 'itinerary';
     .saved-trips-tab.active { background:#1e3a8a !important; color:#fff !important; box-shadow:0 3px 10px rgba(30,58,138,.22); }
     .saved-trips-tab span { margin-left:4px; padding:2px 7px; border-radius:99px; background:rgba(148,163,184,.18); }
     .saved-trips-tab.active span { background:rgba(255,255,255,.2); }
+    .saved-trip-validation-actions { align-self:flex-end; display:flex; align-items:center; justify-content:flex-end; gap:7px; margin-top:2px; flex-wrap:wrap; }
+    .saved-trip-checkin-btn { min-height:32px; padding:7px 13px; border:0; border-radius:12px; display:inline-flex; align-items:center; justify-content:center; gap:6px; background:rgba(15,23,42,.28); color:rgba(255,255,255,.62); font-size:10.5px; font-weight:800; box-shadow:none; cursor:not-allowed; transition:background .18s ease,color .18s ease,transform .18s ease,box-shadow .18s ease; }
+    .saved-trip-checkin-btn.is-available { background:linear-gradient(135deg,#22d3ee,#0891b2); color:#fff; cursor:pointer; box-shadow:0 5px 14px rgba(8,145,178,.28); }
+    .saved-trip-checkin-btn.is-available:active { transform:scale(.97); }
+    .saved-trip-checkin-btn.is-checked { background:rgba(16,185,129,.24); color:#bbf7d0; cursor:default; }
+    .saved-trip-proof-btn { min-height:32px; padding:7px 12px; border:0; border-radius:12px; display:inline-flex; align-items:center; justify-content:center; gap:6px; background:linear-gradient(135deg,#ffffff,#dbeafe); color:#1e3a8a; font-size:10.5px; font-weight:800; box-shadow:0 5px 14px rgba(15,23,42,.16); cursor:pointer; }
+    .saved-trip-proof-btn:active { transform:scale(.97); }
     #edit-trip-details-modal {
         -webkit-overflow-scrolling: touch;
         touch-action: manipulation;
@@ -1056,13 +1063,72 @@ $backRoute = 'itinerary';
             );
             const hasConfirmedCheckin = Boolean(item.visited_at || item.is_location_verified);
 
-            return ['pending', 'approved', 'rejected'].includes(proofStatus) ||
+            return proofStatus === 'approved' ||
+                proofStatus === 'rejected' ||
+                (proofStatus === 'pending' && hasServerProof) ||
                 (hasServerProof && hasConfirmedCheckin);
         }
 
         function shouldHideStartTripForTrip(trip) {
             const items = trip && Array.isArray(trip.items) ? trip.items.filter(Boolean) : [];
             return items.length > 0 && items.every(hasConfirmedProofSubmission);
+        }
+
+        const SAVED_TRIP_CHECKIN_RADIUS_METERS = 200;
+
+        function getSavedTripDistanceMeters(lat1, lng1, lat2, lng2) {
+            const R = 6371e3;
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLng = (lng2 - lng1) * Math.PI / 180;
+            const a = Math.sin(dLat / 2) ** 2 +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLng / 2) ** 2;
+            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        }
+
+        window.updateSavedTripCheckinAvailability = function (lat, lng, accuracy = null) {
+            const userLat = Number(lat);
+            const userLng = Number(lng);
+            const gpsAccuracy = Number(accuracy);
+            const hasReliableFix = Number.isFinite(userLat) && Number.isFinite(userLng) &&
+                (!Number.isFinite(gpsAccuracy) || gpsAccuracy <= SAVED_TRIP_CHECKIN_RADIUS_METERS);
+
+            document.querySelectorAll('.saved-trip-checkin-btn').forEach(button => {
+                if (button.dataset.checked === 'true') return;
+                const destinationLat = Number(button.dataset.destLat);
+                const destinationLng = Number(button.dataset.destLng);
+                const hasDestination = button.dataset.destLat !== '' && button.dataset.destLng !== '' &&
+                    Number.isFinite(destinationLat) && Number.isFinite(destinationLng);
+                const inRange = hasReliableFix && hasDestination &&
+                    getSavedTripDistanceMeters(userLat, userLng, destinationLat, destinationLng) <= SAVED_TRIP_CHECKIN_RADIUS_METERS;
+                button.disabled = !inRange;
+                button.classList.toggle('is-available', inRange);
+                button.setAttribute('aria-disabled', String(!inRange));
+                button.title = inRange ? 'You are at this tourist site. Check in now.' : 'Available when you are within 200 meters of this tourist site.';
+            });
+        };
+
+        function refreshSavedTripCheckinAvailability() {
+            const cached = window.deviceLastPos;
+            if (cached && cached.coords) {
+                window.updateSavedTripCheckinAvailability(cached.coords.latitude, cached.coords.longitude, cached.coords.accuracy);
+            }
+            const now = Date.now();
+            if (typeof window.requestPreciseLocation === 'function' && (!window._savedTripsLastProximityRequestAt || now - window._savedTripsLastProximityRequestAt > 30000)) {
+                window._savedTripsLastProximityRequestAt = now;
+                window.requestPreciseLocation(false).then(location => {
+                    if (location) window.updateSavedTripCheckinAvailability(location.lat, location.lng, location.accuracy);
+                }).catch(() => {});
+            }
+        }
+
+        if (!window._savedTripsGpsAvailabilityBound) {
+            window._savedTripsGpsAvailabilityBound = true;
+            document.addEventListener('gpsUpdated', event => {
+                const gps = event && event.detail ? event.detail : {};
+                if (typeof window.updateSavedTripCheckinAvailability === 'function') {
+                    window.updateSavedTripCheckinAvailability(gps.lat, gps.lng, gps.accuracy);
+                }
+            });
         }
 
         function renderSavedTrips(itineraries) {
@@ -1391,6 +1457,12 @@ $backRoute = 'itinerary';
                                 const spotImgUrl = (typeof window.getDestImage === 'function')
                                     ? window.getDestImage(dest, 300)
                                     : ((dest && (dest.image || dest.photo_url)) || 'assets/img/no_image.svg');
+                                const rawDestinationLat = dest && (dest.latitude ?? dest.lat);
+                                const rawDestinationLng = dest && (dest.longitude ?? dest.lng);
+                                const destinationLat = rawDestinationLat === null || rawDestinationLat === undefined || rawDestinationLat === '' ? NaN : Number(rawDestinationLat);
+                                const destinationLng = rawDestinationLng === null || rawDestinationLng === undefined || rawDestinationLng === '' ? NaN : Number(rawDestinationLng);
+                                const destinationLatAttr = Number.isFinite(destinationLat) ? destinationLat : '';
+                                const destinationLngAttr = Number.isFinite(destinationLng) ? destinationLng : '';
                                 
                                 // Resolve all proof images into an array
                                 let proofImages = [];
@@ -1650,6 +1722,22 @@ $backRoute = 'itinerary';
                                                     </button>
                                                 </div>`))))))
                                         }
+                                        ${!isCheckinQueued ? `<div class="saved-trip-validation-actions">
+                                            <button type="button"
+                                                class="saved-trip-checkin-btn ${(isLocVerified || isApproved) ? 'is-checked' : ''}"
+                                                data-dest-lat="${destinationLatAttr}"
+                                                data-dest-lng="${destinationLngAttr}"
+                                                data-checked="${(isLocVerified || isApproved) ? 'true' : 'false'}"
+                                                aria-disabled="true"
+                                                disabled
+                                                onclick="event.stopPropagation(); window.executeLocationCheckIn('${item.id}', '${destEscaped}', ${destinationLatAttr || 'null'}, ${destinationLngAttr || 'null'}, this)">
+                                                <i class="fa-solid ${(isLocVerified || isApproved) ? 'fa-circle-check' : 'fa-location-crosshairs'}"></i>
+                                                ${(isLocVerified || isApproved) ? 'Checked In' : 'Check In'}
+                                            </button>
+                                            ${(isLocVerified && (!hasProof || isRejected)) ? `<button type="button" class="saved-trip-proof-btn" onclick="event.stopPropagation(); window.openProofUploadModal('${item.id}', '${destEscaped}')">
+                                                <i class="fa-solid fa-camera"></i> ${isRejected ? 'Re-upload Proof' : 'Proof of Validation'}
+                                            </button>` : ''}
+                                        </div>` : ''}
                                     </div>
                                 </div>`;
                             });
@@ -1666,7 +1754,8 @@ $backRoute = 'itinerary';
 
                         // Hide Start only when every stop in this exact itinerary has a server-confirmed proof workflow.
                         // A queued upload is not submitted yet, and one finished stop must not block a multi-stop trip.
-                        const shouldShowTripAction = isTripCompleted || unvisitedCount === 0 || !shouldHideStartTripForTrip(trip);
+                        const tripHasCheckin = Array.isArray(trip.items) && trip.items.some(item => item && (item.is_location_verified || item.visited_at));
+                        const shouldShowTripAction = isTripCompleted || unvisitedCount === 0 || (!tripHasCheckin && !shouldHideStartTripForTrip(trip));
                         if (shouldShowTripAction) {
                         html += `<div class="start-collapsible expanded" id="start-wrapper-${trip.id}" style="flex:1; min-width:120px;">`;
                         if (isTripCompleted) {
@@ -1697,11 +1786,12 @@ $backRoute = 'itinerary';
                 });
 
                 list.innerHTML = html || emptyStateHtml;
-                list.querySelectorAll('button[onclick*="executeLocationCheckIn"], button[onclick*="openProofUploadModal"]').forEach(button => {
+                list.querySelectorAll('button[onclick*="executeLocationCheckIn"]:not(.saved-trip-checkin-btn), button[onclick*="openProofUploadModal"]:not(.saved-trip-proof-btn)').forEach(button => {
                     const row = button.parentElement;
                     button.remove();
                     if (row && row.children.length === 0 && !row.textContent.trim()) row.remove();
                 });
+                refreshSavedTripCheckinAvailability();
                 updateScrollviewState();
                 initSavedTripsSwipe();
                 if (typeof window.syncReviewedButtons === 'function') {
@@ -2774,7 +2864,7 @@ $backRoute = 'itinerary';
                     localStorage.removeItem('dashboard_trips_' + tokenKey);
                     localStorage.removeItem('dashboard_saved_trips_' + tokenKey);
                 }
-                window.fetchSavedTrips(true);
+                window.fetchSavedTrips(false);
                 window.showTripCompletedSuccessModal();
                 return;
             }
@@ -2806,7 +2896,7 @@ $backRoute = 'itinerary';
                         localStorage.removeItem('dashboard_trips_' + tokenKey);
                         localStorage.removeItem('dashboard_saved_trips_' + tokenKey);
                     }
-                    window.fetchSavedTrips(true);
+                    window.fetchSavedTrips(false);
 
                     window.showTripCompletedSuccessModal();
                 } else {
@@ -2830,7 +2920,7 @@ $backRoute = 'itinerary';
                         localStorage.removeItem('dashboard_trips_' + tokenKey);
                         localStorage.removeItem('dashboard_saved_trips_' + tokenKey);
                     }
-                    window.fetchSavedTrips(true);
+                    window.fetchSavedTrips(false);
                     window.showTripCompletedSuccessModal();
                     return;
                 }
@@ -3992,7 +4082,7 @@ $backRoute = 'itinerary';
                 return;
             }
             if (document.visibilityState === 'visible' && !window._isStartingTrip) {
-                window.fetchSavedTrips(true);
+                window.fetchSavedTrips(false);
             }
         }, 30000);
 
@@ -4001,23 +4091,23 @@ $backRoute = 'itinerary';
             window._savedTripsVisibilityBound = true;
             document.addEventListener('visibilitychange', () => {
                 if (document.visibilityState === 'visible' && document.body.getAttribute('data-view') === 'saved_trips' && !window._isStartingTrip) {
-                    window.fetchSavedTrips(true);
+                    window.fetchSavedTrips(false);
                 }
             });
             window.addEventListener('focus', () => {
                 if (document.body.getAttribute('data-view') === 'saved_trips' && !window._isStartingTrip) {
-                    window.fetchSavedTrips(true);
+                    window.fetchSavedTrips(false);
                 }
             });
             window.addEventListener('viewLoaded', (e) => {
                 if (e && e.detail && e.detail.view === 'saved_trips') {
                     window._isStartingTrip = false;
-                    window.fetchSavedTrips(true);
+                    window.fetchSavedTrips(false);
                 }
             });
             window.addEventListener('checkins-synced', () => {
                 if (document.body.getAttribute('data-view') === 'saved_trips') {
-                    window.fetchSavedTrips(true);
+                    window.fetchSavedTrips(false);
                 }
             });
 
@@ -4077,7 +4167,7 @@ $backRoute = 'itinerary';
                 const currentView = (document.body ? document.body.getAttribute('data-view') : '') || (window.currentView || '');
                 if (currentView === 'saved_trips' || !currentView) {
                     if (typeof window.fetchSavedTrips === 'function') {
-                        window.fetchSavedTrips(true);
+                        window.fetchSavedTrips(false);
                     }
                 }
             }
@@ -4088,7 +4178,7 @@ $backRoute = 'itinerary';
             window.addEventListener('appOffline', updateSavedTripsOfflineStatus);
             window.addEventListener('tripsSynced', () => {
                 if (typeof window.fetchSavedTrips === 'function') {
-                    window.fetchSavedTrips(true);
+                    window.fetchSavedTrips(false);
                 }
             });
             window.addEventListener('offlineTripQueued', () => {

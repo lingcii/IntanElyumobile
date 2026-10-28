@@ -47,20 +47,57 @@ assert.match(renderSource, /timeline-collapsible expanded/,
     'trip destinations must stay visible after removing View Details');
 assert.doesNotMatch(renderSource, /\bisQueued\b/,
     'renderSavedTrips must use isCheckinQueued instead of an undeclared isQueued identifier so trip cards close properly');
-assert.match(renderSource, /button\[onclick\*="executeLocationCheckIn"\][\s\S]*button\[onclick\*="openProofUploadModal"\]/,
-    'check-in and proof controls must be removed from the saved-trip summary card');
+assert.match(renderSource, /class="saved-trip-checkin-btn[\s\S]*data-dest-lat=[\s\S]*disabled[\s\S]*executeLocationCheckIn/,
+    'each destination card must include a lower-right check-in button that starts disabled');
+assert.match(renderSource, /executeLocationCheckIn"\]:not\(\.saved-trip-checkin-btn\)/,
+    'legacy card controls may be removed without deleting the GPS-aware check-in button');
+assert.match(renderSource, /isLocVerified && \(!hasProof \|\| isRejected\)[\s\S]*class="saved-trip-proof-btn"[\s\S]*Proof of Validation[\s\S]*openProofUploadModal/,
+    'a verified check-in must reveal the proof-of-validation upload beside it');
+assert.match(renderSource, /openProofUploadModal"\]:not\(\.saved-trip-proof-btn\)/,
+    'legacy proof controls may be removed without deleting the post-check-in proof action');
+assert.match(trips, /SAVED_TRIP_CHECKIN_RADIUS_METERS = 200[\s\S]*gpsUpdated[\s\S]*updateSavedTripCheckinAvailability/,
+    'live GPS updates must enable check-in only within the backend 200-meter radius');
+const proximityStart = trips.indexOf('const SAVED_TRIP_CHECKIN_RADIUS_METERS = 200');
+const proximityEnd = trips.indexOf('function renderSavedTrips(itineraries)', proximityStart);
+const proximityButton = {
+    dataset: { checked: 'false', destLat: '16.6159', destLng: '120.3209' },
+    disabled: true,
+    title: '',
+    classList: { toggle() {} },
+    setAttribute() {}
+};
+const proximityContext = {
+    window: {},
+    document: {
+        querySelectorAll: () => [proximityButton],
+        addEventListener() {}
+    }
+};
+vm.runInNewContext(`${trips.slice(proximityStart, proximityEnd)};`, proximityContext);
+proximityContext.window.updateSavedTripCheckinAvailability(16.6165, 120.3209, 20);
+assert.equal(proximityButton.disabled, false, 'check-in must enable automatically when GPS is within 200 meters');
+proximityContext.window.updateSavedTripCheckinAvailability(16.6200, 120.3209, 20);
+assert.equal(proximityButton.disabled, true, 'check-in must remain disabled when GPS is outside 200 meters');
 assert.match(trips, /Saved Trips[\s\S]*Trip History/,
     'saved trips must provide active and completed trip tabs');
 assert.match(trips, /showingHistory \? historyTrips : activeTrips/,
     'trip history must render completed trips separately');
-assert.match(trips, /function hasConfirmedProofSubmission\(item\)[\s\S]*item\.is_offline_queued[\s\S]*\['pending', 'approved', 'rejected'\]\.includes\(proofStatus\)/,
-    'only backend-confirmed pending, approved, or rejected proof states may hide Start Trip');
+assert.match(trips, /function hasConfirmedProofSubmission\(item\)[\s\S]*proofStatus === 'pending' && hasServerProof/,
+    'a pending status may hide Start Trip only when an actual proof was submitted');
+const proofGuardStart = trips.indexOf('function hasConfirmedProofSubmission(item)');
+const proofGuardEnd = trips.indexOf('const SAVED_TRIP_CHECKIN_RADIUS_METERS', proofGuardStart);
+const proofGuardContext = {};
+vm.runInNewContext(`${trips.slice(proofGuardStart, proofGuardEnd)}; this.hasConfirmedProofSubmission = hasConfirmedProofSubmission;`, proofGuardContext);
+assert.equal(proofGuardContext.hasConfirmedProofSubmission({ proof_status: 'pending', proof_images: [] }), false,
+    'a fresh draft with a stale pending label must retain Start Trip');
+assert.equal(proofGuardContext.hasConfirmedProofSubmission({ proof_status: 'pending', proof_images: ['proof.jpg'] }), true,
+    'a genuinely submitted pending proof may hide Start Trip');
 assert.match(trips, /is_queued: Boolean\(it\.is_offline_queued \|\| \(previous && previous\.is_queued\)\)/,
     'queued proof state must survive cache merging without being mistaken for a confirmed submission');
 assert.match(trips, /items\.length > 0 && items\.every\(hasConfirmedProofSubmission\)/,
     'Start Trip must hide only after every stop in that specific itinerary has submitted proof');
-assert.match(trips, /shouldShowTripAction = isTripCompleted \|\| unvisitedCount === 0 \|\| !shouldHideStartTripForTrip\(trip\)/,
-    'a new draft or unfinished multi-stop trip must continue to offer Start Trip');
+assert.match(trips, /tripHasCheckin = Array\.isArray\(trip\.items\)[\s\S]*shouldShowTripAction = isTripCompleted \|\| unvisitedCount === 0 \|\| \(!tripHasCheckin && !shouldHideStartTripForTrip\(trip\)\)/,
+    'Start Trip must disappear after location check-in while remaining available for a new draft');
 assert.doesNotMatch(trips, /targetIdStr\.includes\(itIdStr\)/,
     'local proof and check-in updates must use exact itinerary-item IDs');
 assert.doesNotMatch(main, /targetIdStr\.includes\(itIdStr\)/,
@@ -81,6 +118,8 @@ assert.doesNotMatch(trips, /}, 3500\)/,
     'pending proof approval must not trigger an aggressive 3.5-second refresh loop');
 assert.match(trips, /window\._savedTripsInterval = setInterval[\s\S]*}, 30000\)/,
     'Saved Trips must retain one quiet 30-second background refresh');
+assert.match(trips, /window\._savedTripsInterval = setInterval[\s\S]*window\.fetchSavedTrips\(false\)[\s\S]*}, 30000\)/,
+    'Saved Trips and Trip History background polling must refresh silently');
 assert.match(trips, /_savedTripsReconnectStartedAt[\s\S]*< 2000\) return/,
     'duplicate online and appOnline events must not start repeated synchronization');
 assert.match(trips, /showTripCompletionReviewModal\(reviewItems, true\)/,

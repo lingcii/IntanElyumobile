@@ -63,5 +63,11 @@ assert.match(leaderboardView, /if \(!window\._leaderboardLifecycleListenersBound
     'Leaderboard lifecycle listeners must only be registered once');
 assert.match(leaderboardView, /_leaderboardLastViewRenderAt[\s\S]*< 250/,
     'duplicate document and window viewLoaded events must render Leaderboard once');
+assert.match(main, /activeView === 'leaderboard'[\s\S]*window\.refreshLeaderboard\(false\)/,
+    'ambient Leaderboard refreshes must remain silent');
+assert.match(main, /targetView === 'saved_trips'[\s\S]*window\.fetchSavedTrips\(false\)/,
+    'opening Saved Trips must revalidate silently');
+assert.match(main, /saved_trips: \(\) => window\.fetchSavedTrips && window\.fetchSavedTrips\(true\)[\s\S]*leaderboard: \(\) => window\.refreshLeaderboard && window\.refreshLeaderboard\(true\)/,
+    'pull-to-refresh must still force a user-visible Saved Trips or Leaderboard refresh');
 
 console.log('mobile performance tests passed');

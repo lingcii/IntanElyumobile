@@ -2241,8 +2241,8 @@ window.OfflineProfileManager = {
 
             // Refresh ONLY the currently active view
             const activeView = (document.body ? document.body.getAttribute('data-view') : '') || (window.currentView || '');
-            if (activeView === 'leaderboard' && typeof window.initLeaderboardView === 'function') {
-                window.initLeaderboardView(true);
+            if (activeView === 'leaderboard' && typeof window.refreshLeaderboard === 'function') {
+                window.refreshLeaderboard(false);
             } else if (activeView === 'dashboard' && typeof window.dashboardInit === 'function') {
                 window.dashboardInit(true);
             } else if (activeView === 'profile' && typeof window.fetchProfileData === 'function') {
@@ -2256,7 +2256,7 @@ window.OfflineProfileManager = {
             } else if (activeView === 'saved_places' && typeof window.fetchSavedPlaces === 'function') {
                 window.fetchSavedPlaces(true);
             } else if (activeView === 'saved_trips' && typeof window.fetchSavedTrips === 'function') {
-                window.fetchSavedTrips(true);
+                window.fetchSavedTrips(false);
             }
 
             prewarmOfflineData();
@@ -6226,7 +6226,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                     window._isStartingTrip = false;
                     window._lastRenderedTripsSig = null;
                     if (typeof window.fetchSavedTrips === 'function') {
-                        window.fetchSavedTrips(true);
+                        window.fetchSavedTrips(false);
                     }
                 }
 
