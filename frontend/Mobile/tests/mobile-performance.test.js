@@ -21,8 +21,8 @@ assert.doesNotMatch(main, /setTimeout\(updateContent,\s*200\)/, 'navigation must
 assert.match(main, /if \(html && !isNetworkOffline\)[\s\S]*fetchViewPartial\(targetView, extraParams\)/,
     'cached screens must render while their template revalidates in the background');
 assert.match(main, /window\._viewFetches\.has\(fetchUrl\)/, 'identical view requests must be deduplicated');
-assert.match(main, /elyu_view_cache_v13_/, 'SPA templates must use the current cache generation');
-assert.match(main, /k\.startsWith\('elyu_view_cache_v12_'\)/, 'stale executable view templates must be invalidated');
+assert.match(main, /elyu_view_cache_v14_/, 'SPA templates must use the current cache generation');
+assert.match(main, /k\.startsWith\('elyu_view_cache_v13_'\)/, 'stale executable view templates must be invalidated');
 assert.match(main, /window\.isExpectedAbortError/, 'expected request cancellation must be recognized');
 assert.match(main, /if \(window\.isExpectedAbortError\(err\)\) return;/,
     'expected request cancellation must not be logged as a fetch failure');
@@ -32,8 +32,8 @@ assert.match(main, /k\.startsWith\('elyu_view_cache_'\)/, 'logout must clear per
 assert.match(main, /window\.refreshCurrentView = async function/);
 assert.match(main, /#tourist-map/, 'pull-to-refresh must ignore map gestures');
 assert.match(main, /window\._pullRefreshPromise/, 'pull-to-refresh must prevent concurrent refreshes');
-assert.match(main, /viewsToPrewarm = \['dashboard', 'map', 'itinerary', 'leaderboard', 'profile'\]/,
-    'idle prewarming must be limited to primary navigation screens');
+assert.match(main, /viewsToPrewarm = \['dashboard', 'map', 'itinerary', 'trip_map', 'leaderboard', 'profile'\]/,
+    'idle prewarming must include active-trip navigation for offline starts');
 assert.match(main, /intan_elyu_map_view_state/);
 assert.match(mapView, /initialCenter[\s\S]*initialZoom[\s\S]*new maplibregl\.Map/,
     'the map must restore its previous center and zoom');
@@ -45,6 +45,8 @@ assert.match(serviceWorker, /isViewRequest && url\.searchParams\.get\('ajax'\) =
     'view templates must use stale-while-revalidate without applying it to live APIs');
 assert.match(serviceWorker, /response\.ok \|\| response\.type === 'opaque'/,
     'cross-origin map tiles must be cached for later offline use');
+assert.match(serviceWorker, /\^\[abc\][\s\S]*a\.tile\.openstreetmap\.org[\s\S]*alternateTile/,
+    'offline maps must reuse a cached OSM tile from any equivalent tile subdomain');
 assert.match(serviceWorker, /view=trip_map&ajax=1/,
     'the active-trip screen must be available without a network connection');
 assert.match(serviceWorker, /const viewName = url\.searchParams\.get\('view'\)[\s\S]*cache\.match\(`\.\/index\.php\?view=\$\{viewName\}&ajax=1`\)/,
@@ -55,6 +57,12 @@ assert.match(tripMapView, /class="trip-map-checkin-btn"[\s\S]*data-dest-lat=[\s\
     'trip-map check-in controls must start unavailable until GPS confirms the tourist is on site');
 assert.match(tripMapView, /window\.OFFLINE_MUNICIPALITIES_GEOJSON[\s\S]*"offline-municipalities"[\s\S]*"data": window\.OFFLINE_MUNICIPALITIES_GEOJSON[\s\S]*"offline-municipality-border"/,
     'the active trip must inline bundled geography so MapLibre load can finish offline');
+assert.match(tripMapView, /"id": "offline-municipality-border"[\s\S]*"line-width": 0[\s\S]*"line-opacity": 0/,
+    'active-trip offline geography must not draw municipality boundary lines');
+assert.match(tripMapView, /!navigator\.onLine \|\| window\.isAppOnline === false[\s\S]*Promise\.reject\(new Error\('Offline navigation uses the local geodesic route'\)\)[\s\S]*Geodesic route fallback/,
+    'active-trip navigation must draw its local route immediately instead of waiting for OSRM offline');
+assert.match(main, /rememberGpsLocation[\s\S]*intan_elyu_last_gps[\s\S]*getRememberedGpsLocation/,
+    'the app must retain a recent GPS coordinate for immediate offline route drawing');
 assert.match(tripMapView, /executeLocationCheckIn = async function[\s\S]*requestPreciseLocation\(false\)[\s\S]*Native offline GPS/,
     'offline check-in must use Capacitor native GPS before the WebView geolocation fallback');
 assert.match(main, /if \(typeof target\.onerror === 'function'\) return;/,

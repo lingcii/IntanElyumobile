@@ -89,6 +89,7 @@ try {
             k.startsWith('elyu_view_cache_v10_') ||
             k.startsWith('elyu_view_cache_v11_') ||
             k.startsWith('elyu_view_cache_v12_') ||
+            k.startsWith('elyu_view_cache_v13_') ||
             k.startsWith('leaderboard_data_v15_') || 
             k.startsWith('leaderboard_data_v16_') || 
             k.startsWith('leaderboard_data_v17_')
@@ -5672,12 +5673,12 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
 
         if (!html) {
             try {
-                const cached = localStorage.getItem('elyu_view_cache_v13_' + targetView);
+                const cached = localStorage.getItem('elyu_view_cache_v14_' + targetView);
                 if (isValidViewPartial(cached)) {
                     html = cached;
                     window._viewHtmlCache[targetView] = html;
                 } else if (cached) {
-                    localStorage.removeItem('elyu_view_cache_v13_' + targetView);
+                    localStorage.removeItem('elyu_view_cache_v14_' + targetView);
                 }
             } catch (e) {}
         }
@@ -5688,7 +5689,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
             fetchViewPartial(targetView, extraParams).then((freshHtml) => {
                 if (!isValidViewPartial(freshHtml)) return;
                 window._viewHtmlCache[targetView] = freshHtml;
-                try { localStorage.setItem('elyu_view_cache_v13_' + targetView, freshHtml); } catch (e) { }
+                try { localStorage.setItem('elyu_view_cache_v14_' + targetView, freshHtml); } catch (e) { }
                 window.dispatchEvent(new CustomEvent('viewCacheUpdated', { detail: { view: targetView } }));
             }).catch((fetchErr) => {
                 if (!window.isExpectedAbortError(fetchErr)) {
@@ -5701,7 +5702,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                 if (isValidViewPartial(freshHtml)) {
                     html = freshHtml;
                     window._viewHtmlCache[targetView] = html;
-                    try { localStorage.setItem('elyu_view_cache_v13_' + targetView, html); } catch(e) {}
+                    try { localStorage.setItem('elyu_view_cache_v14_' + targetView, html); } catch(e) {}
                 }
             } catch (fetchErr) {
                 if (!window.isExpectedAbortError(fetchErr)) {
@@ -7528,6 +7529,31 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
         }
     };
 
+    window.rememberGpsLocation = function (lat, lng, accuracy = null) {
+        const parsedLat = Number(lat);
+        const parsedLng = Number(lng);
+        if (!Number.isFinite(parsedLat) || !Number.isFinite(parsedLng)) return;
+        try {
+            localStorage.setItem('intan_elyu_last_gps', JSON.stringify({
+                lat: parsedLat,
+                lng: parsedLng,
+                accuracy: Number(accuracy) || null,
+                timestamp: Date.now()
+            }));
+        } catch (e) { }
+    };
+
+    window.getRememberedGpsLocation = function () {
+        try {
+            const cached = JSON.parse(localStorage.getItem('intan_elyu_last_gps') || 'null');
+            if (!cached || !Number.isFinite(Number(cached.lat)) || !Number.isFinite(Number(cached.lng))) return null;
+            if (Date.now() - Number(cached.timestamp || 0) > 12 * 60 * 60 * 1000) return null;
+            return { lat: Number(cached.lat), lng: Number(cached.lng), accuracy: Number(cached.accuracy) || null, source: 'cached-gps' };
+        } catch (e) {
+            return null;
+        }
+    };
+
     window.startLocationWatch = function () {
         if (!navigator.geolocation) return;
 
@@ -7554,6 +7580,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
             window.currentGPSAccuracy = accuracy;
             window.currentGPSAltitude = altitude;
             window.currentGPSSpeed = speed;
+            window.rememberGpsLocation(currentLat, currentLng, accuracy);
 
             // Broadcast dynamic update for real-time map tracking
             requestAnimationFrame(() => {
@@ -7632,6 +7659,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                         window.myLng = lng;
                         window.currentGPSSource = 'gps';
                         window.currentGPSAccuracy = accuracy;
+                        window.rememberGpsLocation(lat, lng, accuracy);
                         document.dispatchEvent(new CustomEvent('gpsUpdated', {
                             detail: { lat, lng, accuracy, source: 'gps', altitude: pos.coords.altitude, speed: pos.coords.speed }
                         }));
@@ -7703,6 +7731,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                 window.myLng = lng;
                 window.currentGPSSource = 'gps';
                 window.currentGPSAccuracy = accuracy;
+                window.rememberGpsLocation(lat, lng, accuracy);
                 document.dispatchEvent(new CustomEvent('gpsUpdated', {
                     detail: { lat, lng, accuracy, source: 'gps', altitude: pos.coords.altitude, speed: pos.coords.speed }
                 }));
@@ -8782,16 +8811,16 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
     // =========================================================================
     window.prewarmAllViews = async function () {
         if (!navigator.onLine) return;
-        const viewsToPrewarm = ['dashboard', 'map', 'itinerary', 'leaderboard', 'profile'];
+        const viewsToPrewarm = ['dashboard', 'map', 'itinerary', 'trip_map', 'leaderboard', 'profile'];
         window._viewHtmlCache = window._viewHtmlCache || {};
 
         for (const v of viewsToPrewarm.filter(view => view !== state.currentView)) {
             try {
-                if (!window._viewHtmlCache[v] && !localStorage.getItem('elyu_view_cache_v13_' + v)) {
+                if (!window._viewHtmlCache[v] && !localStorage.getItem('elyu_view_cache_v14_' + v)) {
                     const text = await fetchViewPartial(v, new URLSearchParams());
                     if (text && text.length > 50) {
                         window._viewHtmlCache[v] = text;
-                        try { localStorage.setItem('elyu_view_cache_v13_' + v, text); } catch (e) { }
+                        try { localStorage.setItem('elyu_view_cache_v14_' + v, text); } catch (e) { }
                     }
                 }
             } catch (e) { }

@@ -39,11 +39,19 @@ assert.match(map, /quick-stat-label">Points[\s\S]*id="sheet-points"[\s\S]*reward
     'the former Hours quick stat must show destination reward points');
 assert.match(itinerary, /assets\/la_union_municipalities\.json[\s\S]*offlineBasePane/,
     'the itinerary preview must include bundled municipality geometry offline');
+assert.match(itinerary, /offlineBasePane[\s\S]*stroke: false[\s\S]*fillOpacity: 0\.28/,
+    'the bundled itinerary land fill must not show municipality boundaries');
+assert.match(itinerary, /getRememberedGpsLocation[\s\S]*window\.myLat[\s\S]*window\.myLng/,
+    'the itinerary must draw its offline route immediately from recent GPS while refreshing location');
 assert.match(itinerary, /Draw immediately so offline mode never waits for OSRM[\s\S]*L\.polyline\(latlngs/,
     'the itinerary preview must draw a local route before online routing resolves');
 assert.match(itinerary, /!navigator\.onLine \|\| window\.isAppOnline === false\) \? Promise\.resolve\(null\)/,
     'offline itinerary rendering must not wait for an OSRM request');
 assert.match(map, /window\.OFFLINE_MUNICIPALITIES_GEOJSON[\s\S]*"offline-municipalities"[\s\S]*"data": window\.OFFLINE_MUNICIPALITIES_GEOJSON[\s\S]*"offline-municipality-border"/,
     'Explore Map must inline bundled geography so its markers can initialize offline');
+assert.match(map, /"id": "offline-municipality-border"[\s\S]*"line-width": 0[\s\S]*"line-opacity": 0/,
+    'Explore Map must hide bundled municipality boundary lines');
+assert.match(map, /if \(isOfflineMap\) \{[\s\S]*window\.zonesLoaded = true;[\s\S]*\} else try/,
+    'Explore Map must not add interactive municipality borders while offline');
 
 console.log('Itinerary guardrail checks passed.');

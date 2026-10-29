@@ -1,4 +1,4 @@
-const CACHE_NAME = 'Intan_Elyu_cache-v40-offline-trip-start';
+const CACHE_NAME = 'Intan_Elyu_cache-v41-borderless-offline-routes';
 const ASSETS = [
     './',
     './index.php',
@@ -256,7 +256,17 @@ self.addEventListener('fetch', (event) => {
                 return response;
             }).catch(async () => {
                 const cached = await caches.match(event.request);
-                return cached || new Response('', { status: 404, statusText: 'Not Found' });
+                if (cached) return cached;
+
+                const tileUrl = new URL(event.request.url);
+                if (/^[abc]\.tile\.openstreetmap\.org$/i.test(tileUrl.hostname)) {
+                    for (const host of ['a.tile.openstreetmap.org', 'b.tile.openstreetmap.org', 'c.tile.openstreetmap.org']) {
+                        tileUrl.hostname = host;
+                        const alternateTile = await caches.match(tileUrl.toString());
+                        if (alternateTile) return alternateTile;
+                    }
+                }
+                return new Response('', { status: 404, statusText: 'Not Found' });
             });
         })
     );

@@ -1309,8 +1309,8 @@ if (is_dir($imgDir)) {
                         "source": "offline-municipalities",
                         "paint": {
                             "line-color": "#3978a8",
-                            "line-width": isOfflineMap ? 2 : 1,
-                            "line-opacity": isOfflineMap ? 0.85 : 0.18
+                            "line-width": 0,
+                            "line-opacity": 0
                         }
                     }
                 ]
@@ -1398,7 +1398,9 @@ if (is_dir($imgDir)) {
             window.mapInstance.on('load', async () => {
                 mapReady = true;
                 // Render markers immediately
-                try {
+                if (isOfflineMap) {
+                    window.zonesLoaded = true;
+                } else try {
                     const data = await mapDataPromise;
                     const resolvedData = latestMapData || data;
                     if (resolvedData && resolvedData.destinations) {

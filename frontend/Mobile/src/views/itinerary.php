@@ -1007,8 +1007,9 @@ try {
         var backendUrl = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
 
         // Synchronize GPS state immediately or resolve via high-accuracy hardware GPS
-        window.myLat = window.myLat || window.currentGPSLat || null;
-        window.myLng = window.myLng || window.currentGPSLng || null;
+        const rememberedGps = typeof window.getRememberedGpsLocation === 'function' ? window.getRememberedGpsLocation() : null;
+        window.myLat = window.myLat || window.currentGPSLat || (rememberedGps && rememberedGps.lat) || null;
+        window.myLng = window.myLng || window.currentGPSLng || (rememberedGps && rememberedGps.lng) || null;
 
         if (!window.myLat || !window.myLng || window.currentGPSSource !== 'gps') {
             if (typeof window.requestPreciseLocation === 'function') {
@@ -5076,11 +5077,11 @@ try {
                             pane: 'offlineBasePane',
                             interactive: false,
                             style: {
-                                color: '#3978a8',
-                                weight: 1.5,
-                                opacity: 0.75,
+                                stroke: false,
+                                weight: 0,
+                                opacity: 0,
                                 fillColor: '#b8dcec',
-                                fillOpacity: 0.38
+                                fillOpacity: 0.28
                             }
                         }).addTo(draftMap);
                         offlineBase._isOfflineBaseLayer = true;

@@ -191,8 +191,9 @@ include_once __DIR__ . '/../components/testimony_modal.php';
             }
         }
 
-        window.myLat = window.myLat || window.currentGPSLat || null;
-        window.myLng = window.myLng || window.currentGPSLng || null;
+        const rememberedGps = typeof window.getRememberedGpsLocation === 'function' ? window.getRememberedGpsLocation() : null;
+        window.myLat = window.myLat || window.currentGPSLat || (rememberedGps && rememberedGps.lat) || null;
+        window.myLng = window.myLng || window.currentGPSLng || (rememberedGps && rememberedGps.lng) || null;
 
         if (typeof window.requestPreciseLocation === 'function') {
             window.requestPreciseLocation(false).then(loc => {
@@ -281,7 +282,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                         "id": "offline-municipality-border",
                         "type": "line",
                         "source": "offline-municipalities",
-                        "paint": { "line-color": "#3978a8", "line-width": 2, "line-opacity": 0.8 }
+                        "paint": { "line-color": "#3978a8", "line-width": 0, "line-opacity": 0 }
                     }
                 ]
             };
@@ -1396,7 +1397,10 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                     }
 
                     const routeMap = tripMap;
-                    fetch(`https://router.project-osrm.org/route/v1/${osrmProfile}/${coords.join(';')}?overview=full&geometries=geojson`)
+                    const routeRequest = (!navigator.onLine || window.isAppOnline === false)
+                        ? Promise.reject(new Error('Offline navigation uses the local geodesic route'))
+                        : fetch(`https://router.project-osrm.org/route/v1/${osrmProfile}/${coords.join(';')}?overview=full&geometries=geojson`);
+                    routeRequest
                         .then(r => r.json())
                         .then(routeData => {
                             if (!document.getElementById('trip-info-distance') || !isTripMapActive(routeMap)) return;
