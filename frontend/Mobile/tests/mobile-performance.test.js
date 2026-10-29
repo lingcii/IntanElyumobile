@@ -21,8 +21,8 @@ assert.doesNotMatch(main, /setTimeout\(updateContent,\s*200\)/, 'navigation must
 assert.match(main, /if \(html && !isNetworkOffline\)[\s\S]*fetchViewPartial\(targetView, extraParams\)/,
     'cached screens must render while their template revalidates in the background');
 assert.match(main, /window\._viewFetches\.has\(fetchUrl\)/, 'identical view requests must be deduplicated');
-assert.match(main, /elyu_view_cache_v10_/, 'SPA templates must use the current cache generation');
-assert.match(main, /k\.startsWith\('elyu_view_cache_v9_'\)/, 'stale executable view templates must be invalidated');
+assert.match(main, /elyu_view_cache_v13_/, 'SPA templates must use the current cache generation');
+assert.match(main, /k\.startsWith\('elyu_view_cache_v12_'\)/, 'stale executable view templates must be invalidated');
 assert.match(main, /window\.isExpectedAbortError/, 'expected request cancellation must be recognized');
 assert.match(main, /if \(window\.isExpectedAbortError\(err\)\) return;/,
     'expected request cancellation must not be logged as a fetch failure');
@@ -43,6 +43,22 @@ assert.match(tripMapView, /function isTripMapActive\(map\)[\s\S]*window\._tripMa
     'trip routing callbacks must be tied to the currently mounted map');
 assert.match(serviceWorker, /isViewRequest && url\.searchParams\.get\('ajax'\) === '1'[\s\S]*if \(cached\)[\s\S]*event\.waitUntil\(network\)/,
     'view templates must use stale-while-revalidate without applying it to live APIs');
+assert.match(serviceWorker, /response\.ok \|\| response\.type === 'opaque'/,
+    'cross-origin map tiles must be cached for later offline use');
+assert.match(serviceWorker, /view=trip_map&ajax=1/,
+    'the active-trip screen must be available without a network connection');
+assert.match(serviceWorker, /const viewName = url\.searchParams\.get\('view'\)[\s\S]*cache\.match\(`\.\/index\.php\?view=\$\{viewName\}&ajax=1`\)/,
+    'parameterized Start Trip navigation must fall back to the pre-cached canonical view offline');
+assert.match(tripMapView, /updateTripMapCheckinAvailability[\s\S]*TRIP_MAP_CHECKIN_RADIUS_METERS/,
+    'trip-map check-in availability must follow live GPS proximity');
+assert.match(tripMapView, /class="trip-map-checkin-btn"[\s\S]*data-dest-lat=[\s\S]*disabled/,
+    'trip-map check-in controls must start unavailable until GPS confirms the tourist is on site');
+assert.match(tripMapView, /window\.OFFLINE_MUNICIPALITIES_GEOJSON[\s\S]*"offline-municipalities"[\s\S]*"data": window\.OFFLINE_MUNICIPALITIES_GEOJSON[\s\S]*"offline-municipality-border"/,
+    'the active trip must inline bundled geography so MapLibre load can finish offline');
+assert.match(tripMapView, /executeLocationCheckIn = async function[\s\S]*requestPreciseLocation\(false\)[\s\S]*Native offline GPS/,
+    'offline check-in must use Capacitor native GPS before the WebView geolocation fallback');
+assert.match(main, /if \(typeof target\.onerror === 'function'\) return;/,
+    'the global image handler must allow destination cards to load bundled offline fallbacks');
 assert.doesNotMatch(serviceWorker, /'\.\/index\.php\?view=(?:discount|trending|puzzles|settings)&ajax=1'/,
     'service-worker install must not preload every secondary module');
 assert.match(dashboardView, /if \(window\._dashboardInitPromise\) return window\._dashboardInitPromise/,

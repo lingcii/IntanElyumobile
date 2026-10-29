@@ -14,7 +14,8 @@ const puzzles = fs.readFileSync(path.join(root, 'src', 'views', 'puzzles.php'), 
 for (const [name, source] of [['saved_trips.php', trips], ['trip_map.php', tripMap], ['testimony_modal.php', testimony], ['puzzles.php', puzzles]]) {
     const scripts = [...source.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/gi)];
     scripts.forEach((match, index) => {
-        assert.doesNotThrow(() => new vm.Script(match[1], { filename: `${name}#${index + 1}` }),
+        const renderedScript = match[1].replace(/<\?=[\s\S]*?\?>/g, '{}');
+        assert.doesNotThrow(() => new vm.Script(renderedScript, { filename: `${name}#${index + 1}` }),
             `${name} embedded script ${index + 1} must parse`);
     });
 }
@@ -147,10 +148,16 @@ assert.match(trips, /reviewItems\.length === 1[\s\S]*startReviewFromCompletion/,
     'a one-stop trip must open Review Destination directly from Complete');
 assert.match(testimony, /isCompletionReview[\s\S]*Review Destination[\s\S]*Save Review/,
     'completion reviews must use Review Destination and Save Review labels');
+assert.match(testimony, /closeWriteTestimonyModal\(false, this\)[\s\S]*trigger\.closest\('#testimony-modal'\)/,
+    'Cancel and close must target the visible review modal even if SPA navigation left a duplicate');
 assert.match(testimony, /response\.json\(\)\.catch\(\(\) => \(\{\}\)\)/,
     'review submission must handle non-JSON backend errors without breaking the modal');
 assert.match(trips, /spot-reviewed[\s\S]*remaining\.length === 0[\s\S]*finishTripAfterReviews/,
     'saving the final required review must finish the trip automatically');
+assert.match(trips, /openSavedTripReview[\s\S]*tripReadyToComplete[\s\S]*_pendingCompleteTripId[\s\S]*startReviewFromCompletion/,
+    'a final review opened from the trip card must enter the completion flow');
+assert.match(trips, /completionButton\.innerHTML = '[^']*Done'/,
+    'the Complete action must visibly become Done after the final review succeeds');
 assert.match(trips, /Review every destination before completing[\s\S]*Complete Trip/,
     'completion must remain gated until every destination is reviewed');
 assert.match(trips, /Trip Successfully Completed![\s\S]*View Trip History/,

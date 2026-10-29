@@ -86,6 +86,9 @@ try {
             k.startsWith('elyu_view_cache_v7_') ||
             k.startsWith('elyu_view_cache_v8_') ||
             k.startsWith('elyu_view_cache_v9_') ||
+            k.startsWith('elyu_view_cache_v10_') ||
+            k.startsWith('elyu_view_cache_v11_') ||
+            k.startsWith('elyu_view_cache_v12_') ||
             k.startsWith('leaderboard_data_v15_') || 
             k.startsWith('leaderboard_data_v16_') || 
             k.startsWith('leaderboard_data_v17_')
@@ -418,7 +421,20 @@ window.OfflineCheckinManager = {
             }
         }
 
-        const id = 'chk_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+        const queue = this.getQueue();
+        const existingIdx = queue.findIndex(q => {
+            if (!q || q.type !== (data.type || 'itinerary')) return false;
+            if ((data.type || 'itinerary') === 'itinerary') {
+                return this.matchesItem(q, data.itemId || null, data.spotId || null, data.itineraryId || null);
+            }
+            return Boolean(data.spotId && q.spotId && String(q.spotId) === String(data.spotId));
+        });
+        const existingEntry = existingIdx !== -1 ? queue[existingIdx] : null;
+        // Keep one stable ID per stop. AppStorage photo blobs are keyed by this ID,
+        // so replacing it while merging a check-in and proof would orphan the image.
+        const id = existingEntry && existingEntry.id
+            ? existingEntry.id
+            : 'chk_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
         const capturedAt = data.capturedAt || new Date().toISOString();
 
         let hasPhoto = false;
@@ -464,19 +480,11 @@ window.OfflineCheckinManager = {
             attempts: 0
         };
 
-        const queue = this.getQueue();
-        const existingIdx = queue.findIndex(q => {
-            if (!q || q.type !== entry.type) return false;
-            if (entry.type === 'itinerary') {
-                return this.matchesItem(q, entry.itemId, entry.spotId, entry.itineraryId);
-            }
-            return Boolean(entry.spotId && q.spotId && String(q.spotId) === String(entry.spotId));
-        });
-
         if (existingIdx !== -1) {
             queue[existingIdx] = {
                 ...queue[existingIdx],
                 ...entry,
+                isPhotoUploadOnly: Boolean(queue[existingIdx].isPhotoUploadOnly && entry.isPhotoUploadOnly),
                 hasPhoto: entry.hasPhoto || queue[existingIdx].hasPhoto,
                 previewUrl: entry.previewUrl || queue[existingIdx].previewUrl,
                 lat: entry.lat || queue[existingIdx].lat,
@@ -5664,12 +5672,12 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
 
         if (!html) {
             try {
-                const cached = localStorage.getItem('elyu_view_cache_v10_' + targetView);
+                const cached = localStorage.getItem('elyu_view_cache_v13_' + targetView);
                 if (isValidViewPartial(cached)) {
                     html = cached;
                     window._viewHtmlCache[targetView] = html;
                 } else if (cached) {
-                    localStorage.removeItem('elyu_view_cache_v10_' + targetView);
+                    localStorage.removeItem('elyu_view_cache_v13_' + targetView);
                 }
             } catch (e) {}
         }
@@ -5680,7 +5688,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
             fetchViewPartial(targetView, extraParams).then((freshHtml) => {
                 if (!isValidViewPartial(freshHtml)) return;
                 window._viewHtmlCache[targetView] = freshHtml;
-                try { localStorage.setItem('elyu_view_cache_v10_' + targetView, freshHtml); } catch (e) { }
+                try { localStorage.setItem('elyu_view_cache_v13_' + targetView, freshHtml); } catch (e) { }
                 window.dispatchEvent(new CustomEvent('viewCacheUpdated', { detail: { view: targetView } }));
             }).catch((fetchErr) => {
                 if (!window.isExpectedAbortError(fetchErr)) {
@@ -5693,7 +5701,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                 if (isValidViewPartial(freshHtml)) {
                     html = freshHtml;
                     window._viewHtmlCache[targetView] = html;
-                    try { localStorage.setItem('elyu_view_cache_v10_' + targetView, html); } catch(e) {}
+                    try { localStorage.setItem('elyu_view_cache_v13_' + targetView, html); } catch(e) {}
                 }
             } catch (fetchErr) {
                 if (!window.isExpectedAbortError(fetchErr)) {
@@ -6101,7 +6109,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                 }
 
                 // ── Teardown previous view resources to prevent mobile lag & leaks ──
-                ['full-history-modal', 'full-vouchers-modal', 'full-deals-modal', 'active-voucher-qr-modal', 'trip-details-modal', 'reward-details-modal', 'delete-trip-modal', 'elyu-proof-viewer-modal', 'global-oauth-overlay', 'offline-auth-modal', 'login-success-modal', 'auth-cancel-modal', 'privacy-policy-modal'].forEach(id => {
+                ['full-history-modal', 'full-vouchers-modal', 'full-deals-modal', 'active-voucher-qr-modal', 'trip-details-modal', 'reward-details-modal', 'delete-trip-modal', 'elyu-proof-viewer-modal', 'global-oauth-overlay', 'offline-auth-modal', 'login-success-modal', 'auth-cancel-modal', 'privacy-policy-modal', 'testimony-modal', 'trip-completion-review-modal', 'trip-completed-success-modal'].forEach(id => {
                     document.querySelectorAll('#' + id).forEach(m => {
                         if (m.parentElement === document.body) {
                             try { m.remove(); } catch (e) { }
@@ -7961,6 +7969,8 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
         var target = e.target;
         if (target && target.tagName === 'IMG' && target.src) {
             if (target.src.indexOf('placeholderImage') !== -1 || target.src.indexOf('data:image/svg') !== -1 || target.src.indexOf('ui-avatars.com') !== -1) return;
+            // Let destination/proof components try their bundled offline fallback first.
+            if (typeof target.onerror === 'function') return;
             target.onerror = null;
 
             // Special handling for user profile avatars
@@ -8777,11 +8787,11 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
 
         for (const v of viewsToPrewarm.filter(view => view !== state.currentView)) {
             try {
-                if (!window._viewHtmlCache[v] && !localStorage.getItem('elyu_view_cache_v10_' + v)) {
+                if (!window._viewHtmlCache[v] && !localStorage.getItem('elyu_view_cache_v13_' + v)) {
                     const text = await fetchViewPartial(v, new URLSearchParams());
                     if (text && text.length > 50) {
                         window._viewHtmlCache[v] = text;
-                        try { localStorage.setItem('elyu_view_cache_v10_' + v, text); } catch (e) { }
+                        try { localStorage.setItem('elyu_view_cache_v13_' + v, text); } catch (e) { }
                     }
                 }
             } catch (e) { }

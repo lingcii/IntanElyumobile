@@ -1,4 +1,4 @@
-const CACHE_NAME = 'Intan_Elyu_cache-v36-auth-login-height';
+const CACHE_NAME = 'Intan_Elyu_cache-v40-offline-trip-start';
 const ASSETS = [
     './',
     './index.php',
@@ -12,6 +12,8 @@ const ASSETS = [
     './index.php?view=dashboard&ajax=1',
     './index.php?view=map&ajax=1',
     './index.php?view=itinerary&ajax=1',
+    './index.php?view=saved_trips&ajax=1',
+    './index.php?view=trip_map&ajax=1',
     './index.php?view=leaderboard&ajax=1',
     './index.php?view=profile&ajax=1',
     './index.php?view=download',
@@ -120,7 +122,11 @@ self.addEventListener('fetch', (event) => {
         event.respondWith((async () => {
             const cache = await caches.open(CACHE_NAME);
             const normalizedUrl = normalizeUrl(event.request.url);
-            const cached = await cache.match(event.request) || await cache.match(normalizedUrl);
+            const viewName = url.searchParams.get('view');
+            const cached = await cache.match(event.request) ||
+                await cache.match(normalizedUrl) ||
+                await cache.match(`./index.php?view=${viewName}&ajax=1`) ||
+                await cache.match(`index.php?view=${viewName}&ajax=1`);
             const network = fetch(event.request).then((response) => {
                 if (response && response.status === 200) {
                     cache.put(event.request, response.clone());
@@ -243,7 +249,7 @@ self.addEventListener('fetch', (event) => {
         caches.match(event.request).then((cachedResponse) => {
             if (cachedResponse) return cachedResponse;
             return fetch(event.request).then((response) => {
-                if (response && response.status === 200) {
+                if (response && (response.ok || response.type === 'opaque')) {
                     const clone = response.clone();
                     caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
                 }

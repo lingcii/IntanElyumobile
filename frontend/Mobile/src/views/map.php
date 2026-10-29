@@ -2,6 +2,8 @@
 <?php
 $pageTitle = 'Explore Map';
 $activeTab = 'map';
+$offlineMunicipalityGeoJson = json_decode((string) @file_get_contents(__DIR__ . '/../assets/la_union_municipalities.json'), true)
+    ?: ['type' => 'FeatureCollection', 'features' => []];
 
 $municipalityImages = [];
 $imgDir = __DIR__ . '/../assets/img/MUNICIPALITIES';
@@ -25,6 +27,7 @@ if (is_dir($imgDir)) {
 
 <script>
     window.AVAILABLE_MUNI_IMAGES = <?= json_encode($municipalityImages) ?>;
+    window.OFFLINE_MUNICIPALITIES_GEOJSON = <?= json_encode($offlineMunicipalityGeoJson) ?>;
 
     window.formatVehicleDisplayName = function (name) {
         if (!name) return '';
@@ -1179,7 +1182,7 @@ if (is_dir($imgDir)) {
                 }
             })();
 
-            const muniGeoJsonPromise = fetch('assets/la_union_municipalities.json').then(r => r.json()).catch(e => { console.warn("Municipalities GeoJSON fetch error:", e); return null; });
+            const muniGeoJsonPromise = Promise.resolve(window.OFFLINE_MUNICIPALITIES_GEOJSON);
 
             // Fetch fare rates and vehicle data with SWR localStorage caching (eliminates Railway hits)
             const FARES_CACHE_KEY = 'public_fare_data';
@@ -1241,6 +1244,7 @@ if (is_dir($imgDir)) {
                 }).catch(e => console.warn("Seasons status fetch error:", e));
             }
 
+            const isOfflineMap = !navigator.onLine || window.isAppOnline === false;
             const style = {
                 "version": 8,
                 "glyphs": "https://fonts.openmaptiles.org/{fontstack}/{range}.pbf",
@@ -1264,6 +1268,10 @@ if (is_dir($imgDir)) {
                         "tiles": ["https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png"],
                         "encoding": "terrarium",
                         "tileSize": 256
+                    },
+                    "offline-municipalities": {
+                        "type": "geojson",
+                        "data": window.OFFLINE_MUNICIPALITIES_GEOJSON
                     }
                 },
                 "layers": [
@@ -1285,6 +1293,25 @@ if (is_dir($imgDir)) {
                         "type": "raster",
                         "source": "osm",
                         "layout": { "visibility": "visible" }
+                    },
+                    {
+                        "id": "offline-municipality-fill",
+                        "type": "fill",
+                        "source": "offline-municipalities",
+                        "paint": {
+                            "fill-color": "#b8dcec",
+                            "fill-opacity": isOfflineMap ? 0.48 : 0.08
+                        }
+                    },
+                    {
+                        "id": "offline-municipality-border",
+                        "type": "line",
+                        "source": "offline-municipalities",
+                        "paint": {
+                            "line-color": "#3978a8",
+                            "line-width": isOfflineMap ? 2 : 1,
+                            "line-opacity": isOfflineMap ? 0.85 : 0.18
+                        }
                     }
                 ]
             };

@@ -1,6 +1,8 @@
 <?php
 $pageTitle = 'My Itinerary';
 $activeTab = 'itinerary';
+$offlineMunicipalityGeoJson = json_decode((string) @file_get_contents(__DIR__ . '/../assets/la_union_municipalities.json'), true)
+    ?: ['type' => 'FeatureCollection', 'features' => []];
 
 // Load spots map with R2 photo_urls for instant client-side thumbnail lookup
 $spotsPhotoMap = [];
@@ -19,6 +21,7 @@ try {
 ?>
 <script>
     window.SPOTS_R2_MAP = <?= json_encode($spotsPhotoMap) ?>;
+    window.OFFLINE_MUNICIPALITIES_GEOJSON = <?= json_encode($offlineMunicipalityGeoJson) ?>;
 </script>
 
 
@@ -5062,6 +5065,27 @@ try {
                     updateWhenZooming: true,
                     updateWhenIdle: false
                 }).addTo(draftMap);
+
+                // Bundled municipal geometry gives every offline map real geographic context.
+                draftMap.createPane('offlineBasePane');
+                draftMap.getPane('offlineBasePane').style.zIndex = 250;
+                Promise.resolve(window.OFFLINE_MUNICIPALITIES_GEOJSON)
+                    .then(geojson => {
+                        if (!draftMap || !geojson) return;
+                        const offlineBase = L.geoJSON(geojson, {
+                            pane: 'offlineBasePane',
+                            interactive: false,
+                            style: {
+                                color: '#3978a8',
+                                weight: 1.5,
+                                opacity: 0.75,
+                                fillColor: '#b8dcec',
+                                fillOpacity: 0.38
+                            }
+                        }).addTo(draftMap);
+                        offlineBase._isOfflineBaseLayer = true;
+                    })
+                    .catch(error => console.warn('Offline municipality map unavailable:', error));
             }
 
             // Force Leaflet to recalculate size since container was display:none.
@@ -5075,7 +5099,7 @@ try {
             // Clear ALL previous markers, overlays, and routes from draftMap (leaving only base tiles)
             if (draftMap) {
                 draftMap.eachLayer(layer => {
-                    if (!(layer instanceof L.TileLayer)) {
+                    if (!(layer instanceof L.TileLayer) && !layer._isOfflineBaseLayer) {
                         try { draftMap.removeLayer(layer); } catch (e) { }
                     }
                 });
@@ -5157,6 +5181,21 @@ try {
                 let routeColor = isAlt ? '#f59e0b' : '#38bdf8'; // Alternative = Vibrant Amber/Gold, Recommended = Cyan/Blue
                 let shadowColor = isAlt ? '#78350f' : '#0f172a';
 
+                // Draw immediately so offline mode never waits for OSRM to fail.
+                draftRouteLineBg = L.polyline(latlngs, {
+                    color: shadowColor, weight: 7, opacity: 0.4, lineJoin: 'round', lineCap: 'round'
+                }).addTo(draftMap);
+                draftRouteLine = L.polyline(latlngs, {
+                    color: routeColor, weight: 4.5, opacity: 1, lineJoin: 'round', lineCap: 'round', dashArray: '8, 6'
+                }).addTo(draftMap);
+                let offlineDistanceKm = 0;
+                for (let routeIndex = 0; routeIndex < latlngs.length - 1; routeIndex++) {
+                    offlineDistanceKm += draftMap.distance(latlngs[routeIndex], latlngs[routeIndex + 1]) / 1000;
+                }
+                const offlineDurationMin = Math.max(1, Math.round((offlineDistanceKm / 30) * 60));
+                window.setTxt('draft-map-dist', offlineDistanceKm.toFixed(1) + ' km');
+                window.setTxt('draft-map-time', offlineDurationMin + ' min');
+
                 let fetchLatLngs = [...latlngs];
                 const coordString = fetchLatLngs.map(ll => `${ll[1]},${ll[0]}`).join(';');
 
@@ -5165,7 +5204,7 @@ try {
                 }
 
                 // If Alternative and multiple stops: query leg-by-leg alternative corridors or multi-point route
-                const fetchRoutePromise = (async () => {
+                const fetchRoutePromise = (!navigator.onLine || window.isAppOnline === false) ? Promise.resolve(null) : (async () => {
                     if (isAlt && fetchLatLngs.length >= 2) {
                         // Fetch leg by leg with alternative option for each leg
                         try {

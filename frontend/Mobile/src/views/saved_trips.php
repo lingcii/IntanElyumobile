@@ -1670,7 +1670,7 @@ $backRoute = 'itinerary';
                                                 <span style="color:#34c759; font-size:12px; font-weight:800; display:inline-flex; align-items:center; gap:5px; background:rgba(52,199,89,0.18); padding:4px 10px; border-radius:100px;">
                                                     <i class="fa-solid fa-circle-check"></i> Visit Verified
                                                 </span>
-                                                <button type="button" data-spot-id="${item.tourist_spot_id || (dest ? dest.id : '')}" data-itinerary-item-id="${item.id}" data-spot-classification="${sClass}" onclick="event.stopPropagation(); window.openWriteTestimonyModal('${item.tourist_spot_id || (dest ? dest.id : '')}', this, '${item.id}')" style="background:rgba(255,255,255,0.16); border:none !important; outline:none !important; color:#ffffff; font-size:11px; font-weight:800; padding:6px 14px; border-radius:100px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; box-shadow:none; flex-shrink:0;">
+                                                <button type="button" data-spot-id="${item.tourist_spot_id || (dest ? dest.id : '')}" data-itinerary-item-id="${item.id}" data-spot-classification="${sClass}" onclick="event.stopPropagation(); window.openSavedTripReview('${trip.id}', '${item.tourist_spot_id || (dest ? dest.id : '')}', this, '${item.id}')" style="background:rgba(255,255,255,0.16); border:none !important; outline:none !important; color:#ffffff; font-size:11px; font-weight:800; padding:6px 14px; border-radius:100px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; box-shadow:none; flex-shrink:0;">
                                                     ${(window.userReviewedItemIds && window.userReviewedItemIds.has(Number(item.id))) ? '<i class="fa-solid fa-check" style="font-size:10px; margin-right:4px;"></i> Reviewed' : '<i class="fa-solid fa-pen" style="font-size:10px;"></i> Review'}
                                                 </button>
                                             </div>
@@ -3133,6 +3133,11 @@ $backRoute = 'itinerary';
                 );
                 const completionIsOpen = document.getElementById('trip-completion-review-modal') || window._isCompletionReviewFlow || window._pendingCompleteTripId;
                 if (completionIsOpen && window._completionReviewRequired && remaining.length === 0 && !window._completionAutoFinishing) {
+                    const completionButton = document.getElementById('btn-complete-trip-' + window._pendingCompleteTripId);
+                    if (completionButton) {
+                        completionButton.disabled = true;
+                        completionButton.innerHTML = '<i class="fa-solid fa-circle-check" style="margin-right:6px;"></i> Done';
+                    }
                     window._completionAutoFinishing = true;
                     setTimeout(() => {
                         window.finishTripAfterReviews();
@@ -3163,6 +3168,24 @@ $backRoute = 'itinerary';
                 window._isCompletionReviewFlow = true;
                 window.openWriteTestimonyModal(spotId, btnEl, itineraryItemId);
             }
+        };
+
+        window.openSavedTripReview = function (tripId, spotId, btnEl, itineraryItemId) {
+            const trip = (window._cachedSavedTrips || []).find(candidate => candidate &&
+                (String(candidate.id) === String(tripId) || String(candidate.local_id) === String(tripId)));
+            const reviewItems = trip && Array.isArray(trip.items) ? trip.items.filter(item =>
+                item && (item.tourist_spot_id || item.destination_id || (item.destination && item.destination.id))
+            ) : [];
+            const tripReadyToComplete = reviewItems.length > 0 && reviewItems.every(hasProgressedPastStop);
+
+            if (tripReadyToComplete) {
+                window._pendingCompleteTripId = tripId;
+                window._completionReviewRequired = true;
+                window._completionReviewRequiredIds = reviewItems.map(item => Number(item.id));
+                window.startReviewFromCompletion(spotId, itineraryItemId, btnEl);
+                return;
+            }
+            window.openWriteTestimonyModal(spotId, btnEl, itineraryItemId);
         };
 
         window.closeEditTripDetailsModal = function () {

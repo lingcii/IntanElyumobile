@@ -37,5 +37,13 @@ assert.doesNotMatch(map, /id="sheet-open-badge"/,
     'the image overlay must not show an Open 24/7 badge');
 assert.match(map, /quick-stat-label">Points[\s\S]*id="sheet-points"[\s\S]*rewardPoints[\s\S]*Points/,
     'the former Hours quick stat must show destination reward points');
+assert.match(itinerary, /assets\/la_union_municipalities\.json[\s\S]*offlineBasePane/,
+    'the itinerary preview must include bundled municipality geometry offline');
+assert.match(itinerary, /Draw immediately so offline mode never waits for OSRM[\s\S]*L\.polyline\(latlngs/,
+    'the itinerary preview must draw a local route before online routing resolves');
+assert.match(itinerary, /!navigator\.onLine \|\| window\.isAppOnline === false\) \? Promise\.resolve\(null\)/,
+    'offline itinerary rendering must not wait for an OSRM request');
+assert.match(map, /window\.OFFLINE_MUNICIPALITIES_GEOJSON[\s\S]*"offline-municipalities"[\s\S]*"data": window\.OFFLINE_MUNICIPALITIES_GEOJSON[\s\S]*"offline-municipality-border"/,
+    'Explore Map must inline bundled geography so its markers can initialize offline');
 
 console.log('Itinerary guardrail checks passed.');

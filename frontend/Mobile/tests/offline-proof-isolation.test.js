@@ -33,6 +33,11 @@ const context = {
 vm.createContext(context);
 vm.runInContext(source.slice(start, end + 3), context);
 const manager = context.window.OfflineCheckinManager;
+const storedPhotos = new Map();
+context.window.AppStorage = {
+    async setPhoto(id, photo) { storedPhotos.set(id, photo); return true; },
+    async getPhoto(id) { return storedPhotos.get(id) || null; },
+};
 
 manager.saveQueue([
     { id: 'a', type: 'itinerary', itemId: 101, spotId: 9, itineraryId: 1 },
@@ -56,6 +61,23 @@ assert.equal(manager.getQueuedItem(202, 9, 2).id, 'b');
     assert.equal(manager.getQueue().length, 3, 'same destination in a different itinerary must create a separate queue entry');
     assert.equal(manager.getQueuedItem(303, 9, 3).isPhotoUploadOnly, true,
         'offline proof uploads must retain proof-only sync intent');
+
+    await manager.queueOfflineCheckin({ type: 'itinerary', itemId: 404, spotId: 10, itineraryId: 4, lat: 16.6, lng: 120.3 });
+    const checkinFirst = manager.getQueuedItem(404, 10, 4);
+    const proofBlob = new Blob(['proof'], { type: 'image/jpeg' });
+    await manager.queueOfflineCheckin({ type: 'itinerary', itemId: 404, spotId: 10, itineraryId: 4, image: proofBlob, isPhotoUploadOnly: true });
+    const mergedCheckin = manager.getQueuedItem(404, 10, 4);
+    assert.equal(mergedCheckin.id, checkinFirst.id, 'adding proof must preserve the queued check-in storage ID');
+    assert.equal(await context.window.AppStorage.getPhoto(mergedCheckin.id), proofBlob, 'merged proof must remain retrievable for sync');
+    assert.equal(mergedCheckin.isPhotoUploadOnly, false, 'a combined check-in and proof must sync through the visit endpoint');
+
+    await manager.queueOfflineCheckin({ type: 'itinerary', itemId: 505, spotId: 11, itineraryId: 5, image: proofBlob, isPhotoUploadOnly: true });
+    const proofFirst = manager.getQueuedItem(505, 11, 5);
+    await manager.queueOfflineCheckin({ type: 'itinerary', itemId: 505, spotId: 11, itineraryId: 5, lat: 16.61, lng: 120.31 });
+    const mergedProof = manager.getQueuedItem(505, 11, 5);
+    assert.equal(mergedProof.id, proofFirst.id, 'adding check-in after proof must not orphan the stored photo');
+    assert.equal(await context.window.AppStorage.getPhoto(mergedProof.id), proofBlob);
+    assert.equal(mergedProof.isPhotoUploadOnly, false);
     console.log('offline proof isolation tests passed');
 })().catch(error => {
     console.error(error);

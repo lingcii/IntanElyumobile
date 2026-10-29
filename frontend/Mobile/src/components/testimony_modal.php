@@ -8,7 +8,7 @@
                 <h3 id="testimony-modal-title" style="margin:0 0 2px; color:#ffffff; font-size:17px; font-weight:800; letter-spacing:-0.3px;">Review Destination</h3>
                 <p id="testimony-modal-subtitle" style="margin:0; font-size:11px; color:rgba(255,255,255,0.9); line-height:1.35;">Share your site feedback and recommendations.</p>
             </div>
-            <button type="button" onclick="window.closeWriteTestimonyModal()" style="background:rgba(255,255,255,0.2); border:none !important; outline:none !important; color:#ffffff; width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; margin-left:8px; font-size:13px; transition:background 0.2s;">
+            <button type="button" onclick="window.closeWriteTestimonyModal(false, this)" style="background:rgba(255,255,255,0.2); border:none !important; outline:none !important; color:#ffffff; width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; margin-left:8px; font-size:13px; transition:background 0.2s; touch-action:manipulation; pointer-events:auto;">
                 <i class="fa-solid fa-xmark"></i>
             </button>
         </div>
@@ -105,7 +105,7 @@
                 <button type="submit" id="testimony-submit-btn" style="flex:1; padding:12px 14px; font-size:13.5px; background:linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%); border:none !important; outline:none !important; color:#fff; border-radius:12px; font-weight:800; cursor:pointer; box-shadow:0 4px 12px rgba(37,99,235,0.25); display:flex; align-items:center; justify-content:center; gap:6px;">
                     <i class="fa-solid fa-paper-plane" style="font-size:11px;"></i> <span id="testimony-submit-text">Submit Review</span>
                 </button>
-                <button type="button" style="padding:12px 18px; border-radius:12px; border:1px solid #e2e8f0 !important; outline:none !important; background:#ffffff; color:#475569; font-size:13px; font-weight:700; cursor:pointer;" onclick="window.closeWriteTestimonyModal()">Cancel</button>
+                <button type="button" style="padding:12px 18px; border-radius:12px; border:1px solid #e2e8f0 !important; outline:none !important; background:#ffffff; color:#475569; font-size:13px; font-weight:700; cursor:pointer; touch-action:manipulation; pointer-events:auto;" onclick="window.closeWriteTestimonyModal(false, this)">Cancel</button>
             </div>
         </form>
     </div>
@@ -309,9 +309,13 @@ window.openWriteTestimonyModal = function(spotId, btnEl, itineraryItemId = null)
     }
 };
 
-window.closeWriteTestimonyModal = function(preserveCompletion = false) {
+window.closeWriteTestimonyModal = function(preserveCompletion = false, trigger = null) {
     const wasCompletionReview = window._isCompletionReviewFlow === true;
-    const modal = document.getElementById('testimony-modal');
+    const modals = Array.from(document.querySelectorAll('#testimony-modal'));
+    const modal = (trigger && trigger.closest ? trigger.closest('#testimony-modal') : null) ||
+        modals.find(candidate => candidate.classList.contains('active')) ||
+        modals.find(candidate => candidate.style.display !== 'none') ||
+        modals[0];
     if (modal) {
         modal.classList.remove('active');
         const card = modal.querySelector('.testimony-card-anim');

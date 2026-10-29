@@ -1,9 +1,13 @@
 <?php
 $pageTitle = "Trip Route";
 $backRoute = "saved_trips";
+$offlineMunicipalityGeoJson = json_decode((string) @file_get_contents(__DIR__ . '/../assets/la_union_municipalities.json'), true)
+    ?: ['type' => 'FeatureCollection', 'features' => []];
 require_once __DIR__ . '/../components/header.php';
 include_once __DIR__ . '/../components/testimony_modal.php';
 ?>
+
+<script>window.OFFLINE_MUNICIPALITIES_GEOJSON = <?= json_encode($offlineMunicipalityGeoJson) ?>;</script>
 
 <div id="trip-map" style="width: 100%; height: 100vh; background: #0a0f1c;"></div>
 
@@ -195,6 +199,9 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                 if (loc && loc.lat && loc.lng) {
                     window.myLat = loc.lat;
                     window.myLng = loc.lng;
+                    document.dispatchEvent(new CustomEvent('gpsUpdated', {
+                        detail: { lat: loc.lat, lng: loc.lng, accuracy: loc.accuracy, source: loc.source || 'gps' }
+                    }));
                 }
             }).catch(err => {
                 console.warn("Direct GPS attempt in trip_map:", err && err.message);
@@ -246,19 +253,35 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                         "tiles": ["https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png"],
                         "encoding": "terrarium",
                         "tileSize": 256
+                    },
+                    "offline-municipalities": {
+                        "type": "geojson",
+                        "data": window.OFFLINE_MUNICIPALITIES_GEOJSON
                     }
                 },
                 "layers": [
                     {
                         "id": "background",
                         "type": "background",
-                        "paint": { "background-color": "#eef2f6" }
+                        "paint": { "background-color": "#eef2f6", "background-opacity": 0.78 }
                     },
                     {
                         "id": "base-map",
                         "type": "raster",
                         "source": "osm",
                         "layout": { "visibility": "visible" }
+                    },
+                    {
+                        "id": "offline-municipality-fill",
+                        "type": "fill",
+                        "source": "offline-municipalities",
+                        "paint": { "fill-color": "#b8dcec", "fill-opacity": 0.38 }
+                    },
+                    {
+                        "id": "offline-municipality-border",
+                        "type": "line",
+                        "source": "offline-municipalities",
+                        "paint": { "line-color": "#3978a8", "line-width": 2, "line-opacity": 0.8 }
                     }
                 ]
             };
@@ -447,6 +470,38 @@ include_once __DIR__ . '/../components/testimony_modal.php';
             return 12742000 * Math.asin(Math.sqrt(a));
         }
 
+        const TRIP_MAP_CHECKIN_RADIUS_METERS = 70;
+        const TRIP_MAP_MAX_GPS_ACCURACY_METERS = 200;
+
+        window.updateTripMapCheckinAvailability = function (lat, lng, accuracy = null) {
+            const userLat = Number(lat);
+            const userLng = Number(lng);
+            const gpsAccuracy = Number(accuracy);
+            const hasReliableFix = Number.isFinite(userLat) && Number.isFinite(userLng) &&
+                (!Number.isFinite(gpsAccuracy) || gpsAccuracy <= TRIP_MAP_MAX_GPS_ACCURACY_METERS);
+
+            if (hasReliableFix) {
+                window._tripLastGpsFix = { lat: userLat, lng: userLng, accuracy: gpsAccuracy };
+            }
+
+            document.querySelectorAll('.trip-map-checkin-btn').forEach(button => {
+                const destinationLat = Number(button.dataset.destLat);
+                const destinationLng = Number(button.dataset.destLng);
+                const hasDestination = button.dataset.destLat !== '' && button.dataset.destLng !== '' &&
+                    Number.isFinite(destinationLat) && Number.isFinite(destinationLng);
+                const distance = hasReliableFix && hasDestination
+                    ? calcCoordDistMeters(userLat, userLng, destinationLat, destinationLng)
+                    : Infinity;
+                const inRange = distance <= TRIP_MAP_CHECKIN_RADIUS_METERS;
+                button.disabled = !inRange;
+                button.classList.toggle('is-available', inRange);
+                button.setAttribute('aria-disabled', String(!inRange));
+                button.title = inRange
+                    ? 'You are at this tourist site. Check in now.'
+                    : 'Available when GPS detects you within 70 meters of this tourist site.';
+            });
+        };
+
         function hasSubmittedStopProof(item) {
             if (!item) return false;
             const hasCheckin = Boolean(item.is_location_verified || item.visited_at);
@@ -594,6 +649,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                 const destEscaped = (dest && dest.name) ? dest.name.replace(/'/g, "\\'") : 'Destination';
                 const resolvedAll = proofImages.map(u => (typeof window.resolveProofImageUrl === 'function' ? window.resolveProofImageUrl(u) : u));
                 const jsonUrlsAttr = JSON.stringify(resolvedAll).replace(/"/g, '&quot;');
+                const checkInButtonAttrs = `class="trip-map-checkin-btn" data-dest-lat="${Number.isFinite(lat) ? lat : ''}" data-dest-lng="${Number.isFinite(lng) ? lng : ''}" disabled aria-disabled="true"`;
 
                 let proofThumbnailStrip = '';
                 if (proofImages.length > 0) {
@@ -662,16 +718,16 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                 } else if (isPhotoApproved && !isLocationVerified) {
                     actionBtnHtml = `<div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
                         ${proofThumbnailStrip}
-                        <button onclick="event.stopPropagation(); window.executeLocationCheckIn('${item.id}', '${destEscaped}', ${lat}, ${lng}, this)" style="background:linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color:#ffffff; border:none; padding:6px 12px; border-radius:100px; font-weight:800; font-size:10.5px; box-shadow:0 2px 8px rgba(2,132,199,0.3); cursor:pointer; white-space:nowrap;"><i class="fa-solid fa-location-crosshairs" style="margin-right:3px;"></i> Check In</button>
+                        <button ${checkInButtonAttrs} onclick="event.stopPropagation(); window.executeLocationCheckIn('${item.id}', '${destEscaped}', ${lat}, ${lng}, this)" style="background:linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color:#ffffff; border:none; padding:6px 12px; border-radius:100px; font-weight:800; font-size:10.5px; box-shadow:0 2px 8px rgba(2,132,199,0.3); cursor:pointer; white-space:nowrap;"><i class="fa-solid fa-location-crosshairs" style="margin-right:3px;"></i> Check In</button>
                     </div>`;
                 } else if (!isLocationVerified && hasProof) {
                     actionBtnHtml = `<div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
                         ${proofThumbnailStrip}
-                        <button onclick="event.stopPropagation(); window.executeLocationCheckIn('${item.id}', '${destEscaped}', ${lat}, ${lng}, this)" style="background:linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color:#ffffff; border:none; padding:6px 12px; border-radius:100px; font-weight:800; font-size:10.5px; box-shadow:0 2px 8px rgba(2,132,199,0.3); cursor:pointer; white-space:nowrap;"><i class="fa-solid fa-location-crosshairs" style="margin-right:3px;"></i> Check In</button>
+                        <button ${checkInButtonAttrs} onclick="event.stopPropagation(); window.executeLocationCheckIn('${item.id}', '${destEscaped}', ${lat}, ${lng}, this)" style="background:linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color:#ffffff; border:none; padding:6px 12px; border-radius:100px; font-weight:800; font-size:10.5px; box-shadow:0 2px 8px rgba(2,132,199,0.3); cursor:pointer; white-space:nowrap;"><i class="fa-solid fa-location-crosshairs" style="margin-right:3px;"></i> Check In</button>
                     </div>`;
                 } else {
                     actionBtnHtml = `<div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
-                        <button onclick="event.stopPropagation(); window.executeLocationCheckIn('${item.id}', '${destEscaped}', ${lat}, ${lng}, this)" style="background:linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color:#ffffff; border:none; padding:6px 11px; border-radius:100px; font-weight:800; font-size:10.5px; box-shadow:0 2px 8px rgba(2,132,199,0.3); cursor:pointer; white-space:nowrap;"><i class="fa-solid fa-location-crosshairs" style="margin-right:3px;"></i> Check In</button>
+                        <button ${checkInButtonAttrs} onclick="event.stopPropagation(); window.executeLocationCheckIn('${item.id}', '${destEscaped}', ${lat}, ${lng}, this)" style="background:linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color:#ffffff; border:none; padding:6px 11px; border-radius:100px; font-weight:800; font-size:10.5px; box-shadow:0 2px 8px rgba(2,132,199,0.3); cursor:pointer; white-space:nowrap;"><i class="fa-solid fa-location-crosshairs" style="margin-right:3px;"></i> Check In</button>
                         <button onclick="event.stopPropagation(); window.openProofUploadModal('${item.id}', '${destEscaped}')" style="background:#f1f5f9; color:#1e3a8a; border:1.5px solid #cbd5e1; padding:6px 11px; border-radius:100px; font-weight:800; font-size:10.5px; cursor:pointer; white-space:nowrap;"><i class="fa-solid fa-camera" style="margin-right:3px;"></i> Proof</button>
                     </div>`;
                 }
@@ -753,6 +809,12 @@ include_once __DIR__ . '/../components/testimony_modal.php';
             });
 
             conveyorScroll.innerHTML = conveyorHtml;
+            const gpsFix = window._tripLastGpsFix || (window.deviceLastPos && window.deviceLastPos.coords ? {
+                lat: window.deviceLastPos.coords.latitude,
+                lng: window.deviceLastPos.coords.longitude,
+                accuracy: window.deviceLastPos.coords.accuracy
+            } : null);
+            if (gpsFix) window.updateTripMapCheckinAvailability(gpsFix.lat, gpsFix.lng, gpsFix.accuracy);
             if (typeof window.syncReviewedButtons === 'function') {
                 window.syncReviewedButtons();
             }
@@ -1998,10 +2060,21 @@ include_once __DIR__ . '/../components/testimony_modal.php';
             }
         };
 
-        window.executeLocationCheckIn = function (itemId, spotName = '', spotLat = null, spotLng = null, btnEl = null) {
+        window.executeLocationCheckIn = async function (itemId, spotName = '', spotLat = null, spotLng = null, btnEl = null) {
             if (!itemId) return;
 
             const originalHtml = btnEl ? btnEl.innerHTML : '';
+            const restoreCheckinButton = () => {
+                if (!btnEl) return;
+                btnEl.innerHTML = originalHtml;
+                const fix = window._tripLastGpsFix;
+                if (fix) {
+                    window.updateTripMapCheckinAvailability(fix.lat, fix.lng, fix.accuracy);
+                } else {
+                    btnEl.disabled = true;
+                    btnEl.setAttribute('aria-disabled', 'true');
+                }
+            };
             const lockCheckedInButton = () => {
                 if (!btnEl) return;
                 btnEl.innerHTML = '<i class="fa-solid fa-circle-check"></i> Checked In';
@@ -2060,7 +2133,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                 if (targetItem.destination.longitude != null) sLng = parseFloat(targetItem.destination.longitude);
             }
 
-            const doSubmitCheckin = async (lat, lng) => {
+            const doSubmitCheckin = async (lat, lng, accuracy = null) => {
                 if (sLat !== null && sLng !== null && !isNaN(sLat) && !isNaN(sLng)) {
                     const dist = getDistance(lat, lng, sLat, sLng);
                     if (dist > 70) {
@@ -2070,10 +2143,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                         if (typeof showToast === 'function') {
                             showToast(`⚠️ You are ${displayDist} away from ${spotName || 'the destination'}. You must be within 70m to check in! 📍`, 'warning', 4500);
                         }
-                        if (btnEl) {
-                            btnEl.innerHTML = originalHtml;
-                            btnEl.disabled = false;
-                        }
+                        restoreCheckinButton();
                         return;
                     }
                 }
@@ -2090,6 +2160,9 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                             spotName: spotName || 'Destination',
                             lat: lat,
                             lng: lng,
+                            accuracy: accuracy,
+                            destLat: sLat,
+                            destLng: sLng,
                             total_pax: tPax,
                             companion_males: cMales,
                             companion_females: cFemales,
@@ -2109,6 +2182,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                 const formData = new FormData();
                 formData.append('lat', lat);
                 formData.append('lng', lng);
+                if (accuracy != null && Number.isFinite(Number(accuracy))) formData.append('accuracy', accuracy);
                 formData.append('total_pax', tPax);
                 formData.append('companion_males', cMales);
                 formData.append('companion_females', cFemales);
@@ -2146,10 +2220,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                             showToast(data.message || 'Check-in failed. Please ensure you are within 70m of the destination.', 'error');
                         }
                     }
-                    if (btnEl && !(response.ok && (data.success || data.is_location_verified))) {
-                        btnEl.innerHTML = originalHtml;
-                        btnEl.disabled = false;
-                    }
+                    if (btnEl && !(response.ok && (data.success || data.is_location_verified))) restoreCheckinButton();
                 } catch (err) {
                     clearTimeout(timeoutId);
                     console.warn('Location check-in error, queuing offline:', err);
@@ -2164,6 +2235,9 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                             spotName: spotName || 'Destination',
                             lat: lat,
                             lng: lng,
+                            accuracy: accuracy,
+                            destLat: sLat,
+                            destLng: sLng,
                             capturedAt: new Date().toISOString()
                         });
                         if (typeof showToast === 'function') {
@@ -2172,14 +2246,11 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                     } else {
                         if (typeof showToast === 'function') showToast('Network error during check-in.');
                     }
-                    if (btnEl && !window.OfflineCheckinManager) {
-                        btnEl.innerHTML = originalHtml;
-                        btnEl.disabled = false;
-                    }
+                    if (btnEl && !window.OfflineCheckinManager) restoreCheckinButton();
                 }
             };
 
-            const checkAndProceed = (lat, lng) => {
+            const checkAndProceed = (lat, lng, accuracy = null) => {
                 // Strict 70m radius check (applies to both offline and online)
                 if (sLat != null && sLng != null && !isNaN(sLat) && !isNaN(sLng)) {
                     const dist = getDistance(lat, lng, sLat, sLng);
@@ -2190,14 +2261,11 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                         if (typeof showToast === 'function') {
                             showToast(`⚠️ You are ${displayDist} away from ${spotName || 'the tourist site'}. You must be within 70m of the tourist site to check in! 📍`, 'warning', 4500);
                         }
-                        if (btnEl) {
-                            btnEl.innerHTML = originalHtml;
-                            btnEl.disabled = false;
-                        }
+                        restoreCheckinButton();
                         return; // Neither offline nor online check-in is allowed outside 70m.
                     }
                 }
-                doSubmitCheckin(lat, lng);
+                doSubmitCheckin(lat, lng, accuracy);
             };
 
             const handleGpsErr = (err) => {
@@ -2205,27 +2273,44 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                 if (typeof showToast === 'function') {
                     showToast('📍 Unable to acquire accurate GPS location. Please turn on Location/GPS and try again.', 'error');
                 }
-                if (btnEl) {
-                    btnEl.innerHTML = originalHtml;
-                    btnEl.disabled = false;
-                }
+                restoreCheckinButton();
             };
 
             const cachedPosition = window.deviceLastPos;
             if (cachedPosition && cachedPosition.coords &&
                 Date.now() - Number(cachedPosition.timestamp || 0) < 60000 &&
                 Number(cachedPosition.coords.accuracy || 9999) <= 150) {
-                checkAndProceed(cachedPosition.coords.latitude, cachedPosition.coords.longitude);
-            } else if (navigator.geolocation) {
+                checkAndProceed(cachedPosition.coords.latitude, cachedPosition.coords.longitude, cachedPosition.coords.accuracy);
+                return;
+            }
+
+            // Capacitor's native GPS continues working without internet; the WebView
+            // navigator API can report POSITION_UNAVAILABLE while fully offline.
+            if (typeof window.requestPreciseLocation === 'function') {
+                try {
+                    const location = await window.requestPreciseLocation(false);
+                    if (location && Number.isFinite(Number(location.lat)) && Number.isFinite(Number(location.lng))) {
+                        window.updateTripMapCheckinAvailability(location.lat, location.lng, location.accuracy);
+                        checkAndProceed(Number(location.lat), Number(location.lng), location.accuracy);
+                        return;
+                    }
+                } catch (nativeGpsError) {
+                    console.warn('Native offline GPS unavailable, trying browser geolocation:', nativeGpsError);
+                }
+            }
+
+            if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(
                     (pos) => {
                         window.myLat = pos.coords.latitude;
                         window.myLng = pos.coords.longitude;
-                        checkAndProceed(pos.coords.latitude, pos.coords.longitude);
+                        window.updateTripMapCheckinAvailability(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy);
+                        checkAndProceed(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy);
                     },
                     (err) => {
                         if (window.myLat && window.myLng) {
-                            checkAndProceed(window.myLat, window.myLng);
+                            const lastFix = window._tripLastGpsFix || {};
+                            checkAndProceed(window.myLat, window.myLng, lastFix.accuracy);
                         } else {
                             handleGpsErr(err);
                         }
@@ -2233,7 +2318,8 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                     { enableHighAccuracy: true, timeout: 7000, maximumAge: 30000 }
                 );
             } else if (window.myLat && window.myLng) {
-                checkAndProceed(window.myLat, window.myLng);
+                const lastFix = window._tripLastGpsFix || {};
+                checkAndProceed(window.myLat, window.myLng, lastFix.accuracy);
             } else {
                 handleGpsErr('No geolocation support');
             }
@@ -2259,6 +2345,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
         document.addEventListener('gpsUpdated', (e) => {
             window.myLat = e.detail.lat;
             window.myLng = e.detail.lng;
+            window.updateTripMapCheckinAvailability(e.detail.lat, e.detail.lng, e.detail.accuracy);
 
             if (window.tripGpsMarker) {
                 window.tripGpsMarker.setLngLat([window.myLng, window.myLat]);
@@ -2296,6 +2383,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                     window.myLng = loc.lng;
                     window.currentGPSLat = loc.lat;
                     window.currentGPSLng = loc.lng;
+                    window.updateTripMapCheckinAvailability(loc.lat, loc.lng, loc.accuracy);
 
                     if (tripMap) {
                         tripMap.flyTo({ center: [parseFloat(loc.lng), parseFloat(loc.lat)], zoom: 15, duration: 1200 });
