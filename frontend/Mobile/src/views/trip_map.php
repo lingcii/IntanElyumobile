@@ -276,7 +276,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                         "id": "offline-municipality-fill",
                         "type": "fill",
                         "source": "offline-municipalities",
-                        "paint": { "fill-color": "#b8dcec", "fill-opacity": 0.38 }
+                        "paint": { "fill-color": "#b8dcec", "fill-opacity": 0 }
                     },
                     {
                         "id": "offline-municipality-border",

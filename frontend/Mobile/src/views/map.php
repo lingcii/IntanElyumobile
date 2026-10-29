@@ -1300,7 +1300,7 @@ if (is_dir($imgDir)) {
                         "source": "offline-municipalities",
                         "paint": {
                             "fill-color": "#b8dcec",
-                            "fill-opacity": isOfflineMap ? 0.48 : 0.08
+                            "fill-opacity": 0
                         }
                     },
                     {
@@ -1397,10 +1397,8 @@ if (is_dir($imgDir)) {
             // Map Load Initialization
             window.mapInstance.on('load', async () => {
                 mapReady = true;
-                // Render markers immediately
-                if (isOfflineMap) {
-                    window.zonesLoaded = true;
-                } else try {
+                // Cached destinations are the offline source of tourist-site markers.
+                try {
                     const data = await mapDataPromise;
                     const resolvedData = latestMapData || data;
                     if (resolvedData && resolvedData.destinations) {
@@ -1464,6 +1462,12 @@ if (is_dir($imgDir)) {
                     }
                 } catch (error) {
                     console.error("Map data processing error:", error);
+                }
+
+                // Municipality zones are an online interactive layer, not an offline fallback.
+                if (isOfflineMap) {
+                    window.zonesLoaded = true;
+                    return;
                 }
 
                 // ── TOURIST ZONES ────────────────────────────────────────────────

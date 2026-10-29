@@ -1963,8 +1963,10 @@ $activeTab = 'profile';
             return;
         }
 
+        const visibleDeals = deals.slice(0, 4);
+        window._visibleProfileDeals = visibleDeals;
         let html = '';
-        deals.forEach((v, idx) => {
+        visibleDeals.forEach((v, idx) => {
             const ptsCost = parseInt(v.pointsCost || v.required_points || 100);
             const userPts = window._userPointsBalance || 0;
             const canAfford = userPts >= ptsCost;
@@ -2000,7 +2002,7 @@ $activeTab = 'profile';
     };
 
     window.showFullDealsRewardModal = function (idx) {
-        const deals = window._currentFilteredDeals || window._profileAvailableVouchers || [];
+        const deals = window._visibleProfileDeals || [];
         const reward = deals[idx];
         if (!reward) return;
         window.showRewardDetailsModal(reward);

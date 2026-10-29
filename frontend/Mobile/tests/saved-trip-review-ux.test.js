@@ -10,6 +10,7 @@ const main = fs.readFileSync(path.join(root, 'src', 'assets', 'js', 'main.js'), 
 const itinerary = fs.readFileSync(path.join(root, 'src', 'views', 'itinerary.php'), 'utf8');
 const tripMap = fs.readFileSync(path.join(root, 'src', 'views', 'trip_map.php'), 'utf8');
 const puzzles = fs.readFileSync(path.join(root, 'src', 'views', 'puzzles.php'), 'utf8');
+const itineraryController = fs.readFileSync(path.join(root, '..', '..', 'backend', 'app', 'Http', 'Controllers', 'Tourist', 'ItineraryController.php'), 'utf8');
 
 for (const [name, source] of [['saved_trips.php', trips], ['trip_map.php', tripMap], ['testimony_modal.php', testimony], ['puzzles.php', puzzles]]) {
     const scripts = [...source.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/gi)];
@@ -164,6 +165,10 @@ assert.match(trips, /Trip Successfully Completed![\s\S]*View Trip History/,
     'successful completion must show a confirmation modal linking to history');
 assert.match(trips, /markTripAsCompletedLocally\(id,[\s\S]*switchSavedTripsTab\('history'\)/,
     'completed trips must move into Trip History immediately');
+assert.match(trips, /const allReviewed = reviewItems\.every[\s\S]*executeConfirmCompleteTrip\(\)/,
+    'a trip whose stops were already reviewed must complete directly into Trip History');
+assert.match(itineraryController, /whereNull\('visited_at'\)[\s\S]*orWhereNull\('proof_image'\)[\s\S]*orWhere\('proof_status', 'rejected'\)/,
+    'trip completion must accept submitted pending proof while rejecting missing or rejected proof');
 assert.match(trips, /cachedPosition[\s\S]*timestamp[\s\S]*accuracy/,
     'saved-trip check-in must reuse a recent accurate GPS fix');
 assert.match(trips, /timeout: 7000, maximumAge: 30000/,

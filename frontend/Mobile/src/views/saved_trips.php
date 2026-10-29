@@ -2833,6 +2833,13 @@ $backRoute = 'itinerary';
                 if (typeof showToast === 'function') showToast('This trip has no destinations available for review.', 'warning');
                 return;
             }
+            const allReviewed = reviewItems.every(item =>
+                window.userReviewedItemIds && window.userReviewedItemIds.has(Number(item.id))
+            );
+            if (allReviewed) {
+                window.executeConfirmCompleteTrip();
+                return;
+            }
             if (reviewItems.length === 1) {
                 const item = reviewItems[0];
                 const spotId = item.tourist_spot_id || item.destination_id || (item.destination && item.destination.id);

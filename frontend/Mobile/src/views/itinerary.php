@@ -5081,7 +5081,7 @@ try {
                                 weight: 0,
                                 opacity: 0,
                                 fillColor: '#b8dcec',
-                                fillOpacity: 0.28
+                                fillOpacity: 0
                             }
                         }).addTo(draftMap);
                         offlineBase._isOfflineBaseLayer = true;

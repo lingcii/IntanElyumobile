@@ -57,10 +57,10 @@ assert.match(profileSource, /window\.getFullImageUrl\(v\.image \|\| 'logo\/LUPTO
     'profile reward cards must use the shared image URL resolver');
 assert.match(profileSource, /onclick="navigateTo\('discount'\)"[\s\S]*?View All Deals/,
     'View All Deals must open the complete Discounts & Vouchers page');
-assert.match(profileSource, /window\.renderFullDealsList = function \(deals\)[\s\S]*?deals\.forEach\(/,
-    'View All Deals must render every voucher passed to it without a three-item limit');
-assert.doesNotMatch(profileSource, /const topVouchers = availableVouchers\.slice\(0, 3\)/,
-    'profile rewards must show every latest available voucher');
+assert.match(profileSource, /window\.renderFullDealsList = function \(deals\)[\s\S]*?deals\.slice\(0, 4\)[\s\S]*?visibleDeals\.forEach\(/,
+    'the profile preview must show at most four rewards');
+assert.match(profileSource, /window\._visibleProfileDeals = visibleDeals[\s\S]*?window\.showFullDealsRewardModal/,
+    'reward taps must resolve against the same four visible rewards');
 assert.match(profileSource, />My Vouchers<\/h5>/,
     'profile claimed voucher section must be labelled My Vouchers');
 assert.match(source, /localRedemption\.status = 'redeemed';[\s\S]*?fetchUserPointsAndRedemptions\(\);/,

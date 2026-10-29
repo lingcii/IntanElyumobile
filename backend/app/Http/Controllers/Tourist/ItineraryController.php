@@ -529,13 +529,14 @@ class ItineraryController extends Controller
             ]);
         }
 
-        // Completion requires GPS verification and approved proof for every stop.
+        // Completion requires on-site check-in and submitted proof for every stop.
+        // Approval may still be pending; rejected proof must be resubmitted.
         $unvisitedCount = $itinerary->items()
             ->where(function ($query) {
-                $query->where('is_visited', false)
-                    ->orWhereNull('visited_at')
-                    ->orWhereNull('proof_status')
-                    ->orWhere('proof_status', '!=', 'approved');
+                $query->whereNull('visited_at')
+                    ->orWhereNull('proof_image')
+                    ->orWhere('proof_image', '')
+                    ->orWhere('proof_status', 'rejected');
             })
             ->count();
 
