@@ -39,7 +39,757 @@ if (is_dir($imgDir)) {
 
     <!-- Dynamic Guard Style for Instant Guest Profile Header Sanitization -->
     <style id="dash-guest-guard-style"></style>
+
+    <!-- Critical Hero Banner, Weather & Component Styles -->
+    <style id="dash-critical-styles">
+    /* Hero Banner */
+    .dash-hero-banner {
+        position: relative !important;
+        border-radius: 28px !important;
+        background: linear-gradient(135deg, #0e2a56 0%, #15386f 50%, #1e4080 100%) !important;
+        padding: 22px 18px 18px 18px !important;
+        overflow: hidden !important;
+        margin-bottom: 14px !important;
+        box-shadow: 0 8px 24px rgba(14, 42, 86, 0.25) !important;
+        display: flex !important;
+        justify-content: space-between !important;
+    }
+    .dash-hero-content {
+        position: relative !important;
+        z-index: 2 !important;
+        flex: 1 !important;
+        min-width: 0 !important;
+    }
+    .dash-hero-eyebrow {
+        font-size: 15px !important;
+        font-weight: 700 !important;
+        color: #ffffff !important;
+        letter-spacing: -0.2px !important;
+        display: block !important;
+    }
+    .dash-hero-title {
+        font-size: 32px !important;
+        font-weight: 900 !important;
+        color: #ffffff !important;
+        margin: 2px 0 6px 0 !important;
+        letter-spacing: -0.8px !important;
+        line-height: 1.1 !important;
+    }
+    .dash-hero-subtitle {
+        font-size: 12px !important;
+        font-weight: 500 !important;
+        color: rgba(255, 255, 255, 0.85) !important;
+        margin: 0 0 14px 0 !important;
+        line-height: 1.4 !important;
+        letter-spacing: -0.1px !important;
+    }
+    .dash-user-strip {
+        background: rgba(255, 255, 255, 0.12) !important;
+        backdrop-filter: blur(14px) !important;
+        -webkit-backdrop-filter: blur(14px) !important;
+        border-radius: 14px !important;
+        padding: 6px 12px !important;
+        display: inline-flex !important;
+        width: fit-content !important;
+        max-width: 100% !important;
+        align-items: center !important;
+        gap: 8px !important;
+        cursor: pointer !important;
+        box-sizing: border-box !important;
+        margin-bottom: 10px !important;
+    }
+    .dash-user-avatar-wrap {
+        width: 32px !important;
+        height: 32px !important;
+        border-radius: 50% !important;
+        overflow: hidden !important;
+        flex-shrink: 0 !important;
+        border: 1.5px solid rgba(255, 255, 255, 0.6) !important;
+    }
+    #dash-avatar {
+        width: 32px !important;
+        height: 32px !important;
+        max-width: 32px !important;
+        max-height: 32px !important;
+        border-radius: 50% !important;
+        object-fit: cover !important;
+        display: block !important;
+    }
+    .dash-user-details {
+        flex: 1 !important;
+        min-width: 0 !important;
+    }
+    .dash-user-name {
+        font-size: 13.5px !important;
+        font-weight: 800 !important;
+        color: #ffffff !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        display: block !important;
+    }
+    .dash-user-subrow {
+        display: none !important;
+    }
+    #dash-title-row, #dash-title, #dash-status-badge {
+        display: none !important;
+    }
+    .dash-user-badge {
+        display: none !important;
+    }
+    .dash-mini-stats {
+        display: flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+        flex-shrink: 0 !important;
+        margin-top: 2px !important;
+    }
+    .dash-mini-stat {
+        background: rgba(255, 255, 255, 0.15) !important;
+        backdrop-filter: blur(12px) !important;
+        -webkit-backdrop-filter: blur(12px) !important;
+        border: 1px solid rgba(255, 255, 255, 0.18) !important;
+        border-radius: 12px !important;
+        padding: 5px 12px !important;
+        text-align: center !important;
+        min-width: 52px !important;
+        cursor: pointer !important;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08) !important;
+        transition: transform 0.15s ease, background 0.15s ease !important;
+    }
+    .dash-mini-stat:active {
+        transform: scale(0.96) !important;
+        background: rgba(255, 255, 255, 0.22) !important;
+    }
+    .dash-mini-val {
+        font-size: 13px !important;
+        font-weight: 900 !important;
+        color: #ffffff !important;
+        display: block !important;
+        line-height: 1.1 !important;
+    }
+    .dash-mini-lbl {
+        font-size: 8.5px !important;
+        font-weight: 700 !important;
+        color: rgba(255, 255, 255, 0.8) !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.4px !important;
+        display: block !important;
+        margin-top: 2px !important;
+    }
+    .dash-hero-art {
+        position: absolute !important;
+        right: -4px !important;
+        bottom: -6px !important;
+        width: 140px !important;
+        height: 160px !important;
+        pointer-events: none !important;
+        z-index: 1 !important;
+    }
+
+    /* Weather Card: Decreased Height & Sleek Compact Proportions */
+    .weather-card {
+        background: linear-gradient(135deg, #1d4085 0%, #173570 100%) !important;
+        border-radius: 22px !important;
+        padding: 12px 16px !important;
+        box-shadow: 0 6px 20px rgba(23, 53, 112, 0.25) !important;
+        border: none !important;
+        outline: none !important;
+        color: #ffffff !important;
+        cursor: pointer !important;
+        position: relative !important;
+        overflow: hidden !important;
+        margin-bottom: 12px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+    .weather-top-row {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: flex-start !important;
+        width: 100% !important;
+        margin-bottom: 4px !important;
+    }
+    .weather-loc-badge {
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 5px !important;
+        font-size: 11.5px !important;
+        font-weight: 700 !important;
+        color: #ffffff !important;
+        white-space: nowrap !important;
+    }
+    .weather-loc-badge i {
+        color: #38bdf8 !important;
+        font-size: 11px !important;
+    }
+    .weather-mid-row {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        width: 100% !important;
+        margin: 2px 0 8px 0 !important;
+    }
+    .weather-left-info {
+        flex: 1 !important;
+        min-width: 0 !important;
+    }
+    .weather-temp-wrap {
+        display: flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+    }
+    .weather-temp-val {
+        font-size: 30px !important;
+        font-weight: 900 !important;
+        letter-spacing: -0.8px !important;
+        line-height: 1 !important;
+        color: #ffffff !important;
+    }
+    .weather-icon-badge {
+        font-size: 22px !important;
+        line-height: 1 !important;
+    }
+    .weather-desc-main {
+        font-size: 13.5px !important;
+        font-weight: 800 !important;
+        color: #ffffff !important;
+        margin-top: 2px !important;
+    }
+    .weather-tip-msg {
+        font-size: 10.5px !important;
+        color: rgba(255, 255, 255, 0.85) !important;
+        font-weight: 600 !important;
+        margin-top: 1px !important;
+    }
+    .weather-art-wrap {
+        flex-shrink: 0 !important;
+        margin-left: 10px !important;
+    }
+    .weather-art-wrap svg {
+        width: 78px !important;
+        height: 50px !important;
+    }
+    .weather-bottom-row {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        width: 100% !important;
+        gap: 6px !important;
+        border-top: 1px solid rgba(255, 255, 255, 0.15) !important;
+        padding-top: 8px !important;
+    }
+    .weather-stat-pill {
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 4px !important;
+        font-size: 10.5px !important;
+        font-weight: 700 !important;
+        color: #ffffff !important;
+    }
+    .weather-stat-pill i {
+        color: #38bdf8 !important;
+        font-size: 10px !important;
+    }
+    .weather-forecast-pill {
+        background: rgba(255, 255, 255, 0.18) !important;
+        border-radius: 100px !important;
+        padding: 4px 10px !important;
+        font-size: 10px !important;
+        font-weight: 800 !important;
+        color: #ffffff !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 4px !important;
+        cursor: pointer !important;
+        margin-left: auto !important;
+    }
+
+    /* Category Cards: Minimized Height & Intact Multiline Labels */
+    .categories-container {
+        display: flex !important;
+        gap: 8px !important;
+        overflow-x: auto !important;
+        scrollbar-width: none !important;
+        -ms-overflow-style: none !important;
+        padding: 2px 2px 6px 2px !important;
+    }
+    .category-card {
+        background: #ffffff !important;
+        border-radius: 16px !important;
+        box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05) !important;
+        border: 1.5px solid #f1f5f9 !important;
+        padding: 8px 6px !important;
+        min-width: 72px !important;
+        max-width: 80px !important;
+        height: 68px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        text-align: center !important;
+        gap: 3px !important;
+        cursor: pointer !important;
+        transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s !important;
+        flex-shrink: 0 !important;
+        box-sizing: border-box !important;
+    }
+    .category-card:active {
+        transform: scale(0.95) !important;
+    }
+    .category-card.active {
+        border-color: #1e3a8a !important;
+        background: #f8fafc !important;
+        box-shadow: 0 3px 12px rgba(30, 58, 138, 0.12) !important;
+    }
+    .category-card .category-icon-box {
+        font-size: 18px !important;
+        color: #1e3a8a !important;
+        line-height: 1 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+    .category-card .category-card-label {
+        font-size: 10px !important;
+        font-weight: 700 !important;
+        color: #0f172a !important;
+        white-space: normal !important;
+        word-break: normal !important;
+        text-align: center !important;
+        line-height: 1.15 !important;
+        overflow: visible !important;
+        text-overflow: clip !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    /* Hide card heart buttons completely */
+    .dash-card-heart,
+    .spot-card-heart,
+    .fav-heart {
+        display: none !important;
+    }
+
+    /* Hide hero subtitle */
+    .dash-hero-subtitle {
+        display: none !important;
+    }
+
+        /* Compact Height for Empty State Cards */
+    .dash-empty-state {
+        padding: 12px 14px !important;
+        gap: 5px !important;
+        border-radius: 16px !important;
+    }
+    .dash-empty-icon-wrap {
+        width: 34px !important;
+        height: 34px !important;
+        font-size: 14px !important;
+        border-radius: 10px !important;
+        margin-bottom: 0 !important;
+    }
+    .dash-empty-title {
+        font-size: 13px !important;
+        line-height: 1.2 !important;
+        margin: 0 !important;
+    }
+    .dash-empty-desc {
+        font-size: 11px !important;
+        line-height: 1.3 !important;
+        max-width: 320px !important;
+        margin: 0 auto !important;
+    }
+    .dash-empty-btn {
+        margin-top: 4px !important;
+        padding: 6px 14px !important;
+        font-size: 11px !important;
+    }
+
+    /* Hide trending carousel dots when empty or single card */
+    #trending-container.is-empty ~ #trending-dots,
+    #trending-container:empty ~ #trending-dots,
+    #trending-container:has(.dash-empty-state) ~ #trending-dots,
+    #trending-container:has(.dash-loading-state) ~ #trending-dots,
+    #trending-container:has(.dash-filter-empty-state) ~ #trending-dots,
+    #trending-container:has(.fav-card:only-child) ~ #trending-dots {
+        display: none !important;
+    }
+
+@keyframes slideUpSheet {
+    from {
+        transform: translateY(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+    #tourist-sites-filter-modal {
+        z-index: 1000005 !important;
+    }
+
+    .section-title a {
+        white-space: nowrap !important;
+        flex-shrink: 0 !important;
+    }
+
+    /* Filter Chips for Tourist Sites: Outlines & Modern Styling */
+    .dash-filter-chips {
+        display: flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+        overflow-x: auto !important;
+        scrollbar-width: none !important;
+        -ms-overflow-style: none !important;
+        padding: 4px 2px 8px 2px !important;
+        margin-bottom: 12px !important;
+    }
+    .dash-filter-chips::-webkit-scrollbar {
+        display: none !important;
+    }
+    .dash-chip {
+        background: #ffffff !important;
+        color: #475569 !important;
+        border: 1.5px solid #cbd5e1 !important;
+        border-radius: 100px !important;
+        padding: 6px 14px !important;
+        font-size: 12px !important;
+        font-weight: 700 !important;
+        white-space: nowrap !important;
+        cursor: pointer !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 5px !important;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+        transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1) !important;
+        box-sizing: border-box !important;
+        outline: none !important;
+    }
+    .dash-chip:active {
+        transform: scale(0.96) !important;
+    }
+    .dash-chip.active {
+        background: #1e3a8a !important;
+        color: #ffffff !important;
+        border-color: #1e3a8a !important;
+        box-shadow: 0 2px 8px rgba(30, 58, 138, 0.28) !important;
+    }
+    .dash-chip.active i {
+        color: #ffffff !important;
+    }
+    .dash-chip-btn {
+        background: #ffffff !important;
+        color: #475569 !important;
+        border: 1.5px solid #cbd5e1 !important;
+        border-radius: 50% !important;
+        width: 32px !important;
+        height: 32px !important;
+        min-width: 32px !important;
+        min-height: 32px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        cursor: pointer !important;
+        flex-shrink: 0 !important;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+        transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1) !important;
+        box-sizing: border-box !important;
+        padding: 0 !important;
+        outline: none !important;
+    }
+    .dash-chip-btn:active {
+        transform: scale(0.94) !important;
+    }
+    .dash-chip-btn.active {
+        background: #1e3a8a !important;
+        color: #ffffff !important;
+        border-color: #1e3a8a !important;
+        box-shadow: 0 2px 8px rgba(30, 58, 138, 0.28) !important;
+    }
+    .dash-chip-btn.active i {
+        color: #ffffff !important;
+    }
+    /* Box-shaped Trending Cards Carousel */
+    .fav-card {
+        width: 145px !important;
+        min-width: 145px !important;
+        height: 150px !important;
+        border-radius: 18px !important;
+    }
+    .favorites-row {
+        gap: 12px !important;
+        padding-top: 8px !important;
+        padding-bottom: 14px !important;
+        padding-left: calc(50% - 72.5px) !important;
+        padding-right: calc(50% - 72.5px) !important;
+    }
+    .fav-card-overlay {
+        padding: 8px 10px !important;
+    }
+    .fav-card-name {
+        font-size: 12px !important;
+        line-height: 1.2 !important;
+    }
+
+    /* Horizontal Tourist Spot Cards: Fully Scrollable & Responsive */
+    #all-spots-container {
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        overflow: visible !important;
+    }
+    .all-spots-grid {
+        display: flex !important;
+        flex-direction: row !important;
+        gap: 12px !important;
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+        scroll-snap-type: x mandatory !important;
+        -webkit-overflow-scrolling: touch !important;
+        scrollbar-width: none !important;
+        -ms-overflow-style: none !important;
+        padding: 4px 2px 10px 2px !important;
+        margin: 0 !important;
+        box-sizing: border-box !important;
+        width: 100% !important;
+    }
+    .all-spots-grid::-webkit-scrollbar {
+        display: none !important;
+        width: 0 !important;
+        height: 0 !important;
+    }
+    .all-spots-grid .all-spot-card-horizontal {
+        flex: 0 0 calc(100% - 36px) !important;
+        width: calc(100% - 36px) !important;
+        min-width: 280px !important;
+        max-width: 330px !important;
+        scroll-snap-align: start !important;
+        margin-bottom: 0 !important;
+    }
+    .all-spot-card-horizontal {
+        background: #ffffff !important;
+        border-radius: 18px !important;
+        box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06) !important;
+        border: 1px solid #e2e8f0 !important;
+        padding: 10px !important;
+        display: flex !important;
+        gap: 10px !important;
+        align-items: center !important;
+        cursor: pointer !important;
+        transition: transform 0.15s ease, box-shadow 0.15s ease !important;
+        position: relative !important;
+        box-sizing: border-box !important;
+        overflow: hidden !important;
+    }
+    .all-spot-card-horizontal:active {
+        transform: scale(0.98) !important;
+    }
+    .spot-card-thumb-wrap {
+        width: 88px !important;
+        height: 88px !important;
+        border-radius: 14px !important;
+        overflow: hidden !important;
+        position: relative !important;
+        flex-shrink: 0 !important;
+        background: #e2e8f0 !important;
+    }
+    .spot-card-thumb-wrap img {
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: cover !important;
+        display: block !important;
+    }
+    .spot-card-badge {
+        position: absolute !important;
+        top: 5px !important;
+        left: 5px !important;
+        z-index: 2 !important;
+        padding: 2px 6px !important;
+        border-radius: 5px !important;
+        font-size: 7.5px !important;
+        font-weight: 800 !important;
+        color: #ffffff !important;
+        letter-spacing: 0.4px !important;
+        text-transform: uppercase !important;
+    }
+    .spot-card-body {
+        flex: 1 !important;
+        min-width: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: space-between !important;
+        height: 88px !important;
+        box-sizing: border-box !important;
+        overflow: hidden !important;
+    }
+    .spot-card-top-row {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: flex-start !important;
+        gap: 6px !important;
+        width: 100% !important;
+    }
+    .spot-card-title {
+        margin: 0 !important;
+        font-size: 13.5px !important;
+        font-weight: 800 !important;
+        color: #0f172a !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        letter-spacing: -0.2px !important;
+        flex: 1 !important;
+        min-width: 0 !important;
+    }
+    .spot-card-heart {
+        background: transparent !important;
+        border: none !important;
+        outline: none !important;
+        color: #94a3b8 !important;
+        font-size: 15px !important;
+        cursor: pointer !important;
+        padding: 0 !important;
+        flex-shrink: 0 !important;
+        line-height: 1 !important;
+    }
+    .spot-card-heart.active,
+    .spot-card-heart i.fa-solid {
+        color: #ef4444 !important;
+    }
+    .spot-card-muni {
+        font-size: 10.5px !important;
+        font-weight: 600 !important;
+        color: #64748b !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 3px !important;
+        margin-top: 1px !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+    }
+    .spot-card-muni i {
+        color: #1e3a8a !important;
+        font-size: 9.5px !important;
+    }
+    .spot-card-desc {
+        font-size: 10px !important;
+        color: #64748b !important;
+        line-height: 1.3 !important;
+        margin: 2px 0 0 0 !important;
+        display: -webkit-box !important;
+        -webkit-line-clamp: 2 !important;
+        -webkit-box-orient: vertical !important;
+        overflow: hidden !important;
+    }
+    .spot-card-footer {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        width: 100% !important;
+        gap: 6px !important;
+        margin-top: auto !important;
+    }
+    .spot-card-rating {
+        font-size: 10.5px !important;
+        font-weight: 800 !important;
+        color: #0f172a !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 3px !important;
+        flex-shrink: 0 !important;
+    }
+    .spot-card-rating i {
+        color: #f59e0b !important;
+        font-size: 10px !important;
+    }
+    .spot-card-rating span {
+        color: #64748b !important;
+        font-weight: 500 !important;
+        font-size: 9.5px !important;
+    }
+    .btn-spot-details {
+        background: #1e3a8a !important;
+        color: #ffffff !important;
+        border: none !important;
+        outline: none !important;
+        border-radius: 100px !important;
+        padding: 4px 10px !important;
+        font-size: 9.5px !important;
+        font-weight: 800 !important;
+        cursor: pointer !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 4px !important;
+        white-space: nowrap !important;
+        flex-shrink: 0 !important;
+        box-shadow: 0 2px 6px rgba(30, 58, 138, 0.25) !important;
+    }
+    .btn-spot-details:active {
+        transform: scale(0.94) !important;
+    }
+    .mobile-header .header-title {
+        transition: opacity 0.32s cubic-bezier(0.16, 1, 0.3, 1), transform 0.35s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    }
+    </style>
+
     <script>
+    window.getDestImage = function (dest, width) {
+        if (!dest) return 'assets/img/no_image.svg';
+        if (typeof dest === 'string') {
+            if (dest.includes('default-spot') || !dest.trim()) return 'assets/img/no_image.svg';
+            return dest;
+        }
+        var src = dest.photo_url || dest.image || dest.avatar || 'assets/img/no_image.svg';
+        if (!src || typeof src !== 'string' || src.includes('default-spot') || !src.trim()) {
+            return 'assets/img/no_image.svg';
+        }
+        return src;
+    };
+
+    window.renderFavCard = function(dest) {
+        if (!dest) return '';
+        const img = window.getDestImage(dest, 600);
+        const cStatus = String(dest.classification_status || '').toUpperCase();
+        const badgeText = (cStatus === 'EMERGE' || cStatus === 'EMERGING') ? 'EMERGING' : (cStatus === 'POTENTIAL' ? 'POTENTIAL' : 'EXISTING');
+        const badgeBg = (cStatus === 'EMERGE' || cStatus === 'EMERGING') ? '#ef4444' : (cStatus === 'POTENTIAL' ? '#10b981' : '#0284c7');
+        const encodedDest = encodeURIComponent(JSON.stringify(dest));
+        const muni = dest.municipality || dest.location || '';
+        const ratingRaw = (dest.rating !== undefined && dest.rating !== null && dest.rating !== '') ? dest.rating : dest.reviews_avg_rating;
+        const ratingNum = parseFloat(ratingRaw);
+        const hasValidRating = !isNaN(ratingNum) && ratingNum > 0;
+        const ratingStr = hasValidRating ? ratingNum.toFixed(1) : '';
+        const count = parseInt(dest.reviews_count ?? dest.review_count ?? dest.total_reviews ?? 0, 10);
+        const reviewCount = isNaN(count) ? 0 : count;
+        const isFav = window.isSpotFavorited ? window.isSpotFavorited(dest.id) : false;
+
+        const ratingSpan = hasValidRating ? `
+            <span style="font-size:10px; color:#fbbf24; font-weight:800; display:inline-flex; align-items:center; gap:2px;"><i class="fa-solid fa-star" style="font-size:9px;"></i> ${ratingStr} ${reviewCount > 0 ? `<span style="color:rgba(255,255,255,0.7); font-size:9px;">(${reviewCount})</span>` : ''}</span>
+        ` : '<span></span>';
+
+        return `
+            <div class="fav-card" data-category="${(dest.category || '').replace(/"/g, '&quot;')}" data-name="${(dest.name || '').replace(/"/g, '&quot;')}" data-municipality="${(dest.municipality || dest.location || '').replace(/"/g, '&quot;')}" onclick="window.viewDestinationOnMap('${encodedDest}')">
+                <span class="spot-card-badge" style="background:${badgeBg}; position:absolute; top:8px; left:8px; z-index:3;">${badgeText}</span>
+                <img src="${img}" alt="${(dest.name || '').replace(/"/g, '&quot;')}" loading="lazy" decoding="async" onerror="if (window.handleImgError) window.handleImgError(this, '${(dest.name || '').replace(/'/g, "\'")}', '${(dest.municipality || '').replace(/'/g, "\'")}'); else this.src='assets/img/no_image.svg';">
+                <div class="fav-card-overlay">
+                    <span class="fav-card-name">${dest.name}</span>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:3px;">
+                        ${muni ? `<span style="font-size:10px; color:#38bdf8; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"><i class="fa-solid fa-location-dot" style="margin-right:3px;"></i>${muni}</span>` : '<span></span>'}
+                        ${ratingSpan}
+                    </div>
+                </div>
+            </div>
+        `;
+    };
+    var renderFavCard = window.renderFavCard;
+</script>
+<script>
         (function() {
             try {
                 var t = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
@@ -59,98 +809,171 @@ if (is_dir($imgDir)) {
         })();
     </script>
 
-    <!-- Profile Card with embedded Stats -->
-    <div class="profile-header stagger-1" onclick="navigateTo('profile')"
-        style="background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline: none !important; box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important;">
-        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:14px;">
-            <div class="profile-info-row" style="margin-bottom:0; flex:1;">
-                <div class="profile-avatar">
-                    <img id="dash-avatar"
-                        src="https://ui-avatars.com/api/?name=Tourist&amp;background=007AFF&amp;color=fff&amp;rounded=true&amp;bold=true&amp;size=128"
-                        alt="Avatar">
+        <!-- Scroll Animation Listener for Header Sticky Title -->
+    <script>
+    (function() {
+        function checkDashHeaderScroll() {
+            if (!document.body || (document.body.getAttribute('data-view') && document.body.getAttribute('data-view') !== 'dashboard')) return;
+            var y = window.scrollY || window.pageYOffset || document.documentElement.scrollTop || 0;
+            var isScrolled = y > 35;
+            document.body.classList.toggle('dash-scrolled', isScrolled);
+            var hdr = document.querySelector('.mobile-header');
+            if (hdr) hdr.classList.toggle('dash-scrolled', isScrolled);
+            var title = document.getElementById('mobile-header-title');
+            if (title) {
+                if (isScrolled) {
+                    title.style.setProperty('opacity', '1', 'important');
+                    title.style.setProperty('transform', 'translateY(0) scale(1)', 'important');
+                    title.style.setProperty('pointer-events', 'auto', 'important');
+                } else {
+                    title.style.setProperty('opacity', '0', 'important');
+                    title.style.setProperty('transform', 'translateY(12px) scale(0.92)', 'important');
+                    title.style.setProperty('pointer-events', 'none', 'important');
+                }
+            }
+        }
+        window.addEventListener('scroll', checkDashHeaderScroll, { passive: true });
+        checkDashHeaderScroll();
+        setTimeout(checkDashHeaderScroll, 60);
+        setTimeout(checkDashHeaderScroll, 250);
+    })();
+    </script>
+
+    <!-- Coastal Hero Banner: Discover La Union -->
+    <div class="dash-hero-banner stagger-1" style="position: relative; border-radius: 28px; background: linear-gradient(135deg, #0e2a56 0%, #15386f 50%, #1e4080 100%) !important; padding: 22px 18px 18px 18px; overflow: hidden; margin-bottom: 14px; box-shadow: 0 8px 24px rgba(14, 42, 86, 0.25); display: flex; justify-content: space-between;">
+        <div class="dash-hero-content">
+            <span class="dash-hero-eyebrow">Discover</span>
+            <h1 class="dash-hero-title">La Union</h1>
+            
+            
+            <!-- Compact Glass User Profile Strip -->
+            <div class="dash-user-strip" onclick="navigateTo('profile')" title="View Profile">
+                <div class="dash-user-avatar-wrap">
+                    <img id="dash-avatar" src="https://ui-avatars.com/api/?name=Tourist&background=007AFF&color=fff&rounded=true&bold=true&size=128" alt="Avatar">
                 </div>
-                <div class="profile-text">
-                    <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-                        <h2 class="profile-name" id="dash-name" style="margin:0;">Hi, there! <i class="fa-solid fa-hand"
-                                style="color:#fbbf24; font-size:18px; margin-left:4px;"></i></h2>
+                <div class="dash-user-details">
+                    <span class="dash-user-name" id="dash-name">Hi, Explorer! <i class="fa-solid fa-hand" style="color:#fbbf24; font-size:12px; margin-left:2px;"></i></span>
+                    <div id="dash-guest-subtitle" style="display:none; align-items:center; gap:4px; font-size:10.5px; color:#93c5fd; font-weight:700;">
+                        <i class="fa-solid fa-user-clock"></i> Guest Explorer &bull; Sign in
                     </div>
-                    <div id="dash-title-row" style="display:flex; align-items:center; gap:8px; margin-top:6px; flex-wrap:wrap;">
-                        <span class="profile-title" id="dash-title"><i class="fa-solid fa-compass"
-                                style="color:#ffffff; font-size:11px;"></i> Explorer of Elyu</span>
-                        <span id="dash-status-badge"><i class="fa-solid fa-circle"
-                                style="font-size:6px; margin-right:4px; color:#ffffff;"></i> Active Tourist</span>
-                    </div>
-                    <div id="dash-guest-subtitle" style="display:none; align-items:center; gap:6px; margin-top:6px; font-size:12px; color:#93c5fd; font-weight:700;">
-                        <i class="fa-solid fa-user-clock"></i> Guest Explorer &bull; Tap to sign in
-                    </div>
+                </div>
+                <!-- Hidden stubs for JS compatibility -->
+                <div id="dash-title-row" style="display:none !important;">
+                    <span id="dash-title" style="display:none !important;"></span>
+                    <span id="dash-status-badge" style="display:none !important;"></span>
+                </div>
+            </div>
+            
+            <!-- 3 Stats: Places, Points, Rank (aligned with Discover text) -->
+            <div class="dash-mini-stats" id="dash-stats-row">
+                <div class="dash-mini-stat" onclick="event.stopPropagation(); navigateTo('itinerary');" title="Places Visited">
+                    <span class="dash-mini-val" id="dash-stat-places">—</span>
+                    <span class="dash-mini-lbl">Places</span>
+                </div>
+                <div class="dash-mini-stat" onclick="event.stopPropagation(); navigateTo('leaderboard');" title="Reward Points">
+                    <span class="dash-mini-val" id="dash-stat-points">—</span>
+                    <span class="dash-mini-lbl">Points</span>
+                </div>
+                <div class="dash-mini-stat" onclick="event.stopPropagation(); navigateTo('leaderboard');" title="Current Leaderboard Rank">
+                    <span class="dash-mini-val" id="dash-stat-rank">—</span>
+                    <span class="dash-mini-lbl">Rank</span>
                 </div>
             </div>
         </div>
+        
+        <!-- Coastal Lighthouse Artwork on Right -->
+        <div class="dash-hero-art" aria-hidden="true" style="position: absolute; right: -4px; bottom: -6px; width: 140px; height: 160px; pointer-events: none; z-index: 1;">
+            <svg class="dash-hero-svg" viewBox="0 0 160 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Distant Mountain silhouette -->
+                <path d="M-10 130 L40 65 L90 120 L130 50 L180 140 L180 180 L-10 180 Z" fill="rgba(255, 255, 255, 0.08)" />
+                <path d="M20 140 L70 90 L110 135 L145 80 L185 145 L185 180 L20 180 Z" fill="rgba(255, 255, 255, 0.12)" />
+                <!-- Seagulls -->
+                <path d="M30 45 Q 38 38 46 45 Q 54 38 62 45" stroke="rgba(255,255,255,0.7)" stroke-width="1.8" stroke-linecap="round" fill="none" />
+                <path d="M70 30 Q 76 24 82 30 Q 88 24 94 30" stroke="rgba(255,255,255,0.55)" stroke-width="1.5" stroke-linecap="round" fill="none" />
+                <!-- Rocky Shoreline -->
+                <path d="M60 180 C 80 150 110 165 130 148 C 145 136 160 145 170 180 Z" fill="#172554" />
+                <path d="M90 180 C 105 160 125 168 140 155 C 150 146 160 152 170 180 Z" fill="#1e293b" />
+                <!-- White Lighthouse -->
+                <polygon points="122,154 134,154 131,88 125,88" fill="#f8fafc" />
+                <polygon points="123,136 133,136 132,122 124,122" fill="#0284c7" />
+                <rect x="123" y="80" width="10" height="8" rx="1.5" fill="#f8fafc" />
+                <polygon points="121,80 135,80 128,70" fill="#0284c7" />
+                <circle cx="128" cy="69" r="2" fill="#fbbf24" />
+                <circle cx="128" cy="84" r="2.5" fill="#fef08a" />
+                <!-- Subtle Light Beam -->
+                <polygon points="128,84 0,35 0,85" fill="url(#heroLightBeam)" opacity="0.22" />
+                <defs>
+                    <linearGradient id="heroLightBeam" x1="128" y1="84" x2="0" y2="60" gradientUnits="userSpaceOnUse">
+                        <stop stop-color="#fef08a" stop-opacity="0.8"/>
+                        <stop offset="1" stop-color="#38bdf8" stop-opacity="0"/>
+                    </linearGradient>
+                </defs>
+            </svg>
+        </div>
+    </div>
 
-        <!-- 3 Stat Cards inside Profile Card (Sleek & Visible, No Outlines) -->
-        <div class="stats-row" id="dash-stats-row" style="margin-bottom:0; display:grid; grid-template-columns:repeat(3, 1fr); gap:8px;">
-            <div class="stat-card" onclick="event.stopPropagation(); navigateTo('itinerary');"
-                style="background: linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.14) 100%) !important; border: none !important; outline: none !important; border-radius: 16px; padding: 10px 6px; text-align: center; cursor: pointer; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 4px 14px rgba(10, 25, 60, 0.2) !important; transition: transform 0.2s ease;">
-                <div class="stat-icon" style="font-size:18px; margin-bottom:3px;"><i
-                        class="fa-solid fa-map-location-dot" style="color:#38bdf8;"></i></div>
-                <div class="stat-value" id="dash-stat-places"
-                    style="font-size:17px; font-weight:900; color:#ffffff; margin-bottom:1px; letter-spacing:-0.4px;">—
-                </div>
-                <div class="stat-label"
-                    style="font-size:10px; font-weight:800; color:#ffffff !important; text-transform:uppercase; letter-spacing:0.5px; opacity:0.95;">
-                    Places</div>
+    <!-- Live Search Container -->
+    <div class="dash-search-container stagger-1" style="position: relative; z-index: 100;">
+        <div class="dash-search-box">
+            <i class="fa-solid fa-magnifying-glass dash-search-icon"></i>
+            <input type="text" id="dash-search-input" class="dash-search-input" placeholder="Search tourist sites, beaches, places..." autocomplete="off" oninput="window.handleDashSearch(this.value)" onfocus="window.handleDashSearch(this.value)">
+            <button type="button" id="dash-search-clear" class="dash-search-clear" onclick="window.clearDashSearch()" style="display:none;" aria-label="Clear Search">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        <!-- Floating Instant Search Results Dropdown -->
+        <div id="dash-search-results" class="dash-search-dropdown" style="display:none; position:absolute; top:calc(100% + 8px); left:0; right:0; background:#ffffff; border-radius:18px; border:1.5px solid #e2e8f0; box-shadow:0 12px 30px rgba(15,23,42,0.14); max-height:320px; overflow-y:auto; z-index:1000; padding:6px; -webkit-overflow-scrolling:touch;"></div>
+    </div>
+
+    <!-- Weather Widget (Royal Blue Mockup Theme) -->
+    <div class="weather-card stagger-2" onclick="window.openWeatherModal()" style="cursor: pointer; position: relative;" title="Click for 5-Day Weather Forecast">
+        <div class="weather-top-row">
+            <div class="weather-loc-badge">
+                <i class="fa-solid fa-location-dot"></i>
+                <span id="weather-loc">San Fernando, La Union</span>
             </div>
-            <div class="stat-card" onclick="event.stopPropagation(); navigateTo('leaderboard');"
-                style="background: linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.14) 100%) !important; border: none !important; outline: none !important; border-radius: 16px; padding: 10px 6px; text-align: center; cursor: pointer; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 4px 14px rgba(10, 25, 60, 0.2) !important; transition: transform 0.2s ease;">
-                <div class="stat-icon" style="font-size:18px; margin-bottom:3px;"><i class="fa-solid fa-coins"
-                        style="color:#fbbf24;"></i></div>
-                <div class="stat-value" id="dash-stat-points"
-                    style="font-size:17px; font-weight:900; color:#ffffff; margin-bottom:1px; letter-spacing:-0.4px;">—
+        </div>
+        <div class="weather-mid-row">
+            <div class="weather-left-info">
+                <div class="weather-temp-wrap">
+                    <span class="weather-temp-val" id="weather-temp">31°C</span>
+                    <span class="weather-icon-badge" id="weather-icon">☁️</span>
                 </div>
-                <div class="stat-label"
-                    style="font-size:10px; font-weight:800; color:#ffffff !important; text-transform:uppercase; letter-spacing:0.5px; opacity:0.95;">
-                    Points</div>
+                <div class="weather-desc-main" id="weather-desc">Overcast</div>
+                <div class="weather-tip-msg">Good for outdoor activities</div>
             </div>
-            <div class="stat-card" onclick="event.stopPropagation(); navigateTo('leaderboard');"
-                style="background: linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.14) 100%) !important; border: none !important; outline: none !important; border-radius: 16px; padding: 10px 6px; text-align: center; cursor: pointer; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 4px 14px rgba(10, 25, 60, 0.2) !important; transition: transform 0.2s ease;">
-                <div class="stat-icon" style="font-size:18px; margin-bottom:3px;"><i class="fa-solid fa-trophy"
-                        style="color:#f59e0b;"></i></div>
-                <div class="stat-value" id="dash-stat-rank"
-                    style="font-size:17px; font-weight:900; color:#ffffff; margin-bottom:1px; letter-spacing:-0.4px;">—
+            <div class="weather-art-wrap" aria-hidden="true">
+                <div class="weather-3d-cloud">
+                    <svg viewBox="0 0 120 80" width="95" height="62" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="45" cy="45" r="24" fill="rgba(255, 255, 255, 0.95)" />
+                        <circle cx="72" cy="40" r="30" fill="rgba(255, 255, 255, 0.95)" />
+                        <circle cx="92" cy="50" r="18" fill="rgba(255, 255, 255, 0.95)" />
+                        <rect x="25" y="44" width="80" height="24" rx="12" fill="rgba(255, 255, 255, 0.95)" />
+                        <path d="M32 64 Q 60 70 95 64" stroke="rgba(15, 23, 42, 0.12)" stroke-width="3" stroke-linecap="round" />
+                    </svg>
                 </div>
-                <div class="stat-label"
-                    style="font-size:10px; font-weight:800; color:#ffffff !important; text-transform:uppercase; letter-spacing:0.5px; opacity:0.95;">
-                    Rank</div>
+            </div>
+        </div>
+        <div class="weather-bottom-row">
+            <div class="weather-stat-pill">
+                <i class="fa-solid fa-droplet"></i>
+                <span id="weather-humidity">68%</span>
+            </div>
+            <div class="weather-stat-pill">
+                <i class="fa-solid fa-wind"></i>
+                <span id="weather-wind">13 km/h</span>
+            </div>
+            <div class="weather-stat-pill">
+                <i class="fa-solid fa-sun"></i>
+                <span>UV <strong id="weather-uv">8</strong></span>
+            </div>
+            <div class="weather-forecast-pill">
+                <span>5-Day Forecast</span>
+                <i class="fa-solid fa-chevron-right" style="font-size: 9px;"></i>
             </div>
         </div>
     </div>
 
-    <!-- Weather Widget -->
-    <div class="weather-card stagger-2" onclick="window.openWeatherModal()" style="cursor: pointer; position: relative;"
-        title="Click for 5-Day Weather Forecast">
-        <div class="weather-left">
-            <div class="weather-temp" id="weather-temp"><i class="fa-solid fa-spinner fa-spin"
-                    style="font-size:22px; color:rgba(255,255,255,0.4);"></i></div>
-            <div class="weather-desc" id="weather-desc">Loading Weather...</div>
-            <div class="weather-loc" id="weather-loc"><i class="fa-solid fa-location-dot"
-                    style="color:#38bdf8; margin-right:4px;"></i> San Fernando, La Union</div>
-            <div class="weather-details">
-                <span class="weather-detail"><i class="fa-solid fa-droplet" style="color:#38bdf8;"></i> <span
-                        id="weather-humidity">--%</span></span>
-                <span class="weather-detail"><i class="fa-solid fa-wind" style="color:#a78bfa;"></i> <span
-                        id="weather-wind">-- km/h</span></span>
-                <span class="weather-detail"><i class="fa-solid fa-sun" style="color:#fbbf24;"></i> UV <span
-                        id="weather-uv">--</span></span>
-            </div>
-        </div>
-        <div style="text-align: right;">
-            <div class="weather-icon" id="weather-icon">⛅</div>
-            <span
-                style="font-size: 10px; color: rgba(255,255,255,0.95); display: flex; align-items: center; justify-content: flex-end; gap: 4px; margin-top: 4px; font-weight: 700;">
-                5-Day Forecast <i class="fa-solid fa-chevron-right" style="font-size: 8px; color: #ffffff;"></i>
-            </span>
-        </div>
-    </div>
 
     <!-- Weather Forecast Open Sheet / Modal -->
     <div id="weather-modal" onclick="if(event.target===this) window.closeWeatherModal()"
@@ -209,28 +1032,27 @@ if (is_dir($imgDir)) {
     </div>
 
     <!-- Gamification Panel -->
-    <div class="weather-card stagger-2" onclick="navigateTo('puzzles')"
-        style="background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline: none !important; border-radius: 24px; box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important; margin-top: 16px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 16px 20px;">
-        <div style="display: flex; align-items: center; gap: 16px;">
-            <div style="font-size: 32px; filter: none;">🧩</div>
-            <div>
+    <div class="gamezone-banner stagger-2" onclick="navigateTo('puzzles')"
+        style="background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline: none !important; border-radius: 24px; box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important; margin-top: 16px; cursor: pointer; display: flex !important; flex-direction: row !important; align-items: center !important; justify-content: space-between !important; padding: 16px 20px; gap: 14px;">
+        <div style="display: flex; align-items: center; gap: 14px; flex: 1; min-width: 0;">
+            <div style="font-size: 32px; filter: none; flex-shrink: 0;">🧩</div>
+            <div style="flex: 1; min-width: 0;">
                 <h4 style="margin: 0 0 4px 0; font-size: 16px; font-weight: 800; color: #fff; letter-spacing: -0.2px;">
                     GameZone</h4>
-                <p style="margin: 0; font-size: 12px; color: rgba(255, 255, 255, 0.95); font-weight: 600;">Play fun
+                <p style="margin: 0; font-size: 12px; color: rgba(255, 255, 255, 0.95); font-weight: 600; line-height: 1.3;">Play fun
                     mini-games to earn discount vouchers! 🎁</p>
             </div>
         </div>
         <div
-            style="width: 34px; height: 34px; border-radius: 50%; background: #ffffff !important; display: flex; align-items: center; justify-content: center; color: #1e3a8a !important; font-size: 13px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18) !important; flex-shrink: 0;">
+            style="width: 38px; height: 38px; min-width: 38px; border-radius: 50%; background: #ffffff !important; display: flex; align-items: center; justify-content: center; color: #1e3a8a !important; font-size: 14px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18) !important; flex-shrink: 0; margin-left: auto;">
             <i class="fa-solid fa-play" style="color: #1e3a8a !important; margin-left: 2px;"></i>
         </div>
     </div>
 
-    <!-- Categories Section -->
-    <div class="dash-section stagger-2" style="margin-top: 20px;">
+        <!-- Explore Categories Section -->
+    <div class="dash-section stagger-2" style="margin-top: 22px;">
         <div class="section-title">
-            <h3>Categories</h3>
-            <a href="javascript:void(0);" onclick="navigateTo('map')">Explore Map</a>
+            <h3>Explore Categories</h3>
         </div>
         <div class="categories-container" id="dash-categories-list">
             <div class="category-card active" onclick="window.filterCategoryDash('All', this)">
@@ -238,36 +1060,32 @@ if (is_dir($imgDir)) {
                 <div class="category-card-label">All Spots</div>
             </div>
             <div class="category-card" onclick="window.filterCategoryDash('Beach', this)">
-                <div class="category-icon-box"><i class="fa-solid fa-umbrella-beach"></i></div>
-                <div class="category-card-label">Beach</div>
+                <div class="category-icon-box"><i class="fa-solid fa-water"></i></div>
+                <div class="category-card-label">Beaches</div>
             </div>
             <div class="category-card" onclick="window.filterCategoryDash('Nature', this)">
-                <div class="category-icon-box"><i class="fa-solid fa-tree"></i></div>
-                <div class="category-card-label">Nature & Parks</div>
+                <div class="category-icon-box"><i class="fa-solid fa-mountain"></i></div>
+                <div class="category-card-label">Nature &<br>Park</div>
+            </div>
+            <div class="category-card" onclick="window.filterCategoryDash('Heritage', this)">
+                <div class="category-icon-box"><i class="fa-solid fa-landmark-dome"></i></div>
+                <div class="category-card-label">Cultural &<br>Heritage</div>
+            </div>
+            <div class="category-card" onclick="window.filterCategoryDash('Food & Dining', this)">
+                <div class="category-icon-box"><i class="fa-solid fa-utensils"></i></div>
+                <div class="category-card-label">Food &<br>Dining</div>
             </div>
             <div class="category-card" onclick="window.filterCategoryDash('Mountains', this)">
                 <div class="category-icon-box"><i class="fa-solid fa-mountain-sun"></i></div>
                 <div class="category-card-label">Mountains</div>
             </div>
             <div class="category-card" onclick="window.filterCategoryDash('Lakes', this)">
-                <div class="category-icon-box"><i class="fa-solid fa-water"></i></div>
-                <div class="category-card-label">Lakes & Falls</div>
-            </div>
-            <div class="category-card" onclick="window.filterCategoryDash('Heritage', this)">
-                <div class="category-icon-box"><i class="fa-solid fa-landmark"></i></div>
-                <div class="category-card-label">Heritage</div>
-            </div>
-            <div class="category-card" onclick="window.filterCategoryDash('Food & Dining', this)">
-                <div class="category-icon-box"><i class="fa-solid fa-utensils"></i></div>
-                <div class="category-card-label">Food</div>
+                <div class="category-icon-box"><i class="fa-solid fa-droplet"></i></div>
+                <div class="category-card-label">Lakes &<br>Falls</div>
             </div>
             <div class="category-card" onclick="window.filterCategoryDash('Farm', this)">
                 <div class="category-icon-box"><i class="fa-solid fa-seedling"></i></div>
                 <div class="category-card-label">Farms</div>
-            </div>
-            <div class="category-card" onclick="window.filterCategoryDash('Arts & craft', this)">
-                <div class="category-icon-box"><i class="fa-solid fa-palette"></i></div>
-                <div class="category-card-label">Arts & Crafts</div>
             </div>
             <div class="category-card" onclick="window.filterCategoryDash('Nightlife', this)">
                 <div class="category-icon-box"><i class="fa-solid fa-martini-glass-citrus"></i></div>
@@ -290,33 +1108,41 @@ if (is_dir($imgDir)) {
                 <span>Loading trending sites...</span>
             </div>
         </div>
+        <div class="dash-carousel-dots" id="trending-dots" aria-hidden="true">
+            <span class="dash-dot active"></span>
+            <span class="dash-dot"></span>
+            <span class="dash-dot"></span>
+            <span class="dash-dot"></span>
+            <span class="dash-dot"></span>
+            <span class="dash-dot"></span>
+            <span class="dash-dot"></span>
+            <span class="dash-dot"></span>
+            <span class="dash-dot"></span>
+            <span class="dash-dot"></span>
+        </div>
     </div>
 
     <!-- Tourist Sites -->
     <div class="dash-section stagger-2" id="all-spots-section" style="margin-top: 24px;">
-        <div class="section-title" style="margin-bottom: 8px;">
-            <div>
-                <h3 style="display: flex; align-items: center; gap: 8px;">
-                    <span>Tourist Sites</span>
-                    <span id="all-spots-count-badge" class="dash-count-pill">0 Spots</span>
-                </h3>
-                <p class="section-subtitle" id="all-spots-subtitle">Browse verified attractions & hidden gems across La
-                    Union</p>
-            </div>
-            <a href="javascript:void(0);" onclick="window.navigateToTouristSitesPage()">See All</a>
+        <div class="section-title">
+            <h3>Tourist Sites</h3>
+            <a href="javascript:void(0);" onclick="window.navigateToTouristSitesPage()" style="white-space:nowrap !important; flex-shrink:0 !important;">See All</a>
         </div>
+        <!-- Horizontal Filter Chips Row (Mockup Screen 2) -->
+        <div class="dash-filter-chips">
+            <button type="button" class="dash-chip active" onclick="window.filterTouristSitesChip('all', this)">All</button>
+            <button type="button" class="dash-chip" onclick="window.filterTouristSitesChip('top', this)">Top Rated</button>
+            <button type="button" class="dash-chip" onclick="window.filterTouristSitesChip('near', this)"><i class="fa-solid fa-location-dot"></i> Near Me</button>
+            <button type="button" class="dash-chip-btn" id="btn-tourist-filter" onclick="window.openTouristSitesFilterModal()" title="Filter Tourist Sites"><i class="fa-solid fa-sliders"></i></button>
+        </div>
+
         <div id="all-spots-container">
             <div class="dash-loading-state">
                 <i class="fa-solid fa-spinner fa-spin"></i>
                 <span>Loading tourist destinations...</span>
             </div>
         </div>
-        <button type="button" id="btn-view-more-all-spots" onclick="window.navigateToTouristSitesPage()"
-            style="display:none; width:100%; margin-top:14px; padding:12px 18px; border-radius:14px; border:none; outline:none; background:linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%); color:#ffffff; font-size:13px; font-weight:800; cursor:pointer; align-items:center; justify-content:center; gap:8px; box-shadow:0 4px 12px rgba(32, 63, 141, 0.25); transition:all 0.2s;">
-            <i class="fa-solid fa-compass" style="font-size:13px;"></i>
-            <span id="all-spots-more-text">View All Tourist Sites</span>
-            <i class="fa-solid fa-arrow-right" style="font-size:11px; margin-left:2px;"></i>
-        </button>
+
     </div>
 
 
@@ -363,20 +1189,238 @@ if (is_dir($imgDir)) {
         </div>
     </div>
 
-    <!-- Near Me Spots -->
-    <div class="dash-section stagger-2">
-        <div class="section-title">
-            <h3>Near Me</h3>
-            <a href="javascript:void(0);" onclick="navigateTo('map')">See Map</a>
-        </div>
-        <div class="favorites-row is-empty" id="near-me-container">
-            <div class="dash-loading-state">
-                <i class="fa-solid fa-spinner fa-spin"></i>
-                <span>Finding spots near you...</span>
+
+</div>
+
+
+<!-- Tourist Sites Filter Bottom Sheet Modal -->
+<div id="tourist-sites-filter-modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.65); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); z-index:1000005 !important; justify-content:center; align-items:flex-end;" onclick="if(event.target===this) window.closeTouristSitesFilterModal();">
+    <div style="background:#ffffff; width:100%; max-width:480px; border-radius:24px 24px 0 0; padding:20px 20px max(28px, env(safe-area-inset-bottom, 28px)) 20px; box-shadow:0 -8px 30px rgba(0,0,0,0.25); animation:slideUpSheet 0.25s ease-out; box-sizing:border-box; position:relative; z-index:1000006;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;">
+            <div style="display:flex; align-items:center; gap:8px;">
+                <div style="width:32px; height:32px; border-radius:10px; background:rgba(30,58,138,0.1); color:#1e3a8a; display:flex; align-items:center; justify-content:center; font-size:14px;">
+                    <i class="fa-solid fa-sliders"></i>
+                </div>
+                <h3 style="margin:0; font-size:17px; font-weight:800; color:#0f172a;">Filter Tourist Sites</h3>
             </div>
+            <button type="button" onclick="window.closeTouristSitesFilterModal()" style="background:none; border:none; outline:none; font-size:22px; color:#64748b; cursor:pointer; padding:4px 8px; line-height:1;">&times;</button>
+        </div>
+
+        <div style="margin-bottom:14px;">
+            <label style="display:block; font-size:11.5px; font-weight:800; color:#334155; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px;">Municipality / Location</label>
+            <select id="dash-filter-muni" style="width:100%; padding:10px 14px; border-radius:12px; border:1.5px solid #cbd5e1; background:#f8fafc; font-size:13.5px; font-weight:600; color:#0f172a; outline:none;">
+                <option value="All">All Municipalities in La Union</option>
+                <option value="near">📍 Near Me (Within 1km of Location)</option>
+                <option value="San Fernando">San Fernando City</option>
+                <option value="San Juan">San Juan (Surfing Capital)</option>
+                <option value="Bauang">Bauang (Grape Farms)</option>
+                <option value="Bacnotan">Bacnotan</option>
+                <option value="Balaoan">Balaoan</option>
+                <option value="Luna">Luna (Pebble Beach)</option>
+                <option value="Bangar">Bangar (Abel Weaving)</option>
+                <option value="Sudipen">Sudipen</option>
+                <option value="Santol">Santol</option>
+                <option value="San Gabriel">San Gabriel (Tangadan Falls)</option>
+                <option value="Bagulin">Bagulin</option>
+                <option value="Burgos">Burgos</option>
+                <option value="Naguilian">Naguilian</option>
+                <option value="Caba">Caba</option>
+                <option value="Aringay">Aringay</option>
+                <option value="Agoo">Agoo (Basilica)</option>
+                <option value="Tubao">Tubao</option>
+                <option value="Pugo">Pugo (Eco Adventure)</option>
+                <option value="Santo Tomas">Santo Tomas</option>
+                <option value="Rosario">Rosario</option>
+            </select>
+        </div>
+
+        <div style="margin-bottom:14px;">
+            <label style="display:block; font-size:11.5px; font-weight:800; color:#334155; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px;">Classification</label>
+            <select id="dash-filter-status" style="width:100%; padding:10px 14px; border-radius:12px; border:1.5px solid #cbd5e1; background:#f8fafc; font-size:13.5px; font-weight:600; color:#0f172a; outline:none;">
+                <option value="All">All Classifications</option>
+                <option value="EXIST">Existing Sites (Established)</option>
+                <option value="EMERGE">Emerging Sites (Popular & Growing)</option>
+                <option value="POTENTIAL">Potential Sites (Hidden Gems)</option>
+            </select>
+        </div>
+
+        <div style="margin-bottom:20px;">
+            <label style="display:block; font-size:11.5px; font-weight:800; color:#334155; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px;">Sort Order</label>
+            <select id="dash-filter-sort" style="width:100%; padding:10px 14px; border-radius:12px; border:1.5px solid #cbd5e1; background:#f8fafc; font-size:13.5px; font-weight:600; color:#0f172a; outline:none;">
+                <option value="default">Default (Featured)</option>
+                <option value="distance_asc">📍 Nearest First (Within 1km)</option>
+                <option value="rating_desc">Highest Rated (★ 5.0 → 1.0)</option>
+                <option value="visits_desc">Most Visited / Popular</option>
+                <option value="name_asc">Alphabetical (A → Z)</option>
+            </select>
+        </div>
+
+        <div style="display:flex; gap:10px;">
+            <button type="button" onclick="window.resetTouristSitesFilterModal()" style="flex:1; padding:12px; border-radius:12px; border:1.5px solid #cbd5e1; background:#ffffff; color:#475569; font-size:13px; font-weight:700; cursor:pointer;">
+                Reset
+            </button>
+            <button type="button" onclick="window.applyTouristSitesFilterModal()" style="flex:2; padding:12px; border-radius:12px; border:none; background:#1e3a8a; color:#ffffff; font-size:13px; font-weight:800; cursor:pointer; box-shadow:0 4px 12px rgba(30,58,138,0.25);">
+                Apply Filters
+            </button>
         </div>
     </div>
 </div>
+
+<script>
+window.openTouristSitesFilterModal = function() {
+    const modal = document.getElementById('tourist-sites-filter-modal');
+    if (modal) {
+        if (modal.parentElement !== document.body) {
+            const existing = document.body.querySelector(':scope > #tourist-sites-filter-modal');
+            if (existing && existing !== modal) {
+                existing.remove();
+            }
+            document.body.appendChild(modal);
+        }
+
+        // Sync modal form with active filter state and active Near Me chip
+        const fState = window._currentTouristFilterState || { muni: 'All', status: 'All', sort: 'default' };
+        const muniEl = document.getElementById('dash-filter-muni');
+        const statusEl = document.getElementById('dash-filter-status');
+        const sortEl = document.getElementById('dash-filter-sort');
+
+        if (muniEl) muniEl.value = fState.muni || 'All';
+        if (statusEl) statusEl.value = fState.status || 'All';
+        if (sortEl) sortEl.value = fState.sort || 'default';
+
+        // Connect Near Me chip to modal form if Near Me chip is active
+        if (window._currentTouristSitesChip === 'near') {
+            if (muniEl && (fState.muni === 'All' || fState.muni === 'near')) {
+                muniEl.value = 'near';
+            } else if (sortEl && fState.sort === 'default') {
+                sortEl.value = 'distance_asc';
+            }
+        }
+
+        modal.style.display = 'flex';
+        const bottomNav = document.getElementById('bottom-navigation');
+        if (bottomNav) bottomNav.classList.add('nav-hidden');
+    }
+};
+
+window.closeTouristSitesFilterModal = function() {
+    const modal = document.getElementById('tourist-sites-filter-modal');
+    if (modal) {
+        modal.style.display = 'none';
+        const bottomNav = document.getElementById('bottom-navigation');
+        if (bottomNav) bottomNav.classList.remove('nav-hidden');
+    }
+};
+
+window.resetTouristSitesFilterModal = function() {
+    const muniEl = document.getElementById('dash-filter-muni');
+    const statusEl = document.getElementById('dash-filter-status');
+    const sortEl = document.getElementById('dash-filter-sort');
+    if (muniEl) muniEl.value = 'All';
+    if (statusEl) statusEl.value = 'All';
+    if (sortEl) sortEl.value = 'default';
+    window._currentTouristFilterState = { muni: 'All', status: 'All', sort: 'default' };
+    const filterBtn = document.getElementById('btn-tourist-filter');
+    if (filterBtn) {
+        filterBtn.classList.remove('active');
+        filterBtn.style.background = '';
+        filterBtn.style.color = '';
+        filterBtn.style.borderColor = '';
+    }
+    window.closeTouristSitesFilterModal();
+    window.filterTouristSitesChip('all');
+};
+
+window.getFilteredTouristSpots = function() {
+    if (!window.allTouristSpots || window.allTouristSpots.length === 0) return [];
+    let spots = [...window.allTouristSpots];
+    const filterState = window._currentTouristFilterState || {
+        muni: document.getElementById('dash-filter-muni')?.value || 'All',
+        status: document.getElementById('dash-filter-status')?.value || 'All',
+        sort: document.getElementById('dash-filter-sort')?.value || 'default'
+    };
+
+    // Filter by Municipality (skip string matching if 'near' or 'All' - distance filtering handles 'near')
+    if (filterState.muni && filterState.muni !== 'All' && filterState.muni !== 'near') {
+        const needle = filterState.muni.toLowerCase().replace(' city', '').trim();
+        spots = spots.filter(s => {
+            const m = (s.municipality || s.location || '').toLowerCase();
+            return m.includes(needle);
+        });
+    }
+
+    // Filter by Classification Status
+    if (filterState.status && filterState.status !== 'All') {
+        const statusVal = filterState.status;
+        spots = spots.filter(s => {
+            const st = (s.classification_status || '').toUpperCase();
+            return st === statusVal || (statusVal === 'EXIST' && st.includes('EXIST')) || (statusVal === 'EMERGE' && st.includes('EMERG')) || (statusVal === 'POTENTIAL' && st.includes('POTENTIAL'));
+        });
+    }
+
+    // Sort order (distance_asc handled in runNearMeFilter)
+    if (filterState.sort === 'rating_desc') {
+        spots.sort((a, b) => parseFloat(b.rating || b.reviews_avg_rating || 0) - parseFloat(a.rating || a.reviews_avg_rating || 0));
+    } else if (filterState.sort === 'visits_desc') {
+        spots.sort((a, b) => parseInt(b.visits || 0, 10) - parseInt(a.visits || 0, 10));
+    } else if (filterState.sort === 'name_asc') {
+        spots.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+    }
+
+    return spots;
+};
+
+window.applyTouristSitesFilterModal = function() {
+    const muniVal = document.getElementById('dash-filter-muni')?.value || 'All';
+    const statusVal = document.getElementById('dash-filter-status')?.value || 'All';
+    const sortVal = document.getElementById('dash-filter-sort')?.value || 'default';
+    const filterBtn = document.getElementById('btn-tourist-filter');
+
+    window._currentTouristFilterState = { muni: muniVal, status: statusVal, sort: sortVal };
+
+    const isNearSelected = (muniVal === 'near' || sortVal === 'distance_asc');
+    const hasFilter = Boolean(
+        (muniVal !== 'All' && muniVal !== 'near') ||
+        statusVal !== 'All' ||
+        (sortVal !== 'default' && sortVal !== 'distance_asc')
+    );
+
+    if (filterBtn) {
+        filterBtn.classList.toggle('active', hasFilter);
+        if (!hasFilter) {
+            filterBtn.style.background = '';
+            filterBtn.style.color = '';
+            filterBtn.style.borderColor = '';
+        } else {
+            filterBtn.style.background = '#1e3a8a';
+            filterBtn.style.color = '#ffffff';
+            filterBtn.style.borderColor = '#1e3a8a';
+        }
+    }
+
+    window.closeTouristSitesFilterModal();
+
+    // If Near Me is selected in the modal, route through Near Me chip
+    if (isNearSelected) {
+        window.filterTouristSitesChip('near');
+        return;
+    }
+
+    // If Near Me was previously active, but user selected a non-Near Me municipality (like 'All'), switch to 'all' chip
+    const activeChip = window._currentTouristSitesChip || 'all';
+    if (activeChip === 'near') {
+        window.filterTouristSitesChip('all');
+        return;
+    }
+
+    if (activeChip === 'top') {
+        window.filterTouristSitesChip('top');
+        return;
+    }
+
+    window.filterTouristSitesChip('all');
+};
+</script>
 
 <!-- Delete Trip Confirmation Modal -->
 <div id="delete-trip-modal"
@@ -541,6 +1585,7 @@ if (is_dir($imgDir)) {
         window.currentDashCategory = cat;
 
         const renderEmpty = (container, emptyMsg) => {
+            if (!container) return;
             container.classList.add('is-empty');
             container.style.paddingLeft = '0';
             container.style.paddingRight = '0';
@@ -555,32 +1600,20 @@ if (is_dir($imgDir)) {
                     <div class="dash-empty-desc">Try selecting another category or tap All to view all destinations.</div>
                 </div>
             `;
+            if (container.id === 'trending-container') {
+                const dotsWrap = document.getElementById('trending-dots');
+                if (dotsWrap) dotsWrap.style.display = 'none';
+            }
         };
 
-        const renderFavCard = (dest) => {
-            const img = window.getDestImage(dest, 600);
-            const badgeHtml = dest.classification_status ? `<div style="position: absolute; top: 8px; left: 8px; z-index: 10; padding: 2px 6px; border-radius: 8px; font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#0284c7' : (dest.classification_status === 'EMERGE' ? '#ef4444' : '#10b981')}; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</div>` : '';
-            const encodedDest = encodeURIComponent(JSON.stringify(dest));
-            const muni = dest.municipality || dest.location || '';
-            return `
-                <div class="fav-card" data-category="${(dest.category || '').replace(/"/g, '&quot;')}" data-name="${(dest.name || '').replace(/"/g, '&quot;')}" data-municipality="${(dest.municipality || dest.location || '').replace(/"/g, '&quot;')}" onclick="window.viewDestinationOnMap('${encodedDest}')">
-                    ${badgeHtml}
-                    <img src="${img}" alt="${dest.name}" loading="lazy" decoding="async" onerror="if (window.handleImgError) window.handleImgError(this, '${(dest.name || '').replace(/'/g, "\\'")}', '${(dest.municipality || '').replace(/'/g, "\\'")}'); else this.src='assets/img/no_image.svg';">
-                    <div class="fav-card-overlay">
-                        <span class="fav-card-name">${dest.name}</span>
-                        ${muni ? `<span style="display:block; font-size:10px; color:#38bdf8; margin-top:2px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"><i class="fa-solid fa-location-dot" style="margin-right:3px;"></i>${muni}</span>` : ''}
-                    </div>
-                    <i class="fa-solid fa-fire fav-heart" style="color: #ff9500; font-size: 14px;"></i>
-                </div>
-            `;
-        };
+        const renderFavCard = window.renderFavCard;
 
         // 1. Filter Trending Section
         const trendingContainer = document.getElementById('trending-container');
         if (trendingContainer && window.dashTrending) {
             let list = [];
             if (cat === 'All') {
-                list = window.dashTrending.slice(0, 5);
+                list = window.dashTrending.slice(0, 10);
             } else {
                 list = window.dashTrending.filter(d => matchesCategory(d.category, d.name, d.municipality || d.location, cat));
             }
@@ -590,7 +1623,9 @@ if (is_dir($imgDir)) {
                 trendingContainer.style.paddingRight = '';
                 trendingContainer.style.marginLeft = '';
                 trendingContainer.style.marginRight = '';
-                trendingContainer.innerHTML = list.map(renderFavCard).join('');
+                trendingContainer.innerHTML = list.map(window.renderFavCard || renderFavCard).join('');
+                const dotsWrapEl = document.getElementById('trending-dots');
+                if (dotsWrapEl) dotsWrapEl.style.display = (list.length > 1) ? 'flex' : 'none';
                 window.initLoopingFocusCarousel('trending-container');
             } else {
                 renderEmpty(trendingContainer, cat === 'Nightlife' ? 'No Nightlife Tourist Sites Yet' : 'No trending sites in this category.');
@@ -693,32 +1728,298 @@ if (is_dir($imgDir)) {
 
     window.buildAllSpotCard = function (dest) {
         const img = window.getDestImage(dest, 400);
-        const badgeHtml = dest.classification_status ? `<div class="all-spot-badge" style="background: ${dest.classification_status === 'EXIST' ? '#0284c7' : (dest.classification_status === 'EMERGE' ? '#ef4444' : '#10b981')};">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</div>` : '';
-        const muni = dest.municipality || dest.location || 'La Union';
-        const rating = (dest.rating !== undefined && dest.rating !== null && !isNaN(parseFloat(dest.rating))) ? parseFloat(dest.rating).toFixed(1) : (dest.reviews_avg_rating ? parseFloat(dest.reviews_avg_rating).toFixed(1) : '0.0');
-        const fee = (dest.entrance_fee && parseFloat(dest.entrance_fee) > 0) ? `₱${parseFloat(dest.entrance_fee).toFixed(0)}` : 'Free';
-        const cat = dest.category || 'Spot';
+        const cStatus = String(dest.classification_status || '').toUpperCase();
+        const badgeText = (cStatus === 'EMERGE' || cStatus === 'EMERGING') ? 'EMERGING' : (cStatus === 'POTENTIAL' ? 'POTENTIAL' : 'EXISTING');
+        const badgeBg = (cStatus === 'EMERGE' || cStatus === 'EMERGING') ? '#ef4444' : (cStatus === 'POTENTIAL' ? '#10b981' : '#0284c7');
+        const muni = dest.municipality || dest.location || (typeof window.resolveMunicipalityName === 'function' ? window.resolveMunicipalityName(dest) : (dest.municipality_name || 'La Union'));
+        const ratingRaw = (dest.rating !== undefined && dest.rating !== null && dest.rating !== '') ? dest.rating : dest.reviews_avg_rating;
+        const ratingNum = parseFloat(ratingRaw);
+        const hasValidRating = !isNaN(ratingNum) && ratingNum > 0;
+        const ratingStr = hasValidRating ? ratingNum.toFixed(1) : '';
+        const count = parseInt(dest.reviews_count ?? dest.review_count ?? dest.total_reviews ?? 0, 10);
+        const reviewCount = isNaN(count) ? 0 : count;
+        const cleanDesc = dest.description ? dest.description.replace(/<[^>]*>?/gm, '').trim() : '';
+        const snippet = cleanDesc.length > 0 ? (cleanDesc.length > 75 ? cleanDesc.substring(0, 75) + '...' : cleanDesc) : 'A hidden gem with crystal clear waters and natural beauty.';
         const encodedDest = encodeURIComponent(JSON.stringify(dest));
+        const isFav = window.isSpotFavorited ? window.isSpotFavorited(dest.id) : false;
+
+        const ratingHtml = hasValidRating ? `
+            <div class="spot-card-rating">
+                <i class="fa-solid fa-star"></i>
+                <strong>${ratingStr}</strong>
+                ${reviewCount > 0 ? `<span>(${reviewCount})</span>` : ''}
+            </div>
+        ` : '';
 
         return `
-            <div class="all-spot-card" onclick="window.viewDestinationOnMap('${encodedDest}')">
-                <div class="all-spot-img-wrap">
-                    ${badgeHtml}
-                    <img src="${img}" alt="${dest.name}" loading="lazy" decoding="async" onerror="if (window.handleImgError) window.handleImgError(this, '${(dest.name || '').replace(/'/g, "\\'")}', '${(dest.municipality || '').replace(/'/g, "\\'")}'); else this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400';">
+            <div class="all-spot-card-horizontal" data-category="${(dest.category || '').replace(/"/g, '&quot;')}" data-name="${(dest.name || '').replace(/"/g, '&quot;')}" data-municipality="${(muni || '').replace(/"/g, '&quot;')}" onclick="window.viewDestinationOnMap('${encodedDest}')">
+                <div class="spot-card-thumb-wrap">
+                    <span class="spot-card-badge" style="background:${badgeBg};">${badgeText}</span>
+                    <img src="${img}" alt="${(dest.name || '').replace(/"/g, '&quot;')}" loading="lazy" decoding="async" onerror="if (window.handleImgError) window.handleImgError(this, '${(dest.name || '').replace(/'/g, "\'")}', '${(dest.municipality || '').replace(/'/g, "\'")}'); else this.src='assets/img/no_image.svg';">
                 </div>
-                <div class="all-spot-content">
-                    <div>
-                        <h4 class="all-spot-title" title="${(dest.name || '').replace(/"/g, '&quot;')}">${dest.name}</h4>
-                        <div class="all-spot-muni"><i class="fa-solid fa-location-dot" style="font-size:9px;"></i> ${muni}</div>
+                <div class="spot-card-body">
+                    <div class="spot-card-top-row">
+                        <h4 class="spot-card-title" title="${(dest.name || '').replace(/"/g, '&quot;')}">${dest.name}</h4>
                     </div>
-                    <div class="all-spot-tags">
-                        <span class="all-spot-pill">${cat}</span>
-                        <span class="all-spot-rating"><i class="fa-solid fa-star" style="font-size:9px;"></i> ${rating}</span>
-                        <span class="all-spot-fee">${fee}</span>
+                    <div class="spot-card-muni">
+                        <i class="fa-solid fa-location-dot"></i>
+                        <span>${muni}</span>
+                        ${(dest.distance !== undefined && dest.distance !== null && dest.distance < 999999) ? `<span style="font-size:10px; color:#0284c7; font-weight:700; display:inline-flex; align-items:center; gap:2px; margin-left:6px;"><i class="fa-solid fa-location-arrow" style="font-size:8.5px;"></i> ${dest.distance < 1 ? (dest.distance * 1000).toFixed(0) + 'm' : dest.distance.toFixed(1) + 'km'}</span>` : ''}
+                    </div>
+                    <p class="spot-card-desc">${snippet}</p>
+                    <div class="spot-card-footer">
+                        ${ratingHtml}
+                        <button type="button" class="btn-spot-details" style="${hasValidRating ? '' : 'margin-left:auto;'}" onclick="event.stopPropagation(); window.viewDestinationOnMap('${encodedDest}')">
+                            <span>View Details</span> <i class="fa-solid fa-arrow-right" style="font-size:9px;"></i>
+                        </button>
                     </div>
                 </div>
             </div>
         `;
+    };
+
+    // Distance calculator helper
+    window.calcDistanceKm = function(lat1, lon1, lat2, lon2) {
+        const R = 6371; // km
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    };
+
+    // Filter Chips for Tourist Sites (Mockup Screen 2)
+    window.filterTouristSitesChip = function(type, btn) {
+        window._currentTouristSitesChip = type;
+
+        // Visual chip selection
+        const chips = document.querySelectorAll('.dash-filter-chips .dash-chip');
+        chips.forEach(c => c.classList.remove('active'));
+        if (btn) {
+            btn.classList.add('active');
+        } else {
+            const chipBtn = document.querySelector(`.dash-filter-chips .dash-chip[onclick*="'${type}'"]`);
+            if (chipBtn) chipBtn.classList.add('active');
+        }
+
+        if (!window._currentTouristFilterState) {
+            window._currentTouristFilterState = { muni: 'All', status: 'All', sort: 'default' };
+        }
+
+        const fState = window._currentTouristFilterState;
+        // The filter sliders button is ONLY active if explicit modal filters are active (not the Near Me chip itself)
+        const hasExplicitModalFilters = Boolean(fState && (
+            (fState.muni && fState.muni !== 'All' && fState.muni !== 'near') ||
+            (fState.status && fState.status !== 'All') ||
+            (fState.sort && fState.sort !== 'default' && fState.sort !== 'distance_asc')
+        ));
+        const filterBtn = document.getElementById('btn-tourist-filter');
+        if (filterBtn) {
+            filterBtn.classList.toggle('active', hasExplicitModalFilters);
+            if (!hasExplicitModalFilters) {
+                filterBtn.style.background = '';
+                filterBtn.style.color = '';
+                filterBtn.style.borderColor = '';
+            } else {
+                filterBtn.style.background = '#1e3a8a';
+                filterBtn.style.color = '#ffffff';
+                filterBtn.style.borderColor = '#1e3a8a';
+            }
+        }
+
+        if (!window.allTouristSpots || window.allTouristSpots.length === 0) return;
+
+        const statusMap = { 'EXIST': 'Existing', 'EMERGE': 'Emerging', 'POTENTIAL': 'Potential' };
+        const stLabel = fState && fState.status !== 'All' ? (statusMap[fState.status] || fState.status) : '';
+        const hasSpecificMuni = Boolean(fState && fState.muni && fState.muni !== 'All' && fState.muni !== 'near');
+        const muniLabel = hasSpecificMuni ? fState.muni : '';
+
+        let spots = typeof window.getFilteredTouristSpots === 'function' ? window.getFilteredTouristSpots() : [...window.allTouristSpots];
+
+        if (type === 'top') {
+            spots.sort((a, b) => {
+                const rA = parseFloat(b.rating || b.reviews_avg_rating || 0);
+                const rB = parseFloat(a.rating || a.reviews_avg_rating || 0);
+                return rA - rB;
+            });
+            let label = 'Top Rated';
+            if (stLabel && muniLabel) label = `Top Rated · ${stLabel} in ${muniLabel}`;
+            else if (stLabel) label = `Top Rated · ${stLabel}`;
+            else if (muniLabel) label = `Top Rated in ${muniLabel}`;
+
+            if (typeof window.renderAllTouristSpots === 'function') {
+                window.renderAllTouristSpots(spots, label);
+            }
+        } else if (type === 'near') {
+            const runNearMeFilter = (lat, lng) => {
+                const uLat = parseFloat(lat);
+                const uLng = parseFloat(lng);
+                let baseSpots = typeof window.getFilteredTouristSpots === 'function' ? window.getFilteredTouristSpots() : [...window.allTouristSpots];
+                let mapped = baseSpots.map(s => {
+                    const copy = { ...s };
+                    const sLat = parseFloat(copy.lat || copy.latitude);
+                    const sLng = parseFloat(copy.lng || copy.longitude);
+                    if (!isNaN(sLat) && !isNaN(sLng) && !isNaN(uLat) && !isNaN(uLng)) {
+                        copy.distance = window.calcDistanceKm(uLat, uLng, sLat, sLng);
+                    } else {
+                        copy.distance = 999999;
+                    }
+                    return copy;
+                });
+
+                // User radius requirement: strictly 1km limit!
+                const NEAR_ME_RADIUS_KM = 1.0;
+                let nearSpots = mapped.filter(s => {
+                    if (s.distance === 999999) return false;
+                    return s.distance <= NEAR_ME_RADIUS_KM;
+                });
+
+                nearSpots.sort((a, b) => a.distance - b.distance);
+
+                let label = 'Near Me';
+                if (stLabel && muniLabel) label = `Near Me · ${stLabel} in ${muniLabel}`;
+                else if (stLabel) label = `Near Me · ${stLabel}`;
+                else if (muniLabel) label = `Near Me · ${muniLabel}`;
+
+                if (typeof window.renderAllTouristSpots === 'function') {
+                    window.renderAllTouristSpots(nearSpots, label);
+                }
+            };
+
+            const userLat = window.userCurrentCoords?.lat || window.currentGPSLat || window.currentWeatherLocation?.lat;
+            const userLng = window.userCurrentCoords?.lng || window.currentGPSLng || window.currentWeatherLocation?.lng;
+
+            if (userLat && userLng) {
+                runNearMeFilter(userLat, userLng);
+            } else if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    pos => {
+                        window.userCurrentCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+                        runNearMeFilter(pos.coords.latitude, pos.coords.longitude);
+                    },
+                    err => {
+                        runNearMeFilter(16.6159, 120.3209);
+                    },
+                    { enableHighAccuracy: true, timeout: 6000 }
+                );
+            } else {
+                runNearMeFilter(16.6159, 120.3209);
+            }
+        } else {
+            let label = 'All';
+            if (stLabel && muniLabel) label = `${muniLabel} · ${stLabel}`;
+            else if (stLabel) label = stLabel;
+            else if (muniLabel) label = muniLabel;
+
+            if (typeof window.renderAllTouristSpots === 'function') {
+                window.renderAllTouristSpots(spots, label);
+            }
+        }
+    };
+
+    // Live Search for Dashboard (Instant Dropdown & Filter)
+    window.handleDashSearch = function(query) {
+        const clearBtn = document.getElementById('dash-search-clear');
+        const resultsEl = document.getElementById('dash-search-results');
+        const q = (query || '').toLowerCase().trim();
+
+        if (clearBtn) {
+            clearBtn.style.display = q.length > 0 ? 'flex' : 'none';
+        }
+
+        // Resolve spots data
+        let spots = window.allTouristSpots;
+        if (!spots || spots.length === 0) {
+            try {
+                const cached = localStorage.getItem('public_map_data');
+                if (cached) {
+                    const parsed = JSON.parse(cached);
+                    spots = parsed.destinations || parsed?.data?.destinations || [];
+                    window.allTouristSpots = spots;
+                }
+            } catch (err) {}
+        }
+
+        if (!q) {
+            if (resultsEl) {
+                resultsEl.style.display = 'none';
+                resultsEl.innerHTML = '';
+            }
+            if (typeof window.renderAllTouristSpots === 'function' && spots && spots.length > 0) {
+                window.renderAllTouristSpots(spots, 'All');
+            }
+            return;
+        }
+
+        const matched = (spots || []).filter(s => {
+            const name = (s.name || '').toLowerCase();
+            const muni = (s.municipality || s.location || '').toLowerCase();
+            const cat = (s.category || '').toLowerCase();
+            const desc = (s.description || '').toLowerCase();
+            return name.includes(q) || muni.includes(q) || cat.includes(q) || desc.includes(q);
+        });
+
+        if (resultsEl) {
+            if (matched.length > 0) {
+                let html = '';
+                matched.slice(0, 8).forEach(dest => {
+                    const img = typeof window.getDestImage === 'function'
+                        ? window.getDestImage(dest, 150)
+                        : (dest.thumbnail_url || dest.image_url || dest.image || 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=150');
+                    const encodedDest = encodeURIComponent(JSON.stringify(dest));
+                    const locName = dest.location || dest.municipality || 'La Union';
+
+                    const cls = (dest.classification || '').toLowerCase();
+                    let badgeBg = '#0284c7';
+                    let badgeLabel = dest.classification || 'Existing';
+                    if (cls.includes('potential')) { badgeBg = '#10b981'; }
+                    else if (cls.includes('emerging')) { badgeBg = '#ef4444'; }
+
+                    html += `
+                        <div onclick="window.viewDestinationOnMap('${encodedDest}'); const r=document.getElementById('dash-search-results'); if(r) r.style.display='none';" 
+                             style="display:flex; align-items:center; gap:12px; padding:9px 12px; border-radius:12px; cursor:pointer; transition:background 0.15s ease; border-bottom:1px solid #f1f5f9;"
+                             onmouseover="this.style.background='#f8fafc'" 
+                             onmouseout="this.style.background='transparent'">
+                            <img src="${img}" alt="${(dest.name||'').replace(/"/g, '&quot;')}" style="width:42px; height:42px; border-radius:10px; object-fit:cover; border:1px solid #e2e8f0; flex-shrink:0;">
+                            <div style="flex:1; min-width:0;">
+                                <div style="display:flex; align-items:center; gap:6px; margin-bottom:2px;">
+                                    <div style="font-size:13.5px; font-weight:700; color:#0f172a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${dest.name}</div>
+                                    <span style="font-size:9.5px; font-weight:700; text-transform:uppercase; color:#ffffff; background:${badgeBg}; padding:1px 6px; border-radius:6px; flex-shrink:0;">${badgeLabel}</span>
+                                </div>
+                                <div style="font-size:11.5px; font-weight:500; color:#64748b; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                                    <i class="fa-solid fa-location-dot" style="color:#0284c7; margin-right:4px;"></i>${locName}
+                                </div>
+                            </div>
+                            <i class="fa-solid fa-chevron-right" style="color:#cbd5e1; font-size:12px; margin-left:4px; flex-shrink:0;"></i>
+                        </div>
+                    `;
+                });
+                resultsEl.innerHTML = html;
+                resultsEl.style.display = 'block';
+            } else {
+                resultsEl.innerHTML = `
+                    <div style="padding:22px 14px; text-align:center;">
+                        <i class="fa-solid fa-location-dot" style="font-size:22px; color:#cbd5e1; margin-bottom:6px; display:block;"></i>
+                        <div style="font-size:13px; font-weight:700; color:#0f172a;">No places found</div>
+                        <div style="font-size:11.5px; color:#64748b; margin-top:2px;">We couldn't find any spot matching "${(query||'').replace(/"/g, '&quot;')}"</div>
+                    </div>
+                `;
+                resultsEl.style.display = 'block';
+            }
+        }
+
+        if (typeof window.renderAllTouristSpots === 'function') {
+            window.renderAllTouristSpots(matched, 'Search Results');
+        }
+    };
+
+    window.clearDashSearch = function() {
+        const inp = document.getElementById('dash-search-input');
+        if (inp) {
+            inp.value = '';
+            window.handleDashSearch('');
+        }
     };
 
     // Limit the number of tourist sites on the dashboard to maximize a compact minimum (4 cards)
@@ -743,19 +2044,23 @@ if (is_dir($imgDir)) {
         const container = document.getElementById('all-spots-container');
         const countBadge = document.getElementById('all-spots-count-badge');
         const subtitle = document.getElementById('all-spots-subtitle');
-        const moreBtn = document.getElementById('btn-view-more-all-spots');
         if (!container) return;
 
         if (!spots || spots.length === 0) {
             if (countBadge) countBadge.textContent = '0 Spots';
-            if (moreBtn) moreBtn.style.display = 'none';
+            const isNearMe = (activeCat.includes('Near Me') || window._currentTouristSitesChip === 'near');
+            if (subtitle) {
+                subtitle.textContent = isNearMe
+                    ? 'No tourist destinations found within 1km of your location'
+                    : `Showing 0 destinations in ${activeCat}`;
+            }
             container.innerHTML = `
                 <div class="dash-empty-state" style="margin-top: 6px !important;">
-                    <div class="dash-empty-icon-wrap">
-                        <i class="fa-solid fa-compass"></i>
+                    <div class="dash-empty-icon-wrap" style="${isNearMe ? 'background: #ffffff !important; color: #1e3a8a !important; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15) !important;' : ''}">
+                        <i class="fa-solid ${isNearMe ? 'fa-location-dot' : 'fa-compass'}" style="${isNearMe ? 'color: #1e3a8a !important;' : ''}"></i>
                     </div>
-                    <div class="dash-empty-title">No Spots in ${activeCat}</div>
-                    <div class="dash-empty-desc">No tourist sites found in this category right now. Tap All to view all destinations.</div>
+                    <div class="dash-empty-title">${isNearMe ? 'No Tourist Sites Near You' : `No Spots in ${activeCat}`}</div>
+                    <div class="dash-empty-desc">${isNearMe ? 'No tourist sites found within 1km of your current location matching your filters. Try adjusting your filters or tap All to browse all destinations.' : 'No tourist sites found in this category right now. Tap All to view all destinations.'}</div>
                 </div>
             `;
             return;
@@ -773,7 +2078,7 @@ if (is_dir($imgDir)) {
             }
         }
 
-        const DASHBOARD_SPOT_LIMIT = 4;
+        const DASHBOARD_SPOT_LIMIT = 6;
         const initialSpots = spots.slice(0, DASHBOARD_SPOT_LIMIT);
 
         let html = '<div class="all-spots-grid">';
@@ -784,15 +2089,7 @@ if (is_dir($imgDir)) {
 
         container.innerHTML = html;
 
-        if (moreBtn) {
-            if (spots.length > DASHBOARD_SPOT_LIMIT) {
-                moreBtn.style.display = 'flex';
-                const moreTxt = document.getElementById('all-spots-more-text');
-                if (moreTxt) moreTxt.textContent = `View All ${spots.length} Tourist Sites`;
-            } else {
-                moreBtn.style.display = 'none';
-            }
-        }
+
     };
 
     window.fetchAllTouristSpots = async function () {
@@ -920,6 +2217,33 @@ if (is_dir($imgDir)) {
                 closestCard.classList.add('active-card');
             }
 
+            // Dynamically synchronize carousel dots with the centered card, or hide if empty or 1 card only
+            if (containerId === 'trending-container') {
+                const dotsWrap = document.getElementById('trending-dots');
+                if (dotsWrap) {
+                    if (cards.length <= 1 || container.classList.contains('is-empty') || container.querySelector('.dash-empty-state')) {
+                        dotsWrap.style.display = 'none';
+                    } else {
+                        dotsWrap.style.display = 'flex';
+                        const numDots = Math.min(cards.length, 10);
+                        if (dotsWrap.querySelectorAll('.dash-dot').length !== numDots) {
+                            dotsWrap.innerHTML = Array.from({ length: numDots }, (_, i) => `<span class="dash-dot ${i === 0 ? 'active' : ''}"></span>`).join('');
+                        }
+                        if (closestCard) {
+                            const dots = dotsWrap.querySelectorAll('.dash-dot');
+                            if (dots.length > 0) {
+                                const cardList = Array.from(cards);
+                                const activeIdx = cardList.indexOf(closestCard);
+                                if (activeIdx >= 0) {
+                                    const dotIdx = activeIdx % dots.length;
+                                    dots.forEach((d, i) => d.classList.toggle('active', i === dotIdx));
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
             isTicking = false;
         }
 
@@ -929,7 +2253,7 @@ if (is_dir($imgDir)) {
             // Click capture: clicking a shrinked card smoothly scrolls it to center
             container.addEventListener('click', (e) => {
                 if (e.target.closest('.fav-heart') || e.target.closest('.fav-card-overlay i')) {
-                    return; // Allow heart button clicks to proceed without carousel interception!
+                    return; // Allow clicks on buttons to proceed without carousel interception!
                 }
 
                 const card = e.target.closest('.fav-card');
@@ -962,6 +2286,30 @@ if (is_dir($imgDir)) {
             });
         } else {
             requestAnimationFrame(updateCardScales);
+        }
+
+        // Tap dots to smoothly scroll the active card to center
+        if (containerId === 'trending-container') {
+            const dotsWrap = document.getElementById('trending-dots');
+            if (dotsWrap && !dotsWrap._dotsListenerInited) {
+                dotsWrap._dotsListenerInited = true;
+                dotsWrap.addEventListener('click', (e) => {
+                    const dot = e.target.closest('.dash-dot');
+                    if (!dot) return;
+                    const dots = Array.from(dotsWrap.querySelectorAll('.dash-dot'));
+                    const dotIdx = dots.indexOf(dot);
+                    const currentCards = container.querySelectorAll('.fav-card');
+                    if (dotIdx >= 0 && currentCards[dotIdx]) {
+                        const targetCard = currentCards[dotIdx];
+                        const containerRect = container.getBoundingClientRect();
+                        const containerCenter = containerRect.left + containerRect.width / 2;
+                        const cardRect = targetCard.getBoundingClientRect();
+                        const cardCenter = cardRect.left + cardRect.width / 2;
+                        const scrollDelta = cardCenter - containerCenter;
+                        container.scrollBy({ left: scrollDelta, behavior: 'smooth' });
+                    }
+                });
+            }
         }
     };
 
@@ -1037,7 +2385,7 @@ if (is_dir($imgDir)) {
                 if (cw) {
                     if (tempEl) tempEl.textContent = `${cw.temperature}°C`;
                     if (descEl) descEl.textContent = cw.condition;
-                    if (locEl) locEl.innerHTML = `<i class="fa-solid fa-location-dot" style="color:#38bdf8; margin-right:4px;"></i> ${cw.location || locationName}`;
+                    if (locEl) locEl.textContent = cw.location || locationName;
                     if (humidityEl) humidityEl.textContent = `${cw.humidity}%`;
                     if (windEl) windEl.textContent = `${cw.wind_speed} km/h`;
                     if (uvEl) uvEl.textContent = cw.uv_index;
@@ -1048,7 +2396,7 @@ if (is_dir($imgDir)) {
                 if (tempEl && (tempEl.textContent.includes('Loading') || tempEl.querySelector('.fa-spinner'))) {
                     tempEl.textContent = '29°C';
                     if (descEl) descEl.textContent = 'Partly Cloudy';
-                    if (locEl) locEl.innerHTML = `<i class="fa-solid fa-location-dot" style="color:#38bdf8; margin-right:4px;"></i> ${locationName || 'San Fernando, La Union'}`;
+                    if (locEl) locEl.textContent = locationName || 'San Fernando, La Union';
                     if (humidityEl) humidityEl.textContent = '72%';
                     if (windEl) windEl.textContent = '14 km/h';
                     if (uvEl) uvEl.textContent = '6';
@@ -1062,7 +2410,7 @@ if (is_dir($imgDir)) {
             if (tempEl && tempEl.textContent.includes('Loading')) {
                 tempEl.textContent = '29°C';
                 if (descEl) descEl.textContent = 'Partly Cloudy';
-                if (locEl) locEl.innerHTML = `<i class="fa-solid fa-location-dot" style="color:#38bdf8; margin-right:4px;"></i> ${locationName}`;
+                if (locEl) locEl.textContent = locationName;
                 if (humidityEl) humidityEl.textContent = '72%';
                 if (windEl) windEl.textContent = '14 km/h';
                 if (uvEl) uvEl.textContent = '6';
@@ -1084,7 +2432,7 @@ if (is_dir($imgDir)) {
 
             if (tempEl) tempEl.textContent = `${data.temperature}°C`;
             if (descEl) descEl.textContent = data.condition;
-            if (locEl) locEl.innerHTML = `<i class="fa-solid fa-location-dot" style="color:#38bdf8; margin-right:4px;"></i> ${data.location}`;
+            if (locEl) locEl.textContent = data.location;
             if (humidityEl) humidityEl.textContent = `${data.humidity}%`;
             if (windEl) windEl.textContent = `${data.wind_speed} km/h`;
             if (uvEl) uvEl.textContent = data.uv_index;
@@ -1102,7 +2450,7 @@ if (is_dir($imgDir)) {
             if (cachedW) {
                 if (tempEl) tempEl.textContent = `${cachedW.temperature}°C`;
                 if (descEl) descEl.textContent = cachedW.condition;
-                if (locEl) locEl.innerHTML = `<i class="fa-solid fa-location-dot" style="color:#38bdf8; margin-right:4px;"></i> ${cachedW.location || locationName}`;
+                if (locEl) locEl.textContent = cachedW.location || locationName;
                 if (humidityEl) humidityEl.textContent = `${cachedW.humidity}%`;
                 if (windEl) windEl.textContent = `${cachedW.wind_speed} km/h`;
                 if (uvEl) uvEl.textContent = cachedW.uv_index;
@@ -1110,7 +2458,7 @@ if (is_dir($imgDir)) {
             } else {
                 if (tempEl) tempEl.textContent = '29°C';
                 if (descEl) descEl.textContent = 'Partly Cloudy';
-                if (locEl) locEl.innerHTML = `<i class="fa-solid fa-location-dot" style="color:#38bdf8; margin-right:4px;"></i> ${locationName}`;
+                if (locEl) locEl.textContent = locationName;
                 if (humidityEl) humidityEl.textContent = '72%';
                 if (windEl) windEl.textContent = '14 km/h';
                 if (uvEl) uvEl.textContent = '6';
@@ -1122,7 +2470,7 @@ if (is_dir($imgDir)) {
     window.locateMeForWeather = function () {
         const locEl = document.getElementById('weather-loc');
         const descEl = document.getElementById('weather-desc');
-        if (locEl) locEl.innerHTML = `<i class="fa-solid fa-location-dot fa-spin" style="color:#38bdf8; margin-right:4px;"></i> Detecting location...`;
+        if (locEl) locEl.textContent = "Detecting location...";
         if (descEl) descEl.textContent = 'Acquiring location...';
 
         const fallbackToLocal = () => {
@@ -1301,10 +2649,10 @@ if (is_dir($imgDir)) {
                 setSrc('dash-avatar', 'https://ui-avatars.com/api/?name=Guest&background=1e3a8a&color=fff&rounded=true&bold=true&size=128');
             } else {
                 if (guardStyle) guardStyle.textContent = '';
-                if (titleEl) titleEl.style.display = 'inline-flex';
-                if (badgeEl) badgeEl.style.display = 'inline-flex';
-                if (titleRow) titleRow.style.display = 'flex';
-                if (statsRow) statsRow.style.display = 'grid';
+                if (titleEl) titleEl.style.display = 'none';
+                if (badgeEl) badgeEl.style.display = 'none';
+                if (titleRow) titleRow.style.display = 'none';
+                if (statsRow) statsRow.style.display = 'flex';
                 if (guestSub) guestSub.style.display = 'none';
 
                 const firstName = (u && u.name ? u.name : 'Explorer').split(' ')[0];
@@ -1389,42 +2737,10 @@ if (is_dir($imgDir)) {
 
         // ── Helper: Recommended Item Card Builder ──
         const buildRecommendedItem = function (dest) {
-            const img = window.getDestImage(dest, 300);
-            const rating = (dest.rating !== undefined && dest.rating !== null && !isNaN(parseFloat(dest.rating))) ? parseFloat(dest.rating).toFixed(1) : (dest.reviews_avg_rating ? parseFloat(dest.reviews_avg_rating).toFixed(1) : '0.0');
-            const desc = dest.description ? dest.description.substring(0, 150) + (dest.description.length > 150 ? '...' : '') : 'A beautiful destination waiting to be explored.';
-            const locName = resolveMunicipalityName(dest);
-
-            const encodedDest = encodeURIComponent(JSON.stringify(dest));
-            return `
-            <div class="rec-item-card" data-category="${(dest.category || '').replace(/"/g, '&quot;')}" data-name="${(dest.name || '').replace(/"/g, '&quot;')}" data-municipality="${(locName || '').replace(/"/g, '&quot;')}">
-                <div onclick="window.toggleRecommendedCard(this)" style="cursor:pointer; display:flex; align-items:center; gap: 12px; padding: 12px; transition: background 0.15s;" onpointerdown="this.style.background='rgba(56, 189, 248, 0.18)'" onpointerup="this.style.background=''" onpointercancel="this.style.background=''">
-                    <img src="${img}" alt="${dest.name}" loading="lazy" decoding="async" style="width:60px; height:60px; border-radius:12px; object-fit:cover;" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=150';">
-                    <div style="flex:1; min-width:0;">
-                        <h4 class="rec-title">${dest.name}</h4>
-                        <p class="rec-loc"><i class="fa-solid fa-location-dot" style="margin-right:4px; color:#00f2fe;"></i>${locName}</p>
-                        <div style="display:flex; align-items:center; gap:5px; flex-wrap:wrap;">
-                            <i class="fa-solid fa-star" style="color:#f59e0b; font-size:11px;"></i>
-                            <span class="rec-rating">${rating}</span>
-                            ${dest.classification_status ? `<span style="padding: 2px 6px; border-radius: 6px; font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#0284c7' : (dest.classification_status === 'EMERGE' ? '#ef4444' : '#10b981')};">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</span>` : ''}
-                        </div>
-                    </div>
-                    <i class="fa-solid fa-chevron-right toggle-icon rec-chevron"></i>
-                </div>
-                
-                <div class="rec-details-panel">
-                    <div class="rec-desc">
-                        ${desc}
-                    </div>
-                    <div style="display:flex; gap:8px; font-size:11px; margin-bottom:12px; flex-wrap:wrap;">
-                        ${dest.category ? `<span style="background:#ffffff !important; color:#1e3a8a !important; padding:4px 10px; border-radius:100px; font-weight:800; box-shadow:0 1px 4px rgba(0,0,0,0.12);">${dest.category}</span>` : ''}
-                        ${dest.entrance_fee ? `<span style="background:#ffffff !important; color:#0284c7 !important; padding:4px 10px; border-radius:100px; font-weight:800; box-shadow:0 1px 4px rgba(0,0,0,0.12);">₱${dest.entrance_fee}</span>` : '<span style="background:#ffffff !important; color:#16a34a !important; padding:4px 10px; border-radius:100px; font-weight:800; box-shadow:0 1px 4px rgba(0,0,0,0.12);">Free</span>'}
-                    </div>
-                    <button onclick="window.viewDestinationOnMap('${encodedDest}')" style="width:100%; margin-bottom:14px; background:linear-gradient(135deg, #00f2fe, #0284c7); border:none; color:#ffffff !important; padding:10px; border-radius:12px; font-weight:800; font-size:13px; cursor:pointer; box-shadow:none; display:flex; align-items:center; justify-content:center; gap:8px;">
-                        <i class="fa-solid fa-map-location-dot" style="color:#ffffff !important;"></i> View Details on Map
-                    </button>
-                </div>
-            </div>
-        `;
+            if (typeof window.buildAllSpotCard === 'function') {
+                return window.buildAllSpotCard(dest);
+            }
+            return '';
         };
         window.buildRecommendedItem = buildRecommendedItem;
 
@@ -1648,7 +2964,7 @@ if (is_dir($imgDir)) {
             const trendEl = document.getElementById('trending-container');
             if (trendEl && trendEl.querySelector('.dash-loading-state')) {
                 if (window.allTouristSpots && window.allTouristSpots.length > 0) {
-                    const topSpots = [...window.allTouristSpots].sort((a,b) => (b.visits || 0) - (a.visits || 0)).slice(0, 5);
+                    const topSpots = [...window.allTouristSpots].sort((a,b) => (b.visits || 0) - (a.visits || 0)).slice(0, 10);
                     window.dashTrending = topSpots;
                     trendEl.classList.remove('is-empty');
                     trendEl.style.paddingLeft = '';
@@ -1667,8 +2983,7 @@ if (is_dir($imgDir)) {
                                 <span class="fav-card-name">${dest.name}</span>
                                 ${muni ? `<span style="display:block; font-size:10px; color:#38bdf8; margin-top:2px; font-weight:700;"><i class="fa-solid fa-location-dot"></i> ${muni}</span>` : ''}
                             </div>
-                            <i class="fa-solid fa-fire fav-heart" style="color: #ff9500; font-size: 14px;"></i>
-                        </div>`;
+                            </div>`;
                     });
                     window.initLoopingFocusCarousel('trending-container');
                 } else {
@@ -1697,9 +3012,24 @@ if (is_dir($imgDir)) {
             const recEl = document.getElementById('recommended-container');
             if (recEl && recEl.querySelector('.dash-loading-state')) {
                 if (window.allTouristSpots && window.allTouristSpots.length > 0) {
-                    const recSpots = [...window.allTouristSpots].sort((a,b) => parseFloat(b.rating || 0) - parseFloat(a.rating || 0)).slice(0, 3);
-                    window.dashRecommended = recSpots;
-                    recEl.innerHTML = recSpots.map(dest => buildRecommendedItem(dest)).join('');
+                    const allDests = [...window.allTouristSpots].sort((a,b) => parseFloat(b.rating || 0) - parseFloat(a.rating || 0)).slice(0, 5);
+                    window.dashRecommended = allDests;
+                    const INITIAL_SHOW = 2;
+                    let html = allDests.slice(0, INITIAL_SHOW).map(dest => buildRecommendedItem(dest)).join('');
+                    if (allDests.length > INITIAL_SHOW) {
+                        const extras = allDests.slice(INITIAL_SHOW);
+                        html += `
+                        <div id="rec-extras" style="overflow:hidden; max-height:0; transition: max-height 0.4s ease;">
+                            ${extras.map(dest => buildRecommendedItem(dest)).join('')}
+                        </div>
+                        <button id="btn-view-more-rec"
+                            onclick="window.toggleRecommendedMore()"
+                            style="width:100%; margin-top:10px; padding:12px; border-radius:14px; border: none; outline:none; background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%); color:#ffffff; font-size:13px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow: 0 4px 12px rgba(32, 63, 141, 0.25); transition: all 0.2s;">
+                            <i class="fa-solid fa-chevron-down" id="rec-chevron" style="font-size:11px; transition: transform 0.3s;"></i>
+                            View ${extras.length} More
+                        </button>`;
+                    }
+                    recEl.innerHTML = html;
                 } else {
                     recEl.innerHTML = `
                     <div class="dash-empty-state">
@@ -1785,10 +3115,12 @@ if (is_dir($imgDir)) {
         if (lat && lng) apiUrl += `&lat=${lat}&lng=${lng}`;
 
         // Stable User-Centric Cache Key
-        const cacheKey = 'dashboard_data_v3_' + (user.id || (token ? token.substring(0, 10) : 'default'));
+        const cacheKey = 'dashboard_data_v4_' + (user.id || (token ? token.substring(0, 10) : 'default'));
 
         function renderDashboard(data) {
-            window.dashTrending = (data.trending || []).filter(d => !d.status || d.status.toLowerCase() !== 'pending');
+            const rawTrending = (data.trending || []).filter(d => !d.status || d.status.toLowerCase() !== 'pending');
+            const validTrending = rawTrending.filter(d => (parseFloat(d.rating || 0) > 0) || (parseInt(d.visits || 0, 10) > 0));
+            window.dashTrending = validTrending.length > 0 ? validTrending : rawTrending;
             window.dashRecommended = (data.recommended || []).filter(d => !d.status || d.status.toLowerCase() !== 'pending');
             window.dashSaved = (data.savedPlaces || []).filter(d => !d.status || d.status.toLowerCase() !== 'pending');
 
@@ -1901,24 +3233,8 @@ if (is_dir($imgDir)) {
                     trendingContainer.style.paddingRight = '';
                     trendingContainer.style.marginLeft = '';
                     trendingContainer.style.marginRight = '';
-                    const trendingList = data.trending.slice(0, 5);
-                    trendingList.forEach(dest => {
-                        const img = window.getDestImage(dest, 600);
-                        const badgeHtml = dest.classification_status ? `<div style="position: absolute; top: 8px; left: 8px; z-index: 10; padding: 2px 6px; border-radius: 8px; font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#0284c7' : (dest.classification_status === 'EMERGE' ? '#ef4444' : '#10b981')}; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</div>` : '';
-                        const encodedDest = encodeURIComponent(JSON.stringify(dest));
-                        const muni = dest.municipality || dest.location || '';
-                        trendingContainer.innerHTML += `
-                        <div class="fav-card" data-category="${(dest.category || '').replace(/"/g, '&quot;')}" data-name="${(dest.name || '').replace(/"/g, '&quot;')}" data-municipality="${(dest.municipality || dest.location || '').replace(/"/g, '&quot;')}" onclick="window.viewDestinationOnMap('${encodedDest}')">
-                            ${badgeHtml}
-                            <img src="${img}" alt="${dest.name}" loading="lazy" decoding="async" onerror="if (window.handleImgError) window.handleImgError(this, '${(dest.name || '').replace(/'/g, "\\'")}', '${(dest.municipality || '').replace(/'/g, "\\'")}'); else this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600';">
-                            <div class="fav-card-overlay">
-                                <span class="fav-card-name">${dest.name}</span>
-                                ${muni ? `<span style="display:block; font-size:10px; color:#38bdf8; margin-top:2px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"><i class="fa-solid fa-location-dot"></i> ${muni}</span>` : ''}
-                            </div>
-                            <i class="fa-solid fa-fire fav-heart" style="color: #ff9500; font-size: 14px;"></i>
-                        </div>
-                    `;
-                    });
+                    const trendingList = data.trending.slice(0, 10);
+                    trendingContainer.innerHTML = trendingList.map(window.renderFavCard || renderFavCard).join('');
                     window.initLoopingFocusCarousel('trending-container');
                 } else {
                     trendingContainer.classList.add('is-empty');
@@ -1963,8 +3279,7 @@ if (is_dir($imgDir)) {
                             ${badgeHtml}
                             <img src="${img}" alt="${dest.name}" loading="lazy" decoding="async" onerror="if (window.handleImgError) window.handleImgError(this, '${(dest.name || '').replace(/'/g, "\\'")}', '${(dest.municipality || '').replace(/'/g, "\\'")}'); else this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600';">
                             <div class="fav-card-overlay"><span class="fav-card-name">${dest.name}</span></div>
-                            <i class="fa-solid fa-heart fav-heart" style="color: #ff3b30;" onclick="event.stopPropagation(); window.toggleFavorite(${dest.id}, this)"></i>
-                        </div>
+                            </div>
                     `;
                     });
                     window.initLoopingFocusCarousel('saved-places-container');
@@ -2033,9 +3348,11 @@ if (is_dir($imgDir)) {
             (window.safeJsonParse ? window.safeJsonParse(localStorage.getItem('dashboard_cached_payload'), null) : null) ||
             (window.safeJsonParse ? window.safeJsonParse(localStorage.getItem(cacheKey), null)?.data : null);
 
-        if (cachedPayload && (cachedPayload.trending || cachedPayload.recommended || cachedPayload.savedPlaces)) {
+        if (cachedPayload && (cachedPayload.trending || cachedPayload.recommended || cachedPayload.savedPlaces) && (!cachedPayload.trending || cachedPayload.trending.length >= 10)) {
             renderDashboard(cachedPayload);
         } else {
+            // Invalidate any old cache with 5 or fewer trending spots
+            try { localStorage.removeItem('dashboard_cached_payload'); } catch(e) {}
             // Check fallback from public_map_data or cached spots map
             try {
                 const mapCache = window.safeJsonParse ? window.safeJsonParse(localStorage.getItem('public_map_data'), null)?.data : null;
@@ -2045,9 +3362,13 @@ if (is_dir($imgDir)) {
                     renderDashboard({
                         user: user,
                         stats: { placesVisited: 0, rank: 1, unread_notifications: 0 },
-                        trending: [...activeSpots].sort((a, b) => (b.visits || 0) - (a.visits || 0)).slice(0, 5),
+                        trending: (() => {
+                            const candidates = [...activeSpots].filter(d => (parseFloat(d.rating || 0) > 0) || ((d.visits || 0) > 0));
+                            const pool = candidates.length > 0 ? candidates : activeSpots;
+                            return [...pool].sort((a, b) => ((b.visits || 0) + (parseFloat(b.rating || 0) * 10)) - ((a.visits || 0) + (parseFloat(a.rating || 0) * 10))).slice(0, 10);
+                        })(),
                         savedPlaces: [],
-                        recommended: [...activeSpots].sort((a, b) => (parseFloat(b.rating || 0)) - (parseFloat(a.rating || 0))).slice(0, 5),
+                        recommended: [...activeSpots].sort((a, b) => (parseFloat(b.rating || 0)) - (parseFloat(a.rating || 0))).slice(0, 10),
                         timeLabel: 'Popular in La Union'
                     });
                 }
@@ -2211,17 +3532,10 @@ if (is_dir($imgDir)) {
                     // Sort by nearest distance first
                     spots.sort((a, b) => a.distance - b.distance);
 
-                    // Filter ONLY spots strictly in the user's location:
-                    // 1. Same municipality as detected user location (<= 12 km), OR
-                    // 2. Immediate proximity (<= 5.0 km)
-                    // Never show spots farther than 10 km away!
-                    const cleanTargetMuni = (detectedMuni || '').toLowerCase().replace(' city', '').replace(', la union', '').trim();
-
+                    // User radius requirement: strictly 1km limit!
                     let nearSpots = spots.filter(s => {
-                        if (s.distance > 10.0) return false;
-                        const sMuni = (s.municipality || s.location || '').toLowerCase().trim();
-                        const isSameMuni = cleanTargetMuni && (sMuni.includes(cleanTargetMuni) || cleanTargetMuni.includes(sMuni));
-                        return isSameMuni || s.distance <= 5.0;
+                        if (s.distance === 999999) return false;
+                        return s.distance <= 1.0;
                     });
 
                     window.allNearSpots = nearSpots;
@@ -2396,9 +3710,13 @@ if (is_dir($imgDir)) {
                     renderDashboard({
                         user: { ...user, is_guest: true, name: 'Guest' },
                         stats: { placesVisited: 0, rank: null, unread_notifications: 0 },
-                        trending: [...activeSpots].sort((a, b) => (b.visits || 0) - (a.visits || 0)).slice(0, 5),
+                        trending: (() => {
+                            const candidates = [...activeSpots].filter(d => (parseFloat(d.rating || 0) > 0) || ((d.visits || 0) > 0));
+                            const pool = candidates.length > 0 ? candidates : activeSpots;
+                            return [...pool].sort((a, b) => ((b.visits || 0) + (parseFloat(b.rating || 0) * 10)) - ((a.visits || 0) + (parseFloat(a.rating || 0) * 10))).slice(0, 10);
+                        })(),
                         savedPlaces: [],
-                        recommended: [...activeSpots].sort((a, b) => (parseFloat(b.rating || 0)) - (parseFloat(a.rating || 0))).slice(0, 5),
+                        recommended: [...activeSpots].sort((a, b) => (parseFloat(b.rating || 0)) - (parseFloat(a.rating || 0))).slice(0, 10),
                         timeLabel: 'Popular in La Union'
                     });
                     if (typeof window.renderAllTouristSpots === 'function') {
@@ -2832,101 +4150,14 @@ if (is_dir($imgDir)) {
         }
     };
 
-    // Initialize Search Functionality
-    setTimeout(() => {
-        const searchInput = document.getElementById('dash-search-input');
+    // Dismiss search dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+        const searchContainer = document.querySelector('.dash-search-container');
         const searchResults = document.getElementById('dash-search-results');
-        const searchWrapper = document.querySelector('.search-wrapper');
-        if (searchWrapper) {
-            searchWrapper.style.zIndex = '50';
+        if (searchResults && searchContainer && !searchContainer.contains(e.target)) {
+            searchResults.style.display = 'none';
         }
-
-        let allDestinationsForSearch = null;
-        let isFetching = false;
-
-        if (searchInput && searchResults) {
-            searchInput.addEventListener('input', async (e) => {
-                const query = e.target.value.toLowerCase().trim();
-                if (query.length === 0) {
-                    searchResults.style.display = 'none';
-                    return;
-                }
-
-                if (!allDestinationsForSearch && !isFetching) {
-                    isFetching = true;
-                    try {
-                        const backendUrl = window.backendUrl || 'https://api.intan-elyu.online';
-                        const res = await fetch(backendUrl + '/api/public/map');
-                        const data = await res.json();
-                        allDestinationsForSearch = (data.destinations || []).filter(d => !d.status || d.status.toLowerCase() !== 'pending');
-                    } catch (err) {
-                        console.error('Failed to fetch destinations for search', err);
-                        allDestinationsForSearch = [];
-                    }
-                    isFetching = false;
-                }
-
-                if (!allDestinationsForSearch) return;
-
-                // Re-evaluate query in case the user typed more while fetching
-                const currentQuery = searchInput.value.toLowerCase().trim();
-                if (currentQuery.length === 0) {
-                    searchResults.style.display = 'none';
-                    return;
-                }
-
-                const matches = allDestinationsForSearch.filter(dest =>
-                    dest.name.toLowerCase().includes(currentQuery) ||
-                    (dest.category && dest.category.toLowerCase().includes(currentQuery)) ||
-                    (dest.location && dest.location.toLowerCase().includes(currentQuery)) ||
-                    (dest.municipality && dest.municipality.toLowerCase().includes(currentQuery))
-                ).slice(0, 6); // Limit to top 6 results
-
-                if (matches.length > 0) {
-                    let html = '';
-                    matches.forEach(dest => {
-                        const img = window.getDestImage(dest, 150);
-                        const encodedDest = encodeURIComponent(JSON.stringify(dest));
-                        const locName = dest.location || dest.municipality || 'La Union';
-                        html += `
-                            <div onclick="window.viewDestinationOnMap('${encodedDest}')" style="display:flex; align-items:center; gap:12px; padding:12px; border-bottom:1px solid rgba(255,255,255,0.05); cursor:pointer; transition:background 0.2s; border-radius:12px;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background=''">
-                                <img src="${img}" style="width:44px; height:44px; border-radius:10px; object-fit:cover; border:1px solid rgba(255,255,255,0.1);">
-                                <div style="flex:1; min-width:0;">
-                                    <div style="font-size:13px; font-weight:800; color:#f8fafc; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${dest.name}</div>
-                                    <div style="font-size:11px; font-weight:500; color:rgba(148,163,184,0.9); margin-top:2px;"><i class="fa-solid fa-location-dot" style="color:#38bdf8; margin-right:4px;"></i>${locName}</div>
-                                </div>
-                                <i class="fa-solid fa-chevron-right" style="color:rgba(148,163,184,0.3); font-size:12px; margin-right:4px;"></i>
-                            </div>
-                        `;
-                    });
-                    searchResults.innerHTML = html;
-                    searchResults.style.display = 'block';
-                } else {
-                    searchResults.innerHTML = `
-                        <div style="padding:20px; text-align:center; display:flex; flex-direction:column; align-items:center; gap:8px;">
-                            <i class="fa-solid fa-location-crosshairs" style="font-size:24px; color:rgba(255,255,255,0.2);"></i>
-                            <div style="font-size:12px; font-weight:600; color:rgba(255,255,255,0.5);">Location not found</div>
-                        </div>
-                    `;
-                    searchResults.style.display = 'block';
-                }
-            });
-
-            // Hide when clicking outside
-            document.addEventListener('click', (e) => {
-                if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
-                    searchResults.style.display = 'none';
-                }
-            });
-
-            // Show again when focusing input if there is text
-            searchInput.addEventListener('focus', () => {
-                if (searchInput.value.trim().length > 0 && searchResults.innerHTML.trim() !== '') {
-                    searchResults.style.display = 'block';
-                }
-            });
-        }
-    }, 500);
+    });
 
     window.setupDashboardSwipeToDelete = function () {
         document.querySelectorAll('.trip-swipe-container').forEach(container => {

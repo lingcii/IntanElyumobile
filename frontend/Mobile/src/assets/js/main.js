@@ -53,6 +53,31 @@ window.isExpectedAbortError = function (error) {
     return error.name === 'AbortError' || /\b(?:abort|aborted)\b/i.test(String(error.message || error));
 };
 
+window.getPhilippineTimestampISO = function (dateInput) {
+    try {
+        const d = dateInput ? new Date(dateInput) : new Date();
+        const formatter = new Intl.DateTimeFormat('en-CA', {
+            timeZone: 'Asia/Manila',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false
+        });
+        const parts = formatter.formatToParts(d);
+        const p = {};
+        parts.forEach(({ type, value }) => { p[type] = value; });
+        return `${p.year}-${p.month}-${p.day}T${p.hour}:${p.minute}:${p.second}+08:00`;
+    } catch (e) {
+        const d = dateInput ? new Date(dateInput) : new Date();
+        const ph = new Date(d.getTime() + (8 * 3600000) + (d.getTimezoneOffset() * 60000));
+        const pad = (n) => String(n).padStart(2, '0');
+        return `${ph.getFullYear()}-${pad(ph.getMonth() + 1)}-${pad(ph.getDate())}T${pad(ph.getHours())}:${pad(ph.getMinutes())}:${pad(ph.getSeconds())}+08:00`;
+    }
+};
+
 // Clear only expired identity state. Saved trips, drafts, proof queues, and other
 // offline data intentionally remain untouched.
 window.clearExpiredAuthSession = function () {
@@ -436,7 +461,9 @@ window.OfflineCheckinManager = {
         const id = existingEntry && existingEntry.id
             ? existingEntry.id
             : 'chk_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
-        const capturedAt = data.capturedAt || new Date().toISOString();
+        const capturedAt = data.capturedAt
+            ? (window.getPhilippineTimestampISO ? window.getPhilippineTimestampISO(data.capturedAt) : data.capturedAt)
+            : (window.getPhilippineTimestampISO ? window.getPhilippineTimestampISO() : new Date().toISOString());
 
         let hasPhoto = false;
         let previewUrl = data.previewUrl || null;
@@ -4293,7 +4320,7 @@ window.submitProofPhotos = async function () {
                 lng: window.myLng || 120.3209,
                 image: firstFile,
                 previewUrl: previewUrls[0] || null,
-                capturedAt: new Date().toISOString(),
+                capturedAt: window.getPhilippineTimestampISO(),
                 isPhotoUploadOnly: true
             });
         }
@@ -4315,6 +4342,7 @@ window.submitProofPhotos = async function () {
         formData.append('images[]', item.file, item.file.name || `proof_${Date.now()}_${idx}.jpg`);
     });
     formData.append('image', firstFile);
+    formData.append('captured_at', window.getPhilippineTimestampISO());
 
     const fallbackOffline = async (reason) => {
         if (window.OfflineCheckinManager) {
@@ -4328,7 +4356,7 @@ window.submitProofPhotos = async function () {
                 lng: window.myLng || 120.3209,
                 image: firstFile,
                 previewUrl: previewUrls[0] || null,
-                capturedAt: new Date().toISOString(),
+                capturedAt: window.getPhilippineTimestampISO(),
                 isPhotoUploadOnly: true
             });
             window.closeProofUploadModal();
@@ -4415,6 +4443,53 @@ window.executeLocationCheckIn = function (itemId, spotName = '', spotLat = null,
         token.startsWith('guest_') ||
         token.startsWith('offline_');
 
+    window.spotHasPolygonBoundary = function (geoJson) {
+        if (!geoJson) return false;
+        try {
+            const geo = typeof geoJson === 'string' ? JSON.parse(geoJson) : geoJson;
+            if (!geo || typeof geo !== 'object') return false;
+            if (geo.type === 'Polygon' && Array.isArray(geo.coordinates) && geo.coordinates.length > 0 && Array.isArray(geo.coordinates[0]) && geo.coordinates[0].length >= 3) {
+                return true;
+            }
+            if (geo.type === 'MultiPolygon' && Array.isArray(geo.coordinates) && geo.coordinates.length > 0) {
+                return true;
+            }
+        } catch (e) {
+            return false;
+        }
+        return false;
+    };
+
+    window.isPointInSpotPolygon = function (lat, lng, geoJson) {
+        if (!geoJson || lat == null || lng == null || isNaN(lat) || isNaN(lng)) return false;
+        try {
+            const geo = typeof geoJson === 'string' ? JSON.parse(geoJson) : geoJson;
+            if (!geo) return false;
+            const checkRing = (ring) => {
+                if (!Array.isArray(ring) || ring.length < 3) return false;
+                let inside = false;
+                for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+                    const ptI = ring[i], ptJ = ring[j];
+                    const xi = Number(ptI[0]), yi = Number(ptI[1]);
+                    const xj = Number(ptJ[0]), yj = Number(ptJ[1]);
+                    const intersect = ((yi > lat) !== (yj > lat)) &&
+                        (lng < (xj - xi) * (lat - yi) / (yj - yi) + xi);
+                    if (intersect) inside = !inside;
+                }
+                return inside;
+            };
+            if (geo.type === 'Polygon' && Array.isArray(geo.coordinates) && geo.coordinates[0]) {
+                return checkRing(geo.coordinates[0]);
+            }
+            if (geo.type === 'MultiPolygon' && Array.isArray(geo.coordinates)) {
+                return geo.coordinates.some(poly => poly && poly[0] && checkRing(poly[0]));
+            }
+        } catch (e) {
+            return false;
+        }
+        return false;
+    };
+
     const getHaversineDist = (lat1, lon1, lat2, lon2) => {
         const R = 6371e3;
         const phi1 = lat1 * Math.PI / 180;
@@ -4448,7 +4523,23 @@ window.executeLocationCheckIn = function (itemId, spotName = '', spotLat = null,
     }
 
     const doSubmitCheckin = async (lat, lng) => {
-        if (destLat !== null && destLng !== null && !isNaN(destLat) && !isNaN(destLng)) {
+        const liveSpot = (spotId && typeof window.getTouristSpotById === 'function') ? window.getTouristSpotById(spotId) : null;
+        const spotBoundary = liveSpot?.boundary_geojson || targetItem?.destination?.boundary_geojson;
+        const hasPolygon = (typeof window.spotHasPolygonBoundary === 'function') && window.spotHasPolygonBoundary(spotBoundary);
+
+        if (hasPolygon) {
+            const isInsidePoly = window.isPointInSpotPolygon(lat, lng, spotBoundary);
+            if (!isInsidePoly) {
+                if (typeof showToast === 'function') {
+                    showToast(`📍 You are outside the boundary of ${spotName || 'the tourist site'}. Please move inside the site area to check in! 📍`, 'warning', 4500);
+                }
+                if (btnEl) {
+                    btnEl.innerHTML = originalHtml;
+                    btnEl.disabled = false;
+                }
+                return;
+            }
+        } else if (destLat !== null && destLng !== null && !isNaN(destLat) && !isNaN(destLng)) {
             const dist = getHaversineDist(lat, lng, destLat, destLng);
             if (dist > 70) {
                 const distM = Math.round(dist);
@@ -4480,7 +4571,7 @@ window.executeLocationCheckIn = function (itemId, spotName = '', spotLat = null,
                     total_pax: tPax,
                     companion_males: cMales,
                     companion_females: cFemales,
-                    capturedAt: new Date().toISOString()
+                    capturedAt: window.getPhilippineTimestampISO()
                 });
             }
             if (typeof showToast === 'function') {
@@ -4502,7 +4593,7 @@ window.executeLocationCheckIn = function (itemId, spotName = '', spotLat = null,
         formData.append('total_pax', tPax);
         formData.append('companion_males', cMales);
         formData.append('companion_females', cFemales);
-        formData.append('captured_at', new Date().toISOString());
+        formData.append('captured_at', window.getPhilippineTimestampISO());
 
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 12000);
@@ -4552,7 +4643,7 @@ window.executeLocationCheckIn = function (itemId, spotName = '', spotLat = null,
                     spotName: spotName || 'Destination',
                     lat: lat,
                     lng: lng,
-                    capturedAt: new Date().toISOString()
+                    capturedAt: window.getPhilippineTimestampISO()
                 });
                 if (typeof showToast === 'function') {
                     showToast(`📍 Checked in offline at ${spotName}! Auto-syncs when online.`, 'success');
@@ -6367,6 +6458,15 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
             return true;
         }
 
+        // 0.1 Check Tourist Sites Filter Modal
+        const filterModal = document.getElementById('tourist-sites-filter-modal');
+        if (filterModal && filterModal.style.display !== 'none' && window.getComputedStyle(filterModal).display !== 'none') {
+            if (typeof window.closeTouristSitesFilterModal === 'function') {
+                window.closeTouristSitesFilterModal();
+                return true;
+            }
+        }
+
         // 1. Check Sidebar & Notifications in header
         const sidebar = document.getElementById('sidebar-menu');
         if (sidebar && (sidebar.style.left === '0px' || window.getComputedStyle(sidebar).left === '0px')) {
@@ -7151,6 +7251,41 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
     /**
      * Handle Magic Navigation Bar Indicator and Visibility
      */
+    window.onMagicNavItemClick = function(el) {
+        try {
+            var nav = document.getElementById('magic-nav');
+            if (!nav) return;
+            var items = nav.querySelectorAll('.magic-nav-item');
+            items.forEach(function(item) {
+                var svg = item.querySelector('svg');
+                if (item === el) {
+                    item.classList.add('active');
+                    item.style.setProperty('color', '#ffffff', 'important');
+                    if (svg) {
+                        svg.style.setProperty('stroke', '#ffffff', 'important');
+                        svg.querySelectorAll('path, line, polygon, rect, circle').forEach(function(s) { s.style.setProperty('stroke', '#ffffff', 'important'); });
+                    }
+                } else {
+                    item.classList.remove('active');
+                    item.style.setProperty('color', '#000000', 'important');
+                    if (svg) {
+                        svg.style.setProperty('stroke', '#000000', 'important');
+                        svg.querySelectorAll('path, line, polygon, rect, circle').forEach(function(s) { s.style.setProperty('stroke', '#000000', 'important'); });
+                    }
+                }
+            });
+            var indicator = document.getElementById('magic-indicator');
+            if (indicator && el.dataset.index !== undefined) {
+                var idx = parseInt(el.dataset.index);
+                indicator.style.left = (10 + (idx * 20)) + '%';
+                indicator.style.boxShadow = 'none';
+                indicator.style.filter = 'none';
+                indicator.style.outline = 'none';
+                indicator.style.background = '#1e3a8a';
+            }
+        } catch(e) {}
+    };
+
     function updateMagicNav(viewName) {
         const nav = document.getElementById('magic-nav');
         if (!nav) return;
@@ -7162,29 +7297,43 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
         const isMainNav = Array.from(items).some(item => item.dataset.view === viewName);
         if (!isMainNav) return;
 
-        let activeColor = '#38bdf8';
         let activeIndex = 0;
 
         items.forEach(item => {
+            const svg = item.querySelector('svg');
             if (item.dataset.view === viewName) {
                 item.classList.add('active');
-                activeColor = item.dataset.color || activeColor;
+                item.style.setProperty('color', '#ffffff', 'important');
+                if (svg) {
+                    svg.style.setProperty('stroke', '#ffffff', 'important');
+                    svg.querySelectorAll('path, line, polygon, rect, circle').forEach(s => {
+                        s.style.setProperty('stroke', '#ffffff', 'important');
+                    });
+                }
                 activeIndex = parseInt(item.dataset.index);
             } else {
                 item.classList.remove('active');
+                item.style.setProperty('color', '#000000', 'important');
+                if (svg) {
+                    svg.style.setProperty('stroke', '#000000', 'important');
+                    svg.querySelectorAll('path, line, polygon, rect, circle').forEach(s => {
+                        s.style.setProperty('stroke', '#000000', 'important');
+                    });
+                }
             }
         });
 
-        // Update Magic Indicator Position
-        // Center is at 10%, 30%, 50%, 70%, 90%
+        // Update Magic Indicator Position: Flat royal blue, NO SHADOW, NO GLOW
         const percent = 10 + (activeIndex * 20);
         if (indicator) {
             indicator.style.left = `${percent}%`;
-            indicator.style.background = `radial-gradient(circle at 38% 32%, ${activeColor}ed, ${activeColor}ba)`;
-            indicator.style.boxShadow = `0 4px 22px ${activeColor}90, inset 0 2px 4px rgba(255,255,255,0.3)`;
+            indicator.style.background = '#1e3a8a';
+            indicator.style.boxShadow = 'none';
+            indicator.style.filter = 'none';
+            indicator.style.outline = 'none';
         }
 
-        // Update SVG Path Notch
+        // Update SVG Path Notch: Crisp white base, clean line, NO SHADOW filter
         const notchCX = (percent / 100) * 448; // ViewBox width is 448
         const { fullPath, topEdge } = buildNavPath(notchCX);
 
@@ -7192,12 +7341,21 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
         const pathTint = document.getElementById('magic-nav-path-tint');
         const pathEdge = document.getElementById('magic-nav-path-edge');
 
-        if (pathBase) pathBase.setAttribute('d', fullPath);
+        if (pathBase) {
+            pathBase.setAttribute('d', fullPath);
+            pathBase.setAttribute('fill', '#ffffff');
+            pathBase.removeAttribute('filter');
+        }
         if (pathTint) {
             pathTint.setAttribute('d', fullPath);
-            pathTint.setAttribute('fill', activeColor);
+            pathTint.setAttribute('fill', '#ffffff');
+            pathTint.setAttribute('opacity', '0');
         }
-        if (pathEdge) pathEdge.setAttribute('d', topEdge);
+        if (pathEdge) {
+            pathEdge.setAttribute('d', topEdge);
+            pathEdge.setAttribute('stroke', '#e2e8f0');
+            pathEdge.removeAttribute('filter');
+        }
     }
 
     function buildNavPath(cx) {
@@ -8037,6 +8195,40 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
      * @param {number} [width=600] - Desired image width for placeholders
      * @returns {string} Resolved image URL
      */
+    window.renderFavCard = function(dest) {
+        if (!dest) return '';
+        const img = window.getDestImage ? window.getDestImage(dest, 600) : (dest.photo_url || dest.image || 'assets/img/no_image.svg');
+        const badgeText = dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : (dest.classification_status === 'POTENTIAL' ? 'POTENTIAL' : (dest.classification_status || 'EXISTING')));
+        const badgeBg = dest.classification_status === 'POTENTIAL' ? '#1e3a8a' : (dest.classification_status === 'EMERGE' ? '#dc2626' : '#0f172a');
+        const encodedDest = encodeURIComponent(JSON.stringify(dest));
+        const muni = dest.municipality || dest.location || '';
+        const ratingRaw = (dest.rating !== undefined && dest.rating !== null && dest.rating !== '') ? dest.rating : dest.reviews_avg_rating;
+        const ratingNum = parseFloat(ratingRaw);
+        const hasValidRating = !isNaN(ratingNum) && ratingNum > 0;
+        const ratingStr = hasValidRating ? ratingNum.toFixed(1) : '';
+        const count = parseInt(dest.reviews_count ?? dest.review_count ?? dest.total_reviews ?? 0, 10);
+        const reviewCount = isNaN(count) ? 0 : count;
+        const isFav = window.isSpotFavorited ? window.isSpotFavorited(dest.id) : false;
+
+        const ratingSpan = hasValidRating ? `
+            <span style="font-size:10px; color:#fbbf24; font-weight:800; display:inline-flex; align-items:center; gap:2px;"><i class="fa-solid fa-star" style="font-size:9px;"></i> ${ratingStr} ${reviewCount > 0 ? `<span style="color:rgba(255,255,255,0.7); font-size:9px;">(${reviewCount})</span>` : ''}</span>
+        ` : '<span></span>';
+
+        return `
+            <div class="fav-card" data-category="${(dest.category || '').replace(/"/g, '&quot;')}" data-name="${(dest.name || '').replace(/"/g, '&quot;')}" data-municipality="${(dest.municipality || dest.location || '').replace(/"/g, '&quot;')}" onclick="window.viewDestinationOnMap('${encodedDest}')">
+                <span class="spot-card-badge" style="background:${badgeBg}; position:absolute; top:8px; left:8px; z-index:3;">${badgeText}</span>
+                <img src="${img}" alt="${(dest.name || '').replace(/"/g, '&quot;')}" loading="lazy" decoding="async" onerror="if (window.handleImgError) window.handleImgError(this, '${(dest.name || '').replace(/'/g, "\'")}', '${(dest.municipality || '').replace(/'/g, "\'")}'); else this.src='assets/img/no_image.svg';">
+                <div class="fav-card-overlay">
+                    <span class="fav-card-name">${dest.name}</span>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:3px;">
+                        ${muni ? `<span style="font-size:10px; color:#38bdf8; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"><i class="fa-solid fa-location-dot" style="margin-right:3px;"></i>${muni}</span>` : '<span></span>'}
+                        ${ratingSpan}
+                    </div>
+                </div>
+            </div>
+        `;
+    };
+
     window.getDestImage = function (dest, width) {
         if (!width) width = 600;
         var backendUrl = window.getBackendUrl ? window.getBackendUrl() : (window.backendUrl || '').replace(/\/+$/, '');
@@ -8054,6 +8246,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
             var url = rawUrl.trim();
 
             // 1. Data or Blob URIs
+            if (url.indexOf('default-spot') !== -1) return 'assets/img/no_image.svg';
             if (url.indexOf('data:') === 0 || url.indexOf('blob:') === 0) return url;
 
             // 2. Full HTTP / HTTPS URLs — preserve intact if already an API / serve link

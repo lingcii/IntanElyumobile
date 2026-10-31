@@ -96,7 +96,7 @@ class ItineraryItemController extends Controller
             $user = $request->user();
 
             $item = ItineraryItem::whereHas('itinerary', fn($q) => $q->where('user_id', $user->id))
-                ->with('destination:id,name,latitude,longitude,classification_status')
+                ->with('destination:id,name,latitude,longitude,classification_status,boundary_geojson')
                 ->find($id);
 
             if (!$item) {
@@ -115,14 +115,14 @@ class ItineraryItemController extends Controller
             $capturedAt = null;
             if ($request->filled('captured_at')) {
                 try {
-                    $parsed = Carbon::parse($request->captured_at);
-                    if ($parsed->lte(now()->addMinutes(10)) && $parsed->gte(now()->subHours(48))) {
+                    $parsed = Carbon::parse($request->captured_at)->timezone('Asia/Manila');
+                    if ($parsed->lte(now('Asia/Manila')->addMinutes(10)) && $parsed->gte(now('Asia/Manila')->subHours(48))) {
                         $capturedAt = $parsed;
                     }
                 } catch (\Throwable $e) { }
             }
 
-            $effectiveTime = $capturedAt ?? now();
+            $effectiveTime = $capturedAt ?? now('Asia/Manila');
 
             // Anti-Spoofing: Accuracy Check
             if ($request->has('accuracy') && $request->accuracy > 200) {
@@ -162,7 +162,14 @@ class ItineraryItemController extends Controller
                 (float) $spot->longitude
             );
 
-            if ($distanceMeters > self::MAX_DISTANCE_METERS) {
+            if ($spot->hasBoundary()) {
+                if (!$spot->containsPoint((float) $request->lat, (float) $request->lng)) {
+                    return response()->json([
+                        'message'           => "You are outside the boundary of {$spot->name}. Please move inside the site area to check in! 📍",
+                        'boundary_required' => true,
+                    ], 403);
+                }
+            } elseif ($distanceMeters > self::MAX_DISTANCE_METERS) {
                 return response()->json([
                     'message'  => "You're too far from {$spot->name}. Get within " . self::MAX_DISTANCE_METERS . "m to check in! 📍",
                     'distance' => round($distanceMeters) . 'm away',
@@ -273,9 +280,18 @@ class ItineraryItemController extends Controller
             // Store JSON array of image URLs
             $jsonImages = json_encode($storedUrls);
 
+            $capturedAt = null;
+            if ($request->filled('captured_at')) {
+                try {
+                    $capturedAt = Carbon::parse($request->captured_at)->timezone('Asia/Manila');
+                } catch (\Throwable $e) { }
+            }
+            $effectiveTime = $capturedAt ?? Carbon::now('Asia/Manila');
+
             $item->update([
                 'proof_image'      => $jsonImages,
                 'proof_status'     => 'pending',
+                'visited_at'       => $effectiveTime,
                 'rejection_reason' => null,
             ]);
 
@@ -316,7 +332,7 @@ class ItineraryItemController extends Controller
             $user = $request->user();
 
             $item = ItineraryItem::whereHas('itinerary', fn($q) => $q->where('user_id', $user->id))
-                ->with('destination:id,name,latitude,longitude,classification_status')
+                ->with('destination:id,name,latitude,longitude,classification_status,boundary_geojson')
                 ->find($id);
 
             if (!$item) {
@@ -349,14 +365,14 @@ class ItineraryItemController extends Controller
             $capturedAt = null;
             if ($request->filled('captured_at')) {
                 try {
-                    $parsed = Carbon::parse($request->captured_at);
-                    if ($parsed->lte(now()->addMinutes(10)) && $parsed->gte(now()->subHours(48))) {
+                    $parsed = Carbon::parse($request->captured_at)->timezone('Asia/Manila');
+                    if ($parsed->lte(now('Asia/Manila')->addMinutes(10)) && $parsed->gte(now('Asia/Manila')->subHours(48))) {
                         $capturedAt = $parsed;
                     }
                 } catch (\Throwable $e) { }
             }
 
-            $effectiveTime = $capturedAt ?? now();
+            $effectiveTime = $capturedAt ?? now('Asia/Manila');
 
             // Anti-Spoofing: Accuracy Check
             if ($request->has('accuracy') && $request->accuracy > 200 && !$hasIncomingPhotos) {
@@ -396,7 +412,14 @@ class ItineraryItemController extends Controller
                 (float) $spot->longitude
             );
 
-            if ($distanceMeters > self::MAX_DISTANCE_METERS) {
+            if ($spot->hasBoundary()) {
+                if (!$spot->containsPoint((float) $request->lat, (float) $request->lng)) {
+                    return response()->json([
+                        'message'           => "You are outside the boundary of {$spot->name}. Please move inside the site area to check in! 📍",
+                        'boundary_required' => true,
+                    ], 403);
+                }
+            } elseif ($distanceMeters > self::MAX_DISTANCE_METERS) {
                 return response()->json([
                     'message'  => "You're too far from {$spot->name}. Get within " . self::MAX_DISTANCE_METERS . "m to check in! 📍",
                     'distance' => round($distanceMeters) . 'm away',

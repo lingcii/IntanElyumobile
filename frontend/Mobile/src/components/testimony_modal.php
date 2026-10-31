@@ -166,7 +166,8 @@ window.fetchUserReviewedSpots = async function() {
 // Sync all buttons on current screen with reviewed state
 window.syncReviewedButtons = function() {
     if (!window.userReviewedSpotIds) return;
-    document.querySelectorAll('[data-spot-id]').forEach(btn => {
+    document.querySelectorAll('[data-spot-id]:not(.saved-trip-checkin-btn):not(.trip-map-checkin-btn)').forEach(btn => {
+        if (btn.classList.contains('saved-trip-checkin-btn') || btn.classList.contains('trip-map-checkin-btn') || btn.classList.contains('saved-trip-proof-btn')) return;
         const spotId = Number(btn.getAttribute('data-spot-id'));
         const itemId = Number(btn.getAttribute('data-itinerary-item-id'));
         const isReviewed = itemId

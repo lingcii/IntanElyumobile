@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "cd src && php -S 0.0.0.0:3000 router.php",
-    "test": "node tests/offline-proof-isolation.test.js && node tests/mobile-voucher-sync.test.js && node tests/itinerary-guardrails.test.js && node tests/maintenance-mode-sync.test.js && node tests/saved-trip-review-ux.test.js && node tests/mobile-performance.test.js && node tests/map-directions.test.js && node tests/auth-ui.test.js && node tests/registration-otp-flow.test.js && node tests/splash-onboarding.test.js",
+    "test": "node tests/offline-proof-isolation.test.js && node tests/mobile-voucher-sync.test.js && node tests/itinerary-guardrails.test.js && node tests/maintenance-mode-sync.test.js && node tests/saved-trip-review-ux.test.js && node tests/mobile-performance.test.js && node tests/map-directions.test.js && node tests/auth-ui.test.js && node tests/registration-otp-flow.test.js && node tests/splash-onboarding.test.js && node tests/geofence-polygon.test.js",
     "test:proof-sync": "node tests/offline-proof-isolation.test.js",
     "test:voucher-sync": "node tests/mobile-voucher-sync.test.js",
     "test:itinerary-guardrails": "node tests/itinerary-guardrails.test.js",

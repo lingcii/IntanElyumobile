@@ -38,6 +38,7 @@ class TouristSpot extends Model
         'visits',
         'rating',
         'maximum_capacity',
+        'boundary_geojson',
     ];
 
     protected $casts = [
@@ -52,6 +53,7 @@ class TouristSpot extends Model
         'accessible_by_private_vehicle' => 'boolean',
         'latitude'                      => 'float',
         'longitude'                     => 'float',
+        'boundary_geojson'              => 'array',
         'is_open_24_hours'              => 'boolean',
         'is_maintenance'                => 'boolean',
         'visits'                        => 'integer',
@@ -143,6 +145,76 @@ class TouristSpot extends Model
             $q->whereNotIn('status', ['pending', 'rejected', 'draft'])
               ->orWhereNull('status');
         });
+    }
+
+    /**
+     * Check if the spot has an active polygon boundary.
+     */
+    public function hasBoundary(): bool
+    {
+        $geo = $this->boundary_geojson;
+        if (is_string($geo)) {
+            $geo = json_decode($geo, true);
+        }
+        if (!is_array($geo)) {
+            return false;
+        }
+        $type = $geo['type'] ?? null;
+        $coordinates = $geo['coordinates'] ?? [];
+        return in_array($type, ['Polygon', 'MultiPolygon'], true) && !empty($coordinates);
+    }
+
+    /**
+     * Determine if a latitude/longitude coordinate falls inside the spot's GeoJSON polygon boundary.
+     */
+    public function containsPoint(float $lat, float $lng): bool
+    {
+        $geo = $this->boundary_geojson;
+        if (is_string($geo)) {
+            $geo = json_decode($geo, true);
+        }
+        if (!is_array($geo)) {
+            return false;
+        }
+
+        $type = $geo['type'] ?? null;
+        $coordinates = $geo['coordinates'] ?? [];
+
+        if ($type === 'Polygon' && isset($coordinates[0]) && is_array($coordinates[0])) {
+            return self::isPointInRing($lat, $lng, $coordinates[0]);
+        }
+
+        if ($type === 'MultiPolygon' && is_array($coordinates)) {
+            foreach ($coordinates as $poly) {
+                if (isset($poly[0]) && is_array($poly[0]) && self::isPointInRing($lat, $lng, $poly[0])) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private static function isPointInRing(float $lat, float $lng, array $ring): bool
+    {
+        $inside = false;
+        $count = count($ring);
+        if ($count < 3) return false;
+
+        for ($i = 0, $j = $count - 1; $i < $count; $j = $i++) {
+            $xi = (float) ($ring[$i][0] ?? 0); // lng
+            $yi = (float) ($ring[$i][1] ?? 0); // lat
+            $xj = (float) ($ring[$j][0] ?? 0); // lng
+            $yj = (float) ($ring[$j][1] ?? 0); // lat
+
+            $intersect = (($yi > $lat) !== ($yj > $lat))
+                && ($lng < ($xj - $xi) * ($lat - $yi) / ($yj - $yi) + $xi);
+            if ($intersect) {
+                $inside = !$inside;
+            }
+        }
+
+        return $inside;
     }
 
     public static function clearSpotCaches(): void

@@ -472,7 +472,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
         }
 
         const TRIP_MAP_CHECKIN_RADIUS_METERS = 70;
-        const TRIP_MAP_MAX_GPS_ACCURACY_METERS = 200;
+        const TRIP_MAP_MAX_GPS_ACCURACY_METERS = 1000;
 
         window.updateTripMapCheckinAvailability = function (lat, lng, accuracy = null) {
             const userLat = Number(lat);
@@ -488,18 +488,53 @@ include_once __DIR__ . '/../components/testimony_modal.php';
             document.querySelectorAll('.trip-map-checkin-btn').forEach(button => {
                 const destinationLat = Number(button.dataset.destLat);
                 const destinationLng = Number(button.dataset.destLng);
-                const hasDestination = button.dataset.destLat !== '' && button.dataset.destLng !== '' &&
-                    Number.isFinite(destinationLat) && Number.isFinite(destinationLng);
-                const distance = hasReliableFix && hasDestination
-                    ? calcCoordDistMeters(userLat, userLng, destinationLat, destinationLng)
-                    : Infinity;
-                const inRange = distance <= TRIP_MAP_CHECKIN_RADIUS_METERS;
+                const itemId = button.dataset.itemId;
+                const spotId = button.dataset.touristSpotId || button.dataset.spotId;
+
+                let inRange = false;
+                let hasPolygon = false;
+
+                if (hasReliableFix) {
+                    let spotBoundary = null;
+                    if (button.dataset.boundary) {
+                        try {
+                            const decoded = decodeURIComponent(button.dataset.boundary);
+                            if (decoded && decoded !== '""' && decoded !== 'null') {
+                                spotBoundary = JSON.parse(decoded);
+                            }
+                        } catch (e) {}
+                    }
+                    if (!spotBoundary && spotId && typeof window.getTouristSpotById === 'function') {
+                        const spotObj = window.getTouristSpotById(spotId);
+                        spotBoundary = spotObj?.boundary_geojson;
+                    }
+                    if (!spotBoundary && window.currentTrip && Array.isArray(window.currentTrip.items)) {
+                        const itm = window.currentTrip.items.find(i => String(i.id) === String(itemId));
+                        spotBoundary = itm?.destination?.boundary_geojson;
+                    }
+                    if (!spotBoundary && window.currentTrip && Array.isArray(window.currentTrip.itinerary_items)) {
+                        const itm = window.currentTrip.itinerary_items.find(i => String(i.id) === String(itemId));
+                        spotBoundary = itm?.destination?.boundary_geojson;
+                    }
+
+                    if (typeof window.spotHasPolygonBoundary === 'function' && window.spotHasPolygonBoundary(spotBoundary)) {
+                        hasPolygon = true;
+                        inRange = (typeof window.isPointInSpotPolygon === 'function') &&
+                            window.isPointInSpotPolygon(userLat, userLng, spotBoundary);
+                    } else if (button.dataset.destLat !== '' && button.dataset.destLng !== '' && Number.isFinite(destinationLat) && Number.isFinite(destinationLng)) {
+                        const distance = calcCoordDistMeters(userLat, userLng, destinationLat, destinationLng);
+                        inRange = distance <= TRIP_MAP_CHECKIN_RADIUS_METERS;
+                    }
+                }
+
                 button.disabled = !inRange;
                 button.classList.toggle('is-available', inRange);
                 button.setAttribute('aria-disabled', String(!inRange));
                 button.title = inRange
                     ? 'You are at this tourist site. Check in now.'
-                    : 'Available when GPS detects you within 70 meters of this tourist site.';
+                    : (hasPolygon
+                        ? 'Available when GPS detects you inside the site boundary.'
+                        : 'Available when GPS detects you within 70 meters of this tourist site.');
             });
         };
 
@@ -650,7 +685,9 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                 const destEscaped = (dest && dest.name) ? dest.name.replace(/'/g, "\\'") : 'Destination';
                 const resolvedAll = proofImages.map(u => (typeof window.resolveProofImageUrl === 'function' ? window.resolveProofImageUrl(u) : u));
                 const jsonUrlsAttr = JSON.stringify(resolvedAll).replace(/"/g, '&quot;');
-                const checkInButtonAttrs = `class="trip-map-checkin-btn" data-dest-lat="${Number.isFinite(lat) ? lat : ''}" data-dest-lng="${Number.isFinite(lng) ? lng : ''}" disabled aria-disabled="true"`;
+                const sId = item.tourist_spot_id || item.destination_id || (dest ? dest.id : '');
+
+                const checkInButtonAttrs = `class="trip-map-checkin-btn" data-item-id="${item.id}" data-tourist-spot-id="${sId}" data-boundary="${encodeURIComponent(JSON.stringify(dest?.boundary_geojson || ''))}" data-dest-lat="${Number.isFinite(lat) ? lat : ''}" data-dest-lng="${Number.isFinite(lng) ? lng : ''}" disabled aria-disabled="true"`;
 
                 let proofThumbnailStrip = '';
                 if (proofImages.length > 0) {
@@ -696,7 +733,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                         ${proofThumbnailStrip}
                         <div style="display:flex; flex-direction:column; gap:2px;">
                             <span style="background:#dcfce7; border:1px solid #bbf7d0; color:#15803d; font-weight:800; font-size:10px; padding:2px 8px; border-radius:100px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-circle-check"></i> Visited</span>
-                            <button type="button" data-spot-id="${sId}" data-itinerary-item-id="${item.id}" data-spot-classification="${sClass}" onclick="event.stopPropagation(); window.openWriteTestimonyModal('${sId}', this, '${item.id}')" style="background:#eff6ff; border:1px solid #bfdbfe; color:#1d4ed8; font-size:9.5px; font-weight:800; padding:2px 8px; border-radius:100px; cursor:pointer; width:fit-content;">
+                            <button type="button" data-tourist-spot-id="${sId}" data-itinerary-item-id="${item.id}" data-spot-classification="${sClass}" onclick="event.stopPropagation(); window.openWriteTestimonyModal('${sId}', this, '${item.id}')" style="background:#eff6ff; border:1px solid #bfdbfe; color:#1d4ed8; font-size:9.5px; font-weight:800; padding:2px 8px; border-radius:100px; cursor:pointer; width:fit-content;">
                                 ${isReviewed ? '<i class="fa-solid fa-check"></i> Reviewed' : '<i class="fa-solid fa-pen"></i> Review'}
                             </button>
                         </div>
@@ -1978,7 +2015,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                         lng: window.myLng || 120.3209,
                         image: firstFile,
                         previewUrl: previewUrls[0] || null,
-                        capturedAt: new Date().toISOString()
+                        capturedAt: (typeof window.getPhilippineTimestampISO === 'function' ? window.getPhilippineTimestampISO() : new Date().toISOString())
                     });
                 }
                 window.closeProofUploadModal();
@@ -1996,6 +2033,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                 formData.append('images[]', item.file, item.file.name || `proof_${Date.now()}_${idx}.jpg`);
             });
             formData.append('image', firstFile);
+            formData.append('captured_at', (typeof window.getPhilippineTimestampISO === 'function' ? window.getPhilippineTimestampISO() : new Date().toISOString()));
 
             const fallbackOffline = async (reason) => {
                 if (window.OfflineCheckinManager) {
@@ -2009,7 +2047,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                         lng: window.myLng || 120.3209,
                         image: firstFile,
                         previewUrl: previewUrls[0] || null,
-                        capturedAt: new Date().toISOString()
+                        capturedAt: (typeof window.getPhilippineTimestampISO === 'function' ? window.getPhilippineTimestampISO() : new Date().toISOString())
                     });
                     window.closeProofUploadModal();
                     if (typeof showToast === 'function') {
@@ -2138,7 +2176,20 @@ include_once __DIR__ . '/../components/testimony_modal.php';
             }
 
             const doSubmitCheckin = async (lat, lng, accuracy = null) => {
-                if (sLat !== null && sLng !== null && !isNaN(sLat) && !isNaN(sLng)) {
+                const liveSpot = (spotId && typeof window.getTouristSpotById === 'function') ? window.getTouristSpotById(spotId) : null;
+                const spotBoundary = liveSpot?.boundary_geojson || targetItem?.destination?.boundary_geojson;
+                const hasPolygon = (typeof window.spotHasPolygonBoundary === 'function') && window.spotHasPolygonBoundary(spotBoundary);
+
+                if (hasPolygon) {
+                    const isInsidePoly = (typeof window.isPointInSpotPolygon === 'function') && window.isPointInSpotPolygon(lat, lng, spotBoundary);
+                    if (!isInsidePoly) {
+                        if (typeof showToast === 'function') {
+                            showToast(`📍 You are outside the boundary of ${spotName || 'the destination'}. Please move inside the site area to check in! 📍`, 'warning', 4500);
+                        }
+                        restoreCheckinButton();
+                        return;
+                    }
+                } else if (sLat !== null && sLng !== null && !isNaN(sLat) && !isNaN(sLng)) {
                     const dist = getDistance(lat, lng, sLat, sLng);
                     if (dist > 70) {
                         const distM = Math.round(dist);
@@ -2170,7 +2221,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                             total_pax: tPax,
                             companion_males: cMales,
                             companion_females: cFemales,
-                            capturedAt: new Date().toISOString()
+                            capturedAt: (typeof window.getPhilippineTimestampISO === 'function' ? window.getPhilippineTimestampISO() : new Date().toISOString())
                         });
                     }
                     if (typeof showToast === 'function') {
@@ -2190,7 +2241,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                 formData.append('total_pax', tPax);
                 formData.append('companion_males', cMales);
                 formData.append('companion_females', cFemales);
-                formData.append('captured_at', new Date().toISOString());
+                formData.append('captured_at', (typeof window.getPhilippineTimestampISO === 'function' ? window.getPhilippineTimestampISO() : new Date().toISOString()));
 
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 12000);
@@ -2242,7 +2293,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                             accuracy: accuracy,
                             destLat: sLat,
                             destLng: sLng,
-                            capturedAt: new Date().toISOString()
+                            capturedAt: (typeof window.getPhilippineTimestampISO === 'function' ? window.getPhilippineTimestampISO() : new Date().toISOString())
                         });
                         if (typeof showToast === 'function') {
                             showToast('📍 Saved Offline! Check-in queued on device. Auto-syncs when online.', 'info');
@@ -2255,8 +2306,20 @@ include_once __DIR__ . '/../components/testimony_modal.php';
             };
 
             const checkAndProceed = (lat, lng, accuracy = null) => {
-                // Strict 70m radius check (applies to both offline and online)
-                if (sLat != null && sLng != null && !isNaN(sLat) && !isNaN(sLng)) {
+                const liveSpot = (spotId && typeof window.getTouristSpotById === 'function') ? window.getTouristSpotById(spotId) : null;
+                const spotBoundary = liveSpot?.boundary_geojson || targetItem?.destination?.boundary_geojson;
+                const hasPolygon = (typeof window.spotHasPolygonBoundary === 'function') && window.spotHasPolygonBoundary(spotBoundary);
+
+                if (hasPolygon) {
+                    const isInsidePoly = (typeof window.isPointInSpotPolygon === 'function') && window.isPointInSpotPolygon(lat, lng, spotBoundary);
+                    if (!isInsidePoly) {
+                        if (typeof showToast === 'function') {
+                            showToast(`📍 You are outside the boundary of ${spotName || 'the tourist site'}. Please move inside the site area to check in! 📍`, 'warning', 4500);
+                        }
+                        restoreCheckinButton();
+                        return;
+                    }
+                } else if (sLat != null && sLng != null && !isNaN(sLat) && !isNaN(sLng)) {
                     const dist = getDistance(lat, lng, sLat, sLng);
                     if (dist > 70) {
                         const distM = Math.round(dist);
@@ -2266,7 +2329,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                             showToast(`⚠️ You are ${displayDist} away from ${spotName || 'the tourist site'}. You must be within 70m of the tourist site to check in! 📍`, 'warning', 4500);
                         }
                         restoreCheckinButton();
-                        return; // Neither offline nor online check-in is allowed outside 70m.
+                        return;
                     }
                 }
                 doSubmitCheckin(lat, lng, accuracy);

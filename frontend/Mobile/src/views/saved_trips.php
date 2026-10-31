@@ -431,6 +431,33 @@ $backRoute = 'itinerary';
             };
         }
 
+        if (typeof window.getPhilippineTimestampISO !== 'function') {
+            window.getPhilippineTimestampISO = function (dateInput) {
+                try {
+                    const d = dateInput ? new Date(dateInput) : new Date();
+                    const formatter = new Intl.DateTimeFormat('en-CA', {
+                        timeZone: 'Asia/Manila',
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit',
+                        hour12: false
+                    });
+                    const parts = formatter.formatToParts(d);
+                    const p = {};
+                    parts.forEach(({ type, value }) => { p[type] = value; });
+                    return `${p.year}-${p.month}-${p.day}T${p.hour}:${p.minute}:${p.second}+08:00`;
+                } catch (e) {
+                    const d = dateInput ? new Date(dateInput) : new Date();
+                    const ph = new Date(d.getTime() + (8 * 3600000) + (d.getTimezoneOffset() * 60000));
+                    const pad = (n) => String(n).padStart(2, '0');
+                    return `${ph.getFullYear()}-${pad(ph.getMonth() + 1)}-${pad(ph.getDate())}T${pad(ph.getHours())}:${pad(ph.getMinutes())}:${pad(ph.getSeconds())}+08:00`;
+                }
+            };
+        }
+
         window.getPersistentItemStates = function () {
             try {
                 const raw = JSON.parse(localStorage.getItem('intan_elyu_verified_item_states') || '{}');
@@ -1120,12 +1147,20 @@ $backRoute = 'itinerary';
             return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         }
 
+        const SAVED_TRIP_MAX_GPS_ACCURACY_METERS = 1000;
+
         window.updateSavedTripCheckinAvailability = function (lat, lng, accuracy = null) {
             const userLat = Number(lat);
             const userLng = Number(lng);
             const gpsAccuracy = Number(accuracy);
             const hasReliableFix = Number.isFinite(userLat) && Number.isFinite(userLng) &&
-                (!Number.isFinite(gpsAccuracy) || gpsAccuracy <= SAVED_TRIP_CHECKIN_RADIUS_METERS);
+                (!Number.isFinite(gpsAccuracy) || gpsAccuracy <= SAVED_TRIP_MAX_GPS_ACCURACY_METERS);
+
+            if (hasReliableFix) {
+                window.currentGPSLat = userLat;
+                window.currentGPSLng = userLng;
+                window.currentGPSAccuracy = gpsAccuracy;
+            }
 
             document.querySelectorAll('.saved-trip-checkin-btn').forEach(button => {
                 if (button.dataset.checked === 'true') return;
@@ -1137,28 +1172,86 @@ $backRoute = 'itinerary';
                 }
                 const destinationLat = Number(button.dataset.destLat);
                 const destinationLng = Number(button.dataset.destLng);
-                const hasDestination = button.dataset.destLat !== '' && button.dataset.destLng !== '' &&
-                    Number.isFinite(destinationLat) && Number.isFinite(destinationLng);
-                const inRange = hasReliableFix && hasDestination &&
-                    getSavedTripDistanceMeters(userLat, userLng, destinationLat, destinationLng) <= SAVED_TRIP_CHECKIN_RADIUS_METERS;
+                const itemId = button.dataset.itemId;
+                const spotId = button.dataset.touristSpotId || button.dataset.spotId;
+
+                let inRange = false;
+                let hasPolygon = false;
+
+                if (hasReliableFix) {
+                    let spotBoundary = null;
+                    if (button.dataset.boundary) {
+                        try {
+                            const decoded = decodeURIComponent(button.dataset.boundary);
+                            if (decoded && decoded !== '""' && decoded !== 'null') {
+                                spotBoundary = JSON.parse(decoded);
+                            }
+                        } catch (e) {}
+                    }
+                    if (!spotBoundary && spotId && typeof window.getTouristSpotById === 'function') {
+                        const spotObj = window.getTouristSpotById(spotId);
+                        spotBoundary = spotObj?.boundary_geojson;
+                    }
+
+                    if (typeof window.spotHasPolygonBoundary === 'function' && window.spotHasPolygonBoundary(spotBoundary)) {
+                        hasPolygon = true;
+                        inRange = (typeof window.isPointInSpotPolygon === 'function') &&
+                            window.isPointInSpotPolygon(userLat, userLng, spotBoundary);
+                    } else if (button.dataset.destLat !== '' && button.dataset.destLng !== '' && Number.isFinite(destinationLat) && Number.isFinite(destinationLng)) {
+                        const distance = getSavedTripDistanceMeters(userLat, userLng, destinationLat, destinationLng);
+                        inRange = distance <= SAVED_TRIP_CHECKIN_RADIUS_METERS;
+                    }
+                }
+
                 button.disabled = !inRange;
                 button.classList.toggle('is-available', inRange);
                 button.setAttribute('aria-disabled', String(!inRange));
-                button.title = inRange ? 'You are at this tourist site. Check in now.' : 'Available when you are within 70 meters of this tourist site.';
+                button.title = inRange
+                    ? 'You are at this tourist site. Check in now.'
+                    : (hasPolygon
+                        ? 'Available when GPS detects you inside the site boundary.'
+                        : 'Available when you are within 70 meters of this tourist site.');
             });
         };
 
         function refreshSavedTripCheckinAvailability() {
-            const cached = window.deviceLastPos;
-            if (cached && cached.coords) {
-                window.updateSavedTripCheckinAvailability(cached.coords.latitude, cached.coords.longitude, cached.coords.accuracy);
+            // Immediate check with any known global GPS position
+            if (window.currentGPSLat && window.currentGPSLng) {
+                window.updateSavedTripCheckinAvailability(window.currentGPSLat, window.currentGPSLng, window.currentGPSAccuracy || 10);
+            } else if (window.deviceLastPos && window.deviceLastPos.coords) {
+                window.updateSavedTripCheckinAvailability(window.deviceLastPos.coords.latitude, window.deviceLastPos.coords.longitude, window.deviceLastPos.coords.accuracy);
             }
-            const now = Date.now();
-            if (typeof window.requestPreciseLocation === 'function' && (!window._savedTripsLastProximityRequestAt || now - window._savedTripsLastProximityRequestAt > 30000)) {
-                window._savedTripsLastProximityRequestAt = now;
-                window.requestPreciseLocation(false).then(location => {
-                    if (location) window.updateSavedTripCheckinAvailability(location.lat, location.lng, location.accuracy);
-                }).catch(() => {});
+
+            // Always query current browser/emulator geolocation immediately
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    pos => {
+                        if (pos && pos.coords) {
+                            window.currentGPSLat = pos.coords.latitude;
+                            window.currentGPSLng = pos.coords.longitude;
+                            window.currentGPSAccuracy = pos.coords.accuracy;
+                            window.updateSavedTripCheckinAvailability(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy);
+                        }
+                    },
+                    () => {},
+                    { enableHighAccuracy: true, timeout: 8000, maximumAge: 1000 }
+                );
+
+                // Start continuous background GPS watching if not already started
+                if (!window._savedTripsWatchId) {
+                    window._savedTripsWatchId = navigator.geolocation.watchPosition(
+                        pos => {
+                            if (pos && pos.coords) {
+                                window.currentGPSLat = pos.coords.latitude;
+                                window.currentGPSLng = pos.coords.longitude;
+                                window.currentGPSAccuracy = pos.coords.accuracy;
+                                window.updateSavedTripCheckinAvailability(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy);
+                            }
+                        },
+                        () => {},
+                        { enableHighAccuracy: true, timeout: 10000, maximumAge: 2000 }
+                    );
+                }
             }
         }
 
@@ -1770,6 +1863,9 @@ $backRoute = 'itinerary';
                                                 data-stop-unlocked="${isStopUnlocked}"
                                                 data-dest-lat="${destinationLatAttr}"
                                                 data-dest-lng="${destinationLngAttr}"
+                                                data-item-id="${item.id}"
+                                                data-tourist-spot-id="${item.tourist_spot_id || (dest ? dest.id : '')}"
+                                                data-boundary="${encodeURIComponent(JSON.stringify(dest?.boundary_geojson || ''))}"
                                                 data-checked="${(isLocVerified || isApproved) ? 'true' : 'false'}"
                                                 aria-disabled="true"
                                                 disabled
@@ -2485,7 +2581,7 @@ $backRoute = 'itinerary';
                         lng: window.myLng || 120.3209,
                         image: firstFile,
                         previewUrl: previewUrls[0] || null,
-                        capturedAt: new Date().toISOString(),
+                        capturedAt: (typeof window.getPhilippineTimestampISO === 'function' ? window.getPhilippineTimestampISO() : new Date().toISOString()),
                         isPhotoUploadOnly: true
                     });
                 }
@@ -2509,6 +2605,7 @@ $backRoute = 'itinerary';
                 formData.append('images[]', item.file, item.file.name || `proof_${Date.now()}_${idx}.jpg`);
             });
             formData.append('image', firstFile);
+            formData.append('captured_at', (typeof window.getPhilippineTimestampISO === 'function' ? window.getPhilippineTimestampISO() : new Date().toISOString()));
 
             const fallbackOffline = async (reason) => {
                 if (window.OfflineCheckinManager) {
@@ -2522,7 +2619,7 @@ $backRoute = 'itinerary';
                         lng: window.myLng || 120.3209,
                         image: firstFile,
                         previewUrl: previewUrls[0] || null,
-                        capturedAt: new Date().toISOString(),
+                        capturedAt: (typeof window.getPhilippineTimestampISO === 'function' ? window.getPhilippineTimestampISO() : new Date().toISOString()),
                         isPhotoUploadOnly: true
                     });
                     window.closeProofUploadModal();
@@ -2657,8 +2754,23 @@ $backRoute = 'itinerary';
             }
 
             const doSubmitCheckin = async (lat, lng) => {
-                // Check if user is within destination radius (70m)
-                if (destLat !== null && destLng !== null && !isNaN(destLat) && !isNaN(destLng)) {
+                const liveSpot = (spotId && typeof window.getTouristSpotById === 'function') ? window.getTouristSpotById(spotId) : null;
+                const spotBoundary = liveSpot?.boundary_geojson || targetItem?.destination?.boundary_geojson;
+                const hasPolygon = (typeof window.spotHasPolygonBoundary === 'function') && window.spotHasPolygonBoundary(spotBoundary);
+
+                if (hasPolygon) {
+                    const isInsidePoly = (typeof window.isPointInSpotPolygon === 'function') && window.isPointInSpotPolygon(lat, lng, spotBoundary);
+                    if (!isInsidePoly) {
+                        if (typeof showToast === 'function') {
+                            showToast(`📍 You are outside the boundary of ${spotName || 'the tourist site'}. Please move inside the site area to check in! 📍`, 'warning', 4500);
+                        }
+                        if (btnEl) {
+                            btnEl.innerHTML = originalHtml;
+                            btnEl.disabled = false;
+                        }
+                        return; // Location remains unchecked!
+                    }
+                } else if (destLat !== null && destLng !== null && !isNaN(destLat) && !isNaN(destLng)) {
                     const dist = getHaversineDist(lat, lng, destLat, destLng);
                     if (dist > 70) {
                         const distM = Math.round(dist);
@@ -2690,7 +2802,7 @@ $backRoute = 'itinerary';
                             total_pax: tPax,
                             companion_males: cMales,
                             companion_females: cFemales,
-                            capturedAt: new Date().toISOString()
+                            capturedAt: (typeof window.getPhilippineTimestampISO === 'function' ? window.getPhilippineTimestampISO() : new Date().toISOString())
                         });
                     }
                     if (typeof showToast === 'function') {
@@ -2709,7 +2821,7 @@ $backRoute = 'itinerary';
                 formData.append('total_pax', tPax);
                 formData.append('companion_males', cMales);
                 formData.append('companion_females', cFemales);
-                formData.append('captured_at', new Date().toISOString());
+                formData.append('captured_at', (typeof window.getPhilippineTimestampISO === 'function' ? window.getPhilippineTimestampISO() : new Date().toISOString()));
 
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 12000);
@@ -2761,7 +2873,7 @@ $backRoute = 'itinerary';
                             spotName: spotName || 'Destination',
                             lat: lat,
                             lng: lng,
-                            capturedAt: new Date().toISOString()
+                            capturedAt: (typeof window.getPhilippineTimestampISO === 'function' ? window.getPhilippineTimestampISO() : new Date().toISOString())
                         });
                         if (typeof showToast === 'function') {
                             showToast(`📍 Checked in offline at ${spotName}! Auto-syncs when online.`, 'success');
