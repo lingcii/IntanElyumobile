@@ -25,10 +25,10 @@
 
     <!-- Core App Stylesheets -->
     <link rel="stylesheet" href="assets/css/style.css">
-    <link rel="stylesheet" href="assets/css/components/header.css">
-    <link rel="stylesheet" href="assets/css/components/bottom_nav.css">
+    <link rel="stylesheet" href="assets/css/components/header.css?v=47">
+    <link rel="stylesheet" href="assets/css/components/bottom_nav.css?v=47">
     <link rel="stylesheet" href="assets/css/components/modals.css">
-    <link rel="stylesheet" href="assets/css/views/dashboard.css">
+    <link rel="stylesheet" href="assets/css/views/dashboard.css?v=47">
     <link rel="stylesheet" href="assets/css/views/profile.css">
     <link rel="stylesheet" href="assets/css/views/settings.css">
     <link rel="stylesheet" href="assets/css/views/leaderboard.css">
@@ -106,7 +106,7 @@
 
     <!-- Capacitor & Main Router -->
     <script src="assets/js/capacitor/capacitor.js"></script>
-    <script src="assets/js/main.js"></script>
+    <script src="assets/js/main.js?v=47"></script>
 </head>
 
 <body data-view="dashboard">
@@ -176,42 +176,35 @@
                 </div>
             </div>
             <div class="dashboard-container has-header has-bottom-nav animate-slide-up">
-                <div class="profile-header stagger-1" onclick="navigateTo('profile')"
-                    style="background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline: none !important; box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important;">
-                    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:14px;">
-                        <div class="profile-info-row" style="margin-bottom:0; flex:1;">
-                            <div class="profile-avatar">
-                                <img id="dash-avatar" src="https://ui-avatars.com/api/?name=Explorer&background=007AFF&color=fff&rounded=true&bold=true&size=128" alt="Avatar">
+                <div class="dash-hero-banner stagger-1" style="position: relative; border-radius: 28px; background: linear-gradient(135deg, #0e2a56 0%, #15386f 50%, #1e4080 100%) !important; padding: 22px 18px 18px 18px; overflow: hidden; margin-bottom: 14px; box-shadow: 0 8px 24px rgba(14, 42, 86, 0.25); display: flex; justify-content: space-between;">
+                    <div class="dash-hero-content">
+                        <span class="dash-hero-eyebrow" style="font-size: 15px; font-weight: 700; color: #ffffff; display: block;">Discover</span>
+                        <h1 class="dash-hero-title" style="font-size: 32px; font-weight: 900; color: #ffffff; margin: 2px 0 6px 0; line-height: 1.1;">La Union</h1>
+                        <div class="dash-user-strip" onclick="navigateTo('profile')" title="View Profile" style="background: rgba(255, 255, 255, 0.12); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-radius: 14px; padding: 6px 12px; display: inline-flex; width: fit-content; max-width: 100%; align-items: center; gap: 8px; cursor: pointer; box-sizing: border-box; margin-bottom: 10px;">
+                            <div class="dash-user-avatar-wrap" style="width: 32px; height: 32px; border-radius: 50%; overflow: hidden; flex-shrink: 0; border: 1.5px solid rgba(255, 255, 255, 0.6);">
+                                <img id="dash-avatar" src="https://ui-avatars.com/api/?name=Explorer&background=007AFF&color=fff&rounded=true&bold=true&size=128" alt="Avatar" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; display: block;">
                             </div>
-                            <div class="profile-text">
-                                <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-                                    <h2 class="profile-name" id="dash-name" style="margin:0;">Hi, Explorer! <i class="fa-solid fa-hand" style="color:#fbbf24; font-size:18px; margin-left:4px;"></i></h2>
-                                </div>
-                                <div id="dash-title-row" style="display:flex; align-items:center; gap:8px; margin-top:6px; flex-wrap:wrap;">
-                                    <span class="profile-title" id="dash-title"><i class="fa-solid fa-compass" style="color:#ffffff; font-size:11px;"></i> Explorer of Elyu</span>
-                                    <span id="dash-status-badge"><i class="fa-solid fa-circle" style="font-size:6px; margin-right:4px; color:#ffffff;"></i> Active Tourist</span>
-                                </div>
+                            <div class="dash-user-details" style="flex: 1; min-width: 0;">
+                                <span class="dash-user-name" id="dash-name" style="font-size: 13.5px; font-weight: 800; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;">Hi, Explorer! <i class="fa-solid fa-hand" style="color:#fbbf24; font-size:12px; margin-left:2px;"></i></span>
+                            </div>
+                            <div id="dash-title-row" style="display:none !important;">
+                                <span id="dash-title" style="display:none !important;"></span>
+                                <span id="dash-status-badge" style="display:none !important;"></span>
                             </div>
                         </div>
-                    </div>
-                    <div class="stats-row" id="dash-stats-row" style="margin-bottom:0; display:grid; grid-template-columns:repeat(3, 1fr); gap:8px;">
-                        <div class="stat-card" onclick="event.stopPropagation(); navigateTo('itinerary');"
-                            style="background: linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.14) 100%) !important; border: none !important; outline: none !important; border-radius: 16px; padding: 10px 6px; text-align: center; cursor: pointer; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 4px 14px rgba(10, 25, 60, 0.2) !important;">
-                            <div class="stat-icon" style="font-size:18px; margin-bottom:3px;"><i class="fa-solid fa-map-location-dot" style="color:#38bdf8;"></i></div>
-                            <div class="stat-value" id="dash-stat-places" style="font-size:17px; font-weight:900; color:#ffffff; margin-bottom:1px; letter-spacing:-0.4px;">0</div>
-                            <div class="stat-label" style="font-size:10px; font-weight:800; color:#ffffff !important; text-transform:uppercase; letter-spacing:0.5px; opacity:0.95;">Places</div>
-                        </div>
-                        <div class="stat-card" onclick="event.stopPropagation(); navigateTo('leaderboard');"
-                            style="background: linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.14) 100%) !important; border: none !important; outline: none !important; border-radius: 16px; padding: 10px 6px; text-align: center; cursor: pointer; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 4px 14px rgba(10, 25, 60, 0.2) !important;">
-                            <div class="stat-icon" style="font-size:18px; margin-bottom:3px;"><i class="fa-solid fa-coins" style="color:#fbbf24;"></i></div>
-                            <div class="stat-value" id="dash-stat-points" style="font-size:17px; font-weight:900; color:#ffffff; margin-bottom:1px; letter-spacing:-0.4px;">0</div>
-                            <div class="stat-label" style="font-size:10px; font-weight:800; color:#ffffff !important; text-transform:uppercase; letter-spacing:0.5px; opacity:0.95;">Points</div>
-                        </div>
-                        <div class="stat-card" onclick="event.stopPropagation(); navigateTo('leaderboard');"
-                            style="background: linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.14) 100%) !important; border: none !important; outline: none !important; border-radius: 16px; padding: 10px 6px; text-align: center; cursor: pointer; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 4px 14px rgba(10, 25, 60, 0.2) !important;">
-                            <div class="stat-icon" style="font-size:18px; margin-bottom:3px;"><i class="fa-solid fa-trophy" style="color:#f59e0b;"></i></div>
-                            <div class="stat-value" id="dash-stat-rank" style="font-size:17px; font-weight:900; color:#ffffff; margin-bottom:1px; letter-spacing:-0.4px;">#1</div>
-                            <div class="stat-label" style="font-size:10px; font-weight:800; color:#ffffff !important; text-transform:uppercase; letter-spacing:0.5px; opacity:0.95;">Rank</div>
+                        <div class="dash-mini-stats" id="dash-stats-row" style="display: flex; align-items: center; gap: 8px; flex-shrink: 0; margin-top: 2px;">
+                            <div class="dash-mini-stat" onclick="event.stopPropagation(); navigateTo('itinerary');" title="Places Visited" style="background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 12px; padding: 5px 12px; text-align: center; min-width: 52px; cursor: pointer;">
+                                <span class="dash-mini-val" id="dash-stat-places" style="font-size: 13px; font-weight: 900; color: #ffffff; display: block; line-height: 1.1;">0</span>
+                                <span class="dash-mini-lbl" style="font-size: 8.5px; font-weight: 700; color: rgba(255, 255, 255, 0.8); text-transform: uppercase; letter-spacing: 0.4px; display: block; margin-top: 2px;">Places</span>
+                            </div>
+                            <div class="dash-mini-stat" onclick="event.stopPropagation(); navigateTo('leaderboard');" title="Reward Points" style="background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 12px; padding: 5px 12px; text-align: center; min-width: 52px; cursor: pointer;">
+                                <span class="dash-mini-val" id="dash-stat-points" style="font-size: 13px; font-weight: 900; color: #ffffff; display: block; line-height: 1.1;">0</span>
+                                <span class="dash-mini-lbl" style="font-size: 8.5px; font-weight: 700; color: rgba(255, 255, 255, 0.8); text-transform: uppercase; letter-spacing: 0.4px; display: block; margin-top: 2px;">Points</span>
+                            </div>
+                            <div class="dash-mini-stat" onclick="event.stopPropagation(); navigateTo('leaderboard');" title="Current Leaderboard Rank" style="background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 12px; padding: 5px 12px; text-align: center; min-width: 52px; cursor: pointer;">
+                                <span class="dash-mini-val" id="dash-stat-rank" style="font-size: 13px; font-weight: 900; color: #ffffff; display: block; line-height: 1.1;">#1</span>
+                                <span class="dash-mini-lbl" style="font-size: 8.5px; font-weight: 700; color: rgba(255, 255, 255, 0.8); text-transform: uppercase; letter-spacing: 0.4px; display: block; margin-top: 2px;">Rank</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -291,15 +284,10 @@
         <div class="magic-nav" id="magic-nav">
             <div class="magic-nav-bg">
                 <svg class="magic-nav-svg" id="magic-nav-svg" viewBox="0 0 448 66" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-                    <defs>
-                        <filter id="navShadow" x="-10%" y="-40%" width="120%" height="200%">
-                            <feDropShadow dx="0" dy="6" stdDeviation="10" floodColor="rgba(0,0,0,0.18)" />
-                            <feDropShadow dx="0" dy="2" stdDeviation="4" floodColor="rgba(0,0,0,0.10)" />
-                        </filter>
-                    </defs>
-                    <path id="magic-nav-path-base" d="" fill="rgba(255,255,255,0.15)" filter="url(#navShadow)" />
-                    <path id="magic-nav-path-tint" d="" fill="#1e3a8a" opacity="0.2" />
-                    <path id="magic-nav-path-edge" d="" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="1.5" stroke-linejoin="round" />
+                    
+                    <path id="magic-nav-path-base" d="" fill="#ffffff"  />
+                    <path id="magic-nav-path-tint" d="" fill="#1e3a8a" opacity="0" />
+                    <path id="magic-nav-path-edge" d="" fill="none" stroke="#e2e8f0" stroke-width="1.5" stroke-linejoin="round" />
                 </svg>
             </div>  
 
@@ -351,8 +339,8 @@
                 </a>
             </div>
 
-            <div class="magic-circle" id="magic-indicator" style="background: radial-gradient(circle at 38% 32%, rgba(30, 58, 138, 0.93), rgba(30, 58, 138, 0.73));">
-                <div class="magic-circle-shine"></div>
+            <div class="magic-circle" id="magic-indicator" style="background: #1e3a8a !important; box-shadow: none !important; filter: none !important;">
+                
             </div>
         </div>
     </div>

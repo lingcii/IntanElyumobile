@@ -1,4 +1,4 @@
-const CACHE_NAME = 'Intan_Elyu_cache-v41-borderless-offline-routes';
+const CACHE_NAME = 'Intan_Elyu_cache-v42-hero-geofence-update';
 const ASSETS = [
     './',
     './index.php',

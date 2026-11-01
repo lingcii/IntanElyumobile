@@ -31,11 +31,7 @@ if (
 ) {
     $candidatePaths = [
         dirname(__DIR__) . '/android/app/build/outputs/apk/release/app-release.apk',
-        dirname(__DIR__) . '/android/app/build/outputs/apk/debug/app-debug.apk',
         dirname(__DIR__) . '/public/downloads/intan-elyu.apk',
-        dirname(__DIR__) . '/app-release.apk',
-        dirname(__DIR__) . '/app-debug.apk',
-        __DIR__ . '/downloads/intan-elyu.apk',
     ];
     $apkPath = null;
     foreach ($candidatePaths as $candidate) {
@@ -82,7 +78,8 @@ if (
     } else {
         // Fallback: If no local file on disk (e.g. Railway cloud container), stream directly from Cloudflare R2
         // to bypass mobile ISP DNS resolution failures (ERR_NAME_NOT_RESOLVED / -105) on the *.r2.dev domain!
-        $remoteApkUrl = getenv('CLOUDFLARE_R2_APK_URL') ?: (rtrim(getenv('CLOUDFLARE_R2_URL') ?: 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev', '/') . '/apks/intan-elyu.apk?v=0.0.0');
+        $vParam = isset($_GET['v']) ? preg_replace('/[^a-zA-Z0-9\.\-_]/', '', $_GET['v']) : '1.4.11';
+        $remoteApkUrl = getenv('CLOUDFLARE_R2_APK_URL') ?: (rtrim(getenv('CLOUDFLARE_R2_URL') ?: 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev', '/') . '/apks/intan-elyu.apk?v=' . $vParam);
         $preferRedirect = isset($_GET['redirect']) && $_GET['redirect'] === '1';
         $isCustomDomain = (strpos($remoteApkUrl, 'r2.dev') === false);
 
