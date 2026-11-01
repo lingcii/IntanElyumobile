@@ -3340,7 +3340,9 @@ window.applyTouristSitesFilterModal = function() {
             }
 
             const recContainer = document.getElementById('recommended-container');
-            if (recContainer && data.recommended) {
+            const recSig = Array.isArray(data.recommended) ? data.recommended.map(d => d.id).join(',') : '';
+            if (recContainer && data.recommended && (recContainer._lastRecSig !== recSig || !recContainer.children.length)) {
+                recContainer._lastRecSig = recSig;
                 recContainer.innerHTML = '';
                 if (data.timeLabel) {
                     setTxt('recommended-title', data.timeLabel);
@@ -3933,10 +3935,18 @@ window.applyTouristSitesFilterModal = function() {
         }
     }
     function dashboardInit(forceRefresh = false) {
+        if (window._appColdBoot) {
+            forceRefresh = true;
+            window._appColdBoot = false;
+        }
         if (window._dashboardInitPromise) return window._dashboardInitPromise;
 
         const now = Date.now();
         if (!forceRefresh && window._dashboardLastInitCompletedAt && now - window._dashboardLastInitCompletedAt < 1500) {
+            return Promise.resolve(window._lastDashboardPayload || null);
+        }
+        window._viewRenderedAt = window._viewRenderedAt || {};
+        if (!forceRefresh && !window.dashboardNeedsRefresh && (now - (window._viewRenderedAt['dashboard'] || 0) < 180000) && document.getElementById('recommended-container')?.children.length) {
             return Promise.resolve(window._lastDashboardPayload || null);
         }
 
@@ -3944,6 +3954,8 @@ window.applyTouristSitesFilterModal = function() {
             if (window._dashboardInitPromise === request) {
                 window._dashboardInitPromise = null;
                 window._dashboardLastInitCompletedAt = Date.now();
+                window._viewRenderedAt['dashboard'] = Date.now();
+                window.dashboardNeedsRefresh = false;
             }
         });
         window._dashboardInitPromise = request;

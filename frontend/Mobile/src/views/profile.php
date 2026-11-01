@@ -2459,8 +2459,15 @@ $activeTab = 'profile';
                 const _isGuest = !_tok || _tok === 'guest_token' || _tok === 'offline_guest_token' || _tok.indexOf('guest_') === 0 || _tok.indexOf('offline_') === 0 || localStorage.getItem('intan_elyu_guest') === 'true' || localStorage.getItem('intan_elyu_offline_guest') === 'true';
                 if (!_isGuest) {
                     hydrateProfileFromCache();
-                    fetchProfileData(true);
-                    fetchPointsAndVouchers(true);
+                    const now = Date.now();
+                    window._viewRenderedAt = window._viewRenderedAt || {};
+                    const isStale = Boolean(window.profileNeedsRefresh) || (now - (window._viewRenderedAt['profile'] || 0) > 180000);
+                    if (isStale) {
+                        window._viewRenderedAt['profile'] = now;
+                        window.profileNeedsRefresh = false;
+                        fetchProfileData(true);
+                        fetchPointsAndVouchers(true);
+                    }
                 }
             } else {
                 // When navigating away from profile, close open modals and stop polling

@@ -5507,6 +5507,8 @@ const state = {
     isNavigating: false
 };
 window.state = state;
+window._appColdBoot = true;
+window._viewRenderedAt = window._viewRenderedAt || {};
 
 /**
  * Execute scripts injected via innerHTML
@@ -6232,6 +6234,18 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                     clearTimeout(window._gpsDebounceTimer);
                     window._gpsDebounceTimer = null;
                 }
+                if (window._tripMapApprovalPollingInterval) {
+                    clearInterval(window._tripMapApprovalPollingInterval);
+                    window._tripMapApprovalPollingInterval = null;
+                }
+                document.querySelectorAll('#toast-container .toast-card').forEach(toast => {
+                    const txt = (toast.textContent || '').toLowerCase();
+                    if (txt.includes('route') || txt.includes('starting trip') || txt.includes('loading trip')) {
+                        toast.remove();
+                    }
+                });
+                const lingeringToastCont = document.getElementById('toast-container');
+                if (lingeringToastCont && lingeringToastCont.children.length === 0) lingeringToastCont.remove();
                 if (targetView !== 'map' && window.mapInstance) {
                     try {
                         if (typeof window.mapInstance.getCenter === 'function' && typeof window.mapInstance.getZoom === 'function') {
@@ -7267,22 +7281,13 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                     }
                 } else {
                     item.classList.remove('active');
-                    item.style.setProperty('color', '#000000', 'important');
+                    item.style.setProperty('color', '#0f172a', 'important');
                     if (svg) {
-                        svg.style.setProperty('stroke', '#000000', 'important');
-                        svg.querySelectorAll('path, line, polygon, rect, circle').forEach(function(s) { s.style.setProperty('stroke', '#000000', 'important'); });
+                        svg.style.setProperty('stroke', '#0f172a', 'important');
+                        svg.querySelectorAll('path, line, polygon, rect, circle').forEach(function(s) { s.style.setProperty('stroke', '#0f172a', 'important'); });
                     }
                 }
             });
-            var indicator = document.getElementById('magic-indicator');
-            if (indicator && el.dataset.index !== undefined) {
-                var idx = parseInt(el.dataset.index);
-                indicator.style.left = (10 + (idx * 20)) + '%';
-                indicator.style.boxShadow = 'none';
-                indicator.style.filter = 'none';
-                indicator.style.outline = 'none';
-                indicator.style.background = '#1e3a8a';
-            }
         } catch(e) {}
     };
 
@@ -7291,13 +7296,8 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
         if (!nav) return;
 
         const items = nav.querySelectorAll('.magic-nav-item');
-        const indicator = document.getElementById('magic-indicator');
-        const indicatorCircle = document.querySelector('.magic-indicator-circle');
-
         const isMainNav = Array.from(items).some(item => item.dataset.view === viewName);
         if (!isMainNav) return;
-
-        let activeIndex = 0;
 
         items.forEach(item => {
             const svg = item.querySelector('svg');
@@ -7310,52 +7310,17 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                         s.style.setProperty('stroke', '#ffffff', 'important');
                     });
                 }
-                activeIndex = parseInt(item.dataset.index);
             } else {
                 item.classList.remove('active');
-                item.style.setProperty('color', '#000000', 'important');
+                item.style.setProperty('color', '#0f172a', 'important');
                 if (svg) {
-                    svg.style.setProperty('stroke', '#000000', 'important');
+                    svg.style.setProperty('stroke', '#0f172a', 'important');
                     svg.querySelectorAll('path, line, polygon, rect, circle').forEach(s => {
-                        s.style.setProperty('stroke', '#000000', 'important');
+                        s.style.setProperty('stroke', '#0f172a', 'important');
                     });
                 }
             }
         });
-
-        // Update Magic Indicator Position: Flat royal blue, NO SHADOW, NO GLOW
-        const percent = 10 + (activeIndex * 20);
-        if (indicator) {
-            indicator.style.left = `${percent}%`;
-            indicator.style.background = '#1e3a8a';
-            indicator.style.boxShadow = 'none';
-            indicator.style.filter = 'none';
-            indicator.style.outline = 'none';
-        }
-
-        // Update SVG Path Notch: Crisp white base, clean line, NO SHADOW filter
-        const notchCX = (percent / 100) * 448; // ViewBox width is 448
-        const { fullPath, topEdge } = buildNavPath(notchCX);
-
-        const pathBase = document.getElementById('magic-nav-path-base');
-        const pathTint = document.getElementById('magic-nav-path-tint');
-        const pathEdge = document.getElementById('magic-nav-path-edge');
-
-        if (pathBase) {
-            pathBase.setAttribute('d', fullPath);
-            pathBase.setAttribute('fill', '#ffffff');
-            pathBase.removeAttribute('filter');
-        }
-        if (pathTint) {
-            pathTint.setAttribute('d', fullPath);
-            pathTint.setAttribute('fill', '#ffffff');
-            pathTint.setAttribute('opacity', '0');
-        }
-        if (pathEdge) {
-            pathEdge.setAttribute('d', topEdge);
-            pathEdge.setAttribute('stroke', '#e2e8f0');
-            pathEdge.removeAttribute('filter');
-        }
     }
 
     function buildNavPath(cx) {

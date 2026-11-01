@@ -98,4 +98,11 @@ assert.doesNotMatch(leaderboardView, /setInterval\(/,
 assert.match(leaderboardView, /for \(const url of \[\.\.\.new Set\(candidates\)\]\)/,
     'Leaderboard fallback requests must not retry the same endpoint twice');
 
+assert.match(main, /window\._tripMapApprovalPollingInterval/,
+    'navigation teardown must clear trip map polling interval');
+assert.match(dashboardView, /window\._appColdBoot/,
+    'dashboard must revalidate live data on cold boot');
+assert.match(dashboardView, /recContainer\._lastRecSig !== recSig/,
+    'recommended container must not wipe innerHTML when data is unchanged');
+
 console.log('mobile performance tests passed');

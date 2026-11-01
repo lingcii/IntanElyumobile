@@ -3,7 +3,6 @@ $currentNavView = $view ?? 'dashboard';
 $navViewsList = ['dashboard', 'map', 'itinerary', 'leaderboard', 'profile'];
 $curNavIdx = array_search($currentNavView, $navViewsList);
 if ($curNavIdx === false) $curNavIdx = 0;
-$initialIndicatorLeft = (10 + ($curNavIdx * 20)) . '%';
 ?>
 <script>
 window.onMagicNavItemClick = function(el) {
@@ -22,21 +21,13 @@ window.onMagicNavItemClick = function(el) {
                 }
             } else {
                 item.classList.remove('active');
-                item.style.setProperty('color', '#000000', 'important');
+                item.style.setProperty('color', '#0f172a', 'important');
                 if (svg) {
-                    svg.style.setProperty('stroke', '#000000', 'important');
-                    svg.querySelectorAll('path, line, polygon, rect, circle').forEach(function(s) { s.style.setProperty('stroke', '#000000', 'important'); });
+                    svg.style.setProperty('stroke', '#0f172a', 'important');
+                    svg.querySelectorAll('path, line, polygon, rect, circle').forEach(function(s) { s.style.setProperty('stroke', '#0f172a', 'important'); });
                 }
             }
         });
-        var indicator = document.getElementById('magic-indicator');
-        if (indicator && el.dataset.index !== undefined) {
-            var idx = parseInt(el.dataset.index);
-            indicator.style.left = (10 + (idx * 20)) + '%';
-            indicator.style.boxShadow = 'none';
-            indicator.style.filter = 'none';
-            indicator.style.background = '#1e3a8a';
-        }
     } catch(e) {}
 };
 </script>
@@ -44,12 +35,8 @@ window.onMagicNavItemClick = function(el) {
 <div class="magic-nav" id="magic-nav">
     <div class="magic-nav-bg" style="background: #ffffff !important; background-color: #ffffff !important; border: 1px solid #e2e8f0 !important; box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12), 0 2px 8px rgba(15, 23, 42, 0.06) !important;">
         <svg class="magic-nav-svg" id="magic-nav-svg" viewBox="0 0 448 66" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-            
-            <!-- Bright white base for a light color aesthetic (we use rgba for dark mode tuning) -->
             <path id="magic-nav-path-base" d="" fill="#ffffff"  />
-            <!-- Dynamic color tint -->
             <path id="magic-nav-path-tint" d="" fill="#ffffff" opacity="0" />
-            <!-- Top gloss line -->
             <path id="magic-nav-path-edge" d="" fill="none" stroke="#e2e8f0" stroke-width="1.5" stroke-linejoin="round" />
         </svg>
     </div>  
@@ -102,7 +89,6 @@ window.onMagicNavItemClick = function(el) {
         </a>
     </div>
 
-    <div class="magic-circle" id="magic-indicator" style="left: <?= $initialIndicatorLeft ?>; background: #1e3a8a !important; box-shadow: none !important; filter: none !important;">
-        
+    <div class="magic-circle" id="magic-indicator" style="display: none !important;">
     </div>
 </div>

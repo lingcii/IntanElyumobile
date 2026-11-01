@@ -104,35 +104,11 @@ html.logout-open #bottom-navigation {
     background: #ffffff !important;
     background-color: #ffffff !important;
     border: 1px solid #e2e8f0 !important;
-    box-shadow: 0 4px 18px rgba(15, 23, 42, 0.08) !important;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12), 0 2px 8px rgba(15, 23, 42, 0.06) !important;
 }
 
 .magic-nav-svg {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    overflow: visible;
-}
-
-.magic-nav-svg path {
-    transition: d 0.42s cubic-bezier(0.68, -0.55, 0.27, 1.55);
-}
-
-#magic-nav-path-base {
-    fill: #ffffff !important;
-    filter: none !important;
-}
-
-#magic-nav-path-tint {
     display: none !important;
-    opacity: 0 !important;
-}
-
-#magic-nav-path-edge {
-    stroke: #e2e8f0 !important;
-    stroke-width: 1.5 !important;
-    filter: none !important;
 }
 
 .magic-nav-items {
@@ -140,6 +116,7 @@ html.logout-open #bottom-navigation {
     inset: 0;
     display: flex;
     align-items: center;
+    z-index: 5;
 }
 
 .magic-nav-item {
@@ -150,12 +127,12 @@ html.logout-open #bottom-navigation {
     justify-content: center;
     text-decoration: none;
     position: relative;
-    z-index: 2;
+    z-index: 6;
     height: 100%;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
     user-select: none;
-    color: #000000 !important;
+    color: #0f172a !important;
     transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.25s ease !important;
 }
 
@@ -168,31 +145,51 @@ html.logout-open #bottom-navigation {
     transition: stroke 0.25s ease, color 0.25s ease !important;
 }
 
-/* Unclicked (Inactive) = Solid Black */
+/* Unclicked (Inactive) = Dark Slate Outline */
 .magic-nav-item:not(.active),
-.magic-nav-item:not(.active) .icon,
 .magic-nav-item:not(.active) svg,
 .magic-nav-item:not(.active) svg path,
 .magic-nav-item:not(.active) svg line,
 .magic-nav-item:not(.active) svg polygon,
 .magic-nav-item:not(.active) svg rect,
 .magic-nav-item:not(.active) svg circle {
-    color: #000000 !important;
-    stroke: #000000 !important;
+    color: #0f172a !important;
+    stroke: #0f172a !important;
     fill: none !important;
 }
 
+.magic-nav-item:not(.active) .icon {
+    background: transparent !important;
+    color: #0f172a !important;
+}
+
 .magic-nav-item:not(.active):hover {
-    transform: translateY(-3px);
+    transform: translateY(-2px);
 }
 
 .magic-nav-item:not(.active):active {
-    transform: scale(0.88);
+    transform: scale(0.9);
 }
 
-/* Clicked (Active) = Solid White, NO GLOW */
+/* Clicked (Active) = Crisp Royal Blue Circle with Pure White Icon */
+.magic-nav-item.active {
+    transform: translateY(-2px);
+    z-index: 10;
+}
+
+.magic-nav-item.active .icon {
+    background: #1e3a8a !important;
+    color: #ffffff !important;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 14px rgba(30, 58, 138, 0.35);
+}
+
 .magic-nav-item.active,
-.magic-nav-item.active .icon,
 .magic-nav-item.active svg,
 .magic-nav-item.active svg path,
 .magic-nav-item.active svg line,
@@ -204,33 +201,28 @@ html.logout-open #bottom-navigation {
     fill: none !important;
 }
 
-.magic-nav-item.active {
-    transform: translateY(-13px);
-    z-index: 11;
-}
-
 .magic-nav-item .icon {
     display: flex;
     align-items: center;
     justify-content: center;
+    width: 44px;
+    height: 44px;
     line-height: 0;
     font-size: 22px;
-    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    border-radius: 50%;
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.25s ease, box-shadow 0.25s ease;
     filter: none !important;
     -webkit-filter: none !important;
 }
 
 @keyframes iconBounce {
-  0% { transform: translateY(0) scale(1); }
-  40% { transform: translateY(-6px) scale(1.2); }
-  70% { transform: translateY(1px) scale(0.95); }
-  100% { transform: translateY(0) scale(1); }
+  0% { transform: scale(0.92); }
+  60% { transform: scale(1.08); }
+  100% { transform: scale(1); }
 }
 
 .magic-nav-item.active .icon {
-    animation: iconBounce 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-    filter: none !important;
-    -webkit-filter: none !important;
+    animation: iconBounce 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
 .magic-nav-item .text {
@@ -257,25 +249,9 @@ html.logout-open #bottom-navigation {
     margin-top: 4px;
 }
 
-/* Magic Indicator Circle: Flat Royal Blue, NO SHADOW, NO GLOW */
+/* Magic Indicator Circle: Removed in favor of inline item active circle to prevent clipping & desync */
 .magic-circle {
-    position: absolute;
-    top: -6px;
-    left: 10%;
-    transform: translateX(-50%);
-    width: 52px;
-    height: 52px;
-    border-radius: 50%;
-    border: none !important;
-    outline: none !important;
-    box-shadow: none !important;
-    -webkit-box-shadow: none !important;
-    filter: none !important;
-    -webkit-filter: none !important;
-    background: #1e3a8a !important;
-    pointer-events: none;
-    z-index: 10;
-    transition: left 0.42s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+    display: none !important;
 }
 
 .magic-circle-shine {

@@ -1056,8 +1056,8 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                 if (hasPending) {
                     if (!window._tripMapApprovalPollingInterval) {
                         window._tripMapApprovalPollingInterval = setInterval(() => {
-                            const curView = document.body.getAttribute('data-view');
-                            if (curView && curView !== 'trip_map') {
+                            const curView = document.body.getAttribute('data-view') || (window.state ? window.state.currentView : '');
+                            if (!document.getElementById('trip-map') || (curView && curView !== 'trip_map')) {
                                 clearInterval(window._tripMapApprovalPollingInterval);
                                 window._tripMapApprovalPollingInterval = null;
                                 return;
@@ -1136,7 +1136,11 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                 return;
             }
 
-            if (typeof showToast === 'function') showToast("Loading trip route...", "info", 1400);
+            if (window.currentTrip && (window.currentTrip.id == tripId || window.currentTrip.local_id == tripId)) {
+                applyTripToMap(window.currentTrip);
+            } else if (typeof showToast === 'function' && document.getElementById('trip-map')) {
+                showToast("Loading trip route...", "info", 1400);
+            }
 
             const controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
             const timeoutId = controller ? setTimeout(() => controller.abort(), 8000) : null;
