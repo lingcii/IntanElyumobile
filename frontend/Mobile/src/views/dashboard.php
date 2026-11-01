@@ -1451,6 +1451,19 @@ window.applyTouristSitesFilterModal = function() {
 <script>
     window.AVAILABLE_MUNI_IMAGES = <?= json_encode($municipalityImages) ?>;
 
+    if (typeof window.useCache !== 'function') {
+        window.useCache = async function (cacheKey, fetchFn, callback, forceRefresh, ttl) {
+            try {
+                const data = await fetchFn();
+                if (typeof callback === 'function') callback(data, false);
+                return data;
+            } catch (err) {
+                console.warn("Fallback cache fetch error for " + cacheKey, err);
+                if (typeof callback === 'function') callback(null, false);
+            }
+        };
+    }
+
     function getDashBackendUrl() {
         if (typeof window.getBackendUrl === 'function') {
             const u = window.getBackendUrl();
@@ -2798,6 +2811,13 @@ window.applyTouristSitesFilterModal = function() {
                 seenSig[sig] = true;
                 return true;
             });
+            const tripsSig = JSON.stringify(itineraries.slice(0, 3).map(t => [String(t.id || t.local_id || ''), String(t.title || ''), String(t.trip_date || '')]));
+            const hasTripCards = tripsContainer.querySelectorAll('.dash-trip-card, .trip-swipe-container').length > 0;
+            if (window._lastDashTripsSig === tripsSig && hasTripCards) {
+                return; // Silent: prevent DOM rebuild & flicker
+            }
+            window._lastDashTripsSig = tripsSig;
+
             if (itineraries.length > 0) {
                 let tripsHtml = '';
                 itineraries.slice(0, 3).forEach(trip => {
@@ -2999,14 +3019,19 @@ window.applyTouristSitesFilterModal = function() {
 
             const savedEl = document.getElementById('saved-places-container');
             if (savedEl && savedEl.querySelector('.dash-loading-state')) {
-                savedEl.classList.add('is-empty');
-                savedEl.innerHTML = `
-                <div class="dash-empty-state">
-                    <div class="dash-empty-icon-wrap"><i class="fa-solid fa-map-location-dot"></i></div>
-                    <div class="dash-empty-title">No Saved Places Yet</div>
-                    <div class="dash-empty-desc">Discover destinations on the map and tap the heart icon to save your favorite spots.</div>
-                    <button type="button" onclick="navigateTo('map')" class="dash-empty-btn"><i class="fa-solid fa-location-arrow"></i> Open Map</button>
-                </div>`;
+                const localBookmarks = (typeof window.getLocalSavedSpots === 'function') ? window.getLocalSavedSpots() : [];
+                if (localBookmarks && localBookmarks.length > 0) {
+                    renderDashboard({ savedPlaces: localBookmarks });
+                } else {
+                    savedEl.classList.add('is-empty');
+                    savedEl.innerHTML = `
+                    <div class="dash-empty-state">
+                        <div class="dash-empty-icon-wrap"><i class="fa-solid fa-map-location-dot"></i></div>
+                        <div class="dash-empty-title">No Saved Places Yet</div>
+                        <div class="dash-empty-desc">Discover destinations on the map and tap the heart icon to save your favorite spots.</div>
+                        <button type="button" onclick="navigateTo('map')" class="dash-empty-btn"><i class="fa-solid fa-location-arrow"></i> Open Map</button>
+                    </div>`;
+                }
             }
 
             const recEl = document.getElementById('recommended-container');
@@ -3223,84 +3248,94 @@ window.applyTouristSitesFilterModal = function() {
                 }
             }
 
-            // Populate Trending Spots (Limit to top 5, "See All" opens full list)
+            // Populate Trending Spots (Limit to top 10, "See All" opens full list)
             const trendingContainer = document.getElementById('trending-container');
             if (trendingContainer) {
-                trendingContainer.innerHTML = '';
-                if (data.trending && data.trending.length > 0) {
-                    trendingContainer.classList.remove('is-empty');
-                    trendingContainer.style.paddingLeft = '';
-                    trendingContainer.style.paddingRight = '';
-                    trendingContainer.style.marginLeft = '';
-                    trendingContainer.style.marginRight = '';
-                    const trendingList = data.trending.slice(0, 10);
-                    trendingContainer.innerHTML = trendingList.map(window.renderFavCard || renderFavCard).join('');
-                    window.initLoopingFocusCarousel('trending-container');
-                } else {
-                    trendingContainer.classList.add('is-empty');
-                    trendingContainer.style.paddingLeft = '0';
-                    trendingContainer.style.paddingRight = '0';
-                    trendingContainer.style.marginLeft = '0';
-                    trendingContainer.style.marginRight = '0';
-                    trendingContainer.innerHTML = `
-                    <div class="dash-empty-state">
-                        <div class="dash-empty-icon-wrap">
-                            <i class="fa-solid fa-fire-flame-curved"></i>
+                const trendingList = (data.trending && data.trending.length > 0) ? data.trending.slice(0, 10) : [];
+                const trendSig = JSON.stringify(trendingList.map(d => [String(d.id || ''), String(d.name || '')]));
+                const hasTrendCards = trendingContainer.querySelectorAll('.fav-card').length > 0;
+                if (!window._lastDashTrendingSig || window._lastDashTrendingSig !== trendSig || !hasTrendCards) {
+                    window._lastDashTrendingSig = trendSig;
+                    trendingContainer.innerHTML = '';
+                    if (trendingList.length > 0) {
+                        trendingContainer.classList.remove('is-empty');
+                        trendingContainer.style.paddingLeft = '';
+                        trendingContainer.style.paddingRight = '';
+                        trendingContainer.style.marginLeft = '';
+                        trendingContainer.style.marginRight = '';
+                        trendingContainer.innerHTML = trendingList.map(window.renderFavCard || renderFavCard).join('');
+                        window.initLoopingFocusCarousel('trending-container');
+                    } else {
+                        trendingContainer.classList.add('is-empty');
+                        trendingContainer.style.paddingLeft = '0';
+                        trendingContainer.style.paddingRight = '0';
+                        trendingContainer.style.marginLeft = '0';
+                        trendingContainer.style.marginRight = '0';
+                        trendingContainer.innerHTML = `
+                        <div class="dash-empty-state">
+                            <div class="dash-empty-icon-wrap">
+                                <i class="fa-solid fa-fire-flame-curved"></i>
+                            </div>
+                            <div class="dash-empty-title">No Trending Spots</div>
+                            <div class="dash-empty-desc">Check back soon for popular attractions and trending activities in La Union.</div>
                         </div>
-                        <div class="dash-empty-title">No Trending Spots</div>
-                        <div class="dash-empty-desc">Check back soon for popular attractions and trending activities in La Union.</div>
-                    </div>
-                `;
+                    `;
+                    }
                 }
             }
 
             // Populate Saved Places (Limit to top 5, "See All" opens full list)
             const savedContainer = document.getElementById('saved-places-container');
             if (savedContainer) {
-                savedContainer.innerHTML = '';
-                if (data.savedPlaces && data.savedPlaces.length > 0) {
-                    try {
-                        const savedIds = data.savedPlaces.map(p => p.id);
-                        localStorage.setItem('intan_elyu_saved_place_ids', JSON.stringify(savedIds));
-                    } catch (e) { }
+                const savedPlacesList = (data.savedPlaces && data.savedPlaces.length > 0) ? data.savedPlaces.slice(0, 5) : [];
+                const savedSig = JSON.stringify(savedPlacesList.map(p => [String(p.id || ''), String(p.name || '')]));
+                const hasSavedCards = savedContainer.querySelectorAll('.fav-card').length > 0;
+                if (!window._lastDashSavedSig || window._lastDashSavedSig !== savedSig || !hasSavedCards) {
+                    window._lastDashSavedSig = savedSig;
+                    savedContainer.innerHTML = '';
+                    if (savedPlacesList.length > 0) {
+                        try {
+                            const savedIds = data.savedPlaces.map(p => p.id);
+                            localStorage.setItem('intan_elyu_saved_place_ids', JSON.stringify(savedIds));
+                        } catch (e) { }
 
-                    savedContainer.classList.remove('is-empty');
-                    savedContainer.style.paddingLeft = '';
-                    savedContainer.style.paddingRight = '';
-                    savedContainer.style.marginLeft = '';
-                    savedContainer.style.marginRight = '';
-                    const savedList = data.savedPlaces.slice(0, 5);
-                    savedList.forEach(dest => {
-                        const img = window.getDestImage(dest, 600);
-                        const badgeHtml = dest.classification_status ? `<div style="position: absolute; top: 8px; left: 8px; z-index: 10; padding: 2px 6px; border-radius: 8px; font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#0284c7' : (dest.classification_status === 'EMERGE' ? '#ef4444' : '#10b981')}; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</div>` : '';
-                        const encodedDest = encodeURIComponent(JSON.stringify(dest));
-                        savedContainer.innerHTML += `
-                        <div class="fav-card" data-category="${(dest.category || '').replace(/"/g, '&quot;')}" data-name="${(dest.name || '').replace(/"/g, '&quot;')}" data-municipality="${(dest.municipality || dest.location || '').replace(/"/g, '&quot;')}" onclick="window.viewDestinationOnMap('${encodedDest}')">
-                            ${badgeHtml}
-                            <img src="${img}" alt="${dest.name}" loading="lazy" decoding="async" onerror="if (window.handleImgError) window.handleImgError(this, '${(dest.name || '').replace(/'/g, "\\'")}', '${(dest.municipality || '').replace(/'/g, "\\'")}'); else this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600';">
-                            <div class="fav-card-overlay"><span class="fav-card-name">${dest.name}</span></div>
+                        savedContainer.classList.remove('is-empty');
+                        savedContainer.style.paddingLeft = '';
+                        savedContainer.style.paddingRight = '';
+                        savedContainer.style.marginLeft = '';
+                        savedContainer.style.marginRight = '';
+                        savedPlacesList.forEach(dest => {
+                            const img = window.getDestImage(dest, 600);
+                            const badgeHtml = dest.classification_status ? `<div style="position: absolute; top: 8px; left: 8px; z-index: 10; padding: 2px 6px; border-radius: 8px; font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#0284c7' : (dest.classification_status === 'EMERGE' ? '#ef4444' : '#10b981')}; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</div>` : '';
+                            const encodedDest = encodeURIComponent(JSON.stringify(dest));
+                            savedContainer.innerHTML += `
+                            <div class="fav-card" data-category="${(dest.category || '').replace(/"/g, '&quot;')}" data-name="${(dest.name || '').replace(/"/g, '&quot;')}" data-municipality="${(dest.municipality || dest.location || '').replace(/"/g, '&quot;')}" onclick="window.viewDestinationOnMap('${encodedDest}')">
+                                ${badgeHtml}
+                                <img src="${img}" alt="${dest.name}" loading="lazy" decoding="async" onerror="if (window.handleImgError) window.handleImgError(this, '${(dest.name || '').replace(/'/g, "\\'")}', '${(dest.municipality || '').replace(/'/g, "\\'")}'); else this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600';">
+                                <div class="fav-card-overlay"><span class="fav-card-name">${dest.name}</span></div>
                             </div>
-                    `;
-                    });
-                    window.initLoopingFocusCarousel('saved-places-container');
-                } else {
-                    savedContainer.classList.add('is-empty');
-                    savedContainer.style.paddingLeft = '0';
-                    savedContainer.style.paddingRight = '0';
-                    savedContainer.style.marginLeft = '0';
-                    savedContainer.style.marginRight = '0';
-                    savedContainer.innerHTML = `
-                    <div class="dash-empty-state">
-                        <div class="dash-empty-icon-wrap">
-                            <i class="fa-solid fa-map-location-dot"></i>
+                        `;
+                        });
+                        window.initLoopingFocusCarousel('saved-places-container');
+                    } else {
+                        savedContainer.classList.add('is-empty');
+                        savedContainer.style.paddingLeft = '0';
+                        savedContainer.style.paddingRight = '0';
+                        savedContainer.style.marginLeft = '0';
+                        savedContainer.style.marginRight = '0';
+                        savedContainer.innerHTML = `
+                        <div class="dash-empty-state">
+                            <div class="dash-empty-icon-wrap">
+                                <i class="fa-solid fa-map-location-dot"></i>
+                            </div>
+                            <div class="dash-empty-title">No Saved Places Yet</div>
+                            <div class="dash-empty-desc">Discover destinations on the map and tap the heart icon to save your favorite spots.</div>
+                            <button type="button" onclick="navigateTo('map')" class="dash-empty-btn">
+                                <i class="fa-solid fa-location-arrow"></i> Open Map
+                            </button>
                         </div>
-                        <div class="dash-empty-title">No Saved Places Yet</div>
-                        <div class="dash-empty-desc">Discover destinations on the map and tap the heart icon to save your favorite spots.</div>
-                        <button type="button" onclick="navigateTo('map')" class="dash-empty-btn">
-                            <i class="fa-solid fa-location-arrow"></i> Open Map
-                        </button>
-                    </div>
-                `;
+                    `;
+                    }
                 }
             }
 

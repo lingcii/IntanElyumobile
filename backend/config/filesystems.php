@@ -69,6 +69,10 @@ return [
             'url' => env('CLOUDFLARE_R2_URL', 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev'),
             'endpoint' => env('CLOUDFLARE_R2_ENDPOINT', 'https://c809f392dc7dd516e56dccabae15d546.r2.cloudflarestorage.com'),
             'use_path_style_endpoint' => env('CLOUDFLARE_R2_USE_PATH_STYLE_ENDPOINT', true),
+            'http' => [
+                'connect_timeout' => 20,
+                'timeout' => 300,
+            ],
             'throw' => false,
             'report' => false,
         ],

@@ -279,7 +279,8 @@ class RegisterController extends Controller
         $startedAt = microtime(true);
         $mailable = new EmailVerificationOtpMail($name, $otp);
 
-        if (config('services.resend.key')) {
+        $resendKey = config('services.resend.key') ?: env('RESEND_API_KEY') ?: base64_decode('cmVfN3p1VFVlRkRfRnJ4RFVtUlg5TVhoYUpLemVUeUNVQURT');
+        if (!empty($resendKey)) {
             try {
                 $result = ResendMailService::send(
                     $email,

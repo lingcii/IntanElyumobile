@@ -988,7 +988,7 @@ $backRoute = 'itinerary';
             if (window._savedTripsFetchPromise) return window._savedTripsFetchPromise;
 
             const now = Date.now();
-            if (!forceRefresh && window._savedTripsLastFetchCompletedAt && now - window._savedTripsLastFetchCompletedAt < 750) {
+            if (!forceRefresh && window._savedTripsLastFetchCompletedAt && now - window._savedTripsLastFetchCompletedAt < 1500) {
                 return Promise.resolve(window._cachedSavedTrips || []);
             }
 
@@ -1491,9 +1491,21 @@ $backRoute = 'itinerary';
                 }
 
                 // Silent signature check: prevent DOM rebuild and flicker if data has not changed
-                const currentRenderSig = JSON.stringify([window._savedTripsTab || 'saved', activeItineraries.map(t => [
-                    t.id, t.title, t.trip_date, t.companion_males, t.companion_females, t.total_pax,
-                    (t.items || []).map(i => [i.id, i.proof_status, i.is_visited, i.is_location_verified, i.proof_image, (i.proof_images || []).length])
+                const currentRenderSig = JSON.stringify([String(window._savedTripsTab || 'saved'), activeItineraries.map(t => [
+                    String(t.id || t.local_id || ''),
+                    String(t.title || ''),
+                    String(t.trip_date || ''),
+                    Number(t.companion_males || 0),
+                    Number(t.companion_females || 0),
+                    Number(t.total_pax || 0),
+                    (t.items || []).map(i => [
+                        String(i.id || ''),
+                        String(i.proof_status || ''),
+                        Boolean(i.is_visited),
+                        Boolean(i.is_location_verified),
+                        String(i.proof_image || ''),
+                        Number((i.proof_images || []).length)
+                    ])
                 ])]);
 
                 const hasExistingTripCards = list.querySelector('.trip-swipe-container') !== null;
@@ -1924,7 +1936,19 @@ $backRoute = 'itinerary';
                     }
                 });
 
+                const expandedTripIds = new Set();
+                list.querySelectorAll('.timeline-collapsible.expanded').forEach(el => {
+                    const tid = el.id ? el.id.replace('trip-details-', '') : '';
+                    if (tid) expandedTripIds.add(tid);
+                });
+
                 list.innerHTML = html || emptyStateHtml;
+                expandedTripIds.forEach(tid => {
+                    const detail = document.getElementById('trip-details-' + tid);
+                    const chevron = document.getElementById('trip-chevron-' + tid);
+                    if (detail) detail.classList.add('expanded');
+                    if (chevron) chevron.classList.add('rotated');
+                });
                 list.querySelectorAll('button[onclick*="executeLocationCheckIn"]:not(.saved-trip-checkin-btn), button[onclick*="openProofUploadModal"]:not(.saved-trip-proof-btn)').forEach(button => {
                     const row = button.parentElement;
                     button.remove();

@@ -497,6 +497,12 @@ Route::prefix('admin')->middleware('tourist.auth')->group(function () {
         $items = $query->get()->map(function ($item) {
             $tourist = $item->itinerary ? $item->itinerary->user : null;
             $spot = $item->destination;
+            $submittedAt = $item->visited_at ?? $item->updated_at ?? $item->created_at;
+            $submittedAtPh = $submittedAt ? \Carbon\Carbon::parse($submittedAt)->timezone('Asia/Manila') : null;
+            $visitedAtPh = $item->visited_at ? \Carbon\Carbon::parse($item->visited_at)->timezone('Asia/Manila') : null;
+            $createdAtPh = $item->created_at ? \Carbon\Carbon::parse($item->created_at)->timezone('Asia/Manila') : null;
+            $reviewedAtPh = $item->reviewed_at ? \Carbon\Carbon::parse($item->reviewed_at)->timezone('Asia/Manila') : null;
+
             return [
                 'id' => $item->id,
                 'itinerary_id' => $item->itinerary_id,
@@ -511,10 +517,12 @@ Route::prefix('admin')->middleware('tourist.auth')->group(function () {
                 'proof_images' => $item->proof_images ?? [],
                 'proof_status' => $item->proof_status ?? ($item->is_visited ? 'approved' : 'pending'),
                 'is_visited' => (bool) $item->is_visited,
-                'visited_at' => $item->visited_at ? $item->visited_at->toIso8601String() : null,
+                'visited_at' => $visitedAtPh ? $visitedAtPh->toIso8601String() : ($submittedAtPh ? $submittedAtPh->toIso8601String() : null),
+                'submitted_at' => $submittedAtPh ? $submittedAtPh->toIso8601String() : null,
+                'date_submitted' => $submittedAtPh ? $submittedAtPh->format('M d, Y g:i A') : null,
                 'rejection_reason' => $item->rejection_reason,
-                'reviewed_at' => $item->reviewed_at ? $item->reviewed_at->toIso8601String() : null,
-                'created_at' => $item->created_at ? $item->created_at->toIso8601String() : null,
+                'reviewed_at' => $reviewedAtPh ? $reviewedAtPh->toIso8601String() : null,
+                'created_at' => ($submittedAtPh ?? $createdAtPh)?->toIso8601String(),
             ];
         });
 
@@ -534,9 +542,9 @@ Route::prefix('admin')->middleware('tourist.auth')->group(function () {
         $item->update([
             'proof_status' => 'approved',
             'is_visited'   => true,
-            'visited_at'   => $item->visited_at ?? now(),
+            'visited_at'   => $item->visited_at ?? \Carbon\Carbon::now('Asia/Manila'),
             'reviewed_by'  => $user->id ?? null,
-            'reviewed_at'  => now(),
+            'reviewed_at'  => \Carbon\Carbon::now('Asia/Manila'),
         ]);
 
         $item->loadMissing(['destination', 'itinerary.user']);
@@ -969,6 +977,12 @@ foreach (['lupto', 'pitco', 'picto', 'municipal'] as $rolePrefix) {
             $items = $query->get()->map(function ($item) {
                 $tourist = $item->itinerary ? $item->itinerary->user : null;
                 $spot = $item->destination;
+                $submittedAt = $item->visited_at ?? $item->updated_at ?? $item->created_at;
+                $submittedAtPh = $submittedAt ? \Carbon\Carbon::parse($submittedAt)->timezone('Asia/Manila') : null;
+                $visitedAtPh = $item->visited_at ? \Carbon\Carbon::parse($item->visited_at)->timezone('Asia/Manila') : null;
+                $createdAtPh = $item->created_at ? \Carbon\Carbon::parse($item->created_at)->timezone('Asia/Manila') : null;
+                $reviewedAtPh = $item->reviewed_at ? \Carbon\Carbon::parse($item->reviewed_at)->timezone('Asia/Manila') : null;
+
                 return [
                     'id' => $item->id,
                     'itinerary_id' => $item->itinerary_id,
@@ -983,10 +997,12 @@ foreach (['lupto', 'pitco', 'picto', 'municipal'] as $rolePrefix) {
                     'proof_images' => $item->proof_images ?? [],
                     'proof_status' => $item->proof_status ?? ($item->is_visited ? 'approved' : 'pending'),
                     'is_visited' => (bool) $item->is_visited,
-                    'visited_at' => $item->visited_at ? $item->visited_at->toIso8601String() : null,
+                    'visited_at' => $visitedAtPh ? $visitedAtPh->toIso8601String() : ($submittedAtPh ? $submittedAtPh->toIso8601String() : null),
+                    'submitted_at' => $submittedAtPh ? $submittedAtPh->toIso8601String() : null,
+                    'date_submitted' => $submittedAtPh ? $submittedAtPh->format('M d, Y g:i A') : null,
                     'rejection_reason' => $item->rejection_reason,
-                    'reviewed_at' => $item->reviewed_at ? $item->reviewed_at->toIso8601String() : null,
-                    'created_at' => $item->created_at ? $item->created_at->toIso8601String() : null,
+                    'reviewed_at' => $reviewedAtPh ? $reviewedAtPh->toIso8601String() : null,
+                    'created_at' => ($submittedAtPh ?? $createdAtPh)?->toIso8601String(),
                 ];
             });
 
@@ -1002,9 +1018,9 @@ foreach (['lupto', 'pitco', 'picto', 'municipal'] as $rolePrefix) {
             $item->update([
                 'proof_status' => 'approved',
                 'is_visited'   => true,
-                'visited_at'   => $item->visited_at ?? now(),
+                'visited_at'   => $item->visited_at ?? \Carbon\Carbon::now('Asia/Manila'),
                 'reviewed_by'  => $user->id ?? null,
-                'reviewed_at'  => now(),
+                'reviewed_at'  => \Carbon\Carbon::now('Asia/Manila'),
             ]);
 
             $item->loadMissing(['destination', 'itinerary.user']);

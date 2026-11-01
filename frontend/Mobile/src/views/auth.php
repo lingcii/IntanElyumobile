@@ -174,9 +174,9 @@
                         style="display: none;" data-score="0">
                         <div class="pwd-strength-card">
                             <div class="pwd-strength-header">
-                                <div class="pwd-strength-badge status-weak" id="pwd-strength-badge">
+                                <div class="pwd-strength-badge status-weak" id="pwd-strength-badge" style="display: none;">
                                     <i class="fa-solid fa-shield-halved" id="pwd-strength-icon"></i>
-                                    <span id="pwd-strength-label">Password Strength: Weak</span>
+                                    <span id="pwd-strength-label">Strength: Weak</span>
                                 </div>
                                 <span id="pwd-strength-score" class="pwd-score-pill">0/4</span>
                             </div>
@@ -594,10 +594,9 @@
 
             <div class="policy-item-card">
                 <div class="policy-item-header">
-                    <span class="policy-item-title">4. 2-Factor Email Security (2FA)</span>
+                    <span class="policy-item-title">4. Email Verification &amp; Account Activation</span>
                 </div>
-                <p class="policy-item-desc">After accepting these terms, a 6-digit verification code will be dispatched
-                    to your email address to confirm identity before account activation.</p>
+                <p class="policy-item-desc">When submitting your registration, a 6-digit verification code will be sent to your email address to verify your identity and activate your account.</p>
             </div>
 
             <div class="policy-item-card">
@@ -1165,7 +1164,11 @@
             return;
         }
 
-        const targetLeft = targetRect.left - containerRect.left + (targetRect.width - 32) / 2;
+        // Sleek reduced glider width centered under active tab text
+        const gliderWidth = isRegister ? 34 : 26;
+        const targetLeft = Math.round(targetRect.left - containerRect.left + (targetRect.width - gliderWidth) / 2);
+
+        glider.style.width = `${gliderWidth}px`;
 
         if (!animate) {
             glider.style.transition = 'none';
@@ -1173,7 +1176,7 @@
             return;
         }
 
-        glider.style.transition = '';
+        glider.style.transition = 'left 0.35s cubic-bezier(0.34, 1.25, 0.64, 1), width 0.3s cubic-bezier(0.34, 1.25, 0.64, 1)';
         glider.classList.remove('stretching-right', 'stretching-left');
         void glider.offsetWidth; // trigger reflow
 
@@ -1688,16 +1691,21 @@
                 updateChk(chkCap, hasCap, 'A capital letter');
                 updateChk(chkSym, hasSym, 'A symbol');
 
-                // High-contrast badge and score update
+                // High-contrast badge and score update (only show Strength text once user inputs a character)
                 const labels = ['Too Weak', 'Weak', 'Fair', 'Good', 'Strong'];
                 const badgeClasses = ['status-weak', 'status-weak', 'status-fair', 'status-good', 'status-strong'];
                 const badgeEl = document.getElementById('pwd-strength-badge');
 
-                if (label) {
-                    label.textContent = 'Strength: ' + (labels[score] || 'Weak');
-                }
-                if (badgeEl) {
-                    badgeEl.className = 'pwd-strength-badge ' + (badgeClasses[score] || 'status-weak');
+                if (pwd.length === 0) {
+                    if (badgeEl) badgeEl.style.display = 'none';
+                } else {
+                    if (badgeEl) {
+                        badgeEl.style.display = 'inline-flex';
+                        badgeEl.className = 'pwd-strength-badge ' + (badgeClasses[score] || 'status-weak');
+                    }
+                    if (label) {
+                        label.textContent = 'Strength: ' + (labels[score] || 'Weak');
+                    }
                 }
 
                 if (score >= 3 && len8) {
@@ -2046,7 +2054,7 @@
                 throw new Error(errMsg);
             }
 
-            if (!data.requires_otp) throw new Error('The server did not start email verification. Please try again.');
+            if (!data.requires_otp && !data.success) throw new Error('The server did not start email verification. Please try again.');
 
             if (modal) {
                 modal.classList.remove('active');

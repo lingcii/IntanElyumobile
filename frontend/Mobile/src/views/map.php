@@ -264,21 +264,15 @@ if (is_dir($imgDir)) {
 
     <!-- Classification Toggle Button & Popover (Vertical on Left Side Corner) -->
     <div class="btn-classification-wrapper" id="btn-classification-wrapper"
-        style="position: absolute; bottom: calc(115px + env(safe-area-inset-bottom)); left: 10px; z-index: 895; transition: transform 0.38s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.28s ease, visibility 0.38s ease;">
-        <!-- Popover showing the 3 Types of Classification (Solid Opaque Theme) -->
+        style="position: absolute; bottom: calc(115px + env(safe-area-inset-bottom)); left: 10px; z-index: 1005; transition: transform 0.38s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.28s ease, visibility 0.38s ease;">
+        <!-- Popover showing the 3 Types of Classification (Clean White Theme) -->
         <div id="classification-popover"
-            style="display: none; position: absolute; bottom: 0; left: calc(100% + 10px); transform-origin: bottom left; transform: scale(0.95); opacity: 0; width: 270px; background: #ffffff !important; border-radius: 22px; box-shadow: 0 16px 40px rgba(10, 25, 60, 0.45) !important; border: none !important; outline: none !important; overflow: hidden; transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1); pointer-events: none; z-index: 1000;">
+            style="display: none; position: absolute; bottom: 0; left: calc(100% + 10px); transform-origin: bottom left; transform: scale(0.95); opacity: 0; width: 270px; background: #ffffff !important; border-radius: 22px; box-shadow: 0 16px 40px rgba(10, 25, 60, 0.35) !important; border: none !important; outline: none !important; overflow: hidden; transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1); pointer-events: none; z-index: 1100;">
             <!-- Header Banner -->
             <div
                 style="background: linear-gradient(180deg, #1e3a8a 0%, #193375 100%) !important; padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; border: none !important; outline: none !important;">
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <div
-                        style="width: 28px; height: 28px; border-radius: 8px; background: #ffffff !important; display: flex; align-items: center; justify-content: center; color: #1e3a8a !important; font-size: 13px; box-shadow: 0 2px 6px rgba(0,0,0,0.18); flex-shrink: 0;">
-                        <i class="fa-solid fa-tags" style="color: #1e3a8a !important;"></i>
-                    </div>
-                    <span
-                        style="font-size: 13.5px; font-weight: 800; color: #ffffff; letter-spacing: -0.2px;">Classifications</span>
-                </div>
+                <span
+                    style="font-size: 14.5px; font-weight: 800; color: #ffffff; letter-spacing: -0.2px;">Classifications</span>
                 <button type="button" onclick="window.toggleClassificationMenu(false)"
                     style="background: #ffffff !important; border: none !important; outline: none !important; color: #1e3a8a !important; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18) !important; flex-shrink: 0; transition: transform 0.15s ease;"
                     onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">
@@ -286,69 +280,69 @@ if (is_dir($imgDir)) {
                 </button>
             </div>
 
-            <!-- Body List (Solid royal blue gradient cards on pure white) -->
+            <!-- Body List (Crisp White Cards) -->
             <div
-                style="background: #ffffff !important; padding: 10px 10px 12px 10px; display: flex; flex-direction: column; gap: 7px;">
+                style="background: #f8fafc !important; padding: 10px 10px 12px 10px; display: flex; flex-direction: column; gap: 8px;">
                 <!-- 1. Existing -->
                 <div class="classification-item-chip" onclick="window.filterByClassification('EXIST')"
-                    style="cursor: pointer; padding: 10px 12px; border-radius: 14px; background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; box-shadow: 0 3px 10px rgba(32, 63, 141, 0.22) !important; border: none !important; outline: none !important; transition: transform 0.15s ease;"
+                    style="cursor: pointer; padding: 10px 12px; border-radius: 14px; background: #ffffff !important; border: 1.5px solid #e2e8f0 !important; box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05) !important; outline: none !important; transition: transform 0.15s ease, box-shadow 0.15s ease;"
                     onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
                     <div
                         style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 3px;">
                         <div style="display: flex; align-items: center; gap: 6px;">
                             <span
-                                style="width: 7.5px; height: 7.5px; border-radius: 50%; background: #00f2fe; flex-shrink: 0; box-shadow: 0 0 6px #00f2fe; display: inline-block;"></span>
-                            <span style="font-size: 12.5px; font-weight: 800; color: #ffffff;">Existing</span>
+                                style="width: 7.5px; height: 7.5px; border-radius: 50%; background: #0284c7; flex-shrink: 0; box-shadow: 0 0 6px rgba(2, 132, 199, 0.45); display: inline-block;"></span>
+                            <span style="font-size: 13px; font-weight: 800; color: #0f172a;">Existing</span>
                         </div>
                         <span id="count-exist"
-                            style="font-size: 10px; font-weight: 800; color: #00f2fe; background: rgba(0, 242, 254, 0.18); padding: 2px 8px; border-radius: 100px;">Site</span>
+                            style="font-size: 10px; font-weight: 800; color: #0284c7; background: #e0f2fe; padding: 2px 8px; border-radius: 100px;">Site</span>
                     </div>
                     <div
-                        style="font-size: 10.5px; color: rgba(255,255,255,0.85); font-weight: 500; line-height: 1.35; padding-left: 13.5px;">
+                        style="font-size: 10.5px; color: #64748b; font-weight: 500; line-height: 1.35; padding-left: 13.5px;">
                         Fully developed spots & facilities</div>
                 </div>
 
                 <!-- 2. Potential -->
                 <div class="classification-item-chip" onclick="window.filterByClassification('POTENTIAL')"
-                    style="cursor: pointer; padding: 10px 12px; border-radius: 14px; background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; box-shadow: 0 3px 10px rgba(32, 63, 141, 0.22) !important; border: none !important; outline: none !important; transition: transform 0.15s ease;"
+                    style="cursor: pointer; padding: 10px 12px; border-radius: 14px; background: #ffffff !important; border: 1.5px solid #e2e8f0 !important; box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05) !important; outline: none !important; transition: transform 0.15s ease, box-shadow 0.15s ease;"
                     onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
                     <div
                         style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 3px;">
                         <div style="display: flex; align-items: center; gap: 6px;">
                             <span
-                                style="width: 7.5px; height: 7.5px; border-radius: 50%; background: #34d399; flex-shrink: 0; box-shadow: 0 0 6px #34d399; display: inline-block;"></span>
-                            <span style="font-size: 12.5px; font-weight: 800; color: #ffffff;">Potential</span>
+                                style="width: 7.5px; height: 7.5px; border-radius: 50%; background: #10b981; flex-shrink: 0; box-shadow: 0 0 6px rgba(16, 185, 129, 0.45); display: inline-block;"></span>
+                            <span style="font-size: 13px; font-weight: 800; color: #0f172a;">Potential</span>
                         </div>
                         <span id="count-potential"
-                            style="font-size: 10px; font-weight: 800; color: #34d399; background: rgba(52, 211, 153, 0.18); padding: 2px 8px; border-radius: 100px;">Site</span>
+                            style="font-size: 10px; font-weight: 800; color: #059669; background: #d1fae5; padding: 2px 8px; border-radius: 100px;">Site</span>
                     </div>
                     <div
-                        style="font-size: 10.5px; color: rgba(255,255,255,0.85); font-weight: 500; line-height: 1.35; padding-left: 13.5px;">
+                        style="font-size: 10.5px; color: #64748b; font-weight: 500; line-height: 1.35; padding-left: 13.5px;">
                         Unspoiled spots with high promise</div>
                 </div>
 
                 <!-- 3. Emerging -->
                 <div class="classification-item-chip" onclick="window.filterByClassification('EMERGE')"
-                    style="cursor: pointer; padding: 10px 12px; border-radius: 14px; background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; box-shadow: 0 3px 10px rgba(32, 63, 141, 0.22) !important; border: none !important; outline: none !important; transition: transform 0.15s ease;"
+                    style="cursor: pointer; padding: 10px 12px; border-radius: 14px; background: #ffffff !important; border: 1.5px solid #e2e8f0 !important; box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05) !important; outline: none !important; transition: transform 0.15s ease, box-shadow 0.15s ease;"
                     onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
                     <div
                         style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 3px;">
                         <div style="display: flex; align-items: center; gap: 6px;">
                             <span
-                                style="width: 7.5px; height: 7.5px; border-radius: 50%; background: #f87171; flex-shrink: 0; box-shadow: 0 0 6px #f87171; display: inline-block;"></span>
-                            <span style="font-size: 12.5px; font-weight: 800; color: #ffffff;">Emerging</span>
+                                style="width: 7.5px; height: 7.5px; border-radius: 50%; background: #ef4444; flex-shrink: 0; box-shadow: 0 0 6px rgba(239, 68, 68, 0.45); display: inline-block;"></span>
+                            <span style="font-size: 13px; font-weight: 800; color: #0f172a;">Emerging</span>
                         </div>
                         <span id="count-emerge"
-                            style="font-size: 10px; font-weight: 800; color: #f87171; background: rgba(248, 113, 113, 0.18); padding: 2px 8px; border-radius: 100px;">Site</span>
+                            style="font-size: 10px; font-weight: 800; color: #dc2626; background: #fee2e2; padding: 2px 8px; border-radius: 100px;">Site</span>
                     </div>
                     <div
-                        style="font-size: 10.5px; color: rgba(255,255,255,0.85); font-weight: 500; line-height: 1.35; padding-left: 13.5px;">
+                        style="font-size: 10.5px; color: #64748b; font-weight: 500; line-height: 1.35; padding-left: 13.5px;">
                         Rising attractions gaining visitors</div>
                 </div>
 
                 <!-- Show All Classifications Button -->
                 <div onclick="window.filterByClassification('ALL')"
-                    style="cursor: pointer; margin-top: 3px; text-align: center; font-size: 11.5px; font-weight: 800; color: #1e3a8a; padding: 9px 12px; border-radius: 12px; background: #f1f5f9; border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: center; gap: 6px; transition: background 0.15s ease;"
+                    style="cursor: pointer; margin-top: 2px; text-align: center; font-size: 11.5px; font-weight: 800; color: #1e3a8a; padding: 9px 12px; border-radius: 12px; background: #ffffff; border: 1.5px solid #e2e8f0; display: flex; align-items: center; justify-content: center; gap: 6px; transition: background 0.15s ease;"
                     onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
                     <i class="fa-solid fa-list-check" style="font-size: 11px; color: #1e3a8a;"></i>
                     Show All Classifications
@@ -759,23 +753,23 @@ if (is_dir($imgDir)) {
                         style="font-size:10px; font-weight:800; padding:4px 10px; border-radius:100px; background:rgba(255,255,255,0.2); color:#ffffff; text-transform:uppercase; letter-spacing:0.5px;">Required</span>
                 </div>
 
-                <!-- Maximum Capacity Card -->
-                <div id="sheet-capacity-card"
+                <!-- Opening & Closing Hours Card -->
+                <div id="sheet-hours-card"
                     style="display:none; align-items:center; justify-content:space-between; background:linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border:none !important; outline:none !important; border-radius:14px; padding:12px 14px; box-shadow:0 4px 14px rgba(32, 63, 141, 0.28) !important;">
                     <div style="display:flex; align-items:center; gap:10px;">
                         <div
                             style="width:34px; height:34px; border-radius:10px; background:#ffffff !important; display:flex; align-items:center; justify-content:center; color:#1e3a8a !important; font-size:16px; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.18);">
-                            <i class="fa-solid fa-users" style="color:#1e3a8a !important;"></i>
+                            <i class="fa-regular fa-clock" style="color:#1e3a8a !important;"></i>
                         </div>
                         <div style="display:flex; flex-direction:column;">
-                            <span style="font-size:13px; font-weight:800; color:#ffffff; letter-spacing:0.2px;">Maximum
-                                Capacity</span>
+                            <span style="font-size:13px; font-weight:800; color:#ffffff; letter-spacing:0.2px;">Opening &
+                                Closing</span>
                             <span style="font-size:10.5px; color:rgba(255,255,255,0.85); font-weight:600;"
-                                id="sheet-capacity-detail">Max visitors allowed</span>
+                                id="sheet-hours-detail">--</span>
                         </div>
                     </div>
-                    <span id="sheet-capacity-badge"
-                        style="font-size:10.5px; font-weight:800; padding:4px 10px; border-radius:100px; background:rgba(0,242,254,0.2); color:#00f2fe; letter-spacing:0.3px;">--</span>
+                    <span id="sheet-hours-badge"
+                        style="font-size:10px; font-weight:800; padding:4px 10px; border-radius:100px; background:rgba(16,185,129,0.25); color:#34d399; text-transform:uppercase; letter-spacing:0.5px;">Open Now</span>
                 </div>
 
                 <!-- Open 24 Hours Card -->
@@ -794,6 +788,25 @@ if (is_dir($imgDir)) {
                         </div>
                     </div>
                     <span style="font-size:11px; font-weight:700; color:#ffffff;">Available all day</span>
+                </div>
+
+                <!-- Maximum Capacity Card -->
+                <div id="sheet-capacity-card"
+                    style="display:none; align-items:center; justify-content:space-between; background:linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border:none !important; outline:none !important; border-radius:14px; padding:12px 14px; box-shadow:0 4px 14px rgba(32, 63, 141, 0.28) !important;">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <div
+                            style="width:34px; height:34px; border-radius:10px; background:#ffffff !important; display:flex; align-items:center; justify-content:center; color:#1e3a8a !important; font-size:16px; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.18);">
+                            <i class="fa-solid fa-users" style="color:#1e3a8a !important;"></i>
+                        </div>
+                        <div style="display:flex; flex-direction:column;">
+                            <span style="font-size:13px; font-weight:800; color:#ffffff; letter-spacing:0.2px;">Maximum
+                                Capacity</span>
+                            <span style="font-size:10.5px; color:rgba(255,255,255,0.85); font-weight:600;"
+                                id="sheet-capacity-detail">Max visitors allowed</span>
+                        </div>
+                    </div>
+                    <span id="sheet-capacity-badge"
+                        style="font-size:10.5px; font-weight:800; padding:4px 10px; border-radius:100px; background:rgba(0,242,254,0.2); color:#00f2fe; letter-spacing:0.3px;">--</span>
                 </div>
 
                 <!-- Under Maintenance Card -->
@@ -2336,6 +2349,8 @@ if (is_dir($imgDir)) {
                 if (countPot) countPot.textContent = `${cPot} Sites`;
 
                 popover.style.display = 'block';
+                const classWrap = document.getElementById('btn-classification-wrapper');
+                if (classWrap) classWrap.style.zIndex = '1100';
                 requestAnimationFrame(() => {
                     popover.style.opacity = '1';
                     popover.style.transform = 'scale(1)';
@@ -2348,7 +2363,11 @@ if (is_dir($imgDir)) {
                 popover.style.pointerEvents = 'none';
                 if (chevron) chevron.style.transform = 'rotate(0deg)';
                 setTimeout(() => {
-                    if (popover.style.opacity === '0') popover.style.display = 'none';
+                    if (popover.style.opacity === '0') {
+                        popover.style.display = 'none';
+                        const classWrap = document.getElementById('btn-classification-wrapper');
+                        if (classWrap) classWrap.style.zIndex = '1005';
+                    }
                 }, 200);
             }
         };
@@ -3873,7 +3892,7 @@ if (is_dir($imgDir)) {
                         const pill = document.createElement('span');
                         pill.className = 'sheet-tag-pill';
                         const formatted = cat.charAt(0).toUpperCase() + cat.slice(1).toLowerCase();
-                        pill.innerHTML = `<i class="fa-solid fa-tag" style="font-size:8px; opacity:0.8; margin-right:3px;"></i>${formatted}`;
+                        pill.textContent = formatted;
                         catBadge.appendChild(pill);
                     });
                     catBadge.style.display = 'flex';
@@ -4002,10 +4021,12 @@ if (is_dir($imgDir)) {
                 }
             }
 
-            // Site Attributes (Tour Guide Needed, Open 24 Hours, Under Maintenance)
+            // Site Attributes (Tour Guide Needed, Opening & Closing Hours, Open 24 Hours, Maximum Capacity, Under Maintenance)
             const attrContainer = document.getElementById('sheet-attributes-container');
             const guideCard = document.getElementById('sheet-tour-guide-card');
+            const hoursCard = document.getElementById('sheet-hours-card');
             const open24Card = document.getElementById('sheet-24h-card');
+            const capCard = document.getElementById('sheet-capacity-card');
             const maintCard = document.getElementById('sheet-maint-card');
 
             let hasAnyAttr = false;
@@ -4025,8 +4046,85 @@ if (is_dir($imgDir)) {
                 }
             }
 
+            // Helper to format HH:MM:SS or HH:MM to 12-hour AM/PM string
+            function formatTime12Hour(timeStr) {
+                if (!timeStr) return '';
+                const str = String(timeStr).trim();
+                if (str.toLowerCase().includes('am') || str.toLowerCase().includes('pm')) {
+                    return str;
+                }
+                const parts = str.split(':');
+                if (parts.length >= 2) {
+                    let h = parseInt(parts[0], 10);
+                    const m = parseInt(parts[1], 10);
+                    if (isNaN(h) || isNaN(m)) return str;
+                    const ampm = h >= 12 ? 'PM' : 'AM';
+                    h = h % 12;
+                    if (h === 0) h = 12;
+                    const minStr = m < 10 ? '0' + m : m;
+                    return `${h}:${minStr} ${ampm}`;
+                }
+                return str;
+            }
+
+            // Operating / Opening & Closing Hours vs 24 Hours Card (Positioned directly below Tour Guide card)
+            const isOpen24 = Boolean(
+                locationData.is_open_24_hours == 1 ||
+                locationData.is_open_24_hours === true ||
+                locationData.is_open_24_hours === '1'
+            );
+
+            if (isOpen24) {
+                if (open24Card) {
+                    open24Card.style.display = 'flex';
+                    hasAnyAttr = true;
+                }
+                if (hoursCard) {
+                    hoursCard.style.display = 'none';
+                }
+            } else {
+                if (open24Card) {
+                    open24Card.style.display = 'none';
+                }
+                if (hoursCard) {
+                    const openStr = locationData.opening_time ? formatTime12Hour(locationData.opening_time) : '';
+                    const closeStr = locationData.closing_time ? formatTime12Hour(locationData.closing_time) : '';
+
+                    let scheduleText = '';
+                    if (openStr && closeStr) {
+                        scheduleText = `${openStr} – ${closeStr}`;
+                    } else if (openStr) {
+                        scheduleText = `Opens at ${openStr}`;
+                    } else if (closeStr) {
+                        scheduleText = `Closes at ${closeStr}`;
+                    } else if (locationData.operating_hours || locationData.hours) {
+                        scheduleText = locationData.operating_hours || locationData.hours;
+                    } else {
+                        scheduleText = '8:00 AM – 5:00 PM';
+                    }
+
+                    const hoursDetail = document.getElementById('sheet-hours-detail');
+                    const hoursBadge = document.getElementById('sheet-hours-badge');
+                    if (hoursDetail) hoursDetail.textContent = scheduleText;
+
+                    if (hoursBadge) {
+                        if (opState && opState.isClosed) {
+                            hoursBadge.textContent = 'Closed';
+                            hoursBadge.style.background = 'rgba(239, 68, 68, 0.25)';
+                            hoursBadge.style.color = '#fca5a5';
+                        } else {
+                            hoursBadge.textContent = 'Open Now';
+                            hoursBadge.style.background = 'rgba(16, 185, 129, 0.25)';
+                            hoursBadge.style.color = '#34d399';
+                        }
+                    }
+
+                    hoursCard.style.display = 'flex';
+                    hasAnyAttr = true;
+                }
+            }
+
             // Maximum Capacity Card
-            const capCard = document.getElementById('sheet-capacity-card');
             if (capCard) {
                 const capVal = (locationData.maximum_capacity !== undefined && locationData.maximum_capacity !== null) ? parseInt(locationData.maximum_capacity) : NaN;
                 if (!isNaN(capVal) && capVal > 0) {
@@ -4045,15 +4143,6 @@ if (is_dir($imgDir)) {
                     if (capBadge) capBadge.textContent = `${locationData.maximum_capacity} Max`;
                 } else {
                     capCard.style.display = 'none';
-                }
-            }
-
-            if (open24Card) {
-                if (locationData.is_open_24_hours) {
-                    open24Card.style.display = 'flex';
-                    hasAnyAttr = true;
-                } else {
-                    open24Card.style.display = 'none';
                 }
             }
 
@@ -4278,19 +4367,19 @@ if (is_dir($imgDir)) {
                                     <span style="font-size:11.5px; font-weight:800; color:#ffffff;">${displaySenior > 0 ? `₱${displaySenior.toFixed(2)}` : 'Free'}</span>
                                 </div>
                             </div>
-                            <!-- User request: Entrance Fee next to Environmental Fee in a 2-column card -->
+                            <!-- Entrance next to Environmental in a 2-column card (fee text removed) -->
                             <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; width:100%; margin-top:2px;">
                                 <div style="background:rgba(255,255,255,0.14); border:1px solid rgba(255,255,255,0.2); border-radius:10px; padding:7px 10px; display:flex; align-items:center; justify-content:space-between;">
-                                    <span style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.95); display:flex; align-items:center; gap:6px;">
-                                        <i class="fa-solid fa-ticket" style="color:#00f2fe; font-size:11px;"></i> Entrance Fee
+                                    <span style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.95); display:flex; align-items:center; gap:6px; white-space:nowrap;">
+                                        <i class="fa-solid fa-ticket" style="color:#00f2fe; font-size:11px;"></i> Entrance
                                     </span>
-                                    <span style="font-size:11.5px; font-weight:800; color:#ffffff;">${displayEntrance > 0 ? `₱${displayEntrance.toFixed(2)}` : 'Free'}</span>
+                                    <span style="font-size:11.5px; font-weight:800; color:#ffffff; white-space:nowrap; margin-left:4px;">${displayEntrance > 0 ? `₱${displayEntrance.toFixed(2)}` : 'Free'}</span>
                                 </div>
                                 <div style="background:rgba(255,255,255,0.14); border:1px solid rgba(255,255,255,0.2); border-radius:10px; padding:7px 10px; display:flex; align-items:center; justify-content:space-between;">
-                                    <span style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.95); display:flex; align-items:center; gap:6px;">
-                                        <i class="fa-solid fa-leaf" style="color:#34d399; font-size:11px;"></i> Environmental Fee
+                                    <span style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.95); display:flex; align-items:center; gap:6px; white-space:nowrap;">
+                                        <i class="fa-solid fa-leaf" style="color:#34d399; font-size:11px;"></i> Environmental
                                     </span>
-                                    <span style="font-size:11.5px; font-weight:800; color:#ffffff;">${displayEnvi > 0 ? `₱${displayEnvi.toFixed(2)}` : 'Free'}</span>
+                                    <span style="font-size:11.5px; font-weight:800; color:#ffffff; white-space:nowrap; margin-left:4px;">${displayEnvi > 0 ? `₱${displayEnvi.toFixed(2)}` : 'Free'}</span>
                                 </div>
                             </div>
                         `;

@@ -248,19 +248,13 @@ body.keyboard-open .auth-top h1 {
     position: absolute;
     bottom: 2px;
     height: 4px;
-    width: 32px;
-    left: calc(25% - 16px);
     border-radius: 99px;
     background: linear-gradient(90deg, #2563eb, #1d4ed8);
     box-shadow: 0 3px 10px rgba(29, 78, 216, 0.45);
     pointer-events: none;
     z-index: 1;
-    transition: left 0.45s cubic-bezier(0.34, 1.4, 0.64, 1);
+    transition: left 0.35s cubic-bezier(0.34, 1.25, 0.64, 1), width 0.3s cubic-bezier(0.34, 1.25, 0.64, 1);
     transform-origin: center center;
-}
-
-.auth-container.mode-register .tab-gooey-glider {
-    left: calc(75% - 16px);
 }
 
 .tab-gooey-glider.stretching-right {
@@ -709,31 +703,44 @@ select.auth-input option {
 
 /* Inline Field Validation Badges & Microcopy */
 .input-group i.field-status-icon {
+    position: absolute !important;
     left: auto !important;
-    right: 12px !important;
+    right: 14px !important;
     top: 50% !important;
     transform: translateY(-50%) !important;
-    font-size: 14px !important;
-    width: auto !important;
+    font-size: 15px !important;
+    width: 18px !important;
+    height: 18px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
     pointer-events: none !important;
     transition: opacity 0.2s ease, transform 0.2s ease !important;
     opacity: 0;
-    z-index: 5;
+    z-index: 6 !important;
 }
 
 .input-group i.field-status-icon.password-offset {
     left: auto !important;
-    right: 36px !important;
+    right: 44px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
 }
 
 .input-group i.field-status-icon.valid {
     opacity: 1 !important;
-    color: #34d399 !important;
+    color: #10b981 !important;
 }
 
 .input-group i.field-status-icon.invalid {
     opacity: 1 !important;
-    color: #f87171 !important;
+    color: #ef4444 !important;
+}
+
+.input-group:has(.password-toggle) .auth-input,
+#reg-password.auth-input,
+#login-password.auth-input {
+    padding-right: 70px !important;
 }
 
 .input-field-hint {
@@ -1554,7 +1561,7 @@ select.auth-input option {
     overflow-y: auto;
     overflow-x: hidden;
     padding: 14px 12px;
-    background: #ffffff !important;
+    background: #f8fafc !important;
     display: flex;
     flex-direction: column;
     gap: 10px;
@@ -1570,26 +1577,35 @@ select.auth-input option {
     height: 0;
 }
 
-/* Navy gradient cards (same as notification items) */
-.policy-welcome-banner,
-.policy-item-card {
-    background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important;
-    box-shadow: 0 4px 12px rgba(32, 63, 141, 0.28) !important;
-    border: none !important;
+/* Clean white cards with subtle outline & modern text contrast */
+.policy-welcome-banner {
+    background: #f8fafc !important;
+    border: 1.5px solid #e2e8f0 !important;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04) !important;
     outline: none !important;
     border-radius: 14px;
     padding: 12px 14px;
 }
 
 .policy-welcome-banner p {
-    color: rgba(255, 255, 255, 0.92) !important;
+    color: #475569 !important;
     font-size: 12px;
-    line-height: 1.5;
+    line-height: 1.55;
     margin: 0;
 }
 
 .policy-welcome-banner strong {
-    color: #ffffff !important;
+    color: #0f172a !important;
+    font-weight: 700;
+}
+
+.policy-item-card {
+    background: #ffffff !important;
+    border: 1.5px solid #e2e8f0 !important;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04) !important;
+    outline: none !important;
+    border-radius: 14px;
+    padding: 12px 14px;
 }
 
 .policy-item-header {
@@ -1604,23 +1620,23 @@ select.auth-input option {
     width: 7px;
     height: 7px;
     border-radius: 50%;
-    background: #00f2fe;
-    box-shadow: 0 0 6px rgba(0, 242, 254, 0.7);
+    background: #0284c7;
+    box-shadow: 0 0 6px rgba(2, 132, 199, 0.4);
     flex-shrink: 0;
 }
 
 .policy-item-title {
-    font-size: 14px;
+    font-size: 13.5px;
     font-weight: 800;
-    color: #ffffff !important;
+    color: #0f172a !important;
     letter-spacing: -0.2px;
 }
 
 .policy-item-desc {
     margin: 0;
-    font-size: 12.5px;
-    font-weight: 600;
-    color: rgba(255, 255, 255, 0.9) !important;
+    font-size: 12px;
+    font-weight: 500;
+    color: #475569 !important;
     line-height: 1.5;
 }
 
@@ -2270,10 +2286,9 @@ body.keyboard-open .auth-top h1 {
 
 .tab-gooey-glider {
     bottom: 2px;
-    width: 96px;
     height: 4px;
-    background: linear-gradient(90deg, #a9d4ff, #457de8, #a9d4ff);
-    box-shadow: 0 3px 10px rgba(55, 108, 219, .25);
+    background: linear-gradient(90deg, #2563eb, #1d4ed8);
+    box-shadow: 0 3px 10px rgba(29, 78, 216, .35);
 }
 
 .form-panel {
@@ -3051,7 +3066,6 @@ body[data-view="auth"] .auth-tab.active {
 }
 
 body[data-view="auth"] .tab-gooey-glider {
-    width: 88px;
     height: 4px;
     bottom: 2px;
 }

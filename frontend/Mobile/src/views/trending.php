@@ -496,8 +496,6 @@ if (is_dir($imgDir)) {
             if (countLabel) {
                 if (count === 0) {
                     countLabel.textContent = 'No matching tourist sites';
-                } else if (currentMode === 'trending') {
-                    countLabel.textContent = count === 1 ? 'Showing 1 trending site' : `Showing ${count} trending sites`;
                 } else {
                     countLabel.textContent = count === 1 ? 'Showing 1 tourist site in La Union' : `Showing ${count} tourist sites in La Union`;
                 }
@@ -525,7 +523,9 @@ if (is_dir($imgDir)) {
                 const numRating = (dest.rating !== undefined && dest.rating !== null && !isNaN(parseFloat(dest.rating)))
                     ? parseFloat(dest.rating)
                     : (dest.reviews_avg_rating ? parseFloat(dest.reviews_avg_rating) : (dest.rating_star ? parseFloat(dest.rating_star) : 0));
-                const displayRating = (numRating > 0 ? numRating.toFixed(1) : '3.0');
+                const count = parseInt(dest.reviews_count ?? dest.review_count ?? dest.total_reviews ?? 0, 10);
+                const reviewCount = isNaN(count) ? 0 : count;
+                const hasValidRating = numRating > 0;
                 const fee = (dest.entrance_fee && parseFloat(dest.entrance_fee) > 0) ? `₱${parseFloat(dest.entrance_fee).toFixed(0)}` : 'Free';
                 const cat = dest.category || 'Spot';
 
@@ -533,14 +533,20 @@ if (is_dir($imgDir)) {
                     ? `<div class="fire-icon"><i class="fa-solid fa-fire"></i></div>`
                     : `<div class="fire-icon" style="color:#2563eb; box-shadow:0 2px 8px rgba(37,99,235,0.25);"><i class="fa-solid fa-compass"></i></div>`;
 
+                const ratingHtml = hasValidRating ? `
+                    <span class="card-rating" style="background:rgba(245,158,11,0.22); color:#fbbf24; border:1px solid rgba(245,158,11,0.4); padding:2px 7px; border-radius:100px; font-size:10px; font-weight:800; display:inline-flex; align-items:center; gap:3px;">
+                        <i class="fa-solid fa-star" style="font-size:9px; color:#f59e0b;"></i> ${numRating.toFixed(1)}${reviewCount > 0 ? ` <span style="font-size:8.5px; opacity:0.8;">(${reviewCount})</span>` : ''}
+                    </span>
+                ` : `
+                    <span class="card-rating" style="background:rgba(255,255,255,0.12); color:rgba(255,255,255,0.75); border:1px solid rgba(255,255,255,0.2); padding:2px 7px; border-radius:100px; font-size:9.5px; font-weight:600; display:inline-flex; align-items:center; gap:3px;">
+                        <i class="fa-regular fa-star" style="font-size:8.5px; opacity:0.7;"></i> No reviews
+                    </span>
+                `;
+
                 const metaBottomHtml = `
                     <div class="card-bottom-tags" style="display:flex; align-items:center; gap:5px; flex-wrap:wrap; margin-top:5px;">
-                        <span class="card-rating" style="background:rgba(245,158,11,0.22); color:#fbbf24; border:1px solid rgba(245,158,11,0.4); padding:2px 7px; border-radius:100px; font-size:10px; font-weight:800; display:inline-flex; align-items:center; gap:3px;">
-                            <i class="fa-solid fa-star" style="font-size:9px; color:#f59e0b;"></i> ${displayRating}
-                        </span>
-                        ${currentMode === 'trending'
-                            ? `<span style="font-size:9.5px; color:#fed7aa; font-weight:800; margin-left:auto; display:inline-flex; align-items:center; gap:3px;"><i class="fa-solid fa-fire" style="color:#f97316; font-size:9px;"></i> Trending</span>`
-                            : `<span class="card-cat-pill">${cat}</span><span class="card-fee">${fee}</span>`}
+                        ${ratingHtml}
+                        <span class="card-cat-pill">${cat}</span><span class="card-fee">${fee}</span>
                     </div>`;
 
                 html += `

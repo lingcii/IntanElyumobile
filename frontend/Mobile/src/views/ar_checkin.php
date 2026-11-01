@@ -178,7 +178,7 @@ $hideBottomNav = true; // Hide bottom nav for full immersive view
                         spotId: spotId,
                         lat: userLat,
                         lng: userLng,
-                        capturedAt: new Date().toISOString()
+                        capturedAt: (typeof window.getPhilippineTimestampISO === 'function' ? window.getPhilippineTimestampISO() : new Date().toISOString())
                     });
                 } catch (err) {
                     console.warn('Offline queuing error:', err);
@@ -228,7 +228,7 @@ $hideBottomNav = true; // Hide bottom nav for full immersive view
                             spotId: spotId,
                             lat: userLat,
                             lng: userLng,
-                            capturedAt: new Date().toISOString()
+                            capturedAt: (typeof window.getPhilippineTimestampISO === 'function' ? window.getPhilippineTimestampISO() : new Date().toISOString())
                         });
                     } catch (err) {
                         console.warn('Offline queuing error:', err);

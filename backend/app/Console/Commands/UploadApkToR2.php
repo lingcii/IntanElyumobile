@@ -12,7 +12,7 @@ class UploadApkToR2 extends Command
      *
      * @var string
      */
-    protected $signature = 'apk:upload-r2 {--file= : Path to specific APK file to upload}';
+    protected $signature = 'apk:upload-r2 {--file= : Path to specific APK file to upload} {--cleanup-only : Only abort incomplete multipart uploads without uploading}';
 
     /**
      * The console command description.
@@ -26,6 +26,22 @@ class UploadApkToR2 extends Command
      */
     public function handle()
     {
+        @set_time_limit(0);
+        @ini_set('memory_limit', '512M');
+        $targetKey = 'apks/intan-elyu.apk';
+
+        if ($this->option('cleanup-only')) {
+            $this->info("🧹 Cleaning up incomplete multipart uploads on Cloudflare R2...");
+            try {
+                $aborted = $this->abortStaleMultipartUploads(Storage::disk('r2'), $targetKey);
+                $this->info("✅ Cleaned up {$aborted} incomplete multipart upload(s).");
+                return 0;
+            } catch (\Exception $e) {
+                $this->error("❌ Error cleaning up multipart uploads: " . $e->getMessage());
+                return 1;
+            }
+        }
+
         $this->info("🚀 Starting APK Upload to Cloudflare R2...");
 
         $customFile = $this->option('file');
@@ -39,12 +55,6 @@ class UploadApkToR2 extends Command
         $candidatePaths = array_merge($candidatePaths, [
             $baseDir . '/frontend/Mobile/android/app/build/outputs/apk/release/app-release.apk',
             $baseDir . '/frontend/Mobile/public/downloads/intan-elyu.apk',
-            $baseDir . '/frontend/Mobile/app-release.apk',
-            $baseDir . '/frontend/Mobile/IntanElyu-v0.0.0-release.apk',
-            $baseDir . '/frontend/Mobile/IntanElyu-v1.4.4-release.apk',
-            $baseDir . '/frontend/Mobile/IntanElyu-v1.4.3-release.apk',
-            $baseDir . '/frontend/Mobile/IntanElyu-v1.4.0-release.apk',
-            $baseDir . '/frontend/Mobile/android/app/build/outputs/apk/debug/app-debug.apk',
         ]);
 
         $existingApks = [];
@@ -81,6 +91,8 @@ class UploadApkToR2 extends Command
 
         try {
             $disk = Storage::disk('r2');
+            $this->abortStaleMultipartUploads($disk, $targetKey);
+
             $stream = fopen($selectedApk, 'rb');
             if (!$stream) {
                 $this->error("❌ Failed to open read stream on {$selectedApk}");
@@ -105,12 +117,43 @@ class UploadApkToR2 extends Command
                 $this->line("ℹ️  Web visitors will now receive the updated v1.4.0 APK with full offline mode.");
                 return 0;
             } else {
+                $this->abortStaleMultipartUploads($disk, $targetKey);
                 $this->error("❌ R2 upload returned false. Check Cloudflare R2 credentials or permissions.");
                 return 1;
             }
         } catch (\Exception $e) {
+            try {
+                $this->abortStaleMultipartUploads(Storage::disk('r2'), $targetKey);
+            } catch (\Throwable $ignore) {}
             $this->error("❌ Error uploading to R2: " . $e->getMessage());
             return 1;
         }
+    }
+
+    protected function abortStaleMultipartUploads($disk, string $targetKey): int
+    {
+        if (!method_exists($disk, 'getClient')) {
+            return 0;
+        }
+        $client = $disk->getClient();
+        $bucket = config('filesystems.disks.r2.bucket', 'intan-elyu-media');
+        $result = $client->listMultipartUploads([
+            'Bucket' => $bucket,
+            'Prefix' => $targetKey,
+        ]);
+        $uploads = $result['Uploads'] ?? [];
+        $aborted = 0;
+        foreach ($uploads as $upload) {
+            if (!empty($upload['Key']) && !empty($upload['UploadId'])) {
+                $client->abortMultipartUpload([
+                    'Bucket' => $bucket,
+                    'Key' => $upload['Key'],
+                    'UploadId' => $upload['UploadId'],
+                ]);
+                $aborted++;
+                $this->line("🧹 Aborted incomplete multipart upload: {$upload['Key']} (UploadId: " . substr($upload['UploadId'], 0, 12) . "...)");
+            }
+        }
+        return $aborted;
     }
 }

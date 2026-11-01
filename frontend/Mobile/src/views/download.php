@@ -2,11 +2,7 @@
 // Standalone Official Tourism Portal of La Union
 $candidatePaths = [
   dirname(__DIR__, 2) . '/android/app/build/outputs/apk/release/app-release.apk',
-  dirname(__DIR__, 2) . '/android/app/build/outputs/apk/debug/app-debug.apk',
   dirname(__DIR__, 2) . '/public/downloads/intan-elyu.apk',
-  dirname(__DIR__, 2) . '/app-release.apk',
-  dirname(__DIR__, 2) . '/app-debug.apk',
-  __DIR__ . '/../downloads/intan-elyu.apk',
 ];
 $localApk = null;
 foreach ($candidatePaths as $candidate) {

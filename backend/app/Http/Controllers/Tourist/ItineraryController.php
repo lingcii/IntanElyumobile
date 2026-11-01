@@ -144,6 +144,7 @@ class ItineraryController extends Controller
                 'municipality'                  => $dest->municipality?->name,
                 'is_open_24_hours'              => (bool) ($dest->is_open_24_hours ?? 0),
                 'is_maintenance'                => (bool) ($dest->is_maintenance ?? 0),
+                'boundary_geojson'              => $dest->boundary_geojson,
                 'tour_guide_notice'             => $dest->tour_guide_notice,
                 'tour_guide_needed'             => !empty($dest->tour_guide_notice) && !in_array(strtolower(trim($dest->tour_guide_notice)), ['no', 'none', 'false', '0']),
                 'accessible_vehicles'           => $allList,
@@ -192,7 +193,7 @@ class ItineraryController extends Controller
 
         $rawItineraries = Itinerary::where('user_id', $user->id)
             ->with([
-                'items.destination:id,name,photo_url,latitude,longitude,entrance_fee,adult_fee,kids_fee,pwd_fee,senior_citizen_fee,environmental_fee,classification_status,accessible_by_private_vehicle,municipality_id',
+                'items.destination:id,name,photo_url,latitude,longitude,entrance_fee,adult_fee,kids_fee,pwd_fee,senior_citizen_fee,environmental_fee,classification_status,accessible_by_private_vehicle,municipality_id,boundary_geojson',
                 'items.destination.municipality:id,name'
             ])
             ->orderByRaw('COALESCE(updated_at, created_at) DESC')
@@ -228,7 +229,7 @@ class ItineraryController extends Controller
         $user = $request->user();
         $itinerary = Itinerary::where('user_id', $user->id)
             ->with([
-                'items.destination:id,name,photo_url,latitude,longitude,entrance_fee,adult_fee,kids_fee,pwd_fee,senior_citizen_fee,environmental_fee,classification_status,accessible_by_private_vehicle,municipality_id',
+                'items.destination:id,name,photo_url,latitude,longitude,entrance_fee,adult_fee,kids_fee,pwd_fee,senior_citizen_fee,environmental_fee,classification_status,accessible_by_private_vehicle,municipality_id,boundary_geojson',
                 'items.destination.municipality:id,name'
             ])
             ->findOrFail($id);
@@ -337,7 +338,7 @@ class ItineraryController extends Controller
             if ($existingId) {
                 $existing = Itinerary::where('user_id', $user->id)
                     ->with([
-                        'items.destination:id,name,photo_url,latitude,longitude,entrance_fee,adult_fee,kids_fee,pwd_fee,senior_citizen_fee,environmental_fee,classification_status,accessible_by_private_vehicle,municipality_id',
+                        'items.destination:id,name,photo_url,latitude,longitude,entrance_fee,adult_fee,kids_fee,pwd_fee,senior_citizen_fee,environmental_fee,classification_status,accessible_by_private_vehicle,municipality_id,boundary_geojson',
                         'items.destination.municipality:id,name'
                     ])
                     ->find($existingId);
@@ -500,7 +501,7 @@ class ItineraryController extends Controller
         }
 
         $itinerary->load([
-            'items.destination:id,name,photo_url,latitude,longitude,entrance_fee,adult_fee,kids_fee,pwd_fee,senior_citizen_fee,environmental_fee,classification_status,accessible_by_private_vehicle,municipality_id',
+            'items.destination:id,name,photo_url,latitude,longitude,entrance_fee,adult_fee,kids_fee,pwd_fee,senior_citizen_fee,environmental_fee,classification_status,accessible_by_private_vehicle,municipality_id,boundary_geojson',
             'items.destination.municipality:id,name'
         ]);
         $spotIds = $itinerary->items->pluck('tourist_spot_id')->filter()->unique()->values()->all();
@@ -839,7 +840,7 @@ class ItineraryController extends Controller
 
         $itinerary->touch();
         $freshItinerary = $itinerary->fresh()->load([
-            'items.destination:id,name,photo_url,latitude,longitude,entrance_fee,adult_fee,kids_fee,pwd_fee,senior_citizen_fee,environmental_fee,classification_status,accessible_by_private_vehicle,municipality_id',
+            'items.destination:id,name,photo_url,latitude,longitude,entrance_fee,adult_fee,kids_fee,pwd_fee,senior_citizen_fee,environmental_fee,classification_status,accessible_by_private_vehicle,municipality_id,boundary_geojson',
             'items.destination.municipality:id,name'
         ]);
         $spotIds = $freshItinerary->items->pluck('tourist_spot_id')->filter()->unique()->values()->all();

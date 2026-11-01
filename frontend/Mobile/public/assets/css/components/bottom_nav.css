@@ -96,15 +96,15 @@ html.logout-open #bottom-navigation {
     pointer-events: none !important;
 }
 
-
 .magic-nav-bg {
     position: absolute;
     inset: 0;
     border-radius: 99px;
     overflow: hidden;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.2);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 4px 18px rgba(15, 23, 42, 0.08) !important;
 }
 
 .magic-nav-svg {
@@ -116,7 +116,23 @@ html.logout-open #bottom-navigation {
 }
 
 .magic-nav-svg path {
-    transition: d 0.42s cubic-bezier(0.68, -0.55, 0.27, 1.55), fill 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transition: d 0.42s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+}
+
+#magic-nav-path-base {
+    fill: #ffffff !important;
+    filter: none !important;
+}
+
+#magic-nav-path-tint {
+    display: none !important;
+    opacity: 0 !important;
+}
+
+#magic-nav-path-edge {
+    stroke: #e2e8f0 !important;
+    stroke-width: 1.5 !important;
+    filter: none !important;
 }
 
 .magic-nav-items {
@@ -139,22 +155,56 @@ html.logout-open #bottom-navigation {
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
     user-select: none;
-    color: rgba(255, 255, 255, 0.4);
-    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.25s ease;
+    color: #000000 !important;
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.25s ease !important;
+}
+
+.magic-nav-item svg,
+.magic-nav-item svg path,
+.magic-nav-item svg line,
+.magic-nav-item svg polygon,
+.magic-nav-item svg rect,
+.magic-nav-item svg circle {
+    transition: stroke 0.25s ease, color 0.25s ease !important;
+}
+
+/* Unclicked (Inactive) = Solid Black */
+.magic-nav-item:not(.active),
+.magic-nav-item:not(.active) .icon,
+.magic-nav-item:not(.active) svg,
+.magic-nav-item:not(.active) svg path,
+.magic-nav-item:not(.active) svg line,
+.magic-nav-item:not(.active) svg polygon,
+.magic-nav-item:not(.active) svg rect,
+.magic-nav-item:not(.active) svg circle {
+    color: #000000 !important;
+    stroke: #000000 !important;
+    fill: none !important;
 }
 
 .magic-nav-item:not(.active):hover {
     transform: translateY(-3px);
-    color: rgba(255, 255, 255, 0.8);
 }
 
 .magic-nav-item:not(.active):active {
     transform: scale(0.88);
-    transition: transform 0.08s ease;
+}
+
+/* Clicked (Active) = Solid White, NO GLOW */
+.magic-nav-item.active,
+.magic-nav-item.active .icon,
+.magic-nav-item.active svg,
+.magic-nav-item.active svg path,
+.magic-nav-item.active svg line,
+.magic-nav-item.active svg polygon,
+.magic-nav-item.active svg rect,
+.magic-nav-item.active svg circle {
+    color: #ffffff !important;
+    stroke: #ffffff !important;
+    fill: none !important;
 }
 
 .magic-nav-item.active {
-    color: white;
     transform: translateY(-13px);
     z-index: 11;
 }
@@ -165,7 +215,9 @@ html.logout-open #bottom-navigation {
     justify-content: center;
     line-height: 0;
     font-size: 22px;
-    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.3s ease;
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    filter: none !important;
+    -webkit-filter: none !important;
 }
 
 @keyframes iconBounce {
@@ -177,7 +229,8 @@ html.logout-open #bottom-navigation {
 
 .magic-nav-item.active .icon {
     animation: iconBounce 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-    filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.7));
+    filter: none !important;
+    -webkit-filter: none !important;
 }
 
 .magic-nav-item .text {
@@ -204,6 +257,7 @@ html.logout-open #bottom-navigation {
     margin-top: 4px;
 }
 
+/* Magic Indicator Circle: Flat Royal Blue, NO SHADOW, NO GLOW */
 .magic-circle {
     position: absolute;
     top: -6px;
@@ -211,22 +265,20 @@ html.logout-open #bottom-navigation {
     width: 52px;
     height: 52px;
     border-radius: 50%;
-    border: none;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    -webkit-box-shadow: none !important;
+    filter: none !important;
+    -webkit-filter: none !important;
+    background: #1e3a8a !important;
     pointer-events: none;
     z-index: 10;
-    transition: left 0.42s cubic-bezier(0.68, -0.55, 0.27, 1.55), background 0.3s ease, box-shadow 0.3s ease;
+    transition: left 0.42s cubic-bezier(0.68, -0.55, 0.27, 1.55);
 }
 
 .magic-circle-shine {
-    position: absolute;
-    top: 7px;
-    left: 11px;
-    width: 14px;
-    height: 7px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.42);
-    filter: blur(2px);
+    display: none !important;
 }
 
 .has-bottom-nav {
@@ -252,4 +304,4 @@ body[data-view="download"] #main-content {
 
 body[data-view="download"] #global-cloud-container {
     display: none !important;
-}
+}

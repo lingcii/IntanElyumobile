@@ -19,6 +19,17 @@ if (strpos($httpHost, 'railway.app') !== false) {
     exit;
 }
 
+// Intercept legacy default-spot image requests and serve no_image fallback
+if (strpos($path, 'default-spot') !== false) {
+    $fallbackImg = __DIR__ . '/assets/img/no_image.svg';
+    if (file_exists($fallbackImg)) {
+        header('Content-Type: image/svg+xml');
+        header('Cache-Control: public, max-age=86400');
+        readfile($fallbackImg);
+        exit;
+    }
+}
+
 // Redirect legacy user_manual_mobile.html to the in-app user manual view
 if (strpos($path, 'user_manual_mobile.html') !== false) {
     header('Location: index.php?view=user_manual');
@@ -29,11 +40,7 @@ if (strpos($path, 'user_manual_mobile.html') !== false) {
 if (strpos($path, 'intan-elyu.apk') !== false || strpos($path, '.apk') !== false) {
     $candidatePaths = [
         dirname(__DIR__) . '/android/app/build/outputs/apk/release/app-release.apk',
-        dirname(__DIR__) . '/android/app/build/outputs/apk/debug/app-debug.apk',
         dirname(__DIR__) . '/public/downloads/intan-elyu.apk',
-        dirname(__DIR__) . '/app-release.apk',
-        dirname(__DIR__) . '/app-debug.apk',
-        __DIR__ . '/downloads/intan-elyu.apk',
     ];
     $apkPath = null;
     foreach ($candidatePaths as $candidate) {

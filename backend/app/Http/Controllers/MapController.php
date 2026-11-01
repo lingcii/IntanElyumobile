@@ -86,12 +86,13 @@ class MapController extends Controller
             return TouristSpot::activeForTourists()
                 ->with('municipality:id,name')
                 ->with('images')
+                ->withCount('feedbacks')
                 ->orderBy('id', 'desc')
                 ->get(['id', 'name', 'category', 'municipality_id', 'barangay', 'latitude', 'longitude',
                        'entrance_fee', 'adult_fee', 'kids_fee', 'pwd_fee', 'senior_citizen_fee', 'entrance_fee_types',
                        'environmental_fee', 'fee_types', 'route_guide', 'tour_guide_notice',
                        'accessible_by_private_vehicle', 'photo_url', 'description', 'opening_time', 'closing_time',
-                       'is_open_24_hours', 'is_maintenance', 'rating', 'visits', 'classification_status', 'status'])
+                       'is_open_24_hours', 'is_maintenance', 'rating', 'visits', 'classification_status', 'status', 'boundary_geojson'])
                 ->map(function ($spot) use ($spotPublicVehicles, $spotPrivateVehicles, $spotAllVehicles, $spotServiceCenterMap) {
                     /** @var TouristSpot $spot */
                     $imageUrl = $spot->photo_url;
@@ -183,10 +184,12 @@ class MapController extends Controller
                         'is_open_24_hours'              => (bool) ($spot->is_open_24_hours ?? 0),
                         'is_maintenance'                => (bool) ($spot->is_maintenance ?? 0),
                         'rating'                        => $spot->rating,
+                        'reviews_count'                 => (int) ($spot->feedbacks_count ?? 0),
                         'visits'                        => $spot->visits,
                         'classification_status'         => $spot->classification_status,
                         'status'                        => $spot->status ?? 'approved',
                         'maximum_capacity'              => (isset($spot->maximum_capacity) && $spot->maximum_capacity) ? (int) $spot->maximum_capacity : null,
+                        'boundary_geojson'              => $spot->boundary_geojson,
                         'accessible_vehicles'           => $allList,
                         'public_vehicles'               => $pubList,
                         'private_vehicles'              => $privList,

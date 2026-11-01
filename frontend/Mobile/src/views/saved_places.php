@@ -105,11 +105,16 @@ if (is_dir($imgDir)) {
         }
 
         async function fetchSavedPlaces(forceRefresh = false) {
+            const now = Date.now();
+            if (!forceRefresh && window._savedPlacesLastFetchCompletedAt && (now - window._savedPlacesLastFetchCompletedAt < 1500)) {
+                return;
+            }
+
             const token = localStorage.getItem('intan_elyu_token');
 
-            // 1. Instant pre-hydration from local storage bookmarks
+            // 1. Instant pre-hydration from local storage bookmarks (only if no cards are on screen yet)
             const localSaved = getLocalSavedSpots();
-            if (localSaved.length > 0) {
+            if (!window._lastSavedPlacesSig && localSaved.length > 0) {
                 renderSavedPlaces(localSaved);
             }
 
@@ -120,13 +125,26 @@ if (is_dir($imgDir)) {
                 } else {
                     renderSavedPlaces([]);
                 }
+                window._savedPlacesLastFetchCompletedAt = Date.now();
                 return;
             }
 
             const cacheKey = 'saved_places_' + token.substring(0, 10);
+            const fetchCache = (typeof window.useCache === 'function')
+                ? window.useCache
+                : async (key, fetcher, renderer) => {
+                    try {
+                        const d = await fetcher();
+                        if (typeof renderer === 'function') renderer(d);
+                        return d;
+                    } catch (e) {
+                        const fb = getLocalSavedSpots();
+                        if (typeof renderer === 'function') renderer(fb);
+                    }
+                };
 
             try {
-                await window.useCache(
+                await fetchCache(
                     cacheKey,
                     async () => {
                         const res = await fetch(backendUrl + '/api/tourist/dashboard', {
@@ -158,6 +176,8 @@ if (is_dir($imgDir)) {
                 console.warn('Network error fetching saved places, using local:', err);
                 const fallback = getLocalSavedSpots();
                 renderSavedPlaces(fallback);
+            } finally {
+                window._savedPlacesLastFetchCompletedAt = Date.now();
             }
         }
         window.fetchSavedPlaces = fetchSavedPlaces;
@@ -165,7 +185,8 @@ if (is_dir($imgDir)) {
         function renderSavedPlaces(spots) {
             const list = document.getElementById('saved-places-list');
             if (!list) return;
-            if (!spots.length) {
+            if (!spots || !spots.length) {
+                window._lastSavedPlacesSig = 'empty';
                 list.innerHTML = `
                 <div class="dash-empty-state">
                     <div class="dash-empty-icon-wrap" style="background: #ffffff !important; color: #1e3a8a !important; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15) !important;">
@@ -181,6 +202,21 @@ if (is_dir($imgDir)) {
                 updateScrollviewState();
                 return;
             }
+
+            // Silent signature check: prevent DOM rebuild and animation flicker if data has not changed
+            const currentSig = JSON.stringify(spots.map(s => [
+                String(s.id || ''),
+                String(s.name || ''),
+                String(s.classification_status || ''),
+                String(s.location || s.municipality || '')
+            ]));
+
+            const hasExistingCards = list.querySelectorAll('.trending-card').length > 0;
+            if (window._lastSavedPlacesSig === currentSig && hasExistingCards) {
+                return; // Zero DOM teardown, completely silent refresh
+            }
+            window._lastSavedPlacesSig = currentSig;
+
             let html = '<div class="trending-grid">';
             spots.forEach((dest, i) => {
                 const img = window.getDestImage(dest);
@@ -232,6 +268,7 @@ if (is_dir($imgDir)) {
             }
 
             // 2. Update local state and cached lists
+            window._lastSavedPlacesSig = null;
             try {
                 let savedIds = JSON.parse(localStorage.getItem('intan_elyu_saved_place_ids') || '[]');
                 savedIds = savedIds.filter(item => item != id);

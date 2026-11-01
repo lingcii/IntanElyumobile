@@ -1,24 +1,61 @@
+<?php
+$currentNavView = $view ?? 'dashboard';
+$navViewsList = ['dashboard', 'map', 'itinerary', 'leaderboard', 'profile'];
+$curNavIdx = array_search($currentNavView, $navViewsList);
+if ($curNavIdx === false) $curNavIdx = 0;
+$initialIndicatorLeft = (10 + ($curNavIdx * 20)) . '%';
+?>
+<script>
+window.onMagicNavItemClick = function(el) {
+    try {
+        var nav = document.getElementById('magic-nav');
+        if (!nav) return;
+        var items = nav.querySelectorAll('.magic-nav-item');
+        items.forEach(function(item) {
+            var svg = item.querySelector('svg');
+            if (item === el) {
+                item.classList.add('active');
+                item.style.setProperty('color', '#ffffff', 'important');
+                if (svg) {
+                    svg.style.setProperty('stroke', '#ffffff', 'important');
+                    svg.querySelectorAll('path, line, polygon, rect, circle').forEach(function(s) { s.style.setProperty('stroke', '#ffffff', 'important'); });
+                }
+            } else {
+                item.classList.remove('active');
+                item.style.setProperty('color', '#000000', 'important');
+                if (svg) {
+                    svg.style.setProperty('stroke', '#000000', 'important');
+                    svg.querySelectorAll('path, line, polygon, rect, circle').forEach(function(s) { s.style.setProperty('stroke', '#000000', 'important'); });
+                }
+            }
+        });
+        var indicator = document.getElementById('magic-indicator');
+        if (indicator && el.dataset.index !== undefined) {
+            var idx = parseInt(el.dataset.index);
+            indicator.style.left = (10 + (idx * 20)) + '%';
+            indicator.style.boxShadow = 'none';
+            indicator.style.filter = 'none';
+            indicator.style.background = '#1e3a8a';
+        }
+    } catch(e) {}
+};
+</script>
 <!-- Magic Bottom Navigation Bar -->
 <div class="magic-nav" id="magic-nav">
-    <div class="magic-nav-bg">
+    <div class="magic-nav-bg" style="background: #ffffff !important; background-color: #ffffff !important; border: 1px solid #e2e8f0 !important; box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12), 0 2px 8px rgba(15, 23, 42, 0.06) !important;">
         <svg class="magic-nav-svg" id="magic-nav-svg" viewBox="0 0 448 66" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-                <filter id="navShadow" x="-10%" y="-40%" width="120%" height="200%">
-                    <feDropShadow dx="0" dy="6" stdDeviation="10" floodColor="rgba(0,0,0,0.18)" />
-                    <feDropShadow dx="0" dy="2" stdDeviation="4" floodColor="rgba(0,0,0,0.10)" />
-                </filter>
-            </defs>
+            
             <!-- Bright white base for a light color aesthetic (we use rgba for dark mode tuning) -->
-            <path id="magic-nav-path-base" d="" fill="rgba(255,255,255,0.15)" filter="url(#navShadow)" />
+            <path id="magic-nav-path-base" d="" fill="#ffffff"  />
             <!-- Dynamic color tint -->
-            <path id="magic-nav-path-tint" d="" fill="#1e3a8a" opacity="0.2" />
+            <path id="magic-nav-path-tint" d="" fill="#ffffff" opacity="0" />
             <!-- Top gloss line -->
-            <path id="magic-nav-path-edge" d="" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="1.5" stroke-linejoin="round" />
+            <path id="magic-nav-path-edge" d="" fill="none" stroke="#e2e8f0" stroke-width="1.5" stroke-linejoin="round" />
         </svg>
     </div>  
 
     <div class="magic-nav-items">
-        <a href="#" class="magic-nav-item active" data-index="0" data-view="dashboard" data-color="#1e3a8a" onclick="navigateTo('dashboard'); return false;">
+        <a href="#" class="magic-nav-item <?= ($curNavIdx === 0) ? 'active' : '' ?>" data-index="0"  data-view="dashboard" data-color="#1e3a8a" onclick="window.onMagicNavItemClick(this); navigateTo('dashboard'); return false;">
             <span class="icon">
                 <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z" />
@@ -26,7 +63,7 @@
                 </svg>
             </span>
         </a>
-        <a href="#" class="magic-nav-item" data-index="1" data-view="map" data-color="#1e3a8a" onclick="navigateTo('map'); return false;">
+        <a href="#" class="magic-nav-item <?= ($curNavIdx === 1) ? 'active' : '' ?>" data-index="1"  data-view="map" data-color="#1e3a8a" onclick="window.onMagicNavItemClick(this); navigateTo('map'); return false;">
             <span class="icon">
                 <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21" />
@@ -35,7 +72,7 @@
                 </svg>
             </span>
         </a>
-        <a href="#" class="magic-nav-item" data-index="2" data-view="itinerary" data-color="#1e3a8a" onclick="if(window.state && window.state.currentView === 'itinerary' && sessionStorage.getItem('editing_itinerary_id') && typeof window.cancelEditingSavedTrip === 'function'){ window.cancelEditingSavedTrip(); return false; } navigateTo('itinerary'); return false;">
+        <a href="#" class="magic-nav-item <?= ($curNavIdx === 2) ? 'active' : '' ?>" data-index="2"  data-view="itinerary" data-color="#1e3a8a" onclick="window.onMagicNavItemClick(this); if(window.state && window.state.currentView === 'itinerary' && sessionStorage.getItem('editing_itinerary_id') && typeof window.cancelEditingSavedTrip === 'function'){ window.cancelEditingSavedTrip(); return false; } navigateTo('itinerary'); return false;">
             <span class="icon">
                 <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
@@ -45,7 +82,7 @@
                 </svg>
             </span>
         </a>
-        <a href="#" class="magic-nav-item" data-index="3" data-view="leaderboard" data-color="#1e3a8a" onclick="navigateTo('leaderboard'); return false;">
+        <a href="#" class="magic-nav-item <?= ($curNavIdx === 3) ? 'active' : '' ?>" data-index="3"  data-view="leaderboard" data-color="#1e3a8a" onclick="window.onMagicNavItemClick(this); navigateTo('leaderboard'); return false;">
             <span class="icon">
                 <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M8 21h8M12 17v4" />
@@ -55,7 +92,7 @@
                 </svg>
             </span>
         </a>
-        <a href="#" class="magic-nav-item" data-index="4" data-view="profile" data-color="#1e3a8a" onclick="navigateTo('profile'); return false;">
+        <a href="#" class="magic-nav-item <?= ($curNavIdx === 4) ? 'active' : '' ?>" data-index="4"  data-view="profile" data-color="#1e3a8a" onclick="window.onMagicNavItemClick(this); navigateTo('profile'); return false;">
             <span class="icon">
                 <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
@@ -65,7 +102,7 @@
         </a>
     </div>
 
-    <div class="magic-circle" id="magic-indicator" style="background: radial-gradient(circle at 38% 32%, rgba(30, 58, 138, 0.93), rgba(30, 58, 138, 0.73));">
-        <div class="magic-circle-shine"></div>
+    <div class="magic-circle" id="magic-indicator" style="left: <?= $initialIndicatorLeft ?>; background: #1e3a8a !important; box-shadow: none !important; filter: none !important;">
+        
     </div>
 </div>
