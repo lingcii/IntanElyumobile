@@ -32,18 +32,18 @@ try {
 
 
 
-<div class="itinerary-container has-header has-bottom-nav animate-slide-up">
+<div class="itinerary-container has-bottom-nav animate-slide-up" style="padding-top: calc(max(env(safe-area-inset-top, 0px), 36px) + 98px) !important;">
 
-    <div style="display:flex; justify-content:flex-end; align-items:center; margin-bottom:16px; gap:8px;"
-        class="stagger-1">
-            <span
-                style="background:#f1f5f9 !important; border: none !important; outline: none !important; color:#1e3a8a !important; height: 32px; padding: 0 14px; border-radius:20px; font-size:12px; font-weight:800; display:flex; align-items:center; box-sizing: border-box; box-shadow: none !important;">
-                <i class="fa-solid fa-location-dot" style="margin-right:6px;"></i><span id="itinerary-count" style="margin-right:4px;">0</span> Places
-            </span>
-            <button onclick="navigateTo('saved_trips')"
-                style="background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline: none !important; color: #ffffff !important; font-weight:700; height: 32px; padding: 0 14px; border-radius:20px; font-size:12px; cursor:pointer; display:flex; align-items:center; box-sizing: border-box; box-shadow: none !important;">
-                <i class="fa-solid fa-bookmark" style="margin-right:6px;"></i> Saved Trips
-            </button>
+    <!-- White Header Container Connected to Header for Places & Saved Trips -->
+    <div class="itinerary-header-bar" style="position:fixed; top:calc(max(env(safe-area-inset-top, 0px), 36px) + 48px); left:50%; transform:translateX(-50%); width:100%; max-width:480px; z-index:9990; background:#ffffff; padding:8px clamp(12px, 3.8vw, 18px); box-sizing:border-box; display:flex; justify-content:flex-end; align-items:center; gap:8px; border-bottom:1px solid #e2e8f0; border-radius:0 0 16px 16px; box-shadow:0 3px 12px rgba(15,23,42,0.05);">
+        <span
+            style="background:#f8fafc !important; border:1px solid #e2e8f0 !important; outline:none !important; color:#1e3a8a !important; height:30px; padding:0 12px; border-radius:20px; font-size:11.5px; font-weight:800; display:flex; align-items:center; box-sizing:border-box; box-shadow:none !important;">
+            <i class="fa-solid fa-location-dot" style="margin-right:5px; color:#0284c7;"></i><span id="itinerary-count" style="margin-right:3px;">0</span> Places
+        </span>
+        <button onclick="navigateTo('saved_trips')"
+            style="background:linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border:none !important; outline:none !important; color:#ffffff !important; font-weight:700; height:30px; padding:0 14px; border-radius:20px; font-size:11.5px; cursor:pointer; display:flex; align-items:center; box-sizing:border-box; box-shadow:0 2px 6px rgba(32,63,141,0.2) !important;">
+            <i class="fa-solid fa-bookmark" style="margin-right:5px;"></i> Saved Trips
+        </button>
     </div>
 
     <!-- Floating '?' Guide Button (Positioned on the right directly above profile navigation button) -->
@@ -54,7 +54,7 @@ try {
     </button>
 
     <!-- Big Container from Recommended to Save Draft Plan -->
-    <div id="draft-plan-card-wrapper" class="draft-plan-card-wrapper stagger-2 is-hidden" style="display:none;">
+    <div id="draft-plan-card-wrapper" class="draft-plan-card-wrapper stagger-2 is-hidden" style="display:none; margin-top:10px;">
         <!-- Active Editing Trip Banner -->
         <div id="editing-plan-banner"
             style="display:none; align-items:center; justify-content:space-between; background:linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%); color:#ffffff; padding:10px 16px; border-radius:14px; margin-bottom:14px; font-size:12.5px; font-weight:700; border:none !important; outline:none !important; box-shadow:none !important; cursor:pointer;"
@@ -83,7 +83,7 @@ try {
 
         
             <div id="draft-map-container"
-                style="height: 260px; width:100%; border-radius: 20px; overflow: hidden; border: none !important; outline: none !important; position:relative; background:#cadce4; box-shadow: none;">
+                style="height: 140px; width:100%; border-radius: 18px; overflow: hidden; border: none !important; outline: none !important; position:relative; background:#cadce4; box-shadow: none;">
                 <div id="itinerary-map" style="width:100%; height:100%;"></div>
             </div>
 
@@ -114,7 +114,7 @@ try {
 
         <!-- Save Itinerary Action -->
         <button class="btn-primary" id="btn-save-itinerary"
-            style="display:none; width:100%; padding:16px; border-radius:20px; font-weight:900; font-size:16px; margin-top:4px; margin-bottom:0; border: none !important; outline: none !important; background:linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; color:#ffffff !important; box-shadow: none !important; cursor:pointer;"
+            style="display:none; width:100%; padding:10px 18px; border-radius:14px; font-weight:800; font-size:13.5px; margin-top:4px; margin-bottom:0; border: none !important; outline: none !important; background:linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; color:#ffffff !important; box-shadow: none !important; cursor:pointer;"
             onclick="window.openSaveModal(event)">
             <i class="fa-solid fa-cloud-arrow-up" style="margin-right:8px;"></i> Save Draft Plan
         </button>
@@ -141,7 +141,7 @@ try {
 </div>
 
 <!-- Save Trip Modal (matches Notifications modal design) -->
-<div id="save-trip-modal"
+<div id="save-trip-modal" onclick="if(event.target === this) window.confirmCancelSaveModal(this)"
     style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(10, 25, 60, 0.45); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); z-index:99999; justify-content:center; align-items:center; padding:16px; box-sizing:border-box;">
     <style>
         #save-trip-modal,
@@ -218,7 +218,7 @@ try {
                     Name your adventure and set trip details
                 </p>
             </div>
-            <button type="button" onclick="closeSaveModal()"
+            <button type="button" onclick="window.confirmCancelSaveModal(this)"
                 style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 8px rgba(0,0,0,0.18) !important; flex-shrink:0; margin-left:12px; transition:transform 0.15s ease;"
                 onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">
                 <i class="fa-solid fa-xmark" style="color:#1e3a8a !important; font-size:14px;"></i>
@@ -353,11 +353,11 @@ try {
                             <span style="font-size:13px; font-weight:700; color:#1e293b;">Male</span>
                         </div>
                         <div style="display:flex; align-items:center; gap:8px;">
-                            <button type="button" onclick="window.adjustCompanionCount('males', -1)"
+                            <button type="button" id="btn-dec-males" onclick="window.adjustCompanionCount('males', -1)"
                                 style="width:32px; height:32px; border-radius:50%; background:#334155; border:none; outline:none; color:#ffffff; font-size:15px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:transform 0.1s; box-shadow:0 2px 4px rgba(0,0,0,0.2);">−</button>
                             <span id="companion-males-count"
                                 style="font-size:15px; font-weight:800; color:#0f172a; min-width:24px; text-align:center;">0</span>
-                            <button type="button" onclick="window.adjustCompanionCount('males', 1)"
+                            <button type="button" id="btn-inc-males" onclick="window.adjustCompanionCount('males', 1)"
                                 style="width:32px; height:32px; border-radius:50%; background:#0284c7; border:none; outline:none; color:#ffffff; font-size:15px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:transform 0.1s; box-shadow:0 2px 6px rgba(2,132,199,0.35);">+</button>
                         </div>
                     </div>
@@ -372,12 +372,96 @@ try {
                             <span style="font-size:13px; font-weight:700; color:#1e293b;">Female</span>
                         </div>
                         <div style="display:flex; align-items:center; gap:8px;">
-                            <button type="button" onclick="window.adjustCompanionCount('females', -1)"
+                            <button type="button" id="btn-dec-females" onclick="window.adjustCompanionCount('females', -1)"
                                 style="width:32px; height:32px; border-radius:50%; background:#334155; border:none; outline:none; color:#ffffff; font-size:15px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:transform 0.1s; box-shadow:0 2px 4px rgba(0,0,0,0.2);">−</button>
                             <span id="companion-females-count"
                                 style="font-size:15px; font-weight:800; color:#0f172a; min-width:24px; text-align:center;">0</span>
-                            <button type="button" onclick="window.adjustCompanionCount('females', 1)"
+                            <button type="button" id="btn-inc-females" onclick="window.adjustCompanionCount('females', 1)"
                                 style="width:32px; height:32px; border-radius:50%; background:#db2777; border:none; outline:none; color:#ffffff; font-size:15px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:transform 0.1s; box-shadow:0 2px 6px rgba(219,39,119,0.35);">+</button>
+                        </div>
+                    </div>
+
+                    <!-- Companions Fee Category Divider -->
+                    <div style="margin: 6px 0 2px; border-top: 1px solid #e2e8f0; padding-top: 8px;">
+                        <div style="font-size:11.5px; color:#475569; font-weight:700; margin-bottom:8px; display:flex; align-items:center; justify-content:space-between;">
+                            <span>Companions (Traveler Types):</span>
+                            <span id="companion-fee-limit-info" style="font-size:10.5px; font-weight:800; color:#64748b; background:#f1f5f9; padding:2px 8px; border-radius:12px;">(0 of 0)</span>
+                        </div>
+                    </div>
+
+                    <!-- Adult -->
+                    <div style="display:flex; align-items:center; justify-content:space-between;">
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <div
+                                style="width:30px; height:30px; border-radius:8px; background:#0284c7; display:flex; align-items:center; justify-content:center; color:#ffffff; box-shadow:0 2px 6px rgba(2,132,199,0.35);">
+                                <i class="fa-solid fa-user" style="font-size:13px;"></i>
+                            </div>
+                            <span style="font-size:13px; font-weight:700; color:#1e293b;">Adult</span>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <button type="button" id="btn-dec-adults" onclick="window.adjustCompanionCount('adults', -1)"
+                                style="width:32px; height:32px; border-radius:50%; background:#334155; border:none; outline:none; color:#ffffff; font-size:15px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:transform 0.1s; box-shadow:0 2px 4px rgba(0,0,0,0.2);">−</button>
+                            <span id="companion-adults-count"
+                                style="font-size:15px; font-weight:800; color:#0f172a; min-width:24px; text-align:center;">0</span>
+                            <button type="button" id="btn-inc-adults" onclick="window.adjustCompanionCount('adults', 1)"
+                                style="width:32px; height:32px; border-radius:50%; background:#0284c7; border:none; outline:none; color:#ffffff; font-size:15px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:transform 0.1s; box-shadow:0 2px 6px rgba(2,132,199,0.35);">+</button>
+                        </div>
+                    </div>
+
+                    <!-- Kids -->
+                    <div style="display:flex; align-items:center; justify-content:space-between;">
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <div
+                                style="width:30px; height:30px; border-radius:8px; background:#0284c7; display:flex; align-items:center; justify-content:center; color:#ffffff; box-shadow:0 2px 6px rgba(2,132,199,0.35);">
+                                <i class="fa-solid fa-child" style="font-size:14px;"></i>
+                            </div>
+                            <span style="font-size:13px; font-weight:700; color:#1e293b;">Kids</span>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <button type="button" id="btn-dec-kids" onclick="window.adjustCompanionCount('kids', -1)"
+                                style="width:32px; height:32px; border-radius:50%; background:#334155; border:none; outline:none; color:#ffffff; font-size:15px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:transform 0.1s; box-shadow:0 2px 4px rgba(0,0,0,0.2);">−</button>
+                            <span id="companion-kids-count"
+                                style="font-size:15px; font-weight:800; color:#0f172a; min-width:24px; text-align:center;">0</span>
+                            <button type="button" id="btn-inc-kids" onclick="window.adjustCompanionCount('kids', 1)"
+                                style="width:32px; height:32px; border-radius:50%; background:#0284c7; border:none; outline:none; color:#ffffff; font-size:15px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:transform 0.1s; box-shadow:0 2px 6px rgba(2,132,199,0.35);">+</button>
+                        </div>
+                    </div>
+
+                    <!-- Senior Citizen -->
+                    <div style="display:flex; align-items:center; justify-content:space-between;">
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <div
+                                style="width:30px; height:30px; border-radius:8px; background:#0284c7; display:flex; align-items:center; justify-content:center; color:#ffffff; box-shadow:0 2px 6px rgba(2,132,199,0.35);">
+                                <i class="fa-solid fa-person-cane" style="font-size:14px;"></i>
+                            </div>
+                            <span style="font-size:13px; font-weight:700; color:#1e293b;">Senior Citizen</span>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <button type="button" id="btn-dec-seniors" onclick="window.adjustCompanionCount('seniors', -1)"
+                                style="width:32px; height:32px; border-radius:50%; background:#334155; border:none; outline:none; color:#ffffff; font-size:15px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:transform 0.1s; box-shadow:0 2px 4px rgba(0,0,0,0.2);">−</button>
+                            <span id="companion-seniors-count"
+                                style="font-size:15px; font-weight:800; color:#0f172a; min-width:24px; text-align:center;">0</span>
+                            <button type="button" id="btn-inc-seniors" onclick="window.adjustCompanionCount('seniors', 1)"
+                                style="width:32px; height:32px; border-radius:50%; background:#0284c7; border:none; outline:none; color:#ffffff; font-size:15px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:transform 0.1s; box-shadow:0 2px 6px rgba(2,132,199,0.35);">+</button>
+                        </div>
+                    </div>
+
+                    <!-- PWD -->
+                    <div style="display:flex; align-items:center; justify-content:space-between;">
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <div
+                                style="width:30px; height:30px; border-radius:8px; background:#0284c7; display:flex; align-items:center; justify-content:center; color:#ffffff; box-shadow:0 2px 6px rgba(2,132,199,0.35);">
+                                <i class="fa-solid fa-wheelchair" style="font-size:13px;"></i>
+                            </div>
+                            <span style="font-size:13px; font-weight:700; color:#1e293b;">PWD</span>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <button type="button" id="btn-dec-pwds" onclick="window.adjustCompanionCount('pwds', -1)"
+                                style="width:32px; height:32px; border-radius:50%; background:#334155; border:none; outline:none; color:#ffffff; font-size:15px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:transform 0.1s; box-shadow:0 2px 4px rgba(0,0,0,0.2);">−</button>
+                            <span id="companion-pwds-count"
+                                style="font-size:15px; font-weight:800; color:#0f172a; min-width:24px; text-align:center;">0</span>
+                            <button type="button" id="btn-inc-pwds" onclick="window.adjustCompanionCount('pwds', 1)"
+                                style="width:32px; height:32px; border-radius:50%; background:#0284c7; border:none; outline:none; color:#ffffff; font-size:15px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:transform 0.1s; box-shadow:0 2px 6px rgba(2,132,199,0.35);">+</button>
                         </div>
                     </div>
                 </div>
@@ -390,10 +474,10 @@ try {
                 </div>
             </div>
 
-            <!-- Point-to-Point Route & Transit Summary Card (Tap to view opensheet) -->
+            <!-- Entire Trip Summary Card (Tap to view opensheet) -->
             <input type="hidden" id="trip-transport" value="no_vehicle">
             <div id="save-p2p-transit-summary" onclick="window.openTransitSummaryOpensheet()" role="button" tabindex="0"
-                title="Tap to view per-destination transit summary"
+                title="Tap to view entire trip summary"
                 style="background:#f8fafc; border-radius:16px; padding:14px 16px; margin-bottom:16px; display:flex; align-items:center; justify-content:space-between; gap:12px; border:1.5px solid #e2e8f0; cursor:pointer; user-select:none; transition:background 0.2s ease, transform 0.15s ease; touch-action:manipulation; pointer-events:auto !important; -webkit-tap-highlight-color:transparent;"
                 onpointerdown="this.style.transform='scale(0.98)'; this.style.background='#f1f5f9';"
                 onpointerup="this.style.transform='scale(1)'; this.style.background='#f8fafc';"
@@ -402,12 +486,11 @@ try {
                 <div style="min-width:0;">
                     <div
                         style="font-size:10px; font-weight:800; color:#0284c7; text-transform:uppercase; letter-spacing:0.6px; margin-bottom:2px;">
-                        Transport Mode</div>
+                        Trip Summary</div>
                     <div id="save-p2p-transit-label"
-                        style="font-size:13.5px; font-weight:800; color:#0f172a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                        Select your vehicle</div>
-                    <div id="save-p2p-legs-count" style="font-size:11px; color:#64748b; margin-top:1px;">
-                        Tap to view destination summary</div>
+                        style="font-size:14px; font-weight:800; color:#0f172a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                        View Summary</div>
+                    <div id="save-p2p-legs-count" style="display:none;"></div>
                 </div>
                 <div style="text-align:right; flex-shrink:0;">
                     <div style="font-size:10px; color:#64748b; font-weight:700; text-transform:uppercase;">
@@ -482,7 +565,7 @@ try {
             style="padding:12px 16px max(12px, env(safe-area-inset-bottom)) 16px; background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%) !important; border:none !important; outline:none !important; flex-shrink:0; display:flex; justify-content:space-between; gap:12px; align-items:center; box-sizing:border-box;">
             <button type="button"
                 style="flex:1; background:#ffffff !important; border:none !important; outline:none !important; color:#ef4444 !important; font-size:12.5px; font-weight:800; padding:10px 18px; border-radius:100px; box-shadow:0 2px 8px rgba(0, 0, 0, 0.15) !important; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:6px; transition:transform 0.15s ease;"
-                onclick="closeSaveModal()" onpointerdown="this.style.transform='scale(0.94)'"
+                onclick="window.confirmCancelSaveModal(this)" onpointerdown="this.style.transform='scale(0.94)'"
                 onpointerup="this.style.transform='scale(1)'">Cancel</button>
             <button type="button"
                 style="flex:1.4; background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; font-size:12.5px; font-weight:800; padding:10px 22px; border-radius:100px; box-shadow:0 2px 8px rgba(0, 0, 0, 0.15) !important; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:6px; transition:transform 0.15s ease;"
@@ -499,7 +582,7 @@ try {
         style="background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; backdrop-filter:blur(24px) !important; -webkit-backdrop-filter:blur(24px) !important; border:none !important; outline:none !important; border-radius:24px; padding:28px 24px; width:90%; max-width:360px; box-shadow:0 16px 40px rgba(10, 25, 60, 0.45) !important; text-align:center; color:#ffffff;">
         <div
             style="width:56px; height:56px; border-radius:50%; background:#ffffff !important; display:flex; align-items:center; justify-content:center; margin:0 auto 16px; border:none !important; outline:none !important; box-shadow:none !important;">
-            <i class="fa-solid fa-triangle-exclamation" style="color:#1e3a8a !important; font-size:26px;"></i>
+            <i id="confirm-modal-icon" class="fa-solid fa-triangle-exclamation" style="color:#1e3a8a !important; font-size:26px;"></i>
         </div>
         <h3 id="confirm-modal-title" style="margin:0 0 8px; color:#ffffff; font-size:20px; font-weight:800; letter-spacing:-0.3px;">Missing
             Details</h3>
@@ -526,19 +609,8 @@ try {
         <div
             style="background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%) !important; padding:16px 18px; color:#ffffff; flex-shrink:0; border:none !important; outline:none !important;">
             <div style="display:flex; align-items:center; justify-content:space-between;">
-                <div style="display:flex; align-items:center; gap:10px;">
-                    <div
-                        style="width:36px; height:36px; border-radius:10px; background:#ffffff !important; display:flex; align-items:center; justify-content:center; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.18);">
-                        <i class="fa-solid fa-map-location-dot" style="color:#1e3a8a !important; font-size:15px;"></i>
-                    </div>
-                    <div style="display:flex; align-items:center; gap:6px;">
-                        <h3 style="margin:0; font-size:16px; font-weight:800; color:#ffffff; letter-spacing:-0.2px;">
-                            Transit Summary</h3>
-                        <span id="transit-summary-badge"
-                            style="font-size:9.5px; font-weight:800; background:rgba(255, 255, 255, 0.2); color:#ffffff; padding:2px 8px; border-radius:100px; text-transform:uppercase; letter-spacing:0.4px;">0
-                            Destinations</span>
-                    </div>
-                </div>
+                <h3 style="margin:0; font-size:16.5px; font-weight:800; color:#ffffff; letter-spacing:-0.2px;">
+                    Trip Summary</h3>
                 <button type="button" onclick="window.closeTransitSummaryOpensheet()"
                     style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 8px rgba(0, 0, 0, 0.18) !important; flex-shrink:0; transition:transform 0.15s ease;"
                     onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">
@@ -555,15 +627,19 @@ try {
             </div>
         </div>
 
-        <!-- Footer: Total Transit Fare Banner -->
+        <!-- Footer: Total Summary Banner -->
         <div
             style="flex-shrink:0; padding:14px 18px calc(14px + env(safe-area-inset-bottom, 0px)) 18px; background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%); display:flex; align-items:center; justify-content:space-between; gap:12px; border:none !important; outline:none !important;">
             <div>
-                <div
+                <div id="transit-summary-footer-label"
                     style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.75); text-transform:uppercase; letter-spacing:0.5px;">
-                    Total Transit Fare</div>
+                    Estimated Trip Total</div>
                 <div id="transit-summary-total-fare"
                     style="font-size:18px; font-weight:900; color:#ffffff; letter-spacing:-0.2px;">₱0.00</div>
+                <div id="trip-summary-total-cost-sub"
+                    style="font-size:10.5px; color:rgba(255,255,255,0.85); font-weight:600; margin-top:2px;">
+                    Est. Total: ₱0.00
+                </div>
             </div>
             <button type="button" onclick="window.closeTransitSummaryOpensheet()"
                 style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; font-size:12.5px; font-weight:800; cursor:pointer; padding:9px 20px; border-radius:100px; box-shadow:0 2px 8px rgba(0, 0, 0, 0.15) !important; display:inline-flex; align-items:center; gap:7px; transition:transform 0.15s ease;"
@@ -1129,29 +1205,82 @@ try {
             return defaultR2;
         };
 
+        // Clean up any lingering modals previously ported to document.body from past view loads
+        ['save-trip-modal', 'confirm-modal', 'leg-transport-modal', 'transit-summary-opensheet', 'travel-mode-starter-modal'].forEach(id => {
+            const bodyModals = document.body.querySelectorAll(':scope > #' + id);
+            bodyModals.forEach(m => {
+                try { m.remove(); } catch (e) { }
+            });
+        });
+
+        function portModalToBody(modalId) {
+            const inAppContent = document.querySelector('#app-content #' + modalId);
+            const existingInBody = Array.from(document.body.children).filter(el => el.id === modalId);
+            if (inAppContent) {
+                existingInBody.forEach(el => {
+                    if (el !== inAppContent) {
+                        try { el.remove(); } catch (e) { }
+                    }
+                });
+                document.body.appendChild(inAppContent);
+                return inAppContent;
+            }
+            const target = document.getElementById(modalId);
+            if (!target) return null;
+            existingInBody.forEach(el => {
+                if (el !== target) {
+                    try { el.remove(); } catch (e) { }
+                }
+            });
+            if (target.parentElement !== document.body) {
+                document.body.appendChild(target);
+            }
+            return target;
+        }
+        window.portModalToBody = portModalToBody;
+
+
+
         // ---- Custom confirm modal (replaces native confirm) ----
         window.showConfirmModal = function (msg, options) {
             options = options || {};
-            // Prevent stacking multiple confirm modals
-            var existing = document.getElementById('confirm-modal');
-            if (existing && existing.style.display === 'flex') {
-                return Promise.resolve(false);
-            }
+            var modal = portModalToBody('confirm-modal');
+            var msgEl = document.getElementById('confirm-modal-msg');
+            var titleEl = document.getElementById('confirm-modal-title');
+            var btnOk = document.getElementById('btn-confirm-ok');
+            var btnCancel = document.getElementById('btn-confirm-cancel');
+            if (!modal || !msgEl || !btnOk || !btnCancel) { return Promise.resolve(true); }
+
             return new Promise(function (resolve) {
-                var modal = document.getElementById('confirm-modal');
-                var msgEl = document.getElementById('confirm-modal-msg');
-                var titleEl = document.getElementById('confirm-modal-title');
-                var btnOk = document.getElementById('btn-confirm-ok');
-                var btnCancel = document.getElementById('btn-confirm-cancel');
-                if (!modal || !msgEl || !btnOk || !btnCancel) { resolve(true); return; }
+                // Hide / put bottom navigation bar behind modal
+                var bottomNav = document.getElementById('bottom-navigation');
+                if (bottomNav) {
+                    bottomNav.classList.add('nav-hidden');
+                }
+                document.body.classList.add('itin-confirm-open');
+
                 msgEl.textContent = msg;
                 if (titleEl) titleEl.textContent = options.title || 'Missing Details';
+                var iconEl = document.getElementById('confirm-modal-icon') || (modal ? modal.querySelector('i') : null);
+                if (iconEl) iconEl.className = 'fa-solid ' + (options.icon || 'fa-triangle-exclamation');
                 btnOk.textContent = options.confirmText || 'Save Anyway';
                 btnCancel.textContent = options.cancelText || 'Cancel';
                 btnCancel.style.display = options.hideCancel ? 'none' : '';
                 modal.style.display = 'flex';
+
                 function cleanup() {
-                    modal.style.display = 'none';
+                    document.querySelectorAll('#confirm-modal').forEach(m => {
+                        m.style.display = 'none';
+                    });
+                    document.body.classList.remove('itin-confirm-open');
+                    if (bottomNav) {
+                        var saveModal = document.getElementById('save-trip-modal');
+                        var legModal = document.getElementById('leg-transport-modal');
+                        var isOtherModalOpen = (saveModal && saveModal.style.display === 'flex') || (legModal && legModal.style.display === 'flex');
+                        if (!isOtherModalOpen) {
+                            bottomNav.classList.remove('nav-hidden');
+                        }
+                    }
                     btnOk.removeEventListener('click', onOk);
                     btnCancel.removeEventListener('click', onCancel);
                     modal.removeEventListener('click', onBackdrop);
@@ -2295,8 +2424,10 @@ try {
 
             window.renderLegModalList(availableCount);
 
-            const modal = document.getElementById('leg-transport-modal');
-            if (modal) modal.style.display = 'flex';
+            const modal = portModalToBody('leg-transport-modal');
+            if (modal) {
+                modal.style.display = 'flex';
+            }
 
             const bottomNav = document.getElementById('bottom-navigation');
             if (bottomNav) bottomNav.classList.add('nav-hidden');
@@ -2569,27 +2700,42 @@ try {
         };
 
         window.closeLegTransportModal = function () {
-            const modal = document.getElementById('leg-transport-modal');
-            if (modal) modal.style.display = 'none';
+            document.querySelectorAll('#leg-transport-modal').forEach(m => {
+                m.style.display = 'none';
+            });
 
             const bottomNav = document.getElementById('bottom-navigation');
             if (bottomNav) bottomNav.classList.remove('nav-hidden');
+            document.body.classList.remove('itin-confirm-open');
         };
 
         window.openTransitSummaryOpensheet = function () {
-            const modal = document.getElementById('transit-summary-opensheet');
+            const modal = portModalToBody('transit-summary-opensheet');
             if (!modal) return;
-            if (modal.parentElement !== document.body) {
-                document.body.appendChild(modal);
-            }
 
             const listEl = document.getElementById('transit-summary-items-list');
-            const badgeEl = document.getElementById('transit-summary-badge');
             const totalFareEl = document.getElementById('transit-summary-total-fare');
+            const totalCostSubEl = document.getElementById('trip-summary-total-cost-sub');
 
             const draft = (typeof window.getEffectiveDraft === 'function')
                 ? window.getEffectiveDraft()
                 : JSON.parse(localStorage.getItem('intan_elyu_draft_itinerary') || '[]');
+
+            // Companion & traveler data
+            const isGroup = document.querySelector('input[name="trip_companion_type"]:checked')?.value === 'group';
+            const compAdults = isGroup ? Math.max(0, parseInt(document.getElementById('companion-adults-count')?.textContent || '0', 10)) : 0;
+            const compKids = isGroup ? Math.max(0, parseInt(document.getElementById('companion-kids-count')?.textContent || '0', 10)) : 0;
+            const compSeniors = isGroup ? Math.max(0, parseInt(document.getElementById('companion-seniors-count')?.textContent || '0', 10)) : 0;
+            const compPwds = isGroup ? Math.max(0, parseInt(document.getElementById('companion-pwds-count')?.textContent || '0', 10)) : 0;
+            const compMales = isGroup ? Math.max(0, parseInt(document.getElementById('companion-males-count')?.textContent || '0', 10)) : 0;
+            const compFemales = isGroup ? Math.max(0, parseInt(document.getElementById('companion-females-count')?.textContent || '0', 10)) : 0;
+            const totalGenderCompanions = compMales + compFemales;
+            const totalTravelers = 1 + (isGroup ? totalGenderCompanions : 0);
+            const numAdults = 1 + compAdults;
+            const numKids = compKids;
+            const numSeniors = compSeniors;
+            const numPwds = compPwds;
+            const totalPayingTravelers = numAdults + numKids + numSeniors + numPwds;
 
             if (!draft || draft.length === 0) {
                 if (listEl) {
@@ -2597,23 +2743,106 @@ try {
                         <div style="text-align:center; padding:32px 16px; color:#64748b;">
                             <i class="fa-regular fa-compass" style="font-size:32px; color:#94a3b8; margin-bottom:8px;"></i>
                             <div style="font-size:14px; font-weight:700; color:#334155;">No Destinations Added</div>
-                            <div style="font-size:12px; color:#94a3b8; margin-top:2px;">Add spots to your itinerary to view transit breakdowns.</div>
+                            <div style="font-size:12px; color:#94a3b8; margin-top:2px;">Add spots to your itinerary to view your complete trip summary.</div>
                         </div>
                     `;
                 }
-                if (badgeEl) badgeEl.textContent = '0 Destinations';
                 if (totalFareEl) totalFareEl.textContent = '₱0.00';
+                if (totalCostSubEl) totalCostSubEl.textContent = 'Est. Total: ₱0.00';
                 modal.style.display = 'flex';
                 modal.style.pointerEvents = 'auto';
                 return;
             }
 
-            if (badgeEl) {
-                badgeEl.textContent = `${draft.length} Destination${draft.length > 1 ? 's' : ''}`;
+            // 1. Build Travelers & Companions Summary Card (male and female included)
+            let travelersCardHtml = '';
+            if (!isGroup) {
+                travelersCardHtml = `
+                    <div style="background:#ffffff !important; border-radius:16px; padding:13px 15px; border:1.5px solid #e2e8f0 !important; box-shadow:0 3px 10px rgba(0, 0, 0, 0.04) !important; display:flex; flex-direction:column; gap:6px;">
+                        <div style="display:flex; align-items:center; justify-content:space-between;">
+                            <div style="font-size:11px; font-weight:800; color:#0284c7; text-transform:uppercase; letter-spacing:0.5px;">
+                                Travelers & Companions
+                            </div>
+                            <span style="font-size:10.5px; font-weight:800; color:#0369a1; background:#e0f2fe; padding:2px 8px; border-radius:100px;">
+                                Solo Trip
+                            </span>
+                        </div>
+                        <div style="font-size:13.5px; font-weight:800; color:#0f172a;">
+                            1 Traveler <span style="font-size:11.5px; font-weight:600; color:#64748b;">(You)</span>
+                        </div>
+                        <div style="font-size:11px; color:#64748b; margin-top:1px;">
+                            Solo journey with personal trip budget.
+                        </div>
+                    </div>
+                `;
+            } else {
+                const feePills = [];
+                if (compAdults > 0) feePills.push(`<span style="background:#eff6ff; color:#1e40af; border:1px solid #bfdbfe; font-size:11px; font-weight:700; padding:2px 8px; border-radius:6px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-user" style="color:#2563eb; font-size:10px;"></i> ${compAdults} Adult${compAdults > 1 ? 's' : ''}</span>`);
+                if (compKids > 0) feePills.push(`<span style="background:#f0fdf4; color:#166534; border:1px solid #bbf7d0; font-size:11px; font-weight:700; padding:2px 8px; border-radius:6px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-child" style="color:#16a34a; font-size:10px;"></i> ${compKids} Kid${compKids > 1 ? 's' : ''}</span>`);
+                if (compSeniors > 0) feePills.push(`<span style="background:#fffbeb; color:#92400e; border:1px solid #fde68a; font-size:11px; font-weight:700; padding:2px 8px; border-radius:6px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-person-cane" style="color:#d97706; font-size:10px;"></i> ${compSeniors} Senior${compSeniors > 1 ? 's' : ''}</span>`);
+                if (compPwds > 0) feePills.push(`<span style="background:#faf5ff; color:#6b21a8; border:1px solid #e9d5ff; font-size:11px; font-weight:700; padding:2px 8px; border-radius:6px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-wheelchair" style="color:#9333ea; font-size:10px;"></i> ${compPwds} PWD</span>`);
+
+                travelersCardHtml = `
+                    <div style="background:#ffffff !important; border-radius:16px; padding:13px 15px; border:1.5px solid #e2e8f0 !important; box-shadow:0 3px 10px rgba(0, 0, 0, 0.04) !important; display:flex; flex-direction:column; gap:8px;">
+                        <div style="display:flex; align-items:center; justify-content:space-between;">
+                            <div style="font-size:11px; font-weight:800; color:#0284c7; text-transform:uppercase; letter-spacing:0.5px;">
+                                Travelers & Companions
+                            </div>
+                            <span style="font-size:10.5px; font-weight:800; color:#0369a1; background:#e0f2fe; padding:2px 8px; border-radius:100px;">
+                                With Companions
+                            </span>
+                        </div>
+                        <div>
+                            <div style="font-size:13.5px; font-weight:800; color:#0f172a;">
+                                ${totalTravelers} Total Travelers <span style="font-size:11.5px; font-weight:600; color:#64748b;">(You + ${totalGenderCompanions} Companions)</span>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:8px; margin-top:6px;">
+                                <span style="background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe; font-size:11px; font-weight:700; padding:3px 9px; border-radius:8px; display:inline-flex; align-items:center; gap:5px;">
+                                    <i class="fa-solid fa-mars" style="color:#2563eb; font-size:11px;"></i> ${compMales} Male
+                                </span>
+                                <span style="background:#fdf2f8; color:#be185d; border:1px solid #fbcfe8; font-size:11px; font-weight:700; padding:3px 9px; border-radius:8px; display:inline-flex; align-items:center; gap:5px;">
+                                    <i class="fa-solid fa-venus" style="color:#db2777; font-size:11px;"></i> ${compFemales} Female
+                                </span>
+                            </div>
+                        </div>
+                        ${feePills.length > 0 ? `
+                            <div style="padding-top:7px; border-top:1px dashed #e2e8f0; margin-top:1px;">
+                                <div style="font-size:10px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.3px; margin-bottom:5px;">
+                                    Traveler Types (${compAdults + compKids + compSeniors + compPwds} of ${totalGenderCompanions} Categorized)
+                                </div>
+                                <div style="display:flex; flex-wrap:wrap; gap:6px;">
+                                    ${feePills.join('')}
+                                </div>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
             }
 
+            const routeHeaderHtml = `
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-top:4px; padding:0 2px;">
+                    <span style="font-size:11px; font-weight:800; color:#0284c7; text-transform:uppercase; letter-spacing:0.5px; display:flex; align-items:center; gap:5px;">
+                        <i class="fa-solid fa-route" style="font-size:11px;"></i> Route & Destinations (${draft.length} Stop${draft.length > 1 ? 's' : ''})
+                    </span>
+                </div>
+            `;
+
+            // 2. Build Destination Cards (White Cards) and Aggregate Fees Summary for Trip Cost Breakdown
             let grandTotal = 0;
+            let totalSiteFeesAllSpots = 0;
             let cardsHtml = '';
+
+            let totGeneralEntrance = 0;
+            let totAdultEntrance = 0;
+            let totChildEntrance = 0;
+            let totPwdEntrance = 0;
+            let totSeniorEntrance = 0;
+
+            let totGeneralEnvi = 0;
+            let totAdultEnvi = 0;
+            let totChildEnvi = 0;
+            let totPwdEnvi = 0;
+            let totSeniorEnvi = 0;
 
             try {
                 draft.forEach((dest, idx) => {
@@ -2631,34 +2860,80 @@ try {
                     const distKm = (info && info.distance_km != null) ? parseFloat(info.distance_km).toFixed(1) : '—';
                     const isSelected = Boolean(info && info.has_selection && !String(info.name || '').toLowerCase().includes('select your vehicle') && !String(info.name || '').toLowerCase().includes('no vehicle'));
 
-                    // Vehicle badge / icon (Unavailable has NO icon as requested)
+                    // Site fees & rates based directly on Image 3 (Fee Options & Categories, Entrance & Environmental)
+                    const adultFee = parseFloat(dest.adult_fee || dest.adultFee || 0);
+                    const entranceFee = parseFloat(dest.entrance_fee || dest.entranceFee || dest.fee || 0);
+                    const baseAdult = adultFee > 0 ? adultFee : (entranceFee > 0 ? entranceFee : 0);
+                    const kidsFee = (dest.kids_fee !== undefined && dest.kids_fee !== null && dest.kids_fee !== '')
+                        ? (parseFloat(dest.kids_fee) || 0)
+                        : baseAdult;
+                    const seniorFee = (dest.senior_citizen_fee !== undefined && dest.senior_citizen_fee !== null && dest.senior_citizen_fee !== '' && parseFloat(dest.senior_citizen_fee) > 0)
+                        ? parseFloat(dest.senior_citizen_fee)
+                        : (baseAdult > 0 ? baseAdult * 0.8 : 0);
+                    const pwdFee = (dest.pwd_fee !== undefined && dest.pwd_fee !== null && dest.pwd_fee !== '' && parseFloat(dest.pwd_fee) > 0)
+                        ? parseFloat(dest.pwd_fee)
+                        : (baseAdult > 0 ? baseAdult * 0.8 : 0);
+                    const envFee = parseFloat(dest.environmental_fee || dest.environmentalFee || dest.envFee || 0) || 0;
+
+                    const displayAdult = adultFee > 0 ? adultFee : 0;
+                    const displayChild = kidsFee > 0 ? kidsFee : 0;
+                    const displayPwd = pwdFee > 0 ? pwdFee : 0;
+                    const displaySenior = seniorFee > 0 ? seniorFee : 0;
+                    const displayEntrance = entranceFee > 0 ? entranceFee : 0;
+                    const displayEnvi = envFee > 0 ? envFee : 0;
+
+                    const hasSiteFees = !isMaintenance && (displayAdult > 0 || displayChild > 0 || displayPwd > 0 || displaySenior > 0 || displayEntrance > 0 || displayEnvi > 0);
+                    const baseTotal = displayAdult + displayChild + displayPwd + displaySenior + displayEntrance + displayEnvi;
+
+                    const spotEnvSenior = (seniorFee > 0 && baseAdult > 0) ? Math.round(displayEnvi * (seniorFee / baseAdult)) : (displayEnvi > 0 ? Math.round(displayEnvi * 0.8) : 0);
+                    const spotEnvPwd = (pwdFee > 0 && baseAdult > 0) ? Math.round(displayEnvi * (pwdFee / baseAdult)) : (displayEnvi > 0 ? Math.round(displayEnvi * 0.8) : 0);
+                    const spotEntranceCatTotal = (numAdults * baseAdult) + (numKids * kidsFee) + (numSeniors * seniorFee) + (numPwds * pwdFee);
+                    const spotEnvTotal = (numAdults * displayEnvi) + (numKids * displayEnvi) + (numSeniors * spotEnvSenior) + (numPwds * spotEnvPwd);
+                    const spotPartyCost = isMaintenance ? 0 : (spotEntranceCatTotal + spotEnvTotal);
+                    totalSiteFeesAllSpots += spotPartyCost;
+
+                    if (!isMaintenance) {
+                        totGeneralEntrance += (entranceFee > 0 ? entranceFee : baseAdult);
+                        totAdultEntrance += baseAdult;
+                        totChildEntrance += kidsFee;
+                        totPwdEntrance += pwdFee;
+                        totSeniorEntrance += seniorFee;
+
+                        totGeneralEnvi += envFee;
+                        totAdultEnvi += envFee;
+                        totChildEnvi += envFee;
+                        totPwdEnvi += spotEnvPwd;
+                        totSeniorEnvi += spotEnvSenior;
+                    }
+
+                    // Vehicle badge / icon
                     let transportMarkup = '';
                     if (isMaintenance) {
                         transportMarkup = `
-                            <span style="display:inline-flex; align-items:center; gap:5px; background:#ef4444; color:#ffffff; font-size:11px; font-weight:800; padding:4px 10px; border-radius:100px; border:none !important; outline:none !important;">
+                            <span style="display:inline-flex; align-items:center; gap:5px; background:#fef2f2; color:#ef4444; border:1px solid #fecaca; font-size:11px; font-weight:800; padding:4px 10px; border-radius:100px;">
                                 <i class="fa-solid fa-ban" style="font-size:10px;"></i> Unavailable
                             </span>
                         `;
                     } else {
                         let vehicleLabel = 'No Vehicle Selected';
-                        let iconMarkup = '<i class="fa-solid fa-ban" style="color:#f87171; font-size:11px;"></i>';
+                        let iconMarkup = '<i class="fa-solid fa-ban" style="color:#ef4444; font-size:11px;"></i>';
 
                         if (isSelected) {
                             const mCount = (info.transport_modes && Array.isArray(info.transport_modes)) ? info.transport_modes.length : 0;
                             if (mCount > 1) {
                                 vehicleLabel = `${mCount} Vehicles`;
-                                iconMarkup = '<i class="fa-solid fa-shuffle" style="color:#00f2fe; font-size:12px;"></i>';
+                                iconMarkup = '<i class="fa-solid fa-shuffle" style="color:#0284c7; font-size:12px;"></i>';
                             } else if (info.name && info.name.includes('Vehicles')) {
                                 vehicleLabel = info.name;
-                                iconMarkup = '<i class="fa-solid fa-shuffle" style="color:#00f2fe; font-size:12px;"></i>';
+                                iconMarkup = '<i class="fa-solid fa-shuffle" style="color:#0284c7; font-size:12px;"></i>';
                             } else {
                                 vehicleLabel = info.full_names || info.name || 'Vehicle Selected';
-                                iconMarkup = info.icon ? `<i class="fa-solid ${info.icon}" style="color:#00f2fe; font-size:12px;"></i>` : '<i class="fa-solid fa-car" style="color:#00f2fe; font-size:12px;"></i>';
+                                iconMarkup = info.icon ? `<i class="fa-solid ${info.icon}" style="color:#0284c7; font-size:12px;"></i>` : '<i class="fa-solid fa-car" style="color:#0284c7; font-size:12px;"></i>';
                             }
                         }
 
                         transportMarkup = `
-                            <div style="display:inline-flex; align-items:center; gap:6px; background:rgba(255,255,255,0.16); color:#ffffff; font-size:11.5px; font-weight:700; padding:4px 10px; border-radius:100px; border:1px solid rgba(255,255,255,0.22);">
+                            <div style="display:inline-flex; align-items:center; gap:6px; background:#f8fafc; color:#1e3a8a; font-size:11.5px; font-weight:700; padding:4px 10px; border-radius:100px; border:1.5px solid #e2e8f0;">
                                 ${iconMarkup}
                                 <span style="max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${vehicleLabel}</span>
                             </div>
@@ -2668,61 +2943,62 @@ try {
                     // Fare display
                     let fareMarkup = '';
                     if (isMaintenance || !isSelected) {
-                        fareMarkup = `<span style="font-size:13px; font-weight:700; color:rgba(255,255,255,0.6);">—</span>`;
+                        fareMarkup = `<span style="font-size:13px; font-weight:700; color:#94a3b8;">—</span>`;
                     } else if (cost === 0) {
-                        fareMarkup = `<span style="font-size:13.5px; font-weight:800; color:#34d399;">₱0.00</span> <span style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.72);">(Free)</span>`;
+                        fareMarkup = `<span style="font-size:13.5px; font-weight:800; color:#059669;">₱0.00</span> <span style="font-size:10px; font-weight:700; color:#64748b;">(Free)</span>`;
                     } else {
-                        fareMarkup = `<span style="font-size:15px; font-weight:900; color:#00f2fe;">₱${cost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>`;
+                        fareMarkup = `<span style="font-size:15px; font-weight:900; color:#0284c7;">₱${cost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>`;
                     }
 
-                    // Warning or note
+                    // Warning note
                     let noteMarkup = '';
                     if (isMaintenance) {
                         noteMarkup = `
-                            <div style="margin-top:6px; font-size:11px; font-weight:600; color:#fee2e2; background:rgba(239,68,68,0.25); padding:6px 10px; border-radius:8px; border:1px solid rgba(239,68,68,0.4); display:flex; align-items:center; gap:6px;">
-                                <i class="fa-solid fa-triangle-exclamation" style="font-size:11px; color:#fca5a5;"></i>
+                            <div style="margin-top:6px; font-size:11px; font-weight:600; color:#b91c1c; background:#fef2f2; padding:6px 10px; border-radius:8px; border:1px solid #fecaca; display:flex; align-items:center; gap:6px;">
+                                <i class="fa-solid fa-triangle-exclamation" style="font-size:11px; color:#ef4444;"></i>
                                 <span>Destination temporarily closed / under maintenance</span>
                             </div>
                         `;
                     } else if (info && info.warning) {
                         noteMarkup = `
-                            <div style="margin-top:6px; font-size:11px; font-weight:600; color:#fef3c7; background:rgba(245,158,11,0.25); padding:6px 10px; border-radius:8px; border:1px solid rgba(245,158,11,0.4); display:flex; align-items:center; gap:6px;">
-                                <i class="fa-solid fa-circle-info" style="font-size:11px; color:#fcd34d;"></i>
+                            <div style="margin-top:6px; font-size:11px; font-weight:600; color:#b45309; background:#fffbeb; padding:6px 10px; border-radius:8px; border:1px solid #fde68a; display:flex; align-items:center; gap:6px;">
+                                <i class="fa-solid fa-circle-info" style="font-size:11px; color:#d97706;"></i>
                                 <span>${info.warning}</span>
                             </div>
                         `;
                     }
 
+                    // 2nd image card changed to WHITE
                     cardsHtml += `
-                        <div style="background:linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border-radius:16px; padding:13px 15px; border:none !important; outline:none !important; box-shadow:0 4px 14px rgba(32, 63, 141, 0.28) !important; display:flex; flex-direction:column; gap:8px; color:#ffffff;">
+                        <div style="background:#ffffff !important; border-radius:16px; padding:13px 15px; border:1.5px solid #e2e8f0 !important; box-shadow:0 3px 10px rgba(0, 0, 0, 0.04) !important; display:flex; flex-direction:column; gap:8px; color:#0f172a;">
                             <!-- Header: Stop Badge + Distance -->
                             <div style="display:flex; align-items:center; justify-content:space-between;">
-                                <span style="font-size:11px; font-weight:800; color:#ffffff; background:rgba(255,255,255,0.2); padding:3px 10px; border-radius:100px; border:none !important; outline:none !important;">
+                                <span style="font-size:11px; font-weight:800; color:#1e3a8a; background:#e0edff; padding:3px 10px; border-radius:100px; border:none !important; outline:none !important;">
                                     Stop ${idx + 1}
                                 </span>
-                                <span style="font-size:11.5px; font-weight:700; color:rgba(255,255,255,0.9); display:inline-flex; align-items:center; gap:4px;">
-                                    <i class="fa-solid fa-route" style="font-size:10.5px; color:#00f2fe;"></i> ${distKm} km
+                                <span style="font-size:11.5px; font-weight:700; color:#64748b; display:inline-flex; align-items:center; gap:4px;">
+                                    <i class="fa-solid fa-route" style="font-size:10.5px; color:#0284c7;"></i> ${distKm} km
                                 </span>
                             </div>
 
                             <!-- Route Segment: From -> To -->
                             <div style="display:flex; flex-direction:column; gap:4px; padding:2px 0;">
-                                <div style="display:flex; align-items:center; gap:7px; font-size:11.5px; color:rgba(255,255,255,0.78); font-weight:600;">
-                                    <i class="fa-regular fa-circle-dot" style="font-size:9.5px; color:#38bdf8; flex-shrink:0;"></i>
+                                <div style="display:flex; align-items:center; gap:7px; font-size:11.5px; color:#64748b; font-weight:600;">
+                                    <i class="fa-regular fa-circle-dot" style="font-size:9.5px; color:#0284c7; flex-shrink:0;"></i>
                                     <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${fromName}</span>
                                 </div>
-                                <div style="display:flex; align-items:center; gap:7px; font-size:13px; color:#ffffff; font-weight:800;">
-                                    <i class="fa-solid fa-location-dot" style="font-size:11px; color:#00f2fe; flex-shrink:0;"></i>
+                                <div style="display:flex; align-items:center; gap:7px; font-size:13.5px; color:#0f172a; font-weight:800;">
+                                    <i class="fa-solid fa-location-dot" style="font-size:12px; color:#0284c7; flex-shrink:0;"></i>
                                     <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${toName}</span>
-                                    ${muni ? `<span style="font-size:10px; font-weight:700; color:#00f2fe; background:rgba(0, 242, 254, 0.2); padding:1px 6px; border-radius:4px; border:none !important; outline:none !important; flex-shrink:0;">${muni}</span>` : ''}
+                                    ${muni ? `<span style="font-size:10px; font-weight:700; color:#0284c7; background:#e0f2fe; padding:2px 7px; border-radius:6px; flex-shrink:0;">${muni}</span>` : ''}
                                 </div>
                             </div>
 
                             <!-- Footer: Transport Mode & Price -->
-                            <div style="display:flex; align-items:center; justify-content:space-between; padding-top:6px; border-top:1px dashed rgba(255,255,255,0.22); margin-top:2px;">
+                            <div style="display:flex; align-items:center; justify-content:space-between; padding-top:8px; border-top:1px dashed #e2e8f0; margin-top:2px;">
                                 <div>${transportMarkup}</div>
                                 <div style="text-align:right;">
-                                    <div style="font-size:9.5px; font-weight:700; color:rgba(255,255,255,0.72); text-transform:uppercase;">Estimated Fare</div>
+                                    <div style="font-size:9.5px; font-weight:700; color:#64748b; text-transform:uppercase;">Estimated Fare</div>
                                     <div>${fareMarkup}</div>
                                 </div>
                             </div>
@@ -2735,9 +3011,116 @@ try {
                 console.error("Error generating transit summary items:", err);
             }
 
-            if (listEl) listEl.innerHTML = cardsHtml;
+            // Attached Fees Summary matching Image 7 inside Trip Cost Breakdown
+            const fmtFee = (n) => Number.isInteger(n) ? n.toFixed(0) : n.toFixed(2);
+            const hasAnyFees = (totGeneralEntrance > 0 || totAdultEntrance > 0 || totGeneralEnvi > 0 || totalSiteFeesAllSpots > 0);
+
+            let feesSummaryHtml = '';
+            if (hasAnyFees) {
+                feesSummaryHtml = `
+                    <div style="border-top:1px dashed #e2e8f0; padding-top:10px; margin-top:2px; display:flex; flex-direction:column; gap:8px;">
+                        <div style="display:flex; align-items:center; justify-content:space-between;">
+                            <div style="font-size:12px; font-weight:800; color:#0f172a; display:flex; align-items:center; gap:6px;">
+                                <i class="fa-solid fa-receipt" style="color:#0284c7; font-size:11px;"></i> Fees
+                            </div>
+                            <span style="font-size:10.5px; font-weight:700; color:#64748b;">${totalPayingTravelers} Traveler${totalPayingTravelers !== 1 ? 's' : ''}</span>
+                        </div>
+
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                            <!-- Entrance Fee Card (Image 7 light style) -->
+                            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:10px;">
+                                <div style="font-size:11px; font-weight:800; color:#0284c7; display:flex; align-items:center; gap:5px; margin-bottom:8px;">
+                                    <i class="fa-solid fa-ticket" style="color:#0284c7; font-size:11px;"></i> Entrance Fee
+                                </div>
+                                <div style="display:flex; flex-direction:column; gap:4px; font-size:10.5px; color:#475569;">
+                                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                                        <span>General:</span><span style="font-weight:700; color:#0f172a;">₱${fmtFee(totGeneralEntrance)}</span>
+                                    </div>
+                                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                                        <span>Adult:</span><span style="font-weight:700; color:#0f172a;">₱${fmtFee(totAdultEntrance)}</span>
+                                    </div>
+                                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                                        <span>Child:</span><span style="font-weight:700; color:#0f172a;">₱${fmtFee(totChildEntrance)}</span>
+                                    </div>
+                                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                                        <span>PWD:</span><span style="font-weight:700; color:#0f172a;">₱${fmtFee(totPwdEntrance)}</span>
+                                    </div>
+                                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                                        <span>Senior Citizen:</span><span style="font-weight:700; color:#0f172a;">₱${fmtFee(totSeniorEntrance)}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Environmental Fee Card (Image 7 light style) -->
+                            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:10px;">
+                                <div style="font-size:11px; font-weight:800; color:#059669; display:flex; align-items:center; gap:5px; margin-bottom:8px;">
+                                    <i class="fa-solid fa-leaf" style="color:#059669; font-size:11px;"></i> Environmental Fee
+                                </div>
+                                <div style="display:flex; flex-direction:column; gap:4px; font-size:10.5px; color:#475569;">
+                                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                                        <span>General:</span><span style="font-weight:700; color:#0f172a;">₱${fmtFee(totGeneralEnvi)}</span>
+                                    </div>
+                                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                                        <span>Adult:</span><span style="font-weight:700; color:#0f172a;">₱${fmtFee(totAdultEnvi)}</span>
+                                    </div>
+                                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                                        <span>Child:</span><span style="font-weight:700; color:#0f172a;">₱${fmtFee(totChildEnvi)}</span>
+                                    </div>
+                                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                                        <span>PWD:</span><span style="font-weight:700; color:#0f172a;">₱${fmtFee(totPwdEnvi)}</span>
+                                    </div>
+                                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                                        <span>Senior Citizen:</span><span style="font-weight:700; color:#0f172a;">₱${fmtFee(totSeniorEnvi)}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                feesSummaryHtml = `
+                    <div style="border-top:1px dashed #e2e8f0; padding-top:8px; margin-top:2px; display:flex; align-items:center; justify-content:space-between;">
+                        <div style="font-size:11.5px; font-weight:800; color:#0f172a; display:flex; align-items:center; gap:6px;">
+                            <i class="fa-solid fa-receipt" style="color:#0284c7; font-size:11px;"></i> Fees
+                        </div>
+                        <span style="font-size:11px; font-weight:700; color:#059669;">Free Admission</span>
+                    </div>
+                `;
+            }
+
+            const overallCostCardHtml = `
+                <div style="background:#ffffff !important; border-radius:16px; padding:13px 15px; border:1.5px solid #e2e8f0 !important; box-shadow:0 3px 10px rgba(0, 0, 0, 0.04) !important; display:flex; flex-direction:column; gap:9px;">
+                    <div style="display:flex; align-items:center; justify-content:space-between;">
+                        <span style="font-size:11px; font-weight:800; color:#0284c7; text-transform:uppercase; letter-spacing:0.5px;">
+                            Trip Cost Breakdown
+                        </span>
+                        <span style="font-size:14px; font-weight:900; color:#0f172a;">
+                            ₱${(grandTotal + totalSiteFeesAllSpots).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </span>
+                    </div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
+                        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:7px 9px;">
+                            <div style="font-size:9.5px; font-weight:700; color:#64748b; text-transform:uppercase;">Transit Total</div>
+                            <div style="font-size:12.5px; font-weight:800; color:#0284c7;">₱${grandTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                        </div>
+                        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:7px 9px;">
+                            <div style="font-size:9.5px; font-weight:700; color:#64748b; text-transform:uppercase;">Site & Envi Fees</div>
+                            <div style="font-size:12.5px; font-weight:800; color:#059669;">₱${totalSiteFeesAllSpots.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                        </div>
+                    </div>
+                    ${feesSummaryHtml}
+                </div>
+            `;
+
+            if (listEl) listEl.innerHTML = travelersCardHtml + overallCostCardHtml + routeHeaderHtml + cardsHtml;
+
+            const totalTripEstimatedCost = grandTotal + totalSiteFeesAllSpots;
             if (totalFareEl) {
-                totalFareEl.textContent = '₱' + grandTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                totalFareEl.textContent = '₱' + totalTripEstimatedCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            }
+            if (totalCostSubEl) {
+                totalCostSubEl.textContent = `Transit: ₱${grandTotal.toFixed(2)} • Site & Envi: ₱${totalSiteFeesAllSpots.toFixed(2)}`;
+                totalCostSubEl.style.display = 'block';
             }
 
             modal.style.display = 'flex';
@@ -2745,8 +3128,9 @@ try {
         };
 
         window.closeTransitSummaryOpensheet = function () {
-            const modal = document.getElementById('transit-summary-opensheet');
-            if (modal) modal.style.display = 'none';
+            document.querySelectorAll('#transit-summary-opensheet').forEach(m => {
+                m.style.display = 'none';
+            });
         };
 
         window.selectLegVehicle = function (legIdx, mode, cost, distKm) {
@@ -2775,7 +3159,35 @@ try {
                 }
             }
 
-            // Auto-heal legacy or corrupted localStorage entries
+            // Also check per-leg vehicle selections if modes is still empty
+            if (modes.length === 0) {
+                try {
+                    const rawLegs = localStorage.getItem('intan_elyu_draft_leg_vehicles');
+                    if (rawLegs) {
+                        const parsedLegs = JSON.parse(rawLegs);
+                        if (parsedLegs && typeof parsedLegs === 'object') {
+                            const legModes = [];
+                            Object.values(parsedLegs).forEach(leg => {
+                                if (leg) {
+                                    const legArr = leg.transport_modes || (leg.transport_mode ? [leg.transport_mode] : []);
+                                    if (Array.isArray(legArr)) {
+                                        legArr.forEach(m => {
+                                            if (m && m !== 'no_vehicle' && !String(m).toLowerCase().includes('no vehicle') && !legModes.includes(m)) {
+                                                legModes.push(m);
+                                            }
+                                        });
+                                    }
+                                }
+                            });
+                            if (legModes.length > 0) {
+                                modes = legModes;
+                            }
+                        }
+                    }
+                } catch (e) { }
+            }
+
+            // Auto-heal legacy or corrupted localStorage entries and sync trip-transport input
             try {
                 if (modes.length > 0) {
                     const cleanComposite = (modes.length === 1) ? modes[0] : modes.join(' + ');
@@ -2783,6 +3195,10 @@ try {
                     if (storedRaw !== cleanComposite) {
                         localStorage.setItem('intan_elyu_draft_trip_transport', cleanComposite);
                         localStorage.setItem('intan_elyu_draft_trip_transports', JSON.stringify(modes));
+                    }
+                    const transInput = document.getElementById('trip-transport');
+                    if (transInput && (!transInput.value || /no[_ ]vehicle/i.test(transInput.value))) {
+                        transInput.value = cleanComposite;
                     }
                 }
             } catch (e) { }
@@ -2822,7 +3238,7 @@ try {
         window.starterModalSelectedModes = [];
 
         window.openTravelModeStarterModal = function () {
-            const modal = document.getElementById('travel-mode-starter-modal');
+            const modal = portModalToBody('travel-mode-starter-modal');
             if (!modal) return;
 
             const initialModes = window.getNormalizedTripModes();
@@ -2972,11 +3388,12 @@ try {
         };
 
         window.closeTravelModeStarterModal = function () {
-            const modal = document.getElementById('travel-mode-starter-modal');
-            if (!modal) return;
-            modal.style.display = 'none';
+            document.querySelectorAll('#travel-mode-starter-modal').forEach(m => {
+                m.style.display = 'none';
+            });
             const bottomNav = document.getElementById('bottom-navigation');
             if (bottomNav) bottomNav.classList.remove('nav-hidden');
+            document.body.classList.remove('itin-confirm-open');
         };
 
         window.selectTripTravelMode = function (mode) {
@@ -3156,15 +3573,18 @@ try {
         };
 
         window.renderItinerary = function (skipMap = false) {
+            const timeline = document.getElementById('itinerary-timeline');
+            if (!timeline) return;
+
             const draft = window.getEffectiveDraft();
             const rawDraft = JSON.parse(localStorage.getItem('intan_elyu_draft_itinerary') || '[]');
-            const timeline = document.getElementById('itinerary-timeline');
             const emptyState = document.getElementById('itinerary-empty-state');
             const fab = document.getElementById('btn-save-itinerary');
             const mapWrapper = document.getElementById('draft-map-wrapper');
             const draftPlanCard = document.getElementById('draft-plan-card-wrapper');
+            const countEl = document.getElementById('itinerary-count');
 
-            document.getElementById('itinerary-count').innerText = rawDraft.length;
+            if (countEl) countEl.innerText = rawDraft.length;
 
             if (rawDraft.length === 0) {
                 localStorage.removeItem('intan_elyu_draft_trip_transport');
@@ -3186,23 +3606,27 @@ try {
                 sessionStorage.removeItem('editing_trip_budget');
                 sessionStorage.removeItem('editing_trip_transport');
                 timeline.innerHTML = '';
-                emptyState.style.setProperty('display', 'flex', 'important');
-                emptyState.classList.remove('is-hidden');
-                emptyState.style.animation = 'none';
-                void emptyState.offsetHeight; // Trigger reflow for smooth re-animation
-                emptyState.style.animation = 'cardFadeIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards';
-                fab.style.setProperty('display', 'none', 'important');
+                if (emptyState) {
+                    emptyState.style.setProperty('display', 'flex', 'important');
+                    emptyState.classList.remove('is-hidden');
+                    emptyState.style.animation = 'none';
+                    void emptyState.offsetHeight; // Trigger reflow for smooth re-animation
+                    emptyState.style.animation = 'cardFadeIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards';
+                }
+                if (fab) fab.style.setProperty('display', 'none', 'important');
                 if (mapWrapper) mapWrapper.style.display = 'none';
                 return;
             }
 
-            emptyState.style.setProperty('display', 'none', 'important');
-            emptyState.classList.add('is-hidden');
+            if (emptyState) {
+                emptyState.style.setProperty('display', 'none', 'important');
+                emptyState.classList.add('is-hidden');
+            }
             if (draftPlanCard) {
                 draftPlanCard.classList.remove('is-hidden');
                 draftPlanCard.style.setProperty('display', 'flex', 'important');
             }
-            fab.style.setProperty('display', 'flex', 'important');
+            if (fab) fab.style.setProperty('display', 'flex', 'important');
             const isEditingPlan = Boolean(sessionStorage.getItem('editing_itinerary_id'));
             const pageTitleEl = document.getElementById('itinerary-page-title');
             const editBannerEl = document.getElementById('editing-plan-banner');
@@ -3215,7 +3639,7 @@ try {
                     editBannerEl.style.display = 'flex';
                     if (editBannerTitleEl) editBannerTitleEl.textContent = savedTitle || 'Saved Trip';
                 }
-                fab.innerHTML = '<i class="fa-solid fa-pen-to-square" style="margin-right:8px;"></i> Update Saved Trip';
+                if (fab) fab.innerHTML = '<i class="fa-solid fa-pen-to-square" style="margin-right:8px;"></i> Update Saved Trip';
 
                 const editingTransport = sessionStorage.getItem('editing_trip_transport');
                 if (editingTransport && !sessionStorage.getItem('editing_transport_initialized')) {
@@ -3232,7 +3656,7 @@ try {
                 sessionStorage.removeItem('editing_transport_initialized');
                 if (pageTitleEl) pageTitleEl.textContent = 'Draft Plan';
                 if (editBannerEl) editBannerEl.style.display = 'none';
-                fab.innerHTML = '<i class="fa-solid fa-cloud-arrow-up" style="margin-right:8px;"></i> Save Draft Plan';
+                if (fab) fab.innerHTML = '<i class="fa-solid fa-cloud-arrow-up" style="margin-right:8px;"></i> Save Draft Plan';
             }
             if (mapWrapper) mapWrapper.style.display = 'block';
 
@@ -3354,13 +3778,13 @@ try {
                             const eta = hasCachedOSRM ? window._cachedNextStopOSRM : window.getDistanceAndETA(lat, lng);
                             if (eta) {
                                 nextStopEtaHtml = `
-                            <div class="next-stop-distance-chip" id="itinerary-next-eta" style="background:#ffffff !important; color:#1e3a8a !important; border:none !important; outline:none !important; border-radius:100px !important; padding:5px 13px !important; font-size:11px !important; font-weight:700 !important; display:inline-flex !important; align-items:center !important; margin-top:8px !important; box-shadow:0 2px 6px rgba(0,0,0,0.12) !important;">
-                                <span style="color:#1e3a8a !important; font-weight:700; font-size:11px;">${eta.distanceText} away &bull; ~${eta.durationText} drive from your location</span>
+                            <div class="next-stop-distance-chip" id="itinerary-next-eta" style="background:#ffffff !important; color:#1e3a8a !important; border:none !important; outline:none !important; border-radius:100px !important; padding:4px 11px !important; font-size:10px !important; font-weight:700 !important; display:inline-flex !important; align-items:center !important; margin-top:8px !important; box-shadow:0 2px 6px rgba(0,0,0,0.12) !important; white-space:nowrap !important; max-width:100% !important;">
+                                <span style="color:#1e3a8a !important; font-weight:700; font-size:10px; letter-spacing:-0.1px;">${eta.distanceText} away &bull; ~${eta.durationText} drive from your location</span>
                             </div>`;
                             } else {
                                 nextStopEtaHtml = `
-                            <div class="next-stop-distance-chip" id="itinerary-next-eta" style="background:#ffffff !important; color:#1e3a8a !important; border:none !important; outline:none !important; border-radius:100px !important; padding:5px 13px !important; font-size:11px !important; font-weight:700 !important; display:inline-flex !important; align-items:center !important; margin-top:8px !important; box-shadow:0 2px 6px rgba(0,0,0,0.12) !important;">
-                                <span style="color:#1e3a8a !important; font-weight:700; font-size:11px;">First destination on your itinerary route</span>
+                            <div class="next-stop-distance-chip" id="itinerary-next-eta" style="background:#ffffff !important; color:#1e3a8a !important; border:none !important; outline:none !important; border-radius:100px !important; padding:4px 11px !important; font-size:10px !important; font-weight:700 !important; display:inline-flex !important; align-items:center !important; margin-top:8px !important; box-shadow:0 2px 6px rgba(0,0,0,0.12) !important; white-space:nowrap !important; max-width:100% !important;">
+                                <span style="color:#1e3a8a !important; font-weight:700; font-size:10px; letter-spacing:-0.1px;">First destination on your itinerary route</span>
                             </div>`;
                             }
                         }
@@ -3422,9 +3846,9 @@ try {
                     html += `
                 <div class="timeline-item ${isNextStop ? 'is-next-stop' : ''}" draggable="true" data-index="${index}" data-id="${place.id}" data-key="${placeKey}" style="animation-delay: ${(index + 1) * 0.08}s">
                     <div class="timeline-dot"></div>
-                    <div class="swipe-container" style="position:relative; overflow:hidden; border-radius:20px !important; transform:translate3d(0,0,0); -webkit-transform:translate3d(0,0,0); -webkit-backface-visibility:hidden; backface-visibility:hidden; -webkit-mask-image:-webkit-radial-gradient(white, black); mask-image:radial-gradient(white, black);">
-                        <div class="swipe-delete-bg" style="position:absolute; top:0; right:0; bottom:0; width:80px; background:linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border-radius:0 20px 20px 0 !important; display:flex; align-items:center; justify-content:center; color:#fff; font-size:13px; font-weight:800; gap:4px; transform:translateX(100%); z-index:1; opacity:0; pointer-events:none; transition:transform 0.2s ease, opacity 0.2s ease;"><i class="fa-solid fa-trash-can"></i> Delete</div>
-                        <div class="swipe-content" style="position:relative; z-index:2; transition:transform 0.2s ease; border-radius:20px !important; padding:16px 18px; border:none !important; outline:none !important; background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; box-shadow:none !important;">
+                    <div class="swipe-container" style="position:relative; overflow:hidden; border-radius:16px !important; transform:translate3d(0,0,0); -webkit-transform:translate3d(0,0,0); -webkit-backface-visibility:hidden; backface-visibility:hidden; -webkit-mask-image:-webkit-radial-gradient(white, black); mask-image:radial-gradient(white, black);">
+                        <div class="swipe-delete-bg" style="position:absolute; top:0; right:0; bottom:0; width:80px; background:linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border-radius:0 16px 16px 0 !important; display:flex; align-items:center; justify-content:center; color:#fff; font-size:12px; font-weight:800; gap:4px; transform:translateX(100%); z-index:1; opacity:0; pointer-events:none; transition:transform 0.2s ease, opacity 0.2s ease;"><i class="fa-solid fa-trash-can"></i> Delete</div>
+                        <div class="swipe-content" style="position:relative; z-index:2; transition:transform 0.2s ease; border-radius:16px !important; padding:10px 14px; border:none !important; outline:none !important; background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; box-shadow:none !important;">
                             <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:10px;">
                                 <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
                                     <span class="time-label" style="background:#ffffff !important; color:#1e3a8a !important; border:none !important; outline:none !important; padding:4px 11px !important; border-radius:100px !important; font-size:11px !important; font-weight:800 !important; letter-spacing:0.4px !important; text-transform:uppercase !important; box-shadow:0 2px 6px rgba(0,0,0,0.12) !important; display:inline-flex !important; align-items:center !important;">Stop ${index + 1} &bull; Approx ${timeStr}</span>
@@ -3439,7 +3863,7 @@ try {
                                     <img src="${r2ThumbUrl}" alt="${place.name}" loading="lazy" onerror="this.onerror=null; this.src='assets/img/no_image.svg';">
                                 </div>
                                 <div style="flex:1; min-width:0;">
-                                    <h3 class="place-name" style="margin:0 0 4px 0 !important; font-size:15.5px !important; font-weight:800; color:#ffffff; letter-spacing:-0.2px; line-height:1.25; white-space:normal !important; overflow:visible !important; text-overflow:clip !important; word-break:break-word;">${place.name}</h3>
+                                    <h3 class="place-name" style="margin:0 0 2px 0 !important; font-size:14px !important; font-weight:800; color:#ffffff; letter-spacing:-0.2px; line-height:1.2; white-space:normal !important; overflow:visible !important; text-overflow:clip !important; word-break:break-word;">${place.name}</h3>
                                     ${place.classification_status ? `<div style="margin-bottom:4px;"><span style="padding: 2px 7px; border-radius: 100px; font-size: 8.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: ${place.classification_status === 'EXIST' ? '#0284c7' : (place.classification_status === 'EMERGE' ? '#ef4444' : '#10b981')}; border: none !important; outline: none !important;">${place.classification_status === 'EXIST' ? 'EXISTING' : (place.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</span></div>` : ''}
                                     <div class="place-details" style="font-size:12px; color:rgba(255,255,255,0.75); display:flex; align-items:center; gap:5px;">
                                         <i class="fa-solid fa-location-dot" style="color:#00f2fe; font-size:11px; flex-shrink:0;"></i>
@@ -3645,6 +4069,10 @@ try {
                     });
                 }
             });
+
+            if (typeof window.calculateModalBudget === 'function') {
+                window.calculateModalBudget();
+            }
         }
 
         window.confirmRemoveItineraryItem = async function (id) {
@@ -3727,11 +4155,33 @@ try {
                 window.currentGPSLng = loc.lng;
 
                 if (typeof draftMap !== 'undefined' && draftMap) {
-                    draftMap.flyTo([loc.lat, loc.lng], 16, { animate: true, duration: 1.5 });
-                    if (window.myDraftMarker) {
-                        window.myDraftMarker.setLatLng([loc.lat, loc.lng]);
-                        window.myDraftMarker.openPopup();
+                    try {
+                        draftMap.flyTo([loc.lat, loc.lng], 16, { animate: true, duration: 1.5 });
+                    } catch (mapFlyErr) {
+                        draftMap.setView([loc.lat, loc.lng], 16);
                     }
+                    if (!window.myDraftMarker) {
+                        const myIconHtml = `
+                            <div class="gps-user-marker-icon">
+                                <div class="gps-user-marker-wave"></div>
+                                <div class="gps-user-marker-inner"></div>
+                            </div>
+                        `;
+                        const myIcon = L.divIcon({
+                            className: 'custom-leaflet-marker',
+                            html: myIconHtml,
+                            iconSize: [36, 36],
+                            iconAnchor: [18, 18]
+                        });
+                        window.myDraftMarker = L.marker([loc.lat, loc.lng], { icon: myIcon, zIndexOffset: 1000 })
+                            .addTo(draftMap)
+                            .bindPopup('<div style="font-size:9.5px; font-weight:800; color:#1e3a8a; line-height:1.15;">📍 Your Location</div><div style="font-size:8px; color:#64748b; margin-top:1px;">Starting Point</div>', { closeButton: false, autoPanPadding: [10, 10] });
+                        window.myDraftMarker._isUserGps = true;
+                        if (typeof draftMarkers !== 'undefined') draftMarkers.push(window.myDraftMarker);
+                    } else {
+                        window.myDraftMarker.setLatLng([loc.lat, loc.lng]);
+                    }
+                    try { window.myDraftMarker.openPopup(); } catch (e) { }
                 }
                 if (typeof showToast === 'function') {
                     showToast(loc.source === 'gps' || window.currentGPSSource === 'gps' ? "Centered on your precise GPS location 📍" : "Centered on your estimated location");
@@ -3774,7 +4224,7 @@ try {
                         const hasCachedOSRM = window._cachedNextStopOSRM && window._cachedNextStopOSRM.spotKey === placeKey;
                         const eta = hasCachedOSRM ? window._cachedNextStopOSRM : window.getDistanceAndETA(pLat, pLng);
                         if (eta) {
-                            nextEtaEl.innerHTML = `<span style="color:#1e3a8a !important; font-weight:700; font-size:11px;">${eta.distanceText} away &bull; ~${eta.durationText} drive from your location</span>`;
+                            nextEtaEl.innerHTML = `<span style="color:#1e3a8a !important; font-weight:700; font-size:10px; letter-spacing:-0.1px;">${eta.distanceText} away &bull; ~${eta.durationText} drive from your location</span>`;
                         }
                     }
                 }
@@ -3807,7 +4257,7 @@ try {
                     });
                     window.myDraftMarker = L.marker([lat, lng], { icon: myIcon, zIndexOffset: 1000 })
                         .addTo(draftMap)
-                        .bindPopup('<b>📍 Your Current Location</b><br><span style="font-size:11px;color:#64748b;">Starting Point of Itinerary</span>');
+                        .bindPopup('<div style="font-size:9.5px; font-weight:800; color:#1e3a8a; line-height:1.15;">📍 Your Location</div><div style="font-size:8px; color:#64748b; margin-top:1px;">Starting Point</div>', { closeButton: false, autoPanPadding: [10, 10] });
                     window.myDraftMarker._isUserGps = true;
                     if (typeof draftMarkers !== 'undefined') draftMarkers.push(window.myDraftMarker);
                 }
@@ -3833,11 +4283,19 @@ try {
 
                 const draft = JSON.parse(localStorage.getItem('intan_elyu_draft_itinerary') || '[]');
                 const place = draft.find(item => item.id.toString() === id.toString());
+                const placeIdx = draft.findIndex(item => item.id.toString() === id.toString());
 
                 if (place && typeof draftMap !== 'undefined' && draftMap) {
                     let lat = place.lat || place.latitude || 16.6159;
                     let lng = place.lng || place.longitude || 120.3167;
-                    draftMap.flyTo([parseFloat(lat), parseFloat(lng)], 16, { animate: true, duration: 1.5 });
+                    try {
+                        draftMap.flyTo([parseFloat(lat), parseFloat(lng)], 16, { animate: true, duration: 1.5 });
+                    } catch (mapFlyErr) {
+                        draftMap.setView([parseFloat(lat), parseFloat(lng)], 16);
+                    }
+                    if (placeIdx !== -1 && window.draftPlaceMarkers && window.draftPlaceMarkers[placeIdx]) {
+                        try { window.draftPlaceMarkers[placeIdx].openPopup(); } catch (e) { }
+                    }
                 }
             }
         };
@@ -3996,20 +4454,18 @@ try {
             if (p2pCostEl) {
                 p2pCostEl.textContent = '₱' + transCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             }
-            if (p2pLegsEl) {
-                p2pLegsEl.textContent = `${draft.length} Destination${draft.length > 1 ? 's' : ''} • Tap to view summary`;
-            }
+
+            const isGroupMode = document.querySelector('input[name="trip_companion_type"]:checked')?.value === 'group';
+            const curMales = isGroupMode ? Math.max(0, parseInt(document.getElementById('companion-males-count')?.textContent || '0', 10)) : 0;
+            const curFemales = isGroupMode ? Math.max(0, parseInt(document.getElementById('companion-females-count')?.textContent || '0', 10)) : 0;
+            const curTotalTravelers = 1 + (isGroupMode ? (curMales + curFemales) : 0);
 
             if (p2pLabelEl) {
-                if (isNoVehTrip) {
-                    p2pLabelEl.textContent = 'Select your vehicle';
-                } else if (tripModes.length === 1) {
-                    p2pLabelEl.textContent = (typeof window.getVehicleDisplayName === 'function')
-                        ? window.getVehicleDisplayName(tripModes[0])
-                        : tripModes[0].replace(/_/g, ' ').toUpperCase();
-                } else {
-                    p2pLabelEl.textContent = `${tripModes.length} Vehicles`;
-                }
+                p2pLabelEl.textContent = 'View Summary';
+            }
+            if (p2pLegsEl) {
+                p2pLegsEl.textContent = '';
+                p2pLegsEl.style.display = 'none';
             }
 
             // Sync icon in Save modal
@@ -4027,19 +4483,64 @@ try {
                 }
             }
 
-            // Sum Entrance Fees & Environmental Fees across all destinations in draft
-            // NOTE: Sites under maintenance are closed/restricted and do NOT charge entrance or environmental fees (₱0.00).
-            // Sites that are simply Closed by operating hours (e.g. 6am - 5pm outside operating hours) STILL get their site fees, option fees, and category.
+            // Sum Entrance Fees & Environmental Fees across all destinations in draft for all travelers (Companions calculation)
             let feesTotal = 0;
+            const isGroup = document.querySelector('input[name="trip_companion_type"]:checked')?.value === 'group';
+            const compAdults = isGroup ? Math.max(0, parseInt(document.getElementById('companion-adults-count')?.textContent || '0', 10)) : 0;
+            const compKids = isGroup ? Math.max(0, parseInt(document.getElementById('companion-kids-count')?.textContent || '0', 10)) : 0;
+            const compSeniors = isGroup ? Math.max(0, parseInt(document.getElementById('companion-seniors-count')?.textContent || '0', 10)) : 0;
+            const compPwds = isGroup ? Math.max(0, parseInt(document.getElementById('companion-pwds-count')?.textContent || '0', 10)) : 0;
+            const compMales = isGroup ? Math.max(0, parseInt(document.getElementById('companion-males-count')?.textContent || '0', 10)) : 0;
+            const compFemales = isGroup ? Math.max(0, parseInt(document.getElementById('companion-females-count')?.textContent || '0', 10)) : 0;
+
+            const totalGenderCompanions = compMales + compFemales;
+            const totalCategorizedCompanions = compAdults + compKids + compSeniors + compPwds;
+            let numAdults = 1 + compAdults;
+            let numKids = compKids;
+            let numSeniors = compSeniors;
+            let numPwds = compPwds;
+
+            // Companions calculation: Fees calculate strictly from categorized companions (Adult, Kids, Senior, PWD) + primary traveler (You).
+            // Male and Female counts are demographic counters and do NOT add fee multipliers.
+            const totalTravelersForFees = numAdults + numKids + numSeniors + numPwds;
+
             draft.forEach(p => {
                 if (typeof window.isSpotUnderMaintenance === 'function' && window.isSpotUnderMaintenance(p)) {
                     return; // Exclude Under Maintenance
                 }
                 const adultFee = parseFloat(p.adult_fee || p.adultFee || 0);
                 const generalEntrance = parseFloat(p.entrance_fee || p.entranceFee || p.fee || 0);
-                const entrance = adultFee > 0 ? adultFee : generalEntrance;
-                const env = parseFloat(p.environmental_fee || p.environmentalFee || p.envFee || 0);
-                feesTotal += (isNaN(entrance) ? 0 : entrance) + (isNaN(env) ? 0 : env);
+                const baseAdult = adultFee > 0 ? adultFee : (generalEntrance > 0 ? generalEntrance : 0);
+
+                let kidsFee = 0;
+                if (p.kids_fee !== undefined && p.kids_fee !== null && p.kids_fee !== '') {
+                    kidsFee = parseFloat(p.kids_fee) || 0;
+                } else {
+                    kidsFee = baseAdult;
+                }
+
+                let seniorFee = 0;
+                if (p.senior_citizen_fee !== undefined && p.senior_citizen_fee !== null && p.senior_citizen_fee !== '' && parseFloat(p.senior_citizen_fee) > 0) {
+                    seniorFee = parseFloat(p.senior_citizen_fee);
+                } else if (baseAdult > 0) {
+                    seniorFee = baseAdult * 0.8;
+                }
+
+                let pwdFee = 0;
+                if (p.pwd_fee !== undefined && p.pwd_fee !== null && p.pwd_fee !== '' && parseFloat(p.pwd_fee) > 0) {
+                    pwdFee = parseFloat(p.pwd_fee);
+                } else if (baseAdult > 0) {
+                    pwdFee = baseAdult * 0.8;
+                }
+
+                const env = parseFloat(p.environmental_fee || p.environmentalFee || p.envFee || 0) || 0;
+                const envSenior = (seniorFee > 0 && baseAdult > 0) ? Math.round(env * (seniorFee / baseAdult)) : (env > 0 ? Math.round(env * 0.8) : 0);
+                const envPwd = (pwdFee > 0 && baseAdult > 0) ? Math.round(env * (pwdFee / baseAdult)) : (env > 0 ? Math.round(env * 0.8) : 0);
+
+                const spotEntranceFees = (numAdults * baseAdult) + (numKids * kidsFee) + (numSeniors * seniorFee) + (numPwds * pwdFee);
+                const spotEnvFees = (numAdults * env) + (numKids * env) + (numSeniors * envSenior) + (numPwds * envPwd);
+
+                feesTotal += spotEntranceFees + spotEnvFees;
             });
 
             const estimatedCost = transCost + feesTotal;
@@ -4370,23 +4871,105 @@ try {
                 box.style.display = isGroup ? 'block' : 'none';
             }
             window.updateCompanionHeadcountSummary();
+            if (typeof window.calculateModalBudget === 'function') {
+                window.calculateModalBudget();
+            }
         };
 
-        window.adjustCompanionCount = function (gender, delta) {
-            const countEl = document.getElementById(`companion-${gender}-count`);
+        window.adjustCompanionCount = function (type, delta) {
+            const isGroup = document.querySelector('input[name="trip_companion_type"]:checked')?.value === 'group';
+            if (!isGroup) return;
+
+            const feeTypes = ['adults', 'kids', 'seniors', 'pwds'];
+
+            let males = Math.max(0, parseInt(document.getElementById('companion-males-count')?.textContent || '0', 10));
+            let females = Math.max(0, parseInt(document.getElementById('companion-females-count')?.textContent || '0', 10));
+            let adults = Math.max(0, parseInt(document.getElementById('companion-adults-count')?.textContent || '0', 10));
+            let kids = Math.max(0, parseInt(document.getElementById('companion-kids-count')?.textContent || '0', 10));
+            let seniors = Math.max(0, parseInt(document.getElementById('companion-seniors-count')?.textContent || '0', 10));
+            let pwds = Math.max(0, parseInt(document.getElementById('companion-pwds-count')?.textContent || '0', 10));
+
+            const totalCompanionsLimit = males + females;
+            const currentFeeCompanions = adults + kids + seniors + pwds;
+
+            // When trying to increase fee category companions, enforce limit based on total companions (Male + Female)
+            if (feeTypes.includes(type) && delta > 0) {
+                if (totalCompanionsLimit === 0) {
+                    if (typeof window.showToast === 'function') {
+                        window.showToast("Please add Male or Female companions first");
+                    }
+                    return;
+                }
+                if (currentFeeCompanions >= totalCompanionsLimit) {
+                    if (typeof window.showToast === 'function') {
+                        window.showToast(`Limit reached: Maximum of ${totalCompanionsLimit} companion${totalCompanionsLimit > 1 ? 's' : ''}`);
+                    }
+                    return;
+                }
+            }
+
+            const countEl = document.getElementById(`companion-${type}-count`);
             if (!countEl) return;
             let current = parseInt(countEl.textContent || '0', 10);
             if (isNaN(current)) current = 0;
             current = Math.max(0, current + delta);
             countEl.textContent = current;
+
+            // If decreasing male or female, clamp fee companions so they do not exceed the new limit
+            if ((type === 'males' || type === 'females') && delta < 0) {
+                const newLimit = Math.max(0, parseInt(document.getElementById('companion-males-count')?.textContent || '0', 10))
+                               + Math.max(0, parseInt(document.getElementById('companion-females-count')?.textContent || '0', 10));
+                let curAdults = Math.max(0, parseInt(document.getElementById('companion-adults-count')?.textContent || '0', 10));
+                let curKids = Math.max(0, parseInt(document.getElementById('companion-kids-count')?.textContent || '0', 10));
+                let curSeniors = Math.max(0, parseInt(document.getElementById('companion-seniors-count')?.textContent || '0', 10));
+                let curPwds = Math.max(0, parseInt(document.getElementById('companion-pwds-count')?.textContent || '0', 10));
+                let totalFee = curAdults + curKids + curSeniors + curPwds;
+
+                let excess = totalFee - newLimit;
+                if (excess > 0 && curPwds > 0) {
+                    const d = Math.min(curPwds, excess);
+                    curPwds -= d;
+                    excess -= d;
+                    document.getElementById('companion-pwds-count').textContent = curPwds;
+                }
+                if (excess > 0 && curSeniors > 0) {
+                    const d = Math.min(curSeniors, excess);
+                    curSeniors -= d;
+                    excess -= d;
+                    document.getElementById('companion-seniors-count').textContent = curSeniors;
+                }
+                if (excess > 0 && curKids > 0) {
+                    const d = Math.min(curKids, excess);
+                    curKids -= d;
+                    excess -= d;
+                    document.getElementById('companion-kids-count').textContent = curKids;
+                }
+                if (excess > 0 && curAdults > 0) {
+                    const d = Math.min(curAdults, excess);
+                    curAdults -= d;
+                    excess -= d;
+                    document.getElementById('companion-adults-count').textContent = curAdults;
+                }
+            }
+
             window.updateCompanionHeadcountSummary();
+            if (typeof window.calculateModalBudget === 'function') {
+                window.calculateModalBudget();
+            }
         };
 
         window.updateCompanionHeadcountSummary = function () {
             const isGroup = document.querySelector('input[name="trip_companion_type"]:checked')?.value === 'group';
             const males = isGroup ? Math.max(0, parseInt(document.getElementById('companion-males-count')?.textContent || '0', 10)) : 0;
             const females = isGroup ? Math.max(0, parseInt(document.getElementById('companion-females-count')?.textContent || '0', 10)) : 0;
-            const totalPax = isGroup ? (1 + males + females) : 1;
+            const adults = isGroup ? Math.max(0, parseInt(document.getElementById('companion-adults-count')?.textContent || '0', 10)) : 0;
+            const kids = isGroup ? Math.max(0, parseInt(document.getElementById('companion-kids-count')?.textContent || '0', 10)) : 0;
+            const seniors = isGroup ? Math.max(0, parseInt(document.getElementById('companion-seniors-count')?.textContent || '0', 10)) : 0;
+            const pwds = isGroup ? Math.max(0, parseInt(document.getElementById('companion-pwds-count')?.textContent || '0', 10)) : 0;
+
+            const totalGenderCompanions = males + females;
+            const totalTypeCompanions = adults + kids + seniors + pwds;
+            const totalPax = isGroup ? (1 + totalGenderCompanions) : 1;
 
             const badge = document.getElementById('trip-pax-count-badge');
             if (badge) {
@@ -4394,12 +4977,60 @@ try {
             }
             const summaryText = document.getElementById('companion-summary-text');
             if (summaryText) {
-                if (!isGroup || (males === 0 && females === 0)) {
+                if (!isGroup || totalGenderCompanions === 0) {
                     summaryText.textContent = '1 Traveler (You)';
                 } else {
-                    summaryText.textContent = `${totalPax} Travelers (You + ${males}M, ${females}F)`;
+                    let details = ['You'];
+                    if (males > 0) details.push(`${males}M`);
+                    if (females > 0) details.push(`${females}F`);
+                    summaryText.textContent = `${totalPax} Travelers (${details.join(' + ')})`;
                 }
             }
+
+            // Update limit pill / indicator
+            const limitInfoEl = document.getElementById('companion-fee-limit-info');
+            if (limitInfoEl) {
+                if (!isGroup || totalGenderCompanions === 0) {
+                    limitInfoEl.textContent = '(0 of 0)';
+                    limitInfoEl.style.color = '#94a3b8';
+                    limitInfoEl.style.background = '#f1f5f9';
+                } else if (totalTypeCompanions >= totalGenderCompanions) {
+                    limitInfoEl.textContent = `(${totalTypeCompanions} of ${totalGenderCompanions} full)`;
+                    limitInfoEl.style.color = '#166534';
+                    limitInfoEl.style.background = '#dcfce7';
+                } else {
+                    limitInfoEl.textContent = `(${totalTypeCompanions} of ${totalGenderCompanions})`;
+                    limitInfoEl.style.color = '#0284c7';
+                    limitInfoEl.style.background = '#e0f2fe';
+                }
+            }
+
+            // Sync visual button states
+            const allTypes = [
+                { type: 'males', count: males },
+                { type: 'females', count: females },
+                { type: 'adults', count: adults },
+                { type: 'kids', count: kids },
+                { type: 'seniors', count: seniors },
+                { type: 'pwds', count: pwds }
+            ];
+
+            const feeLimitReached = (totalGenderCompanions === 0) || (totalTypeCompanions >= totalGenderCompanions);
+
+            allTypes.forEach(item => {
+                const decBtn = document.getElementById(`btn-dec-${item.type}`);
+                const incBtn = document.getElementById(`btn-inc-${item.type}`);
+                if (decBtn) {
+                    decBtn.style.opacity = (item.count <= 0) ? '0.35' : '1';
+                    decBtn.style.cursor = (item.count <= 0) ? 'not-allowed' : 'pointer';
+                }
+                if (incBtn) {
+                    if (['adults', 'kids', 'seniors', 'pwds'].includes(item.type)) {
+                        incBtn.style.opacity = feeLimitReached ? '0.35' : '1';
+                        incBtn.style.cursor = feeLimitReached ? 'not-allowed' : 'pointer';
+                    }
+                }
+            });
         };
 
         window.resetSaveModalInputs = function () {
@@ -4428,8 +5059,16 @@ try {
             if (typeof window.setTripType === 'function') window.setTripType('solo');
             const compM = document.getElementById('companion-males-count');
             const compF = document.getElementById('companion-females-count');
+            const compA = document.getElementById('companion-adults-count');
+            const compK = document.getElementById('companion-kids-count');
+            const compS = document.getElementById('companion-seniors-count');
+            const compP = document.getElementById('companion-pwds-count');
             if (compM) compM.textContent = '0';
             if (compF) compF.textContent = '0';
+            if (compA) compA.textContent = '0';
+            if (compK) compK.textContent = '0';
+            if (compS) compS.textContent = '0';
+            if (compP) compP.textContent = '0';
             if (typeof window.updateCompanionHeadcountSummary === 'function') window.updateCompanionHeadcountSummary();
 
             sessionStorage.removeItem('editing_itinerary_id');
@@ -4440,6 +5079,10 @@ try {
             sessionStorage.removeItem('editing_trip_type');
             sessionStorage.removeItem('editing_companion_males');
             sessionStorage.removeItem('editing_companion_females');
+            sessionStorage.removeItem('editing_companion_adults');
+            sessionStorage.removeItem('editing_companion_kids');
+            sessionStorage.removeItem('editing_companion_seniors');
+            sessionStorage.removeItem('editing_companion_pwds');
             sessionStorage.removeItem('editing_total_pax');
             sessionStorage.removeItem('editing_transport_initialized');
         };
@@ -4488,11 +5131,39 @@ try {
         window.openSaveModal = function (e) {
             if (e && typeof e.preventDefault === 'function') e.preventDefault();
             try {
+                // Ensure latest budget and leg/global transport modes are calculated first
+                if (typeof window.calculateModalBudget === 'function') {
+                    window.calculateModalBudget();
+                }
+
                 const draft = window.getEffectiveDraft ? window.getEffectiveDraft() : JSON.parse(localStorage.getItem('intan_elyu_draft_itinerary') || '[]');
                 const transport = document.getElementById('trip-transport')?.value || '';
                 const hasVehicle = transport.trim() && !/no[_ ]vehicle/i.test(transport);
+
+                let missingLegVehicle = false;
+                if (Array.isArray(draft) && draft.length > 0) {
+                    for (let i = 0; i < draft.length; i++) {
+                        const leg = (typeof window.getLegTransportInfo === 'function') ? window.getLegTransportInfo(i) : null;
+                        if (leg && !leg.is_maintenance) {
+                            const isNoVeh = !leg.has_selection || leg.mode === 'no_vehicle' || !leg.mode || String(leg.name).toLowerCase().includes('no vehicle') || (Array.isArray(leg.transport_modes) && leg.transport_modes.length === 0);
+                            if (isNoVeh) {
+                                missingLegVehicle = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+
                 if (!hasVehicle) {
                     window.showConfirmModal('Please choose a vehicle before saving your draft plan.', {
+                        title: 'Vehicle Required',
+                        confirmText: 'OK',
+                        hideCancel: true
+                    });
+                    return;
+                }
+                if (missingLegVehicle) {
+                    window.showConfirmModal('Vehicle is required in all legs. Please choose a vehicle for each leg before saving your draft plan.', {
                         title: 'Vehicle Required',
                         confirmText: 'OK',
                         hideCancel: true
@@ -4563,13 +5234,25 @@ try {
                     const savedTripType = sessionStorage.getItem('editing_trip_type') || 'solo';
                     const savedMales = parseInt(sessionStorage.getItem('editing_companion_males') || '0', 10);
                     const savedFemales = parseInt(sessionStorage.getItem('editing_companion_females') || '0', 10);
+                    const savedAdults = parseInt(sessionStorage.getItem('editing_companion_adults') || '0', 10);
+                    const savedKids = parseInt(sessionStorage.getItem('editing_companion_kids') || '0', 10);
+                    const savedSeniors = parseInt(sessionStorage.getItem('editing_companion_seniors') || '0', 10);
+                    const savedPwds = parseInt(sessionStorage.getItem('editing_companion_pwds') || '0', 10);
                     if (typeof window.setTripType === 'function') {
                         window.setTripType(savedTripType);
                     }
                     const mEl = document.getElementById('companion-males-count');
                     const fEl = document.getElementById('companion-females-count');
+                    const aEl = document.getElementById('companion-adults-count');
+                    const kEl = document.getElementById('companion-kids-count');
+                    const sEl = document.getElementById('companion-seniors-count');
+                    const pEl = document.getElementById('companion-pwds-count');
                     if (mEl) mEl.textContent = isNaN(savedMales) ? '0' : savedMales;
                     if (fEl) fEl.textContent = isNaN(savedFemales) ? '0' : savedFemales;
+                    if (aEl) aEl.textContent = isNaN(savedAdults) ? '0' : savedAdults;
+                    if (kEl) kEl.textContent = isNaN(savedKids) ? '0' : savedKids;
+                    if (sEl) sEl.textContent = isNaN(savedSeniors) ? '0' : savedSeniors;
+                    if (pEl) pEl.textContent = isNaN(savedPwds) ? '0' : savedPwds;
                     if (typeof window.updateCompanionHeadcountSummary === 'function') {
                         window.updateCompanionHeadcountSummary();
                     }
@@ -4639,28 +5322,91 @@ try {
                     window.calculateModalBudget();
                 }
 
-                const modal = document.getElementById('save-trip-modal');
-                if (modal) modal.style.display = 'flex';
+                const modal = portModalToBody('save-trip-modal');
+                if (modal) {
+                    modal.style.display = 'flex';
+                }
 
                 // Hide bottom nav while modal is open
                 const bottomNav = document.getElementById('bottom-navigation');
                 if (bottomNav) bottomNav.classList.add('nav-hidden');
+                document.body.classList.add('itin-confirm-open');
             } catch (err) {
                 console.error("Error in openSaveModal:", err);
-                const modal = document.getElementById('save-trip-modal');
-                if (modal) modal.style.display = 'flex';
+                const modal = (typeof window.portModalToBody === 'function') ? window.portModalToBody('save-trip-modal') : document.getElementById('save-trip-modal');
+                if (modal) {
+                    modal.style.display = 'flex';
+                }
             }
         };
 
-        window.closeSaveModal = function () {
-            document.getElementById('save-trip-modal').style.display = 'none';
+        window.hasSaveModalInputs = function () {
+            const editingId = sessionStorage.getItem('editing_itinerary_id');
+            const title = (document.getElementById('trip-title')?.value || '').trim();
+            const date = (document.getElementById('trip-date')?.value || '').trim();
+            const budget = (document.getElementById('trip-budget')?.value || '').trim();
+            const tripType = document.querySelector('input[name="trip_companion_type"]:checked')?.value || 'solo';
+            const males = parseInt(document.getElementById('companion-males-count')?.textContent || '0', 10);
+            const females = parseInt(document.getElementById('companion-females-count')?.textContent || '0', 10);
+            const adults = parseInt(document.getElementById('companion-adults-count')?.textContent || '0', 10);
+            const kids = parseInt(document.getElementById('companion-kids-count')?.textContent || '0', 10);
+            const seniors = parseInt(document.getElementById('companion-seniors-count')?.textContent || '0', 10);
+            const pwds = parseInt(document.getElementById('companion-pwds-count')?.textContent || '0', 10);
+
+            if (editingId) {
+                const savedTitle = (sessionStorage.getItem('editing_trip_title') || '').trim();
+                const savedDate = (sessionStorage.getItem('editing_trip_date') || '').split(/[T ]/)[0].trim();
+                const savedBudget = (sessionStorage.getItem('editing_trip_budget') || '').trim();
+                const savedType = sessionStorage.getItem('editing_trip_type') || 'solo';
+                const sMales = parseInt(sessionStorage.getItem('editing_companion_males') || '0', 10);
+                const sFemales = parseInt(sessionStorage.getItem('editing_companion_females') || '0', 10);
+                const sAdults = parseInt(sessionStorage.getItem('editing_companion_adults') || '0', 10);
+                const sKids = parseInt(sessionStorage.getItem('editing_companion_kids') || '0', 10);
+                const sSeniors = parseInt(sessionStorage.getItem('editing_companion_seniors') || '0', 10);
+                const sPwds = parseInt(sessionStorage.getItem('editing_companion_pwds') || '0', 10);
+
+                return title !== savedTitle || date !== savedDate || budget !== savedBudget ||
+                       tripType !== savedType || males !== sMales || females !== sFemales ||
+                       adults !== sAdults || kids !== sKids || seniors !== sSeniors || pwds !== sPwds;
+            }
+
+            return Boolean(title.length > 0 || date.length > 0 || budget.length > 0 ||
+                           tripType === 'group' || males > 0 || females > 0 ||
+                           adults > 0 || kids > 0 || seniors > 0 || pwds > 0);
+        };
+
+        window.confirmCancelSaveModal = async function (btn) {
+            if (typeof window.hasSaveModalInputs === 'function' && !window.hasSaveModalInputs()) {
+                window.closeSaveModal(btn);
+                return;
+            }
+            const confirmed = await window.showConfirmModal('Are you sure you want to leave right now?', {
+                title: 'Leave Save Trip?',
+                confirmText: 'Yes, Leave',
+                cancelText: 'Keep Editing',
+                icon: 'fa-arrow-right-from-bracket'
+            });
+            if (confirmed) {
+                window.closeSaveModal(btn);
+            }
+        };
+
+        window.closeSaveModal = function (btn) {
+            document.querySelectorAll('#save-trip-modal').forEach(m => {
+                m.style.display = 'none';
+            });
+            if (btn && typeof btn.closest === 'function') {
+                const modalEl = btn.closest('#save-trip-modal');
+                if (modalEl) modalEl.style.display = 'none';
+            }
             if (typeof window.closeTransitSummaryOpensheet === 'function') {
                 window.closeTransitSummaryOpensheet();
             }
 
-            // Restore bottom nav
+            // Restore bottom nav and remove modal backdrop classes
             const bottomNav = document.getElementById('bottom-navigation');
             if (bottomNav) bottomNav.classList.remove('nav-hidden');
+            document.body.classList.remove('itin-confirm-open');
 
             // Close calendar dropdown immediately
             const cal = document.getElementById('custom-calendar-dropdown');
@@ -4692,6 +5438,21 @@ try {
 
             const transport = document.getElementById('trip-transport').value;
             const isNoVeh = !transport || !transport.trim() || transport.toLowerCase().includes('no_vehicle') || transport.toLowerCase().includes('no vehicle');
+
+            let missingLegVehicle = false;
+            if (Array.isArray(draft) && draft.length > 0) {
+                for (let i = 0; i < draft.length; i++) {
+                    const leg = (typeof window.getLegTransportInfo === 'function') ? window.getLegTransportInfo(i) : null;
+                    if (leg && !leg.is_maintenance) {
+                        const legNoVeh = !leg.has_selection || leg.mode === 'no_vehicle' || !leg.mode || String(leg.name).toLowerCase().includes('no vehicle') || (Array.isArray(leg.transport_modes) && leg.transport_modes.length === 0);
+                        if (legNoVeh) {
+                            missingLegVehicle = true;
+                            break;
+                        }
+                    }
+                }
+            }
+
             if (isNoVeh) {
                 window.showConfirmModal('Please choose a vehicle before saving your draft plan.', {
                     title: 'Vehicle Required',
@@ -4700,12 +5461,33 @@ try {
                 });
                 return;
             }
+            if (missingLegVehicle) {
+                window.showConfirmModal('Vehicle is required in all legs. Please choose a vehicle for each leg before saving your draft plan.', {
+                    title: 'Vehicle Required',
+                    confirmText: 'OK',
+                    hideCancel: true
+                });
+                return;
+            }
+
+            const editingId = sessionStorage.getItem('editing_itinerary_id');
+            const confirmMsg = editingId
+                ? 'Ready to update this trip? You can still make changes anytime later.'
+                : 'Ready to save this trip? You can still edit your plan anytime later.';
+
+            const confirmed = await window.showConfirmModal(confirmMsg, {
+                title: editingId ? 'Update Trip?' : 'Save Trip?',
+                confirmText: editingId ? 'Update Trip' : 'Save Trip',
+                cancelText: 'Cancel',
+                icon: 'fa-bookmark'
+            });
+            if (!confirmed) return;
+
             const effectiveTransport = transport.trim();
 
             window._isSubmittingItinerary = true;
 
             const btn = document.getElementById('btn-submit-trip');
-            const editingId = sessionStorage.getItem('editing_itinerary_id');
             const clientRequestId = editingId ? null : ('trip_' + Date.now() + '_' + Math.random().toString(36).slice(2, 12));
             btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> ${editingId ? 'Updating...' : 'Saving...'}`;
             btn.disabled = true;
@@ -4794,7 +5576,12 @@ try {
                 const tripType = document.querySelector('input[name="trip_companion_type"]:checked')?.value || 'solo';
                 const compMales = tripType === 'group' ? Math.max(0, parseInt(document.getElementById('companion-males-count')?.textContent || '0', 10)) : 0;
                 const compFemales = tripType === 'group' ? Math.max(0, parseInt(document.getElementById('companion-females-count')?.textContent || '0', 10)) : 0;
-                const totalPax = tripType === 'group' ? (1 + compMales + compFemales) : 1;
+                const compAdults = tripType === 'group' ? Math.max(0, parseInt(document.getElementById('companion-adults-count')?.textContent || '0', 10)) : 0;
+                const compKids = tripType === 'group' ? Math.max(0, parseInt(document.getElementById('companion-kids-count')?.textContent || '0', 10)) : 0;
+                const compSeniors = tripType === 'group' ? Math.max(0, parseInt(document.getElementById('companion-seniors-count')?.textContent || '0', 10)) : 0;
+                const compPwds = tripType === 'group' ? Math.max(0, parseInt(document.getElementById('companion-pwds-count')?.textContent || '0', 10)) : 0;
+                const addCompanions = Math.max(compMales + compFemales, compAdults + compKids + compSeniors + compPwds);
+                const totalPax = tripType === 'group' ? (1 + addCompanions) : 1;
 
                 tripPayload = {
                     title: title,
@@ -4806,6 +5593,10 @@ try {
                     trip_type: tripType,
                     companion_males: compMales,
                     companion_females: compFemales,
+                    companion_adults: compAdults,
+                    companion_kids: compKids,
+                    companion_seniors: compSeniors,
+                    companion_pwds: compPwds,
                     total_pax: totalPax,
                     client_request_id: clientRequestId,
                     leg_transports: legTransports,
@@ -4910,8 +5701,8 @@ try {
                     localStorage.removeItem('intan_elyu_draft_trip_transport');
                     localStorage.removeItem('intan_elyu_draft_trip_transports');
                     window.resetSaveModalInputs();
-                    const modal = document.getElementById('save-trip-modal');
-                    if (modal) modal.style.display = 'none';
+                    document.querySelectorAll('#save-trip-modal').forEach(m => { m.style.display = 'none'; });
+                    document.body.classList.remove('itin-confirm-open');
                     const bottomNav = document.getElementById('bottom-navigation');
                     if (bottomNav) bottomNav.classList.remove('nav-hidden');
                     window.renderItinerary();
@@ -4961,6 +5752,10 @@ try {
                         trip_type: tripType,
                         companion_males: compMales,
                         companion_females: compFemales,
+                        companion_adults: compAdults,
+                        companion_kids: compKids,
+                        companion_seniors: compSeniors,
+                        companion_pwds: compPwds,
                         total_pax: totalPax,
                         client_request_id: clientRequestId,
                         leg_transports: legTransports
@@ -5033,13 +5828,16 @@ try {
         // MAP & DONUT CHART LOGIC
         // ==========================================
 
-        let draftMap = null;
-        let draftRouteLineBg = null;
-        let draftRouteLine = null;
-        let draftMarkers = [];
+        var draftMap = window.draftMap || null;
+        var draftRouteLineBg = null;
+        var draftRouteLine = null;
+        var draftMarkers = [];
 
         window.initDraftMap = function (draft, shouldFitBounds = true) {
-            if (draft.length === 0) return;
+            if (!draft || draft.length === 0) return;
+
+            const mapContainer = document.getElementById('itinerary-map');
+            if (!mapContainer) return;
 
             // Cancel any pending render timeout to prevent stale fitBounds calls
             if (window._renderTimeout) {
@@ -5047,53 +5845,71 @@ try {
                 window._renderTimeout = null;
             }
 
-            if (!draftMap) {
-                draftMap = L.map('itinerary-map', {
-                    attributionControl: false,
-                    zoomControl: false,
-                    scrollWheelZoom: true,
-                    dragging: true,
-                    touchZoom: true,
-                    doubleClickZoom: true,
-                    boxZoom: true,
-                    keyboard: true
-                });
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    maxZoom: 19,
-                    subdomains: ['a', 'b', 'c'],
-                    detectRetina: true,
-                    keepBuffer: 4,
-                    updateWhenZooming: true,
-                    updateWhenIdle: false
-                }).addTo(draftMap);
-
-                // Bundled municipal geometry gives every offline map real geographic context.
-                draftMap.createPane('offlineBasePane');
-                draftMap.getPane('offlineBasePane').style.zIndex = 250;
-                Promise.resolve(window.OFFLINE_MUNICIPALITIES_GEOJSON)
-                    .then(geojson => {
-                        if (!draftMap || !geojson) return;
-                        const offlineBase = L.geoJSON(geojson, {
-                            pane: 'offlineBasePane',
-                            interactive: false,
-                            style: {
-                                stroke: false,
-                                weight: 0,
-                                opacity: 0,
-                                fillColor: '#b8dcec',
-                                fillOpacity: 0
-                            }
-                        }).addTo(draftMap);
-                        offlineBase._isOfflineBaseLayer = true;
-                    })
-                    .catch(error => console.warn('Offline municipality map unavailable:', error));
+            // Reset if draftMap was bound to an older DOM node that was swapped during SPA navigation
+            if (draftMap && draftMap.getContainer && draftMap.getContainer() !== mapContainer) {
+                try { draftMap.remove(); } catch (e) { }
+                draftMap = null;
             }
+
+            if (!draftMap) {
+                if (typeof L === 'undefined') return;
+                try {
+                    draftMap = L.map(mapContainer, {
+                        attributionControl: false,
+                        zoomControl: false,
+                        scrollWheelZoom: false,
+                        dragging: false,
+                        touchZoom: false,
+                        doubleClickZoom: false,
+                        boxZoom: false,
+                        keyboard: false
+                    }).setView([16.6159, 120.3210], 13);
+                    window.draftMap = draftMap;
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        maxZoom: 19,
+                        subdomains: ['a', 'b', 'c'],
+                        detectRetina: true,
+                        keepBuffer: 4,
+                        updateWhenZooming: true,
+                        updateWhenIdle: false
+                    }).addTo(draftMap);
+
+                    // Bundled municipal geometry gives every offline map real geographic context.
+                    draftMap.createPane('offlineBasePane');
+                    draftMap.getPane('offlineBasePane').style.zIndex = 250;
+                    Promise.resolve(window.OFFLINE_MUNICIPALITIES_GEOJSON)
+                        .then(geojson => {
+                            if (!draftMap || !geojson) return;
+                            const offlineBase = L.geoJSON(geojson, {
+                                pane: 'offlineBasePane',
+                                interactive: false,
+                                style: {
+                                    stroke: false,
+                                    weight: 0,
+                                    opacity: 0,
+                                    fillColor: '#b8dcec',
+                                    fillOpacity: 0
+                                }
+                            }).addTo(draftMap);
+                            offlineBase._isOfflineBaseLayer = true;
+                        })
+                        .catch(error => console.warn('Offline municipality map unavailable:', error));
+                } catch (e) {
+                    console.warn('initDraftMap init error:', e);
+                    draftMap = null;
+                    return;
+                }
+            }
+
+            if (!draftMap) return;
 
             // Force Leaflet to recalculate size since container was display:none.
             // Use double rAF so browser has fully laid out the container before we measure it.
             requestAnimationFrame(() => {
                 requestAnimationFrame(() => {
-                    draftMap.invalidateSize();
+                    if (draftMap && typeof draftMap.invalidateSize === 'function') {
+                        draftMap.invalidateSize();
+                    }
                 });
             });
 
@@ -5109,12 +5925,20 @@ try {
             draftRouteLine = null;
             window.myDraftMarker = null;
             draftMarkers = [];
+            window.itineraryDraft = draft;
+            window.draftPlaceMarkers = [];
 
-            let latlngs = [];
+            var latlngs = [];
+            window._draftLatLngs = latlngs;
 
             // Add single GPS Location indicator
-            if (window.myLat && window.myLng) {
-                latlngs.push([window.myLat, window.myLng]);
+            var rememberedGps = (typeof window.getRememberedGpsLocation === 'function') ? window.getRememberedGpsLocation() : null;
+            var userGpsLat = window.myLat || window.currentGPSLat || (rememberedGps && rememberedGps.lat) || null;
+            var userGpsLng = window.myLng || window.currentGPSLng || (rememberedGps && rememberedGps.lng) || null;
+            if (userGpsLat && userGpsLng) {
+                window.myLat = userGpsLat;
+                window.myLng = userGpsLng;
+                latlngs.push([userGpsLat, userGpsLng]);
                 const myIconHtml = `
                 <div class="gps-user-marker-icon">
                     <div class="gps-user-marker-wave"></div>
@@ -5127,9 +5951,9 @@ try {
                     iconSize: [36, 36],
                     iconAnchor: [18, 18]
                 });
-                window.myDraftMarker = L.marker([window.myLat, window.myLng], { icon: myIcon, zIndexOffset: 1000 })
+                window.myDraftMarker = L.marker([userGpsLat, userGpsLng], { icon: myIcon, zIndexOffset: 1000 })
                     .addTo(draftMap)
-                    .bindPopup('<b>📍 Your Current Location</b><br><span style="font-size:11px;color:#64748b;">Starting Point of Itinerary</span>');
+                    .bindPopup('<div style="font-size:9.5px; font-weight:800; color:#1e3a8a; line-height:1.15;">📍 Your Location</div><div style="font-size:8px; color:#64748b; margin-top:1px;">Starting Point</div>', { closeButton: false, autoPanPadding: [10, 10] });
                 window.myDraftMarker._isUserGps = true;
                 draftMarkers.push(window.myDraftMarker);
             }
@@ -5170,8 +5994,9 @@ try {
                 });
                 const marker = L.marker(ll, { icon: stopIcon })
                     .addTo(draftMap)
-                    .bindPopup(`<b>${index === 0 ? '🚀 NEXT STOP: ' : 'Stop ' + (index + 1) + ': '}${place.name}</b><br><span style="font-size:11px; color:#64748b;">${place.location || place.address || (place.municipality ? place.municipality + ', La Union' : 'La Union')}</span>`);
+                    .bindPopup(`<div style="font-size:9.5px; font-weight:800; color:#1e3a8a; line-height:1.15;">Stop ${index + 1}: ${place.name}</div><div style="font-size:8px; color:#64748b; margin-top:1px;">${place.location || place.address || (place.municipality ? place.municipality + ', La Union' : 'La Union')}</div>`, { closeButton: false, autoPanPadding: [10, 10] });
                 draftMarkers.push(marker);
+                window.draftPlaceMarkers.push(marker);
             });
 
             if (latlngs.length > 1) {
@@ -5381,8 +6206,7 @@ try {
                         const nextEtaEl = document.getElementById('itinerary-next-eta');
                         if (nextEtaEl) {
                             nextEtaEl.innerHTML = `
-                                <i class="fa-solid fa-route" style="color:#0284c7 !important; font-size:11px;"></i> 
-                                <span style="color:#1e3a8a !important; font-weight:700; font-size:11px;">${leg0DistText} away &bull; ~${leg0DurText} drive from your location</span>
+                                <span style="color:#1e3a8a !important; font-weight:700; font-size:10px; letter-spacing:-0.1px;">${leg0DistText} away &bull; ~${leg0DurText} drive from your location</span>
                             `;
                         }
 

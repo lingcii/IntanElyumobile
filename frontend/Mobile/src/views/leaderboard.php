@@ -215,13 +215,14 @@ $activeTab = 'leaderboard';
                 window._cachedMyRank = null;
             }
 
-            const myRawName = String((cachedMeData && (cachedMeData.name || cachedMeData.full_name)) || (authUser && (authUser.name || authUser.full_name)) || 'Explorer').trim() || 'Explorer';
+            const myExplorerNum = (cachedMeData && (cachedMeData.tourist_number || cachedMeData.tourist_id || cachedMeData.explorer_number || cachedMeData.user_id || cachedMeData.id)) || authUser.tourist_number || authUser.tourist_id || authUser.id || authUser.user_id || (cachedMyRank && cachedMyRank < 999 ? cachedMyRank : '');
+            const myExplorerName = myExplorerNum ? `Explorer #${myExplorerNum}` : 'Explorer';
             const titleEl = document.getElementById('my-explorer-title');
             const avatarEl = document.getElementById('my-standing-avatar');
             const subtext = document.getElementById('my-standing-subtext');
             const rankCircle = document.getElementById('my-rank-circle');
-            if (titleEl) titleEl.textContent = myRawName;
-            if (avatarEl) avatarEl.src = (cachedMeData && cachedMeData.avatar) ? cachedMeData.avatar : (authUser.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(myRawName)}&background=007AFF&color=fff&rounded=true&bold=true&size=128`);
+            if (titleEl) titleEl.textContent = myExplorerName;
+            if (avatarEl) avatarEl.src = (cachedMeData && cachedMeData.avatar) ? cachedMeData.avatar : (authUser.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(myExplorerName)}&background=007AFF&color=fff&rounded=true&bold=true&size=128`);
             if (rankCircle) rankCircle.textContent = (cachedMyRank && cachedMyRank < 999) ? '#' + cachedMyRank : '★';
             if (subtext) subtext.textContent = 'Syncing rankings...';
         }
@@ -257,6 +258,11 @@ $activeTab = 'leaderboard';
 
             // Sort items based on current sort mode
             if (currentSortMode === 'visited') {
+                // If 0 spots or visited, don't show on Visited leaderboard
+                leaders = leaders.filter(u => {
+                    const acts = parseInt(u.completed_activities ?? u.activities ?? u.total_activities ?? u.places_visited ?? 0);
+                    return acts > 0;
+                });
                 leaders.sort((a, b) => {
                     const actA = parseInt(a.completed_activities ?? a.activities ?? a.total_activities ?? a.places_visited ?? 0);
                     const actB = parseInt(b.completed_activities ?? b.activities ?? b.total_activities ?? b.places_visited ?? 0);
@@ -269,6 +275,11 @@ $activeTab = 'leaderboard';
                     return rankA - rankB;
                 });
             } else {
+                // If 0 points, don't show on Points leaderboard
+                leaders = leaders.filter(u => {
+                    const pts = parseInt(u.points ?? u.pts ?? u.total_points ?? u.claimable_points ?? u.xp ?? 0);
+                    return pts > 0;
+                });
                 leaders.sort((a, b) => {
                     const ptsA = parseInt(a.points ?? a.pts ?? a.total_points ?? a.claimable_points ?? a.xp ?? 0);
                     const ptsB = parseInt(b.points ?? b.pts ?? b.total_points ?? b.claimable_points ?? b.xp ?? 0);
@@ -339,15 +350,16 @@ $activeTab = 'leaderboard';
             const myActivities = isMeMatches ? parseInt(cachedMeData.completed_activities ?? cachedMeData.activities ?? cachedMeData.total_activities ?? cachedMeData.places_visited ?? 0) : parseInt(authUser.completed_activities || authUser.places_visited || 0);
             const hasEarnedRank = Boolean((cachedMyRank && cachedMyRank < 999) || myPts > 0 || myActivities > 0);
             const myRankNum = (cachedMyRank && cachedMyRank < 999) ? cachedMyRank : (hasEarnedRank ? (rawLeadersList.length > 0 ? (rawLeadersList.length + '+') : '★') : '—');
-            const myRawName = String((cachedMeData && (cachedMeData.name || cachedMeData.full_name)) || (authUser && (authUser.name || authUser.full_name)) || 'Explorer').trim() || 'Explorer';
-            const myDisplayName = (!hasEarnedRank) ? `${myRawName} (Unranked)` : myRawName;
+            const myExplorerNum = (cachedMeData && (cachedMeData.tourist_number || cachedMeData.tourist_id || cachedMeData.explorer_number || cachedMeData.user_id || cachedMeData.id)) || authUser.tourist_number || authUser.tourist_id || authUser.id || authUser.user_id || (cachedMyRank && cachedMyRank < 999 ? cachedMyRank : '');
+            const myExplorerName = myExplorerNum ? `Explorer #${myExplorerNum}` : 'Explorer';
+            const myDisplayName = (!hasEarnedRank) ? `${myExplorerName} (Unranked)` : myExplorerName;
             const rawAvatar = cachedMeData && cachedMeData.avatar ? cachedMeData.avatar : (authUser.avatar || '');
             const myAvatar = (rawAvatar && rawAvatar !== 'null' && rawAvatar !== 'undefined' && String(rawAvatar).trim() !== '')
                 ? rawAvatar
-                : `https://ui-avatars.com/api/?name=${encodeURIComponent(myRawName)}&background=007AFF&color=fff&rounded=true&bold=true&size=128`;
+                : `https://ui-avatars.com/api/?name=${encodeURIComponent(myExplorerName)}&background=007AFF&color=fff&rounded=true&bold=true&size=128`;
 
             window.myUserData = {
-                name: myRawName,
+                name: myExplorerName,
                 avatar: myAvatar,
                 pts: myPts,
                 rank: myRankNum,
@@ -377,17 +389,21 @@ $activeTab = 'leaderboard';
                     }
                 }
                 if (subtext) {
+                    const hasActs = myActivities > 0;
+                    const actsText = hasActs ? `${myActivities} ${myActivities === 1 ? 'Spot' : 'Spots'} Visited` : '';
+                    const ptsText = `${myPts.toLocaleString()} Points`;
+
                     if (cachedMyRank && cachedMyRank < 999) {
                         if (currentSortMode === 'visited') {
-                            subtext.textContent = `Rank #${cachedMyRank} • ${myActivities} Spots Visited • ${myPts.toLocaleString()} Points`;
+                            subtext.textContent = hasActs ? `Rank #${cachedMyRank} • ${actsText} • ${ptsText}` : `Rank #${cachedMyRank} • ${ptsText}`;
                         } else {
-                            subtext.textContent = `Rank #${cachedMyRank} • ${myPts.toLocaleString()} Points • ${myActivities} Spots Visited`;
+                            subtext.textContent = hasActs ? `Rank #${cachedMyRank} • ${ptsText} • ${actsText}` : `Rank #${cachedMyRank} • ${ptsText}`;
                         }
-                    } else if (myPts > 0 || myActivities > 0) {
+                    } else if (myPts > 0 || hasActs) {
                         if (currentSortMode === 'visited') {
-                            subtext.textContent = `${myActivities} Spots Visited • ${myPts.toLocaleString()} Points`;
+                            subtext.textContent = hasActs ? `${actsText} • ${ptsText}` : ptsText;
                         } else {
-                            subtext.textContent = `${myPts.toLocaleString()} Points • ${myActivities} Spots Visited`;
+                            subtext.textContent = hasActs ? `${ptsText} • ${actsText}` : ptsText;
                         }
                     } else {
                         subtext.textContent = 'Check in at spots or play games to earn Points and rank!';
@@ -461,15 +477,8 @@ $activeTab = 'leaderboard';
 
     function getUserDisplayName(user, rank) {
         if (!user) return rank ? `Explorer #${rank}` : 'Explorer';
-        const name = String(user.name || user.full_name || user.real_name || '').trim();
-        if (name && !name.match(/^Explorer\s*#?\d*$/i) && name.toLowerCase() !== 'explorer') {
-            return name;
-        }
-        if (rank) {
-            return `Explorer #${rank}`;
-        }
-        const idToUse = user.rank || user.user_id || user.id || 1;
-        return `Explorer #${idToUse}`;
+        const num = user.tourist_number || user.tourist_id || user.explorer_number || user.user_id || user.id || (user.name && user.name.match(/^Explorer\s*#?(\d+)/i) ? user.name.match(/^Explorer\s*#?(\d+)/i)[1] : null) || rank || 1;
+        return `Explorer #${num}`;
     }
 
     window.showUserProfileByIndex = function (idx) {
@@ -582,18 +591,25 @@ $activeTab = 'leaderboard';
         const activities = parseInt(user.completed_activities ?? user.places_visited ?? 0);
 
         let rightBadgeHtml = '';
-        let subMetaText = `<span>${activities} Spots Visited</span>`;
+        let subMetaText = '';
 
         if (currentSortMode === 'visited') {
             rightBadgeHtml = `
             <div class="rank-metric-badge" style="color:#38bdf8;">
                 ${activities} <small style="font-size:10px; font-weight:700; color:rgba(56,189,248,0.85); margin-left:3px;">VISITED</small>
             </div>`;
+            if (pts > 0) {
+                subMetaText = `<span>${pts.toLocaleString()} PTS</span>`;
+            }
         } else {
             rightBadgeHtml = `
             <div class="rank-metric-badge" style="color:#fbbf24;">
                 <i class="fa-solid fa-coins" style="font-size:11px; margin-right:3px;"></i>${pts.toLocaleString()} <small style="font-size:10px; font-weight:700; color:rgba(251,191,36,0.85); margin-left:3px;">PTS</small>
             </div>`;
+            // If 0 spots, don't show it
+            if (activities > 0) {
+                subMetaText = `<span>${activities} ${activities === 1 ? 'Spot' : 'Spots'} Visited</span>`;
+            }
         }
 
         const clickHandler = isSticky ? 'window.showUserProfileByIndex(-1)' : `window.showUserProfileByIndex(${userIndex})`;
@@ -608,9 +624,7 @@ $activeTab = 'leaderboard';
                         <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${displayName}</span>
                         ${youTag}
                     </div>
-                    <div class="rank-user-meta">
-                        ${subMetaText}
-                    </div>
+                    ${subMetaText ? `<div class="rank-user-meta">${subMetaText}</div>` : ''}
                 </div>
             </div>
             ${rightBadgeHtml}
@@ -665,7 +679,8 @@ $activeTab = 'leaderboard';
                         if (window.myUserData) window.myUserData.pts = livePts;
                         const subtext = document.getElementById('my-standing-subtext');
                         if (subtext && window.myUserData) {
-                            subtext.textContent = `${livePts.toLocaleString()} Points • ${window.myUserData.activities || 0} Spots Visited`;
+                            const uActs = window.myUserData.activities || 0;
+                        subtext.textContent = (uActs > 0) ? `${livePts.toLocaleString()} Points • ${uActs} ${uActs === 1 ? 'Spot' : 'Spots'} Visited` : `${livePts.toLocaleString()} Points`;
                         }
                         try {
                             const authUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
@@ -962,10 +977,13 @@ $activeTab = 'leaderboard';
                                 const subtext = document.getElementById('my-standing-subtext');
                                 if (subtext) {
                                     const currentActivities = window.myUserData.activities || (cachedMeData ? parseInt(cachedMeData.completed_activities ?? cachedMeData.activities ?? cachedMeData.places_visited ?? 0) : 0);
+                                    const hasCurrentActs = currentActivities > 0;
+                                    const actsStr = hasCurrentActs ? `${currentActivities} ${currentActivities === 1 ? 'Spot' : 'Spots'} Visited` : '';
+                                    const ptsStr = `${ptsVal.toLocaleString()} Points`;
                                     if (currentSortMode === 'visited') {
-                                        subtext.textContent = `${currentActivities} Spots Visited • ${ptsVal.toLocaleString()} Points`;
+                                        subtext.textContent = hasCurrentActs ? `${actsStr} • ${ptsStr}` : ptsStr;
                                     } else {
-                                        subtext.textContent = `${ptsVal.toLocaleString()} Points • ${currentActivities} Spots Visited`;
+                                        subtext.textContent = hasCurrentActs ? `${ptsStr} • ${actsStr}` : ptsStr;
                                     }
                                 }
                             }

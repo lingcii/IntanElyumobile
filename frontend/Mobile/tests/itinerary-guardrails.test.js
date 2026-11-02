@@ -56,4 +56,61 @@ assert.match(map, /"id": "offline-municipality-fill"[\s\S]*"fill-opacity": 0/,
 assert.match(map, /const data = await mapDataPromise;[\s\S]*window\.renderMarkers\(window\.allMapLocations\)[\s\S]*if \(isOfflineMap\) \{[\s\S]*return;/,
     'Explore Map must render cached tourist markers before skipping online municipality zones');
 
+assert.match(itinerary, /currentFeeCompanions >= totalCompanionsLimit[\s\S]*Limit reached: Maximum of/,
+    'fee category companions must not exceed total companions (Male + Female)');
+assert.match(itinerary, /id="companion-fee-limit-info"/,
+    'itinerary must display companion fee category limit indicator');
+
+const swContent = fs.readFileSync(path.join(__dirname, '..', 'src', 'sw.js'), 'utf8');
+assert.match(swContent, /!event\.request\.url\.startsWith\('http:\/\/'\) && !event\.request\.url\.startsWith\('https:\/\/'\)/,
+    'ServiceWorker must only intercept http and https request schemes, ignoring chrome-extension and blob');
+
+assert.match(itinerary, /const mapContainer = document\.getElementById\('itinerary-map'\);[\s\S]*if \(!mapContainer\) return;/,
+    'initDraftMap must safely return if itinerary-map container is not mounted');
+
+assert.match(itinerary, /const timeline = document\.getElementById\('itinerary-timeline'\);[\s\S]*if \(!timeline\) return;/,
+    'renderItinerary must safely return if itinerary-timeline container is not mounted');
+
+const mainJsContent = fs.readFileSync(path.join(__dirname, '..', 'src', 'assets', 'js', 'main.js'), 'utf8');
+assert.match(mainJsContent, /window\.useCache = async function/,
+    'main.js must define window.useCache');
+assert.match(mainJsContent, /registration\.update\(\)\.catch/,
+    'ServiceWorker registration.update must catch rejection gracefully');
+assert.match(mainJsContent, /'save-trip-modal', 'confirm-modal'/,
+    'main.js teardown must cleanup ported itinerary modals on SPA navigation');
+
+assert.match(itinerary, /missingLegVehicle[\s\S]*Vehicle is required in all legs/,
+    'openSaveModal must validate that every accessible leg has a vehicle selected');
+assert.match(itinerary, /window\.closeSaveModal = function \(btn\)[\s\S]*document\.querySelectorAll\('#save-trip-modal'\)\.forEach[\s\S]*itin-confirm-open/,
+    'closeSaveModal must close all save-trip-modal elements and clear backdrop flags');
+
+assert.match(itinerary, /Trip Summary[\s\S]*save-p2p-transit-summary/,
+    'Save modal must show Trip Summary instead of transport only');
+assert.match(itinerary, /openTransitSummaryOpensheet[\s\S]*Travelers & Companions[\s\S]*compMales[\s\S]*compFemales[\s\S]*background:#ffffff !important/,
+    'Entire Trip Summary opensheet must include male/female companions and render destination cards on white');
+assert.doesNotMatch(itinerary, /id="transit-summary-badge"/,
+    'Trip summary header must not display the pax and destination badge');
+assert.doesNotMatch(itinerary, /fa-map-location-dot[\s\S]*Trip Summary/,
+    'Trip summary header must not display the map location icon');
+assert.match(itinerary, /id="save-p2p-transit-label"[^>]*>\s*View Summary\s*<\/div>/,
+    'Save modal summary card must display clean View Summary text without vehicle/traveler clutter');
+
+assert.match(itinerary, /Ready to save this trip\? You can still edit your plan anytime later\./,
+    'submitItinerary must show rephrased confirmation modal before saving');
+
+assert.match(itinerary, /class="next-stop-distance-chip"[\s\S]*font-size:10px !important;[\s\S]*white-space:nowrap !important;/,
+    'itinerary.php must render next stop eta pill with 10px font size and nowrap to prevent awkward word wrapping');
+
+assert.match(itinerary, /window\.hasSaveModalInputs = function \(\)/,
+    'itinerary must define hasSaveModalInputs to inspect save modal inputs');
+assert.match(itinerary, /window\.confirmCancelSaveModal = async function \(btn\)[\s\S]*!window\.hasSaveModalInputs\(\)[\s\S]*window\.closeSaveModal\(btn\)/,
+    'confirmCancelSaveModal must close immediately if no inputs exist without confirmation prompt');
+assert.match(itinerary, /spotEnvSenior[\s\S]*spotEnvPwd/,
+    'itinerary must apply senior citizen and pwd rates to environmental fees matching site fees breakdown');
+
+assert.match(itinerary, /Trip Cost Breakdown[\s\S]*feesSummaryHtml[\s\S]*Entrance Fee[\s\S]*Environmental Fee/,
+    'Trip Cost Breakdown card must attach the light-themed Entrance & Environmental Fee summary');
+assert.doesNotMatch(itinerary, /cardsHtml \+=[\s\S]*background:linear-gradient\(135deg, #1e3a8a 0%, #172554 100%\)/,
+    'Destination stop cards must not contain misplaced dark blue fee cards');
+
 console.log('Itinerary guardrail checks passed.');

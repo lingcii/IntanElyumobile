@@ -12,7 +12,7 @@ class LeaderboardController extends Controller
      * Common Ranked CTE ensuring clean deduplication, municipality fallback,
      * comprehensive points & activity aggregation, and correct ordering.
      */
-    private function rankedCte(string $orderSql = 'total_points DESC, total_xp DESC, completed_activities DESC, user_id ASC'): string
+    private function rankedCte(string $orderSql = 'total_points DESC, total_xp DESC, completed_activities DESC, user_id ASC', string $filterSql = ''): string
     {
         return "
             WITH user_summary AS (
@@ -20,6 +20,7 @@ class LeaderboardController extends Controller
                     u.id                                              AS user_id,
                     u.name                                            AS name,
                     COALESCE(NULLIF(u.name, ''), CONCAT('Explorer #', u.id)) AS full_name,
+                    (SELECT COUNT(*) FROM users u_tn WHERE u_tn.role = 'tourist' AND u_tn.id <= u.id) AS tourist_number,
                     u.email                                           AS email,
                     u.avatar                                          AS avatar,
                     u.home_location                                   AS home_location,
@@ -43,6 +44,7 @@ class LeaderboardController extends Controller
                 FROM users u
                 LEFT JOIN municipalities m ON u.municipality_id = m.id
                 WHERE u.role = 'tourist' AND (u.status = 'active' OR u.status IS NULL)
+                  {$filterSql}
                 GROUP BY u.id, u.name, u.email, u.avatar, u.home_location, m.name, u.bio, u.is_leaderboard_private, u.last_activity, u.xp, u.points, u.completed_activities, u.created_at
             ),
             ranked AS (
@@ -96,10 +98,16 @@ class LeaderboardController extends Controller
             default => 'total_points DESC, total_xp DESC, completed_activities DESC, user_id ASC',
         };
 
+        // Filter out users with zero score for the requested metric
+        $filterSql = match ($rawSort) {
+            'most_activities', 'activities', 'activities_desc', 'completed_activities', 'visited', 'most_visited', 'places_visited', 'visited_desc' => 'AND COALESCE(u.completed_activities, 0) > 0',
+            default => 'AND (COALESCE(u.points, 0) > 0 OR COALESCE(u.xp, 0) > 0)',
+        };
+
         if ($user) {
             try {
                 $myRankRow = DB::selectOne(
-                    $this->rankedCte($orderSql) . "SELECT * FROM ranked WHERE user_id = ?",
+                    $this->rankedCte($orderSql, $filterSql) . "SELECT * FROM ranked WHERE user_id = ?",
                     [$user->id]
                 );
                 if ($myRankRow) {
@@ -112,7 +120,7 @@ class LeaderboardController extends Controller
         }
 
         // Execute dynamic ranked query
-        $cachedData = $this->queryFromLiveCte($search, $orderSql, $limit, $offset);
+        $cachedData = $this->queryFromLiveCte($search, $orderSql, $limit, $offset, $filterSql);
         $rows = $this->castRows($cachedData['rows']);
 
         $totalTourists = (int) ($cachedData['total'] ?? count($rows));
@@ -157,7 +165,7 @@ class LeaderboardController extends Controller
     /**
      * Fallback: Live CTE query using unified aggregation.
      */
-    private function queryFromLiveCte(string $search, string $orderSql, int $limit, int $offset): array
+    private function queryFromLiveCte(string $search, string $orderSql, int $limit, int $offset, string $filterSql = ''): array
     {
         $whereClause = '';
         $params = [];
@@ -168,13 +176,13 @@ class LeaderboardController extends Controller
         }
 
         $totalResult = DB::selectOne(
-            $this->rankedCte($orderSql) . "SELECT COUNT(*) as cnt FROM ranked {$whereClause}",
+            $this->rankedCte($orderSql, $filterSql) . "SELECT COUNT(*) as cnt FROM ranked {$whereClause}",
             $params
         );
         $total = $totalResult ? $totalResult->cnt : 0;
 
         $rows = DB::select(
-            $this->rankedCte($orderSql) . "SELECT * FROM ranked {$whereClause} ORDER BY `rank` ASC LIMIT {$limit} OFFSET {$offset}",
+            $this->rankedCte($orderSql, $filterSql) . "SELECT * FROM ranked {$whereClause} ORDER BY `rank` ASC LIMIT {$limit} OFFSET {$offset}",
             $params
         );
 
@@ -191,7 +199,8 @@ class LeaderboardController extends Controller
     {
         return array_map(function ($r, $index) {
             $r = (object) $r;
-            $displayName = !empty($r->name) ? $r->name : "Explorer #{$r->user_id}";
+            $touristNumber = isset($r->tourist_number) && (int) $r->tourist_number > 0 ? (int) $r->tourist_number : (int) $r->user_id;
+            $displayName = !empty($r->name) ? $r->name : "Explorer #{$touristNumber}";
             $realName = $displayName;
 
             $rankVal = isset($r->rank) && (int) $r->rank > 0 ? (int) $r->rank : ($index + 1);
@@ -203,6 +212,10 @@ class LeaderboardController extends Controller
             return [
                 'id' => (int) $r->user_id,
                 'user_id' => (int) $r->user_id,
+                'tourist_number' => $touristNumber,
+                'tourist_id' => $touristNumber,
+                'explorer_number' => $touristNumber,
+                'explorer_name' => "Explorer #{$touristNumber}",
                 'rank' => $rankVal,
                 'rank_number' => $rankVal,
                 'rank_no' => $rankVal,

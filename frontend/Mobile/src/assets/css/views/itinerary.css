@@ -1,6 +1,6 @@
 /* ============================================================
  * Itinerary View Styles - itinerary.css
- * Intan Elyu Mobile — Clean Pure White Theme with Royal Blue Cards
+ * Intan Elyu Mobile ΓÇö Clean Pure White Theme with Royal Blue Cards
  * ============================================================ */
 
 /* Full Page White Background */
@@ -50,11 +50,13 @@ body[data-view="itinerary"] .mobile-header .header-icon i {
 }
 
 /* Main Container: Pure White Background */
+body[data-view="itinerary"] .itinerary-container,
+.itinerary-container.has-header,
 .itinerary-container {
     width: 100%;
     min-height: 100vh;
     min-height: 100dvh;
-    padding-top: var(--page-top-padding, calc(max(env(safe-area-inset-top, 0px), 36px) + 52px)) !important;
+    padding-top: calc(max(env(safe-area-inset-top, 0px), 36px) + 98px) !important;
     padding-left: var(--page-inline-padding, clamp(12px, 3.8vw, 18px)) !important;
     padding-right: var(--page-inline-padding, clamp(12px, 3.8vw, 18px)) !important;
     padding-bottom: var(--page-bottom-padding, calc(max(18px, env(safe-area-inset-bottom, 18px)) + 82px)) !important;
@@ -136,6 +138,7 @@ body[data-view="itinerary"] .mobile-header .header-icon i {
     outline: none !important;
     border-radius: 9999px;
     padding: 3px;
+    margin-top: 4px;
     margin-bottom: 14px;
     width: 240px;
     max-width: 100%;
@@ -295,9 +298,9 @@ body[data-view="itinerary"] .mobile-header .header-icon i {
     border: 1.5px solid #e2e8f0 !important;
     outline: none !important;
     border-radius: 26px !important;
-    padding: 16px !important;
-    margin-top: 14px !important;
-    margin-bottom: 36px !important;
+    padding: 12px 14px !important;
+    margin-top: 10px !important;
+    margin-bottom: 28px !important;
     box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05), 0 2px 8px -1px rgba(15, 23, 42, 0.03) !important;
     display: flex !important;
     flex-direction: column !important;
@@ -323,10 +326,10 @@ body[data-view="itinerary"] .mobile-header .header-icon i {
     color: #ffffff !important;
     border: none !important;
     outline: none !important;
-    border-radius: 20px !important;
-    padding: 16px 24px !important;
-    font-weight: 900 !important;
-    font-size: 15px !important;
+    border-radius: 14px !important;
+    padding: 10px 18px !important;
+    font-weight: 800 !important;
+    font-size: 13.5px !important;
     letter-spacing: 0.3px !important;
     box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important;
     cursor: pointer !important;
@@ -437,9 +440,9 @@ body[data-view="itinerary"] .mobile-header .header-icon i {
 }
 
 .stop-thumbnail-wrapper {
-    width: 72px;
-    height: 72px;
-    border-radius: 16px !important;
+    width: 54px !important;
+    height: 54px !important;
+    border-radius: 12px !important;
     overflow: hidden !important;
     flex-shrink: 0 !important;
     position: relative !important;
@@ -931,8 +934,11 @@ body[data-view="itinerary"] .mobile-header .header-icon i {
     border: none !important;
     outline: none !important;
     border-radius: 100px !important;
-    padding: 5px 13px !important;
-    font-size: 11px !important;
+    padding: 4px 11px !important;
+    font-size: 10px !important;
+    letter-spacing: -0.1px !important;
+    white-space: nowrap !important;
+    max-width: 100% !important;
     font-weight: 700 !important;
     color: #1e3a8a !important;
     margin-top: 8px !important;
@@ -941,7 +947,7 @@ body[data-view="itinerary"] .mobile-header .header-icon i {
 
 .next-stop-distance-chip i {
     color: #0284c7 !important;
-    font-size: 11px !important;
+    font-size: 10px !important;
 }
 
 /* Leaflet Custom Marker Radar Pulse */
@@ -1068,6 +1074,7 @@ body[data-view="itinerary"] .mobile-header .header-icon i {
     outline: none !important;
     border-radius: 9999px;
     padding: 3px;
+    margin-top: 4px;
     margin-bottom: 14px;
     width: 240px;
     max-width: 100%;
@@ -1290,8 +1297,11 @@ body[data-view="itinerary"] .mobile-header .header-icon i {
     border: none !important;
     outline: none !important;
     border-radius: 100px !important;
-    padding: 5px 13px !important;
-    font-size: 11px !important;
+    padding: 4px 11px !important;
+    font-size: 10px !important;
+    letter-spacing: -0.1px !important;
+    white-space: nowrap !important;
+    max-width: 100% !important;
     font-weight: 700 !important;
     color: #1e3a8a !important;
     margin-top: 8px !important;
@@ -1300,12 +1310,14 @@ body[data-view="itinerary"] .mobile-header .header-icon i {
 
 .next-stop-distance-chip i {
     color: #0284c7 !important;
-    font-size: 11px !important;
+    font-size: 10px !important;
 }
 
 .next-stop-distance-chip span {
     color: #1e3a8a !important;
     font-weight: 700 !important;
+    font-size: 10px !important;
+    letter-spacing: -0.1px !important;
 }
 
 .stops-leg-chip,
@@ -1602,3 +1614,67 @@ input[type=number] {
     -moz-appearance: textfield;
 }
 
+
+
+/* Connected Header Bar for Itinerary (Fixed at Top Below Mobile Header) */
+.itinerary-header-bar {
+    position: fixed !important;
+    top: calc(max(env(safe-area-inset-top, 0px), 36px) + 48px) !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    width: 100% !important;
+    max-width: 480px !important;
+    background: #ffffff !important;
+    padding: 8px clamp(12px, 3.8vw, 18px) !important;
+    box-sizing: border-box !important;
+    display: flex !important;
+    justify-content: flex-end !important;
+    align-items: center !important;
+    gap: 8px !important;
+    z-index: 9990 !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    border-radius: 0 0 16px 16px !important;
+    box-shadow: 0 3px 12px rgba(15, 23, 42, 0.05) !important;
+}
+
+@media (max-height: 680px) {
+    .itinerary-header-bar {
+        top: calc(max(env(safe-area-inset-top, 0px), 24px) + 46px) !important;
+    }
+    body[data-view="itinerary"] .itinerary-container,
+    .itinerary-container.has-header {
+        padding-top: calc(max(env(safe-area-inset-top, 0px), 24px) + 90px) !important;
+    }
+}
+
+/* Compact Leaflet Popups for Map */
+#draft-map-container .leaflet-popup-content-wrapper {
+    padding: 1px !important;
+    border-radius: 6px !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+}
+
+#draft-map-container .leaflet-popup-content {
+    margin: 3px 6px !important;
+    line-height: 1.2 !important;
+    font-size: 9.5px !important;
+}
+
+#draft-map-container .leaflet-popup-tip-container {
+    width: 14px !important;
+    height: 7px !important;
+}
+
+#draft-map-container .leaflet-popup-tip {
+    width: 7px !important;
+    height: 7px !important;
+}
+
+#draft-map-container .leaflet-popup-close-button {
+    display: none !important;
+}
+
+.custom-leaflet-marker {
+    background: transparent !important;
+    border: none !important;
+}

@@ -53,6 +53,70 @@ window.isExpectedAbortError = function (error) {
     return error.name === 'AbortError' || /\b(?:abort|aborted)\b/i.test(String(error.message || error));
 };
 
+    /**
+     * Stale-While-Revalidate Caching fetch helper
+     * Placed early in main.js so all views and async scripts have immediate access.
+     */
+    window.useCache = async function (cacheKey, fetchFn, callback, forceRefresh = false, ttl = 60000) {
+        const cached = localStorage.getItem(cacheKey);
+        let cachedData = null;
+        let isExpired = true;
+
+        if (cached) {
+            try {
+                cachedData = window.safeJsonParse ? window.safeJsonParse(cached, null) : JSON.parse(cached);
+                if (cachedData && cachedData.hasOwnProperty('data')) {
+                    if (typeof callback === 'function') callback(cachedData.data, true);
+                    const age = Date.now() - (cachedData.timestamp || 0);
+                    isExpired = age > ttl;
+                }
+            } catch (e) {
+                console.warn("Error parsing cache for " + cacheKey, e);
+            }
+        }
+
+        if (!cachedData || isExpired || forceRefresh) {
+            try {
+                window._cacheFetchInflight = window._cacheFetchInflight || new Map();
+                let request = window._cacheFetchInflight.get(cacheKey);
+                if (!request) {
+                    request = Promise.resolve().then(fetchFn).finally(() => {
+                        window._cacheFetchInflight.delete(cacheKey);
+                    });
+                    window._cacheFetchInflight.set(cacheKey, request);
+                }
+                const data = await request;
+                if (data !== undefined) {
+                    try {
+                        localStorage.setItem(cacheKey, JSON.stringify({
+                            data: data,
+                            timestamp: Date.now()
+                        }));
+                    } catch (e) {}
+                    if (typeof callback === 'function') callback(data, false);
+                    if (window.isAppOnline === false && typeof window.notifyAppOnline === 'function') {
+                        window.notifyAppOnline();
+                    }
+                }
+                return data;
+            } catch (err) {
+                if (window.isExpectedAbortError(err)) return;
+                const isNetworkErr = err && (err.name === 'TypeError' || String(err).includes('Failed to fetch') || String(err).includes('NetworkError'));
+                if (isNetworkErr) {
+                    console.warn("Network unreachable for " + cacheKey + ", serving offline/cached state if available.");
+                } else {
+                    console.error("Fetch error for " + cacheKey, err);
+                }
+                if (!cachedData && typeof callback === 'function') {
+                    callback(null, false);
+                }
+            }
+        } else {
+            return cachedData.data;
+        }
+    };
+
+
 window.getPhilippineTimestampISO = function (dateInput) {
     try {
         const d = dateInput ? new Date(dateInput) : new Date();
@@ -2961,14 +3025,21 @@ window.fetchSavedTrips = async function (forceRefresh = false) {
                 const timeoutId = controller ? setTimeout(() => controller.abort(), 8000) : null;
                 try {
                     const bUrl = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
-                    const response = await fetch(bUrl + '/api/tourist/itineraries', {
-                        signal: controller ? controller.signal : undefined,
-                        headers: {
-                            'Accept': 'application/json',
-                            'ngrok-skip-browser-warning': 'true',
-                            'Authorization': 'Bearer ' + token
-                        }
-                    });
+                    let response;
+                    try {
+                        response = await fetch(bUrl + '/api/tourist/itineraries', {
+                            signal: controller ? controller.signal : undefined,
+                            headers: {
+                                'Accept': 'application/json',
+                                'ngrok-skip-browser-warning': 'true',
+                                'Authorization': 'Bearer ' + token
+                            }
+                        });
+                    } catch (fetchErr) {
+                        if (window.isExpectedAbortError && window.isExpectedAbortError(fetchErr)) return getLocalTripsCombined();
+                        console.warn("Saved trips network unreachable, using offline fallback:", fetchErr.message || fetchErr);
+                        return getLocalTripsCombined();
+                    }
                     if (response.status === 401) {
                         if (typeof window.clearExpiredAuthSession === 'function') {
                             window.clearExpiredAuthSession();
@@ -2977,7 +3048,10 @@ window.fetchSavedTrips = async function (forceRefresh = false) {
                         if (typeof window.navigateTo === 'function') window.navigateTo('auth');
                         return [];
                     }
-                    if (!response.ok) throw new Error("Failed to fetch saved trips: " + response.status);
+                    if (!response.ok) {
+                        console.warn("Server returned status " + response.status + " for saved trips, using offline fallback");
+                        return getLocalTripsCombined();
+                    }
                     const data = await response.json();
                     const itins = data.itineraries || [];
                     const persistentStates = (typeof window.getPersistentItemStates === 'function') ? window.getPersistentItemStates() : {};
@@ -5584,7 +5658,7 @@ function restoreViewScrollPosition(viewName) {
 }
 
 function fetchViewPartial(targetView, extraParams) {
-    let fetchUrl = `index.php?view=${encodeURIComponent(targetView)}&ajax=1`;
+    let fetchUrl = `index.php?view=${encodeURIComponent(targetView)}&ajax=1&_t=${Date.now()}`;
     extraParams.forEach((val, key) => {
         fetchUrl += `&${encodeURIComponent(key)}=${encodeURIComponent(val)}`;
     });
@@ -6196,6 +6270,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                     lingeringOverlay.style.pointerEvents = 'none';
                     try { lingeringOverlay.remove(); } catch (e) { }
                 }
+                const lingeringNav = document.getElementById('bottom-navigation'); if (lingeringNav) lingeringNav.classList.remove('nav-hidden'); document.body.classList.remove('itin-confirm-open');
                 const lingeringSidebar = document.getElementById('sidebar-menu');
                 if (lingeringSidebar) {
                     lingeringSidebar.style.left = '-280px';
@@ -6203,7 +6278,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                 }
 
                 // ── Teardown previous view resources to prevent mobile lag & leaks ──
-                ['full-history-modal', 'full-vouchers-modal', 'full-deals-modal', 'active-voucher-qr-modal', 'trip-details-modal', 'reward-details-modal', 'delete-trip-modal', 'elyu-proof-viewer-modal', 'global-oauth-overlay', 'offline-auth-modal', 'login-success-modal', 'auth-cancel-modal', 'privacy-policy-modal', 'testimony-modal', 'trip-completion-review-modal', 'trip-completed-success-modal'].forEach(id => {
+                ['full-history-modal', 'full-vouchers-modal', 'full-deals-modal', 'active-voucher-qr-modal', 'trip-details-modal', 'reward-details-modal', 'delete-trip-modal', 'elyu-proof-viewer-modal', 'global-oauth-overlay', 'offline-auth-modal', 'login-success-modal', 'auth-cancel-modal', 'privacy-policy-modal', 'testimony-modal', 'trip-completion-review-modal', 'trip-completed-success-modal', 'save-trip-modal', 'confirm-modal', 'leg-transport-modal', 'transit-summary-opensheet', 'travel-mode-starter-modal'].forEach(id => {
                     document.querySelectorAll('#' + id).forEach(m => {
                         if (m.parentElement === document.body) {
                             try { m.remove(); } catch (e) { }
@@ -6357,7 +6432,8 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
         if (fade && mainContent) mainContent.classList.remove('view-transitioning');
         state.isNavigating = false;
     }
-    window.navigateTo = navigateTo;
+}
+window.navigateTo = navigateTo;
 
     /**
      * Universal App Exit Confirmation Modal
@@ -7569,7 +7645,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                 const swUrl = document.baseURI ? new URL('sw.js', document.baseURI).href : 'sw.js';
                 navigator.serviceWorker.register(swUrl).then(function (registration) {
                     console.log('ServiceWorker registration successful with scope: ', registration.scope);
-                    try { registration.update(); } catch(e) {}
+                    try { registration.update().catch(function(){}); } catch(e) {}
                 }).catch(function (err) {
                     console.warn('ServiceWorker registration note: ', err);
                 });
@@ -8602,10 +8678,8 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
             try {
                 cachedData = window.safeJsonParse(cached, null);
                 if (cachedData && cachedData.hasOwnProperty('data')) {
-                    // Call callback with cached data immediately only if not explicitly forcing a fresh fetch
-                    if (!forceRefresh) {
-                        callback(cachedData.data, true);
-                    }
+                    // Stale-While-Revalidate: render cached data immediately
+                    callback(cachedData.data, true);
                     const age = Date.now() - (cachedData.timestamp || 0);
                     isExpired = age > ttl;
                 }
@@ -8638,9 +8712,14 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                 }
             } catch (err) {
                 if (window.isExpectedAbortError(err)) return;
-                console.error("Fetch error for " + cacheKey, err);
+                const isNetworkErr = err && (err.name === 'TypeError' || String(err).includes('Failed to fetch') || String(err).includes('NetworkError'));
+                if (isNetworkErr) {
+                    console.warn("Network unreachable for " + cacheKey + ", serving offline/cached state if available.");
+                } else {
+                    console.error("Fetch error for " + cacheKey, err);
+                }
                 // If no cache exists, report the error via callback (passing null)
-                if (!cachedData) {
+                if (!cachedData && typeof callback === 'function') {
                     callback(null, false);
                 }
             }
@@ -8991,4 +9070,3 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
     };
     if (document.readyState === 'complete') schedulePrewarm();
     else window.addEventListener('load', schedulePrewarm, { once: true });
-}

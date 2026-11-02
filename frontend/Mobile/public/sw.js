@@ -103,7 +103,7 @@ function normalizeUrl(urlStr) {
 
 self.addEventListener('fetch', (event) => {
     // Only handle GET requests
-    if (event.request.method !== 'GET') {
+    if (event.request.method !== 'GET' || (!event.request.url.startsWith('http://') && !event.request.url.startsWith('https://'))) {
         return;
     }
 
@@ -129,8 +129,8 @@ self.addEventListener('fetch', (event) => {
                 await cache.match(`index.php?view=${viewName}&ajax=1`);
             const network = fetch(event.request).then((response) => {
                 if (response && response.status === 200) {
-                    cache.put(event.request, response.clone());
-                    cache.put(normalizedUrl, response.clone());
+                    cache.put(event.request, response.clone()).catch(() => {});
+                    cache.put(normalizedUrl, response.clone()).catch(() => {});
                 }
                 return response;
             }).catch(() => null);
@@ -150,15 +150,16 @@ self.addEventListener('fetch', (event) => {
             fetch(event.request)
                 .then((response) => {
                     if (response && response.status === 200) {
-                        const clone = response.clone();
+                        const clone1 = response.clone();
+                        const normUrl = normalizeUrl(event.request.url);
+                        const clone2 = (normUrl !== event.request.url) ? clone1.clone() : null;
                         caches.open(CACHE_NAME).then((cache) => {
                             // Cache both exact request and normalized URL (without _t)
-                            cache.put(event.request, clone);
-                            const normUrl = normalizeUrl(event.request.url);
-                            if (normUrl !== event.request.url) {
-                                cache.put(normUrl, response.clone());
+                            cache.put(event.request, clone1).catch(() => {});
+                            if (clone2) {
+                                cache.put(normUrl, clone2).catch(() => {});
                             }
-                        });
+                        }).catch(() => {});
                     }
                     return response;
                 })
@@ -251,7 +252,7 @@ self.addEventListener('fetch', (event) => {
             return fetch(event.request).then((response) => {
                 if (response && (response.ok || response.type === 'opaque')) {
                     const clone = response.clone();
-                    caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+                    caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone).catch(() => {})).catch(() => {});
                 }
                 return response;
             }).catch(async () => {

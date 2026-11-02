@@ -196,4 +196,14 @@ assert.match(main, /window\.notifyAppOnline = function[\s\S]*window\.syncAllData
 assert.match(main, /window\.addEventListener\('online',[\s\S]*window\.notifyAppOnline\(\)/,
     'connectivity restoration must trigger online-state handling');
 
+assert.match(trips, /function isTripLockedFromEditing\(trip\)/,
+    'saved trips must define isTripLockedFromEditing');
+assert.match(trips, /\$\{!\s*isLockedFromEditing\s*\?[\s\S]*btn-edit-saved-trip/,
+    'saved trips must only render the Edit button when the trip is not locked from editing');
+
+assert.match(itineraryController, /Completed trips cannot be edited/,
+    'backend must reject editing completed trips');
+assert.match(itineraryController, /Trips with checked-in destinations cannot be edited/,
+    'backend must reject editing trips with checked-in destinations');
+
 console.log('saved trip and review UX tests passed');

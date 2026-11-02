@@ -317,6 +317,10 @@ class ItineraryController extends Controller
             'trip_type'         => 'nullable|string|in:solo,group,With Companions,Solo Trip',
             'companion_males'   => 'nullable|integer|min:0',
             'companion_females' => 'nullable|integer|min:0',
+            'companion_adults'  => 'nullable|integer|min:0',
+            'companion_kids'    => 'nullable|integer|min:0',
+            'companion_seniors' => 'nullable|integer|min:0',
+            'companion_pwds'    => 'nullable|integer|min:0',
             'total_pax'         => 'nullable|integer|min:1',
             'client_request_id' => 'nullable|string|max:100',
             'leg_transports'    => 'nullable|array',
@@ -427,7 +431,12 @@ class ItineraryController extends Controller
             $tripType = in_array(strtolower((string)($request->trip_type ?? 'solo')), ['group', 'with companions', 'companions']) ? 'group' : 'solo';
             $companionMales = ($tripType === 'group') ? max(0, (int)($request->companion_males ?? 0)) : 0;
             $companionFemales = ($tripType === 'group') ? max(0, (int)($request->companion_females ?? 0)) : 0;
-            $totalPax = ($tripType === 'group') ? max(1, (int)($request->total_pax ?? (1 + $companionMales + $companionFemales))) : 1;
+            $companionAdults = ($tripType === 'group') ? max(0, (int)($request->companion_adults ?? 0)) : 0;
+            $companionKids = ($tripType === 'group') ? max(0, (int)($request->companion_kids ?? 0)) : 0;
+            $companionSeniors = ($tripType === 'group') ? max(0, (int)($request->companion_seniors ?? 0)) : 0;
+            $companionPwds = ($tripType === 'group') ? max(0, (int)($request->companion_pwds ?? 0)) : 0;
+            $additionalCompanions = max($companionMales + $companionFemales, $companionAdults + $companionKids + $companionSeniors + $companionPwds);
+            $totalPax = ($tripType === 'group') ? max(1, (int)($request->total_pax ?? (1 + $additionalCompanions))) : 1;
 
             $itinerary = Itinerary::create([
                 'user_id'           => $user->id,
@@ -694,6 +703,27 @@ class ItineraryController extends Controller
         $user = $request->user();
         $itinerary = Itinerary::where('user_id', $user->id)->findOrFail($id);
 
+        if ($itinerary->status === 'completed') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Completed trips cannot be edited.'
+            ], 422);
+        }
+
+        $hasCheckins = $itinerary->items()->where(function ($q) {
+            $q->whereNotNull('visited_at')
+              ->orWhere('is_visited', true)
+              ->orWhereNotNull('proof_status')
+              ->orWhereNotNull('proof_image');
+        })->exists();
+
+        if ($hasCheckins) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Trips with checked-in destinations cannot be edited.'
+            ], 422);
+        }
+
         if ($request->has('destinations') && is_array($request->destinations)) {
             $cleaned = $this->sanitizeDestinationIds($request->destinations);
             if (!empty($cleaned)) {
@@ -710,6 +740,10 @@ class ItineraryController extends Controller
             'trip_type'         => 'nullable|string|in:solo,group,With Companions,Solo Trip',
             'companion_males'   => 'nullable|integer|min:0',
             'companion_females' => 'nullable|integer|min:0',
+            'companion_adults'  => 'nullable|integer|min:0',
+            'companion_kids'    => 'nullable|integer|min:0',
+            'companion_seniors' => 'nullable|integer|min:0',
+            'companion_pwds'    => 'nullable|integer|min:0',
             'total_pax'         => 'nullable|integer|min:1',
             'destinations'      => 'nullable|array',
             'destinations.*'    => 'integer|exists:tourist_spots,id',
@@ -741,9 +775,14 @@ class ItineraryController extends Controller
             } else {
                 $m = max(0, (int)($updateData['companion_males'] ?? $itinerary->companion_males ?? 0));
                 $f = max(0, (int)($updateData['companion_females'] ?? $itinerary->companion_females ?? 0));
+                $ca = max(0, (int)($request->companion_adults ?? 0));
+                $ck = max(0, (int)($request->companion_kids ?? 0));
+                $cs = max(0, (int)($request->companion_seniors ?? 0));
+                $cp = max(0, (int)($request->companion_pwds ?? 0));
+                $addComp = max($m + $f, $ca + $ck + $cs + $cp);
                 $updateData['companion_males'] = $m;
                 $updateData['companion_females'] = $f;
-                $updateData['total_pax'] = max(1, (int)($updateData['total_pax'] ?? (1 + $m + $f)));
+                $updateData['total_pax'] = max(1, (int)($updateData['total_pax'] ?? (1 + $addComp)));
             }
         }
         $itinerary->update($updateData);

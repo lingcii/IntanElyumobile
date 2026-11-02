@@ -2113,15 +2113,15 @@ window.applyTouristSitesFilterModal = function() {
         let initialSpots = (window.allTouristSpots && window.allTouristSpots.length > 0) ? window.allTouristSpots : null;
         if (!initialSpots) {
             try {
-                const mapCache = window.safeJsonParse ? window.safeJsonParse(localStorage.getItem('public_map_data'), null)?.data : null;
-                initialSpots = (mapCache && mapCache.destinations) || null;
+                const mapCache = window.safeJsonParse ? window.safeJsonParse(localStorage.getItem('public_map_data'), null) : null;
+                initialSpots = (mapCache && (mapCache.destinations || mapCache.data?.destinations || mapCache.spots || mapCache.data?.spots)) || null;
             } catch(e) {}
         }
         if (!initialSpots) {
             try {
                 const fallbackRaw = localStorage.getItem('intan_elyu_cached_spots_map');
                 if (fallbackRaw) {
-                    const parsed = JSON.parse(fallbackRaw)?.data;
+                    const parsed = JSON.parse(fallbackRaw)?.data || JSON.parse(fallbackRaw);
                     if (parsed && (parsed.destinations || parsed.spots)) {
                         initialSpots = parsed.destinations || parsed.spots;
                     }
@@ -3109,7 +3109,17 @@ window.applyTouristSitesFilterModal = function() {
             const tripsCacheKey = 'dashboard_trips_' + token.substring(0, 10);
             try {
                 const cachedTrips = window.safeJsonParse ? window.safeJsonParse(localStorage.getItem(tripsCacheKey), null)?.data : null;
-                if (cachedTrips) renderSavedTrips(cachedTrips);
+                if (cachedTrips) {
+                    renderSavedTrips(cachedTrips);
+                } else {
+                    const fallbackTrips = window.safeJsonParse ? window.safeJsonParse(localStorage.getItem('saved_trips_' + token.substring(0, 10)), null)?.data : null;
+                    if (fallbackTrips) {
+                        renderSavedTrips(fallbackTrips);
+                    } else {
+                        const localTrips = JSON.parse(localStorage.getItem('intan_elyu_saved_trips') || '[]');
+                        if (Array.isArray(localTrips) && localTrips.length > 0) renderSavedTrips(localTrips);
+                    }
+                }
             } catch (e) {}
         }
 
@@ -3385,11 +3395,9 @@ window.applyTouristSitesFilterModal = function() {
             (window.safeJsonParse ? window.safeJsonParse(localStorage.getItem('dashboard_cached_payload'), null) : null) ||
             (window.safeJsonParse ? window.safeJsonParse(localStorage.getItem(cacheKey), null)?.data : null);
 
-        if (cachedPayload && (cachedPayload.trending || cachedPayload.recommended || cachedPayload.savedPlaces) && (!cachedPayload.trending || cachedPayload.trending.length >= 10)) {
+        if (cachedPayload && (cachedPayload.trending || cachedPayload.recommended || cachedPayload.savedPlaces)) {
             renderDashboard(cachedPayload);
         } else {
-            // Invalidate any old cache with 5 or fewer trending spots
-            try { localStorage.removeItem('dashboard_cached_payload'); } catch(e) {}
             // Check fallback from public_map_data or cached spots map
             try {
                 const mapCache = window.safeJsonParse ? window.safeJsonParse(localStorage.getItem('public_map_data'), null)?.data : null;
@@ -3413,6 +3421,17 @@ window.applyTouristSitesFilterModal = function() {
                 console.warn('Fallback pre-render handled:', e);
             }
         }
+
+        // Pre-hydrate All Tourist Sites immediately so container never stays on loading spinner
+        try {
+            const mapCache = window.safeJsonParse ? window.safeJsonParse(localStorage.getItem('public_map_data'), null) : null;
+            const spots = (window.allTouristSpots && window.allTouristSpots.length > 0) ? window.allTouristSpots : ((mapCache && (mapCache.destinations || mapCache.data?.destinations || mapCache.spots || mapCache.data?.spots)) || null);
+            if (spots && spots.length > 0 && typeof window.renderAllTouristSpots === 'function') {
+                const activeSpots = spots.filter(d => !d.status || !['pending', 'draft', 'rejected'].includes(d.status.toLowerCase()));
+                window.allTouristSpots = activeSpots;
+                window.renderAllTouristSpots(activeSpots, window.currentDashCategory || 'All');
+            }
+        } catch(e) {}
 
         // Helper functions used inside render/build
         function getDistance(lat1, lon1, lat2, lon2) {
@@ -3830,7 +3849,7 @@ window.applyTouristSitesFilterModal = function() {
         }
 
         try {
-            await window.useCache(
+            const dashPromise = window.useCache(
                 cacheKey,
                 async () => {
                     const res = await fetch(apiUrl, {
@@ -3877,7 +3896,6 @@ window.applyTouristSitesFilterModal = function() {
                 Boolean(forceRefresh || window.dashboardNeedsRefresh),
                 30000 // 30 seconds TTL for dashboard
             );
-            window.dashboardNeedsRefresh = false;
 
             if (lat && lng) {
                 loadNearMe(lat, lng);
@@ -3893,7 +3911,7 @@ window.applyTouristSitesFilterModal = function() {
 
             // Fetch Rank concurrently
             const rankCacheKey = 'dashboard_rank_' + token.substring(0, 10);
-            window.useCache(
+            const rankPromise = window.useCache(
                 rankCacheKey,
                 async () => {
                     const rankRes = await fetch(backendUrl + '/api/tourist/leaderboard', {
@@ -3911,9 +3929,10 @@ window.applyTouristSitesFilterModal = function() {
 
             // Fetch Saved Trips concurrently
             const tripsContainer = document.getElementById('saved-trips-container');
+            let tripsPromise = Promise.resolve();
             if (tripsContainer) {
                 const tripsCacheKey = 'dashboard_trips_' + token.substring(0, 10);
-                window.useCache(
+                tripsPromise = window.useCache(
                     tripsCacheKey,
                     async () => {
                         const itinRes = await fetch(backendUrl + '/api/tourist/itineraries', {
@@ -3929,6 +3948,9 @@ window.applyTouristSitesFilterModal = function() {
                     60000 // 1 minute TTL
                 ).catch(e => console.warn('Trips fetch handled:', e));
             }
+
+            await Promise.allSettled([dashPromise, rankPromise, tripsPromise]);
+            window.dashboardNeedsRefresh = false;
         } catch (e) {
             console.error('dashboardInit error:', e);
             handleDashboardEmptyOrError();

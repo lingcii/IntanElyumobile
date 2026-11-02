@@ -215,27 +215,27 @@ class DashboardController extends Controller
             }
         }
 
-        // Resolve municipality name for local image matching
-        $muniName = null;
-        if ($spot->municipality_id) {
+        // Resolve municipality name for local image matching using cached map (prevents N+1 queries)
+        static $muniCache = null;
+        if ($muniCache === null) {
             try {
-                $muniName = \Illuminate\Support\Facades\DB::table('municipalities')
-                    ->where('id', $spot->municipality_id)
-                    ->value('name');
-            } catch (\Throwable $e) {}
+                $muniCache = \Illuminate\Support\Facades\DB::table('municipalities')->pluck('name', 'id')->toArray();
+            } catch (\Throwable $e) {
+                $muniCache = [];
+            }
         }
 
-        // Fallback municipality map in case municipalities table is not yet seeded or lookup fails
-        if (!$muniName && $spot->municipality_id) {
-            $muniFallback = [
-                1 => 'San Fernando City', 2 => 'San Juan', 3 => 'Bauang', 4 => 'Bacnotan',
-                5 => 'Balaoan', 6 => 'Luna', 7 => 'Bangar', 8 => 'Sudipen', 9 => 'Santol',
-                10 => 'San Gabriel', 11 => 'Bagulin', 12 => 'Burgos', 13 => 'Naguilian',
-                14 => 'Caba', 15 => 'Aringay', 16 => 'Agoo', 17 => 'Tubao', 18 => 'Pugo',
-                19 => 'Santo Tomas', 20 => 'Rosario'
-            ];
-            $muniName = $muniFallback[$spot->municipality_id] ?? 'La Union';
-        }
+        $muniFallback = [
+            1 => 'San Fernando City', 2 => 'San Juan', 3 => 'Bauang', 4 => 'Bacnotan',
+            5 => 'Balaoan', 6 => 'Luna', 7 => 'Bangar', 8 => 'Sudipen', 9 => 'Santol',
+            10 => 'San Gabriel', 11 => 'Bagulin', 12 => 'Burgos', 13 => 'Naguilian',
+            14 => 'Caba', 15 => 'Aringay', 16 => 'Agoo', 17 => 'Tubao', 18 => 'Pugo',
+            19 => 'Santo Tomas', 20 => 'Rosario'
+        ];
+
+        $muniName = ($spot->municipality_id && isset($muniCache[$spot->municipality_id]))
+            ? $muniCache[$spot->municipality_id]
+            : ($muniFallback[$spot->municipality_id ?? 0] ?? 'La Union');
 
         return [
             'id'           => $spot->id,

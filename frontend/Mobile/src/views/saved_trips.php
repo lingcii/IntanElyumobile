@@ -744,6 +744,10 @@ $backRoute = 'itinerary';
                 return;
             }
 
+            if (window._isStartingTrip) {
+                return;
+            }
+
             // 3. Online mode: fetch fresh trips from API and update local caches
             const cacheKey = 'saved_trips_' + token.substring(0, 10);
             const fetchCache = (typeof window.useCache === 'function') ? window.useCache : (async (key, fetcher, renderer, forceRefresh) => {
@@ -764,14 +768,21 @@ $backRoute = 'itinerary';
                         const timeoutId = controller ? setTimeout(() => controller.abort(), 8000) : null;
                         try {
                             const bUrl = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
-                            const response = await fetch(bUrl + '/api/tourist/itineraries', {
-                                signal: controller ? controller.signal : undefined,
-                                headers: {
-                                    'Accept': 'application/json',
-                                    'ngrok-skip-browser-warning': 'true',
-                                    'Authorization': 'Bearer ' + token
-                                }
-                            });
+                            let response;
+                            try {
+                                response = await fetch(bUrl + '/api/tourist/itineraries', {
+                                    signal: controller ? controller.signal : undefined,
+                                    headers: {
+                                        'Accept': 'application/json',
+                                        'ngrok-skip-browser-warning': 'true',
+                                        'Authorization': 'Bearer ' + token
+                                    }
+                                });
+                            } catch (fetchErr) {
+                                if (window.isExpectedAbortError && window.isExpectedAbortError(fetchErr)) return getLocalTripsCombined();
+                                console.warn("Saved trips network unreachable, using offline fallback:", fetchErr.message || fetchErr);
+                                return getLocalTripsCombined();
+                            }
                             if (response.status === 401) {
                                 localStorage.removeItem('intan_elyu_token');
                                 localStorage.removeItem('Intan_Elyu_Token');
@@ -779,7 +790,10 @@ $backRoute = 'itinerary';
                                 if (typeof window.navigateTo === 'function') window.navigateTo('auth');
                                 return [];
                             }
-                            if (!response.ok) throw new Error("Failed to fetch saved trips: " + response.status);
+                            if (!response.ok) {
+                                console.warn("Server returned status " + response.status + " for saved trips, using offline fallback");
+                                return getLocalTripsCombined();
+                            }
                             const data = await response.json();
                             const itins = data.itineraries || [];
                             const persistentStates = (typeof window.getPersistentItemStates === 'function') ? window.getPersistentItemStates() : {};
@@ -1134,6 +1148,26 @@ $backRoute = 'itinerary';
         function shouldHideStartTripForTrip(trip) {
             const items = trip && Array.isArray(trip.items) ? trip.items.filter(Boolean) : [];
             return items.length > 0 && items.every(hasConfirmedProofSubmission);
+        }
+
+        function isTripLockedFromEditing(trip) {
+            if (!trip) return true;
+            if (trip.status === 'completed' || (typeof window !== 'undefined' && typeof window.isTripCompletedLocally === 'function' && window.isTripCompletedLocally(trip))) {
+                return true;
+            }
+            if (Array.isArray(trip.items)) {
+                const hasCheckin = trip.items.some(item => {
+                    if (!item) return false;
+                    const spotIdVal = item.tourist_spot_id || item.destination_id || (item.destination ? item.destination.id : null);
+                    const isQueued = Boolean(typeof window !== 'undefined' && window.OfflineCheckinManager && window.OfflineCheckinManager.getQueuedItem(item.id, spotIdVal, trip.id || trip.local_id));
+                    return isQueued || Boolean(item.is_location_verified || item.visited_at || item.is_visited || item.proof_status || item.proof_image || (item.proof_images && item.proof_images.length > 0));
+                });
+                if (hasCheckin) return true;
+            }
+            return false;
+        }
+        if (typeof window !== 'undefined') {
+            window.isTripLockedFromEditing = isTripLockedFromEditing;
         }
 
         const SAVED_TRIP_CHECKIN_RADIUS_METERS = 70;
@@ -1563,6 +1597,8 @@ $backRoute = 'itinerary';
                             paxBadge = `<span style="background:rgba(255,255,255,0.18); color:#ffffff; padding:3px 9px; border-radius:100px; font-weight:700; font-size:11.5px; display:inline-flex; align-items:center; gap:4px;" title="Solo Traveler"><i class="fa-solid fa-user" style="font-size:10px; color:#38bdf8;"></i> Solo</span>`;
                         }
 
+                        const isLockedFromEditing = isTripLockedFromEditing(trip);
+
                         html += `
                     <div class="trip-swipe-container" data-trip-id="${trip.id}" data-trip-title="${safeTitle}" style="position:relative; overflow:hidden; border-radius:24px; margin-bottom:20px; touch-action:pan-y;">
                         <!-- Red Delete Action Button (Slides smoothly in tandem from right wall) -->
@@ -1575,9 +1611,11 @@ $backRoute = 'itinerary';
                             <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 6px;">
                                 <h3 style="margin: 0; font-size: 20px; font-weight: 800; color: #ffffff; letter-spacing: -0.3px; flex: 1; min-width: 0; word-break: break-word;">${trip.title}</h3>
                                 <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+                                    ${!isLockedFromEditing ? `
                                     <button type="button" class="btn-edit-saved-trip" onclick="event.stopPropagation(); window.editSavedTrip('${trip.id}')" ontouchstart="event.stopPropagation();" onpointerdown="event.stopPropagation();" onmousedown="event.stopPropagation();" onmouseover="this.style.background='rgba(255,255,255,0.28)'" onmouseout="this.style.background='rgba(255,255,255,0.18)'" style="background: rgba(255,255,255,0.18); border: none !important; outline: none !important; border-radius: 12px; padding: 6px 14px; color: #ffffff; font-size: 12px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s ease; box-shadow: none !important; position: relative; z-index: 10; pointer-events: auto; touch-action: manipulation;">
                                         <i class="fa-solid fa-pen-to-square"></i> Edit
                                     </button>
+                                    ` : ''}
                                 </div>
                             </div>
                             <div style="font-size: 12.5px; color: #ffffff; opacity: 0.95; margin: 0 0 16px 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
@@ -3431,6 +3469,14 @@ $backRoute = 'itinerary';
                 return;
             }
 
+            if (isTripLockedFromEditing(trip)) {
+                const isCompleted = (trip.status === 'completed' || (typeof window.isTripCompletedLocally === 'function' && window.isTripCompletedLocally(trip)));
+                if (typeof showToast === 'function') {
+                    showToast(isCompleted ? "Completed trips cannot be edited." : "Trips with checked-in destinations cannot be edited.", "warning");
+                }
+                return;
+            }
+
             window._currentEditingTrip = trip;
 
             let modal = document.getElementById('edit-trip-details-modal');
@@ -3634,6 +3680,12 @@ $backRoute = 'itinerary';
             window.closeEditTripDetailsModal();
             const trip = window._currentEditingTrip;
             if (!trip) return;
+            if (isTripLockedFromEditing(trip)) {
+                if (typeof showToast === 'function') {
+                    showToast("Trips with checked-in destinations cannot be edited.", "warning");
+                }
+                return;
+            }
 
             // Backup existing draft itinerary spots if user was building a plan before editing
             const existingDraftRaw = localStorage.getItem('intan_elyu_draft_itinerary');

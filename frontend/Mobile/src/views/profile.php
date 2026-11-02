@@ -1003,7 +1003,13 @@ $activeTab = 'profile';
             localStorage.removeItem(cacheKey);
         }
 
-        await window.useCache(
+        const fetchCache = (typeof window.useCache === 'function') ? window.useCache : (async (key, fetcher, renderer) => {
+            const d = await fetcher();
+            if (renderer) renderer(d);
+            return d;
+        });
+
+        await fetchCache(
             cacheKey,
             async () => {
                 const response = await fetch(backendUrl + '/api/tourist/profile', {
@@ -1051,7 +1057,13 @@ $activeTab = 'profile';
             window.profileNeedsRefresh = false;
         }
 
-        await window.useCache(
+        const fetchCache = (typeof window.useCache === 'function') ? window.useCache : (async (key, fetcher, renderer) => {
+            const d = await fetcher();
+            if (renderer) renderer(d);
+            return d;
+        });
+
+        await fetchCache(
             ptsCacheKey,
             async () => {
                 const r = await fetch(backendUrl + '/api/tourist/points/balance', {
@@ -2008,8 +2020,8 @@ $activeTab = 'profile';
         window.showRewardDetailsModal(reward);
     };
 
-    let activeQrSyncInterval = null;
-    let currentActiveQrCode = '';
+    var activeQrSyncInterval = window.activeQrSyncInterval || null;
+    var currentActiveQrCode = window.currentActiveQrCode || '';
 
     window.openActiveVoucherQrModal = function (codeOrVoucher) {
         let voucher = null;
@@ -2513,8 +2525,8 @@ $activeTab = 'profile';
     }, 50);
 
     if (typeof updateProfileAccessBarrier === 'function') updateProfileAccessBarrier();
-    const _initTok = getProfileAuthToken();
-    const _initGuest = !_initTok || _initTok === 'guest_token' || _initTok === 'offline_guest_token' || _initTok.indexOf('guest_') === 0 || _initTok.indexOf('offline_') === 0 || localStorage.getItem('intan_elyu_guest') === 'true' || localStorage.getItem('intan_elyu_offline_guest') === 'true';
+    var _initTok = getProfileAuthToken();
+    var _initGuest = !_initTok || _initTok === 'guest_token' || _initTok === 'offline_guest_token' || _initTok.indexOf('guest_') === 0 || _initTok.indexOf('offline_') === 0 || localStorage.getItem('intan_elyu_guest') === 'true' || localStorage.getItem('intan_elyu_offline_guest') === 'true';
     if (!_initGuest) {
         hydrateProfileFromCache();
         fetchProfileData();

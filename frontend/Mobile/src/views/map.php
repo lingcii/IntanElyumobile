@@ -1737,7 +1737,11 @@ if (is_dir($imgDir)) {
                     return;
                 }
 
+                if (!window.mapInstance || typeof window.mapInstance.getBounds !== 'function') {
+                    return;
+                }
                 const bounds = window.mapInstance.getBounds();
+                if (!bounds) return;
                 const zoom = window.mapInstance.getZoom();
 
                 // Keep a generous spatial buffer (at least 0.30 deg ~ 32 km when zoomed in)
