@@ -185,9 +185,22 @@ $backRoute = 'profile';
             </div>
 
             <!-- QR Code Box (Shown when Claimed - Verified Digital Pass) -->
+            <style>
+                @keyframes qrStampSlam {
+                    0% { opacity: 0; transform: scale(2.4) rotate(-22deg); }
+                    70% { opacity: 1; transform: scale(0.92) rotate(-12deg); }
+                    100% { opacity: 1; transform: scale(1) rotate(-14deg); }
+                }
+            </style>
             <div id="modal-claimed-box" style="display: none; background: #eff6ff !important; border: 1.5px dashed #bfdbfe; border-radius: 18px; padding: 16px; margin-bottom: 14px; text-align: center;">
-                <div style="background: #ffffff; border-radius: 14px; padding: 10px; width: 150px; height: 150px; margin: 0 auto 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 14px rgba(0,0,0,0.08); border: 1px solid #e2e8f0;">
-                    <img id="modal-qr-img" src="" alt="Voucher QR Code" style="width: 100%; height: 100%; object-fit: contain;" onerror="this.style.display='none'">
+                <div style="background: #ffffff; border-radius: 14px; padding: 10px; width: 150px; height: 150px; margin: 0 auto 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 14px rgba(0,0,0,0.08); border: 1px solid #e2e8f0; position: relative; overflow: hidden;">
+                    <img id="modal-qr-img" src="" alt="Voucher QR Code" style="width: 100%; height: 100%; object-fit: contain; transition: filter 0.3s ease, opacity 0.3s ease;" onerror="this.style.display='none'">
+                    <div id="modal-qr-stamp-overlay" style="display: none; position: absolute; inset: 0; align-items: center; justify-content: center; pointer-events: none; z-index: 5;">
+                        <div id="modal-qr-stamp-badge" style="border: 3px double #dc2626; color: #dc2626; background: rgba(255,255,255,0.93); padding: 5px 12px; border-radius: 10px; font-weight: 900; font-size: 13.5px; letter-spacing: 1.8px; text-transform: uppercase; transform: rotate(-14deg); box-shadow: 0 4px 14px rgba(220,38,38,0.22); display: flex; flex-direction: column; align-items: center; line-height: 1.1;">
+                            <span style="font-size: 7.5px; letter-spacing: 1px; font-weight: 800; color: #b91c1c; margin-bottom: 2px;"><i class="fa-solid fa-certificate"></i> VERIFIED</span>
+                            <span>REDEEMED</span>
+                        </div>
+                    </div>
                 </div>
                 
                 <!-- Verified Digital Pass Badge -->
@@ -199,18 +212,18 @@ $backRoute = 'profile';
 
                 <!-- Clickable Masked Code Container (Tap to Unmask/Mask) -->
                 <div id="modal-qr-mask-container" onclick="window.toggleDiscountVoucherCodeMask()" role="button" tabindex="0" title="Tap to reveal or hide voucher code"
-                    style="background: #ffffff; border: 1.5px solid #bfdbfe; border-radius: 14px; padding: 10px 14px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(30,58,138,0.06); display: flex; align-items: center; justify-content: space-between; gap: 10px; cursor: pointer; user-select: none; transition: all 0.2s ease;"
+                    style="background: #ffffff; border: 1.5px solid #bfdbfe; border-radius: 14px; padding: 9px 12px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(30,58,138,0.06); display: flex; align-items: center; justify-content: space-between; gap: 8px; cursor: pointer; user-select: none; transition: all 0.2s ease;"
                     onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
                     <div style="text-align: left; min-width: 0; flex: 1;">
-                        <div style="font-size: 9.5px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 5px; margin-bottom: 2px;">
-                            <i class="fa-solid fa-key" style="color: #0284c7; font-size: 10px;"></i>
+                        <div style="font-size: 8.5px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.2px; display: flex; align-items: center; gap: 4px; margin-bottom: 2px; white-space: nowrap;">
+                            <i class="fa-solid fa-key" style="color: #0284c7; font-size: 9px;"></i>
                             <span id="modal-qr-mask-label">Voucher Code (Tap to reveal)</span>
                         </div>
-                        <div id="modal-qr-mask-code" style="font-size: 16px; font-weight: 900; color: #1e3a8a; letter-spacing: 2.5px; font-family: monospace; word-break: break-all;">
+                        <div id="modal-qr-mask-code" style="font-size: 13.5px; font-weight: 900; color: #1e3a8a; letter-spacing: 2px; font-family: monospace; word-break: break-all;">
                             ••••••••••••
                         </div>
                     </div>
-                    <div id="modal-qr-mask-btn" style="background: #eff6ff; border: 1px solid #bfdbfe; color: #1e3a8a; width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; transition: all 0.15s ease;">
+                    <div id="modal-qr-mask-btn" style="background: #eff6ff; border: 1px solid #bfdbfe; color: #1e3a8a; width: 32px; height: 32px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0; transition: all 0.15s ease;">
                         <i class="fa-solid fa-eye" id="modal-qr-mask-icon" style="color: #1e3a8a;"></i>
                     </div>
                 </div>
@@ -884,16 +897,39 @@ async function fetchUserPointsAndRedemptions() {
             if (data.status === 'success') {
                 window._hasFetchedRedemptions = true;
                 window._touristRedemptions = Array.isArray(data.vouchers) ? data.vouchers : [];
-                userPointsBalance = (data.points !== undefined) ? data.points : (data.xp ?? 0);
+                const rawPts = Number(data.points !== undefined ? data.points : (data.xp ?? 0)) || 0;
+                const rawXp = Number(data.xp !== undefined ? data.xp : (data.earned_total ?? rawPts)) || 0;
+                const redeemedTotal = Number(data.redeemed_total || 0) || window._touristRedemptions.reduce((sum, v) => sum + (Number(v && (v.points_cost || v.pointsCost) || 0) || 0), 0);
+                userPointsBalance = (redeemedTotal > 0 && rawPts === rawXp && rawXp > 0)
+                    ? Math.max(0, rawXp - redeemedTotal)
+                    : rawPts;
+                data.points = userPointsBalance;
                 const ptsBadge = document.getElementById('discount-user-pts');
                 if (ptsBadge) ptsBadge.textContent = `${userPointsBalance.toLocaleString()} Points`;
 
                 try {
-                    const u = JSON.parse(localStorage.getItem('auth_user') || '{}');
-                    u.points = userPointsBalance;
-                    localStorage.setItem('auth_user', JSON.stringify(u));
+                    ['auth_user', 'auth_user_backup', 'intan_elyu_user'].forEach(key => {
+                        const raw = localStorage.getItem(key);
+                        if (raw) {
+                            const u = JSON.parse(raw);
+                            if (u && typeof u === 'object') {
+                                u.points = userPointsBalance;
+                                localStorage.setItem(key, JSON.stringify(u));
+                            }
+                        }
+                    });
+                    const profKey = 'profile_data_' + token.substring(0, 10);
+                    const profRaw = localStorage.getItem(profKey);
+                    if (profRaw) {
+                        const profObj = JSON.parse(profRaw);
+                        if (profObj && typeof profObj === 'object') {
+                            if (profObj.user && typeof profObj.user === 'object') profObj.user.points = userPointsBalance;
+                            if (profObj.data && profObj.data.user && typeof profObj.data.user === 'object') profObj.data.user.points = userPointsBalance;
+                            localStorage.setItem(profKey, JSON.stringify(profObj));
+                        }
+                    }
                     const ptsCacheKey = 'points_balance_' + token.substring(0, 10);
-                    localStorage.setItem(ptsCacheKey, JSON.stringify(data));
+                    localStorage.setItem(ptsCacheKey, JSON.stringify({ data: data, timestamp: Date.now() }));
                 } catch (e) { }
 
                 syncClaimedVouchersWithData();
@@ -1149,11 +1185,26 @@ function startLiveRedemptionSync(code) {
                 const data = await res.json();
                 if (data.status === 'success' && data.is_redeemed) {
                     const statusBadge = document.getElementById('modal-live-status-badge');
+                    const qrImg = document.getElementById('modal-qr-img');
+                    const stampOverlay = document.getElementById('modal-qr-stamp-overlay');
+                    const stampBadge = document.getElementById('modal-qr-stamp-badge');
                     if (statusBadge) {
                         statusBadge.innerHTML = `<i class="fa-solid fa-circle-check" style="color:#15803d; font-size:13px;"></i> Redeemed & Verified at ${data.redeemed_by_partner || 'Partner Merchant'}!`;
                         statusBadge.style.background = '#dcfce7';
                         statusBadge.style.color = '#15803d';
                         statusBadge.style.border = '1px solid #86efac';
+                    }
+                    if (qrImg) {
+                        qrImg.style.filter = 'grayscale(1)';
+                        qrImg.style.opacity = '0.3';
+                    }
+                    if (stampOverlay) {
+                        stampOverlay.style.display = 'flex';
+                    }
+                    if (stampBadge) {
+                        stampBadge.style.animation = 'none';
+                        void stampBadge.offsetWidth;
+                        stampBadge.style.animation = 'qrStampSlam 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards';
                     }
                     if (window.confetti) {
                         window.confetti({ particleCount: 50, spread: 60, origin: { y: 0.6 } });
@@ -1337,7 +1388,7 @@ function openVoucherModal(id) {
             const maskBtn = document.getElementById('modal-qr-mask-btn');
             if (codeEl) {
                 codeEl.textContent = '••••••••••••';
-                codeEl.style.letterSpacing = '2.5px';
+                codeEl.style.letterSpacing = '2px';
                 codeEl.style.color = '#1e3a8a';
             }
             if (iconEl) iconEl.className = 'fa-solid fa-eye';
@@ -1348,16 +1399,24 @@ function openVoucherModal(id) {
             }
 
             const qrImg = document.getElementById('modal-qr-img');
+            const stampOverlay = document.getElementById('modal-qr-stamp-overlay');
+            const stampBadge = document.getElementById('modal-qr-stamp-badge');
             if (qrImg) {
                 qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(claimCode)}`;
                 qrImg.style.display = 'block';
                 if (isRedeemedOnWeb) {
                     qrImg.style.filter = 'grayscale(1)';
-                    qrImg.style.opacity = '0.35';
+                    qrImg.style.opacity = '0.3';
                 } else {
                     qrImg.style.filter = 'none';
                     qrImg.style.opacity = '1';
                 }
+            }
+            if (stampOverlay) {
+                stampOverlay.style.display = isRedeemedOnWeb ? 'flex' : 'none';
+            }
+            if (stampBadge && isRedeemedOnWeb) {
+                stampBadge.style.animation = 'none';
             }
             if (isRedeemedOnWeb && statusBadge) {
                 statusBadge.innerHTML = '<i class="fa-solid fa-check-double" style="color:#15803d; font-size:13px;"></i> Voucher Already Redeemed & Verified';
@@ -1462,7 +1521,7 @@ window.toggleDiscountVoucherCodeMask = function () {
     } else {
         if (codeEl) {
             codeEl.textContent = '••••••••••••';
-            codeEl.style.letterSpacing = '2.5px';
+            codeEl.style.letterSpacing = '2px';
             codeEl.style.color = '#1e3a8a';
         }
         if (iconEl) iconEl.className = 'fa-solid fa-eye';
@@ -1610,25 +1669,49 @@ async function handleModalRedeem() {
             window._touristRedemptions.unshift(newVoucherItem);
 
             // Update user's points
-            const newPoints = data.new_balance !== undefined ? data.new_balance : Math.max(0, userPointsBalance - cost);
+            const expectedPts = Math.max(0, userPointsBalance - cost);
+            const newPoints = data.new_balance !== undefined ? Math.min(Number(data.new_balance), expectedPts) : expectedPts;
             userPointsBalance = newPoints;
             const ptsBadge = document.getElementById('discount-user-pts');
             if (ptsBadge) ptsBadge.textContent = `${userPointsBalance.toLocaleString()} Points`;
 
             try {
-                let storedUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
-                storedUser.points = newPoints;
-                localStorage.setItem('auth_user', JSON.stringify(storedUser));
+                ['auth_user', 'auth_user_backup', 'intan_elyu_user'].forEach(key => {
+                    const raw = localStorage.getItem(key);
+                    if (raw) {
+                        const storedUser = JSON.parse(raw);
+                        if (storedUser && typeof storedUser === 'object') {
+                            storedUser.points = newPoints;
+                            localStorage.setItem(key, JSON.stringify(storedUser));
+                        }
+                    }
+                });
             } catch(e) {}
 
-            // Update points_balance_ cache for 0ms Profile hydration
+            // Update points_balance_ and profile_data_ caches for 0ms Profile hydration
             try {
+                const profKey = 'profile_data_' + token.substring(0, 10);
+                const profRaw = localStorage.getItem(profKey);
+                if (profRaw) {
+                    const profObj = JSON.parse(profRaw);
+                    if (profObj && typeof profObj === 'object') {
+                        if (profObj.user && typeof profObj.user === 'object') profObj.user.points = newPoints;
+                        if (profObj.data && profObj.data.user && typeof profObj.data.user === 'object') profObj.data.user.points = newPoints;
+                        localStorage.setItem(profKey, JSON.stringify(profObj));
+                    }
+                }
+
                 const ptsCacheKey = 'points_balance_' + token.substring(0, 10);
                 let cachedPtsObj = JSON.parse(localStorage.getItem(ptsCacheKey) || '{}');
                 if (!cachedPtsObj || typeof cachedPtsObj !== 'object') cachedPtsObj = {};
+                const targetData = (cachedPtsObj.data && typeof cachedPtsObj.data === 'object') ? cachedPtsObj.data : cachedPtsObj;
                 cachedPtsObj.points = newPoints;
-                if (!Array.isArray(cachedPtsObj.vouchers)) cachedPtsObj.vouchers = [];
-                cachedPtsObj.vouchers.unshift(newVoucherItem);
+                targetData.points = newPoints;
+                if (!Array.isArray(targetData.vouchers)) targetData.vouchers = [];
+                targetData.vouchers.unshift(newVoucherItem);
+                if (cachedPtsObj !== targetData && Array.isArray(cachedPtsObj.vouchers)) {
+                    cachedPtsObj.vouchers.unshift(newVoucherItem);
+                }
                 localStorage.setItem(ptsCacheKey, JSON.stringify(cachedPtsObj));
             } catch(e) {}
 
@@ -1661,7 +1744,7 @@ async function handleModalRedeem() {
                 const maskBtn = document.getElementById('modal-qr-mask-btn');
                 if (codeEl) {
                     codeEl.textContent = '••••••••••••';
-                    codeEl.style.letterSpacing = '2.5px';
+                    codeEl.style.letterSpacing = '2px';
                     codeEl.style.color = '#1e3a8a';
                 }
                 if (iconEl) iconEl.className = 'fa-solid fa-eye';
@@ -1672,9 +1755,15 @@ async function handleModalRedeem() {
                 }
 
                 const qrImg = document.getElementById('modal-qr-img');
+                const stampOverlay = document.getElementById('modal-qr-stamp-overlay');
                 if (qrImg) {
                     qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(claimCode)}`;
                     qrImg.style.display = 'block';
+                    qrImg.style.filter = 'none';
+                    qrImg.style.opacity = '1';
+                }
+                if (stampOverlay) {
+                    stampOverlay.style.display = 'none';
                 }
             }
             if (btn) {

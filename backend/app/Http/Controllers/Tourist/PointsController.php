@@ -20,14 +20,25 @@ class PointsController extends Controller
     {
         $user = $request->user();
 
-        // XP and Points balances - ensure points and xp are consistent
-        $maxPoints = max((int) ($user->points ?? 0), (int) ($user->xp ?? 0));
-        $userXp = $maxPoints;
-        $userPoints = $maxPoints;
+        $vouchers = self::getUserVouchers($user->id);
+        $redeemedTotal = (int) $vouchers->sum('points_cost');
 
-        if ($user->points !== $maxPoints || $user->xp !== $maxPoints) {
+        $rawPoints = (int) ($user->points ?? 0);
+        $rawXp = (int) ($user->xp ?? 0);
+        $userXp = max($rawXp, $rawPoints);
+
+        if ($redeemedTotal > 0 && $rawPoints === $userXp && $userXp > 0) {
+            // Repair spendable balance if prior max(points, xp) sync clobbered voucher deductions
+            $userPoints = max(0, $userXp - $redeemedTotal);
+        } elseif ($redeemedTotal === 0 && $rawPoints === 0 && $rawXp > 0) {
+            $userPoints = $rawXp;
+        } else {
+            $userPoints = $rawPoints;
+        }
+
+        if ((int) ($user->points ?? 0) !== $userPoints || (int) ($user->xp ?? 0) !== $userXp) {
             try {
-                $user->update(['points' => $maxPoints, 'xp' => $maxPoints]);
+                $user->update(['points' => $userPoints, 'xp' => $userXp]);
             } catch (\Throwable $e) {}
         }
 
@@ -74,8 +85,6 @@ class PointsController extends Controller
             $history = collect();
         }
 
-        $vouchers = self::getUserVouchers($user->id);
-
         $level = (int) floor(max(0, $userXp) / 1000) + 1;
 
         return response()->json([
@@ -84,7 +93,7 @@ class PointsController extends Controller
             'points' => $userPoints,
             'level' => $level,
             'earned_total' => $userXp,
-            'redeemed_total' => $vouchers->sum('points_cost'),
+            'redeemed_total' => $redeemedTotal,
             'history' => $history,
             'today_completed' => $todayCompleted,
             'vouchers' => $vouchers
@@ -137,18 +146,16 @@ class PointsController extends Controller
         );
 
         $user->refresh();
-        $finalPoints = max((int) ($user->points ?? 0), (int) ($user->xp ?? 0));
-        try {
-            $user->update(['points' => $finalPoints, 'xp' => $finalPoints]);
-        } catch (\Throwable $e) {}
+        $currentPoints = (int) ($user->points ?? 0);
+        $currentXp = max((int) ($user->xp ?? 0), $currentPoints);
 
         return response()->json([
             'status' => 'success',
             'message' => "Congratulations! You earned {$xp} Points! You completed today's puzzle. Come back tomorrow!",
             'xp_awarded' => $xp,
             'points_awarded' => $xp,
-            'points' => $finalPoints,
-            'xp' => $finalPoints,
+            'points' => $currentPoints,
+            'xp' => $currentXp,
             'game_type' => 'puzzle',
             'completed_today' => true
         ]);
@@ -200,18 +207,16 @@ class PointsController extends Controller
         );
 
         $user->refresh();
-        $finalPoints = max((int) ($user->points ?? 0), (int) ($user->xp ?? 0));
-        try {
-            $user->update(['points' => $finalPoints, 'xp' => $finalPoints]);
-        } catch (\Throwable $e) {}
+        $currentPoints = (int) ($user->points ?? 0);
+        $currentXp = max((int) ($user->xp ?? 0), $currentPoints);
 
         return response()->json([
             'status' => 'success',
             'message' => "Congratulations! You earned {$xp} Points! You completed today's trivia. Come back tomorrow!",
             'xp_awarded' => $xp,
             'points_awarded' => $xp,
-            'points' => $finalPoints,
-            'xp' => $finalPoints,
+            'points' => $currentPoints,
+            'xp' => $currentXp,
             'game_type' => 'trivia',
             'completed_today' => true
         ]);
@@ -278,18 +283,16 @@ class PointsController extends Controller
         );
 
         $user->refresh();
-        $finalPoints = max((int) ($user->points ?? 0), (int) ($user->xp ?? 0));
-        try {
-            $user->update(['points' => $finalPoints, 'xp' => $finalPoints]);
-        } catch (\Throwable $e) {}
+        $currentPoints = (int) ($user->points ?? 0);
+        $currentXp = max((int) ($user->xp ?? 0), $currentPoints);
 
         return response()->json([
             'status' => 'success',
             'message' => "Congratulations! You earned {$xp} Points! You completed today's game. Come back tomorrow!",
             'xp_awarded' => $xp,
             'points_awarded' => $xp,
-            'points' => $finalPoints,
-            'xp' => $finalPoints,
+            'points' => $currentPoints,
+            'xp' => $currentXp,
             'game_type' => $gameType,
             'completed_today' => true
         ]);

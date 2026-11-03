@@ -406,7 +406,9 @@ class VoucherController extends Controller
                 }
             } catch (\Throwable $e) {}
 
-            $newPoints = max(0, $balance - $cost);
+            $user->refresh();
+            $newPoints = (int) ($user->points ?? max(0, $balance - $cost));
+            \Illuminate\Support\Facades\Cache::forget("rank:user:{$user->id}");
 
             return response()->json([
                 'status' => 'success',

@@ -364,7 +364,10 @@ $activeTab = 'profile';
         const elEmail = document.getElementById('profile-email');
         const elImg = document.getElementById('profile-img');
 
-        const points = parseInt(u.points !== undefined ? u.points : (u.xp || 0)) || 0;
+        const rawProfilePts = parseInt(u.points !== undefined ? u.points : (u.xp || 0)) || 0;
+        const points = (typeof window._userPointsBalance === 'number' && u.xp !== undefined && rawProfilePts === Number(u.xp) && window._userPointsBalance < rawProfilePts)
+            ? window._userPointsBalance
+            : rawProfilePts;
 
         if (elPoints) elPoints.textContent = points.toLocaleString();
         if (elPlaces) elPlaces.textContent = (data.places_visited !== undefined ? data.places_visited : (u.places_visited || u.completed_activities || 0));
@@ -384,6 +387,7 @@ $activeTab = 'profile';
             try {
                 const stored = JSON.parse(localStorage.getItem('auth_user') || '{}');
                 Object.assign(stored, u);
+                stored.points = points;
                 if (data.places_visited !== undefined) stored.places_visited = data.places_visited;
                 if (data.my_rank !== undefined) stored.my_rank = data.my_rank;
                 localStorage.setItem('auth_user', JSON.stringify(stored));
@@ -450,6 +454,67 @@ $activeTab = 'profile';
         }
     };
 
+    window.syncUserPointsEverywhere = function (newPoints, newVoucherItem) {
+        const pts = Math.max(0, parseInt(newPoints, 10) || 0);
+        window._userPointsBalance = pts;
+
+        document.querySelectorAll('#profile-points-val, #stat-points, #stat-xp, #full-deals-user-points, #dash-stat-points').forEach(el => {
+            el.textContent = pts.toLocaleString();
+        });
+        document.querySelectorAll('#discount-user-pts').forEach(el => {
+            el.textContent = `${pts.toLocaleString()} Points`;
+        });
+
+        try {
+            ['auth_user', 'auth_user_backup', 'intan_elyu_user'].forEach(key => {
+                const raw = localStorage.getItem(key);
+                if (raw) {
+                    const obj = JSON.parse(raw);
+                    if (obj && typeof obj === 'object') {
+                        obj.points = pts;
+                        localStorage.setItem(key, JSON.stringify(obj));
+                    }
+                }
+            });
+        } catch (e) { }
+
+        try {
+            const tok = getProfileAuthToken();
+            if (tok) {
+                const profKey = 'profile_data_' + tok.substring(0, 10);
+                const profRaw = localStorage.getItem(profKey);
+                if (profRaw) {
+                    const profObj = JSON.parse(profRaw);
+                    if (profObj && typeof profObj === 'object') {
+                        if (profObj.user && typeof profObj.user === 'object') profObj.user.points = pts;
+                        if (profObj.data && profObj.data.user && typeof profObj.data.user === 'object') profObj.data.user.points = pts;
+                        localStorage.setItem(profKey, JSON.stringify(profObj));
+                    }
+                }
+
+                const ptsCacheKey = 'points_balance_' + tok.substring(0, 10);
+                let cachedPtsObj = JSON.parse(localStorage.getItem(ptsCacheKey) || '{}');
+                if (!cachedPtsObj || typeof cachedPtsObj !== 'object') cachedPtsObj = {};
+                const targetData = (cachedPtsObj.data && typeof cachedPtsObj.data === 'object') ? cachedPtsObj.data : cachedPtsObj;
+                cachedPtsObj.points = pts;
+                targetData.points = pts;
+                if (newVoucherItem) {
+                    if (!Array.isArray(targetData.vouchers)) targetData.vouchers = [];
+                    const nCode = String(newVoucherItem.voucher_code || newVoucherItem.code || '').toUpperCase().trim();
+                    if (!targetData.vouchers.some(v => String(v && (v.voucher_code || v.code) || '').toUpperCase().trim() === nCode)) {
+                        targetData.vouchers.unshift(newVoucherItem);
+                    }
+                    if (cachedPtsObj !== targetData && Array.isArray(cachedPtsObj.vouchers)) {
+                        if (!cachedPtsObj.vouchers.some(v => String(v && (v.voucher_code || v.code) || '').toUpperCase().trim() === nCode)) {
+                            cachedPtsObj.vouchers.unshift(newVoucherItem);
+                        }
+                    }
+                }
+                localStorage.setItem(ptsCacheKey, JSON.stringify(cachedPtsObj));
+            }
+        } catch (e) { }
+    };
+
     function sortVouchersNewestFirst(vouchers, mode = 'claimed') {
         const fields = mode === 'redeemed'
             ? ['redeemed_at', 'updated_at', 'created_at', 'claimed_at']
@@ -470,28 +535,16 @@ $activeTab = 'profile';
 
     window.renderPointsAndVouchersData = function (d) {
         if (!d) return;
-        const pointsBalance = (d.points !== undefined) ? d.points : (d.xp ?? 0);
-        window._userPointsBalance = pointsBalance;
-        const ptsVal = document.getElementById('profile-points-val');
-        if (ptsVal) ptsVal.textContent = pointsBalance.toLocaleString();
-
-        const elPoints = document.getElementById('stat-points') || document.getElementById('stat-xp');
-        if (elPoints) elPoints.textContent = pointsBalance.toLocaleString();
-
-        const dealsPts = document.getElementById('full-deals-user-points');
-        if (dealsPts) dealsPts.textContent = pointsBalance.toLocaleString();
-
-        // Sync auth_user in localStorage
-        try {
-            let stored = JSON.parse(localStorage.getItem('auth_user') || '{}');
-            stored.points = pointsBalance;
-            localStorage.setItem('auth_user', JSON.stringify(stored));
-        } catch (e) { }
-
-        // Process Active vs History Vouchers
         let rawVouchers = Array.isArray(d.vouchers)
             ? d.vouchers
             : (d.vouchers && typeof d.vouchers === 'object' ? Object.values(d.vouchers) : []);
+        const rawPts = Number(d.points !== undefined ? d.points : (d.xp ?? 0)) || 0;
+        const rawXp = Number(d.xp !== undefined ? d.xp : (d.earned_total ?? rawPts)) || 0;
+        const redeemedTotal = Number(d.redeemed_total || 0) || rawVouchers.reduce((sum, v) => sum + (Number(v && (v.points_cost || v.pointsCost) || 0) || 0), 0);
+        const pointsBalance = (redeemedTotal > 0 && rawPts === rawXp && rawXp > 0)
+            ? Math.max(0, rawXp - redeemedTotal)
+            : rawPts;
+        window.syncUserPointsEverywhere(pointsBalance);
 
         // Also merge any freshly claimed vouchers from window._touristRedemptions (e.g. from Discounts view)
         if (Array.isArray(window._touristRedemptions) && window._touristRedemptions.length > 0) {
@@ -1104,6 +1157,53 @@ $activeTab = 'profile';
         }
     }
 
+    window._redeemConfirmResolver = null;
+
+    window.confirmRedeemModal = function (title, cost) {
+        return new Promise((resolve) => {
+            if (window._redeemConfirmResolver) {
+                const prev = window._redeemConfirmResolver;
+                window._redeemConfirmResolver = null;
+                prev(false);
+            }
+            window._redeemConfirmResolver = resolve;
+
+            const modal = window.ensureProfileModalOnBody ? window.ensureProfileModalOnBody('redeem-confirm-modal') : document.getElementById('redeem-confirm-modal');
+            if (!modal) {
+                window._redeemConfirmResolver = null;
+                resolve(false);
+                return;
+            }
+
+            const titleEl = document.getElementById('redeem-confirm-title');
+            const costEl = document.getElementById('redeem-confirm-cost');
+            if (titleEl) titleEl.textContent = title || 'Selected Reward';
+            if (costEl) costEl.textContent = `${Number(cost || 0).toLocaleString()} Points`;
+
+            modal.style.display = 'flex';
+            void modal.offsetHeight;
+            modal.style.opacity = '1';
+            const card = modal.querySelector('div');
+            if (card) card.style.transform = 'scale(1)';
+        });
+    };
+
+    window.closeRedeemConfirmModal = function (confirmed) {
+        document.querySelectorAll('#redeem-confirm-modal').forEach(modal => {
+            modal.style.opacity = '0';
+            const card = modal.querySelector('div');
+            if (card) card.style.transform = 'scale(0.88)';
+            setTimeout(() => {
+                modal.style.display = 'none';
+            }, 220);
+        });
+        if (window._redeemConfirmResolver) {
+            const resolve = window._redeemConfirmResolver;
+            window._redeemConfirmResolver = null;
+            resolve(Boolean(confirmed));
+        }
+    };
+
     window.redeemAdminVoucher = async function (voucherId, cost, title) {
         const token = getProfileAuthToken();
         if (!token) return;
@@ -1114,7 +1214,7 @@ $activeTab = 'profile';
             return;
         }
 
-        if (!confirm(`Redeem '${title}' for ${cost} Points?`)) return;
+        if (!(await window.confirmRedeemModal(title, cost))) return;
 
         if (!navigator.onLine || window.isAppOnline === false) {
             if (typeof showToast === 'function') {
@@ -1146,7 +1246,8 @@ $activeTab = 'profile';
                 window.dashboardNeedsRefresh = true;
                 window.profileNeedsRefresh = false;
 
-                const newPoints = data.new_balance !== undefined ? data.new_balance : Math.max(0, currentPts - cost);
+                const expectedPts = Math.max(0, currentPts - cost);
+                const newPoints = data.new_balance !== undefined ? Math.min(Number(data.new_balance), expectedPts) : expectedPts;
                 const claimCode = (data.data && data.data.voucher_code) || data.claim_code || ('ELYU-' + cleanId + '-' + Math.random().toString(36).substring(2, 6).toUpperCase());
 
                 // 1. Synchronously update user points everywhere
@@ -1217,19 +1318,8 @@ $activeTab = 'profile';
                     localStorage.removeItem('intan_elyu_cached_vouchers');
                 } catch (e) { }
 
-                // 5. Update cached points_balance_ so 0ms hydration across pages preserves claimed voucher
-                try {
-                    const tok = getProfileAuthToken();
-                    if (tok) {
-                        const ptsCacheKey = 'points_balance_' + tok.substring(0, 10);
-                        let cachedPtsObj = JSON.parse(localStorage.getItem(ptsCacheKey) || '{}');
-                        if (!cachedPtsObj || typeof cachedPtsObj !== 'object') cachedPtsObj = {};
-                        cachedPtsObj.points = newPoints;
-                        if (!Array.isArray(cachedPtsObj.vouchers)) cachedPtsObj.vouchers = [];
-                        cachedPtsObj.vouchers.unshift(newVoucherItem);
-                        localStorage.setItem(ptsCacheKey, JSON.stringify(cachedPtsObj));
-                    }
-                } catch(e) {}
+                // 5. Update cached points_balance_ and profile_data_ so 0ms hydration across pages preserves claimed voucher & deducted balance
+                window.syncUserPointsEverywhere(newPoints, newVoucherItem);
 
                 // 6. Immediately re-render Active Vouchers on profile card
                 window.renderPointsAndVouchersData({
@@ -1286,7 +1376,8 @@ $activeTab = 'profile';
             return;
         }
 
-        if (!confirm(`Are you sure you want to redeem this reward for ${cost} Points?`)) return;
+        const rewardLabel = type === 'pasalubong_discount' ? '₱50 Pasalubong Discount' : (type === 'environmental_fee' ? 'Waived Environmental Fee' : type.replace(/_/g, ' '));
+        if (!(await window.confirmRedeemModal(rewardLabel, cost))) return;
 
         if (!navigator.onLine || window.isAppOnline === false) {
             if (typeof showToast === 'function') {
@@ -1316,7 +1407,8 @@ $activeTab = 'profile';
                 window.dashboardNeedsRefresh = true;
                 window.profileNeedsRefresh = false;
 
-                const newPoints = data.new_balance !== undefined ? data.new_balance : Math.max(0, currentPts - cost);
+                const expectedPts = Math.max(0, currentPts - cost);
+                const newPoints = data.new_balance !== undefined ? Math.min(Number(data.new_balance), expectedPts) : expectedPts;
                 const claimCode = (data.data && data.data.voucher_code) || data.claim_code || ('ELYU-' + type.toUpperCase().substring(0, 4) + '-' + Math.random().toString(36).substring(2, 6).toUpperCase());
                 const rewardTitle = type === 'pasalubong_discount' ? '₱50 Pasalubong Discount' : (type === 'environmental_fee' ? 'Waived Environmental Fee' : type.replace(/_/g, ' '));
 
@@ -1384,19 +1476,8 @@ $activeTab = 'profile';
                     localStorage.setItem(storageKey, JSON.stringify(claimed));
                 } catch(e) {}
 
-                // 5. Update cached points_balance_
-                try {
-                    const tok = getProfileAuthToken();
-                    if (tok) {
-                        const ptsCacheKey = 'points_balance_' + tok.substring(0, 10);
-                        let cachedPtsObj = JSON.parse(localStorage.getItem(ptsCacheKey) || '{}');
-                        if (!cachedPtsObj || typeof cachedPtsObj !== 'object') cachedPtsObj = {};
-                        cachedPtsObj.points = newPoints;
-                        if (!Array.isArray(cachedPtsObj.vouchers)) cachedPtsObj.vouchers = [];
-                        cachedPtsObj.vouchers.unshift(newVoucherItem);
-                        localStorage.setItem(ptsCacheKey, JSON.stringify(cachedPtsObj));
-                    }
-                } catch(e) {}
+                // 5. Update cached points_balance_ and profile_data_
+                window.syncUserPointsEverywhere(newPoints, newVoucherItem);
 
                 // 6. Immediately re-render Active Vouchers on profile card
                 window.renderPointsAndVouchersData({
@@ -2083,6 +2164,8 @@ $activeTab = 'profile';
         const isRedeemed = statusLower === 'redeemed' || statusLower === 'used';
         const rawExp = voucher.expires_at || voucher.valid_until || voucher.expiry_date;
         const isExpired = (statusLower === 'expired') || (rawExp && new Date(String(rawExp).replace(' ', 'T')).getTime() < Date.now());
+        const stampOverlay = document.getElementById('active-qr-stamp-overlay');
+        const stampBadge = document.getElementById('active-qr-stamp-badge');
 
         if (statusBadge) {
             if (isRedeemed) {
@@ -2092,8 +2175,10 @@ $activeTab = 'profile';
                 statusBadge.style.border = '1px solid #fca5a5';
                 if (imgEl) {
                     imgEl.style.filter = 'grayscale(1)';
-                    imgEl.style.opacity = '0.35';
+                    imgEl.style.opacity = '0.3';
                 }
+                if (stampOverlay) stampOverlay.style.display = 'flex';
+                if (stampBadge) stampBadge.style.animation = 'none';
                 if (noticeEl) {
                     noticeEl.textContent = 'This voucher has already been redeemed and verified at merchant checkout. It can no longer be used.';
                     noticeEl.style.color = '#dc2626';
@@ -2109,6 +2194,7 @@ $activeTab = 'profile';
                     imgEl.style.filter = 'grayscale(1)';
                     imgEl.style.opacity = '0.35';
                 }
+                if (stampOverlay) stampOverlay.style.display = 'none';
                 if (noticeEl) {
                     noticeEl.textContent = `This voucher expired on ${expFormatted} and can no longer be redeemed or scanned.`;
                     noticeEl.style.color = '#dc2626';
@@ -2123,6 +2209,7 @@ $activeTab = 'profile';
                     imgEl.style.filter = 'none';
                     imgEl.style.opacity = '1';
                 }
+                if (stampOverlay) stampOverlay.style.display = 'none';
                 if (noticeEl) {
                     noticeEl.textContent = 'Present this QR code directly to merchant or staff at checkout for instant scanning.';
                     noticeEl.style.color = '#64748b';
@@ -2140,7 +2227,7 @@ $activeTab = 'profile';
         const maskBtn = document.getElementById('active-qr-mask-btn');
         if (codeEl) {
             codeEl.textContent = '••••••••••••';
-            codeEl.style.letterSpacing = '2.5px';
+            codeEl.style.letterSpacing = '2px';
             codeEl.style.color = '#1e3a8a';
         }
         if (iconEl) iconEl.className = 'fa-solid fa-eye';
@@ -2177,7 +2264,7 @@ $activeTab = 'profile';
         } else {
             if (codeEl) {
                 codeEl.textContent = '••••••••••••';
-                codeEl.style.letterSpacing = '2.5px';
+                codeEl.style.letterSpacing = '2px';
                 codeEl.style.color = '#1e3a8a';
             }
             if (iconEl) iconEl.className = 'fa-solid fa-eye';
@@ -2227,6 +2314,8 @@ $activeTab = 'profile';
                         const statusBadge = document.getElementById('active-qr-status-badge');
                         const imgEl = document.getElementById('active-qr-modal-img');
                         const noticeEl = document.getElementById('active-qr-notice');
+                        const stampOverlay = document.getElementById('active-qr-stamp-overlay');
+                        const stampBadge = document.getElementById('active-qr-stamp-badge');
 
                         if (statusBadge) {
                             statusBadge.innerHTML = `<i class="fa-solid fa-circle-check" style="color:#15803d; font-size:13px;"></i> Redeemed & Verified at ${data.redeemed_by_partner || 'Partner Merchant'}!`;
@@ -2236,10 +2325,18 @@ $activeTab = 'profile';
                         }
                         if (imgEl) {
                             imgEl.style.filter = 'grayscale(1)';
-                            imgEl.style.opacity = '0.35';
+                            imgEl.style.opacity = '0.3';
+                        }
+                        if (stampOverlay) {
+                            stampOverlay.style.display = 'flex';
+                        }
+                        if (stampBadge) {
+                            stampBadge.style.animation = 'none';
+                            void stampBadge.offsetWidth;
+                            stampBadge.style.animation = 'qrStampSlam 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards';
                         }
                         if (noticeEl) {
-                            noticeEl.textContent = 'Redemption complete! This voucher has been recorded and can no longer be reused.';
+                            noticeEl.textContent = 'Redemption complete! This voucher has been officially stamped and can no longer be reused.';
                             noticeEl.style.color = '#15803d';
                             noticeEl.style.fontWeight = '700';
                         }
@@ -2483,7 +2580,8 @@ $activeTab = 'profile';
                 }
             } else {
                 // When navigating away from profile, close open modals and stop polling
-                ['full-history-modal', 'full-vouchers-modal', 'full-deals-modal', 'active-voucher-qr-modal', 'trip-details-modal', 'reward-details-modal'].forEach(id => {
+                if (typeof window.closeRedeemConfirmModal === 'function') window.closeRedeemConfirmModal(false);
+                ['full-history-modal', 'full-vouchers-modal', 'full-deals-modal', 'active-voucher-qr-modal', 'trip-details-modal', 'reward-details-modal', 'redeem-confirm-modal'].forEach(id => {
                     const m = document.getElementById(id);
                     if (m) m.style.display = 'none';
                 });
@@ -2519,7 +2617,7 @@ $activeTab = 'profile';
 
     // Immediately port all modals to document.body so they stay above bottom-navigation and blur out the nav bar behind backdrop
     setTimeout(() => {
-        ['full-history-modal', 'full-vouchers-modal', 'full-deals-modal', 'active-voucher-qr-modal', 'trip-details-modal', 'reward-details-modal'].forEach(id => {
+        ['full-history-modal', 'full-vouchers-modal', 'full-deals-modal', 'active-voucher-qr-modal', 'trip-details-modal', 'reward-details-modal', 'redeem-confirm-modal'].forEach(id => {
             if (window.ensureProfileModalOnBody) window.ensureProfileModalOnBody(id);
         });
     }, 50);
@@ -2696,12 +2794,27 @@ $activeTab = 'profile';
             </div>
 
             <!-- QR Code Container -->
+            <style>
+                @keyframes qrStampSlam {
+                    0% { opacity: 0; transform: scale(2.4) rotate(-22deg); }
+                    70% { opacity: 1; transform: scale(0.92) rotate(-12deg); }
+                    100% { opacity: 1; transform: scale(1) rotate(-14deg); }
+                }
+            </style>
             <div
                 style="background:#eff6ff; border:1.5px dashed #bfdbfe; border-radius:20px; padding:16px; margin-bottom:14px;">
                 <div
-                    style="background:#ffffff; border-radius:14px; padding:10px; width:170px; height:170px; margin:0 auto 12px; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 14px rgba(0,0,0,0.08); border:1px solid #e2e8f0; position:relative;">
+                    style="background:#ffffff; border-radius:14px; padding:10px; width:170px; height:170px; margin:0 auto 12px; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 14px rgba(0,0,0,0.08); border:1px solid #e2e8f0; position:relative; overflow:hidden;">
                     <img id="active-qr-modal-img" src="" alt="Voucher QR Code"
-                        style="width:100%; height:100%; object-fit:contain;">
+                        style="width:100%; height:100%; object-fit:contain; transition:filter 0.3s ease, opacity 0.3s ease;">
+                    <div id="active-qr-stamp-overlay"
+                        style="display:none; position:absolute; inset:0; align-items:center; justify-content:center; pointer-events:none; z-index:5;">
+                        <div id="active-qr-stamp-badge"
+                            style="border:3px double #dc2626; color:#dc2626; background:rgba(255,255,255,0.93); padding:6px 14px; border-radius:10px; font-weight:900; font-size:15px; letter-spacing:2px; text-transform:uppercase; transform:rotate(-14deg); box-shadow:0 4px 14px rgba(220,38,38,0.22); display:flex; flex-direction:column; align-items:center; line-height:1.1;">
+                            <span style="font-size:8px; letter-spacing:1.2px; font-weight:800; color:#b91c1c; margin-bottom:2px;"><i class="fa-solid fa-certificate"></i> VERIFIED</span>
+                            <span>REDEEMED</span>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Verified Digital Pass Badge -->
@@ -2713,18 +2826,18 @@ $activeTab = 'profile';
 
                 <!-- Clickable Masked Code Container (Tap to Unmask/Mask) -->
                 <div id="active-qr-mask-container" onclick="window.toggleActiveVoucherCodeMask()" role="button" tabindex="0" title="Tap to reveal or hide voucher code"
-                    style="background:#ffffff; border:1.5px solid #bfdbfe; border-radius:14px; padding:10px 14px; margin-bottom:12px; box-shadow:0 2px 8px rgba(30,58,138,0.06); display:flex; align-items:center; justify-content:space-between; gap:10px; cursor:pointer; user-select:none; transition:all 0.2s ease;"
+                    style="background:#ffffff; border:1.5px solid #bfdbfe; border-radius:14px; padding:9px 12px; margin-bottom:12px; box-shadow:0 2px 8px rgba(30,58,138,0.06); display:flex; align-items:center; justify-content:space-between; gap:8px; cursor:pointer; user-select:none; transition:all 0.2s ease;"
                     onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
                     <div style="text-align:left; min-width:0; flex:1;">
-                        <div style="font-size:9.5px; font-weight:800; color:#64748b; text-transform:uppercase; letter-spacing:0.5px; display:flex; align-items:center; gap:5px; margin-bottom:2px;">
-                            <i class="fa-solid fa-key" style="color:#0284c7; font-size:10px;"></i>
+                        <div style="font-size:8.5px; font-weight:800; color:#64748b; text-transform:uppercase; letter-spacing:0.2px; display:flex; align-items:center; gap:4px; margin-bottom:2px; white-space:nowrap;">
+                            <i class="fa-solid fa-key" style="color:#0284c7; font-size:9px;"></i>
                             <span id="active-qr-mask-label">Voucher Code (Tap to reveal)</span>
                         </div>
-                        <div id="active-qr-modal-code" style="font-size:16px; font-weight:900; color:#1e3a8a; letter-spacing:2.5px; font-family:monospace; word-break:break-all;">
+                        <div id="active-qr-modal-code" style="font-size:13.5px; font-weight:900; color:#1e3a8a; letter-spacing:2px; font-family:monospace; word-break:break-all;">
                             ••••••••••••
                         </div>
                     </div>
-                    <div id="active-qr-mask-btn" style="background:#eff6ff; border:1px solid #bfdbfe; color:#1e3a8a; width:34px; height:34px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:13px; flex-shrink:0; transition:all 0.15s ease;">
+                    <div id="active-qr-mask-btn" style="background:#eff6ff; border:1px solid #bfdbfe; color:#1e3a8a; width:32px; height:32px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:12px; flex-shrink:0; transition:all 0.15s ease;">
                         <i class="fa-solid fa-eye" id="active-qr-mask-icon" style="color:#1e3a8a;"></i>
                     </div>
                 </div>
@@ -2860,6 +2973,59 @@ $activeTab = 'profile';
                 <i class="fa-solid fa-gift" style="color:#1e3a8a;"></i> <span style="color:#1e3a8a;">Redeem for <strong
                         id="reward-modal-cost-text" style="color:#1e3a8a;">-- Points</strong></span>
             </button>
+        </div>
+    </div>
+</div>
+
+<!-- Redeem Confirmation Modal -->
+<div id="redeem-confirm-modal" onclick="if(event.target===this)window.closeRedeemConfirmModal(false)"
+    style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(10,25,60,0.68); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:9999999 !important; justify-content:center; align-items:center; padding:20px; opacity:0; transition:opacity 0.22s ease;">
+    <div
+        style="background:#ffffff !important; border:none !important; outline:none !important; border-radius:24px; width:100%; max-width:340px; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 20px 50px rgba(10,25,60,0.45); text-align:center; transform:scale(0.88); transition:transform 0.22s cubic-bezier(0.16,1,0.3,1); position:relative; padding:0;">
+        <!-- Header Banner (Royal Blue) -->
+        <div
+            style="background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%) !important; padding:14px 18px; flex-shrink:0; display:flex; justify-content:space-between; align-items:center; border:none !important;">
+            <div style="font-size:15px; font-weight:800; color:#ffffff; display:flex; align-items:center; gap:8px;">
+                <i class="fa-solid fa-gift" style="color:#00f2fe; font-size:14px;"></i> Confirm Redemption
+            </div>
+            <button type="button" onclick="window.closeRedeemConfirmModal(false)"
+                style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:14px; box-shadow:0 2px 8px rgba(0,0,0,0.2) !important; position:relative; z-index:100; pointer-events:auto !important; touch-action:manipulation;"
+                aria-label="Close Confirm Redemption Modal">
+                <i class="fa-solid fa-xmark" style="color:#1e3a8a !important; pointer-events:none;"></i>
+            </button>
+        </div>
+
+        <!-- Body (White) -->
+        <div style="background:#ffffff !important; padding:22px 20px 18px; color:#0f172a;">
+            <div
+                style="width:58px; height:58px; border-radius:50%; background:#eff6ff; border:1.5px solid #bfdbfe; display:flex; align-items:center; justify-content:center; margin:0 auto 14px; color:#1e3a8a; font-size:24px; box-shadow:0 4px 12px rgba(30,58,138,0.12);">
+                <i class="fa-solid fa-ticket" style="color:#1e3a8a;"></i>
+            </div>
+            <div style="font-size:13px; font-weight:700; color:#64748b; margin-bottom:6px;">
+                Are you sure you want to redeem
+            </div>
+            <h4 id="redeem-confirm-title"
+                style="margin:0 0 12px; font-size:16.5px; font-weight:800; color:#0f172a; line-height:1.35; word-break:break-word;">
+                Reward Title
+            </h4>
+            <div
+                style="display:inline-flex; align-items:center; gap:6px; background:#eff6ff; border:1px solid #bfdbfe; padding:6px 14px; border-radius:100px; margin-bottom:18px;">
+                <i class="fa-solid fa-coins" style="color:#f59e0b; font-size:13px;"></i>
+                <span id="redeem-confirm-cost" style="font-size:13.5px; font-weight:900; color:#1e3a8a;">0 Points</span>
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                <button type="button" id="redeem-confirm-cancel-btn" onclick="window.closeRedeemConfirmModal(false)"
+                    style="padding:12px 14px; border-radius:14px; background:#f1f5f9 !important; border:1.5px solid #e2e8f0 !important; color:#475569 !important; font-size:13.5px; font-weight:800; cursor:pointer; transition:transform 0.15s ease;"
+                    onpointerdown="this.style.transform='scale(0.97)'" onpointerup="this.style.transform='scale(1)'">
+                    Cancel
+                </button>
+                <button type="button" id="redeem-confirm-ok-btn" onclick="window.closeRedeemConfirmModal(true)"
+                    style="padding:12px 14px; border-radius:14px; background:linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%) !important; border:none !important; color:#ffffff !important; font-size:13.5px; font-weight:800; cursor:pointer; box-shadow:0 4px 14px rgba(37,99,235,0.32) !important; transition:transform 0.15s ease;"
+                    onpointerdown="this.style.transform='scale(0.97)'" onpointerup="this.style.transform='scale(1)'">
+                    Redeem
+                </button>
+            </div>
         </div>
     </div>
 </div>

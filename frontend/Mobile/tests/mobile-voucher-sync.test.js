@@ -116,4 +116,18 @@ assert.match(profileSource, /Default: 'all' -> shows BOTH active vouchers and hi
 assert.match(pointsControllerSource, /\['redeemed', 'used', 'completed'\][\s\S]*?redeemed_at[\s\S]*?claimed_at/,
     'backend voucher ordering must use the appropriate redeemed or claimed timestamp');
 
+assert.match(profileSource, /id="redeem-confirm-modal"/,
+    'profile must provide a custom modal for voucher redemption confirmation');
+assert.match(profileSource, /await window\.confirmRedeemModal\(title, cost\)/,
+    'redeemAdminVoucher must await the custom redemption confirmation modal instead of native confirm()');
+assert.doesNotMatch(profileSource, /confirm\(`Redeem '/,
+    'profile voucher redemption must not use native browser confirm()');
+assert.match(profileSource, /id="active-qr-stamp-overlay"/,
+    'profile QR pass modal must include a stamp overlay when a voucher is scanned/redeemed');
+assert.match(source, /id="modal-qr-stamp-overlay"/,
+    'discount QR pass modal must include a stamp overlay when a voucher is scanned/redeemed');
+assert.doesNotMatch(pointsControllerSource, /\$maxPoints\s*=\s*max\(\(int\)\s*\(\$user->points\s*\?\?\s*0\),\s*\(int\)\s*\(\$user->xp\s*\?\?\s*0\)\)/,
+    'PointsController getBalance must not overwrite deducted points back to xp via max(points, xp)');
+assert.match(profileSource, /window\.syncUserPointsEverywhere\s*=\s*function/,
+    'profile must sync deducted points across DOM elements, points_balance_ wrapper, and profile_data_ cache');
 console.log('mobile voucher sync tests passed');
