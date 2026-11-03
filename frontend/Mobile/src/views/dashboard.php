@@ -306,6 +306,196 @@ if (is_dir($imgDir)) {
         cursor: pointer !important;
         margin-left: auto !important;
     }
+    .weather-muni-select {
+        margin-left: auto !important;
+        background: rgba(255, 255, 255, 0.16) !important;
+        color: #ffffff !important;
+        border: 1px solid rgba(255, 255, 255, 0.28) !important;
+        border-radius: 100px !important;
+        padding: 3px 10px !important;
+        font-size: 10.5px !important;
+        font-weight: 700 !important;
+        outline: none !important;
+        cursor: pointer !important;
+        max-width: 155px !important;
+        text-overflow: ellipsis !important;
+    }
+    .weather-muni-select option {
+        background: #0f172a !important;
+        color: #ffffff !important;
+    }
+    .weather-best-time-bar {
+        display: flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+        background: rgba(15, 23, 42, 0.24) !important;
+        border: 1px solid rgba(255, 255, 255, 0.14) !important;
+        border-radius: 12px !important;
+        padding: 6px 10px !important;
+        margin-bottom: 8px !important;
+        font-size: 10.5px !important;
+        font-weight: 600 !important;
+        color: rgba(255, 255, 255, 0.95) !important;
+        line-height: 1.3 !important;
+    }
+    .weather-best-time-bar i {
+        color: #fbbf24 !important;
+        font-size: 11px !important;
+        flex-shrink: 0 !important;
+    }
+    .weather-alert-banner {
+        display: none;
+        align-items: flex-start !important;
+        gap: 8px !important;
+        border-radius: 14px !important;
+        padding: 8px 12px !important;
+        margin-bottom: 10px !important;
+        font-size: 11px !important;
+        line-height: 1.35 !important;
+        box-sizing: border-box !important;
+    }
+    .weather-alert-banner.alert-danger {
+        background: rgba(239, 68, 68, 0.14) !important;
+        border: 1.5px solid rgba(239, 68, 68, 0.4) !important;
+        color: #991b1b !important;
+    }
+    .weather-alert-banner.alert-warning {
+        background: rgba(245, 158, 11, 0.14) !important;
+        border: 1.5px solid rgba(245, 158, 11, 0.4) !important;
+        color: #92400e !important;
+    }
+    .weather-alert-banner.alert-caution {
+        background: rgba(2, 132, 199, 0.1) !important;
+        border: 1.5px solid rgba(2, 132, 199, 0.3) !important;
+        color: #075985 !important;
+    }
+    .weather-rec-section {
+        margin: 4px 0 14px 0 !important;
+    }
+    .weather-rec-header {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        gap: 8px !important;
+        margin-bottom: 8px !important;
+    }
+    .weather-rec-title {
+        font-size: 14px !important;
+        font-weight: 800 !important;
+        color: #0f172a !important;
+        margin: 0 !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+        letter-spacing: -0.2px !important;
+    }
+    .weather-rec-badge {
+        font-size: 10px !important;
+        font-weight: 800 !important;
+        padding: 3px 9px !important;
+        border-radius: 100px !important;
+        background: #e0f2fe !important;
+        color: #0369a1 !important;
+        white-space: nowrap !important;
+    }
+    .weather-rec-row {
+        display: flex !important;
+        gap: 10px !important;
+        overflow-x: auto !important;
+        scrollbar-width: none !important;
+        -ms-overflow-style: none !important;
+        padding: 2px 2px 6px 2px !important;
+        scroll-snap-type: x mandatory !important;
+        -webkit-overflow-scrolling: touch !important;
+    }
+    .weather-rec-row::-webkit-scrollbar {
+        display: none !important;
+    }
+    .weather-rec-card {
+        flex: 0 0 235px !important;
+        width: 235px !important;
+        background: #ffffff !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 16px !important;
+        padding: 8px !important;
+        display: flex !important;
+        gap: 9px !important;
+        align-items: center !important;
+        box-shadow: 0 3px 10px rgba(15, 23, 42, 0.05) !important;
+        cursor: pointer !important;
+        scroll-snap-align: start !important;
+        box-sizing: border-box !important;
+        transition: transform 0.15s ease !important;
+    }
+    .weather-rec-card:active {
+        transform: scale(0.98) !important;
+    }
+    .weather-rec-thumb {
+        width: 68px !important;
+        height: 68px !important;
+        border-radius: 12px !important;
+        object-fit: cover !important;
+        flex-shrink: 0 !important;
+        background: #f1f5f9 !important;
+    }
+    .weather-rec-info {
+        flex: 1 !important;
+        min-width: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 2px !important;
+    }
+    .weather-rec-name {
+        font-size: 12.5px !important;
+        font-weight: 800 !important;
+        color: #0f172a !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        margin: 0 !important;
+    }
+    .weather-rec-muni {
+        font-size: 10px !important;
+        font-weight: 600 !important;
+        color: #64748b !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+    }
+    .weather-rec-reason {
+        font-size: 9.5px !important;
+        font-weight: 700 !important;
+        color: #0284c7 !important;
+        background: #f0f9ff !important;
+        border-radius: 6px !important;
+        padding: 2px 6px !important;
+        width: fit-content !important;
+        max-width: 100% !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        margin-top: 1px !important;
+    }
+    .weather-rec-actions {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        gap: 6px !important;
+        margin-top: 3px !important;
+    }
+    .weather-rec-itin-btn {
+        background: #1e3a8a !important;
+        color: #ffffff !important;
+        border: none !important;
+        border-radius: 100px !important;
+        padding: 3px 8px !important;
+        font-size: 9px !important;
+        font-weight: 800 !important;
+        cursor: pointer !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 3px !important;
+    }
 
     /* Category Cards: Minimized Height & Intact Multiline Labels */
     .categories-container {
@@ -932,6 +1122,29 @@ if (is_dir($imgDir)) {
                 <i class="fa-solid fa-location-dot"></i>
                 <span id="weather-loc">San Fernando, La Union</span>
             </div>
+            <select id="weather-muni-select" class="weather-muni-select" onclick="event.stopPropagation();" onchange="window.changeWeatherLocation(this.value)" aria-label="Select Municipality for Weather">
+                <option value="GPS_CURRENT">📍 My Location</option>
+                <option value="16.6159,120.3167,San Fernando" selected>San Fernando City</option>
+                <option value="16.6711,120.3385,San Juan">San Juan</option>
+                <option value="16.5319,120.3298,Bauang">Bauang</option>
+                <option value="16.3217,120.3667,Agoo">Agoo</option>
+                <option value="16.8554,120.3758,Luna">Luna</option>
+                <option value="16.8942,120.4245,Bangar">Bangar</option>
+                <option value="16.5366,120.3926,Naguilian">Naguilian</option>
+                <option value="16.7202,120.3353,Bacnotan">Bacnotan</option>
+                <option value="16.8228,120.4005,Balaoan">Balaoan</option>
+                <option value="16.3958,120.3325,Aringay">Aringay</option>
+                <option value="16.4292,120.3344,Caba">Caba</option>
+                <option value="16.2286,120.4850,Rosario">Rosario</option>
+                <option value="16.3167,120.4667,Pugo">Pugo</option>
+                <option value="16.3470,120.4126,Tubao">Tubao</option>
+                <option value="16.2842,120.3861,Santo Tomas">Santo Tomas</option>
+                <option value="16.7686,120.4578,Santol">Santol</option>
+                <option value="16.9031,120.4700,Sudipen">Sudipen</option>
+                <option value="16.6711,120.4050,San Gabriel">San Gabriel</option>
+                <option value="16.6072,120.4422,Bagulin">Bagulin</option>
+                <option value="16.5183,120.4578,Burgos">Burgos</option>
+            </select>
         </div>
         <div class="weather-mid-row">
             <div class="weather-left-info">
@@ -940,7 +1153,7 @@ if (is_dir($imgDir)) {
                     <span class="weather-icon-badge" id="weather-icon">☁️</span>
                 </div>
                 <div class="weather-desc-main" id="weather-desc">Overcast</div>
-                <div class="weather-tip-msg">Good for outdoor activities</div>
+                <div class="weather-tip-msg" id="weather-tip">Good for outdoor activities</div>
             </div>
             <div class="weather-art-wrap" aria-hidden="true">
                 <div class="weather-3d-cloud">
@@ -953,6 +1166,11 @@ if (is_dir($imgDir)) {
                     </svg>
                 </div>
             </div>
+        </div>
+        <!-- Best Time to Visit Strip -->
+        <div class="weather-best-time-bar" id="weather-best-time-strip">
+            <i class="fa-regular fa-clock"></i>
+            <span>Best Time to Visit: <strong id="weather-best-time">7:00 AM – 10:00 AM (~28°C)</strong></span>
         </div>
         <div class="weather-bottom-row">
             <div class="weather-stat-pill">
@@ -970,6 +1188,25 @@ if (is_dir($imgDir)) {
             <div class="weather-forecast-pill">
                 <span>5-Day Forecast</span>
                 <i class="fa-solid fa-chevron-right" style="font-size: 9px;"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Weather Alerts Banner (Shown dynamically when weather affects tourist activities) -->
+    <div id="weather-alert-banner" class="weather-alert-banner stagger-2"></div>
+
+    <!-- Smart Weather Recommendations Section -->
+    <div id="smart-weather-rec-section" class="weather-rec-section stagger-2">
+        <div class="weather-rec-header">
+            <h3 class="weather-rec-title">
+                <i class="fa-solid fa-wand-magic-sparkles" style="color: #0284c7; font-size: 13px;"></i>
+                <span>Recommended for Today's Weather</span>
+            </h3>
+            <span id="weather-rec-condition-badge" class="weather-rec-badge">⛅ Partly Cloudy</span>
+        </div>
+        <div id="weather-rec-container" class="weather-rec-row">
+            <div style="font-size: 11.5px; color: #64748b; padding: 8px 4px; font-weight: 600;">
+                <i class="fa-solid fa-spinner fa-spin" style="color: #0284c7; margin-right: 5px;"></i> Matching destinations to current weather...
             </div>
         </div>
     </div>
@@ -1399,6 +1636,10 @@ window.applyTouristSitesFilterModal = function() {
     }
 
     window.closeTouristSitesFilterModal();
+
+    if (muniVal && muniVal !== 'All' && muniVal !== 'near' && typeof window.syncWeatherMunicipalityByName === 'function') {
+        window.syncWeatherMunicipalityByName(muniVal);
+    }
 
     // If Near Me is selected in the modal, route through Near Me chip
     if (isNearSelected) {
@@ -2140,6 +2381,9 @@ window.applyTouristSitesFilterModal = function() {
             if (typeof window.renderAllTouristSpots === 'function') {
                 window.renderAllTouristSpots(filtered, activeCat);
             }
+            if (typeof window.renderSmartWeatherRecommendations === 'function' && window._lastWeatherData) {
+                window.renderSmartWeatherRecommendations(window._lastWeatherData);
+            }
         }
 
         try {
@@ -2174,6 +2418,9 @@ window.applyTouristSitesFilterModal = function() {
                         }
                         if (typeof window.renderAllTouristSpots === 'function') {
                             window.renderAllTouristSpots(filtered, activeCat);
+                        }
+                        if (typeof window.renderSmartWeatherRecommendations === 'function' && window._lastWeatherData) {
+                            window.renderSmartWeatherRecommendations(window._lastWeatherData);
                         }
                     } else if (typeof handleDashboardEmptyOrError === 'function') {
                         handleDashboardEmptyOrError();
@@ -2327,9 +2574,429 @@ window.applyTouristSitesFilterModal = function() {
     };
 
     // ─────────────────────────────────────────────────────────────────────────────
-    //  Weather API Integration
+    //  Weather API Integration & Smart Weather Recommendations
     // ─────────────────────────────────────────────────────────────────────────────
     window.currentWeatherLocation = { lat: 16.6159, lng: 120.3209, name: 'San Fernando, La Union', isCurrentLoc: false };
+
+    window.LA_UNION_MUNI_COORDS = {
+        'San Fernando': { lat: 16.6159, lng: 120.3167, label: 'San Fernando, La Union' },
+        'San Juan': { lat: 16.6711, lng: 120.3385, label: 'San Juan, La Union' },
+        'Bauang': { lat: 16.5319, lng: 120.3298, label: 'Bauang, La Union' },
+        'Agoo': { lat: 16.3217, lng: 120.3667, label: 'Agoo, La Union' },
+        'Luna': { lat: 16.8554, lng: 120.3758, label: 'Luna, La Union' },
+        'Bangar': { lat: 16.8942, lng: 120.4245, label: 'Bangar, La Union' },
+        'Naguilian': { lat: 16.5366, lng: 120.3926, label: 'Naguilian, La Union' },
+        'Bacnotan': { lat: 16.7202, lng: 120.3353, label: 'Bacnotan, La Union' },
+        'Balaoan': { lat: 16.8228, lng: 120.4005, label: 'Balaoan, La Union' },
+        'Aringay': { lat: 16.3958, lng: 120.3325, label: 'Aringay, La Union' },
+        'Caba': { lat: 16.4292, lng: 120.3344, label: 'Caba, La Union' },
+        'Rosario': { lat: 16.2286, lng: 120.4850, label: 'Rosario, La Union' },
+        'Pugo': { lat: 16.3167, lng: 120.4667, label: 'Pugo, La Union' },
+        'Tubao': { lat: 16.3470, lng: 120.4126, label: 'Tubao, La Union' },
+        'Santo Tomas': { lat: 16.2842, lng: 120.3861, label: 'Santo Tomas, La Union' },
+        'Santol': { lat: 16.7686, lng: 120.4578, label: 'Santol, La Union' },
+        'Sudipen': { lat: 16.9031, lng: 120.4700, label: 'Sudipen, La Union' },
+        'San Gabriel': { lat: 16.6711, lng: 120.4050, label: 'San Gabriel, La Union' },
+        'Bagulin': { lat: 16.6072, lng: 120.4422, label: 'Bagulin, La Union' },
+        'Burgos': { lat: 16.5183, lng: 120.4578, label: 'Burgos, La Union' }
+    };
+
+    window.syncWeatherMunicipalitySelectUI = function (locationName, isCurrentLoc) {
+        const sel = document.getElementById('weather-muni-select');
+        if (!sel) return;
+        if (isCurrentLoc) {
+            sel.value = 'GPS_CURRENT';
+            return;
+        }
+        const clean = String(locationName || '').toLowerCase().replace(' city', '').replace(', la union', '').trim();
+        for (let i = 0; i < sel.options.length; i++) {
+            const optVal = sel.options[i].value.toLowerCase();
+            if (clean && optVal.includes(',' + clean)) {
+                sel.selectedIndex = i;
+                return;
+            }
+        }
+    };
+
+    window.syncWeatherMunicipalityByName = function (muniName) {
+        if (!muniName) return;
+        const clean = String(muniName).replace(' City', '').trim();
+        const entry = window.LA_UNION_MUNI_COORDS[clean];
+        if (entry) {
+            window.syncWeatherMunicipalitySelectUI(clean, false);
+            window.fetchWeather(entry.lat, entry.lng, entry.label, false);
+        }
+    };
+
+    window.classifyWeatherCondition = function (data) {
+        const code = (data && data.weather_code !== undefined && data.weather_code !== null) ? Number(data.weather_code) : -1;
+        const condStr = String((data && data.condition) || '').toLowerCase();
+        const wind = Number((data && data.wind_speed) || 0);
+        const uv = Number((data && data.uv_index) || 0);
+        const temp = Number((data && data.temperature) || 29);
+        const feelsLike = Number((data && data.feels_like) || temp);
+        const rainProb = (data && Array.isArray(data.forecast) && data.forecast[0] && data.forecast[0].rain_prob !== undefined)
+            ? Number(data.forecast[0].rain_prob)
+            : 0;
+
+        let group = (data && data.weather_group) ? String(data.weather_group) : '';
+        if (!group) {
+            if ([65, 67, 82, 95, 96, 99].includes(code) || wind >= 40 || /thunder|storm|heavy rain|typhoon|severe/i.test(condStr)) {
+                group = 'severe';
+            } else if ([51, 53, 55, 56, 57, 61, 63, 66, 80, 81].includes(code) || /rain|drizzle|shower/i.test(condStr)) {
+                group = 'rainy';
+            } else if ([3, 45, 48].includes(code) || /overcast|fog|^cloudy$/i.test(condStr)) {
+                group = 'cloudy';
+            } else if ([1, 2].includes(code) || /partly cloudy|mainly clear/i.test(condStr)) {
+                group = 'partly_cloudy';
+            } else {
+                group = 'sunny';
+            }
+        }
+
+        const badgeMap = {
+            sunny: { text: '☀️ Sunny Picks', bg: '#fef3c7', color: '#b45309' },
+            partly_cloudy: { text: '🌤️ Partly Cloudy Picks', bg: '#e0f2fe', color: '#0369a1' },
+            cloudy: { text: '☁️ Cloudy Picks', bg: '#f1f5f9', color: '#334155' },
+            rainy: { text: '🌧️ Rainy Day Picks', bg: '#dbeafe', color: '#1d4ed8' },
+            severe: { text: '⛈️ Safety Alert', bg: '#fee2e2', color: '#b91c1c' }
+        };
+
+        const defaultShortDesc = {
+            sunny: 'Bright sunny weather — great for beaches, parks, viewpoints & outdoor spots.',
+            partly_cloudy: 'Pleasant partly cloudy skies — ideal for nature trails & outdoor activities.',
+            cloudy: 'Cool overcast skies — comfortable for heritage sites, gardens & sightseeing.',
+            rainy: 'Rainy weather — best for museums, cultural landmarks & indoor dining.',
+            severe: 'Severe weather warning — stay indoors and avoid coastal or mountain areas.'
+        };
+
+        const defaultBestTime = {
+            sunny: '7:00 AM – 10:00 AM & 4:00 PM – 6:00 PM (Avoid midday UV)',
+            partly_cloudy: '7:30 AM – 11:00 AM & 3:00 PM – 5:30 PM (~' + temp + '°C)',
+            cloudy: '8:00 AM – 5:00 PM (Comfortable all-day sightseeing)',
+            rainy: '10:00 AM – 4:00 PM (Indoor cultural & dining hours)',
+            severe: 'Postpone outdoor visits until severe weather clears'
+        };
+
+        let alerts = Array.isArray(data && data.alerts) ? [...data.alerts] : [];
+        if (alerts.length === 0) {
+            if (group === 'severe') {
+                alerts.push({
+                    level: 'danger',
+                    title: 'Severe Weather Safety Warning',
+                    message: 'Heavy rain, thunderstorms, or strong winds active. Avoid swimming, surfing, mountain hiking, and waterfalls.'
+                });
+            } else if (group === 'rainy' || rainProb >= 65) {
+                alerts.push({
+                    level: 'warning',
+                    title: 'Wet Weather Advisory',
+                    message: 'Rain showers active or likely today. Trails and coastal rocks may be slippery; indoor and cultural attractions are recommended.'
+                });
+            } else if (wind >= 28) {
+                alerts.push({
+                    level: 'warning',
+                    title: `Strong Coastal Winds (${wind} km/h)`,
+                    message: 'Expect stronger waves along coastal beaches. Exercise caution during water activities.'
+                });
+            } else if (uv >= 8 || feelsLike >= 37) {
+                alerts.push({
+                    level: 'caution',
+                    title: `High UV & Heat Advisory (UV ${uv} · Feels ${feelsLike}°C)`,
+                    message: 'Stay hydrated, wear sun protection, and prefer morning or late-afternoon visits.'
+                });
+            }
+        }
+
+        return {
+            group,
+            badge: badgeMap[group] || badgeMap.partly_cloudy,
+            shortDesc: (data && data.short_description) || defaultShortDesc[group] || defaultShortDesc.partly_cloudy,
+            bestTime: (data && data.best_time) || defaultBestTime[group] || defaultBestTime.partly_cloudy,
+            alerts
+        };
+    };
+
+    window.getWeatherRecommendedSpots = function (weatherData, spotsPool) {
+        const meta = window.classifyWeatherCondition(weatherData || {});
+        if (meta.group === 'severe') {
+            return { isSevere: true, meta, spots: [] };
+        }
+
+        let rawSpots = Array.isArray(spotsPool) && spotsPool.length > 0 ? spotsPool : (window.allTouristSpots || []);
+        if (!rawSpots || rawSpots.length === 0) {
+            try {
+                const mapCache = window.safeJsonParse ? window.safeJsonParse(localStorage.getItem('public_map_data'), null) : null;
+                rawSpots = (mapCache && (mapCache.destinations || mapCache.data?.destinations || mapCache.spots || mapCache.data?.spots)) || [];
+            } catch (e) {}
+        }
+        if ((!rawSpots || rawSpots.length === 0) && Array.isArray(window.dashTrending)) {
+            rawSpots = window.dashTrending;
+        }
+
+        // Recommend ONLY approved and available tourist sites (exclude pending/draft/rejected and maintenance)
+        const availableSpots = (rawSpots || []).filter(s => {
+            if (!s || !s.name) return false;
+            const st = String(s.status || 'approved').toLowerCase();
+            if (['pending', 'draft', 'rejected'].includes(st) || st.includes('maint')) return false;
+            if (s.is_maintenance == 1 || s.is_maintenance === true) return false;
+            return true;
+        });
+
+        const locStr = String((weatherData && weatherData.location) || (window.currentWeatherLocation && window.currentWeatherLocation.name) || '')
+            .toLowerCase()
+            .replace(' city', '')
+            .replace(', la union', '')
+            .replace('my location', '')
+            .replace('📍', '')
+            .trim();
+
+        const isUnsafeInRain = (spot) => {
+            const cat = String(spot.category || '').toLowerCase();
+            const name = String(spot.name || '').toLowerCase();
+            return /\b(beach|surf|waterfall|waterfalls|falls|mountain|hiking|camping|island|river|lake|cave|volcano|marine|cliff)\b/i.test(cat + ' ' + name);
+        };
+
+        const evaluateSpotForWeather = (spot) => {
+            const cat = String(spot.category || '').toLowerCase();
+            const name = String(spot.name || '').toLowerCase();
+            const desc = String(spot.description || '').toLowerCase();
+            const combined = `${cat} ${name} ${desc}`;
+
+            if (meta.group === 'sunny') {
+                if (/\b(beach|surf|coastal|island|marine)\b/i.test(combined)) {
+                    return { match: true, priority: 3, reason: '☀️ Great for Sunny Beach Weather' };
+                }
+                if (/\b(viewpoint|view deck|viewdeck|park|nature park|recreation|resort|garden)\b/i.test(combined)) {
+                    return { match: true, priority: 2, reason: '☀️ Clear-Sky Viewpoint & Outdoor Pick' };
+                }
+                if (/\b(waterfall|waterfalls|falls|river|lake|adventure|eco-tourism|farm)\b/i.test(combined)) {
+                    return { match: true, priority: 1, reason: '☀️ Ideal Sunny Outdoor Attraction' };
+                }
+                return { match: false, priority: 0, reason: '☀️ Sunny Day Pick' };
+            }
+
+            if (meta.group === 'rainy') {
+                if (isUnsafeInRain(spot)) {
+                    return { match: false, priority: -1, reason: '' };
+                }
+                if (/\b(museum|gallery|cultural|heritage|ancestral|weaving|pottery|craft)\b/i.test(combined)) {
+                    return { match: true, priority: 3, reason: '🌧️ Museum & Cultural Shelter' };
+                }
+                if (/\b(religious|church|basilica|parish|shrine|cathedral|chapel|historical|monument|landmark)\b/i.test(combined)) {
+                    return { match: true, priority: 2, reason: '🌧️ Rainy-Day Heritage & Landmark' };
+                }
+                if (/\b(food|dining|restaurant|cafe|bistro|shopping|market)\b/i.test(combined)) {
+                    return { match: true, priority: 2, reason: '🌧️ Cozy Indoor Dining & Local Spot' };
+                }
+                return { match: true, priority: 1, reason: '🌧️ Safe All-Weather Stop' };
+            }
+
+            if (meta.group === 'cloudy') {
+                if (/\b(heritage|historical|cultural|monument|landmark|watchtower|church|basilica|shrine|museum)\b/i.test(combined)) {
+                    return { match: true, priority: 3, reason: '☁️ Cool Overcast Heritage Sightseeing' };
+                }
+                if (/\b(garden|farm|grape|plantation|park|nature park|eco-tourism|viewpoint)\b/i.test(combined)) {
+                    return { match: true, priority: 2, reason: '☁️ Pleasant Garden & Sightseeing Walk' };
+                }
+                return { match: false, priority: 0, reason: '☁️ Comfortable Sightseeing Spot' };
+            }
+
+            // partly_cloudy (default)
+            if (/\b(nature|eco-tourism|mountain|hiking|trail|waterfall|waterfalls|falls|forest|wildlife|river|lake)\b/i.test(combined)) {
+                return { match: true, priority: 3, reason: '🌤️ Ideal for Nature & Outdoor Trails' };
+            }
+            if (/\b(adventure|camping|park|farm|viewpoint|beach|surf|recreation)\b/i.test(combined)) {
+                return { match: true, priority: 2, reason: '🌤️ Mild Weather for Outdoor Activities' };
+            }
+            return { match: false, priority: 0, reason: '🌤️ Great Outdoor Weather Pick' };
+        };
+
+        const scored = [];
+        for (const spot of availableSpots) {
+            const evalRes = evaluateSpotForWeather(spot);
+            if (evalRes.priority < 0) continue; // Strictly skip unsafe spots in rain
+
+            const spotMuni = String(spot.municipality || spot.location || (typeof window.resolveMunicipalityName === 'function' ? window.resolveMunicipalityName(spot) : '')).toLowerCase();
+            const inSelectedMuni = Boolean(locStr && locStr.length >= 3 && spotMuni.includes(locStr));
+            const ratingScore = Math.min(5, Math.max(0, parseFloat(spot.rating || spot.reviews_avg_rating || 0)));
+            const visitsScore = Math.min(3, Math.log10(Math.max(1, parseInt(spot.visits || 0, 10) + 1)));
+
+            if (evalRes.match) {
+                const totalScore = (inSelectedMuni ? 100 : 0) + (evalRes.priority * 20) + (ratingScore * 2) + visitsScore;
+                scored.push({ spot, reason: evalRes.reason, score: totalScore, inSelectedMuni });
+            }
+        }
+
+        // Fallback if strict category pool has < 3 spots (still respecting rain safety!)
+        if (scored.length < 3) {
+            const existingIds = new Set(scored.map(item => String(item.spot.id)));
+            for (const spot of availableSpots) {
+                if (existingIds.has(String(spot.id))) continue;
+                if (meta.group === 'rainy' && isUnsafeInRain(spot)) continue;
+                const spotMuni = String(spot.municipality || spot.location || '').toLowerCase();
+                const inSelectedMuni = Boolean(locStr && locStr.length >= 3 && spotMuni.includes(locStr));
+                const ratingScore = Math.min(5, Math.max(0, parseFloat(spot.rating || spot.reviews_avg_rating || 0)));
+                const fallbackReason = meta.group === 'rainy'
+                    ? '🌧️ Safe All-Weather Cultural Stop'
+                    : (meta.group === 'cloudy' ? '☁️ Comfortable Sightseeing Spot' : (meta.group === 'sunny' ? '☀️ Popular Sunny Destination' : '🌤️ Great Outdoor Weather Pick'));
+                scored.push({
+                    spot,
+                    reason: fallbackReason,
+                    score: (inSelectedMuni ? 50 : 0) + (ratingScore * 2),
+                    inSelectedMuni
+                });
+            }
+        }
+
+        scored.sort((a, b) => b.score - a.score);
+        return {
+            isSevere: false,
+            meta,
+            spots: scored.slice(0, 5)
+        };
+    };
+
+    window.quickAddWeatherSpotToItinerary = function (encodedDest, btnEl) {
+        try {
+            let dest = null;
+            if (typeof encodedDest === 'object' && encodedDest !== null) {
+                dest = encodedDest;
+            } else if (typeof encodedDest === 'string') {
+                dest = JSON.parse(decodeURIComponent(encodedDest));
+            }
+            if (!dest) return;
+
+            let draft = [];
+            try {
+                draft = JSON.parse(localStorage.getItem('intan_elyu_draft_itinerary') || '[]');
+                if (!Array.isArray(draft)) draft = [];
+            } catch (e) { draft = []; }
+
+            const exists = draft.some(item => String(item.id) === String(dest.id));
+            if (!exists) {
+                draft.push(dest);
+                localStorage.setItem('intan_elyu_draft_itinerary', JSON.stringify(draft));
+                if (btnEl) {
+                    btnEl.innerHTML = '<i class="fa-solid fa-check"></i> Added';
+                    btnEl.style.setProperty('background', '#10b981', 'important');
+                }
+                if (typeof showToast === 'function') {
+                    showToast(`Added "${dest.name}" to your Trip Itinerary!`);
+                }
+            } else {
+                if (typeof showToast === 'function') {
+                    showToast(`"${dest.name}" is already in your Trip Itinerary.`);
+                }
+            }
+        } catch (err) {
+            console.warn('Failed to quick-add spot to itinerary:', err);
+        }
+    };
+
+    window.renderSmartWeatherRecommendations = function (weatherData) {
+        if (!weatherData) return;
+        window._lastWeatherData = weatherData;
+
+        const { isSevere, meta, spots } = window.getWeatherRecommendedSpots(weatherData);
+
+        // 1. Update Short Weather Description & Best Time to Visit on Weather Card
+        const tipEl = document.getElementById('weather-tip');
+        if (tipEl) tipEl.textContent = meta.shortDesc;
+
+        const bestTimeEl = document.getElementById('weather-best-time');
+        if (bestTimeEl) bestTimeEl.textContent = meta.bestTime;
+
+        // 2. Update Weather Alerts Banner
+        const alertBanner = document.getElementById('weather-alert-banner');
+        if (alertBanner) {
+            if (meta.alerts && meta.alerts.length > 0) {
+                const topAlert = meta.alerts[0];
+                const lvl = topAlert.level === 'danger' ? 'alert-danger' : (topAlert.level === 'warning' ? 'alert-warning' : 'alert-caution');
+                const iconCls = topAlert.level === 'danger' ? 'fa-triangle-exclamation' : (topAlert.level === 'warning' ? 'fa-cloud-showers-heavy' : 'fa-sun-plant-wilt');
+                alertBanner.className = `weather-alert-banner stagger-2 ${lvl}`;
+                alertBanner.style.display = 'flex';
+                alertBanner.innerHTML = `
+                    <i class="fa-solid ${iconCls}" style="font-size: 14px; margin-top: 1px; flex-shrink: 0;"></i>
+                    <div style="flex: 1; min-width: 0;">
+                        <div style="font-weight: 800; font-size: 11.5px; margin-bottom: 1px;">${topAlert.title}</div>
+                        <div style="font-weight: 600; font-size: 10.5px; opacity: 0.92;">${topAlert.message}</div>
+                    </div>
+                `;
+            } else {
+                alertBanner.style.display = 'none';
+                alertBanner.innerHTML = '';
+            }
+        }
+
+        // 3. Update Recommended for Today's Weather Section
+        const badgeEl = document.getElementById('weather-rec-condition-badge');
+        if (badgeEl && meta.badge) {
+            badgeEl.textContent = meta.badge.text;
+            badgeEl.style.setProperty('background', meta.badge.bg, 'important');
+            badgeEl.style.setProperty('color', meta.badge.color, 'important');
+        }
+
+        const recContainer = document.getElementById('weather-rec-container');
+        if (!recContainer) return;
+
+        if (isSevere) {
+            recContainer.innerHTML = `
+                <div style="width: 100%; background: #fef2f2; border: 1.5px solid #fecaca; border-radius: 16px; padding: 12px 14px; display: flex; align-items: center; gap: 10px; color: #991b1b; box-sizing: border-box;">
+                    <i class="fa-solid fa-shield-heart" style="font-size: 22px; color: #dc2626; flex-shrink: 0;"></i>
+                    <div style="font-size: 11px; line-height: 1.35; font-weight: 600;">
+                        <strong style="display: block; font-size: 12px; font-weight: 800; margin-bottom: 2px;">Outdoor Recommendations Paused for Safety</strong>
+                        Severe weather is affecting ${weatherData.location || 'La Union'}. Please remain indoors and avoid beaches, waterfalls, and mountain trails until conditions improve.
+                    </div>
+                </div>
+            `;
+            return;
+        }
+
+        if (!spots || spots.length === 0) {
+            recContainer.innerHTML = `
+                <div style="font-size: 11.5px; color: #64748b; padding: 8px 4px; font-weight: 600;">
+                    <i class="fa-solid fa-compass" style="color: #0284c7; margin-right: 5px;"></i> Loading weather-matched tourist sites...
+                </div>
+            `;
+            return;
+        }
+
+        let draftIds = new Set();
+        try {
+            const draft = JSON.parse(localStorage.getItem('intan_elyu_draft_itinerary') || '[]');
+            if (Array.isArray(draft)) draft.forEach(d => { if (d && d.id !== undefined) draftIds.add(String(d.id)); });
+        } catch (e) {}
+
+        recContainer.innerHTML = spots.map(({ spot, reason }) => {
+            const img = window.getDestImage(spot, 300);
+            const muni = spot.municipality || spot.location || (typeof window.resolveMunicipalityName === 'function' ? window.resolveMunicipalityName(spot) : 'La Union');
+            const encodedDest = encodeURIComponent(JSON.stringify(spot)).replace(/'/g, '%27');
+            const safeName = String(spot.name || '').replace(/"/g, '&quot;');
+            const safeMuni = String(muni || '').replace(/"/g, '&quot;');
+            const inDraft = draftIds.has(String(spot.id));
+            const ratingNum = parseFloat(spot.rating ?? spot.reviews_avg_rating ?? 0);
+            const ratingHtml = (!isNaN(ratingNum) && ratingNum > 0)
+                ? `<span style="font-size:10px; font-weight:800; color:#0f172a; display:inline-flex; align-items:center; gap:2px;"><i class="fa-solid fa-star" style="color:#f59e0b; font-size:9px;"></i> ${ratingNum.toFixed(1)}</span>`
+                : `<span style="font-size:9.5px; font-weight:700; color:#64748b;">Details &rarr;</span>`;
+
+            return `
+                <div class="weather-rec-card" onclick="window.viewDestinationOnMap('${encodedDest}')">
+                    <img class="weather-rec-thumb" src="${img}" alt="${safeName}" loading="lazy" decoding="async" onerror="if (window.handleImgError) window.handleImgError(this, '${(spot.name || '').replace(/'/g, "\\'")}', '${(muni || '').replace(/'/g, "\\'")}'); else this.src='assets/img/no_image.svg';">
+                    <div class="weather-rec-info">
+                        <h4 class="weather-rec-name" title="${safeName}">${spot.name}</h4>
+                        <div class="weather-rec-muni"><i class="fa-solid fa-location-dot" style="color:#1e3a8a; font-size:9px; margin-right:3px;"></i>${safeMuni}</div>
+                        <div class="weather-rec-reason" title="${reason.replace(/"/g, '&quot;')}">${reason}</div>
+                        <div class="weather-rec-actions">
+                            ${ratingHtml}
+                            <button type="button" class="weather-rec-itin-btn" style="${inDraft ? 'background:#10b981 !important;' : ''}" onclick="event.stopPropagation(); window.quickAddWeatherSpotToItinerary('${encodedDest}', this)">
+                                <i class="fa-solid ${inDraft ? 'fa-check' : 'fa-plus'}"></i> ${inDraft ? 'Added' : 'Itinerary'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    };
 
     window.renderWeatherIconHtml = function (iconEmoji, faIcon) {
         if (faIcon) {
@@ -2382,6 +3049,8 @@ window.applyTouristSitesFilterModal = function() {
 
     window.fetchWeather = async function (lat = 16.6159, lng = 120.3209, locationName = 'San Fernando, La Union', isCurrentLoc = false) {
         window.currentWeatherLocation = { lat, lng, name: locationName, isCurrentLoc };
+        window.syncWeatherMunicipalitySelectUI(locationName, isCurrentLoc);
+
         const tempEl = document.getElementById('weather-temp');
         const descEl = document.getElementById('weather-desc');
         const locEl = document.getElementById('weather-loc');
@@ -2390,45 +3059,67 @@ window.applyTouristSitesFilterModal = function() {
         const uvEl = document.getElementById('weather-uv');
         const iconEl = document.getElementById('weather-icon');
 
-        // Pre-hydrate from cache immediately so "Loading Weather..." disappears in 0ms
+        const locCacheKey = `intan_elyu_weather_v2_${Number(lat).toFixed(2)}_${Number(lng).toFixed(2)}`;
+        const applyWeatherUI = (wData) => {
+            if (!wData) return;
+            if (tempEl) tempEl.textContent = `${wData.temperature}°C`;
+            if (descEl) descEl.textContent = wData.condition;
+            if (locEl) locEl.textContent = wData.location || locationName;
+            if (humidityEl) humidityEl.textContent = `${wData.humidity}%`;
+            if (windEl) windEl.textContent = `${wData.wind_speed} km/h`;
+            if (uvEl) uvEl.textContent = wData.uv_index;
+            if (iconEl) iconEl.innerHTML = window.renderWeatherIconHtml(wData.icon, wData.fa_icon);
+            window.updateWeatherModal(wData);
+            if (typeof window.renderSmartWeatherRecommendations === 'function') {
+                window.renderSmartWeatherRecommendations(wData);
+            }
+        };
+
+        // Pre-hydrate from location-specific or global cache immediately (0ms delay)
+        let freshLocCacheHit = false;
         try {
-            const rawW = localStorage.getItem('intan_elyu_cached_weather');
-            if (rawW) {
-                const cw = (window.safeJsonParse ? window.safeJsonParse(rawW, null) : JSON.parse(rawW))?.data;
-                if (cw) {
-                    if (tempEl) tempEl.textContent = `${cw.temperature}°C`;
-                    if (descEl) descEl.textContent = cw.condition;
-                    if (locEl) locEl.textContent = cw.location || locationName;
-                    if (humidityEl) humidityEl.textContent = `${cw.humidity}%`;
-                    if (windEl) windEl.textContent = `${cw.wind_speed} km/h`;
-                    if (uvEl) uvEl.textContent = cw.uv_index;
-                    if (iconEl) iconEl.innerHTML = window.renderWeatherIconHtml(cw.icon, cw.fa_icon);
-                    window.updateWeatherModal(cw);
+            const rawLoc = localStorage.getItem(locCacheKey);
+            if (rawLoc) {
+                const parsedLoc = window.safeJsonParse ? window.safeJsonParse(rawLoc, null) : JSON.parse(rawLoc);
+                if (parsedLoc && parsedLoc.data) {
+                    applyWeatherUI({ ...parsedLoc.data, location: (!isCurrentLoc && locationName) ? locationName : (parsedLoc.data.location || locationName) });
+                    if (parsedLoc.timestamp && (Date.now() - parsedLoc.timestamp < 600000)) {
+                        freshLocCacheHit = true;
+                    }
                 }
-            } else {
-                if (tempEl && (tempEl.textContent.includes('Loading') || tempEl.querySelector('.fa-spinner'))) {
-                    tempEl.textContent = '29°C';
-                    if (descEl) descEl.textContent = 'Partly Cloudy';
-                    if (locEl) locEl.textContent = locationName || 'San Fernando, La Union';
-                    if (humidityEl) humidityEl.textContent = '72%';
-                    if (windEl) windEl.textContent = '14 km/h';
-                    if (uvEl) uvEl.textContent = '6';
-                    if (iconEl) iconEl.innerHTML = window.renderWeatherIconHtml('⛅', 'fa-cloud-sun');
+            }
+            if (!freshLocCacheHit) {
+                const rawW = localStorage.getItem('intan_elyu_cached_weather');
+                if (rawW) {
+                    const cw = (window.safeJsonParse ? window.safeJsonParse(rawW, null) : JSON.parse(rawW))?.data;
+                    if (cw) {
+                        applyWeatherUI({ ...cw, location: (!isCurrentLoc && locationName) ? locationName : (cw.location || locationName) });
+                    }
+                } else {
+                    applyWeatherUI({
+                        temperature: 29,
+                        feels_like: 31,
+                        condition: 'Partly Cloudy',
+                        location: locationName || 'San Fernando, La Union',
+                        humidity: 72,
+                        wind_speed: 14,
+                        uv_index: 6,
+                        weather_code: 2,
+                        weather_group: 'partly_cloudy',
+                        icon: '⛅',
+                        fa_icon: 'fa-cloud-sun',
+                        forecast: []
+                    });
                 }
             }
         } catch(e) {}
 
+        if (freshLocCacheHit) {
+            return;
+        }
+
         const isOffline = (typeof navigator.onLine === 'boolean') ? !navigator.onLine : (window.isAppOnline === false);
         if (isOffline) {
-            if (tempEl && tempEl.textContent.includes('Loading')) {
-                tempEl.textContent = '29°C';
-                if (descEl) descEl.textContent = 'Partly Cloudy';
-                if (locEl) locEl.textContent = locationName;
-                if (humidityEl) humidityEl.textContent = '72%';
-                if (windEl) windEl.textContent = '14 km/h';
-                if (uvEl) uvEl.textContent = '6';
-                if (iconEl) iconEl.innerHTML = window.renderWeatherIconHtml('⛅', 'fa-cloud-sun');
-            }
             return;
         }
 
@@ -2441,41 +3132,38 @@ window.applyTouristSitesFilterModal = function() {
             if (!res.ok) throw new Error('Weather request failed with status ' + res.status);
             const data = await res.json();
 
-            try { localStorage.setItem('intan_elyu_cached_weather', JSON.stringify({ data, timestamp: Date.now() })); } catch(e) {}
+            try {
+                const payload = JSON.stringify({ data, timestamp: Date.now() });
+                localStorage.setItem('intan_elyu_cached_weather', payload);
+                localStorage.setItem(locCacheKey, payload);
+            } catch(e) {}
 
-            if (tempEl) tempEl.textContent = `${data.temperature}°C`;
-            if (descEl) descEl.textContent = data.condition;
-            if (locEl) locEl.textContent = data.location;
-            if (humidityEl) humidityEl.textContent = `${data.humidity}%`;
-            if (windEl) windEl.textContent = `${data.wind_speed} km/h`;
-            if (uvEl) uvEl.textContent = data.uv_index;
-            if (iconEl) iconEl.innerHTML = window.renderWeatherIconHtml(data.icon, data.fa_icon);
-
-            window.updateWeatherModal(data);
+            applyWeatherUI(data);
         } catch (e) {
             console.warn('Weather fetch error, checking cache or fallback:', e);
             let cachedW = null;
             try {
-                const rawW = localStorage.getItem('intan_elyu_cached_weather');
+                const rawW = localStorage.getItem(locCacheKey) || localStorage.getItem('intan_elyu_cached_weather');
                 if (rawW) cachedW = (window.safeJsonParse ? window.safeJsonParse(rawW, null) : JSON.parse(rawW))?.data;
             } catch(err) {}
 
             if (cachedW) {
-                if (tempEl) tempEl.textContent = `${cachedW.temperature}°C`;
-                if (descEl) descEl.textContent = cachedW.condition;
-                if (locEl) locEl.textContent = cachedW.location || locationName;
-                if (humidityEl) humidityEl.textContent = `${cachedW.humidity}%`;
-                if (windEl) windEl.textContent = `${cachedW.wind_speed} km/h`;
-                if (uvEl) uvEl.textContent = cachedW.uv_index;
-                if (iconEl) iconEl.innerHTML = window.renderWeatherIconHtml(cachedW.icon, cachedW.fa_icon);
+                applyWeatherUI({ ...cachedW, location: (!isCurrentLoc && locationName) ? locationName : (cachedW.location || locationName) });
             } else {
-                if (tempEl) tempEl.textContent = '29°C';
-                if (descEl) descEl.textContent = 'Partly Cloudy';
-                if (locEl) locEl.textContent = locationName;
-                if (humidityEl) humidityEl.textContent = '72%';
-                if (windEl) windEl.textContent = '14 km/h';
-                if (uvEl) uvEl.textContent = '6';
-                if (iconEl) iconEl.innerHTML = window.renderWeatherIconHtml('⛅', 'fa-cloud-sun');
+                applyWeatherUI({
+                    temperature: 29,
+                    feels_like: 31,
+                    condition: 'Partly Cloudy',
+                    location: locationName || 'San Fernando, La Union',
+                    humidity: 72,
+                    wind_speed: 14,
+                    uv_index: 6,
+                    weather_code: 2,
+                    weather_group: 'partly_cloudy',
+                    icon: '⛅',
+                    fa_icon: 'fa-cloud-sun',
+                    forecast: []
+                });
             }
         }
     };
@@ -2583,6 +3271,7 @@ window.applyTouristSitesFilterModal = function() {
 
     window.changeWeatherLocation = function (valStr) {
         if (valStr === 'GPS_CURRENT') {
+            try { localStorage.removeItem('intan_elyu_manual_loc'); } catch (e) {}
             window.locateMeForWeather();
             return;
         }
@@ -2591,6 +3280,9 @@ window.applyTouristSitesFilterModal = function() {
             const lat = parseFloat(parts[0]);
             const lng = parseFloat(parts[1]);
             const name = parts[2];
+            try {
+                localStorage.setItem('intan_elyu_manual_loc', JSON.stringify({ lat, lng, name: name + ', La Union' }));
+            } catch (e) {}
             window.fetchWeather(lat, lng, name + ', La Union', false);
             if (typeof window.loadNearMe === 'function') {
                 window.loadNearMe(lat, lng, name);
@@ -2618,9 +3310,19 @@ window.applyTouristSitesFilterModal = function() {
         }
     });
 
-    // Auto locate & fetch weather on startup
+    // Auto locate & fetch weather on startup (respecting user-selected municipality if saved)
     setTimeout(() => {
         if (typeof window.fetchWeather === 'function') {
+            try {
+                const manualRaw = localStorage.getItem('intan_elyu_manual_loc');
+                if (manualRaw) {
+                    const parsed = JSON.parse(manualRaw);
+                    if (parsed && parsed.lat && parsed.lng) {
+                        window.fetchWeather(parsed.lat, parsed.lng, parsed.name || 'San Fernando, La Union', false);
+                        return;
+                    }
+                }
+            } catch (e) {}
             window.locateMeForWeather();
         }
     }, 100);
@@ -3141,7 +3843,7 @@ window.applyTouristSitesFilterModal = function() {
                     window.currentGPSLng = loc.lng;
                     window.currentGPSSource = 'gps';
                     if (typeof window.loadNearMe === 'function') window.loadNearMe(loc.lat, loc.lng);
-                    if (typeof window.fetchWeather === 'function') window.fetchWeather(loc.lat, loc.lng, 'My Location', true);
+                    if (typeof window.fetchWeather === 'function' && !localStorage.getItem('intan_elyu_manual_loc')) window.fetchWeather(loc.lat, loc.lng, 'My Location', true);
                 }
             }).catch(() => {});
         }
@@ -3158,6 +3860,9 @@ window.applyTouristSitesFilterModal = function() {
             window.dashTrending = validTrending.length > 0 ? validTrending : rawTrending;
             window.dashRecommended = (data.recommended || []).filter(d => !d.status || d.status.toLowerCase() !== 'pending');
             window.dashSaved = (data.savedPlaces || []).filter(d => !d.status || d.status.toLowerCase() !== 'pending');
+            if (typeof window.renderSmartWeatherRecommendations === 'function' && window._lastWeatherData) {
+                window.renderSmartWeatherRecommendations(window._lastWeatherData);
+            }
 
             // Update notification badge
             if (data.stats && typeof window.updateUnreadBadge === 'function') {
@@ -3836,12 +4541,12 @@ window.applyTouristSitesFilterModal = function() {
 
             if (lat && lng) {
                 loadNearMe(lat, lng);
-                if (typeof window.fetchWeather === 'function') {
+                if (typeof window.fetchWeather === 'function' && !localStorage.getItem('intan_elyu_manual_loc')) {
                     window.fetchWeather(lat, lng, 'My Location', true);
                 }
             } else {
                 loadNearMe(16.6159, 120.3209, 'San Fernando City');
-                if (typeof window.fetchWeather === 'function') {
+                if (typeof window.fetchWeather === 'function' && !localStorage.getItem('intan_elyu_manual_loc')) {
                     window.fetchWeather(16.6159, 120.3209, 'San Fernando, La Union', false);
                 }
             }
@@ -3899,12 +4604,12 @@ window.applyTouristSitesFilterModal = function() {
 
             if (lat && lng) {
                 loadNearMe(lat, lng);
-                if (typeof window.fetchWeather === 'function') {
+                if (typeof window.fetchWeather === 'function' && !localStorage.getItem('intan_elyu_manual_loc')) {
                     window.fetchWeather(lat, lng, 'My Location', true);
                 }
             } else {
                 loadNearMe(16.6159, 120.3209, 'San Fernando City');
-                if (typeof window.fetchWeather === 'function') {
+                if (typeof window.fetchWeather === 'function' && !localStorage.getItem('intan_elyu_manual_loc')) {
                     window.fetchWeather(16.6159, 120.3209, 'San Fernando, La Union', false);
                 }
             }

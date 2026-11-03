@@ -28,7 +28,7 @@ class WeatherController extends Controller
         // Round coordinates to 2 decimal places to maximize cache hits (~1km grid)
         $cacheLat = number_format($lat, 2, '.', '');
         $cacheLng = number_format($lng, 2, '.', '');
-        $cacheKey = "weather_{$cacheLat}_{$cacheLng}";
+        $cacheKey = "weather_v2_{$cacheLat}_{$cacheLng}";
 
         // Cache weather data for 15 minutes (900 seconds)
         $weatherData = Cache::remember($cacheKey, 900, function () use ($lat, $lng) {
@@ -37,6 +37,7 @@ class WeatherController extends Controller
                     'latitude' => $lat,
                     'longitude' => $lng,
                     'current' => 'temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m,is_day,apparent_temperature',
+                    'hourly' => 'temperature_2m,precipitation_probability,weather_code,wind_speed_10m',
                     'daily' => 'weather_code,temperature_2m_max,temperature_2m_min,uv_index_max,precipitation_probability_max',
                     'timezone' => 'Asia/Manila',
                     'forecast_days' => 5
@@ -57,10 +58,16 @@ class WeatherController extends Controller
 
         $current = $weatherData['current'];
         $daily = $weatherData['daily'] ?? [];
-        $code = $current['weather_code'] ?? 0;
+        $hourly = $weatherData['hourly'] ?? [];
+        $code = (int) ($current['weather_code'] ?? 0);
+        $temp = (int) round($current['temperature_2m'] ?? 29);
+        $feelsLike = (int) round($current['apparent_temperature'] ?? $current['temperature_2m'] ?? 29);
+        $humidity = (int) round($current['relative_humidity_2m'] ?? 70);
+        $windSpeed = (int) round($current['wind_speed_10m'] ?? 12);
         $conditionMeta = $this->interpretWeatherCode($code, $current['is_day'] ?? 1);
 
-        $uvIndex = isset($daily['uv_index_max'][0]) ? round($daily['uv_index_max'][0]) : 6;
+        $uvIndex = isset($daily['uv_index_max'][0]) ? (int) round($daily['uv_index_max'][0]) : 6;
+        $todayRainProb = isset($daily['precipitation_probability_max'][0]) ? (int) round($daily['precipitation_probability_max'][0]) : 0;
 
         // Process 5-day forecast
         $forecast = [];
@@ -83,17 +90,25 @@ class WeatherController extends Controller
             }
         }
 
+        $smartInsights = $this->buildSmartWeatherInsights($code, $temp, $feelsLike, $windSpeed, $uvIndex, $todayRainProb, $hourly);
+
         return response()->json([
             'success' => true,
             'location' => $location,
             'is_current_location' => $isCurrentLocation,
             'latitude' => $lat,
             'longitude' => $lng,
-            'temperature' => round($current['temperature_2m'] ?? 29),
-            'feels_like' => round($current['apparent_temperature'] ?? $current['temperature_2m'] ?? 29),
-            'humidity' => round($current['relative_humidity_2m'] ?? 70),
-            'wind_speed' => round($current['wind_speed_10m'] ?? 12),
+            'temperature' => $temp,
+            'feels_like' => $feelsLike,
+            'humidity' => $humidity,
+            'wind_speed' => $windSpeed,
             'uv_index' => $uvIndex,
+            'weather_code' => $code,
+            'weather_group' => $smartInsights['weather_group'],
+            'short_description' => $smartInsights['short_description'],
+            'best_time' => $smartInsights['best_time'],
+            'alerts' => $smartInsights['alerts'],
+            'hourly_slots' => $smartInsights['hourly_slots'],
             'condition' => $conditionMeta['description'],
             'icon' => $conditionMeta['icon'],
             'fa_icon' => $conditionMeta['fa_icon'],
@@ -274,6 +289,129 @@ class WeatherController extends Controller
     }
 
     /**
+     * Build smart weather category group, short description, best visiting hours from hourly forecast, and weather alerts.
+     */
+    private function buildSmartWeatherInsights(int $code, int $temp, int $feelsLike, int $windSpeed, int $uvIndex, int $todayRainProb, array $hourly): array
+    {
+        $isSevereCode = in_array($code, [65, 67, 82, 95, 96, 99], true);
+        $isRainyCode = in_array($code, [51, 53, 55, 56, 57, 61, 63, 66, 80, 81], true);
+        $isCloudyCode = in_array($code, [3, 45, 48], true);
+        $isPartlyCloudyCode = in_array($code, [1, 2], true);
+
+        if ($isSevereCode || $windSpeed >= 40) {
+            $weatherGroup = 'severe';
+            $shortDesc = 'Severe weather detected — stay indoors and avoid coastal, mountain, and waterfall areas.';
+        } elseif ($isRainyCode) {
+            $weatherGroup = 'rainy';
+            $shortDesc = 'Rainy skies today — ideal for museums, churches, cultural landmarks, and indoor dining.';
+        } elseif ($isCloudyCode) {
+            $weatherGroup = 'cloudy';
+            $shortDesc = 'Cool overcast skies — comfortable for heritage sites, gardens, farms, and sightseeing.';
+        } elseif ($isPartlyCloudyCode) {
+            $weatherGroup = 'partly_cloudy';
+            $shortDesc = 'Pleasant partly cloudy weather — great for nature trails, eco-parks, and outdoor activities.';
+        } else {
+            $weatherGroup = 'sunny';
+            $shortDesc = 'Bright sunny weather — perfect for beaches, coastal viewpoints, parks, and outdoor adventures.';
+        }
+
+        // Build Weather Alerts
+        $alerts = [];
+        if ($weatherGroup === 'severe') {
+            $alerts[] = [
+                'level' => 'danger',
+                'title' => 'Severe Weather Safety Warning',
+                'message' => 'Heavy rain, thunderstorms, or strong winds active. Avoid swimming, surfing, mountain hiking, and waterfalls.'
+            ];
+        } elseif ($weatherGroup === 'rainy' || $todayRainProb >= 65) {
+            $alerts[] = [
+                'level' => 'warning',
+                'title' => 'Wet Weather Advisory',
+                'message' => "High chance of rain ({$todayRainProb}%). Trails and coastal rocks may be slippery; bring rain gear or visit indoor sites."
+            ];
+        }
+        if ($windSpeed >= 28 && $weatherGroup !== 'severe') {
+            $alerts[] = [
+                'level' => 'warning',
+                'title' => 'Strong Coastal Winds (' . $windSpeed . ' km/h)',
+                'message' => 'Expect stronger waves along San Juan and coastal beaches. Exercise caution during water activities.'
+            ];
+        }
+        if (($uvIndex >= 8 || $feelsLike >= 37) && in_array($weatherGroup, ['sunny', 'partly_cloudy'], true)) {
+            $alerts[] = [
+                'level' => 'caution',
+                'title' => "High UV & Heat Advisory (UV {$uvIndex} · Feels {$feelsLike}°C)",
+                'message' => 'Stay hydrated, apply sunscreen, and avoid prolonged direct sun between 11:00 AM and 2:00 PM.'
+            ];
+        }
+
+        // Compute Best Time to Visit from today's hourly forecast (06:00 to 18:00)
+        $bestTime = '7:00 AM – 10:00 AM & 3:30 PM – 5:30 PM (Cooler hours)';
+        $hourlySlots = [];
+        if (!empty($hourly['time']) && is_array($hourly['time'])) {
+            $todayPrefix = now('Asia/Manila')->format('Y-m-d');
+            $currentHour = (int) now('Asia/Manila')->format('G');
+            $dayCandidates = [];
+
+            foreach ($hourly['time'] as $idx => $isoTime) {
+                if (!str_starts_with((string) $isoTime, $todayPrefix)) {
+                    continue;
+                }
+                $hr = (int) substr((string) $isoTime, 11, 2);
+                $hTemp = (int) round($hourly['temperature_2m'][$idx] ?? $temp);
+                $hRain = (int) round($hourly['precipitation_probability'][$idx] ?? 0);
+                $hCode = (int) ($hourly['weather_code'][$idx] ?? 0);
+                $hMeta = $this->interpretWeatherCode($hCode, ($hr >= 6 && $hr < 18) ? 1 : 0);
+
+                if ($hr >= max(6, $currentHour) && $hr <= 20 && count($hourlySlots) < 6) {
+                    $hourlySlots[] = [
+                        'hour_label' => date('g A', strtotime($isoTime)),
+                        'temp' => $hTemp,
+                        'rain_prob' => $hRain,
+                        'icon' => $hMeta['icon'],
+                        'condition' => $hMeta['description'],
+                    ];
+                }
+
+                // Daytime visiting hours (6 AM to 5 PM)
+                if ($hr >= 6 && $hr <= 17 && !in_array($hCode, [65, 67, 82, 95, 96, 99], true)) {
+                    // Lower score is better: prioritize low rain probability and comfortable temp (~27°C) + avoid midday scorching heat
+                    $middayPenalty = ($hr >= 11 && $hr <= 14 && $hTemp >= 31) ? 18 : 0;
+                    $score = ($hRain * 1.4) + (abs($hTemp - 27) * 3) + $middayPenalty;
+                    $dayCandidates[] = [
+                        'hour' => $hr,
+                        'temp' => $hTemp,
+                        'rain' => $hRain,
+                        'score' => $score,
+                    ];
+                }
+            }
+
+            if ($weatherGroup === 'severe') {
+                $bestTime = 'Postpone outdoor visits until severe weather clears';
+            } elseif (!empty($dayCandidates)) {
+                usort($dayCandidates, fn($a, $b) => $a['score'] <=> $b['score']);
+                $best = $dayCandidates[0];
+                $startHr = $best['hour'];
+                $endHr = min(18, $startHr + 2);
+                $startFormatted = date('g:00 A', mktime($startHr, 0, 0));
+                $endFormatted = date('g:00 A', mktime($endHr, 0, 0));
+                $bestTime = "{$startFormatted} – {$endFormatted} (~{$best['temp']}°C, {$best['rain']}% rain)";
+            }
+        } elseif ($weatherGroup === 'severe') {
+            $bestTime = 'Postpone outdoor visits until severe weather clears';
+        }
+
+        return [
+            'weather_group' => $weatherGroup,
+            'short_description' => $shortDesc,
+            'best_time' => $bestTime,
+            'alerts' => $alerts,
+            'hourly_slots' => $hourlySlots,
+        ];
+    }
+
+    /**
      * Fallback data in case Open-Meteo service is unreachable
      */
     private function getFallbackData(string $location, bool $isCurrentLoc = false): array
@@ -289,6 +427,12 @@ class WeatherController extends Controller
             'humidity' => 72,
             'wind_speed' => 14,
             'uv_index' => 6,
+            'weather_code' => 2,
+            'weather_group' => 'partly_cloudy',
+            'short_description' => 'Pleasant partly cloudy weather — great for nature trails, eco-parks, and outdoor activities.',
+            'best_time' => '7:00 AM – 10:00 AM & 3:30 PM – 5:30 PM (~28°C, 20% rain)',
+            'alerts' => [],
+            'hourly_slots' => [],
             'condition' => 'Partly Cloudy',
             'icon' => '⛅',
             'fa_icon' => 'fa-cloud-sun',
