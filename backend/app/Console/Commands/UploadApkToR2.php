@@ -99,12 +99,69 @@ class UploadApkToR2 extends Command
                 return 1;
             }
 
-            // Stream upload with appropriate headers
-            $success = $disk->put($targetKey, $stream, [
-                'visibility' => 'public',
-                'ContentType' => 'application/vnd.android.package-archive',
-                'CacheControl' => 'no-cache, no-store, must-revalidate',
-            ]);
+            $success = false;
+            if (method_exists($disk, 'getClient')) {
+                $client = $disk->getClient();
+                $bucket = config('filesystems.disks.r2.bucket', 'intan-elyu-media');
+                $partSize = 8 * 1024 * 1024; // 8 MB parts
+                $fileSize = filesize($selectedApk);
+                $totalParts = (int) ceil($fileSize / $partSize);
+
+                $createRes = $client->createMultipartUpload([
+                    'Bucket' => $bucket,
+                    'Key' => $targetKey,
+                    'ContentType' => 'application/vnd.android.package-archive',
+                    'CacheControl' => 'no-cache, no-store, must-revalidate',
+                ]);
+                $uploadId = $createRes['UploadId'];
+                $parts = [];
+
+                for ($partNum = 1; $partNum <= $totalParts; $partNum++) {
+                    $chunk = fread($stream, $partSize);
+                    $attempts = 0;
+                    $uploadedPart = false;
+                    while ($attempts < 4 && !$uploadedPart) {
+                        $attempts++;
+                        try {
+                            $res = $client->uploadPart([
+                                'Bucket' => $bucket,
+                                'Key' => $targetKey,
+                                'UploadId' => $uploadId,
+                                'PartNumber' => $partNum,
+                                'Body' => $chunk,
+                            ]);
+                            $parts[] = [
+                                'PartNumber' => $partNum,
+                                'ETag' => $res['ETag'],
+                            ];
+                            $uploadedPart = true;
+                            $pct = round(($partNum / $totalParts) * 100);
+                            $this->line("   ↳ Part {$partNum}/{$totalParts} ({$pct}%) uploaded");
+                        } catch (\Throwable $partErr) {
+                            $this->warn("   ⚠️ Part {$partNum} attempt {$attempts} failed: " . $partErr->getMessage());
+                            if ($attempts >= 4) {
+                                throw $partErr;
+                            }
+                            sleep(2);
+                        }
+                    }
+                }
+
+                $client->completeMultipartUpload([
+                    'Bucket' => $bucket,
+                    'Key' => $targetKey,
+                    'UploadId' => $uploadId,
+                    'MultipartUpload' => ['Parts' => $parts],
+                ]);
+                $success = true;
+            } else {
+                // Stream upload with appropriate headers
+                $success = $disk->put($targetKey, $stream, [
+                    'visibility' => 'public',
+                    'ContentType' => 'application/vnd.android.package-archive',
+                    'CacheControl' => 'no-cache, no-store, must-revalidate',
+                ]);
+            }
 
             if (is_resource($stream)) {
                 fclose($stream);
