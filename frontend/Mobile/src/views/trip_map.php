@@ -2223,6 +2223,10 @@ include_once __DIR__ . '/../components/testimony_modal.php';
             const tPax = parentTrip ? (parentTrip.total_pax || 1) : 1;
             const cMales = parentTrip ? (parentTrip.companion_males || 0) : 0;
             const cFemales = parentTrip ? (parentTrip.companion_females || 0) : 0;
+            const cAdults = parentTrip ? (parentTrip.companion_adults ?? targetItem?.companion_adults ?? 0) : 0;
+            const cKids = parentTrip ? (parentTrip.companion_kids ?? targetItem?.companion_kids ?? 0) : 0;
+            const cSeniors = parentTrip ? (parentTrip.companion_seniors ?? targetItem?.companion_seniors ?? 0) : 0;
+            const cPwds = parentTrip ? (parentTrip.companion_pwds ?? targetItem?.companion_pwds ?? 0) : 0;
 
             let sLat = (spotLat != null && !isNaN(spotLat)) ? parseFloat(spotLat) : null;
             let sLng = (spotLng != null && !isNaN(spotLng)) ? parseFloat(spotLng) : null;
@@ -2277,6 +2281,10 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                             total_pax: tPax,
                             companion_males: cMales,
                             companion_females: cFemales,
+                            companion_adults: cAdults,
+                            companion_kids: cKids,
+                            companion_seniors: cSeniors,
+                            companion_pwds: cPwds,
                             capturedAt: (typeof window.getPhilippineTimestampISO === 'function' ? window.getPhilippineTimestampISO() : new Date().toISOString())
                         });
                     }
@@ -2297,6 +2305,10 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                 formData.append('total_pax', tPax);
                 formData.append('companion_males', cMales);
                 formData.append('companion_females', cFemales);
+                formData.append('companion_adults', cAdults);
+                formData.append('companion_kids', cKids);
+                formData.append('companion_seniors', cSeniors);
+                formData.append('companion_pwds', cPwds);
                 formData.append('captured_at', (typeof window.getPhilippineTimestampISO === 'function' ? window.getPhilippineTimestampISO() : new Date().toISOString()));
 
                 const controller = new AbortController();

@@ -1382,6 +1382,12 @@ Route::prefix('tourist')->middleware('tourist.auth')->group(function () use ($va
     Route::post('/points/minigame', [PointsController::class, 'awardMiniGamePoints']);
     Route::post('/points/redeem', [PointsController::class, 'redeem']);
     Route::post('/points/redeem-voucher', [\App\Http\Controllers\VoucherController::class, 'redeemVoucher']);
+    Route::post('/vouchers/{code}/use', [\App\Http\Controllers\VoucherController::class, 'useVoucher']);
+    Route::post('/vouchers/{code}/cancel', [\App\Http\Controllers\VoucherController::class, 'cancelVoucher']);
+    Route::post('/vouchers/{code}/refresh-qr', [\App\Http\Controllers\VoucherController::class, 'refreshQrCode']);
+    Route::post('/points/vouchers/{code}/use', [\App\Http\Controllers\VoucherController::class, 'useVoucher']);
+    Route::post('/points/vouchers/{code}/cancel', [\App\Http\Controllers\VoucherController::class, 'cancelVoucher']);
+    Route::post('/points/vouchers/{code}/refresh-qr', [\App\Http\Controllers\VoucherController::class, 'refreshQrCode']);
     Route::get('/redemptions/{code}/status', [\App\Http\Controllers\VoucherController::class, 'checkRedemptionStatus']);
 
     // Puzzle Tourist Spot Images from Database

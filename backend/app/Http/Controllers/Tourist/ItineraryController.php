@@ -122,6 +122,10 @@ class ItineraryController extends Controller
             'rejection_reason'     => $item->rejection_reason,
             'companion_males'      => (int) ($item->companion_males ?? 0),
             'companion_females'    => (int) ($item->companion_females ?? 0),
+            'companion_adults'     => (int) ($item->companion_adults ?? 0),
+            'companion_kids'       => (int) ($item->companion_kids ?? 0),
+            'companion_seniors'    => (int) ($item->companion_seniors ?? 0),
+            'companion_pwds'       => (int) ($item->companion_pwds ?? 0),
             'total_pax'            => (int) ($item->total_pax ?? 1),
             'visited_at'           => $item->visited_at,
             'transport_mode'   => $item->transport_mode,
@@ -176,6 +180,10 @@ class ItineraryController extends Controller
             'trip_type'         => $itinerary->trip_type ?? 'solo',
             'companion_males'   => (int) ($itinerary->companion_males ?? 0),
             'companion_females' => (int) ($itinerary->companion_females ?? 0),
+            'companion_adults'  => (int) ($itinerary->companion_adults ?? 0),
+            'companion_kids'    => (int) ($itinerary->companion_kids ?? 0),
+            'companion_seniors' => (int) ($itinerary->companion_seniors ?? 0),
+            'companion_pwds'    => (int) ($itinerary->companion_pwds ?? 0),
             'total_pax'         => (int) ($itinerary->total_pax ?? 1),
             'created_at'        => $itinerary->created_at?->toIso8601String(),
             'updated_at'        => $itinerary->updated_at?->toIso8601String(),
@@ -408,6 +416,24 @@ class ItineraryController extends Controller
                 }
             }
 
+            $tripType = in_array(strtolower((string)($request->trip_type ?? 'solo')), ['group', 'with companions', 'companions']) ? 'group' : 'solo';
+            $companionMales = ($tripType === 'group') ? max(0, (int)($request->companion_males ?? 0)) : 0;
+            $companionFemales = ($tripType === 'group') ? max(0, (int)($request->companion_females ?? 0)) : 0;
+            $companionAdults = ($tripType === 'group') ? max(0, (int)($request->companion_adults ?? 0)) : 0;
+            $companionKids = ($tripType === 'group') ? max(0, (int)($request->companion_kids ?? 0)) : 0;
+            $companionSeniors = ($tripType === 'group') ? max(0, (int)($request->companion_seniors ?? 0)) : 0;
+            $companionPwds = ($tripType === 'group') ? max(0, (int)($request->companion_pwds ?? 0)) : 0;
+            $additionalCompanions = max($companionMales + $companionFemales, $companionAdults + $companionKids + $companionSeniors + $companionPwds);
+            $totalPax = ($tripType === 'group') ? max(1, (int)($request->total_pax ?? (1 + $additionalCompanions))) : 1;
+
+            $companionCounts = [
+                'trip_type' => $tripType,
+                'companion_adults' => $companionAdults,
+                'companion_kids' => $companionKids,
+                'companion_seniors' => $companionSeniors,
+                'companion_pwds' => $companionPwds,
+            ];
+
             // Accurate cost estimation using CostEstimationService with Point-to-Point leg fares
             $totalEstimatedCost = 0.00;
             $est = [];
@@ -420,25 +446,35 @@ class ItineraryController extends Controller
                     null,
                     $request->trip_date,
                     null,
-                    $legTransports
+                    $legTransports,
+                    $companionCounts
                 );
                 $totalEstimatedCost = (float) ($est['total_cost'] ?? 0.00);
             } catch (\Throwable $e) {
                 $spots = TouristSpot::whereIn('id', $request->destinations)->get();
-                $totalEstimatedCost = (float) ($spots->sum('entrance_fee') + $spots->sum('environmental_fee'));
+                $nA = 1 + ($tripType === 'group' ? $companionAdults : 0);
+                $nK = $tripType === 'group' ? $companionKids : 0;
+                $nS = $tripType === 'group' ? $companionSeniors : 0;
+                $nP = $tripType === 'group' ? $companionPwds : 0;
+                $entTotal = 0.0;
+                $envTotal = 0.0;
+                foreach ($spots as $sp) {
+                    if ($sp->is_maintenance) continue;
+                    $bA = ($sp->adult_fee > 0) ? (float)$sp->adult_fee : (float)($sp->entrance_fee ?? 0);
+                    $kF = ($sp->kids_fee !== null && $sp->kids_fee !== '') ? (float)$sp->kids_fee : $bA;
+                    $sF = ($sp->senior_citizen_fee > 0) ? (float)$sp->senior_citizen_fee : ($bA > 0 ? $bA * 0.8 : 0.0);
+                    $pF = ($sp->pwd_fee > 0) ? (float)$sp->pwd_fee : ($bA > 0 ? $bA * 0.8 : 0.0);
+                    $eV = (float)($sp->environmental_fee ?? 0);
+                    $eS = ($sF > 0 && $bA > 0) ? round($eV * ($sF / $bA)) : round($eV * 0.8);
+                    $eP = ($pF > 0 && $bA > 0) ? round($eV * ($pF / $bA)) : round($eV * 0.8);
+                    $entTotal += ($nA * $bA) + ($nK * $kF) + ($nS * $sF) + ($nP * $pF);
+                    $envTotal += ($nA * $eV) + ($nK * $eV) + ($nS * $eS) + ($nP * $eP);
+                }
+                $totalEstimatedCost = (float) ($entTotal + $envTotal);
             }
 
-            $tripType = in_array(strtolower((string)($request->trip_type ?? 'solo')), ['group', 'with companions', 'companions']) ? 'group' : 'solo';
-            $companionMales = ($tripType === 'group') ? max(0, (int)($request->companion_males ?? 0)) : 0;
-            $companionFemales = ($tripType === 'group') ? max(0, (int)($request->companion_females ?? 0)) : 0;
-            $companionAdults = ($tripType === 'group') ? max(0, (int)($request->companion_adults ?? 0)) : 0;
-            $companionKids = ($tripType === 'group') ? max(0, (int)($request->companion_kids ?? 0)) : 0;
-            $companionSeniors = ($tripType === 'group') ? max(0, (int)($request->companion_seniors ?? 0)) : 0;
-            $companionPwds = ($tripType === 'group') ? max(0, (int)($request->companion_pwds ?? 0)) : 0;
-            $additionalCompanions = max($companionMales + $companionFemales, $companionAdults + $companionKids + $companionSeniors + $companionPwds);
-            $totalPax = ($tripType === 'group') ? max(1, (int)($request->total_pax ?? (1 + $additionalCompanions))) : 1;
-
-            $itinerary = Itinerary::create([
+            $hasCompanionCols = Schema::hasColumn('itineraries', 'companion_adults');
+            $itineraryData = [
                 'user_id'           => $user->id,
                 'title'             => $request->title,
                 'trip_date'         => $request->trip_date,
@@ -451,10 +487,20 @@ class ItineraryController extends Controller
                 'companion_males'   => $companionMales,
                 'companion_females' => $companionFemales,
                 'total_pax'         => $totalPax,
-            ]);
+            ];
+
+            if ($hasCompanionCols) {
+                $itineraryData['companion_adults']  = $companionAdults;
+                $itineraryData['companion_kids']    = $companionKids;
+                $itineraryData['companion_seniors'] = $companionSeniors;
+                $itineraryData['companion_pwds']    = $companionPwds;
+            }
+
+            $itinerary = Itinerary::create($itineraryData);
 
             // Create itinerary items preserving order with Point-to-Point transportation
             $legsList = $est['legs'] ?? [];
+            $hasItemCompanionCols = Schema::hasColumn('itinerary_items', 'companion_adults');
             foreach ($request->destinations as $idx => $spotId) {
                 $legMode = null;
                 $legCost = 0.00;
@@ -489,7 +535,7 @@ class ItineraryController extends Controller
                     }
                 }
 
-                ItineraryItem::create([
+                $itemData = [
                     'itinerary_id'      => $itinerary->id,
                     'tourist_spot_id'   => $spotId,
                     'order_index'       => $idx + 1,
@@ -499,7 +545,16 @@ class ItineraryController extends Controller
                     'total_pax'         => $totalPax,
                     'leg_cost'          => $legCost,
                     'leg_distance_km'   => $legDist,
-                ]);
+                ];
+
+                if ($hasItemCompanionCols) {
+                    $itemData['companion_adults']  = $companionAdults;
+                    $itemData['companion_kids']    = $companionKids;
+                    $itemData['companion_seniors'] = $companionSeniors;
+                    $itemData['companion_pwds']    = $companionPwds;
+                }
+
+                ItineraryItem::create($itemData);
             }
 
             return $itinerary;
@@ -753,7 +808,7 @@ class ItineraryController extends Controller
             'destinations.min'      => 'Please select at least one destination for your trip.'
         ]);
 
-        $updateData = $request->only(['title', 'trip_date', 'budget', 'route_type', 'transport_mode', 'trip_type', 'companion_males', 'companion_females', 'total_pax']);
+        $updateData = $request->only(['title', 'trip_date', 'budget', 'route_type', 'transport_mode', 'trip_type', 'companion_males', 'companion_females', 'companion_adults', 'companion_kids', 'companion_seniors', 'companion_pwds', 'total_pax']);
         if (isset($updateData['trip_date']) && $updateData['trip_date'] === '') {
             $updateData['trip_date'] = null;
         }
@@ -771,19 +826,30 @@ class ItineraryController extends Controller
             if (!$isGrp) {
                 $updateData['companion_males'] = 0;
                 $updateData['companion_females'] = 0;
+                $updateData['companion_adults'] = 0;
+                $updateData['companion_kids'] = 0;
+                $updateData['companion_seniors'] = 0;
+                $updateData['companion_pwds'] = 0;
                 $updateData['total_pax'] = 1;
             } else {
                 $m = max(0, (int)($updateData['companion_males'] ?? $itinerary->companion_males ?? 0));
                 $f = max(0, (int)($updateData['companion_females'] ?? $itinerary->companion_females ?? 0));
-                $ca = max(0, (int)($request->companion_adults ?? 0));
-                $ck = max(0, (int)($request->companion_kids ?? 0));
-                $cs = max(0, (int)($request->companion_seniors ?? 0));
-                $cp = max(0, (int)($request->companion_pwds ?? 0));
+                $ca = max(0, (int)($request->companion_adults ?? $updateData['companion_adults'] ?? $itinerary->companion_adults ?? 0));
+                $ck = max(0, (int)($request->companion_kids ?? $updateData['companion_kids'] ?? $itinerary->companion_kids ?? 0));
+                $cs = max(0, (int)($request->companion_seniors ?? $updateData['companion_seniors'] ?? $itinerary->companion_seniors ?? 0));
+                $cp = max(0, (int)($request->companion_pwds ?? $updateData['companion_pwds'] ?? $itinerary->companion_pwds ?? 0));
                 $addComp = max($m + $f, $ca + $ck + $cs + $cp);
                 $updateData['companion_males'] = $m;
                 $updateData['companion_females'] = $f;
+                $updateData['companion_adults'] = $ca;
+                $updateData['companion_kids'] = $ck;
+                $updateData['companion_seniors'] = $cs;
+                $updateData['companion_pwds'] = $cp;
                 $updateData['total_pax'] = max(1, (int)($updateData['total_pax'] ?? (1 + $addComp)));
             }
+        }
+        if (!Schema::hasColumn('itineraries', 'companion_adults')) {
+            unset($updateData['companion_adults'], $updateData['companion_kids'], $updateData['companion_seniors'], $updateData['companion_pwds']);
         }
         $itinerary->update($updateData);
 
@@ -791,6 +857,13 @@ class ItineraryController extends Controller
             $totalEstimatedCost = 0.00;
             $est = [];
             $legTransports = $request->leg_transports ?? [];
+            $companionCounts = [
+                'trip_type' => $itinerary->trip_type ?? 'solo',
+                'companion_adults' => (int)($itinerary->companion_adults ?? 0),
+                'companion_kids' => (int)($itinerary->companion_kids ?? 0),
+                'companion_seniors' => (int)($itinerary->companion_seniors ?? 0),
+                'companion_pwds' => (int)($itinerary->companion_pwds ?? 0),
+            ];
             try {
                 $service = new \App\Services\CostEstimationService();
                 $est = $service->estimateItineraryCosts(
@@ -800,12 +873,32 @@ class ItineraryController extends Controller
                     null,
                     $itinerary->trip_date,
                     null,
-                    $legTransports
+                    $legTransports,
+                    $companionCounts
                 );
                 $totalEstimatedCost = (float) ($est['total_cost'] ?? 0.00);
             } catch (\Throwable $e) {
                 $spots = TouristSpot::whereIn('id', $request->destinations)->get();
-                $totalEstimatedCost = (float) ($spots->sum('entrance_fee') + $spots->sum('environmental_fee'));
+                $isGrp = ($itinerary->trip_type ?? 'solo') === 'group';
+                $nA = 1 + ($isGrp ? (int)($itinerary->companion_adults ?? 0) : 0);
+                $nK = $isGrp ? (int)($itinerary->companion_kids ?? 0) : 0;
+                $nS = $isGrp ? (int)($itinerary->companion_seniors ?? 0) : 0;
+                $nP = $isGrp ? (int)($itinerary->companion_pwds ?? 0) : 0;
+                $entTotal = 0.0;
+                $envTotal = 0.0;
+                foreach ($spots as $sp) {
+                    if ($sp->is_maintenance) continue;
+                    $bA = ($sp->adult_fee > 0) ? (float)$sp->adult_fee : (float)($sp->entrance_fee ?? 0);
+                    $kF = ($sp->kids_fee !== null && $sp->kids_fee !== '') ? (float)$sp->kids_fee : $bA;
+                    $sF = ($sp->senior_citizen_fee > 0) ? (float)$sp->senior_citizen_fee : ($bA > 0 ? $bA * 0.8 : 0.0);
+                    $pF = ($sp->pwd_fee > 0) ? (float)$sp->pwd_fee : ($bA > 0 ? $bA * 0.8 : 0.0);
+                    $eV = (float)($sp->environmental_fee ?? 0);
+                    $eS = ($sF > 0 && $bA > 0) ? round($eV * ($sF / $bA)) : round($eV * 0.8);
+                    $eP = ($pF > 0 && $bA > 0) ? round($eV * ($pF / $bA)) : round($eV * 0.8);
+                    $entTotal += ($nA * $bA) + ($nK * $kF) + ($nS * $sF) + ($nP * $pF);
+                    $envTotal += ($nA * $eV) + ($nK * $eV) + ($nS * $eS) + ($nP * $eP);
+                }
+                $totalEstimatedCost = (float) ($entTotal + $envTotal);
             }
             $itinerary->update(['total_cost' => $totalEstimatedCost]);
 
@@ -848,28 +941,29 @@ class ItineraryController extends Controller
                     }
                 }
 
+                $hasItemComp = Schema::hasColumn('itinerary_items', 'companion_adults');
+                $itemPayload = [
+                    'order_index'       => $idx + 1,
+                    'transport_mode'    => $legMode,
+                    'companion_males'   => $itinerary->companion_males ?? 0,
+                    'companion_females' => $itinerary->companion_females ?? 0,
+                    'total_pax'         => $itinerary->total_pax ?? 1,
+                    'leg_cost'          => $legCost,
+                    'leg_distance_km'   => $legDist,
+                ];
+                if ($hasItemComp) {
+                    $itemPayload['companion_adults']  = $itinerary->companion_adults ?? 0;
+                    $itemPayload['companion_kids']    = $itinerary->companion_kids ?? 0;
+                    $itemPayload['companion_seniors'] = $itinerary->companion_seniors ?? 0;
+                    $itemPayload['companion_pwds']    = $itinerary->companion_pwds ?? 0;
+                }
+
                 if ($existingItems->has($spotId)) {
-                    $existingItems->get($spotId)->update([
-                        'order_index'       => $idx + 1,
-                        'transport_mode'    => $legMode,
-                        'companion_males'   => $itinerary->companion_males ?? 0,
-                        'companion_females' => $itinerary->companion_females ?? 0,
-                        'total_pax'         => $itinerary->total_pax ?? 1,
-                        'leg_cost'          => $legCost,
-                        'leg_distance_km'   => $legDist,
-                    ]);
+                    $existingItems->get($spotId)->update($itemPayload);
                 } else {
-                    ItineraryItem::create([
-                        'itinerary_id'      => $itinerary->id,
-                        'tourist_spot_id'   => $spotId,
-                        'order_index'       => $idx + 1,
-                        'transport_mode'    => $legMode,
-                        'companion_males'   => $itinerary->companion_males ?? 0,
-                        'companion_females' => $itinerary->companion_females ?? 0,
-                        'total_pax'         => $itinerary->total_pax ?? 1,
-                        'leg_cost'          => $legCost,
-                        'leg_distance_km'   => $legDist,
-                    ]);
+                    $itemPayload['itinerary_id']    = $itinerary->id;
+                    $itemPayload['tourist_spot_id'] = $spotId;
+                    ItineraryItem::create($itemPayload);
                 }
             }
         }
@@ -953,12 +1047,25 @@ class ItineraryController extends Controller
     public function estimateCost(Request $request): JsonResponse
     {
         $request->validate([
-            'destination_ids' => 'required|array',
+            'destination_ids'   => 'required|array',
             'destination_ids.*' => 'integer',
-            'transport_mode' => 'nullable|string',
-            'trip_date' => 'nullable|date',
-            'leg_transports' => 'nullable|array',
+            'transport_mode'    => 'nullable|string',
+            'trip_date'         => 'nullable|date',
+            'leg_transports'    => 'nullable|array',
+            'trip_type'         => 'nullable|string|in:solo,group,With Companions,Solo Trip',
+            'companion_adults'  => 'nullable|integer|min:0',
+            'companion_kids'    => 'nullable|integer|min:0',
+            'companion_seniors' => 'nullable|integer|min:0',
+            'companion_pwds'    => 'nullable|integer|min:0',
         ]);
+
+        $companionCounts = [
+            'trip_type'         => $request->input('trip_type', 'solo'),
+            'companion_adults'  => (int)$request->input('companion_adults', 0),
+            'companion_kids'    => (int)$request->input('companion_kids', 0),
+            'companion_seniors' => (int)$request->input('companion_seniors', 0),
+            'companion_pwds'    => (int)$request->input('companion_pwds', 0),
+        ];
 
         $service = new \App\Services\CostEstimationService();
         $result = $service->estimateItineraryCosts(
@@ -968,7 +1075,8 @@ class ItineraryController extends Controller
             $request->input('fuel_efficiency'),
             $request->input('trip_date'),
             $request->input('peak_multiplier'),
-            $request->input('leg_transports')
+            $request->input('leg_transports'),
+            $companionCounts
         );
 
         return response()->json([

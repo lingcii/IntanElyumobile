@@ -19,7 +19,7 @@
 <!-- Notifications Modal Backdrop with Soft Blur -->
 <div id="notifications-backdrop" onclick="toggleNotifications()" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; width: 100vw; height: 100vh; background: rgba(10, 25, 60, 0.45); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); z-index: 999990; opacity: 0; transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1); pointer-events: none;"></div>
 
-<div id="notifications-dropdown" class="hide-scrollbar" style="position: fixed; top: calc(max(env(safe-area-inset-top, 0px), 36px) + 54px); right: 12px; left: 12px; max-width: 360px; margin: 0 auto; background: #ffffff; border: none !important; outline: none !important; border-radius: 22px; z-index: 999999; box-shadow: 0 16px 40px rgba(10, 25, 60, 0.45); padding: 0; max-height: 75vh; display: flex; flex-direction: column; overflow: hidden; opacity: 0; pointer-events: none; transform-origin: top right; transform: scale(0.4) translate(35px, -35px); transition: opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1), transform 0.34s cubic-bezier(0.175, 0.885, 0.32, 1.15) !important;">
+<div id="notifications-dropdown" class="hide-scrollbar" style="position: fixed; top: max(env(safe-area-inset-top, 0px), 12px); right: 12px; left: 12px; max-width: 360px; margin: 0 auto; background: #ffffff; border: none !important; outline: none !important; border-radius: 22px; z-index: 999999; box-shadow: 0 16px 40px rgba(10, 25, 60, 0.45); padding: 0; max-height: min(50vh, 440px); display: flex; flex-direction: column; overflow: hidden; opacity: 0; pointer-events: none; transform-origin: top center; transform: scale(0.4) translate(0, -35px); transition: opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1), transform 0.34s cubic-bezier(0.175, 0.885, 0.32, 1.15) !important;">
     <!-- Notifications Header Banner -->
     <div style="padding: 14px 16px; border-bottom: none !important; background: linear-gradient(180deg, #1e3a8a 0%, #193375 100%); flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; border: none !important; outline: none !important;">
         <span style="display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 800; color: #ffffff; letter-spacing: -0.3px;">
@@ -32,12 +32,12 @@
 
     <!-- Scrollable Middle Body (White Background) -->
     <div id="notifications-list" class="hide-scrollbar" style="flex: 1; min-height: 0; padding: 14px 12px; display: flex; flex-direction: column; gap: 10px; overflow-y: auto; scrollbar-width: none !important; -ms-overflow-style: none !important; background: #ffffff; border: none !important; outline: none !important;">
-        <div class="empty-state-card notif-empty-card" style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 28px 18px; background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important; border-radius: 16px; margin: 4px 0; border: none !important; outline: none !important;">
-            <div style="width: 56px; height: 56px; border-radius: 50%; background: #ffffff !important; border: none !important; outline: none !important; display: flex; align-items: center; justify-content: center; margin-bottom: 12px; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);">
+        <div class="empty-state-card notif-empty-card" style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 28px 18px; background: #1e3a8a !important; border: none !important; box-shadow: 0 4px 14px rgba(30, 58, 138, 0.25) !important; border-radius: 16px; margin: 4px 0;">
+            <div style="width: 56px; height: 56px; border-radius: 50%; background: #ffffff !important; border: none !important; outline: none !important; display: flex; align-items: center; justify-content: center; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);">
                 <i class="fa-solid fa-bell-slash" style="color: #1e3a8a !important; font-size: 22px;"></i>
             </div>
             <h4 style="margin: 0 0 6px 0; font-size: 15px; font-weight: 800; color: #ffffff; letter-spacing: -0.2px;">No Notifications Yet</h4>
-            <p style="margin: 0; font-size: 12px; color: rgba(255, 255, 255, 0.85); line-height: 1.45; max-width: 230px;">
+            <p style="margin: 0; font-size: 12px; color: rgba(255, 255, 255, 0.9); line-height: 1.45; max-width: 230px; font-weight: 500;">
                 You're all caught up! Updates, trip reminders, and vouchers will appear here.
             </p>
         </div>
@@ -98,10 +98,6 @@
         <div>
             <div style="font-size: 10.5px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 5px; padding-left: 4px;">Discover & Explore</div>
             <div style="display: flex; flex-direction: column; gap: 6px;">
-                <a href="#" onclick="toggleSidebar(); navigateTo('trending'); return false;" style="color: #0f172a !important; text-decoration: none; font-size: 13px; font-weight: 800; display: flex; align-items: center; gap: 10px; padding: 7px 11px; border-radius: 12px; background: #ffffff !important; border: 1.5px solid #e2e8f0 !important; outline: none !important; box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04) !important; transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;" onpointerdown="this.style.transform='scale(0.98)'; this.style.background='#f8fafc';" onpointerup="this.style.transform='scale(1)'; this.style.background='#ffffff';" onpointercancel="this.style.transform='scale(1)'; this.style.background='#ffffff';">
-                    <span style="width: 28px; height: 28px; border-radius: 8px; background: #eff6ff !important; border: 1px solid #dbeafe !important; display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><i class="fa-solid fa-compass" style="color: #1e3a8a !important; font-size: 12px;"></i></span>
-                    Tourist Sites
-                </a>
                 <a href="#" onclick="toggleSidebar(); navigateTo('puzzles'); return false;" style="color: #0f172a !important; text-decoration: none; font-size: 13px; font-weight: 800; display: flex; align-items: center; gap: 10px; padding: 7px 11px; border-radius: 12px; background: #ffffff !important; border: 1.5px solid #e2e8f0 !important; outline: none !important; box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04) !important; transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;" onpointerdown="this.style.transform='scale(0.98)'; this.style.background='#f8fafc';" onpointerup="this.style.transform='scale(1)'; this.style.background='#ffffff';" onpointercancel="this.style.transform='scale(1)'; this.style.background='#ffffff';">
                     <span style="width: 28px; height: 28px; border-radius: 8px; background: #eff6ff !important; border: 1px solid #dbeafe !important; display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><i class="fa-solid fa-gamepad" style="color: #1e3a8a !important; font-size: 12px;"></i></span>
                     GameZone
@@ -323,16 +319,19 @@
         }
     }
 
+    window._isNotifDropdownOpen = window._isNotifDropdownOpen || false;
+
     function toggleNotifications() {
         const dropdown = document.getElementById('notifications-dropdown');
         const backdrop = document.getElementById('notifications-backdrop');
         if (!dropdown) return;
         const isOpen = dropdown.style.opacity === '1';
         if (isOpen) {
+            window._isNotifDropdownOpen = false;
             document.body.classList.remove('notif-open');
             dropdown.style.opacity = '0';
             dropdown.style.pointerEvents = 'none';
-            dropdown.style.transform = 'scale(0.4) translate(35px, -35px)';
+            dropdown.style.transform = 'scale(0.4) translate(0, -35px)';
             if (backdrop) {
                 backdrop.style.opacity = '0';
                 backdrop.style.pointerEvents = 'none';
@@ -343,6 +342,7 @@
                 }, 300);
             }
         } else {
+            window._isNotifDropdownOpen = true;
             document.body.classList.add('notif-open');
             if (backdrop) {
                 backdrop.style.display = 'block';
@@ -361,6 +361,14 @@
 
     // Close notifications dropdown on click outside
     document.addEventListener('click', function(e) {
+        if (e.target.closest('#push-notification-modal') || e.target.closest('.push-notif-backdrop') || e.target.closest('.push-notif-card') || e.target.closest('.push-notif-close-btn') || e.target.closest('.push-notif-btn-secondary') || e.target.closest('.push-notif-btn-delete')) {
+            return;
+        }
+        const pushModal = document.getElementById('push-notification-modal');
+        if (pushModal && (pushModal.classList.contains('active') || pushModal.style.display === 'flex' || pushModal.style.display === 'block')) {
+            return;
+        }
+
         const dropdown = document.getElementById('notifications-dropdown');
         if (dropdown && dropdown.style.opacity === '1') {
             if (!dropdown.contains(e.target) && !e.target.closest('.header-icon') && !e.target.closest('#notifications-backdrop')) {
@@ -462,8 +470,8 @@
 </script>
 
 <!-- Interactive Push Notification Popup Modal (Header, White Middle, Button Footer, No View Details) -->
-<div id="push-notification-modal" class="push-notif-backdrop" style="display: none;" onclick="if(event.target===this) closePushNotificationModal()">
-    <div class="push-notif-card">
+<div id="push-notification-modal" class="push-notif-backdrop" style="display: none;" onclick="if(event.target===this){event.stopPropagation(); closePushNotificationModal(event);}">
+    <div class="push-notif-card" onclick="event.stopPropagation();">
         <!-- Top Header -->
         <div class="push-notif-header">
             <div style="flex: 1; min-width: 0;">
@@ -472,7 +480,7 @@
                 </div>
                 <div id="push-notif-time" class="push-notif-time" data-time="">Just now</div>
             </div>
-            <button type="button" class="push-notif-close-btn" onclick="closePushNotificationModal()" aria-label="Close">&times;</button>
+            <button type="button" class="push-notif-close-btn" onclick="event.stopPropagation(); closePushNotificationModal(event)" aria-label="Close">&times;</button>
         </div>
 
         <!-- White Middle Body -->
@@ -487,8 +495,8 @@
 
         <!-- Footer Buttons (Dismiss & Delete only; View Details removed) -->
         <div class="push-notif-footer">
-            <button type="button" class="push-notif-btn-secondary" onclick="closePushNotificationModal()">Dismiss</button>
-            <button id="push-notif-delete-btn" type="button" class="push-notif-btn-delete" onclick="handlePushNotificationDelete()">Delete</button>
+            <button type="button" class="push-notif-btn-secondary" onclick="event.stopPropagation(); closePushNotificationModal(event)">Dismiss</button>
+            <button id="push-notif-delete-btn" type="button" class="push-notif-btn-delete" onclick="event.stopPropagation(); handlePushNotificationDelete(event)">Delete</button>
         </div>
     </div>
 </div>
@@ -561,16 +569,51 @@
             .trim();
     };
 
-    window.cleanNotifMessage = function(msg) {
+    window.resolveSpotPoints = function(spotName) {
+        if (!spotName) return 25;
+        const norm = spotName.trim().toLowerCase();
+        let spots = (window.allTouristSpots && window.allTouristSpots.length > 0)
+            ? window.allTouristSpots
+            : (window.allDestinations || window.dashRecommended || []);
+        if ((!spots || spots.length === 0) && typeof localStorage !== 'undefined') {
+            try {
+                const raw = localStorage.getItem('intan_elyu_spots') || localStorage.getItem('all_destinations');
+                if (raw) spots = JSON.parse(raw);
+            } catch (e) {}
+        }
+        const found = Array.isArray(spots) ? spots.find(s => s && s.name && s.name.trim().toLowerCase() === norm) : null;
+        const status = found ? (found.classification_status || 'EXIST') : 'EXIST';
+        const c = String(status).toUpperCase();
+        if (c.startsWith('EMERG')) return 45;
+        if (c.startsWith('POT')) return 35;
+        return 25;
+    };
+
+    window.cleanNotifMessage = function(msg, spotNameHint = null) {
         if (!msg) return '';
         let cleaned = msg
             .replace(/\s*was confirmed by admin/gi, ' was confirmed')
             .replace(/\s*was approved by admin/gi, ' was approved');
 
+        let spotName = spotNameHint || null;
+        if (!spotName) {
+            const spotMatch = cleaned.match(/(?:for|at)\s+([A-Za-z0-9\s'\-]+?)\s+(?:has been|was)\s+(?:approved|confirmed)/i);
+            if (spotMatch && spotMatch[1]) {
+                spotName = spotMatch[1].trim();
+            }
+        }
+
+        const correctPts = window.resolveSpotPoints ? window.resolveSpotPoints(spotName) : 25;
+
         if (/You earned/i.test(cleaned)) {
-            cleaned = cleaned.replace(/You earned(?:\s*\+?(\d+)\s*Points?\.?)?/gi, (match, pts) => {
-                return pts ? `You earned +${pts} Points!` : 'You earned +50 Points!';
+            cleaned = cleaned.replace(/You earned(?:\s*\+?(\d+)\s*Points?\.?!??|$)/gi, (match, pts) => {
+                if (!pts || pts === '50') {
+                    return `You earned +${correctPts} Points!`;
+                }
+                return `You earned +${pts} Points!`;
             });
+        } else if (/approved/i.test(cleaned) || /confirmed/i.test(cleaned)) {
+            cleaned = cleaned.replace(/\+?50\s*Points/gi, `+${correctPts} Points`);
         } else {
             cleaned = cleaned
                 .replace(/\s*(?:&|and|,)\s*\+?\d+\s*Points\.?/gi, '.')
@@ -579,6 +622,7 @@
 
         return cleaned
             .replace(/\.\.+/g, '.')
+            .replace(/!+/g, '!')
             .replace(/\s+/g, ' ')
             .trim();
     };
@@ -699,24 +743,25 @@
                 const timerStr = window.formatReverseTimer(itemTime);
                 const formattedDate = new Date(itemTime).toLocaleDateString(undefined, {month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'});
                 const displayTitle = window.cleanNotifTitle(item.title, isWelcome);
-                const displayMsg = window.cleanNotifMessage(item.message);
+                const spotName = item.spot_name || item.spot || (item.data && item.data.spot_name) || null;
+                const displayMsg = window.cleanNotifMessage(item.message, spotName);
 
                 html += `
-                    <div class="notif-card-item" id="notif-item-${item.id}" style="display: block; padding: 12px 14px; background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; box-shadow: 0 4px 12px rgba(32, 63, 141, 0.28) !important; border: none !important; outline: none !important; border-radius: 14px; cursor: pointer; transition: transform 0.2s ease, opacity 0.2s ease, background 0.2s;" onclick="handleNotifClick('${item.id}', this)" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'" onpointercancel="this.style.transform='scale(1)'">
-                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 5px;">
+                    <div class="notif-card-item" id="notif-item-${item.id}" style="display: block; padding: 13px 14px; background: #ffffff !important; border: 1.5px solid #e2e8f0 !important; box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05) !important; border-radius: 14px; cursor: pointer; transition: transform 0.2s ease, opacity 0.2s ease, border-color 0.2s;" onclick="handleNotifClick('${item.id}', this)" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'" onpointercancel="this.style.transform='scale(1)'">
+                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px;">
                             <div style="display: flex; align-items: center; gap: 6px; min-width: 0; flex: 1;">
-                                ${isUnread ? '<span class="unread-dot" style="width: 7px; height: 7px; border-radius: 50%; background: #00f2fe; flex-shrink: 0; box-shadow: 0 0 8px #00f2fe; display: inline-block;"></span>' : ''}
-                                ${isWelcome ? '<span style="font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; background: rgba(0, 242, 254, 0.25); color: #00f2fe; padding: 2px 6px; border-radius: 4px; border: none !important; outline: none !important; flex-shrink: 0;">Welcome</span>' : ''}
-                                <span style="font-size: 13.5px; color: #ffffff; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${displayTitle}</span>
+                                ${isUnread ? '<span class="unread-dot" style="width: 7px; height: 7px; border-radius: 50%; background: #0284c7; flex-shrink: 0; box-shadow: 0 0 6px #0284c7; display: inline-block;"></span>' : ''}
+                                ${isWelcome ? '<span style="font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; padding: 2px 6px; border-radius: 4px; flex-shrink: 0;">Welcome</span>' : ''}
+                                <span style="font-size: 14px; color: #0f172a; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${displayTitle}</span>
                             </div>
-                            <button type="button" onclick="event.stopPropagation(); window.deleteNotification('${item.id}', this.closest('.notif-card-item'))" style="background: #ffffff !important; border: none !important; outline: none !important; color: #ef4444 !important; font-size: 11px; font-weight: 800; cursor: pointer; padding: 3px 10px; border-radius: 8px; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15) !important; display: inline-flex; align-items: center; justify-content: center; transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">Delete</button>
+                            <button type="button" onclick="event.stopPropagation(); window.deleteNotification('${item.id}', this.closest('.notif-card-item'))" style="background: #fee2e2 !important; border: 1px solid #fecaca !important; outline: none !important; color: #dc2626 !important; font-size: 11px; font-weight: 800; cursor: pointer; padding: 3px 10px; border-radius: 8px; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">Delete</button>
                         </div>
-                        <p style="margin: 0 0 6px 0; font-size: 12px; color: ${isUnread ? '#ffffff' : 'rgba(255, 255, 255, 0.85)'}; line-height: 1.45; font-weight: ${isUnread ? '600' : '400'};">${displayMsg}</p>
+                        <p style="margin: 0 0 8px 0; font-size: 12.5px; color: ${isUnread ? '#334155' : '#64748b'}; line-height: 1.45; font-weight: ${isUnread ? '600' : '500'};">${displayMsg}</p>
                         <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
-                            <span class="notif-reverse-timer" data-time="${itemTime}" style="font-size: 10px; font-weight: 700; color: #00f2fe; display: inline-flex; align-items: center; background: rgba(0, 242, 254, 0.18); padding: 2px 8px; border-radius: 100px; border: none !important; outline: none !important;">
+                            <span class="notif-reverse-timer" data-time="${itemTime}" style="font-size: 10px; font-weight: 700; color: #0284c7; display: inline-flex; align-items: center; background: #e0f2fe; padding: 2px 8px; border-radius: 100px; border: 1px solid #bae6fd;">
                                 <span class="timer-text">${timerStr}</span>
                             </span>
-                            <span style="font-size: 10.5px; color: rgba(255, 255, 255, 0.65); font-weight: 500;">${formattedDate}</span>
+                            <span style="font-size: 10.5px; color: #94a3b8; font-weight: 600;">${formattedDate}</span>
                         </div>
                     </div>
                 `;
@@ -746,7 +791,8 @@
             if (!item.is_read) {
                 markNotifRead(item.id, el);
             }
-            toggleNotifications(); // close dropdown
+            // Explicitly mark dropdown as open so detail modal close never closes notifications dropdown
+            window._isNotifDropdownOpen = true;
             showNotificationModal(item);
         } catch (e) {
             console.error("Error handling notification click:", e);
@@ -762,9 +808,9 @@
         const rawTitle = opts.title || (opts.type ? opts.type.replace(/_/g, ' ').toUpperCase() : 'Notification');
         const title = window.cleanNotifTitle(rawTitle, opts.type === 'welcome');
         const rawBody = opts.message || opts.body || 'You have a new update.';
-        const body = window.cleanNotifMessage(rawBody);
-        const type = opts.type || 'general';
         const spotName = opts.spot_name || opts.spot || (opts.data && opts.data.spot_name) || null;
+        const body = window.cleanNotifMessage(rawBody, spotName);
+        const type = opts.type || 'general';
         const notifTimestamp = window.getNotifTimestamp ? window.getNotifTimestamp(opts) : Date.now();
         const timeStr = window.formatReverseTimer ? window.formatReverseTimer(notifTimestamp) : 'Just now';
 
@@ -813,30 +859,52 @@
         });
     };
 
-    window.closePushNotificationModal = function() {
-        document.body.classList.remove('notif-open');
+    window.closePushNotificationModal = function(e) {
+        if (e && typeof e.stopPropagation === 'function') {
+            e.stopPropagation();
+        }
         const modal = document.getElementById('push-notification-modal');
-        if (!modal) return;
-        modal.classList.remove('active');
-        setTimeout(() => {
-            modal.style.display = 'none';
+        if (modal) {
+            modal.classList.remove('active');
+            setTimeout(() => {
+                modal.style.display = 'none';
+            }, 300);
+        }
+
+        const dropdown = document.getElementById('notifications-dropdown');
+        const backdrop = document.getElementById('notifications-backdrop');
+
+        // Always keep notification dropdown open if user opened detail from notification list
+        if (window._isNotifDropdownOpen !== false && dropdown) {
+            dropdown.style.opacity = '1';
+            dropdown.style.pointerEvents = 'auto';
+            dropdown.style.transform = 'scale(1) translate(0, 0)';
+            if (backdrop) {
+                backdrop.style.display = 'block';
+                backdrop.style.opacity = '1';
+                backdrop.style.pointerEvents = 'auto';
+            }
+            document.body.classList.add('notif-open');
+        } else {
+            document.body.classList.remove('notif-open');
             document.body.style.overflow = '';
-        }, 300);
+        }
     };
 
-    window.handlePushNotificationAction = function() {
-        // Fallback action handler
-        closePushNotificationModal();
+    window.handlePushNotificationAction = function(e) {
+        if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
+        closePushNotificationModal(e);
     };
 
-    window.handlePushNotificationDelete = async function() {
+    window.handlePushNotificationDelete = async function(e) {
+        if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
         if (_currentPushNotifId) {
             const id = _currentPushNotifId;
-            closePushNotificationModal();
+            closePushNotificationModal(e);
             const cardEl = document.getElementById('notif-item-' + id);
             await window.deleteNotification(id, cardEl);
         } else {
-            closePushNotificationModal();
+            closePushNotificationModal(e);
         }
     };
 

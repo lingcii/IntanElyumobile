@@ -2,33 +2,31 @@
 /**
  * Trip Guide Walkthrough Modal Component
  * Interactive step-by-step tour matching the requested UI design:
+ * - Real phone screenshots for all 6 screens
  * - Numbered hotspot pins on screen preview
  * - Selected item explanation card
  * - Interactive "ALL ITEMS ON THIS SCREEN" list
  * - Previous / Next navigation with pagination dots
+ * - Question mark removed from modal header
+ * - Bottom navigation bar blurred behind modal
  */
 ?>
 <div id="trip-guide-modal"
-    style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(10, 25, 60, 0.6); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); z-index:999999; justify-content:center; align-items:center; padding:12px; box-sizing:border-box;"
+    style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(10, 25, 60, 0.65); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); z-index:1000050 !important; justify-content:center; align-items:center; padding:12px; box-sizing:border-box;"
     onclick="if(event.target===this) window.closeTripGuideModal();">
     
     <div class="trip-guide-card-container"
         style="background:#ffffff !important; border:none !important; outline:none !important; border-radius:24px; width:100%; max-width:820px; max-height:92dvh; display:flex; flex-direction:column; box-shadow:0 24px 60px rgba(10, 25, 60, 0.45) !important; overflow:hidden; animation:popInTripGuide 0.24s cubic-bezier(0.16, 1, 0.3, 1) forwards; font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;">
         
-        <!-- Header Banner (Clean White with Dark Blue Badge) -->
+        <!-- Header Banner (Clean White, question mark icon removed) -->
         <div style="background:#ffffff; padding:16px 20px; flex-shrink:0; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid #f1f5f9;">
-            <div style="display:flex; align-items:center; gap:12px; min-width:0;">
-                <div style="width:38px; height:38px; border-radius:12px; background:#1e3a8a; display:flex; align-items:center; justify-content:center; flex-shrink:0; box-shadow:0 4px 12px rgba(30,58,138,0.28);">
-                    <i class="fa-solid fa-question" style="color:#ffffff; font-size:16px; font-weight:900;"></i>
-                </div>
-                <div style="min-width:0;">
-                    <h3 id="tg-header-title" style="margin:0; color:#0f172a; font-size:17px; font-weight:800; letter-spacing:-0.3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                        How to Add & Complete a Trip
-                    </h3>
-                    <p id="tg-header-subtitle" style="margin:2px 0 0; font-size:12px; color:#64748b; font-weight:500;">
-                        Step-by-step INTAN ELYU interactive guide
-                    </p>
-                </div>
+            <div style="min-width:0;">
+                <h3 id="tg-header-title" style="margin:0; color:#0f172a; font-size:17px; font-weight:800; letter-spacing:-0.3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                    How to Make an Itinerary
+                </h3>
+                <p id="tg-header-subtitle" style="margin:2px 0 0; font-size:12px; color:#64748b; font-weight:500;">
+                    Step-by-step INTAN ELYU interactive guide
+                </p>
             </div>
             <button type="button" onclick="window.closeTripGuideModal()"
                 style="background:#f1f5f9 !important; border:none !important; outline:none !important; color:#64748b !important; width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; margin-left:12px; transition:all 0.15s ease;"
@@ -41,34 +39,43 @@
         <div class="trip-guide-body hide-scrollbar" style="background:#ffffff; padding:18px 20px; flex:1; overflow-y:auto; display:flex; gap:18px; box-sizing:border-box;">
             
             <!-- Left Side: Interactive Screen Mockup / Screenshot Preview with Pins -->
-            <div class="trip-guide-preview-col" style="flex:1; min-width:280px; display:flex; flex-direction:column;">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <div class="trip-guide-preview-col" style="flex:1; min-width:240px; display:flex; flex-direction:column; align-items:center;">
+                <div style="width:100%; display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
                     <span id="tg-screen-badge" style="font-size:11px; font-weight:800; color:#1e3a8a; text-transform:uppercase; letter-spacing:0.6px; background:#e0f2fe; padding:3px 10px; border-radius:100px;">
-                        Screen 1 of 4
+                        Screen 1 of 7
                     </span>
                     <span style="font-size:11px; color:#94a3b8; font-weight:600;">
                         <i class="fa-solid fa-hand-pointer" style="margin-right:4px;"></i> Tap pins to inspect
                     </span>
                 </div>
 
-                <div id="tg-preview-frame" style="position:relative; width:100%; min-height:260px; max-height:420px; height:100%; border-radius:18px; border:1.5px solid #e2e8f0; background:#f8fafc; overflow:hidden; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 18px rgba(0,0,0,0.04);">
-                    <!-- Dynamic Preview Image / Graphic -->
-                    <img id="tg-preview-img" src="" alt="Screen Preview" style="width:100%; height:100%; object-fit:cover; display:none;">
-                    
-                    <!-- Illustrated Fallback / Dynamic SVG Mockup when screenshot not loaded -->
-                    <div id="tg-preview-svg-mockup" style="width:100%; height:100%; display:flex; flex-direction:column; padding:16px; box-sizing:border-box; background:linear-gradient(180deg, #f1f5f9 0%, #e2e8f0 100%);">
-                        <!-- Rendered via JS -->
-                    </div>
+                <div id="tg-preview-frame" onclick="window.togglePreviewZoom()" title="Tap to toggle zoom" style="position:relative; width:100%; max-width:220px; aspect-ratio:9/19; max-height:420px; border-radius:18px; border:2px solid #e2e8f0; background:#0f172a; overflow:hidden; display:flex; align-items:center; justify-content:center; box-shadow:0 8px 24px rgba(10,25,60,0.12); cursor:zoom-out;">
+                    <div id="tg-zoom-stage" style="width:100%; height:100%; position:relative; transition:transform 0.38s cubic-bezier(0.16, 1, 0.3, 1), transform-origin 0.38s cubic-bezier(0.16, 1, 0.3, 1); transform-origin:center center; will-change:transform;">
+                        <!-- Dynamic Preview Image / Graphic -->
+                        <img id="tg-preview-img" src="" alt="Screen Preview" style="width:100%; height:100%; object-fit:contain; background:#0f172a; display:block;">
+                        
+                        <!-- Illustrated Fallback / Dynamic SVG Mockup when screenshot not loaded -->
+                        <div id="tg-preview-svg-mockup" style="width:100%; height:100%; display:none; flex-direction:column; padding:16px; box-sizing:border-box; background:linear-gradient(180deg, #f1f5f9 0%, #e2e8f0 100%);">
+                            <!-- Rendered via JS -->
+                        </div>
 
-                    <!-- Overlay Pin Hotspots Layer -->
-                    <div id="tg-pins-layer" style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none;">
-                        <!-- Injected via JS -->
+                        <!-- Overlay Pin Hotspots Layer -->
+                        <div id="tg-pins-layer" style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none;">
+                            <!-- Injected via JS -->
+                        </div>
                     </div>
+                </div>
+
+                <!-- Zoom button placed OUTSIDE the image -->
+                <div style="margin-top:8px; display:flex; justify-content:center; width:100%;">
+                    <button type="button" id="tg-zoom-indicator" onclick="window.togglePreviewZoom()" style="background:#f8fafc; border:1px solid #cbd5e1; color:#1e3a8a; font-size:11px; font-weight:800; padding:4px 12px; border-radius:100px; display:inline-flex; align-items:center; gap:5px; cursor:pointer; outline:none; box-shadow:0 1px 3px rgba(15,23,42,0.06); transition:transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.95)'" onpointerup="this.style.transform='scale(1)'">
+                        <i id="tg-zoom-icon" class="fa-solid fa-magnifying-glass-minus" style="font-size:10.5px; color:#0284c7;"></i> <span id="tg-zoom-label">1.7× Focused</span>
+                    </button>
                 </div>
             </div>
 
             <!-- Right Side: Selected Item Card & All Items On This Screen -->
-            <div class="trip-guide-info-col" style="flex:1.15; min-width:280px; display:flex; flex-direction:column; gap:14px;">
+            <div class="trip-guide-info-col" style="flex:1.2; min-width:260px; display:flex; flex-direction:column; gap:14px;">
                 
                 <!-- Top: Selected Item Box -->
                 <div id="tg-selected-card" style="background:#ffffff; border:1.5px solid #0284c7; border-radius:16px; padding:14px 16px; box-shadow:0 4px 16px rgba(2, 132, 199, 0.08); transition:all 0.2s ease;">
@@ -105,20 +112,20 @@
         </div>
 
         <!-- Modal Footer Navigation (Previous, Pagination Dots, Next) -->
-        <div style="background:#ffffff; padding:12px 20px; flex-shrink:0; display:flex; align-items:center; justify-content:space-between; border-top:1px solid #f1f5f9; gap:12px;">
+        <div style="background:#ffffff; padding:10px 18px; flex-shrink:0; display:flex; align-items:center; justify-content:space-between; border-top:1px solid #f1f5f9; gap:10px;">
             <button type="button" id="tg-btn-prev" onclick="window.navigateTripGuide(-1)"
-                style="background:#f8fafc; border:1px solid #e2e8f0; outline:none; color:#475569; font-weight:700; font-size:12.5px; padding:9px 18px; border-radius:100px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; transition:all 0.15s ease;">
-                <i class="fa-solid fa-arrow-left" style="font-size:11px;"></i> Previous
+                style="background:#f8fafc; border:1px solid #cbd5e1; outline:none; color:#475569; font-weight:800; font-size:11.5px; height:32px; min-height:32px; padding:0 14px; border-radius:100px; cursor:pointer; display:inline-flex; align-items:center; gap:5px; transition:all 0.15s ease;">
+                <i class="fa-solid fa-arrow-left" style="font-size:10.5px;"></i> Previous
             </button>
 
             <!-- Center Pagination Dots -->
-            <div id="tg-dots-container" style="display:flex; align-items:center; gap:6px;">
+            <div id="tg-dots-container" style="display:flex; align-items:center; gap:5px;">
                 <!-- Injected via JS -->
             </div>
 
             <button type="button" id="tg-btn-next" onclick="window.navigateTripGuide(1)"
-                style="background:#1e3a8a; border:none; outline:none; color:#ffffff; font-weight:800; font-size:12.5px; padding:9px 22px; border-radius:100px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; box-shadow:0 3px 10px rgba(30,58,138,0.28); transition:all 0.15s ease;">
-                <span>Next</span> <i class="fa-solid fa-arrow-right" style="font-size:11px;"></i>
+                style="background:#1e3a8a; border:none; outline:none; color:#ffffff; font-weight:800; font-size:11.5px; height:32px; min-height:32px; padding:0 16px; border-radius:100px; cursor:pointer; display:inline-flex; align-items:center; gap:5px; box-shadow:0 2px 8px rgba(30,58,138,0.22); transition:all 0.15s ease;">
+                <span>Next</span> <i class="fa-solid fa-arrow-right" style="font-size:10.5px;"></i>
             </button>
         </div>
 
@@ -142,25 +149,26 @@
     .trip-guide-body {
         flex-direction: column !important;
         gap: 14px !important;
-        padding: 14px 16px !important;
+        padding: 12px 14px !important;
     }
     .trip-guide-preview-col {
         min-width: 100% !important;
     }
     #tg-preview-frame {
-        height: 180px !important;
-        min-height: 180px !important;
-        max-height: 180px !important;
+        max-width: 175px !important;
+        max-height: 270px !important;
+        aspect-ratio: 9/19 !important;
+        margin: 0 auto !important;
     }
     .trip-guide-info-col {
         min-width: 100% !important;
     }
     #tg-items-list {
-        max-height: 180px !important;
+        max-height: 160px !important;
     }
 }
 
-/* Floating Trip Guide Button (Above profile navigation button) */
+/* Floating Trip Guide Button */
 .floating-trip-guide-btn {
     position: fixed !important;
     right: clamp(18px, calc((100vw - 448px) / 2 + 18px), calc(50vw - 224px + 18px)) !important;
@@ -179,12 +187,26 @@
     font-weight: 900 !important;
     cursor: pointer !important;
     z-index: 9400 !important;
-    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease !important;
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, opacity 0.2s ease, visibility 0.2s ease !important;
     -webkit-tap-highlight-color: transparent !important;
 }
 
 .floating-trip-guide-btn:active {
     transform: scale(0.92) !important;
+}
+
+/* When guide modal is active, blur bottom nav and hide floating btn */
+body.trip-guide-open #bottom-navigation,
+html.trip-guide-open #bottom-navigation {
+    pointer-events: none !important;
+    filter: blur(10px) !important;
+    opacity: 0.25 !important;
+}
+
+body.trip-guide-open .floating-trip-guide-btn {
+    pointer-events: none !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
 }
 
 /* Numbered Hotspot Pin */
@@ -200,7 +222,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.32);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
     border: 2px solid #ffffff;
     cursor: pointer;
     pointer-events: auto;
@@ -212,7 +234,7 @@
 .tg-pin.active {
     background: #0284c7;
     transform: translate(-50%, -50%) scale(1.22);
-    box-shadow: 0 0 0 4px rgba(2, 132, 199, 0.35), 0 4px 12px rgba(0,0,0,0.35);
+    box-shadow: 0 0 0 4px rgba(2, 132, 199, 0.35), 0 4px 12px rgba(0,0,0,0.4);
     z-index: 10;
 }
 
@@ -244,136 +266,229 @@
 
 <script>
 (function() {
-    // Walkthrough Tour Screens Data
-    // User can customize screenshot URLs, items, and pin coordinates (x%, y%)
+    // 6-Screen Complete Walkthrough Guide Data
     window.TRIP_GUIDE_SCREENS = [
         {
-            title: "How to Add & Plan a Trip",
-            subtitle: "Explore La Union spots and add them to your draft",
-            screenshot: "", // Screenshot image path will be set once provided
-            mockupType: "map",
+            title: "Step 1: Explore & Add Spots",
+            subtitle: "Find attractions on the map and add them to your trip",
+            screenshot: "assets/img/guide/step1_spot_sheet.jpg",
             items: [
                 {
                     number: 1,
-                    title: "Tourist Spot Pins",
-                    desc: "Browse the interactive Map of La Union. Tap on any spot marker or attraction card to view full details, photos, and amenities.",
-                    pinX: "32%",
-                    pinY: "38%"
+                    title: "Attraction Overview & Rating",
+                    desc: "Inspect destination photos, category tags, distance, community ratings, and explorer point rewards.",
+                    pinX: "50%",
+                    pinY: "28%"
                 },
                 {
                     number: 2,
-                    title: "Spot Bottom Sheet",
-                    desc: "When a spot is selected, its preview sheet slides up from the bottom displaying verified ratings, operating hours, and location.",
+                    title: "Site & Environmental Fees",
+                    desc: "Review base entrance fees and categorized rates for Adults, Children, PWDs, and Senior Citizens.",
                     pinX: "50%",
-                    pinY: "68%"
+                    pinY: "72%"
                 },
                 {
                     number: 3,
                     title: "+ Add to Trip Button",
-                    desc: "Tap '+ Add to Trip' to immediately queue this attraction into your personalized Draft Plan. You can add as many stops as you like!",
-                    pinX: "80%",
-                    pinY: "72%"
+                    desc: "Tap '+ Add to Trip' to instantly queue the attraction into your personalized active draft itinerary.",
+                    pinX: "44%",
+                    pinY: "94%"
                 }
             ]
         },
         {
-            title: "Customize Your Itinerary",
-            subtitle: "Optimize route, select vehicles, and set budget",
-            screenshot: "",
-            mockupType: "itinerary",
+            title: "Step 2: Review Itinerary Stops",
+            subtitle: "Organize route stops, distances, and starting point",
+            screenshot: "assets/img/guide/step2_itinerary.jpg",
             items: [
                 {
                     number: 1,
-                    title: "Timeline & Reordering",
-                    desc: "Review your selected destinations. Drag or use quick controls to reorder stops for the most efficient travel sequence.",
-                    pinX: "48%",
-                    pinY: "35%"
+                    title: "Route Distance & Travel Time",
+                    desc: "Real-time summary of computed travel distance in kilometers and estimated driving duration.",
+                    pinX: "50%",
+                    pinY: "26%"
                 },
                 {
                     number: 2,
-                    title: "Route Type (Recommended / Alt)",
-                    desc: "Switch between Recommended and Alternative routes to view distance in kilometers, estimated travel time, and traffic updates.",
+                    title: "Starting Point (GPS)",
+                    desc: "Automatically detects your live GPS coordinates or lets you select any custom starting location.",
                     pinX: "50%",
-                    pinY: "20%"
+                    pinY: "38%"
                 },
                 {
                     number: 3,
-                    title: "Transport & Vehicle Mode",
-                    desc: "Select your ride (Car, Motorcycle, Van, Tricycle). The app calculates estimated fuel costs and fare breakdowns automatically.",
+                    title: "Destination Stops Timeline",
+                    desc: "Review your sequenced stops with arrival estimates, spot distance from departure, and municipal tags.",
                     pinX: "50%",
                     pinY: "62%"
                 },
                 {
                     number: 4,
                     title: "Save Draft Plan Button",
-                    desc: "Tap 'Save Draft Plan' to give your trip a custom name, date, and budget. Once saved, your trip is safely stored in Saved Trips!",
+                    desc: "Tap 'Save Draft Plan' to proceed to companion selection, vehicle assignment, and budget configuration.",
                     pinX: "50%",
-                    pinY: "86%"
+                    pinY: "83%"
                 }
             ]
         },
         {
-            title: "Saved Trips & Starting",
-            subtitle: "Access saved plans and launch live navigation",
-            screenshot: "",
-            mockupType: "saved_trips",
+            title: "Step 3: Choose Leg Transports",
+            subtitle: "Select vehicles and calculate official LTFRB fares",
+            screenshot: "assets/img/guide/step3_transport.jpg",
             items: [
                 {
                     number: 1,
-                    title: "Saved Trip Cards",
-                    desc: "All your created itineraries are listed here. View your scheduled trip date, estimated budget, and companion headcount.",
+                    title: "Private & Rental Transport",
+                    desc: "Select private vehicles like Motorcycle or Van for personal driving and charter party groups.",
+                    pinX: "50%",
+                    pinY: "42%"
+                },
+                {
+                    number: 2,
+                    title: "Public Transit & Modern Jeepneys",
+                    desc: "Choose MPUJ, Traditional TPUJ, or Tricycle with official LTFRB distance-calibrated fares.",
+                    pinX: "50%",
+                    pinY: "72%"
+                },
+                {
+                    number: 3,
+                    title: "Done / Confirm Fares",
+                    desc: "Tap 'Done' to lock in your transport selections and calculate your estimated transit expenses.",
+                    pinX: "78%",
+                    pinY: "95%"
+                }
+            ]
+        },
+        {
+            title: "Step 4: Set Companions & Budget",
+            subtitle: "Specify travelers for automatic discounts and budgeting",
+            screenshot: "assets/img/guide/step4_companions_filled.jpg",
+            items: [
+                {
+                    number: 1,
+                    title: "Gender Headcount",
+                    desc: "Set male and female companion counts for accurate party tracking and safety records.",
+                    pinX: "50%",
+                    pinY: "25%"
+                },
+                {
+                    number: 2,
+                    title: "Traveler Categories",
+                    desc: "Classify companions as Adult, Kids, Senior, or PWD to apply legal statutory discounts automatically.",
+                    pinX: "50%",
+                    pinY: "46%"
+                },
+                {
+                    number: 3,
+                    title: "Personal Trip Budget",
+                    desc: "Set an optional budget target to receive real-time budget health alerts as you travel.",
+                    pinX: "50%",
+                    pinY: "76%"
+                },
+                {
+                    number: 4,
+                    title: "Save Trip Button",
+                    desc: "Tap 'Save Trip' to store your configured itinerary into your account and local device storage.",
+                    pinX: "68%",
+                    pinY: "92%"
+                }
+            ]
+        },
+        {
+            title: "Step 5: Inspect Trip Summary",
+            subtitle: "Review traveler party, transit costs, and spot fees",
+            screenshot: "assets/img/guide/step5_summary.jpg",
+            items: [
+                {
+                    number: 1,
+                    title: "Traveler Party Verification",
+                    desc: "Complete summary of all travelers with applied senior citizen, child, and PWD privileges.",
+                    pinX: "50%",
+                    pinY: "30%"
+                },
+                {
+                    number: 2,
+                    title: "Cost Breakdown Matrix",
+                    desc: "Transparent division of Transit Total alongside combined Attraction Entrance & Environmental Fees.",
+                    pinX: "50%",
+                    pinY: "48%"
+                },
+                {
+                    number: 3,
+                    title: "Destination Route Plan",
+                    desc: "Final overview of your destinations sequence, starting point, and computed leg distances.",
+                    pinX: "50%",
+                    pinY: "82%"
+                },
+                {
+                    number: 4,
+                    title: "Done / Finalize Itinerary",
+                    desc: "Tap 'Done' to finalize your trip and immediately access it under My Saved Trips.",
+                    pinX: "80%",
+                    pinY: "94%"
+                }
+            ]
+        },
+        {
+            title: "Step 6: Saved Trips & Start Trip",
+            subtitle: "Access saved itineraries, check budget, and launch navigation",
+            screenshot: "assets/img/guide/step6_saved_trips.jpg",
+            items: [
+                {
+                    number: 1,
+                    title: "My Saved Trips List",
+                    desc: "Access all your planned adventures anytime from the Saved Trips tab in the bottom navigation bar.",
+                    pinX: "50%",
+                    pinY: "18%"
+                },
+                {
+                    number: 2,
+                    title: "Trip Budget & Vehicle Status",
+                    desc: "Check your budget health badge, assigned vehicle mode, and travel party headcount at a glance.",
                     pinX: "50%",
                     pinY: "34%"
                 },
                 {
-                    number: 2,
-                    title: "Start Trip Button",
-                    desc: "Ready to explore? Tap 'Start Trip' to launch the interactive turn-by-turn navigation map with real-time GPS tracking.",
-                    pinX: "32%",
-                    pinY: "72%"
-                },
-                {
                     number: 3,
-                    title: "Edit & Share Controls",
-                    desc: "Easily update trip details, add more stops, or download an offline copy of your itinerary anytime before or during your journey.",
-                    pinX: "80%",
-                    pinY: "72%"
+                    title: "Start Trip Button",
+                    desc: "Tap 'Start Trip' to launch the interactive live turn-by-turn GPS navigation map and begin your adventure!",
+                    pinX: "50%",
+                    pinY: "62%"
                 }
             ]
         },
         {
-            title: "Check-in & Complete Trip",
-            subtitle: "Verify visits, upload photos, and earn points",
-            screenshot: "",
-            mockupType: "trip_map",
+            title: "Step 7: Live GPS Trip Map",
+            subtitle: "Follow turn-by-turn route, check in, and upload proof",
+            screenshot: "assets/img/guide/step7_trip_map.jpg",
             items: [
                 {
                     number: 1,
-                    title: "Live GPS Route Map",
-                    desc: "Follow the live navigation route with arrival radius detection as you travel across La Union attractions.",
+                    title: "Live Route & Transit Indicator",
+                    desc: "Follow the animated route path with live vehicle mode indicators and next attraction previews.",
                     pinX: "50%",
-                    pinY: "32%"
+                    pinY: "48%"
                 },
                 {
                     number: 2,
-                    title: "GPS Check-In Button",
-                    desc: "Upon arriving at each spot, tap 'Check In'. If within range, your visit is automatically verified on your itinerary.",
-                    pinX: "36%",
-                    pinY: "68%"
+                    title: "Destination Arrival Card",
+                    desc: "View current destination info, municipal location, and assigned transit fare for this leg.",
+                    pinX: "50%",
+                    pinY: "83%"
                 },
                 {
                     number: 3,
-                    title: "Photo Proof Upload",
-                    desc: "No GPS signal? Snap a selfie or upload photos at the site. Queued photos sync automatically once you're back online.",
-                    pinX: "68%",
-                    pinY: "68%"
+                    title: "GPS Check-In Button",
+                    desc: "When inside the destination radius, tap 'Check In' to instantly verify your visit on the blockchain/system.",
+                    pinX: "53%",
+                    pinY: "91%"
                 },
                 {
                     number: 4,
-                    title: "Complete Trip & Earn Rewards",
-                    desc: "After visiting your stops, tap 'Complete Trip' (checkered flag). Rate your destinations to earn Explorer Points, Badges, and Vouchers!",
-                    pinX: "50%",
-                    pinY: "88%"
+                    title: "Photo Proof Upload",
+                    desc: "No GPS signal? Tap 'Proof' to snap a photo at the spot. It securely queues and syncs once you are back online!",
+                    pinX: "75%",
+                    pinY: "91%"
                 }
             ]
         }
@@ -394,77 +509,6 @@
         } else {
             imgEl.style.display = 'none';
             mockupEl.style.display = 'flex';
-            
-            // Render styled vector mockups matching each section
-            if (screen.mockupType === 'map') {
-                mockupEl.innerHTML = `
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                        <span style="font-size:11px; font-weight:800; color:#1e3a8a;">INTAN ELYU MAP</span>
-                        <span style="font-size:9.5px; background:#ffffff; padding:2px 8px; border-radius:10px; font-weight:700; color:#0284c7;">GPS ACTIVE</span>
-                    </div>
-                    <div style="flex:1; border-radius:12px; background:#cadce4; position:relative; overflow:hidden; display:flex; align-items:center; justify-content:center;">
-                        <i class="fa-solid fa-map" style="font-size:42px; color:rgba(30,58,138,0.2);"></i>
-                        <div style="position:absolute; bottom:8px; left:8px; right:8px; background:#ffffff; border-radius:10px; padding:8px; box-shadow:0 2px 8px rgba(0,0,0,0.1); display:flex; justify-content:space-between; align-items:center;">
-                            <div>
-                                <div style="font-size:11px; font-weight:800; color:#0f172a;">San Juan Beach</div>
-                                <div style="font-size:9px; color:#64748b;">Surfing Capital of the North</div>
-                            </div>
-                            <span style="font-size:10px; background:#1e3a8a; color:#fff; padding:4px 8px; border-radius:6px; font-weight:800;">+ Add</span>
-                        </div>
-                    </div>
-                `;
-            } else if (screen.mockupType === 'itinerary') {
-                mockupEl.innerHTML = `
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                        <span style="font-size:11px; font-weight:800; color:#1e3a8a;">DRAFT PLAN</span>
-                        <span style="font-size:9.5px; background:#dcfce7; padding:2px 8px; border-radius:10px; font-weight:700; color:#16a34a;">3 PLACES</span>
-                    </div>
-                    <div style="flex:1; border-radius:12px; background:#ffffff; padding:10px; display:flex; flex-direction:column; gap:6px; justify-content:space-between;">
-                        <div style="display:flex; gap:6px; align-items:center; background:#f1f5f9; padding:6px 8px; border-radius:8px;">
-                            <span style="width:16px; height:16px; border-radius:50%; background:#1e3a8a; color:#fff; font-size:9px; display:flex; align-items:center; justify-content:center; font-weight:800;">1</span>
-                            <span style="font-size:10.5px; font-weight:700; color:#0f172a;">Tangadan Falls</span>
-                        </div>
-                        <div style="display:flex; gap:6px; align-items:center; background:#f1f5f9; padding:6px 8px; border-radius:8px;">
-                            <span style="width:16px; height:16px; border-radius:50%; background:#1e3a8a; color:#fff; font-size:9px; display:flex; align-items:center; justify-content:center; font-weight:800;">2</span>
-                            <span style="font-size:10.5px; font-weight:700; color:#0f172a;">Urbiztondo Beach</span>
-                        </div>
-                        <div style="background:#1e3a8a; color:#fff; text-align:center; padding:7px; border-radius:8px; font-size:10.5px; font-weight:800;">
-                            Save Draft Plan
-                        </div>
-                    </div>
-                `;
-            } else if (screen.mockupType === 'saved_trips') {
-                mockupEl.innerHTML = `
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                        <span style="font-size:11px; font-weight:800; color:#1e3a8a;">MY SAVED TRIPS</span>
-                        <span style="font-size:9.5px; background:#e0f2fe; padding:2px 8px; border-radius:10px; font-weight:700; color:#0284c7;">READY</span>
-                    </div>
-                    <div style="flex:1; border-radius:12px; background:#ffffff; padding:10px; display:flex; flex-direction:column; justify-content:space-between; border:1px solid #e2e8f0;">
-                        <div>
-                            <div style="font-size:12px; font-weight:800; color:#0f172a;">Weekend Elyu Gateway</div>
-                            <div style="font-size:9.5px; color:#64748b; margin-top:2px;">3 Spots &bull; Car Travel &bull; ₱2,500 Budget</div>
-                        </div>
-                        <div style="display:flex; gap:8px;">
-                            <div style="flex:1; background:#10b981; color:#fff; text-align:center; padding:6px; border-radius:8px; font-size:10px; font-weight:800;">Start Trip</div>
-                            <div style="flex:1; background:#f1f5f9; color:#1e3a8a; text-align:center; padding:6px; border-radius:8px; font-size:10px; font-weight:700;">Edit</div>
-                        </div>
-                    </div>
-                `;
-            } else {
-                mockupEl.innerHTML = `
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                        <span style="font-size:11px; font-weight:800; color:#1e3a8a;">TRIP MAP NAVIGATION</span>
-                        <span style="font-size:9.5px; background:#fef3c7; padding:2px 8px; border-radius:10px; font-weight:700; color:#d97706;">NAVIGATING</span>
-                    </div>
-                    <div style="flex:1; border-radius:12px; background:#cadce4; display:flex; flex-direction:column; justify-content:space-between; padding:10px; position:relative;">
-                        <i class="fa-solid fa-location-arrow" style="font-size:24px; color:#0284c7; align-self:center; margin-top:20px;"></i>
-                        <div style="background:#ffffff; border-radius:10px; padding:8px; display:flex; gap:6px;">
-                            <div style="flex:1; background:#0284c7; color:#fff; text-align:center; padding:5px; border-radius:6px; font-size:9.5px; font-weight:800;">Check In</div>
-                            <div style="flex:1; background:#10b981; color:#fff; text-align:center; padding:5px; border-radius:6px; font-size:9.5px; font-weight:800;">Complete</div>
-                        </div>
-                    </div>
-                `;
-            }
         }
     }
 
@@ -531,13 +575,13 @@
             dot.style.cursor = 'pointer';
             dot.style.transition = 'all 0.2s ease';
             if (idx === currentScreenIdx) {
-                dot.style.width = '20px';
-                dot.style.height = '6px';
+                dot.style.width = '18px';
+                dot.style.height = '7px';
                 dot.style.borderRadius = '100px';
                 dot.style.background = '#1e3a8a';
             } else {
-                dot.style.width = '6px';
-                dot.style.height = '6px';
+                dot.style.width = '7px';
+                dot.style.height = '7px';
                 dot.style.borderRadius = '50%';
                 dot.style.background = '#cbd5e1';
             }
@@ -572,11 +616,13 @@
         }
         if (nextBtn) {
             if (currentScreenIdx === screens.length - 1) {
-                nextBtn.innerHTML = `<span>Finish</span> <i class="fa-solid fa-check" style="font-size:11px;"></i>`;
+                nextBtn.innerHTML = `<span>Finish</span> <i class="fa-solid fa-check" style="font-size:10.5px;"></i>`;
                 nextBtn.style.background = '#10b981';
+                nextBtn.style.boxShadow = '0 2px 8px rgba(16, 185, 129, 0.25)';
             } else {
-                nextBtn.innerHTML = `<span>Next</span> <i class="fa-solid fa-arrow-right" style="font-size:11px;"></i>`;
+                nextBtn.innerHTML = `<span>Next</span> <i class="fa-solid fa-arrow-right" style="font-size:10.5px;"></i>`;
                 nextBtn.style.background = '#1e3a8a';
+                nextBtn.style.boxShadow = '0 2px 8px rgba(30, 58, 138, 0.22)';
             }
         }
 
@@ -585,8 +631,50 @@
         renderItemsList(screen.items || []);
         if (screen.items && screen.items[selectedItemIdx]) {
             updateSelectedCard(screen.items[selectedItemIdx]);
+            applyFocalZoom(screen.items[selectedItemIdx]);
         }
         renderDots();
+    };
+
+    function applyFocalZoom(item) {
+        const stage = document.getElementById('tg-zoom-stage');
+        const frame = document.getElementById('tg-preview-frame');
+        const label = document.getElementById('tg-zoom-label');
+        const icon = document.getElementById('tg-zoom-icon');
+        if (!stage) return;
+        if (item && item.pinX && item.pinY) {
+            stage.style.transformOrigin = `${item.pinX} ${item.pinY}`;
+            stage.style.transform = 'scale(1.68)';
+            if (frame) frame.style.cursor = 'zoom-out';
+            if (label) label.textContent = '1.7× Focused';
+            if (icon) icon.className = 'fa-solid fa-magnifying-glass-minus';
+        } else {
+            stage.style.transformOrigin = 'center center';
+            stage.style.transform = 'scale(1)';
+            if (frame) frame.style.cursor = 'zoom-in';
+            if (label) label.textContent = '1.0× Full';
+            if (icon) icon.className = 'fa-solid fa-magnifying-glass-plus';
+        }
+    }
+
+    window.togglePreviewZoom = function() {
+        const stage = document.getElementById('tg-zoom-stage');
+        const frame = document.getElementById('tg-preview-frame');
+        const label = document.getElementById('tg-zoom-label');
+        const icon = document.getElementById('tg-zoom-icon');
+        if (!stage) return;
+        const screen = window.TRIP_GUIDE_SCREENS[currentScreenIdx];
+        const item = (screen && screen.items) ? screen.items[selectedItemIdx] : null;
+
+        if (stage.style.transform === 'scale(1)') {
+            applyFocalZoom(item);
+        } else {
+            stage.style.transformOrigin = 'center center';
+            stage.style.transform = 'scale(1)';
+            if (frame) frame.style.cursor = 'zoom-in';
+            if (label) label.textContent = '1.0× Full';
+            if (icon) icon.className = 'fa-solid fa-magnifying-glass-plus';
+        }
     };
 
     window.selectTripGuideItem = function(idx) {
@@ -596,6 +684,7 @@
             updateSelectedCard(screen.items[idx]);
             renderPins(screen.items);
             renderItemsList(screen.items);
+            applyFocalZoom(screen.items[idx]);
         }
     };
 
@@ -607,6 +696,9 @@
             selectedItemIdx = 0;
             window.renderTripGuide();
         } else if (newIdx >= screens.length) {
+            // Finished! Reset back to Step 1 and close modal
+            currentScreenIdx = 0;
+            selectedItemIdx = 0;
             window.closeTripGuideModal();
         }
     };
@@ -614,7 +706,12 @@
     window.openTripGuideModal = function() {
         const modal = document.getElementById('trip-guide-modal');
         if (modal) {
+            if (modal.parentElement !== document.body) {
+                document.body.appendChild(modal);
+            }
             modal.style.display = 'flex';
+            document.body.classList.add('trip-guide-open');
+            document.documentElement.classList.add('trip-guide-open');
             document.body.style.overflow = 'hidden';
             window.renderTripGuide();
         }
@@ -624,7 +721,12 @@
         const modal = document.getElementById('trip-guide-modal');
         if (modal) {
             modal.style.display = 'none';
+            document.body.classList.remove('trip-guide-open');
+            document.documentElement.classList.remove('trip-guide-open');
             document.body.style.overflow = '';
+            // Reset to Step 1 for next open
+            currentScreenIdx = 0;
+            selectedItemIdx = 0;
         }
     };
 })();

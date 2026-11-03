@@ -1,0 +1,367 @@
+/* ============================================================
+ * Categories View Styles - categories.css
+ * Intan Elyu Mobile — Clean Pure White Theme with Royal Blue Accents
+ * ============================================================ */
+
+html:has(body[data-view="categories"]),
+body[data-view="categories"] {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+}
+
+body[data-view="categories"] #app-container,
+body[data-view="categories"] #main-content {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+}
+
+/* Header */
+body[data-view="categories"] .mobile-header {
+    background: #1e3a8a !important;
+    backdrop-filter: blur(24px) !important;
+    -webkit-backdrop-filter: blur(24px) !important;
+    border: none !important;
+    outline: none !important;
+    border-bottom: none !important;
+    box-shadow: none !important;
+}
+
+body[data-view="categories"] .mobile-header .header-title {
+    color: #ffffff !important;
+    font-weight: 800 !important;
+}
+
+body[data-view="categories"] .mobile-header .header-icon {
+    background: #ffffff !important;
+    border: none !important;
+}
+
+body[data-view="categories"] .mobile-header .header-icon i {
+    color: #1e3a8a !important;
+}
+
+/* Page Container */
+.categories-page-container {
+    width: 100%;
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding-top: var(--page-top-padding, calc(max(env(safe-area-inset-top, 0px), 36px) + 52px)) !important;
+    padding-left: var(--page-inline-padding, clamp(12px, 3.8vw, 18px)) !important;
+    padding-right: var(--page-inline-padding, clamp(12px, 3.8vw, 18px)) !important;
+    padding-bottom: var(--page-bottom-padding, calc(max(18px, env(safe-area-inset-bottom, 18px)) + 82px)) !important;
+    box-sizing: border-box;
+    background: #ffffff !important;
+    color: #0f172a !important;
+}
+
+/* Search Bar */
+.categories-search-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: #f8fafc;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 100px;
+    padding: 0 14px;
+    height: 44px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.categories-search-wrap:focus-within {
+    border-color: #2563eb;
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.12);
+    background: #ffffff;
+}
+
+.categories-search-icon {
+    color: #64748b;
+    font-size: 14px;
+    margin-right: 10px;
+    flex-shrink: 0;
+}
+
+.categories-search-input {
+    width: 100%;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: #0f172a;
+    padding: 0;
+}
+
+.categories-search-input::placeholder {
+    color: #94a3b8;
+    font-weight: 500;
+}
+
+.categories-search-clear {
+    background: none;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+/* Category Tabs Horizontal Scroll Bar */
+.categories-tabs-scroll-wrap {
+    position: relative;
+    margin: 0 -4px 12px -4px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
+    padding: 4px;
+}
+
+.categories-tabs-scroll-wrap::-webkit-scrollbar {
+    display: none;
+}
+
+.categories-tabs-list {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+}
+
+.category-tab-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 15px;
+    border-radius: 100px;
+    background: #f1f5f9;
+    border: 1.5px solid #e2e8f0;
+    color: #475569;
+    font-size: 12.5px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    scroll-snap-align: start;
+    flex-shrink: 0;
+}
+
+.category-tab-btn i {
+    font-size: 12px;
+    color: #64748b;
+    transition: color 0.2s;
+}
+
+.category-tab-btn:hover {
+    background: #e2e8f0;
+    color: #0f172a;
+}
+
+.category-tab-btn:active {
+    transform: scale(0.96);
+}
+
+.category-tab-btn.active {
+    background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%) !important;
+    border-color: #1e3a8a !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.32) !important;
+}
+
+.category-tab-btn.active i {
+    color: #ffffff !important;
+}
+
+/* Active Category Meta Bar */
+.categories-meta-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 12px;
+    padding: 0 2px;
+}
+
+.categories-count-text {
+    font-size: 12px;
+    font-weight: 700;
+    color: #64748b;
+}
+
+.categories-sort-select {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 100px;
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #1e3a8a;
+    outline: none;
+    cursor: pointer;
+}
+
+/* Weather Category Advisory Badge */
+.category-weather-badge {
+    display: none;
+    align-items: center;
+    gap: 6px;
+    background: #e0f2fe;
+    border: 1px solid #bae6fd;
+    color: #0369a1;
+    border-radius: 12px;
+    padding: 7px 12px;
+    margin-bottom: 12px;
+    font-size: 11.5px;
+    font-weight: 700;
+    line-height: 1.35;
+}
+
+.category-weather-badge i {
+    color: #0284c7;
+    font-size: 13px;
+    flex-shrink: 0;
+}
+
+/* Grid Layout */
+.categories-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+@media (min-width: 600px) {
+    .categories-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+    }
+}
+
+/* Card Design matching Trending Cards */
+.categories-spot-card {
+    position: relative;
+    border-radius: 18px;
+    overflow: hidden;
+    height: 195px;
+    background: #0f172a;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08);
+    cursor: pointer;
+    transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.22s;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    animation: catCardFade 0.3s ease both;
+}
+
+@keyframes catCardFade {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.categories-spot-card:active {
+    transform: scale(0.97);
+}
+
+.categories-spot-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.3s ease;
+}
+
+.categories-spot-card .badge {
+    position: absolute;
+    top: 9px;
+    left: 9px;
+    padding: 3px 8px;
+    border-radius: 100px;
+    font-size: 9px;
+    font-weight: 800;
+    color: #ffffff;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    z-index: 2;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+
+.categories-spot-card .top-cat-icon {
+    position: absolute;
+    top: 9px;
+    right: 9px;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.92);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    color: #1e3a8a;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    z-index: 2;
+}
+
+.categories-spot-card .overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 24px 10px 10px 10px;
+    background: linear-gradient(180deg, transparent 0%, rgba(15, 23, 42, 0.88) 60%, rgba(15, 23, 42, 0.98) 100%);
+    color: #ffffff;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    z-index: 2;
+}
+
+.categories-spot-card .name {
+    font-size: 12.5px;
+    font-weight: 800;
+    line-height: 1.25;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 2px;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+}
+
+.categories-spot-card .meta-muni {
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.85);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: flex;
+    align-items: center;
+    font-weight: 600;
+}
+
+.categories-spot-card .card-cat-pill {
+    background: rgba(255, 255, 255, 0.18);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    padding: 1.5px 6px;
+    border-radius: 100px;
+    font-size: 9px;
+    font-weight: 700;
+    color: #ffffff;
+    white-space: nowrap;
+}
+
+.categories-spot-card .card-fee {
+    font-size: 9.5px;
+    font-weight: 800;
+    color: #38bdf8;
+    margin-left: auto;
+}
+

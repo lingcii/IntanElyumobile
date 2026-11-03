@@ -306,23 +306,29 @@ if (is_dir($imgDir)) {
         cursor: pointer !important;
         margin-left: auto !important;
     }
-    .weather-muni-select {
+    .weather-gps-badge {
         margin-left: auto !important;
-        background: rgba(255, 255, 255, 0.16) !important;
+        background: rgba(56, 189, 248, 0.22) !important;
         color: #ffffff !important;
-        border: 1px solid rgba(255, 255, 255, 0.28) !important;
+        border: 1px solid rgba(56, 189, 248, 0.45) !important;
         border-radius: 100px !important;
         padding: 3px 10px !important;
-        font-size: 10.5px !important;
-        font-weight: 700 !important;
-        outline: none !important;
+        font-size: 10px !important;
+        font-weight: 800 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 4px !important;
         cursor: pointer !important;
-        max-width: 155px !important;
-        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+        transition: transform 0.15s ease, background 0.15s ease !important;
     }
-    .weather-muni-select option {
-        background: #0f172a !important;
-        color: #ffffff !important;
+    .weather-gps-badge:active {
+        transform: scale(0.95) !important;
+        background: rgba(56, 189, 248, 0.35) !important;
+    }
+    .weather-gps-badge i {
+        color: #38bdf8 !important;
+        font-size: 10px !important;
     }
     .weather-best-time-bar {
         display: flex !important;
@@ -1120,31 +1126,12 @@ if (is_dir($imgDir)) {
         <div class="weather-top-row">
             <div class="weather-loc-badge">
                 <i class="fa-solid fa-location-dot"></i>
-                <span id="weather-loc">San Fernando, La Union</span>
+                <span id="weather-loc">Detecting GPS location...</span>
             </div>
-            <select id="weather-muni-select" class="weather-muni-select" onclick="event.stopPropagation();" onchange="window.changeWeatherLocation(this.value)" aria-label="Select Municipality for Weather">
-                <option value="GPS_CURRENT">📍 My Location</option>
-                <option value="16.6159,120.3167,San Fernando" selected>San Fernando City</option>
-                <option value="16.6711,120.3385,San Juan">San Juan</option>
-                <option value="16.5319,120.3298,Bauang">Bauang</option>
-                <option value="16.3217,120.3667,Agoo">Agoo</option>
-                <option value="16.8554,120.3758,Luna">Luna</option>
-                <option value="16.8942,120.4245,Bangar">Bangar</option>
-                <option value="16.5366,120.3926,Naguilian">Naguilian</option>
-                <option value="16.7202,120.3353,Bacnotan">Bacnotan</option>
-                <option value="16.8228,120.4005,Balaoan">Balaoan</option>
-                <option value="16.3958,120.3325,Aringay">Aringay</option>
-                <option value="16.4292,120.3344,Caba">Caba</option>
-                <option value="16.2286,120.4850,Rosario">Rosario</option>
-                <option value="16.3167,120.4667,Pugo">Pugo</option>
-                <option value="16.3470,120.4126,Tubao">Tubao</option>
-                <option value="16.2842,120.3861,Santo Tomas">Santo Tomas</option>
-                <option value="16.7686,120.4578,Santol">Santol</option>
-                <option value="16.9031,120.4700,Sudipen">Sudipen</option>
-                <option value="16.6711,120.4050,San Gabriel">San Gabriel</option>
-                <option value="16.6072,120.4422,Bagulin">Bagulin</option>
-                <option value="16.5183,120.4578,Burgos">Burgos</option>
-            </select>
+            <span id="weather-gps-badge" class="weather-gps-badge" onclick="event.stopPropagation(); window.locateMeForWeather();" title="Real-Time GPS Weather (Tap to Refresh)">
+                <i class="fa-solid fa-location-crosshairs"></i>
+                <span id="weather-gps-status">Live GPS</span>
+            </span>
         </div>
         <div class="weather-mid-row">
             <div class="weather-left-info">
@@ -1192,10 +1179,10 @@ if (is_dir($imgDir)) {
         </div>
     </div>
 
-    <!-- Weather Alerts Banner (Shown dynamically when weather affects tourist activities) -->
-    <div id="weather-alert-banner" class="weather-alert-banner stagger-2"></div>
+
 
     <!-- Smart Weather Recommendations Section -->
+    <div id="weather-alert-banner" style="display:none !important;"></div>
     <div id="smart-weather-rec-section" class="weather-rec-section stagger-2">
         <div class="weather-rec-header">
             <h3 class="weather-rec-title">
@@ -1254,9 +1241,12 @@ if (is_dir($imgDir)) {
                 </div>
 
                 <!-- 5-Day Forecast Grid Title -->
-                <h4 style="margin: 0 0 12px 0; font-size: 14px; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 7px; letter-spacing: -0.2px;">
-                    <i class="fa-solid fa-calendar-days" style="color: #0284c7;"></i> 5-Day Forecast
-                </h4>
+                <div style="display: flex; align-items: center; justify-content: space-between; margin: 0 0 12px 0;">
+                    <h4 style="margin: 0; font-size: 14px; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 7px; letter-spacing: -0.2px;">
+                        <i class="fa-solid fa-calendar-days" style="color: #0284c7;"></i> 5-Day Forecast
+                    </h4>
+                    <span style="font-size: 10.5px; font-weight: 700; color: #0284c7; background: #e0f2fe; padding: 3px 9px; border-radius: 100px;">Tap a day for picks</span>
+                </div>
 
                 <!-- 5-Day Forecast Grid -->
                 <div id="weather-forecast-container" style="display: flex; flex-direction: column; gap: 10px;">
@@ -1265,6 +1255,28 @@ if (is_dir($imgDir)) {
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Forecast Day Weather Picks Pop-up Modal (Related Categories & Tourist Sites) -->
+    <div id="weather-day-picks-modal" onclick="if(event.target===this) window.closeForecastDayPicksModal()"
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.75); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); z-index:100010 !important; justify-content:center; align-items:center; padding:16px; box-sizing:border-box;">
+        <div class="weather-day-picks-card"
+            style="background:#ffffff !important; border-radius:26px; width:100%; max-width:440px; max-height:84vh; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 20px 50px rgba(15,23,42,0.45); animation:weatherSheetUp 0.25s cubic-bezier(0.16,1,0.3,1); box-sizing:border-box;">
+            <div style="background:linear-gradient(135deg, #1e3a8a 0%, #173570 100%) !important; padding:15px 18px; display:flex; justify-content:space-between; align-items:center; flex-shrink:0;">
+                <div style="min-width:0;">
+                    <h3 id="day-picks-modal-title" style="margin:0; font-size:15.5px; font-weight:800; color:#ffffff; display:flex; align-items:center; gap:7px; letter-spacing:-0.2px;">
+                        <i class="fa-solid fa-wand-magic-sparkles" style="color:#38bdf8; font-size:14px;"></i>
+                        <span>Day Weather Picks</span>
+                    </h3>
+                    <p id="day-picks-modal-sub" style="margin:2px 0 0 0; font-size:11px; color:rgba(255,255,255,0.85); font-weight:600;">Recommended categories &amp; tourist sites</p>
+                </div>
+                <button type="button" onclick="window.closeForecastDayPicksModal()" aria-label="Close"
+                    style="background:#ffffff !important; border:none !important; color:#1e3a8a !important; width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 8px rgba(0,0,0,0.18) !important; flex-shrink:0; margin-left:10px;">
+                    <i class="fa-solid fa-xmark" style="color:#1e3a8a !important; font-size:13px;"></i>
+                </button>
+            </div>
+            <div id="day-picks-modal-body" class="hide-scrollbar" style="padding:16px 18px 20px 18px; overflow-y:auto; flex:1; min-height:0; background:#ffffff !important; color:#0f172a !important; box-sizing:border-box;"></div>
         </div>
     </div>
 
@@ -1637,10 +1649,6 @@ window.applyTouristSitesFilterModal = function() {
 
     window.closeTouristSitesFilterModal();
 
-    if (muniVal && muniVal !== 'All' && muniVal !== 'near' && typeof window.syncWeatherMunicipalityByName === 'function') {
-        window.syncWeatherMunicipalityByName(muniVal);
-    }
-
     // If Near Me is selected in the modal, route through Near Me chip
     if (isNearSelected) {
         window.filterTouristSitesChip('near');
@@ -1748,237 +1756,100 @@ window.applyTouristSitesFilterModal = function() {
     window.filterCategoryDash = function (cat, el) {
         document.querySelectorAll('#dash-categories-list .category-card').forEach(card => card.classList.remove('active'));
         if (el) el.classList.add('active');
-        if (cat && cat !== 'All') {
-            localStorage.setItem('intan_elyu_filter_category', cat);
+
+        const activeCat = cat || 'All';
+        window.currentDashCategory = activeCat;
+        localStorage.setItem('intan_elyu_filter_category', activeCat);
+
+        // Navigate directly to the dedicated Categories tab view
+        if (typeof window.navigateTo === 'function') {
+            window.navigateTo('categories');
         } else {
-            localStorage.removeItem('intan_elyu_filter_category');
-        }
-
-        const matchesCategory = (cardCategory, cardName, cardMuni, targetCat) => {
-            if (!targetCat || targetCat === 'All') return true;
-            const c = (cardCategory || '').toLowerCase().trim();
-            const n = (cardName || '').toLowerCase().trim();
-            const m = (cardMuni || '').toLowerCase().trim();
-            const combined = `${c} ${n} ${m}`;
-            const t = targetCat.toLowerCase().trim();
-
-            // Direct or token match
-            if (c && (c === t || c.includes(t) || (c.length >= 3 && t.includes(c)))) return true;
-            if (c && ` ${c} `.includes(` ${t} `)) return true;
-
-            // Beach, Coastal & Surfing
-            if (t.includes('beach') || t.includes('surf') || t.includes('coastal') || t.includes('island')) {
-                return combined.includes('beach') || combined.includes('surf') || combined.includes('coastal') ||
-                    combined.includes('island') || combined.includes('seascape') || combined.includes('water sports');
-            }
-
-            // Nature & Parks
-            if (t.includes('nature') || t.includes('park')) {
-                return c.includes('nature') || c.includes('park') || combined.includes('park') ||
-                    combined.includes('plaza') || combined.includes('agro-forestry') || combined.includes('tree') ||
-                    combined.includes('mangrove') || combined.includes('lagoon') || combined.includes('baywalk');
-            }
-
-            // Mountains & Hiking
-            if (t.includes('mountain') || t.includes('hiking') || t.includes('trail') || t.includes('view')) {
-                return c.includes('mountain') || c.includes('hiking') || combined.includes('trail') ||
-                    combined.includes('peak') || combined.includes('view deck') || combined.includes('viewdeck') ||
-                    combined.includes('terrace') || combined.includes('mt.') || combined.includes('mountain');
-            }
-
-            // Lakes, Falls & Waterways
-            if (t.includes('lake') || t.includes('fall') || t.includes('water') || t.includes('river')) {
-                return c.includes('waterfall') || c.includes('river') || c.includes('lake') ||
-                    combined.includes('fall') || combined.includes('river') || combined.includes('lake') ||
-                    combined.includes('dam') || combined.includes('spring');
-            }
-
-            // Heritage, Cultural, Historical & Monuments
-            if (t.includes('heritage') || t.includes('cultural') || t.includes('historical') || t.includes('monument') || t.includes('museum')) {
-                return c.includes('cultural') || c.includes('heritage') || c.includes('historical') ||
-                    c.includes('monument') || c.includes('museum') || combined.includes('watchtower') ||
-                    combined.includes('tunnel') || combined.includes('marker') || combined.includes('station') ||
-                    combined.includes('memorial') || combined.includes('ancestral') || combined.includes('church') ||
-                    combined.includes('shrine') || combined.includes('parish') || combined.includes('basilica');
-            }
-
-            // Food & Dining
-            if (t.includes('food') || t.includes('dining') || t.includes('restaurant')) {
-                return c.includes('food') || combined.includes('restaurant') || combined.includes('seafood') ||
-                    combined.includes('dining') || combined.includes('eatery') || combined.includes('cafe') ||
-                    combined.includes('bistro') || combined.includes('grill');
-            }
-
-            // Arts & Crafts
-            if (t.includes('art') || t.includes('craft') || t.includes('weaving')) {
-                return c.includes('arts') || combined.includes('weaving') || combined.includes('pottery') ||
-                    combined.includes('gallery') || combined.includes('craft') || combined.includes('paper');
-            }
-
-            // Farms & Agriculture
-            if (t.includes('farm') || t.includes('agro') || t.includes('plant')) {
-                return c.includes('farm') || combined.includes('plantation') || combined.includes('grapes') ||
-                    combined.includes('mushroom') || combined.includes('fishery') || combined.includes('agri');
-            }
-
-            // Nightlife (Strict matching for authentic nightlife spots only)
-            if (t === 'nightlife' || t.includes('nightlife')) {
-                return c.includes('nightlife') || combined.includes('nightlife') ||
-                    /\b(nightclub|night club|pub|pubs|disco|discotheque|restobar|resto-bar|sports bar|comedy bar|karaoke bar|lounge bar)\b/i.test(combined);
-            }
-
-            // Recreation & Resorts (Separated from Nightlife so resorts & recreation do not pollute nightlife)
-            if (t.includes('resort') || t.includes('recreation')) {
-                return c.includes('resort') || c.includes('recreation') || combined.includes('resort') || combined.includes('recreation');
-            }
-
-            return false;
-        };
-
-        window.matchesCategory = matchesCategory;
-        window.currentDashCategory = cat;
-
-        const renderEmpty = (container, emptyMsg) => {
-            if (!container) return;
-            container.classList.add('is-empty');
-            container.style.paddingLeft = '0';
-            container.style.paddingRight = '0';
-            container.style.marginLeft = '0';
-            container.style.marginRight = '0';
-            container.innerHTML = `
-                <div class="dash-filter-empty-state dash-empty-state">
-                    <div class="dash-empty-icon-wrap">
-                        <i class="fa-solid fa-compass"></i>
-                    </div>
-                    <div class="dash-empty-title">${emptyMsg}</div>
-                    <div class="dash-empty-desc">Try selecting another category or tap All to view all destinations.</div>
-                </div>
-            `;
-            if (container.id === 'trending-container') {
-                const dotsWrap = document.getElementById('trending-dots');
-                if (dotsWrap) dotsWrap.style.display = 'none';
-            }
-        };
-
-        const renderFavCard = window.renderFavCard;
-
-        // 1. Filter Trending Section
-        const trendingContainer = document.getElementById('trending-container');
-        if (trendingContainer && window.dashTrending) {
-            let list = [];
-            if (cat === 'All') {
-                list = window.dashTrending.slice(0, 10);
-            } else {
-                list = window.dashTrending.filter(d => matchesCategory(d.category, d.name, d.municipality || d.location, cat));
-            }
-            if (list.length > 0) {
-                trendingContainer.classList.remove('is-empty');
-                trendingContainer.style.paddingLeft = '';
-                trendingContainer.style.paddingRight = '';
-                trendingContainer.style.marginLeft = '';
-                trendingContainer.style.marginRight = '';
-                trendingContainer.innerHTML = list.map(window.renderFavCard || renderFavCard).join('');
-                const dotsWrapEl = document.getElementById('trending-dots');
-                if (dotsWrapEl) dotsWrapEl.style.display = (list.length > 1) ? 'flex' : 'none';
-                window.initLoopingFocusCarousel('trending-container');
-            } else {
-                renderEmpty(trendingContainer, cat === 'Nightlife' ? 'No Nightlife Tourist Sites Yet' : 'No trending sites in this category.');
-            }
-        }
-
-        // 2. Filter Recommended Section
-        const recContainer = document.getElementById('recommended-container');
-        if (recContainer && window.dashRecommended && typeof window.buildRecommendedItem === 'function') {
-            if (cat === 'All') {
-                recContainer.classList.remove('is-empty');
-                recContainer.innerHTML = '';
-                const INITIAL_SHOW = 2;
-                const allDests = window.dashRecommended;
-                allDests.slice(0, INITIAL_SHOW).forEach(dest => {
-                    recContainer.innerHTML += window.buildRecommendedItem(dest);
-                });
-                if (allDests.length > INITIAL_SHOW) {
-                    const extras = allDests.slice(INITIAL_SHOW);
-                    const extraHtml = extras.map(dest => window.buildRecommendedItem(dest)).join('');
-                    recContainer.innerHTML += `
-                        <div id="rec-extras" style="overflow:hidden; max-height:0; transition: max-height 0.4s ease;">
-                            ${extraHtml}
-                        </div>
-                        <button id="btn-view-more-rec"
-                            onclick="window.toggleRecommendedMore()"
-                            style="width:100%; margin-top:10px; padding:12px; border-radius:14px; border: none; outline:none; background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%); color:#ffffff; font-size:13px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow: 0 4px 12px rgba(32, 63, 141, 0.25); transition: all 0.2s;">
-                            <i class="fa-solid fa-chevron-down" id="rec-chevron" style="font-size:11px; transition: transform 0.3s;"></i>
-                            View ${extras.length} More
-                        </button>
-                    `;
-                }
-            } else {
-                const list = window.dashRecommended.filter(d => matchesCategory(d.category, d.name, d.municipality || d.location, cat));
-                if (list.length > 0) {
-                    recContainer.classList.remove('is-empty');
-                    recContainer.innerHTML = list.map(dest => window.buildRecommendedItem(dest)).join('');
-                } else {
-                    renderEmpty(recContainer, cat === 'Nightlife' ? 'No Nightlife Tourist Sites Yet' : 'No recommended sites in this category.');
-                }
-            }
-        }
-
-        // 3. Filter Near Me Section
-        const nearContainer = document.getElementById('near-me-container');
-        if (nearContainer) {
-            const sourceSpots = window.allNearSpots || window.lastNearSpots || [];
-            if (sourceSpots.length > 0) {
-                let list = [];
-                if (cat === 'All') {
-                    list = window.lastNearSpots || sourceSpots.slice(0, 4);
-                } else {
-                    list = sourceSpots.filter(d => matchesCategory(d.category, d.name, d.municipality || d.location, cat));
-                }
-                if (list.length > 0) {
-                    nearContainer.classList.remove('is-empty');
-                    nearContainer.style.paddingLeft = '';
-                    nearContainer.style.paddingRight = '';
-                    nearContainer.style.marginLeft = '';
-                    nearContainer.style.marginRight = '';
-                    nearContainer.innerHTML = list.map(dest => {
-                        const img = window.getDestImage(dest, 600);
-                        const badgeHtml = dest.classification_status ? `<div style="position: absolute; top: 8px; left: 8px; z-index: 10; padding: 2px 6px; border-radius: 8px; font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#0284c7' : (dest.classification_status === 'EMERGE' ? '#ef4444' : '#10b981')}; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</div>` : '';
-                        let distText = '';
-                        if (dest.distance !== undefined && dest.distance < 999999) {
-                            if (dest.distance < 0.05) distText = `${Math.max(5, Math.round(dest.distance * 1000))}m away`;
-                            else if (dest.distance < 1.0) distText = `${Math.round((dest.distance * 1000) / 10) * 10}m away`;
-                            else distText = `${dest.distance.toFixed(1)} km away`;
-                        }
-                        const encodedDest = encodeURIComponent(JSON.stringify(dest)).replace(/'/g, '%27');
-                        return `
-                            <div class="fav-card" data-category="${(dest.category || '').replace(/"/g, '&quot;')}" data-name="${(dest.name || '').replace(/"/g, '&quot;')}" data-municipality="${(dest.municipality || dest.location || '').replace(/"/g, '&quot;')}" onclick="window.viewDestinationOnMap('${encodedDest}')">
-                                ${badgeHtml}
-                                <img src="${img}" alt="${dest.name}" loading="lazy" decoding="async" onerror="if (window.handleImgError) window.handleImgError(this, '${(dest.name || '').replace(/'/g, "\\'")}', '${(dest.municipality || '').replace(/'/g, "\\'")}'); else this.src='assets/img/no_image.svg';">
-                                <div class="fav-card-overlay">
-                                    <span class="fav-card-name">${dest.name}</span>
-                                    ${distText ? `<span style="display:block; font-size:10px; color:#38bdf8; margin-top:2px; font-weight:700;"><i class="fa-solid fa-location-arrow"></i> ${distText}</span>` : ''}
-                                </div>
-                            </div>
-                        `;
-                    }).join('');
-                    window.initLoopingFocusCarousel('near-me-container');
-                } else if (cat !== 'All') {
-                    renderEmpty(nearContainer, cat === 'Nightlife' ? 'No Nightlife Sites Nearby' : 'No nearby sites found in this category.');
-                }
-            }
-        }
-
-        // 4. Filter All Tourist Sites Section
-        if (window.allTouristSpots && typeof window.renderAllTouristSpots === 'function') {
-            let allList = [];
-            if (cat === 'All') {
-                allList = window.allTouristSpots;
-            } else {
-                allList = window.allTouristSpots.filter(d => matchesCategory(d.category, d.name, d.municipality || d.location, cat));
-            }
-            window.renderAllTouristSpots(allList, cat);
+            window.location.href = '?view=categories';
         }
     };
+
+    window.matchesCategory = function (cardCategory, cardName, cardMuni, targetCat) {
+        if (!targetCat || targetCat === 'All') return true;
+        const c = (cardCategory || '').toLowerCase().trim();
+        const n = (cardName || '').toLowerCase().trim();
+        const m = (cardMuni || '').toLowerCase().trim();
+        const combined = `${c} ${n} ${m}`;
+        const t = targetCat.toLowerCase().trim();
+
+        // Direct or token match
+        if (c && (c === t || c.includes(t) || (c.length >= 3 && t.includes(c)))) return true;
+        if (c && ` ${c} `.includes(` ${t} `)) return true;
+
+        // Beach, Coastal & Surfing
+        if (t.includes('beach') || t.includes('surf') || t.includes('coastal') || t.includes('island')) {
+            return combined.includes('beach') || combined.includes('surf') || combined.includes('coastal') ||
+                combined.includes('island') || combined.includes('seascape') || combined.includes('water sports');
+        }
+
+        // Nature & Parks
+        if (t.includes('nature') || t.includes('park')) {
+            return c.includes('nature') || c.includes('park') || combined.includes('park') ||
+                combined.includes('plaza') || combined.includes('agro-forestry') || combined.includes('tree') ||
+                combined.includes('mangrove') || combined.includes('lagoon') || combined.includes('baywalk');
+        }
+
+        // Mountains & Hiking
+        if (t.includes('mountain') || t.includes('hiking') || t.includes('trail') || t.includes('view')) {
+            return c.includes('mountain') || c.includes('hiking') || combined.includes('trail') ||
+                combined.includes('peak') || combined.includes('view deck') || combined.includes('viewdeck') ||
+                combined.includes('terrace') || combined.includes('mt.') || combined.includes('mountain');
+        }
+
+        // Lakes, Falls & Waterways
+        if (t.includes('lake') || t.includes('fall') || t.includes('water') || t.includes('river')) {
+            return c.includes('waterfall') || c.includes('river') || c.includes('lake') ||
+                combined.includes('fall') || combined.includes('river') || combined.includes('lake') ||
+                combined.includes('dam') || combined.includes('spring');
+        }
+
+        // Heritage, Cultural, Historical & Monuments
+        if (t.includes('heritage') || t.includes('cultural') || t.includes('historical') || t.includes('monument') || t.includes('museum')) {
+            return c.includes('cultural') || c.includes('heritage') || c.includes('historical') ||
+                c.includes('monument') || c.includes('museum') || combined.includes('watchtower') ||
+                combined.includes('tunnel') || combined.includes('marker') || combined.includes('station') ||
+                combined.includes('memorial') || combined.includes('ancestral') || combined.includes('church') ||
+                combined.includes('shrine') || combined.includes('parish') || combined.includes('basilica');
+        }
+
+        // Food & Dining
+        if (t.includes('food') || t.includes('dining') || t.includes('restaurant')) {
+            return c.includes('food') || combined.includes('restaurant') || combined.includes('seafood') ||
+                combined.includes('dining') || combined.includes('eatery') || combined.includes('cafe') ||
+                combined.includes('bistro') || combined.includes('grill');
+        }
+
+        // Arts & Crafts
+        if (t.includes('art') || t.includes('craft') || t.includes('weaving')) {
+            return c.includes('arts') || combined.includes('weaving') || combined.includes('pottery') ||
+                combined.includes('gallery') || combined.includes('craft') || combined.includes('paper');
+        }
+
+        // Farms & Agriculture
+        if (t.includes('farm') || t.includes('agro') || t.includes('plant')) {
+            return c.includes('farm') || combined.includes('plantation') || combined.includes('grapes') ||
+                combined.includes('mushroom') || combined.includes('fishery') || combined.includes('agri');
+        }
+
+        // Nightlife (Strict matching for authentic nightlife spots only)
+        if (t === 'nightlife' || t.includes('nightlife')) {
+            return c.includes('nightlife') || combined.includes('nightlife') ||
+                /\b(nightclub|night club|pub|pubs|disco|discotheque|restobar|resto-bar|sports bar|comedy bar|karaoke bar|lounge bar)\b/i.test(combined);
+        }
+
+        // Recreation & Resorts (Separated from Nightlife so resorts & recreation do not pollute nightlife)
+        if (t.includes('resort') || t.includes('recreation')) {
+            return c.includes('resort') || c.includes('recreation') || combined.includes('resort') || combined.includes('recreation');
+        }
+
+        return false;
+    };
+    var matchesCategory = window.matchesCategory;
 
     window.buildAllSpotCard = function (dest) {
         const img = window.getDestImage(dest, 400);
@@ -2601,57 +2472,105 @@ window.applyTouristSitesFilterModal = function() {
         'Burgos': { lat: 16.5183, lng: 120.4578, label: 'Burgos, La Union' }
     };
 
-    window.syncWeatherMunicipalitySelectUI = function (locationName, isCurrentLoc) {
-        const sel = document.getElementById('weather-muni-select');
-        if (!sel) return;
-        if (isCurrentLoc) {
-            sel.value = 'GPS_CURRENT';
-            return;
-        }
-        const clean = String(locationName || '').toLowerCase().replace(' city', '').replace(', la union', '').trim();
-        for (let i = 0; i < sel.options.length; i++) {
-            const optVal = sel.options[i].value.toLowerCase();
-            if (clean && optVal.includes(',' + clean)) {
-                sel.selectedIndex = i;
-                return;
+    window.resolveNearestLaUnionMuni = function (lat, lng) {
+        const uLat = parseFloat(lat);
+        const uLng = parseFloat(lng);
+        if (isNaN(uLat) || isNaN(uLng)) return 'San Fernando, La Union';
+        let bestLabel = 'San Fernando, La Union';
+        let minDist = Infinity;
+        for (const key of Object.keys(window.LA_UNION_MUNI_COORDS)) {
+            const m = window.LA_UNION_MUNI_COORDS[key];
+            const d = Math.hypot(uLat - m.lat, uLng - m.lng);
+            if (d < minDist) {
+                minDist = d;
+                bestLabel = m.label;
             }
         }
+        return bestLabel;
     };
 
-    window.syncWeatherMunicipalityByName = function (muniName) {
-        if (!muniName) return;
-        const clean = String(muniName).replace(' City', '').trim();
-        const entry = window.LA_UNION_MUNI_COORDS[clean];
-        if (entry) {
-            window.syncWeatherMunicipalitySelectUI(clean, false);
-            window.fetchWeather(entry.lat, entry.lng, entry.label, false);
+    // Reconcile coarse Open-Meteo current weather code against today's active precipitation/storm/rain forecast
+    window.reconcileRealtimeWeatherData = function (raw) {
+        if (!raw || typeof raw !== 'object') return raw;
+        const data = { ...raw };
+        if (data._isForecastDayPick) return data;
+
+        const today = (Array.isArray(data.forecast) && data.forecast[0]) ? data.forecast[0] : null;
+        const code = (data.weather_code !== undefined && data.weather_code !== null) ? Number(data.weather_code) : -1;
+        const condStr = String(data.condition || '').toLowerCase();
+        const todayCond = String((today && today.condition) || '');
+        const todayCondLower = todayCond.toLowerCase();
+        const todayRain = (today && today.rain_prob !== undefined) ? Number(today.rain_prob) : 0;
+
+        if (code <= 2 || /^(clear|sunny|mainly clear|partly cloudy)/i.test(condStr)) {
+            if (/thunder|storm|squall|heavy rain|typhoon/i.test(todayCondLower) && todayRain >= 50) {
+                data.condition = todayCond || 'Thunderstorm';
+                data.weather_code = (today && today.weather_code) ? Number(today.weather_code) : 95;
+                data.weather_group = 'severe';
+                data.icon = (today && today.icon) || '⛈️';
+                data.fa_icon = (today && today.fa_icon) || 'fa-cloud-bolt';
+                delete data.short_description;
+            } else if ((/rain|drizzle|shower/i.test(todayCondLower) && todayRain >= 45) || todayRain >= 65) {
+                data.condition = (/rain|drizzle|shower|thunder|storm/i.test(todayCondLower)) ? todayCond : 'Rain Showers';
+                data.weather_code = (today && today.weather_code && Number(today.weather_code) >= 51) ? Number(today.weather_code) : 61;
+                data.weather_group = 'rainy';
+                data.icon = (today && today.icon && today.icon !== '☀️' && today.icon !== '🌙') ? today.icon : '🌧️';
+                data.fa_icon = (today && today.fa_icon && !String(today.fa_icon).includes('sun') && !String(today.fa_icon).includes('moon')) ? today.fa_icon : 'fa-cloud-rain';
+                delete data.short_description;
+            } else if (/overcast|fog|^cloudy$/i.test(todayCondLower) && code === 0) {
+                data.condition = todayCond || 'Overcast';
+                data.weather_code = 3;
+                data.weather_group = 'cloudy';
+                data.icon = (today && today.icon) || '☁️';
+                data.fa_icon = (today && today.fa_icon) || 'fa-cloud';
+                delete data.short_description;
+            }
         }
+
+        // Guard against stale server-side weather_group mismatches
+        const activeCondLower = String(data.condition || '').toLowerCase();
+        if (/thunder|storm|heavy rain|typhoon|severe/i.test(activeCondLower)) {
+            data.weather_group = 'severe';
+            if (data.short_description && /sunny|partly cloudy/i.test(data.short_description)) delete data.short_description;
+        } else if (/rain|drizzle|shower/i.test(activeCondLower) || (todayRain >= 65 && data.weather_group === 'sunny')) {
+            data.weather_group = 'rainy';
+            if (data.short_description && /sunny|partly cloudy/i.test(data.short_description)) delete data.short_description;
+        } else if (/overcast|fog|^cloudy$/i.test(activeCondLower)) {
+            data.weather_group = 'cloudy';
+            if (data.short_description && /sunny/i.test(data.short_description)) delete data.short_description;
+        } else if (activeCondLower.includes('night') && data.short_description && /sunny/i.test(data.short_description)) {
+            data.short_description = 'Clear evening skies — great for coastal dining, heritage walks & outdoor spots.';
+        }
+
+        return data;
     };
 
-    window.classifyWeatherCondition = function (data) {
+    window.classifyWeatherCondition = function (rawInput) {
+        const data = window.reconcileRealtimeWeatherData(rawInput || {});
         const code = (data && data.weather_code !== undefined && data.weather_code !== null) ? Number(data.weather_code) : -1;
         const condStr = String((data && data.condition) || '').toLowerCase();
         const wind = Number((data && data.wind_speed) || 0);
         const uv = Number((data && data.uv_index) || 0);
         const temp = Number((data && data.temperature) || 29);
         const feelsLike = Number((data && data.feels_like) || temp);
+        const isForecastDayPick = Boolean(data && data._isForecastDayPick);
         const rainProb = (data && Array.isArray(data.forecast) && data.forecast[0] && data.forecast[0].rain_prob !== undefined)
             ? Number(data.forecast[0].rain_prob)
-            : 0;
+            : Number((data && data.rain_prob) || 0);
 
-        let group = (data && data.weather_group) ? String(data.weather_group) : '';
-        if (!group) {
-            if ([65, 67, 82, 95, 96, 99].includes(code) || wind >= 40 || /thunder|storm|heavy rain|typhoon|severe/i.test(condStr)) {
-                group = 'severe';
-            } else if ([51, 53, 55, 56, 57, 61, 63, 66, 80, 81].includes(code) || /rain|drizzle|shower/i.test(condStr)) {
-                group = 'rainy';
-            } else if ([3, 45, 48].includes(code) || /overcast|fog|^cloudy$/i.test(condStr)) {
-                group = 'cloudy';
-            } else if ([1, 2].includes(code) || /partly cloudy|mainly clear/i.test(condStr)) {
-                group = 'partly_cloudy';
-            } else {
-                group = 'sunny';
-            }
+        let group = '';
+        if ([65, 67, 82, 95, 96, 99].includes(code) || wind >= 40 || /thunder|storm|heavy rain|typhoon|severe/i.test(condStr)) {
+            group = 'severe';
+        } else if ([51, 53, 55, 56, 57, 61, 63, 66, 80, 81].includes(code) || /rain|drizzle|shower/i.test(condStr)) {
+            group = 'rainy';
+        } else if ([3, 45, 48].includes(code) || /overcast|fog|^cloudy$/i.test(condStr)) {
+            group = 'cloudy';
+        } else if ([1, 2].includes(code) || /partly cloudy|mainly clear/i.test(condStr)) {
+            group = (!isForecastDayPick && rainProb >= 65) ? 'rainy' : 'partly_cloudy';
+        } else if (data && data.weather_group && ['severe', 'rainy', 'cloudy', 'partly_cloudy', 'sunny'].includes(String(data.weather_group))) {
+            group = (!isForecastDayPick && rainProb >= 65 && data.weather_group === 'sunny') ? 'rainy' : String(data.weather_group);
+        } else {
+            group = (!isForecastDayPick && rainProb >= 65) ? 'rainy' : 'sunny';
         }
 
         const badgeMap = {
@@ -2659,15 +2578,18 @@ window.applyTouristSitesFilterModal = function() {
             partly_cloudy: { text: '🌤️ Partly Cloudy Picks', bg: '#e0f2fe', color: '#0369a1' },
             cloudy: { text: '☁️ Cloudy Picks', bg: '#f1f5f9', color: '#334155' },
             rainy: { text: '🌧️ Rainy Day Picks', bg: '#dbeafe', color: '#1d4ed8' },
-            severe: { text: '⛈️ Safety Alert', bg: '#fee2e2', color: '#b91c1c' }
+            severe: { text: '⛈️ Storm & Indoor Picks', bg: '#fee2e2', color: '#b91c1c' }
         };
 
+        const isNight = condStr.includes('night') || (data && data.is_day === 0);
         const defaultShortDesc = {
-            sunny: 'Bright sunny weather — great for beaches, parks, viewpoints & outdoor spots.',
+            sunny: isNight
+                ? 'Clear evening skies — great for coastal dining, heritage walks & outdoor spots.'
+                : 'Bright sunny weather — great for beaches, parks, viewpoints & outdoor spots.',
             partly_cloudy: 'Pleasant partly cloudy skies — ideal for nature trails & outdoor activities.',
             cloudy: 'Cool overcast skies — comfortable for heritage sites, gardens & sightseeing.',
             rainy: 'Rainy weather — best for museums, cultural landmarks & indoor dining.',
-            severe: 'Severe weather warning — stay indoors and avoid coastal or mountain areas.'
+            severe: 'Thunderstorm & heavy rain — avoid outdoor beaches/trails; visit safe indoor & cultural sites.'
         };
 
         const defaultBestTime = {
@@ -2675,7 +2597,35 @@ window.applyTouristSitesFilterModal = function() {
             partly_cloudy: '7:30 AM – 11:00 AM & 3:00 PM – 5:30 PM (~' + temp + '°C)',
             cloudy: '8:00 AM – 5:00 PM (Comfortable all-day sightseeing)',
             rainy: '10:00 AM – 4:00 PM (Indoor cultural & dining hours)',
-            severe: 'Postpone outdoor visits until severe weather clears'
+            severe: 'Stay indoors or visit sheltered cultural sites until storm clears'
+        };
+
+        const categoriesMap = {
+            sunny: [
+                { label: 'Beaches & Surfing', icon: 'fa-water', filter: 'Beach', desc: 'Coastal beaches & surf spots' },
+                { label: 'Viewpoints & Parks', icon: 'fa-mountain-sun', filter: 'Nature', desc: 'Clear-sky view decks & nature parks' },
+                { label: 'Outdoor Activities', icon: 'fa-person-hiking', filter: 'Activities', desc: 'Eco-adventures & water recreation' }
+            ],
+            partly_cloudy: [
+                { label: 'Nature & Waterfalls', icon: 'fa-mountain', filter: 'Nature', desc: 'Trails, waterfalls & forest parks' },
+                { label: 'Agri-Tourism & Farms', icon: 'fa-seedling', filter: 'Agri-Tourism', desc: 'Grape farms & eco-tourism sites' },
+                { label: 'Outdoor Sightseeing', icon: 'fa-compass', filter: 'Activities', desc: 'Pleasant outdoor exploration' }
+            ],
+            cloudy: [
+                { label: 'Cultural & Heritage', icon: 'fa-landmark-dome', filter: 'Heritage', desc: 'Watchtowers, shrines & landmarks' },
+                { label: 'Gardens & Farms', icon: 'fa-leaf', filter: 'Agri-Tourism', desc: 'Botanical gardens & vineyards' },
+                { label: 'Sightseeing Spots', icon: 'fa-camera-retro', filter: 'Nature', desc: 'Cool overcast scenic walks' }
+            ],
+            rainy: [
+                { label: 'Museums & Cultural', icon: 'fa-building-columns', filter: 'Cultural', desc: 'Indoor galleries, pottery & weaving' },
+                { label: 'Heritage & Churches', icon: 'fa-place-of-worship', filter: 'Heritage', desc: 'Historic churches & covered landmarks' },
+                { label: 'Indoor Dining & Cafes', icon: 'fa-utensils', filter: 'Food', desc: 'Cozy local restaurants & cafes' }
+            ],
+            severe: [
+                { label: 'Indoor Museums & Shelters', icon: 'fa-shield-halved', filter: 'Cultural', desc: 'Safe indoor cultural centers' },
+                { label: 'Covered Heritage Sites', icon: 'fa-landmark', filter: 'Heritage', desc: 'Sheltered historical landmarks' },
+                { label: 'Indoor Dining', icon: 'fa-mug-hot', filter: 'Food', desc: 'Safe indoor dining & rest stops' }
+            ]
         };
 
         let alerts = Array.isArray(data && data.alerts) ? [...data.alerts] : [];
@@ -2684,13 +2634,13 @@ window.applyTouristSitesFilterModal = function() {
                 alerts.push({
                     level: 'danger',
                     title: 'Severe Weather Safety Warning',
-                    message: 'Heavy rain, thunderstorms, or strong winds active. Avoid swimming, surfing, mountain hiking, and waterfalls.'
+                    message: 'Thunderstorms or heavy rain active. Avoid swimming, surfing, mountain hiking, and waterfalls. Indoor cultural sites are recommended below.'
                 });
             } else if (group === 'rainy' || rainProb >= 65) {
                 alerts.push({
                     level: 'warning',
                     title: 'Wet Weather Advisory',
-                    message: 'Rain showers active or likely today. Trails and coastal rocks may be slippery; indoor and cultural attractions are recommended.'
+                    message: `Rain showers active or likely today (${rainProb}% chance). Trails and coastal rocks may be slippery; indoor and cultural attractions are recommended.`
                 });
             } else if (wind >= 28) {
                 alerts.push({
@@ -2712,15 +2662,15 @@ window.applyTouristSitesFilterModal = function() {
             badge: badgeMap[group] || badgeMap.partly_cloudy,
             shortDesc: (data && data.short_description) || defaultShortDesc[group] || defaultShortDesc.partly_cloudy,
             bestTime: (data && data.best_time) || defaultBestTime[group] || defaultBestTime.partly_cloudy,
-            alerts
+            categories: categoriesMap[group] || categoriesMap.partly_cloudy,
+            alerts,
+            reconciledData: data
         };
     };
 
     window.getWeatherRecommendedSpots = function (weatherData, spotsPool) {
         const meta = window.classifyWeatherCondition(weatherData || {});
-        if (meta.group === 'severe') {
-            return { isSevere: true, meta, spots: [] };
-        }
+        const isSevere = (meta.group === 'severe');
 
         let rawSpots = Array.isArray(spotsPool) && spotsPool.length > 0 ? spotsPool : (window.allTouristSpots || []);
         if (!rawSpots || rawSpots.length === 0) {
@@ -2775,20 +2725,21 @@ window.applyTouristSitesFilterModal = function() {
                 return { match: false, priority: 0, reason: '☀️ Sunny Day Pick' };
             }
 
-            if (meta.group === 'rainy') {
+            if (meta.group === 'rainy' || meta.group === 'severe') {
                 if (isUnsafeInRain(spot)) {
                     return { match: false, priority: -1, reason: '' };
                 }
+                const prefix = meta.group === 'severe' ? '⛈️ Safe Indoor' : '🌧️ Rainy-Day';
                 if (/\b(museum|gallery|cultural|heritage|ancestral|weaving|pottery|craft)\b/i.test(combined)) {
-                    return { match: true, priority: 3, reason: '🌧️ Museum & Cultural Shelter' };
+                    return { match: true, priority: 3, reason: `${prefix} Museum & Cultural Shelter` };
                 }
                 if (/\b(religious|church|basilica|parish|shrine|cathedral|chapel|historical|monument|landmark)\b/i.test(combined)) {
-                    return { match: true, priority: 2, reason: '🌧️ Rainy-Day Heritage & Landmark' };
+                    return { match: true, priority: 2, reason: `${prefix} Heritage & Landmark` };
                 }
                 if (/\b(food|dining|restaurant|cafe|bistro|shopping|market)\b/i.test(combined)) {
-                    return { match: true, priority: 2, reason: '🌧️ Cozy Indoor Dining & Local Spot' };
+                    return { match: true, priority: 2, reason: `${prefix} Dining & Sheltered Spot` };
                 }
-                return { match: true, priority: 1, reason: '🌧️ Safe All-Weather Stop' };
+                return { match: true, priority: 1, reason: `${prefix} All-Weather Stop` };
             }
 
             if (meta.group === 'cloudy') {
@@ -2814,7 +2765,7 @@ window.applyTouristSitesFilterModal = function() {
         const scored = [];
         for (const spot of availableSpots) {
             const evalRes = evaluateSpotForWeather(spot);
-            if (evalRes.priority < 0) continue; // Strictly skip unsafe spots in rain
+            if (evalRes.priority < 0) continue; // Strictly skip unsafe outdoor spots in rain/storm
 
             const spotMuni = String(spot.municipality || spot.location || (typeof window.resolveMunicipalityName === 'function' ? window.resolveMunicipalityName(spot) : '')).toLowerCase();
             const inSelectedMuni = Boolean(locStr && locStr.length >= 3 && spotMuni.includes(locStr));
@@ -2827,17 +2778,17 @@ window.applyTouristSitesFilterModal = function() {
             }
         }
 
-        // Fallback if strict category pool has < 3 spots (still respecting rain safety!)
+        // Fallback if strict category pool has < 3 spots (still respecting rain/storm safety!)
         if (scored.length < 3) {
             const existingIds = new Set(scored.map(item => String(item.spot.id)));
             for (const spot of availableSpots) {
                 if (existingIds.has(String(spot.id))) continue;
-                if (meta.group === 'rainy' && isUnsafeInRain(spot)) continue;
+                if ((meta.group === 'rainy' || meta.group === 'severe') && isUnsafeInRain(spot)) continue;
                 const spotMuni = String(spot.municipality || spot.location || '').toLowerCase();
                 const inSelectedMuni = Boolean(locStr && locStr.length >= 3 && spotMuni.includes(locStr));
                 const ratingScore = Math.min(5, Math.max(0, parseFloat(spot.rating || spot.reviews_avg_rating || 0)));
-                const fallbackReason = meta.group === 'rainy'
-                    ? '🌧️ Safe All-Weather Cultural Stop'
+                const fallbackReason = (meta.group === 'rainy' || meta.group === 'severe')
+                    ? (meta.group === 'severe' ? '⛈️ Safe Indoor Cultural Shelter' : '🌧️ Safe All-Weather Cultural Stop')
                     : (meta.group === 'cloudy' ? '☁️ Comfortable Sightseeing Spot' : (meta.group === 'sunny' ? '☀️ Popular Sunny Destination' : '🌤️ Great Outdoor Weather Pick'));
                 scored.push({
                     spot,
@@ -2850,7 +2801,7 @@ window.applyTouristSitesFilterModal = function() {
 
         scored.sort((a, b) => b.score - a.score);
         return {
-            isSevere: false,
+            isSevere,
             meta,
             spots: scored.slice(0, 5)
         };
@@ -2895,9 +2846,18 @@ window.applyTouristSitesFilterModal = function() {
 
     window.renderSmartWeatherRecommendations = function (weatherData) {
         if (!weatherData) return;
-        window._lastWeatherData = weatherData;
+        const reconciled = window.reconcileRealtimeWeatherData(weatherData);
+        window._lastWeatherData = reconciled;
 
-        const { isSevere, meta, spots } = window.getWeatherRecommendedSpots(weatherData);
+        const { isSevere, meta, spots } = window.getWeatherRecommendedSpots(reconciled);
+
+        // Sync top Weather Card condition & icon with reconciled real-time weather
+        const descEl = document.getElementById('weather-desc');
+        if (descEl && reconciled.condition) descEl.textContent = reconciled.condition;
+        const iconEl = document.getElementById('weather-icon');
+        if (iconEl && (reconciled.icon || reconciled.fa_icon)) {
+            iconEl.innerHTML = window.renderWeatherIconHtml(reconciled.icon, reconciled.fa_icon);
+        }
 
         // 1. Update Short Weather Description & Best Time to Visit on Weather Card
         const tipEl = document.getElementById('weather-tip');
@@ -2906,26 +2866,11 @@ window.applyTouristSitesFilterModal = function() {
         const bestTimeEl = document.getElementById('weather-best-time');
         if (bestTimeEl) bestTimeEl.textContent = meta.bestTime;
 
-        // 2. Update Weather Alerts Banner
+        // Weather Alerts Banner removed per user request
         const alertBanner = document.getElementById('weather-alert-banner');
         if (alertBanner) {
-            if (meta.alerts && meta.alerts.length > 0) {
-                const topAlert = meta.alerts[0];
-                const lvl = topAlert.level === 'danger' ? 'alert-danger' : (topAlert.level === 'warning' ? 'alert-warning' : 'alert-caution');
-                const iconCls = topAlert.level === 'danger' ? 'fa-triangle-exclamation' : (topAlert.level === 'warning' ? 'fa-cloud-showers-heavy' : 'fa-sun-plant-wilt');
-                alertBanner.className = `weather-alert-banner stagger-2 ${lvl}`;
-                alertBanner.style.display = 'flex';
-                alertBanner.innerHTML = `
-                    <i class="fa-solid ${iconCls}" style="font-size: 14px; margin-top: 1px; flex-shrink: 0;"></i>
-                    <div style="flex: 1; min-width: 0;">
-                        <div style="font-weight: 800; font-size: 11.5px; margin-bottom: 1px;">${topAlert.title}</div>
-                        <div style="font-weight: 600; font-size: 10.5px; opacity: 0.92;">${topAlert.message}</div>
-                    </div>
-                `;
-            } else {
-                alertBanner.style.display = 'none';
-                alertBanner.innerHTML = '';
-            }
+            alertBanner.style.display = 'none';
+            alertBanner.innerHTML = '';
         }
 
         // 3. Update Recommended for Today's Weather Section
@@ -2939,20 +2884,19 @@ window.applyTouristSitesFilterModal = function() {
         const recContainer = document.getElementById('weather-rec-container');
         if (!recContainer) return;
 
-        if (isSevere) {
-            recContainer.innerHTML = `
-                <div style="width: 100%; background: #fef2f2; border: 1.5px solid #fecaca; border-radius: 16px; padding: 12px 14px; display: flex; align-items: center; gap: 10px; color: #991b1b; box-sizing: border-box;">
-                    <i class="fa-solid fa-shield-heart" style="font-size: 22px; color: #dc2626; flex-shrink: 0;"></i>
-                    <div style="font-size: 11px; line-height: 1.35; font-weight: 600;">
-                        <strong style="display: block; font-size: 12px; font-weight: 800; margin-bottom: 2px;">Outdoor Recommendations Paused for Safety</strong>
-                        Severe weather is affecting ${weatherData.location || 'La Union'}. Please remain indoors and avoid beaches, waterfalls, and mountain trails until conditions improve.
-                    </div>
-                </div>
-            `;
-            return;
-        }
-
         if (!spots || spots.length === 0) {
+            if (isSevere) {
+                recContainer.innerHTML = `
+                    <div style="width: 100%; background: #fef2f2; border: 1.5px solid #fecaca; border-radius: 16px; padding: 12px 14px; display: flex; align-items: center; gap: 10px; color: #991b1b; box-sizing: border-box;">
+                        <i class="fa-solid fa-shield-heart" style="font-size: 22px; color: #dc2626; flex-shrink: 0;"></i>
+                        <div style="font-size: 11px; line-height: 1.35; font-weight: 600;">
+                            <strong style="display: block; font-size: 12px; font-weight: 800; margin-bottom: 2px;">Outdoor Recommendations Paused for Safety</strong>
+                            Severe weather is affecting ${reconciled.location || 'La Union'}. Please remain indoors and avoid beaches, waterfalls, and mountain trails until conditions improve.
+                        </div>
+                    </div>
+                `;
+                return;
+            }
             recContainer.innerHTML = `
                 <div style="font-size: 11.5px; color: #64748b; padding: 8px 4px; font-weight: 600;">
                     <i class="fa-solid fa-compass" style="color: #0284c7; margin-right: 5px;"></i> Loading weather-matched tourist sites...
@@ -3013,8 +2957,174 @@ window.applyTouristSitesFilterModal = function() {
         return iconEmoji || '⛅';
     };
 
-    window.updateWeatherModal = function (data) {
-        if (!data) return;
+    window.selectForecastCategory = function (catFilter) {
+        if (typeof window.closeForecastDayPicksModal === 'function') window.closeForecastDayPicksModal();
+        if (typeof window.closeDayPicksModal === 'function') window.closeDayPicksModal();
+        if (typeof window.closeWeatherModal === 'function') window.closeWeatherModal();
+
+        const activeCat = catFilter || 'All';
+        localStorage.setItem('intan_elyu_filter_category', activeCat);
+
+        // Navigate directly to the Categories tab view showing spots for this recommended category
+        if (typeof window.navigateTo === 'function') {
+            window.navigateTo('categories');
+        } else {
+            window.location.href = '?view=categories';
+        }
+    };
+
+    window.openForecastDayPicksModal = function (dayIdx) {
+        const wData = window._lastForecastData || window._lastWeatherData;
+        const forecastList = (wData && Array.isArray(wData.forecast)) ? wData.forecast : [];
+        const dayItem = forecastList[dayIdx];
+        if (!dayItem) return;
+
+        const modal = document.getElementById('weather-day-picks-modal');
+        const titleEl = document.getElementById('day-picks-modal-title');
+        const subEl = document.getElementById('day-picks-modal-sub');
+        const bodyEl = document.getElementById('day-picks-modal-body');
+        if (!modal || !bodyEl) return;
+
+        if (modal.parentElement !== document.body) {
+            document.body.appendChild(modal);
+        }
+
+        const locLabel = (wData && wData.location) || (window.currentWeatherLocation && window.currentWeatherLocation.name) || 'La Union';
+        const dayWeatherPayload = {
+            _isForecastDayPick: true,
+            location: locLabel,
+            temperature: dayItem.temp_max,
+            feels_like: dayItem.temp_max,
+            condition: dayItem.condition,
+            weather_code: dayItem.weather_code,
+            weather_group: dayItem.weather_group,
+            rain_prob: dayItem.rain_prob,
+            icon: dayItem.icon,
+            fa_icon: dayItem.fa_icon,
+            wind_speed: 12,
+            uv_index: 6,
+            forecast: [dayItem]
+        };
+
+        const { isSevere, meta, spots } = window.getWeatherRecommendedSpots(dayWeatherPayload);
+
+        if (titleEl) {
+            titleEl.innerHTML = `<i class="fa-solid fa-calendar-check" style="color:#38bdf8; font-size:14px;"></i> <span>${dayItem.day} · ${dayItem.condition}</span>`;
+        }
+        if (subEl) {
+            subEl.innerHTML = `<i class="fa-solid fa-location-dot" style="color:#38bdf8; font-size:10px; margin-right:4px;"></i>${locLabel}`;
+        }
+
+        let draftIds = new Set();
+        try {
+            const draft = JSON.parse(localStorage.getItem('intan_elyu_draft_itinerary') || '[]');
+            if (Array.isArray(draft)) draft.forEach(d => { if (d && d.id !== undefined) draftIds.add(String(d.id)); });
+        } catch (e) {}
+
+        const categoriesHtml = (meta.categories || []).map(cat => `
+            <div onclick="window.selectForecastCategory('${cat.filter}')" style="background:#f8fafc; border:1.5px solid #e2e8f0; border-radius:14px; padding:10px 12px; display:flex; align-items:center; justify-content:space-between; cursor:pointer; transition:transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
+                <div style="display:flex; align-items:center; gap:10px; min-width:0;">
+                    <div style="width:32px; height:32px; border-radius:10px; background:#e0f2fe; color:#0284c7; display:flex; align-items:center; justify-content:center; font-size:13px; flex-shrink:0;">
+                        <i class="fa-solid ${cat.icon}"></i>
+                    </div>
+                    <div style="min-width:0;">
+                        <div style="font-size:12.5px; font-weight:800; color:#0f172a;">${cat.label}</div>
+                        <div style="font-size:10.5px; color:#64748b; font-weight:600;">${cat.desc}</div>
+                    </div>
+                </div>
+                <span style="font-size:10px; font-weight:800; color:#0284c7; white-space:nowrap; margin-left:8px;">Explore &rarr;</span>
+            </div>
+        `).join('');
+
+        const advisoryHtml = (isSevere || Number(dayItem.rain_prob || 0) >= 65) ? `
+            <div style="background:${isSevere ? '#fef2f2' : '#fffbeb'}; border:1.5px solid ${isSevere ? '#fecaca' : '#fde68a'}; color:${isSevere ? '#991b1b' : '#92400e'}; border-radius:14px; padding:10px 12px; margin-bottom:14px; font-size:11px; font-weight:600; display:flex; align-items:flex-start; gap:8px; line-height:1.35;">
+                <i class="fa-solid ${isSevere ? 'fa-triangle-exclamation' : 'fa-umbrella'}" style="font-size:13px; margin-top:1px; flex-shrink:0;"></i>
+                <div>
+                    <strong style="display:block; font-size:11.5px; font-weight:800; margin-bottom:1px;">${isSevere ? 'Storm Safety Advisory' : `High Rain Chance (${dayItem.rain_prob}%)`}</strong>
+                    ${isSevere ? 'Avoid beaches, surfing, waterfalls, and mountain trails on this day. Stick to safe indoor and cultural sites.' : 'Bring rain gear or an umbrella and consider sheltered cultural or indoor dining stops.'}
+                </div>
+            </div>
+        ` : '';
+
+        const spotsHtml = (spots && spots.length > 0) ? spots.map(({ spot, reason }) => {
+            const img = window.getDestImage(spot, 300);
+            const muni = spot.municipality || spot.location || (typeof window.resolveMunicipalityName === 'function' ? window.resolveMunicipalityName(spot) : 'La Union');
+            const encodedDest = encodeURIComponent(JSON.stringify(spot)).replace(/'/g, '%27');
+            const safeName = String(spot.name || '').replace(/"/g, '&quot;');
+            const inDraft = draftIds.has(String(spot.id));
+
+            return `
+                <div onclick="window.closeForecastDayPicksModal(); window.closeWeatherModal(); window.viewDestinationOnMap('${encodedDest}')"
+                    style="background:#ffffff; border:1.5px solid #e2e8f0; border-radius:16px; padding:10px; display:flex; align-items:center; gap:11px; cursor:pointer; box-shadow:0 2px 8px rgba(15,23,42,0.04);">
+                    <img src="${img}" alt="${safeName}" loading="lazy" decoding="async"
+                        style="width:62px; height:62px; border-radius:12px; object-fit:cover; flex-shrink:0; background:#f1f5f9;"
+                        onerror="if (window.handleImgError) window.handleImgError(this, '${(spot.name || '').replace(/'/g, "\\'")}', '${(muni || '').replace(/'/g, "\\'")}'); else this.src='assets/img/no_image.svg';">
+                    <div style="flex:1; min-width:0;">
+                        <div style="font-size:13px; font-weight:800; color:#0f172a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${spot.name}</div>
+                        <div style="font-size:10.5px; color:#64748b; font-weight:600; margin-top:1px;"><i class="fa-solid fa-location-dot" style="color:#1e3a8a; font-size:9px; margin-right:3px;"></i>${muni}</div>
+                        <div style="display:inline-block; font-size:9.5px; font-weight:700; color:#0369a1; background:#f0f9ff; padding:2px 7px; border-radius:6px; margin-top:4px;">${reason}</div>
+                    </div>
+                    <button type="button" onclick="event.stopPropagation(); window.quickAddWeatherSpotToItinerary('${encodedDest}', this)"
+                        style="background:${inDraft ? '#10b981' : '#1e3a8a'} !important; color:#ffffff !important; border:none !important; border-radius:9px; padding:6px 10px; font-size:10px; font-weight:800; cursor:pointer; flex-shrink:0;">
+                        <i class="fa-solid ${inDraft ? 'fa-check' : 'fa-plus'}"></i> ${inDraft ? 'Added' : 'Itinerary'}
+                    </button>
+                </div>
+            `;
+        }).join('') : `
+            <div style="padding:14px; text-align:center; color:#64748b; font-size:12px; font-weight:600; background:#f8fafc; border-radius:14px;">
+                No matching tourist sites loaded yet.
+            </div>
+        `;
+
+        bodyEl.innerHTML = `
+            <div style="background:linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border:1.5px solid #bae6fd; border-radius:18px; padding:14px 16px; margin-bottom:14px;">
+                <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <span style="font-size:32px; line-height:1;">${window.renderWeatherIconHtml(dayItem.icon, dayItem.fa_icon)}</span>
+                        <div>
+                            <div style="font-size:15px; font-weight:900; color:#0369a1;">${dayItem.temp_max}° <span style="font-size:12px; color:#64748b; font-weight:700;">/ ${dayItem.temp_min}°C</span></div>
+                            <div style="font-size:11px; font-weight:700; color:#0284c7;"><i class="fa-solid fa-droplet" style="font-size:9px;"></i> ${dayItem.rain_prob}% rain probability</div>
+                        </div>
+                    </div>
+                    <span style="font-size:10px; font-weight:800; padding:4px 10px; border-radius:100px; background:${meta.badge.bg}; color:${meta.badge.color};">${meta.badge.text}</span>
+                </div>
+                <div style="font-size:11.5px; color:#334155; font-weight:600; margin-top:8px; line-height:1.35;">${meta.shortDesc}</div>
+            </div>
+
+            ${advisoryHtml}
+
+            <div style="margin-bottom:14px;">
+                <h4 style="margin:0 0 8px 0; font-size:12.5px; font-weight:800; color:#0f172a; text-transform:uppercase; letter-spacing:0.3px;">
+                    <i class="fa-solid fa-layer-group" style="color:#0284c7; margin-right:5px;"></i>Related Categories for ${dayItem.condition}
+                </h4>
+                <div style="display:flex; flex-direction:column; gap:7px;">
+                    ${categoriesHtml}
+                </div>
+            </div>
+
+            <div>
+                <h4 style="margin:0 0 8px 0; font-size:12.5px; font-weight:800; color:#0f172a; text-transform:uppercase; letter-spacing:0.3px;">
+                    <i class="fa-solid fa-location-dot" style="color:#0284c7; margin-right:5px;"></i>Recommended Sites for ${dayItem.day}
+                </h4>
+                <div style="display:flex; flex-direction:column; gap:8px;">
+                    ${spotsHtml}
+                </div>
+            </div>
+        `;
+
+        modal.style.display = 'flex';
+    };
+
+    window.closeForecastDayPicksModal = function () {
+        const modal = document.getElementById('weather-day-picks-modal');
+        if (modal) modal.style.display = 'none';
+    };
+
+    window.updateWeatherModal = function (raw) {
+        if (!raw) return;
+        const data = window.reconcileRealtimeWeatherData(raw);
+        window._lastForecastData = data;
+
         const modalLoc = document.getElementById('modal-weather-loc');
         const modalTemp = document.getElementById('modal-temp');
         const modalCondition = document.getElementById('modal-condition');
@@ -3029,12 +3139,18 @@ window.applyTouristSitesFilterModal = function() {
         if (modalIcon) modalIcon.innerHTML = window.renderWeatherIconHtml(data.icon, data.fa_icon);
 
         if (forecastContainer && data.forecast && data.forecast.length > 0) {
-            forecastContainer.innerHTML = data.forecast.map(item => `
-                <div style="background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 16px; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; transition: transform 0.15s ease;">
+            forecastContainer.innerHTML = data.forecast.map((item, idx) => `
+                <div class="forecast-day-row" onclick="window.openForecastDayPicksModal(${idx})"
+                    style="background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 16px; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: transform 0.15s ease, border-color 0.15s ease;"
+                    onpointerdown="this.style.transform='scale(0.98)'; this.style.borderColor='#38bdf8';"
+                    onpointerup="this.style.transform='scale(1)'; this.style.borderColor='#e2e8f0';">
                     <div style="display: flex; align-items: center; gap: 14px;">
                         <span style="font-size: 26px; width: 34px; text-align: center; display: inline-block;">${window.renderWeatherIconHtml(item.icon, item.fa_icon)}</span>
                         <div>
-                            <div style="font-size: 14px; font-weight: 800; color: #0f172a;">${item.day}</div>
+                            <div style="font-size: 14px; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 6px;">
+                                <span>${item.day}</span>
+                                <span style="font-size: 9.5px; font-weight: 800; color: #0284c7; background: #e0f2fe; padding: 2px 7px; border-radius: 100px;">View Picks &rsaquo;</span>
+                            </div>
                             <div style="font-size: 11.5px; color: #64748b; font-weight: 600;">${item.condition}</div>
                         </div>
                     </div>
@@ -3047,9 +3163,10 @@ window.applyTouristSitesFilterModal = function() {
         }
     };
 
-    window.fetchWeather = async function (lat = 16.6159, lng = 120.3209, locationName = 'San Fernando, La Union', isCurrentLoc = false) {
-        window.currentWeatherLocation = { lat, lng, name: locationName, isCurrentLoc };
-        window.syncWeatherMunicipalitySelectUI(locationName, isCurrentLoc);
+    window.fetchWeather = async function (lat = 16.6159, lng = 120.3209, locationName = 'San Fernando, La Union', isCurrentLoc = true) {
+        const resolvedFallbackMuni = window.resolveNearestLaUnionMuni(lat, lng);
+        const displayLocName = (!locationName || locationName.includes('My Location')) ? resolvedFallbackMuni : locationName;
+        window.currentWeatherLocation = { lat, lng, name: displayLocName, isCurrentLoc };
 
         const tempEl = document.getElementById('weather-temp');
         const descEl = document.getElementById('weather-desc');
@@ -3058,13 +3175,25 @@ window.applyTouristSitesFilterModal = function() {
         const windEl = document.getElementById('weather-wind');
         const uvEl = document.getElementById('weather-uv');
         const iconEl = document.getElementById('weather-icon');
+        const gpsStatusEl = document.getElementById('weather-gps-status');
+        if (gpsStatusEl) gpsStatusEl.textContent = isCurrentLoc ? 'Live GPS' : 'GPS Sync';
 
-        const locCacheKey = `intan_elyu_weather_v2_${Number(lat).toFixed(2)}_${Number(lng).toFixed(2)}`;
-        const applyWeatherUI = (wData) => {
-            if (!wData) return;
+        // Purge legacy v1/v2 weather caches & manual dropdown locks so real-time weather is always accurate
+        try {
+            localStorage.removeItem('intan_elyu_manual_loc');
+            localStorage.removeItem('intan_elyu_cached_weather');
+        } catch (e) {}
+
+        const locCacheKey = `intan_elyu_weather_v3_${Number(lat).toFixed(2)}_${Number(lng).toFixed(2)}`;
+        const applyWeatherUI = (rawWData) => {
+            if (!rawWData) return;
+            const wData = window.reconcileRealtimeWeatherData(rawWData);
+            if (!wData.location || wData.location.includes('My Location')) {
+                wData.location = displayLocName;
+            }
             if (tempEl) tempEl.textContent = `${wData.temperature}°C`;
             if (descEl) descEl.textContent = wData.condition;
-            if (locEl) locEl.textContent = wData.location || locationName;
+            if (locEl) locEl.textContent = wData.location || displayLocName;
             if (humidityEl) humidityEl.textContent = `${wData.humidity}%`;
             if (windEl) windEl.textContent = `${wData.wind_speed} km/h`;
             if (uvEl) uvEl.textContent = wData.uv_index;
@@ -3075,41 +3204,17 @@ window.applyTouristSitesFilterModal = function() {
             }
         };
 
-        // Pre-hydrate from location-specific or global cache immediately (0ms delay)
+        // Pre-hydrate from v3 cache immediately (short 45-second TTL for real-time responsiveness)
         let freshLocCacheHit = false;
         try {
             const rawLoc = localStorage.getItem(locCacheKey);
             if (rawLoc) {
                 const parsedLoc = window.safeJsonParse ? window.safeJsonParse(rawLoc, null) : JSON.parse(rawLoc);
                 if (parsedLoc && parsedLoc.data) {
-                    applyWeatherUI({ ...parsedLoc.data, location: (!isCurrentLoc && locationName) ? locationName : (parsedLoc.data.location || locationName) });
-                    if (parsedLoc.timestamp && (Date.now() - parsedLoc.timestamp < 600000)) {
+                    applyWeatherUI({ ...parsedLoc.data, location: parsedLoc.data.location || displayLocName });
+                    if (parsedLoc.timestamp && (Date.now() - parsedLoc.timestamp < 45000)) {
                         freshLocCacheHit = true;
                     }
-                }
-            }
-            if (!freshLocCacheHit) {
-                const rawW = localStorage.getItem('intan_elyu_cached_weather');
-                if (rawW) {
-                    const cw = (window.safeJsonParse ? window.safeJsonParse(rawW, null) : JSON.parse(rawW))?.data;
-                    if (cw) {
-                        applyWeatherUI({ ...cw, location: (!isCurrentLoc && locationName) ? locationName : (cw.location || locationName) });
-                    }
-                } else {
-                    applyWeatherUI({
-                        temperature: 29,
-                        feels_like: 31,
-                        condition: 'Partly Cloudy',
-                        location: locationName || 'San Fernando, La Union',
-                        humidity: 72,
-                        wind_speed: 14,
-                        uv_index: 6,
-                        weather_code: 2,
-                        weather_group: 'partly_cloudy',
-                        icon: '⛅',
-                        fa_icon: 'fa-cloud-sun',
-                        forecast: []
-                    });
                 }
             }
         } catch(e) {}
@@ -3126,15 +3231,16 @@ window.applyTouristSitesFilterModal = function() {
         try {
             const apiBase = getDashBackendUrl();
             const isCurrentParam = isCurrentLoc ? '&is_current_location=1' : '';
-            const url = `${apiBase}/api/public/weather?lat=${lat}&lng=${lng}&location=${encodeURIComponent(locationName)}${isCurrentParam}`;
+            const url = `${apiBase}/api/public/weather?lat=${lat}&lng=${lng}&location=${encodeURIComponent(displayLocName)}${isCurrentParam}`;
 
             const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
             if (!res.ok) throw new Error('Weather request failed with status ' + res.status);
-            const data = await res.json();
+            const rawData = await res.json();
+            const data = window.reconcileRealtimeWeatherData(rawData);
 
             try {
                 const payload = JSON.stringify({ data, timestamp: Date.now() });
-                localStorage.setItem('intan_elyu_cached_weather', payload);
+                localStorage.setItem('intan_elyu_cached_weather_v3', payload);
                 localStorage.setItem(locCacheKey, payload);
             } catch(e) {}
 
@@ -3143,18 +3249,18 @@ window.applyTouristSitesFilterModal = function() {
             console.warn('Weather fetch error, checking cache or fallback:', e);
             let cachedW = null;
             try {
-                const rawW = localStorage.getItem(locCacheKey) || localStorage.getItem('intan_elyu_cached_weather');
+                const rawW = localStorage.getItem(locCacheKey) || localStorage.getItem('intan_elyu_cached_weather_v3');
                 if (rawW) cachedW = (window.safeJsonParse ? window.safeJsonParse(rawW, null) : JSON.parse(rawW))?.data;
             } catch(err) {}
 
             if (cachedW) {
-                applyWeatherUI({ ...cachedW, location: (!isCurrentLoc && locationName) ? locationName : (cachedW.location || locationName) });
+                applyWeatherUI({ ...cachedW, location: cachedW.location || displayLocName });
             } else {
                 applyWeatherUI({
                     temperature: 29,
                     feels_like: 31,
                     condition: 'Partly Cloudy',
-                    location: locationName || 'San Fernando, La Union',
+                    location: displayLocName,
                     humidity: 72,
                     wind_speed: 14,
                     uv_index: 6,
@@ -3170,24 +3276,26 @@ window.applyTouristSitesFilterModal = function() {
 
     window.locateMeForWeather = function () {
         const locEl = document.getElementById('weather-loc');
-        const descEl = document.getElementById('weather-desc');
-        if (locEl) locEl.textContent = "Detecting location...";
-        if (descEl) descEl.textContent = 'Acquiring location...';
+        const gpsStatusEl = document.getElementById('weather-gps-status');
+        if (gpsStatusEl) gpsStatusEl.textContent = 'Locating...';
 
-        const fallbackToLocal = () => {
-            try {
-                const manual = localStorage.getItem('intan_elyu_manual_loc');
-                if (manual) {
-                    const parsed = JSON.parse(manual);
-                    if (parsed && parsed.lat && parsed.lng) {
-                        window.fetchWeather(parsed.lat, parsed.lng, parsed.name || 'La Union', false);
-                        if (typeof window.loadNearMe === 'function') window.loadNearMe(parsed.lat, parsed.lng, parsed.name);
-                        return;
-                    }
-                }
-            } catch (e) { }
-            window.fetchWeather(16.6159, 120.3209, 'San Fernando, La Union', false);
-            if (typeof window.loadNearMe === 'function') window.loadNearMe(16.6159, 120.3209, 'San Fernando City');
+        // If live GPS coordinates are already tracked, use them immediately and refresh in background
+        const knownLat = parseFloat(window.currentGPSLat || window.userCurrentCoords?.lat || 0);
+        const knownLng = parseFloat(window.currentGPSLng || window.userCurrentCoords?.lng || 0);
+        if (!isNaN(knownLat) && !isNaN(knownLng) && knownLat !== 0 && knownLng !== 0) {
+            const nearestLabel = window.resolveNearestLaUnionMuni(knownLat, knownLng);
+            window.fetchWeather(knownLat, knownLng, nearestLabel, true);
+        } else if (locEl) {
+            locEl.textContent = 'Detecting GPS location...';
+        }
+
+        const fallbackToDefault = () => {
+            if (gpsStatusEl) gpsStatusEl.textContent = 'Live GPS';
+            const fLat = parseFloat(window.currentGPSLat || window.userCurrentCoords?.lat || 16.6159);
+            const fLng = parseFloat(window.currentGPSLng || window.userCurrentCoords?.lng || 120.3209);
+            const fLabel = window.resolveNearestLaUnionMuni(fLat, fLng);
+            window.fetchWeather(fLat, fLng, fLabel, true);
+            if (typeof window.loadNearMe === 'function') window.loadNearMe(fLat, fLng, fLabel);
         };
 
         if (typeof window.requestPreciseLocation === 'function') {
@@ -3197,13 +3305,15 @@ window.applyTouristSitesFilterModal = function() {
                     window.currentGPSLat = loc.lat;
                     window.currentGPSLng = loc.lng;
                     window.currentGPSSource = 'gps';
-                    window.fetchWeather(loc.lat, loc.lng, 'My Location 📍', true);
+                    if (gpsStatusEl) gpsStatusEl.textContent = 'Live GPS';
+                    const label = window.resolveNearestLaUnionMuni(loc.lat, loc.lng);
+                    window.fetchWeather(loc.lat, loc.lng, label, true);
                     if (typeof loadNearMe === 'function') loadNearMe(loc.lat, loc.lng);
                 } else {
-                    fallbackToLocal();
+                    fallbackToDefault();
                 }
             }).catch(() => {
-                fallbackToLocal();
+                fallbackToDefault();
             });
         } else if ("geolocation" in navigator) {
             navigator.geolocation.getCurrentPosition(
@@ -3214,17 +3324,19 @@ window.applyTouristSitesFilterModal = function() {
                     window.currentGPSLat = lat;
                     window.currentGPSLng = lng;
                     window.currentGPSSource = 'gps';
-                    window.fetchWeather(lat, lng, 'My Location 📍', true);
+                    if (gpsStatusEl) gpsStatusEl.textContent = 'Live GPS';
+                    const label = window.resolveNearestLaUnionMuni(lat, lng);
+                    window.fetchWeather(lat, lng, label, true);
                     if (typeof loadNearMe === 'function') loadNearMe(lat, lng);
                 },
                 (err) => {
-                    console.warn('GPS location failed/denied, using local fallback:', err);
-                    fallbackToLocal();
+                    console.warn('GPS location failed/denied, using fallback:', err);
+                    fallbackToDefault();
                 },
                 { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
             );
         } else {
-            fallbackToLocal();
+            fallbackToDefault();
         }
     };
 
@@ -3249,6 +3361,7 @@ window.applyTouristSitesFilterModal = function() {
     };
 
     window.closeWeatherModal = function () {
+        window.closeForecastDayPicksModal();
         const modal = document.getElementById('weather-modal');
         if (modal) modal.style.display = 'none';
 
@@ -3261,37 +3374,21 @@ window.applyTouristSitesFilterModal = function() {
         }
     };
 
-    // Immediately port weather modal to document.body so it stays above bottom navigation
+    // Immediately port weather modals to document.body so they stay above bottom navigation
     try {
         const initialWModal = document.getElementById('weather-modal');
         if (initialWModal && initialWModal.parentElement !== document.body) {
             document.body.appendChild(initialWModal);
         }
+        const initialDayModal = document.getElementById('weather-day-picks-modal');
+        if (initialDayModal && initialDayModal.parentElement !== document.body) {
+            document.body.appendChild(initialDayModal);
+        }
     } catch (e) { }
 
-    window.changeWeatherLocation = function (valStr) {
-        if (valStr === 'GPS_CURRENT') {
-            try { localStorage.removeItem('intan_elyu_manual_loc'); } catch (e) {}
-            window.locateMeForWeather();
-            return;
-        }
-        const parts = valStr.split(',');
-        if (parts.length >= 3) {
-            const lat = parseFloat(parts[0]);
-            const lng = parseFloat(parts[1]);
-            const name = parts[2];
-            try {
-                localStorage.setItem('intan_elyu_manual_loc', JSON.stringify({ lat, lng, name: name + ', La Union' }));
-            } catch (e) {}
-            window.fetchWeather(lat, lng, name + ', La Union', false);
-            if (typeof window.loadNearMe === 'function') {
-                window.loadNearMe(lat, lng, name);
-            }
-        }
-    };
-
-    // Live continuous GPS sync listener for real-time Near Me distances (debounced to eliminate twitching)
+    // Live continuous GPS sync listener for real-time Weather & Near Me distances
     window._gpsDebounceTimer = window._gpsDebounceTimer || null;
+    window._lastWeatherSyncCoords = window._lastWeatherSyncCoords || null;
     document.addEventListener('gpsUpdated', function (e) {
         if (e.detail && e.detail.lat && e.detail.lng) {
             const liveLat = parseFloat(e.detail.lat);
@@ -3300,6 +3397,16 @@ window.applyTouristSitesFilterModal = function() {
                 window.userCurrentCoords = { lat: liveLat, lng: liveLng };
                 window.currentGPSLat = liveLat;
                 window.currentGPSLng = liveLng;
+
+                // Automatically sync real-time weather when GPS acquires fix or moves > ~300m
+                const prev = window._lastWeatherSyncCoords;
+                const movedEnough = !prev || Math.hypot(liveLat - prev.lat, liveLng - prev.lng) > 0.003 || (Date.now() - (prev.ts || 0) > 120000);
+                if (movedEnough && typeof window.fetchWeather === 'function') {
+                    window._lastWeatherSyncCoords = { lat: liveLat, lng: liveLng, ts: Date.now() };
+                    const label = window.resolveNearestLaUnionMuni(liveLat, liveLng);
+                    window.fetchWeather(liveLat, liveLng, label, true);
+                }
+
                 if (typeof window.loadNearMe === 'function') {
                     clearTimeout(window._gpsDebounceTimer);
                     window._gpsDebounceTimer = setTimeout(() => {
@@ -3310,20 +3417,25 @@ window.applyTouristSitesFilterModal = function() {
         }
     });
 
-    // Auto locate & fetch weather on startup (respecting user-selected municipality if saved)
+    // Auto locate & fetch real-time GPS weather on startup + continuous background polling
+    window._weatherAutoSyncInterval = window._weatherAutoSyncInterval || null;
     setTimeout(() => {
-        if (typeof window.fetchWeather === 'function') {
-            try {
-                const manualRaw = localStorage.getItem('intan_elyu_manual_loc');
-                if (manualRaw) {
-                    const parsed = JSON.parse(manualRaw);
-                    if (parsed && parsed.lat && parsed.lng) {
-                        window.fetchWeather(parsed.lat, parsed.lng, parsed.name || 'San Fernando, La Union', false);
-                        return;
-                    }
-                }
-            } catch (e) {}
+        if (typeof window.locateMeForWeather === 'function') {
             window.locateMeForWeather();
+        }
+        // Poll weather dynamically every 60 seconds while viewing the dashboard
+        if (!window._weatherAutoSyncInterval) {
+            window._weatherAutoSyncInterval = setInterval(() => {
+                const currentView = (document.body ? document.body.getAttribute('data-view') : '') || (window.currentView || '');
+                if (currentView !== 'dashboard' && currentView !== '') return;
+                if (document.hidden) return;
+                const lat = parseFloat(window.currentGPSLat || window.userCurrentCoords?.lat || 16.6159);
+                const lng = parseFloat(window.currentGPSLng || window.userCurrentCoords?.lng || 120.3209);
+                if (typeof window.fetchWeather === 'function') {
+                    const label = (typeof window.resolveNearestLaUnionMuni === 'function') ? window.resolveNearestLaUnionMuni(lat, lng) : 'La Union';
+                    window.fetchWeather(lat, lng, label, true);
+                }
+            }, 60000);
         }
     }, 100);
 
@@ -3585,10 +3697,10 @@ window.applyTouristSitesFilterModal = function() {
                             }
 
                             destinationsHtml += `
-                            <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px; padding:8px 12px; background:rgba(0,0,0,0.12); border:none; border-radius:12px;">
+                            <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px; padding:8px 12px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px;">
                                 <div style="width:22px; height:22px; border-radius:50%; background:linear-gradient(135deg, #38bdf8, #2563eb); color:#ffffff; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:900; flex-shrink:0; box-shadow:none;">${index + 1}</div>
                                 <img src="${spotThumb}" alt="${destName}" style="width:28px; height:28px; border-radius:8px; object-fit:cover; border:1px solid rgba(255,255,255,0.2); flex-shrink:0;" onerror="this.onerror=null; this.src='assets/img/no_image.svg';">
-                                <div style="flex:1; font-size:13px; color:#ffffff; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${destName}</div>
+                                <div style="flex:1; font-size:13px; color:#0f172a; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${destName}</div>
                                 ${proofImgHtml}
                                 ${proofBadge}
                             </div>
@@ -3600,35 +3712,36 @@ window.applyTouristSitesFilterModal = function() {
 
                     const safeTitle = (trip.title || 'Trip').replace(/'/g, "\\'");
                     tripsHtml += `
-                    <div class="trip-swipe-container" data-trip-id="${trip.id}" data-trip-title="${safeTitle}" style="margin-bottom: 14px; position: relative; overflow: hidden; border-radius: 20px; -webkit-mask-image: -webkit-radial-gradient(white, black); mask-image: radial-gradient(white, black); isolation: isolate; contain: paint;">
-                        <div class="trip-swipe-bg" onclick="window.confirmDeleteSavedTrip('${trip.id}', this.closest('.trip-swipe-container'), '${safeTitle}')" style="position: absolute; top: 0; right: 0; bottom: 0; width: 85px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border-radius: 0 20px 20px 0; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 13px; font-weight: 800; gap: 4px; z-index: 1; opacity: 0; pointer-events: none; transform: translateX(85px); transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease; cursor: pointer;">
+                    <div class="trip-swipe-container" data-trip-id="${trip.id}" data-trip-title="${safeTitle}" style="margin-bottom: 7px; position: relative; overflow: hidden; border-radius: 12px; -webkit-mask-image: -webkit-radial-gradient(white, black); mask-image: radial-gradient(white, black); isolation: isolate; contain: paint;">
+                        <div class="trip-swipe-bg" onclick="window.confirmDeleteSavedTrip('${trip.id}', this.closest('.trip-swipe-container'), '${safeTitle}')" style="position: absolute; top: 0; right: 0; bottom: 0; width: 68px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border-radius: 0 12px 12px 0; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 11.5px; font-weight: 800; gap: 4px; z-index: 1; opacity: 0; pointer-events: none; transform: translateX(68px); transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease; cursor: pointer;">
                             <i class="fa-solid fa-trash-can"></i> Delete
                         </div>
-                        <div class="trip-swipe-content" style="position: relative; z-index: 2; transition: transform 0.2s ease, border-radius 0.2s ease; background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline: none !important; border-radius: 20px; overflow: hidden; box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important;">
-                            <div onclick="const content = this.nextElementSibling; const icon = this.querySelector('.toggle-icon'); if(content.style.maxHeight === '0px' || !content.style.maxHeight){ content.style.paddingTop = '14px'; content.style.paddingBottom = '16px'; content.style.maxHeight = (content.scrollHeight + 50) + 'px'; content.style.opacity = '1'; icon.style.transform = 'rotate(90deg)'; } else { content.style.maxHeight = '0px'; content.style.opacity = '0'; content.style.paddingTop = '0'; content.style.paddingBottom = '0'; icon.style.transform = 'rotate(0deg)'; }" style="cursor:pointer; display:flex; align-items:center; gap: 14px; padding: 16px; transition: background 0.15s;" onpointerdown="this.style.background='rgba(255,255,255,0.08)'" onpointerup="this.style.background=''" onpointercancel="this.style.background=''">
-                                <div style="width: 48px; height: 48px; border-radius: 14px; background: rgba(255, 255, 255, 0.22); border: none; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: none;">
-                                    <i class="fa-solid fa-map-location-dot" style="color: #ffffff; font-size: 20px;"></i>
+                        <div class="trip-swipe-content" style="position: relative; z-index: 2; transition: transform 0.2s ease, border-radius 0.2s ease; background: #ffffff !important; border: 1px solid #e2e8f0 !important; outline: none !important; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04) !important;">
+                            <div onclick="const content = this.nextElementSibling; const icon = this.querySelector('.toggle-icon'); if(content.style.maxHeight === '0px' || !content.style.maxHeight){ content.style.paddingTop = '6px'; content.style.paddingBottom = '8px'; content.style.maxHeight = (content.scrollHeight + 50) + 'px'; content.style.opacity = '1'; icon.style.transform = 'rotate(90deg)'; } else { content.style.maxHeight = '0px'; content.style.opacity = '0'; content.style.paddingTop = '0'; content.style.paddingBottom = '0'; icon.style.transform = 'rotate(0deg)'; }" style="cursor:pointer; display:flex; align-items:center; gap: 9px; padding: 8px 11px; transition: background 0.15s;" onpointerdown="this.style.background='#f8fafc'" onpointerup="this.style.background=''" onpointercancel="this.style.background=''">
+                                <div style="width:30px; height:30px; border-radius:8px; background:linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%); display:flex; align-items:center; justify-content:center; flex-shrink:0; color:#0284c7; font-size:12px;">
+                                    <i class="fa-solid fa-route"></i>
                                 </div>
                                 <div style="flex: 1; min-width: 0;">
-                                    <span style="display:block; font-size:16px; font-weight:800; color:#ffffff; margin-bottom:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; letter-spacing:-0.3px;">${trip.title}</span>
-                                    <span style="display:flex; align-items:center; gap:8px; font-size:12px; color:rgba(255,255,255,0.9); font-weight:600; flex-wrap:wrap;">
-                                        <span><i class="fa-solid fa-location-dot" style="margin-right:4px; color:#ffffff;"></i>${trip.items ? trip.items.length : 0} Stops</span>
-                                        <span style="color:rgba(255,255,255,0.4);">&bull;</span>
-                                        <span><i class="fa-regular fa-calendar" style="margin-right:4px; color:#ffffff;"></i>${trip.trip_date ? new Date(trip.trip_date).toLocaleDateString() : 'No Date'}</span>
+                                    <div style="display:flex; align-items:center; gap:5px; margin-bottom:2px;">
+                                        <span style="font-size:13px; font-weight:800; color:#0f172a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; letter-spacing:-0.2px;">${trip.title}</span>
+                                        <span style="font-size:9.5px; font-weight:700; color:#0284c7; background:#e0f2fe; padding:1px 6px; border-radius:4px; flex-shrink:0;">${trip.items ? trip.items.length : 0} Stops</span>
+                                    </div>
+                                    <div style="display:flex; align-items:center; gap:5px; font-size:10px; color:#64748b; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                                        <span><i class="fa-regular fa-calendar" style="margin-right:2px; color:#94a3b8;"></i>${trip.trip_date ? new Date(trip.trip_date).toLocaleDateString() : 'No Date'}</span>
                                         ${trip.transport_mode ? (() => {
                                             const parts = String(trip.transport_mode).split(/[,+]|\band\b/i).map(s => s.trim().toLowerCase().replace(/[- ]/g, '_')).filter(Boolean);
                                             if (parts.length === 0 || parts[0].includes('no_vehicle') || parts[0].includes('no vehicle')) {
-                                                return `<span style="color:rgba(255,255,255,0.4);">&bull;</span><span><i class="fa-solid fa-ban" style="margin-right:4px; color:#f87171;"></i>No Vehicle Selected</span>`;
+                                                return `<span style="color:#cbd5e1;">&bull;</span><span><i class="fa-solid fa-ban" style="margin-right:2px; color:#f87171;"></i>No Vehicle</span>`;
                                             }
                                             if (parts.length > 1) {
-                                                return `<span style="color:rgba(255,255,255,0.4);">&bull;</span><span><i class="fa-solid fa-route" style="margin-right:4px; color:#38bdf8;"></i>${parts.length} Vehicles</span>`;
+                                                return `<span style="color:#cbd5e1;">&bull;</span><span><i class="fa-solid fa-route" style="margin-right:2px; color:#0284c7;"></i>${parts.length} Vehicles</span>`;
                                             }
                                             const rawT = parts[0];
                                             const tMap = {
                                                 'own_car': 'Own Car', 'mpuj': 'MPUJ', 'tpuj': 'TPUJ', 'pub_aircon': 'PUB Aircon',
-                                                'pub_ordinary': 'PUB Ordinary', 'pub_regular': 'PUB Regular', 'uve': 'UV Express',
+                                                'pub_ordinary': 'PUB Ord', 'pub_regular': 'PUB Reg', 'uve': 'UV Express',
                                                 'jeepney': 'Jeepney', 'tricycle': 'Tricycle', 'bus': 'Bus', 'private_bus': 'PUB Aircon',
-                                                'mini_bus': 'Mini Bus', 'lutrampco': 'LUTRAMPCO', 'taxi': 'Taxi', 'motorcycle': 'Motorcycle', 'walking': 'Walking'
+                                                'mini_bus': 'Mini Bus', 'lutrampco': 'LUTRAMPCO', 'taxi': 'Taxi', 'motorcycle': 'Motor', 'walking': 'Walking'
                                             };
                                             const tIco = {
                                                 'own_car': 'fa-car', 'mpuj': 'fa-van-shuttle', 'tpuj': 'fa-van-shuttle', 'pub_aircon': 'fa-bus',
@@ -3637,23 +3750,25 @@ window.applyTouristSitesFilterModal = function() {
                                                 'mini_bus': 'fa-bus-simple', 'lutrampco': 'fa-van-shuttle', 'taxi': 'fa-taxi', 'motorcycle': 'fa-motorcycle', 'walking': 'fa-person-walking'
                                             };
                                             const displayName = tMap[rawT] || rawT.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-                                            return `<span style="color:rgba(255,255,255,0.4);">&bull;</span><span><i class="fa-solid ${tIco[rawT] || 'fa-car'}" style="margin-right:4px; color:#38bdf8;"></i>${displayName}</span>`;
+                                            return `<span style="color:#cbd5e1;">&bull;</span><span><i class="fa-solid ${tIco[rawT] || 'fa-car'}" style="margin-right:2px; color:#0284c7;"></i>${displayName}</span>`;
                                         })() : ''}
                                         ${trip.trip_type === 'group' || (trip.total_pax && trip.total_pax > 1) 
-                                            ? `<span style="color:rgba(255,255,255,0.4);">&bull;</span><span><i class="fa-solid fa-users" style="margin-right:4px; color:#38bdf8;"></i>${trip.total_pax} Pax${(trip.companion_males || trip.companion_females) ? ` (${trip.companion_males || 0}M, ${trip.companion_females || 0}F)` : ''}</span>`
-                                            : `<span style="color:rgba(255,255,255,0.4);">&bull;</span><span><i class="fa-solid fa-user" style="margin-right:4px; color:#38bdf8;"></i>Solo</span>`}
-                                    </span>
+                                            ? `<span style="color:#cbd5e1;">&bull;</span><span><i class="fa-solid fa-users" style="margin-right:2px; color:#0284c7;"></i>${trip.total_pax} Pax${(trip.companion_males || trip.companion_females) ? ` (${trip.companion_males || 0}M, ${trip.companion_females || 0}F)` : ''}</span>`
+                                            : `<span style="color:#cbd5e1;">&bull;</span><span><i class="fa-solid fa-user" style="margin-right:2px; color:#0284c7;"></i>Solo</span>`}
+                                    </div>
                                 </div>
-                                <i class="fa-solid fa-chevron-right toggle-icon" style="color: rgba(255,255,255,0.7); font-size: 14px; margin-right:4px; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);"></i>
+                                <div style="width:20px; height:20px; border-radius:50%; background:#f1f5f9; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                                    <i class="fa-solid fa-chevron-right toggle-icon" style="color: #64748b; font-size: 9px; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);"></i>
+                                </div>
                             </div>
-                            <div style="max-height: 0px; opacity: 0; padding: 0 16px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); overflow: hidden; background: transparent; border-top: none;">
+                            <div style="max-height: 0px; opacity: 0; padding: 0 12px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); overflow: hidden; background: transparent; border-top: none;">
                                 ${destinationsHtml}
-                                <div style="display:flex; gap:10px; margin-top:12px; margin-bottom:2px;">
-                                    <button onclick="if(window.sessionStorage){sessionStorage.setItem('active_trip_transport_${trip.id}', '${trip.transport_mode || ''}'); localStorage.setItem('selected_trip_vehicle_${trip.id}', '${trip.transport_mode || ''}');} window.location.href='?view=trip_map&trip_id=${trip.id}${trip.transport_mode ? '&transport=' + encodeURIComponent(trip.transport_mode) : ''}'" style="flex:1; background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); border:none; outline:none; color:#ffffff; padding:12px; border-radius:14px; font-weight:800; font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; box-shadow:none;">
-                                        <i class="fa-solid fa-compass"></i> Start Trip
+                                <div style="display:flex; gap:6px; margin-top:8px; margin-bottom:2px;">
+                                    <button onclick="if(window.sessionStorage){sessionStorage.setItem('active_trip_transport_${trip.id}', '${trip.transport_mode || ''}'); localStorage.setItem('selected_trip_vehicle_${trip.id}', '${trip.transport_mode || ''}');} if(typeof window.navigateTo==='function'){window.navigateTo('trip_map&trip_id=${trip.id}${trip.transport_mode ? '&transport=' + encodeURIComponent(trip.transport_mode) : ''}');}else{window.location.href='?view=trip_map&trip_id=${trip.id}${trip.transport_mode ? '&transport=' + encodeURIComponent(trip.transport_mode) : ''}';}" style="flex:1; height:32px; min-height:32px; background:linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); border:none; outline:none; color:#ffffff; padding:0 8px; border-radius:8px; font-weight:800; font-size:11.5px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:5px; box-shadow:none; white-space:nowrap; transition:transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.97)'" onpointerup="this.style.transform='scale(1)'">
+                                        <i class="fa-solid fa-compass" style="font-size:11px;"></i> Start Trip
                                     </button>
-                                    <button onclick="navigateTo('saved_trips')" style="flex:1; background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; padding:12px; border-radius:14px; font-weight:800; font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; box-shadow:0 2px 8px rgba(0,0,0,0.15) !important;">
-                                        <i class="fa-solid fa-route" style="color:#1e3a8a !important;"></i> View Details
+                                    <button onclick="navigateTo('saved_trips')" style="flex:1; height:32px; min-height:32px; background:#f1f5f9 !important; border:1.5px solid #cbd5e1 !important; outline:none !important; color:#1e3a8a !important; padding:0 8px; border-radius:8px; font-weight:800; font-size:11.5px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:5px; box-shadow:none !important; white-space:nowrap; transition:transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.97)'" onpointerup="this.style.transform='scale(1)'">
+                                        <i class="fa-solid fa-route" style="color:#1e3a8a !important; font-size:11px;"></i> View Details
                                     </button>
                                 </div>
                             </div>
@@ -3739,7 +3854,17 @@ window.applyTouristSitesFilterModal = function() {
             const recEl = document.getElementById('recommended-container');
             if (recEl && recEl.querySelector('.dash-loading-state')) {
                 if (window.allTouristSpots && window.allTouristSpots.length > 0) {
-                    const allDests = [...window.allTouristSpots].sort((a,b) => parseFloat(b.rating || 0) - parseFloat(a.rating || 0)).slice(0, 5);
+                    let userPrefs = '';
+                    try { userPrefs = (JSON.parse(localStorage.getItem('auth_user') || '{}').travel_preferences || '').toLowerCase(); } catch(e){}
+                    const prefWords = userPrefs.split(/[,\s]+/).filter(w => w.length > 2);
+                    const allDests = [...window.allTouristSpots].sort((a, b) => {
+                        const catA = ((a.category || '') + ' ' + (a.name || '')).toLowerCase();
+                        const catB = ((b.category || '') + ' ' + (b.name || '')).toLowerCase();
+                        const matchA = prefWords.some(w => catA.includes(w)) ? 1 : 0;
+                        const matchB = prefWords.some(w => catB.includes(w)) ? 1 : 0;
+                        if (matchA !== matchB) return matchB - matchA;
+                        return parseFloat(b.rating || 0) - parseFloat(a.rating || 0);
+                    }).slice(0, 6);
                     window.dashRecommended = allDests;
                     const INITIAL_SHOW = 2;
                     let html = allDests.slice(0, INITIAL_SHOW).map(dest => buildRecommendedItem(dest)).join('');
@@ -4541,13 +4666,14 @@ window.applyTouristSitesFilterModal = function() {
 
             if (lat && lng) {
                 loadNearMe(lat, lng);
-                if (typeof window.fetchWeather === 'function' && !localStorage.getItem('intan_elyu_manual_loc')) {
-                    window.fetchWeather(lat, lng, 'My Location', true);
+                if (typeof window.fetchWeather === 'function') {
+                    const nearestLabel = (typeof window.resolveNearestLaUnionMuni === 'function') ? window.resolveNearestLaUnionMuni(lat, lng) : 'La Union';
+                    window.fetchWeather(lat, lng, nearestLabel, true);
                 }
             } else {
                 loadNearMe(16.6159, 120.3209, 'San Fernando City');
-                if (typeof window.fetchWeather === 'function' && !localStorage.getItem('intan_elyu_manual_loc')) {
-                    window.fetchWeather(16.6159, 120.3209, 'San Fernando, La Union', false);
+                if (typeof window.locateMeForWeather === 'function') {
+                    window.locateMeForWeather();
                 }
             }
             return;
@@ -4604,13 +4730,14 @@ window.applyTouristSitesFilterModal = function() {
 
             if (lat && lng) {
                 loadNearMe(lat, lng);
-                if (typeof window.fetchWeather === 'function' && !localStorage.getItem('intan_elyu_manual_loc')) {
-                    window.fetchWeather(lat, lng, 'My Location', true);
+                if (typeof window.fetchWeather === 'function') {
+                    const nearestLabel = (typeof window.resolveNearestLaUnionMuni === 'function') ? window.resolveNearestLaUnionMuni(lat, lng) : 'La Union';
+                    window.fetchWeather(lat, lng, nearestLabel, true);
                 }
             } else {
                 loadNearMe(16.6159, 120.3209, 'San Fernando City');
-                if (typeof window.fetchWeather === 'function' && !localStorage.getItem('intan_elyu_manual_loc')) {
-                    window.fetchWeather(16.6159, 120.3209, 'San Fernando, La Union', false);
+                if (typeof window.locateMeForWeather === 'function') {
+                    window.locateMeForWeather();
                 }
             }
 

@@ -2862,6 +2862,10 @@ $backRoute = 'itinerary';
             const tPax = parentTrip ? (parentTrip.total_pax || 1) : 1;
             const cMales = parentTrip ? (parentTrip.companion_males || 0) : 0;
             const cFemales = parentTrip ? (parentTrip.companion_females || 0) : 0;
+            const cAdults = parentTrip ? (parentTrip.companion_adults ?? targetItem?.companion_adults ?? 0) : 0;
+            const cKids = parentTrip ? (parentTrip.companion_kids ?? targetItem?.companion_kids ?? 0) : 0;
+            const cSeniors = parentTrip ? (parentTrip.companion_seniors ?? targetItem?.companion_seniors ?? 0) : 0;
+            const cPwds = parentTrip ? (parentTrip.companion_pwds ?? targetItem?.companion_pwds ?? 0) : 0;
 
             // Resolve spot coordinates accurately
             let destLat = (spotLat !== null && !isNaN(spotLat)) ? parseFloat(spotLat) : null;
@@ -2931,6 +2935,10 @@ $backRoute = 'itinerary';
                             total_pax: tPax,
                             companion_males: cMales,
                             companion_females: cFemales,
+                            companion_adults: cAdults,
+                            companion_kids: cKids,
+                            companion_seniors: cSeniors,
+                            companion_pwds: cPwds,
                             capturedAt: (typeof window.getPhilippineTimestampISO === 'function' ? window.getPhilippineTimestampISO() : new Date().toISOString())
                         });
                     }
@@ -2950,6 +2958,10 @@ $backRoute = 'itinerary';
                 formData.append('total_pax', tPax);
                 formData.append('companion_males', cMales);
                 formData.append('companion_females', cFemales);
+                formData.append('companion_adults', cAdults);
+                formData.append('companion_kids', cKids);
+                formData.append('companion_seniors', cSeniors);
+                formData.append('companion_pwds', cPwds);
                 formData.append('captured_at', (typeof window.getPhilippineTimestampISO === 'function' ? window.getPhilippineTimestampISO() : new Date().toISOString()));
 
                 const controller = new AbortController();
@@ -3790,6 +3802,10 @@ $backRoute = 'itinerary';
             sessionStorage.setItem('editing_trip_type', trip.trip_type || 'solo');
             sessionStorage.setItem('editing_companion_males', String(trip.companion_males || 0));
             sessionStorage.setItem('editing_companion_females', String(trip.companion_females || 0));
+            sessionStorage.setItem('editing_companion_adults', String(trip.companion_adults || 0));
+            sessionStorage.setItem('editing_companion_kids', String(trip.companion_kids || 0));
+            sessionStorage.setItem('editing_companion_seniors', String(trip.companion_seniors || 0));
+            sessionStorage.setItem('editing_companion_pwds', String(trip.companion_pwds || 0));
             sessionStorage.setItem('editing_total_pax', String(trip.total_pax || 1));
             if (trip.transport_mode) {
                 localStorage.setItem('intan_elyu_draft_trip_transport', trip.transport_mode);

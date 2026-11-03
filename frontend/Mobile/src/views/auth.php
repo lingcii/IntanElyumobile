@@ -259,7 +259,7 @@
 
                     <form id="form-forgot" onsubmit="handleForgotPassword(event)">
                         <div class="input-group">
-                            <i class="fa-solid fa-mobile-screen"></i>
+                            <i class="fa-solid fa-envelope"></i>
                             <input type="email" id="fp-email" class="auth-input" placeholder="Email Address" required>
                         </div>
 
@@ -271,12 +271,12 @@
 
                 <!-- Step 2: Enter 6-Digit Code -->
                 <div id="fp-code-state" style="display: none; text-align: center; padding: 10px 0;">
-                    <h3 style="margin: 0 0 8px 0; color: #ffffff; font-size: 20px; font-weight: 800;">Reset Code Sent
+                    <h3 style="margin: 0 0 8px 0; color: #0f172a; font-size: 20px; font-weight: 800;">Reset Code Sent
                     </h3>
                     <p
-                        style="color: rgba(255, 255, 255, 0.95); font-size: 13.5px; margin: 0 0 20px 0; font-weight: 500; line-height: 1.5;">
+                        style="color: #64748b; font-size: 13.5px; margin: 0 0 20px 0; font-weight: 500; line-height: 1.5;">
                         We sent a 6-digit reset code to <br><strong id="fp-target-email"
-                            style="color: #ffffff; font-weight: 800; font-size: 14px; background: rgba(0, 0, 0, 0.18); padding: 3px 10px; border-radius: 6px; display: inline-block; margin-top: 5px;"></strong>
+                            style="color: #1e3a8a; font-weight: 800; font-size: 14px; background: #eff6ff; border: 1px solid #bfdbfe; padding: 3px 10px; border-radius: 6px; display: inline-block; margin-top: 5px;"></strong>
                     </p>
 
                     <form id="form-fp-verify-code" onsubmit="handleVerifyFpCode(event)">
@@ -307,13 +307,13 @@
                         </button>
 
                         <div
-                            style="font-size: 13px; color: rgba(255, 255, 255, 0.95); margin-top: 14px; font-weight: 500;">
+                            style="font-size: 13px; color: #64748b; margin-top: 14px; font-weight: 500;">
                             Didn't receive email?
                             <button type="button" id="fp-resend-btn" onclick="handleResendFpEmail(event)"
-                                style="background: none; border: none; color: #ffffff; font-weight: 800; cursor: pointer; text-decoration: underline; padding: 0;">
+                                style="background: none; border: none; color: #2563eb; font-weight: 800; cursor: pointer; text-decoration: underline; padding: 0;">
                                 Resend Code
                             </button>
-                            <span id="fp-countdown-text" style="display: none; color: #fef08a; font-weight: 700;">
+                            <span id="fp-countdown-text" style="display: none; color: #dc2626; font-weight: 700;">
                                 (Resend in <span id="fp-countdown-sec">45</span>s)</span>
                         </div>
                     </form>
@@ -321,18 +321,44 @@
 
                 <!-- Step 3: Enter New Password -->
                 <div id="fp-password-state" style="display: none; text-align: center; padding: 10px 0;">
-                    <h3 style="margin: 0 0 6px 0; color: white; font-size: 19px; font-weight: 800;">Create New Password
+                    <h3 style="margin: 0 0 6px 0; color: #0f172a; font-size: 19px; font-weight: 800;">Create New Password
                     </h3>
-                    <p style="color: rgba(255, 255, 255, 0.9); font-size: 13px; margin: 0 0 20px 0; font-weight: 500;">
+                    <p style="color: #64748b; font-size: 13px; margin: 0 0 20px 0; font-weight: 500;">
                         Enter your new password below.</p>
 
                     <form id="form-fp-password" onsubmit="handleResetPasswordSubmit(event)">
                         <div class="input-group" style="margin-bottom: 16px;">
                             <i class="fa-solid fa-lock"></i>
                             <input type="password" id="fp-new-password" class="auth-input"
-                                placeholder="New Password (min 8 chars)" minlength="8" required>
+                                placeholder="New Password (min 8 chars)" minlength="8" required
+                                oninput="validateFpPasswordStrength()"
+                                onfocus="onFpPasswordFocus()" onblur="onFpPasswordBlur()">
                             <i class="fa-regular fa-eye password-toggle"
                                 onclick="togglePasswordVisibility('fp-new-password', this)"></i>
+                        </div>
+                        <div id="fp-pwd-strength-container" class="pwd-strength-wrapper"
+                            style="display: none; text-align: left;" data-score="0">
+                            <div class="pwd-strength-card">
+                                <div class="pwd-strength-header">
+                                    <div class="pwd-strength-badge status-weak" id="fp-pwd-strength-badge" style="display: none;">
+                                        <i class="fa-solid fa-shield-halved" id="fp-pwd-strength-icon"></i>
+                                        <span id="fp-pwd-strength-label">Strength: Weak</span>
+                                    </div>
+                                    <span id="fp-pwd-strength-score" class="pwd-score-pill">0/4</span>
+                                </div>
+                                <div class="pwd-strength-segments">
+                                    <div class="pwd-segment seg-1"></div>
+                                    <div class="pwd-segment seg-2"></div>
+                                    <div class="pwd-segment seg-3"></div>
+                                    <div class="pwd-segment seg-4"></div>
+                                </div>
+                                <div class="pwd-checklist">
+                                    <span id="fp-chk-len8" class="pwd-chk-item"><i class="fa-solid fa-circle-dot"></i> 8+ characters</span>
+                                    <span id="fp-chk-num" class="pwd-chk-item"><i class="fa-solid fa-circle-dot"></i> A number</span>
+                                    <span id="fp-chk-cap" class="pwd-chk-item"><i class="fa-solid fa-circle-dot"></i> A capital letter</span>
+                                    <span id="fp-chk-sym" class="pwd-chk-item"><i class="fa-solid fa-circle-dot"></i> A symbol</span>
+                                </div>
+                            </div>
                         </div>
                         <div class="input-group" style="margin-bottom: 20px;">
                             <i class="fa-solid fa-lock"></i>
@@ -1110,16 +1136,22 @@
             }
         }, 2200);
 
-        // Final Stage: Direct transition to dashboard
+        // Final Stage: Check onboarding for new accounts vs direct dashboard transition
         setTimeout(() => {
             if (modal) {
                 modal.classList.remove('active');
                 setTimeout(() => { modal.style.display = 'none'; }, 250);
             }
+            const isGuest = user && (user.is_guest || user.is_offline_guest);
+            const onboardDone = localStorage.getItem('intan_elyu_onboarding_done_' + (user?.id || 'user'));
+            const hasPreferences = user && user.travel_preferences && user.travel_preferences.trim().length > 0;
+            const shouldOnboard = !isGuest && !onboardDone && (!hasPreferences || user.is_new_user);
+            const targetView = shouldOnboard ? 'onboarding' : 'dashboard';
+
             if (typeof navigateTo === 'function') {
-                navigateTo('dashboard');
+                navigateTo(targetView);
             } else {
-                window.location.href = '?view=dashboard';
+                window.location.href = '?view=' + targetView;
             }
         }, 2800);
     };
@@ -2667,6 +2699,79 @@
                 btn.innerHTML = oldHtml;
                 btn.disabled = false;
             }
+        }
+    };
+
+        window.validateFpPasswordStrength = function () {
+        const pwdEl = document.getElementById('fp-new-password');
+        if (!pwdEl) return 0;
+        const pwd = pwdEl.value;
+        const container = document.getElementById('fp-pwd-strength-container');
+        const label = document.getElementById('fp-pwd-strength-label');
+        const scoreEl = document.getElementById('fp-pwd-strength-score');
+        const badgeEl = document.getElementById('fp-pwd-strength-badge');
+        const chkLen8 = document.getElementById('fp-chk-len8');
+        const chkNum = document.getElementById('fp-chk-num');
+        const chkCap = document.getElementById('fp-chk-cap');
+        const chkSym = document.getElementById('fp-chk-sym');
+
+        const isFocused = (document.activeElement === pwdEl);
+        if (pwd.length === 0 && !isFocused) {
+            if (container) container.style.display = 'none';
+            return 0;
+        }
+        if (container) container.style.display = 'block';
+
+        const len8 = pwd.length >= 8;
+        const hasNum = /\d/.test(pwd);
+        const hasCap = /[A-Z]/.test(pwd);
+        const hasSym = /[^A-Za-z0-9]/.test(pwd);
+
+        const score = [len8, hasNum, hasCap, hasSym].filter(Boolean).length;
+        if (container) container.dataset.score = score;
+        if (scoreEl) scoreEl.textContent = score + '/4';
+
+        const updateChk = (el, passed, text) => {
+            if (!el) return;
+            el.className = 'pwd-chk-item' + (passed ? ' passed' : '');
+            el.innerHTML = passed
+                ? '<i class="fa-solid fa-circle-check"></i> ' + text
+                : '<i class="fa-solid fa-circle-dot"></i> ' + text;
+        };
+
+        updateChk(chkLen8, len8, '8+ characters');
+        updateChk(chkNum, hasNum, 'A number');
+        updateChk(chkCap, hasCap, 'A capital letter');
+        updateChk(chkSym, hasSym, 'A symbol');
+
+        const labels = ['Too Weak', 'Weak', 'Fair', 'Good', 'Strong'];
+        const badgeClasses = ['status-weak', 'status-weak', 'status-fair', 'status-good', 'status-strong'];
+
+        if (pwd.length === 0) {
+            if (badgeEl) badgeEl.style.display = 'none';
+        } else {
+            if (badgeEl) {
+                badgeEl.style.display = 'inline-flex';
+                badgeEl.className = 'pwd-strength-badge ' + (badgeClasses[score] || 'status-weak');
+            }
+            if (label) {
+                label.textContent = 'Strength: ' + (labels[score] || 'Weak');
+            }
+        }
+        return score;
+    };
+
+    window.onFpPasswordFocus = function () {
+        const container = document.getElementById('fp-pwd-strength-container');
+        if (container) container.style.display = 'block';
+        window.validateFpPasswordStrength();
+    };
+
+    window.onFpPasswordBlur = function () {
+        const pwdEl = document.getElementById('fp-new-password');
+        if (pwdEl && pwdEl.value.length === 0) {
+            const container = document.getElementById('fp-pwd-strength-container');
+            if (container) container.style.display = 'none';
         }
     };
 

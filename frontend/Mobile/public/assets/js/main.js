@@ -166,19 +166,9 @@ try {
     for (let i = localStorage.length - 1; i >= 0; i--) {
         const k = localStorage.key(i);
         if (k && (
-            k.startsWith('elyu_view_cache_v1_') || 
-            k.startsWith('elyu_view_cache_v2_') || 
-            k.startsWith('elyu_view_cache_v3_') ||
-            k.startsWith('elyu_view_cache_v4_') ||
-            k.startsWith('elyu_view_cache_v5_') ||
-            k.startsWith('elyu_view_cache_v6_') ||
-            k.startsWith('elyu_view_cache_v7_') ||
-            k.startsWith('elyu_view_cache_v8_') ||
-            k.startsWith('elyu_view_cache_v9_') ||
-            k.startsWith('elyu_view_cache_v10_') ||
-            k.startsWith('elyu_view_cache_v11_') ||
-            k.startsWith('elyu_view_cache_v12_') ||
+            (k.startsWith('elyu_view_cache_') && !k.startsWith('elyu_view_cache_v18_')) ||
             k.startsWith('elyu_view_cache_v13_') ||
+            k.startsWith('elyu_view_cache_v14_') ||
             k.startsWith('leaderboard_data_v15_') || 
             k.startsWith('leaderboard_data_v16_') || 
             k.startsWith('leaderboard_data_v17_')
@@ -5861,12 +5851,12 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
 
         if (!html) {
             try {
-                const cached = localStorage.getItem('elyu_view_cache_v14_' + targetView);
+                const cached = localStorage.getItem('elyu_view_cache_v18_' + targetView);
                 if (isValidViewPartial(cached)) {
                     html = cached;
                     window._viewHtmlCache[targetView] = html;
                 } else if (cached) {
-                    localStorage.removeItem('elyu_view_cache_v14_' + targetView);
+                    localStorage.removeItem('elyu_view_cache_v18_' + targetView);
                 }
             } catch (e) {}
         }
@@ -5877,7 +5867,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
             fetchViewPartial(targetView, extraParams).then((freshHtml) => {
                 if (!isValidViewPartial(freshHtml)) return;
                 window._viewHtmlCache[targetView] = freshHtml;
-                try { localStorage.setItem('elyu_view_cache_v14_' + targetView, freshHtml); } catch (e) { }
+                try { localStorage.setItem('elyu_view_cache_v18_' + targetView, freshHtml); } catch (e) { }
                 window.dispatchEvent(new CustomEvent('viewCacheUpdated', { detail: { view: targetView } }));
             }).catch((fetchErr) => {
                 if (!window.isExpectedAbortError(fetchErr)) {
@@ -5890,7 +5880,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                 if (isValidViewPartial(freshHtml)) {
                     html = freshHtml;
                     window._viewHtmlCache[targetView] = html;
-                    try { localStorage.setItem('elyu_view_cache_v14_' + targetView, html); } catch(e) {}
+                    try { localStorage.setItem('elyu_view_cache_v18_' + targetView, html); } catch(e) {}
                 }
             } catch (fetchErr) {
                 if (!window.isExpectedAbortError(fetchErr)) {
@@ -6384,7 +6374,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
 
                 // Toggle bottom nav visibility
                 const bottomNav = document.getElementById('bottom-navigation');
-                const noNavViews = ['splash', 'auth', 'about', 'terms', 'edit_profile', 'help', 'trip_map', 'saved_places', 'trending', 'reset-password', 'puzzles', 'discount', 'settings', 'user_manual'];
+                const noNavViews = ['splash', 'auth', 'onboarding', 'about', 'terms', 'edit_profile', 'help', 'trip_map', 'saved_places', 'trending', 'reset-password', 'puzzles', 'discount', 'settings', 'user_manual'];
                 if (bottomNav) {
                     bottomNav.classList.toggle('nav-hidden', noNavViews.includes(targetView));
                     bottomNav.classList.remove('keyboard-hidden');
@@ -6398,6 +6388,14 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                 }
 
                 // Update URL & Track View Navigation History
+                const url = new URL(window.location.origin + window.location.pathname);
+                const curApp = new URLSearchParams(window.location.search).get('app');
+                if (curApp) url.searchParams.set('app', curApp);
+                url.searchParams.set('view', targetView);
+                extraParams.forEach((val, key) => {
+                    url.searchParams.set(key, val);
+                });
+
                 if (addToHistory) {
                     if (state.currentView && state.currentView !== targetView && state.currentView !== 'splash') {
                         window._navHistory = window._navHistory || [];
@@ -6408,12 +6406,9 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                             }
                         }
                     }
-                    const url = new URL(window.location);
-                    url.searchParams.set('view', targetView);
-                    extraParams.forEach((val, key) => {
-                        url.searchParams.set(key, val);
-                    });
                     window.history.pushState({ view: targetView }, '', url);
+                } else if (window.history && window.history.replaceState) {
+                    window.history.replaceState({ view: targetView }, '', url);
                 }
 
                 state.currentView = targetView;
@@ -6562,6 +6557,12 @@ window.navigateTo = navigateTo;
      */
     window.handleAppBack = function (explicitFallback) {
         window._isStartingTrip = false;
+        try { sessionStorage.removeItem('active_trip_id'); } catch (e) {}
+        window.currentTripId = null;
+        if (window._tripMapApprovalPollingInterval) {
+            clearInterval(window._tripMapApprovalPollingInterval);
+            window._tripMapApprovalPollingInterval = null;
+        }
         // 0. If App Exit Modal is currently open, dismiss it
         const exitModal = document.getElementById('app-exit-confirm-modal');
         if (exitModal && exitModal.style.display !== 'none' && window.getComputedStyle(exitModal).display !== 'none') {
@@ -6576,6 +6577,14 @@ window.navigateTo = navigateTo;
                 window.closeTouristSitesFilterModal();
                 return true;
             }
+        }
+
+        // 0. Check Push Notification Modal (must close before notifications dropdown)
+        const pushModal = document.getElementById('push-notification-modal');
+        if (pushModal && (pushModal.classList.contains('active') || pushModal.style.display === 'flex' || pushModal.style.display === 'block')) {
+            if (typeof window.closePushNotificationModal === 'function') window.closePushNotificationModal();
+            else pushModal.style.display = 'none';
+            return true;
         }
 
         // 1. Check Sidebar & Notifications in header
@@ -6689,6 +6698,7 @@ window.navigateTo = navigateTo;
 
         // View hierarchy parent fallback
         const parentMap = {
+            'categories': 'dashboard',
             'trip_map': 'saved_trips',
             'saved_trips': 'itinerary',
             'saved_places': 'dashboard',
@@ -6726,6 +6736,12 @@ window.navigateTo = navigateTo;
 
     window.navigateBack = function (fallbackRoute = 'dashboard') {
         window._isStartingTrip = false;
+        try { sessionStorage.removeItem('active_trip_id'); } catch (e) {}
+        window.currentTripId = null;
+        if (window._tripMapApprovalPollingInterval) {
+            clearInterval(window._tripMapApprovalPollingInterval);
+            window._tripMapApprovalPollingInterval = null;
+        }
         return window.handleAppBack(fallbackRoute);
     };
 
@@ -7302,11 +7318,15 @@ window.navigateTo = navigateTo;
     function executeScripts(container) {
         const scripts = container.querySelectorAll('script');
         scripts.forEach(oldScript => {
-            const newScript = document.createElement('script');
-            Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
-            newScript.appendChild(document.createTextNode(oldScript.innerHTML));
-            if (oldScript.parentNode) {
-                oldScript.parentNode.replaceChild(newScript, oldScript);
+            try {
+                const newScript = document.createElement('script');
+                Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+                newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+                if (oldScript.parentNode) {
+                    oldScript.parentNode.replaceChild(newScript, oldScript);
+                }
+            } catch (err) {
+                console.warn('Script execution warning during view transition:', err);
             }
         });
     }
@@ -7453,7 +7473,7 @@ window.navigateTo = navigateTo;
         document.documentElement.classList.remove('modal-blurred', 'logout-open');
         const bottomNav = document.getElementById('bottom-navigation');
         const currentView = document.body.getAttribute('data-view') || '';
-        const noNavViews = ['splash', 'auth', 'about', 'terms', 'edit_profile', 'help', 'trip_map', 'saved_places', 'trending', 'reset-password', 'puzzles', 'discount', 'settings', 'user_manual', 'download'];
+        const noNavViews = ['splash', 'auth', 'onboarding', 'about', 'terms', 'edit_profile', 'help', 'trip_map', 'saved_places', 'trending', 'reset-password', 'puzzles', 'discount', 'settings', 'user_manual', 'download'];
         if (bottomNav && !noNavViews.includes(currentView) && !document.body.classList.contains('sheet-open')) {
             bottomNav.classList.remove('nav-hidden');
         }
@@ -9090,11 +9110,11 @@ window.navigateTo = navigateTo;
 
         for (const v of viewsToPrewarm.filter(view => view !== state.currentView)) {
             try {
-                if (!window._viewHtmlCache[v] && !localStorage.getItem('elyu_view_cache_v14_' + v)) {
+                if (!window._viewHtmlCache[v] && !localStorage.getItem('elyu_view_cache_v18_' + v)) {
                     const text = await fetchViewPartial(v, new URLSearchParams());
                     if (text && text.length > 50) {
                         window._viewHtmlCache[v] = text;
-                        try { localStorage.setItem('elyu_view_cache_v14_' + v, text); } catch (e) { }
+                        try { localStorage.setItem('elyu_view_cache_v18_' + v, text); } catch (e) { }
                     }
                 }
             } catch (e) { }

@@ -28,15 +28,15 @@ class WeatherController extends Controller
         // Round coordinates to 2 decimal places to maximize cache hits (~1km grid)
         $cacheLat = number_format($lat, 2, '.', '');
         $cacheLng = number_format($lng, 2, '.', '');
-        $cacheKey = "weather_v2_{$cacheLat}_{$cacheLng}";
+        $cacheKey = "weather_v3_{$cacheLat}_{$cacheLng}";
 
-        // Cache weather data for 15 minutes (900 seconds)
-        $weatherData = Cache::remember($cacheKey, 900, function () use ($lat, $lng) {
+        // Fast 90-second cache TTL for real-time responsiveness without hitting API rate limits
+        $weatherData = Cache::remember($cacheKey, 90, function () use ($lat, $lng) {
             try {
                 $response = Http::timeout(6)->get('https://api.open-meteo.com/v1/forecast', [
                     'latitude' => $lat,
                     'longitude' => $lng,
-                    'current' => 'temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m,is_day,apparent_temperature',
+                    'current' => 'temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m,is_day,apparent_temperature,precipitation,rain,showers',
                     'hourly' => 'temperature_2m,precipitation_probability,weather_code,wind_speed_10m',
                     'daily' => 'weather_code,temperature_2m_max,temperature_2m_min,uv_index_max,precipitation_probability_max',
                     'timezone' => 'Asia/Manila',
@@ -60,20 +60,46 @@ class WeatherController extends Controller
         $daily = $weatherData['daily'] ?? [];
         $hourly = $weatherData['hourly'] ?? [];
         $code = (int) ($current['weather_code'] ?? 0);
+        $isDay = (int) ($current['is_day'] ?? 1);
         $temp = (int) round($current['temperature_2m'] ?? 29);
         $feelsLike = (int) round($current['apparent_temperature'] ?? $current['temperature_2m'] ?? 29);
         $humidity = (int) round($current['relative_humidity_2m'] ?? 70);
         $windSpeed = (int) round($current['wind_speed_10m'] ?? 12);
-        $conditionMeta = $this->interpretWeatherCode($code, $current['is_day'] ?? 1);
-
         $uvIndex = isset($daily['uv_index_max'][0]) ? (int) round($daily['uv_index_max'][0]) : 6;
         $todayRainProb = isset($daily['precipitation_probability_max'][0]) ? (int) round($daily['precipitation_probability_max'][0]) : 0;
+        $todayDailyCode = isset($daily['weather_code'][0]) ? (int) $daily['weather_code'][0] : $code;
+
+        // Reconcile coarse current.weather_code with active hourly/daily precipitation so rain/storms are reflected in real time
+        $currentHourIso = now('Asia/Manila')->format('Y-m-d\TH:00');
+        $currentHourCode = $code;
+        $currentHourRainProb = $todayRainProb;
+        if (!empty($hourly['time']) && is_array($hourly['time'])) {
+            $hIdx = array_search($currentHourIso, $hourly['time'], true);
+            if ($hIdx !== false) {
+                $currentHourCode = (int) ($hourly['weather_code'][$hIdx] ?? $code);
+                $currentHourRainProb = (int) round($hourly['precipitation_probability'][$hIdx] ?? $todayRainProb);
+            }
+        }
+        $activePrecip = floatval($current['precipitation'] ?? 0) + floatval($current['rain'] ?? 0) + floatval($current['showers'] ?? 0);
+        if ($code <= 2) {
+            if ($currentHourCode >= 51) {
+                $code = $currentHourCode;
+            } elseif ($activePrecip > 0.1) {
+                $code = $todayDailyCode >= 51 ? $todayDailyCode : 61;
+            } elseif (($currentHourRainProb >= 60 || $todayRainProb >= 75) && $todayDailyCode >= 51) {
+                // If today has high rain probability and storm/rain daily code, use rain showers (80) unless current hour itself is severe
+                $code = in_array($currentHourCode, [65, 67, 82, 95, 96, 99], true) ? $currentHourCode : ($todayDailyCode >= 95 ? 80 : $todayDailyCode);
+            }
+        }
+
+        $conditionMeta = $this->interpretWeatherCode($code, $isDay);
 
         // Process 5-day forecast
         $forecast = [];
         if (isset($daily['time'])) {
             foreach ($daily['time'] as $i => $dateStr) {
-                $dayCode = $daily['weather_code'][$i] ?? 0;
+                $dayCode = (int) ($daily['weather_code'][$i] ?? 0);
+                $dayRainProb = (int) round($daily['precipitation_probability_max'][$i] ?? 0);
                 $dayMeta = $this->interpretWeatherCode($dayCode, 1);
                 $dayOfWeek = date('D', strtotime($dateStr));
                 
@@ -82,15 +108,17 @@ class WeatherController extends Controller
                     'day' => $dayOfWeek,
                     'temp_max' => round($daily['temperature_2m_max'][$i] ?? 30),
                     'temp_min' => round($daily['temperature_2m_min'][$i] ?? 24),
+                    'weather_code' => $dayCode,
+                    'weather_group' => $this->resolveWeatherGroupFromCode($dayCode, 12, $dayRainProb),
                     'condition' => $dayMeta['description'],
                     'icon' => $dayMeta['icon'],
                     'fa_icon' => $dayMeta['fa_icon'],
-                    'rain_prob' => round($daily['precipitation_probability_max'][$i] ?? 0)
+                    'rain_prob' => $dayRainProb
                 ];
             }
         }
 
-        $smartInsights = $this->buildSmartWeatherInsights($code, $temp, $feelsLike, $windSpeed, $uvIndex, $todayRainProb, $hourly);
+        $smartInsights = $this->buildSmartWeatherInsights($code, $temp, $feelsLike, $windSpeed, $uvIndex, $todayRainProb, $hourly, $isDay);
 
         return response()->json([
             'success' => true,
@@ -289,30 +317,44 @@ class WeatherController extends Controller
     }
 
     /**
+     * Resolve weather recommendation group from WMO code, wind speed, and rain probability.
+     */
+    private function resolveWeatherGroupFromCode(int $code, int $windSpeed = 12, int $rainProb = 0): string
+    {
+        if (in_array($code, [65, 67, 82, 95, 96, 99], true) || $windSpeed >= 40) {
+            return 'severe';
+        }
+        if (in_array($code, [51, 53, 55, 56, 57, 61, 63, 66, 80, 81], true) || $rainProb >= 65) {
+            return 'rainy';
+        }
+        if (in_array($code, [3, 45, 48], true)) {
+            return 'cloudy';
+        }
+        if (in_array($code, [1, 2], true)) {
+            return 'partly_cloudy';
+        }
+        return 'sunny';
+    }
+
+    /**
      * Build smart weather category group, short description, best visiting hours from hourly forecast, and weather alerts.
      */
-    private function buildSmartWeatherInsights(int $code, int $temp, int $feelsLike, int $windSpeed, int $uvIndex, int $todayRainProb, array $hourly): array
+    private function buildSmartWeatherInsights(int $code, int $temp, int $feelsLike, int $windSpeed, int $uvIndex, int $todayRainProb, array $hourly, int $isDay = 1): array
     {
-        $isSevereCode = in_array($code, [65, 67, 82, 95, 96, 99], true);
-        $isRainyCode = in_array($code, [51, 53, 55, 56, 57, 61, 63, 66, 80, 81], true);
-        $isCloudyCode = in_array($code, [3, 45, 48], true);
-        $isPartlyCloudyCode = in_array($code, [1, 2], true);
+        $weatherGroup = $this->resolveWeatherGroupFromCode($code, $windSpeed, $todayRainProb);
 
-        if ($isSevereCode || $windSpeed >= 40) {
-            $weatherGroup = 'severe';
+        if ($weatherGroup === 'severe') {
             $shortDesc = 'Severe weather detected — stay indoors and avoid coastal, mountain, and waterfall areas.';
-        } elseif ($isRainyCode) {
-            $weatherGroup = 'rainy';
-            $shortDesc = 'Rainy skies today — ideal for museums, churches, cultural landmarks, and indoor dining.';
-        } elseif ($isCloudyCode) {
-            $weatherGroup = 'cloudy';
+        } elseif ($weatherGroup === 'rainy') {
+            $shortDesc = 'Rainy weather conditions — ideal for museums, churches, cultural landmarks, and indoor dining.';
+        } elseif ($weatherGroup === 'cloudy') {
             $shortDesc = 'Cool overcast skies — comfortable for heritage sites, gardens, farms, and sightseeing.';
-        } elseif ($isPartlyCloudyCode) {
-            $weatherGroup = 'partly_cloudy';
+        } elseif ($weatherGroup === 'partly_cloudy') {
             $shortDesc = 'Pleasant partly cloudy weather — great for nature trails, eco-parks, and outdoor activities.';
         } else {
-            $weatherGroup = 'sunny';
-            $shortDesc = 'Bright sunny weather — perfect for beaches, coastal viewpoints, parks, and outdoor adventures.';
+            $shortDesc = $isDay
+                ? 'Bright sunny weather — perfect for beaches, coastal viewpoints, parks, and outdoor adventures.'
+                : 'Clear skies — great conditions for beaches, coastal viewpoints, parks, and outdoor spots.';
         }
 
         // Build Weather Alerts

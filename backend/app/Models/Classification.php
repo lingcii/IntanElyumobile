@@ -40,22 +40,11 @@ class Classification extends Model
     {
         $canonical = self::normalizeStatus($status);
 
-        return (int) Cache::remember("classification_points:{$canonical}", 3600, function () use ($canonical) {
-            try {
-                $row = self::where('name', $canonical)->first();
-                if ($row && $row->points > 0) {
-                    return (int) $row->points;
-                }
-            } catch (\Throwable $e) {
-                // Ignore error and fall through to default match
-            }
-
-            return match ($canonical) {
-                'EMERGING'  => 45,
-                'POTENTIAL' => 35,
-                default     => 25,
-            };
-        });
+        return match ($canonical) {
+            'EMERGING'  => 45,
+            'POTENTIAL' => 35,
+            default     => 25,
+        };
     }
 
     /**

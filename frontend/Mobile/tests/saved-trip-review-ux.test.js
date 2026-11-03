@@ -215,11 +215,11 @@ const cleanNotif = cleanNotifContext.window.cleanNotifMessage;
 
 assert.equal(
     cleanNotif('Your proof submission for Pagoda Hill has been approved! You earned 50 points.'),
-    'Your proof submission for Pagoda Hill has been approved! You earned +50 Points!'
+    'Your proof submission for Pagoda Hill has been approved! You earned +25 Points!'
 );
 assert.equal(
     cleanNotif('Your proof submission for Pagoda Hill has been approved! You earned'),
-    'Your proof submission for Pagoda Hill has been approved! You earned +50 Points!'
+    'Your proof submission for Pagoda Hill has been approved! You earned +25 Points!'
 );
 
 const dashboard = fs.readFileSync(path.join(root, 'src', 'views', 'dashboard.php'), 'utf8');

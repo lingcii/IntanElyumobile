@@ -85,7 +85,7 @@ html.logout-open .magic-nav {
     transition: filter 0.3s ease, opacity 0.3s ease, transform 0.3s ease !important;
 }
 
-body.notif-open #bottom-navigation,
+body.trip-guide-open #bottom-navigation,\nhtml.trip-guide-open #bottom-navigation,\nbody.notif-open #bottom-navigation,
 html.notif-open #bottom-navigation,
 body.itin-confirm-open #bottom-navigation,
 html.itin-confirm-open #bottom-navigation,

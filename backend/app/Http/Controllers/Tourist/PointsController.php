@@ -21,7 +21,11 @@ class PointsController extends Controller
         $user = $request->user();
 
         $vouchers = self::getUserVouchers($user->id);
-        $redeemedTotal = (int) $vouchers->sum('points_cost');
+        $activeOrUsedVouchers = $vouchers->filter(function ($v) {
+            $st = strtolower($v->status ?? '');
+            return !in_array($st, ['cancelled']);
+        });
+        $redeemedTotal = (int) $activeOrUsedVouchers->sum('points_cost');
 
         $rawPoints = (int) ($user->points ?? 0);
         $rawXp = (int) ($user->xp ?? 0);
@@ -363,29 +367,39 @@ class PointsController extends Controller
                     } catch (\Throwable $ignored) {}
                 }
 
+                $voucherExpiresAt = now()->addHours(24);
+                $qrExpiresAt = now()->addMinutes(20);
+                $qrToken = 'elyu_rdm_' . bin2hex(random_bytes(16));
+
                 $pr = PointRedemption::create([
-                    'user_id' => $user->id,
-                    'type' => $type,
-                    'points_cost' => $cost,
-                    'voucher_code' => $code,
-                    'status' => 'active'
+                    'user_id'            => $user->id,
+                    'type'               => $type,
+                    'points_cost'        => $cost,
+                    'voucher_code'       => $code,
+                    'qr_token'           => $qrToken,
+                    'status'             => 'claimed',
+                    'voucher_expires_at' => $voucherExpiresAt,
+                    'qr_expires_at'      => $qrExpiresAt,
+                    'claimed_at'         => now(),
                 ]);
 
                 // Also sync to voucher_redemptions if table exists so staff QR scanning works seamlessly
                 if (\Illuminate\Support\Facades\Schema::hasTable('voucher_redemptions')) {
                     try {
                         \Illuminate\Support\Facades\DB::table('voucher_redemptions')->insert([
-                            'voucher_id'      => null,
-                            'user_id'         => $user->id,
-                            'redemption_code' => $code,
-                            'qr_token'        => 'elyu_rdm_' . bin2hex(random_bytes(16)),
-                            'points_used'     => $cost,
+                            'voucher_id'         => null,
+                            'user_id'            => $user->id,
+                            'redemption_code'    => $code,
+                            'qr_token'           => $qrToken,
+                            'points_used'        => $cost,
                             'reward_name_snapshot' => $type === 'pasalubong_discount' ? '₱50 Pasalubong Discount' : ($type === 'environmental_fee' ? 'Waived Environmental Fee' : ucwords(str_replace('_', ' ', $type))),
-                            'status'          => 'claimed',
-                            'redeemed_at'     => null,
-                            'claimed_at'      => now(),
-                            'created_at'      => now(),
-                            'updated_at'      => now(),
+                            'status'             => 'claimed',
+                            'voucher_expires_at' => $voucherExpiresAt,
+                            'qr_expires_at'      => $qrExpiresAt,
+                            'redeemed_at'        => null,
+                            'claimed_at'         => now(),
+                            'created_at'         => now(),
+                            'updated_at'         => now(),
                         ]);
                     } catch (\Throwable $ignored) {}
                 }
@@ -458,29 +472,44 @@ class PointsController extends Controller
 
             $voucherRedemptions = collect();
             if (\Illuminate\Support\Facades\Schema::hasTable('voucher_redemptions')) {
+                $columns = [
+                    'voucher_redemptions.id',
+                    'voucher_redemptions.voucher_id',
+                    \Illuminate\Support\Facades\DB::raw('COALESCE(vouchers.voucher_name, voucher_redemptions.reward_name_snapshot, "Voucher") as type'),
+                    'voucher_redemptions.points_used as points_cost',
+                    'voucher_redemptions.redemption_code as voucher_code',
+                    'voucher_redemptions.status',
+                    'voucher_redemptions.redeemed_at',
+                    'voucher_redemptions.claimed_at',
+                    'voucher_redemptions.created_at',
+                    'voucher_redemptions.updated_at',
+                    'vouchers.partner_establishment',
+                    'vouchers.description',
+                    'vouchers.discount_value',
+                    'vouchers.discount_type',
+                    'vouchers.image',
+                    'vouchers.terms_and_conditions',
+                    'vouchers.expires_at',
+                    'vouchers.expiration_type'
+                ];
+
+                if (\Illuminate\Support\Facades\Schema::hasColumn('voucher_redemptions', 'qr_token')) {
+                    $columns[] = 'voucher_redemptions.qr_token';
+                }
+                if (\Illuminate\Support\Facades\Schema::hasColumn('voucher_redemptions', 'voucher_expires_at')) {
+                    $columns[] = 'voucher_redemptions.voucher_expires_at';
+                }
+                if (\Illuminate\Support\Facades\Schema::hasColumn('voucher_redemptions', 'qr_expires_at')) {
+                    $columns[] = 'voucher_redemptions.qr_expires_at';
+                }
+                if (\Illuminate\Support\Facades\Schema::hasColumn('voucher_redemptions', 'cancelled_at')) {
+                    $columns[] = 'voucher_redemptions.cancelled_at';
+                }
+
                 $rawRedemptions = \Illuminate\Support\Facades\DB::table('voucher_redemptions')
                     ->leftJoin('vouchers', 'voucher_redemptions.voucher_id', '=', 'vouchers.id')
                     ->where('voucher_redemptions.user_id', $userId)
-                    ->select(
-                        'voucher_redemptions.id',
-                        'voucher_redemptions.voucher_id',
-                        \Illuminate\Support\Facades\DB::raw('COALESCE(vouchers.voucher_name, voucher_redemptions.reward_name_snapshot, "Voucher") as type'),
-                        'voucher_redemptions.points_used as points_cost',
-                        'voucher_redemptions.redemption_code as voucher_code',
-                        'voucher_redemptions.status',
-                        'voucher_redemptions.redeemed_at',
-                        'voucher_redemptions.claimed_at',
-                        'voucher_redemptions.created_at',
-                        'voucher_redemptions.updated_at',
-                        'vouchers.partner_establishment',
-                        'vouchers.description',
-                        'vouchers.discount_value',
-                        'vouchers.discount_type',
-                        'vouchers.image',
-                        'vouchers.terms_and_conditions',
-                        'vouchers.expires_at',
-                        'vouchers.expiration_type'
-                    )
+                    ->select($columns)
                     ->latest('voucher_redemptions.created_at')
                     ->get();
 
@@ -495,6 +524,23 @@ class PointsController extends Controller
                         $category = 'Souvenirs';
                     }
                     $r->category = $category;
+
+                    // Normalize status
+                    $rawStatus = strtolower($r->status ?? 'claimed');
+                    if (in_array($rawStatus, ['redeemed', 'used', 'completed'])) {
+                        $r->status = 'used';
+                    } elseif ($rawStatus === 'cancelled') {
+                        $r->status = 'cancelled';
+                    } else {
+                        // Check if voucher has expired based on voucher_expires_at
+                        $exp = $r->voucher_expires_at ? \Carbon\Carbon::parse($r->voucher_expires_at) : ($r->expires_at ? \Carbon\Carbon::parse($r->expires_at) : null);
+                        if ($exp && now()->gte($exp)) {
+                            $r->status = 'expired';
+                        } else {
+                            $r->status = 'claimed';
+                        }
+                    }
+
                     return $r;
                 });
             }
@@ -513,9 +559,16 @@ class PointsController extends Controller
                             return strtoupper(trim($voucher->voucher_code ?? '')) === $code;
                         });
                         if ($matchingVoucher) {
-                            $matchingVoucher->status = 'redeemed';
+                            $matchingVoucher->status = 'used';
                             $matchingVoucher->redeemed_at = $matchingVoucher->redeemed_at
                                 ?? ($pr->updated_at ? $pr->updated_at->toIso8601String() : null);
+                        }
+                    } elseif ($pointStatus === 'cancelled') {
+                        $matchingVoucher = $merged->first(function ($voucher) use ($code) {
+                            return strtoupper(trim($voucher->voucher_code ?? '')) === $code;
+                        });
+                        if ($matchingVoucher) {
+                            $matchingVoucher->status = 'cancelled';
                         }
                     }
                     continue;
@@ -525,28 +578,48 @@ class PointsController extends Controller
                 if ($type === 'environmental_fee') {
                     $category = 'Activities';
                 }
+
+                $prStatus = strtolower($pr->status ?? 'active');
+                $normStatus = 'claimed';
+                if (in_array($prStatus, ['redeemed', 'used', 'completed'])) {
+                    $normStatus = 'used';
+                } elseif ($prStatus === 'cancelled') {
+                    $normStatus = 'cancelled';
+                } else {
+                    $exp = $pr->voucher_expires_at ? \Carbon\Carbon::parse($pr->voucher_expires_at) : null;
+                    if ($exp && now()->gte($exp)) {
+                        $normStatus = 'expired';
+                    } else {
+                        $normStatus = 'claimed';
+                    }
+                }
+
                 $merged->push((object) [
-                    'id' => $pr->id,
-                    'voucher_id' => null,
-                    'type' => $type,
-                    'points_cost' => (int) ($pr->points_cost ?? 0),
-                    'voucher_code' => $pr->voucher_code,
-                    'status' => $pr->status ?? 'active',
-                    'redeemed_at' => in_array(strtolower($pr->status ?? ''), ['redeemed', 'used', 'completed'])
-                        ? ($pr->updated_at ? $pr->updated_at->toIso8601String() : null)
+                    'id'                    => $pr->id,
+                    'voucher_id'            => $pr->voucher_id ?? null,
+                    'type'                  => $type,
+                    'points_cost'           => (int) ($pr->points_cost ?? 0),
+                    'voucher_code'          => $pr->voucher_code,
+                    'qr_token'              => $pr->qr_token ?? null,
+                    'status'                => $normStatus,
+                    'voucher_expires_at'    => $pr->voucher_expires_at ? \Carbon\Carbon::parse($pr->voucher_expires_at)->toIso8601String() : null,
+                    'qr_expires_at'         => $pr->qr_expires_at ? \Carbon\Carbon::parse($pr->qr_expires_at)->toIso8601String() : null,
+                    'redeemed_at'           => $normStatus === 'used'
+                        ? ($pr->redeemed_at ? \Carbon\Carbon::parse($pr->redeemed_at)->toIso8601String() : ($pr->updated_at ? $pr->updated_at->toIso8601String() : null))
                         : null,
-                    'claimed_at' => $pr->created_at ? $pr->created_at->toIso8601String() : null,
-                    'created_at' => $pr->created_at ? $pr->created_at->toIso8601String() : now()->toIso8601String(),
-                    'updated_at' => $pr->updated_at ? $pr->updated_at->toIso8601String() : null,
+                    'cancelled_at'          => $pr->cancelled_at ? \Carbon\Carbon::parse($pr->cancelled_at)->toIso8601String() : null,
+                    'claimed_at'            => $pr->claimed_at ? \Carbon\Carbon::parse($pr->claimed_at)->toIso8601String() : ($pr->created_at ? $pr->created_at->toIso8601String() : null),
+                    'created_at'            => $pr->created_at ? $pr->created_at->toIso8601String() : now()->toIso8601String(),
+                    'updated_at'            => $pr->updated_at ? $pr->updated_at->toIso8601String() : null,
                     'partner_establishment' => 'LUPTO Eco Tourism',
-                    'description' => $type === 'pasalubong_discount' ? '₱50 Pasalubong Discount' : ($type === 'environmental_fee' ? 'Waived Environmental Fee' : 'Tourist Voucher'),
-                    'discount_value' => '50.00',
-                    'discount_type' => 'fixed',
-                    'image' => null,
-                    'terms_and_conditions' => null,
-                    'expires_at' => null,
-                    'expiration_type' => 'until_unusable',
-                    'category' => $category
+                    'description'           => $type === 'pasalubong_discount' ? '₱50 Pasalubong Discount' : ($type === 'environmental_fee' ? 'Waived Environmental Fee' : 'Tourist Voucher'),
+                    'discount_value'        => '50.00',
+                    'discount_type'         => 'fixed',
+                    'image'                 => null,
+                    'terms_and_conditions'  => null,
+                    'expires_at'            => $pr->voucher_expires_at ? \Carbon\Carbon::parse($pr->voucher_expires_at)->toIso8601String() : null,
+                    'expiration_type'       => 'date',
+                    'category'              => $category
                 ]);
             }
 

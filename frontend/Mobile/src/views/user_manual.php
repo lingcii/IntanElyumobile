@@ -76,7 +76,7 @@ $backRoute = 'settings';
             </div>
             <div class="grid-card-item">
                 <h4>AR Check-In</h4>
-                <p>Scan your location & photo proof to earn +50 Points per spot.</p>
+                <p>Scan your location & photo proof to earn points per spot (25 for Existing, 35 for Potential, 45 for Emerging).</p>
             </div>
             <div class="grid-card-item">
                 <h4>GameZone</h4>
@@ -292,7 +292,7 @@ $backRoute = 'settings';
             <div class="step-content">
                 <div class="step-title">Review &amp; Reward</div>
                 <div class="step-desc">Your check-in is set to <strong>Pending</strong>. Once reviewed and approved by
-                    tourism officers, you will be awarded <strong>+50 Points</strong>!</div>
+                    tourism officers, you will be awarded <strong>+25 to +45 Points</strong> based on spot classification!</div>
             </div>
         </div>
     </div>
@@ -484,7 +484,7 @@ $backRoute = 'settings';
             <tbody>
                 <tr>
                     <td>AR / Photo Check-In</td>
-                    <td><strong style="color:#ffffff;">+50 Points</strong></td>
+                    <td><strong style="color:#ffffff;">+25, +35, or +45 Points</strong> (Existing, Potential, Emerging)</td>
                     <td>Explore Map / Saved Trips</td>
                 </tr>
                 <tr>

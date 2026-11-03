@@ -816,6 +816,7 @@ body.map-search-active .btn-classification-wrapper,
     margin: 0;
     font-weight: 400;
     letter-spacing: 0.2px;
+    text-align: justify !important; text-justify: inter-word !important;
 }
 
 .dest-warning-card {
@@ -2150,10 +2151,28 @@ body[data-view="map"] .btn-locate-me {
 #place-details-sheet .draggable-content,
 #place-details-sheet .place-details-white-body {
     background: #ffffff !important;
-    padding: 14px 16px calc(24px + env(safe-area-inset-bottom)) 16px !important;
-    flex: 1 !important;
+    padding: 14px 16px 16px 16px !important;
+    flex: 1 1 auto !important;
     overflow-y: auto !important;
-    max-height: calc(85vh - 90px) !important;
+    -webkit-overflow-scrolling: touch !important;
+    max-height: none !important;
+}
+
+#place-details-sheet .sheet-actions-footer {
+    flex-shrink: 0 !important;
+    background: #ffffff !important;
+    border-top: 1.5px solid #f1f5f9 !important;
+    box-shadow: 0 -4px 16px rgba(15, 23, 42, 0.06) !important;
+    padding: 10px 16px calc(12px + env(safe-area-inset-bottom, 0px)) 16px !important;
+    margin-top: 0 !important;
+    z-index: 20 !important;
+    position: relative !important;
+}
+
+#place-details-sheet.sheet-peeked .sheet-actions-footer {
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
 }
 
 /* Quick Stat Cards */
@@ -2243,6 +2262,7 @@ body[data-view="map"] .btn-locate-me {
 #place-details-sheet .dest-desc-text {
     color: rgba(255, 255, 255, 0.92) !important;
     line-height: 1.55 !important;
+    text-align: justify !important; text-justify: inter-word !important;
 }
 
 #place-details-sheet .dest-toggle-btn {

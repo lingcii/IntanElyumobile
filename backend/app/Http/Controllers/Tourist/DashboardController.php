@@ -86,12 +86,39 @@ class DashboardController extends Controller
                     })
                     ->get(['id', 'name', 'category', 'photo_url', 'latitude', 'longitude', 'visits', 'rating', 'description', 'entrance_fee', 'adult_fee', 'kids_fee', 'pwd_fee', 'senior_citizen_fee', 'entrance_fee_types', 'environmental_fee', 'fee_types', 'classification_status', 'municipality_id', 'status']);
 
+                // If user has saved preferences, prioritize matching categories
+                $userPrefs = strtolower((string) ($user->travel_preferences ?? ''));
+                $prefKeywords = array_filter(array_map('trim', preg_split('/[,\s]+/', $userPrefs)), fn($w) => strlen($w) > 2);
+
                 if ($lat && $lng) {
-                    $recommendedQuery = $recommendedQuery->sortBy(function($spot) use ($lat, $lng) {
-                        return pow($spot->latitude - $lat, 2) + pow($spot->longitude - $lng, 2);
+                    $recommendedQuery = $recommendedQuery->sortBy(function($spot) use ($lat, $lng, $prefKeywords) {
+                        $cat = strtolower(($spot->category ?? '') . ' ' . ($spot->name ?? ''));
+                        $prefBonus = 0;
+                        foreach ($prefKeywords as $kw) {
+                            if (strpos($cat, $kw) !== false) {
+                                $prefBonus = -500; // prior boost
+                                break;
+                            }
+                        }
+                        return (pow($spot->latitude - $lat, 2) + pow($spot->longitude - $lng, 2)) + $prefBonus;
                     });
                 } else {
-                    $recommendedQuery = $recommendedQuery->sortByDesc('rating');
+                    $recommendedQuery = $recommendedQuery->sort(function($a, $b) use ($prefKeywords) {
+                        $catA = strtolower(($a->category ?? '') . ' ' . ($a->name ?? ''));
+                        $catB = strtolower(($b->category ?? '') . ' ' . ($b->name ?? ''));
+                        $matchA = 0;
+                        foreach ($prefKeywords as $kw) {
+                            if (strpos($catA, $kw) !== false) { $matchA = 1; break; }
+                        }
+                        $matchB = 0;
+                        foreach ($prefKeywords as $kw) {
+                            if (strpos($catB, $kw) !== false) { $matchB = 1; break; }
+                        }
+                        if ($matchA !== $matchB) {
+                            return $matchB - $matchA;
+                        }
+                        return (float)($b->rating ?? 0) <=> (float)($a->rating ?? 0);
+                    });
                 }
 
                 $recommended = $recommendedQuery->take(5)->values()->map(fn($s) => $this->formatSpot($s));

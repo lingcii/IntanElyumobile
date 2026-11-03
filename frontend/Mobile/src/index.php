@@ -486,6 +486,7 @@ if ($isAjax) {
     <link rel="stylesheet" href="assets/css/views/saved_places.css?v=<?= time() ?>">
     <link rel="stylesheet" href="assets/css/views/ar_checkin.css?v=<?= time() ?>">
     <link rel="stylesheet" href="assets/css/views/trending.css?v=<?= time() ?>">
+    <link rel="stylesheet" href="assets/css/views/categories.css?v=<?= time() ?>">
     <link rel="stylesheet" href="assets/css/views/user_manual.css?v=<?= time() ?>">
 </head>
 
@@ -568,7 +569,7 @@ if ($isAjax) {
     </div>
 
     <?php
-    $noNavViews = ['splash', 'auth', 'about', 'terms', 'edit_profile', 'help', 'trip_map', 'saved_trips', 'saved_places', 'trending', 'reset-password', 'puzzles', 'discount', 'settings', 'user_manual', 'download'];
+    $noNavViews = ['splash', 'auth', 'about', 'terms', 'edit_profile', 'help', 'trip_map', 'saved_trips', 'saved_places', 'trending', 'reset-password', 'puzzles', 'discount', 'settings', 'user_manual', 'download', 'categories'];
     $navHiddenClass = in_array($view, $noNavViews) ? 'nav-hidden' : '';
     ?>
     <!-- Bottom Navigation Bar (Locked to viewport bottom) -->

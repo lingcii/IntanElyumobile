@@ -20,6 +20,10 @@ class Itinerary extends Model
         'trip_type',
         'companion_males',
         'companion_females',
+        'companion_adults',
+        'companion_kids',
+        'companion_seniors',
+        'companion_pwds',
         'total_pax',
     ];
 
@@ -30,6 +34,10 @@ class Itinerary extends Model
         'total_cost'        => 'decimal:2',
         'companion_males'   => 'integer',
         'companion_females' => 'integer',
+        'companion_adults'  => 'integer',
+        'companion_kids'    => 'integer',
+        'companion_seniors' => 'integer',
+        'companion_pwds'    => 'integer',
         'total_pax'         => 'integer',
     ];
 

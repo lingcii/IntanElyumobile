@@ -875,8 +875,8 @@ if (is_dir($imgDir)) {
                         <h5 class="dest-section-title">About this destination</h5>
                     </div>
 
-                    <p id="sheet-desc-short" class="dest-desc-text"></p>
-                    <p id="sheet-desc-full" class="dest-desc-text" style="display:none;"></p>
+                    <p id="sheet-desc-short" class="dest-desc-text" style="text-align:justify; text-justify:inter-word;"></p>
+                    <p id="sheet-desc-full" class="dest-desc-text" style="display:none; text-align:justify; text-justify:inter-word;"></p>
                     <button id="btn-view-details" class="dest-toggle-btn" onclick="window.toggleFullDetails()"
                         style="display:none; margin:8px 0 14px;">
                         <span id="details-btn-text">Read More</span>
@@ -959,19 +959,20 @@ if (is_dir($imgDir)) {
                 </div>
             </div>
 
-            <!-- Action Buttons -->
-            <div class="sheet-btn-row" style="display:flex; gap:10px; align-items:center; margin-top:14px;">
-                <button id="btn-add-itinerary" onclick="window.addToItinerary()" class="btn-add-itinerary-premium"
-                    style="flex:1; height:48px; min-height:48px; border-radius:16px; background:linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; color:#ffffff !important; box-shadow:0 4px 14px rgba(32,63,141,0.35) !important; font-weight:800; font-size:14px; border:none !important; outline:none !important; display:inline-flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition:all 0.2s ease;">
-                    <i class="fa-solid fa-calendar-plus"></i> Add to Trip
-                </button>
-                <button id="sheet-fav-btn" onclick="window.toggleMapFavorite(this)" class="btn-sheet-fav"
-                    aria-label="Save to favorites" title="Save to favorites"
-                    style="width:48px; height:48px; min-width:48px; border-radius:16px; background:#ffffff !important; border:1.5px solid #e2e8f0 !important; box-shadow:0 2px 8px rgba(15,23,42,0.08) !important; display:inline-flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; transition:all 0.25s cubic-bezier(0.16, 1, 0.3, 1); outline:none !important; -webkit-tap-highlight-color:transparent;">
-                    <i class="fa-regular fa-heart" style="color:#ef4444 !important; font-size:20px;"></i>
-                </button>
-            </div>
+        </div>
 
+        <!-- Intact Action Buttons Footer: Pinned at bottom, never scrolls with content -->
+        <div class="sheet-btn-row sheet-actions-footer"
+            style="flex-shrink:0; display:flex; gap:10px; align-items:center; padding:10px 16px calc(12px + env(safe-area-inset-bottom, 0px)) 16px; background:#ffffff !important; border-top:1.5px solid #f1f5f9 !important; box-shadow:0 -4px 16px rgba(15, 23, 42, 0.06) !important; z-index:20; position:relative; margin-top:0;">
+            <button id="btn-add-itinerary" onclick="window.addToItinerary()" class="btn-add-itinerary-premium"
+                style="flex:1; height:48px; min-height:48px; border-radius:16px; background:linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; color:#ffffff !important; box-shadow:0 4px 14px rgba(32,63,141,0.35) !important; font-weight:800; font-size:14px; border:none !important; outline:none !important; display:inline-flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition:all 0.2s ease;">
+                <i class="fa-solid fa-calendar-plus"></i> Add to Trip
+            </button>
+            <button id="sheet-fav-btn" onclick="window.toggleMapFavorite(this)" class="btn-sheet-fav"
+                aria-label="Save to favorites" title="Save to favorites"
+                style="width:48px; height:48px; min-width:48px; border-radius:16px; background:#ffffff !important; border:1.5px solid #e2e8f0 !important; box-shadow:0 2px 8px rgba(15,23,42,0.08) !important; display:inline-flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; transition:all 0.25s cubic-bezier(0.16, 1, 0.3, 1); outline:none !important; -webkit-tap-highlight-color:transparent;">
+                <i class="fa-regular fa-heart" style="color:#ef4444 !important; font-size:20px;"></i>
+            </button>
         </div>
     </div>
 </div>

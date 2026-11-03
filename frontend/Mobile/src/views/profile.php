@@ -2156,16 +2156,21 @@ $activeTab = 'profile';
             }
         }
 
+        const activeQrToken = voucher.qr_token || resolvedCode;
         if (imgEl) {
-            imgEl.src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(resolvedCode)}`;
+            imgEl.src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(activeQrToken)}`;
         }
 
+        window.currentProfileModalItem = voucher;
         const statusLower = (voucher.status || '').toLowerCase();
         const isRedeemed = statusLower === 'redeemed' || statusLower === 'used';
-        const rawExp = voucher.expires_at || voucher.valid_until || voucher.expiry_date;
-        const isExpired = (statusLower === 'expired') || (rawExp && new Date(String(rawExp).replace(' ', 'T')).getTime() < Date.now());
+        const isCancelled = statusLower === 'cancelled';
+        const rawExp = voucher.voucher_expires_at || voucher.expires_at || voucher.valid_until || voucher.expiry_date;
+        const isExpired = (statusLower === 'expired') || (!isRedeemed && !isCancelled && rawExp && new Date(String(rawExp).replace(' ', 'T')).getTime() < Date.now());
         const stampOverlay = document.getElementById('active-qr-stamp-overlay');
         const stampBadge = document.getElementById('active-qr-stamp-badge');
+        const timersContainer = document.getElementById('active-qr-timers-container');
+        const claimedActions = document.getElementById('active-qr-claimed-actions');
 
         if (statusBadge) {
             if (isRedeemed) {
@@ -2184,6 +2189,27 @@ $activeTab = 'profile';
                     noticeEl.style.color = '#dc2626';
                     noticeEl.style.fontWeight = '700';
                 }
+                if (timersContainer) timersContainer.style.display = 'none';
+                if (claimedActions) claimedActions.style.display = 'none';
+                stopActiveQrTimers();
+            } else if (isCancelled) {
+                statusBadge.innerHTML = '<i class="fa-solid fa-xmark"></i> Voucher Claim Cancelled';
+                statusBadge.style.background = '#fee2e2';
+                statusBadge.style.color = '#dc2626';
+                statusBadge.style.border = '1px solid #fca5a5';
+                if (imgEl) {
+                    imgEl.style.filter = 'grayscale(1)';
+                    imgEl.style.opacity = '0.35';
+                }
+                if (stampOverlay) stampOverlay.style.display = 'none';
+                if (noticeEl) {
+                    noticeEl.textContent = 'This voucher claim was cancelled and points were refunded to your account.';
+                    noticeEl.style.color = '#dc2626';
+                    noticeEl.style.fontWeight = '700';
+                }
+                if (timersContainer) timersContainer.style.display = 'none';
+                if (claimedActions) claimedActions.style.display = 'none';
+                stopActiveQrTimers();
             } else if (isExpired) {
                 const expFormatted = window.formatVoucherExpiry ? window.formatVoucherExpiry(voucher) : (voucher.expires_at || 'past date');
                 statusBadge.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Voucher Expired';
@@ -2200,6 +2226,9 @@ $activeTab = 'profile';
                     noticeEl.style.color = '#dc2626';
                     noticeEl.style.fontWeight = '700';
                 }
+                if (timersContainer) timersContainer.style.display = 'none';
+                if (claimedActions) claimedActions.style.display = 'none';
+                stopActiveQrTimers();
             } else {
                 statusBadge.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Ready for scan at checkout';
                 statusBadge.style.background = '#e0f2fe';
@@ -2215,6 +2244,14 @@ $activeTab = 'profile';
                     noticeEl.style.color = '#64748b';
                     noticeEl.style.fontWeight = '500';
                 }
+                if (timersContainer) timersContainer.style.display = 'flex';
+                if (claimedActions) claimedActions.style.display = 'flex';
+                const useBtn = document.getElementById('active-qr-btn-use');
+                if (useBtn) { useBtn.disabled = false; useBtn.style.opacity = '1'; }
+                const cancelBtn = document.getElementById('active-qr-btn-cancel');
+                if (cancelBtn) { cancelBtn.disabled = false; cancelBtn.style.opacity = '1'; }
+
+                startActiveQrTimers(voucher, resolvedCode);
                 startActiveQrSync(resolvedCode);
             }
         }
@@ -2238,6 +2275,220 @@ $activeTab = 'profile';
         }
 
         modal.style.display = 'flex';
+    };
+
+    window.window.activeQrTimerInterval = window.activeQrTimerInterval || null;
+    window.window.currentProfileModalItem = window.currentProfileModalItem || null;
+
+    function formatActiveCountdown(ms) {
+        if (ms <= 0) return '00:00';
+        const totalSeconds = Math.floor(ms / 1000);
+        const hours = Math.floor(totalSeconds / 3600);
+        const minutes = Math.floor((totalSeconds % 3600) / 60);
+        const seconds = totalSeconds % 60;
+        const pad = (n) => String(n).padStart(2, '0');
+        if (hours > 0) return `${hours}h ${pad(minutes)}m ${pad(seconds)}s`;
+        return `${pad(minutes)}m ${pad(seconds)}s`;
+    }
+
+    function startActiveQrTimers(voucher, code) {
+        stopActiveQrTimers();
+        if (!voucher) return;
+
+        const vExpRaw = voucher.voucher_expires_at || voucher.expires_at || voucher.expires || voucher.valid_until;
+        const qrExpRaw = voucher.qr_expires_at;
+
+        let voucherExpTime = vExpRaw ? new Date(vExpRaw).getTime() : (Date.now() + 24 * 3600 * 1000);
+        let qrExpTime = qrExpRaw ? new Date(qrExpRaw).getTime() : (Date.now() + 20 * 60 * 1000);
+
+        const updateTick = () => {
+            const now = Date.now();
+            const vDiff = voucherExpTime - now;
+            const qrDiff = qrExpTime - now;
+
+            const vCountdownEl = document.getElementById('active-qr-voucher-countdown');
+            const qrCountdownEl = document.getElementById('active-qr-validity-countdown');
+
+            if (vCountdownEl) vCountdownEl.textContent = formatActiveCountdown(vDiff);
+            if (qrCountdownEl) qrCountdownEl.textContent = formatActiveCountdown(qrDiff);
+
+            if (vDiff <= 0) {
+                stopActiveQrTimers();
+                voucher.status = 'expired';
+                const useBtn = document.getElementById('active-qr-btn-use');
+                if (useBtn) { useBtn.disabled = true; useBtn.style.opacity = '0.5'; }
+                const claimedActions = document.getElementById('active-qr-claimed-actions');
+                if (claimedActions) claimedActions.style.display = 'none';
+                if (typeof showToast === 'function') {
+                    showToast("⚠️ Voucher countdown reached zero. Voucher is now Expired.", "warning", 5000);
+                }
+                fetchPointsAndVouchers(true);
+                return;
+            }
+
+            if (qrDiff <= 0) {
+                stopActiveQrTimers();
+                window.refreshActiveModalQrCode(code);
+            }
+        };
+
+        updateTick();
+        window.activeQrTimerInterval = setInterval(updateTick, 1000);
+    }
+
+    function stopActiveQrTimers() {
+        if (window.activeQrTimerInterval) {
+            clearInterval(activeQrTimerInterval);
+            window.activeQrTimerInterval = null;
+        }
+    }
+
+    window.refreshActiveModalQrCode = async function(code) {
+        if (!code) return;
+        try {
+            const baseUrl = getProfileBackendUrl();
+            const token = getProfileAuthToken();
+            const res = await fetch(`${baseUrl}/api/tourist/vouchers/${encodeURIComponent(code)}/refresh-qr`, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            const data = await res.json();
+            if (res.ok && data.status === 'success') {
+                if (window.currentProfileModalItem) {
+                    currentProfileModalItem.qr_token = data.qr_token;
+                    currentProfileModalItem.qr_expires_at = data.qr_expires_at;
+                }
+                const imgEl = document.getElementById('active-qr-modal-img');
+                if (imgEl) {
+                    imgEl.src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(data.qr_token || code)}`;
+                }
+                startActiveQrTimers(window.currentProfileModalItem, code);
+                if (typeof showToast === 'function') {
+                    showToast("QR code automatically refreshed (20-min validity)", "info", 2500);
+                }
+            } else if (data.voucher_status === 'expired') {
+                if (window.currentProfileModalItem) currentProfileModalItem.status = 'expired';
+                stopActiveQrTimers();
+                fetchPointsAndVouchers(true);
+            }
+        } catch(e) {
+            console.warn("Failed to auto-refresh QR in profile:", e);
+        }
+    };
+
+    window.handleActiveVoucherUse = async function() {
+        const item = window.currentProfileModalItem;
+        if (!item) return;
+        const code = item.voucher_code || item.code || currentActiveQrCode;
+        const qrToken = item.qr_token || code;
+
+        const useBtn = document.getElementById('active-qr-btn-use');
+        if (useBtn) {
+            useBtn.disabled = true;
+            useBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Redeeming...';
+        }
+
+        try {
+            const baseUrl = getProfileBackendUrl();
+            const token = getProfileAuthToken();
+            const res = await fetch(`${baseUrl}/api/tourist/vouchers/${encodeURIComponent(code)}/use`, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ qr_token: qrToken })
+            });
+            const data = await res.json();
+            if (res.ok && data.status === 'success') {
+                if (typeof showToast === 'function') showToast("🎉 Voucher successfully redeemed and marked as Used!", "success");
+                if (window.confetti) window.confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
+                item.status = 'used';
+                item.redeemed_at = data.redeemed_at || new Date().toISOString();
+                stopActiveQrTimers();
+
+                const stampOverlay = document.getElementById('active-qr-stamp-overlay');
+                const stampBadge = document.getElementById('active-qr-stamp-badge');
+                const imgEl = document.getElementById('active-qr-modal-img');
+                const claimedActions = document.getElementById('active-qr-claimed-actions');
+                const timersContainer = document.getElementById('active-qr-timers-container');
+                if (stampOverlay) stampOverlay.style.display = 'flex';
+                if (stampBadge) {
+                    stampBadge.style.animation = 'none';
+                    void stampBadge.offsetWidth;
+                    stampBadge.style.animation = 'qrStampSlam 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards';
+                }
+                if (imgEl) { imgEl.style.filter = 'grayscale(1)'; imgEl.style.opacity = '0.3'; }
+                if (claimedActions) claimedActions.style.display = 'none';
+                if (timersContainer) timersContainer.style.display = 'none';
+
+                fetchPointsAndVouchers(true);
+            } else {
+                if (typeof showToast === 'function') showToast(data.message || "Failed to use voucher.", "error");
+                if (useBtn) { useBtn.disabled = false; useBtn.innerHTML = '<i class="fa-solid fa-check"></i> Use'; }
+            }
+        } catch(e) {
+            if (typeof showToast === 'function') showToast("Network error. Please try again.", "error");
+            if (useBtn) { useBtn.disabled = false; useBtn.innerHTML = '<i class="fa-solid fa-check"></i> Use'; }
+        }
+    };
+
+    window.handleActiveVoucherCancel = async function() {
+        const item = window.currentProfileModalItem;
+        if (!item) return;
+        const code = item.voucher_code || item.code || currentActiveQrCode;
+
+        if (!confirm("Are you sure you want to cancel this voucher claim? Your points will be refunded to your account.")) {
+            return;
+        }
+
+        const cancelBtn = document.getElementById('active-qr-btn-cancel');
+        if (cancelBtn) {
+            cancelBtn.disabled = true;
+            cancelBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Cancelling...';
+        }
+
+        try {
+            const baseUrl = getProfileBackendUrl();
+            const token = getProfileAuthToken();
+            const res = await fetch(`${baseUrl}/api/tourist/vouchers/${encodeURIComponent(code)}/cancel`, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            const data = await res.json();
+            if (res.ok && data.status === 'success') {
+                if (typeof showToast === 'function') showToast(data.message || "Voucher claim cancelled. Points refunded!", "info");
+                item.status = 'cancelled';
+                stopActiveQrTimers();
+
+                const imgEl = document.getElementById('active-qr-modal-img');
+                const claimedActions = document.getElementById('active-qr-claimed-actions');
+                const timersContainer = document.getElementById('active-qr-timers-container');
+                if (imgEl) { imgEl.style.filter = 'grayscale(1)'; imgEl.style.opacity = '0.3'; }
+                if (claimedActions) claimedActions.style.display = 'none';
+                if (timersContainer) timersContainer.style.display = 'none';
+
+                if (data.new_balance !== undefined) {
+                    window.syncUserPointsEverywhere(data.new_balance);
+                }
+                fetchPointsAndVouchers(true);
+            } else {
+                if (typeof showToast === 'function') showToast(data.message || "Failed to cancel voucher claim.", "error");
+                if (cancelBtn) { cancelBtn.disabled = false; cancelBtn.innerHTML = '<i class="fa-solid fa-xmark"></i> Cancel'; }
+            }
+        } catch(e) {
+            if (typeof showToast === 'function') showToast("Network error. Please try again.", "error");
+            if (cancelBtn) { cancelBtn.disabled = false; cancelBtn.innerHTML = '<i class="fa-solid fa-xmark"></i> Cancel'; }
+        }
     };
 
     window._isVoucherCodeUnmasked = false;
@@ -2278,6 +2529,7 @@ $activeTab = 'profile';
 
     window.closeActiveVoucherQrModal = function () {
         stopActiveQrSync();
+        stopActiveQrTimers();
         window._isVoucherCodeUnmasked = false;
         document.querySelectorAll('#active-voucher-qr-modal').forEach(modal => {
             modal.style.display = 'none';
@@ -2369,8 +2621,12 @@ $activeTab = 'profile';
         const cost = parseFloat(trip.total_cost || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         document.getElementById('trip-detail-cost').innerHTML = `<i class="fa-solid fa-coins" style="color:#d97706; margin-right:4px;"></i>₱${cost}`;
 
-        const items = trip.items || [];
-        const visitedCount = items.filter(i => i.is_visited === true || i.is_visited === 1 || i.is_visited === '1').length || items.length;
+        let rawItems = trip.items || trip.destinations || [];
+        if (typeof rawItems === 'string') {
+            try { rawItems = JSON.parse(rawItems); } catch(e) { rawItems = []; }
+        }
+        const items = Array.isArray(rawItems) ? rawItems : (rawItems && typeof rawItems === 'object' ? Object.values(rawItems) : []);
+        const visitedCount = items.filter(i => i && (i.is_visited === true || i.is_visited === 1 || i.is_visited === '1')).length || items.length;
         document.getElementById('trip-detail-count').innerHTML = `<i class="fa-solid fa-location-dot" style="margin-right:4px; color:#ffffff;"></i>${visitedCount} Visited`;
 
         let destHtml = '';
@@ -2793,6 +3049,22 @@ $activeTab = 'profile';
                 <span id="active-qr-modal-expiry" style="font-size:12px; font-weight:800; color:#1e293b;">--</span>
             </div>
 
+            <!-- Dual Countdown Timers (Voucher Expiration & 20-Min QR Validity) -->
+            <div id="active-qr-timers-container" style="display:flex; flex-direction:column; gap:8px; margin-bottom:14px;">
+                <div id="active-qr-voucher-timer-box" style="background:#ffffff; border:1.5px solid #bfdbfe; border-radius:12px; padding:8px 12px; display:flex; align-items:center; justify-content:space-between; box-shadow:0 2px 6px rgba(30,58,138,0.05);">
+                    <span style="font-size:11px; font-weight:800; color:#1e3a8a; display:flex; align-items:center; gap:6px;">
+                        <i class="fa-regular fa-clock" style="color:#2563eb; font-size:12px;"></i> Voucher Expiration:
+                    </span>
+                    <span id="active-qr-voucher-countdown" style="font-size:12px; font-weight:900; color:#dc2626; font-family:monospace; letter-spacing:0.5px;">--:--</span>
+                </div>
+                <div id="active-qr-validity-timer-box" style="background:#ffffff; border:1.5px solid #bfdbfe; border-radius:12px; padding:8px 12px; display:flex; align-items:center; justify-content:space-between; box-shadow:0 2px 6px rgba(30,58,138,0.05);">
+                    <span style="font-size:11px; font-weight:800; color:#0284c7; display:flex; align-items:center; gap:6px;">
+                        <i class="fa-solid fa-arrows-rotate" style="color:#0284c7; font-size:11px;"></i> QR Code Valid:
+                    </span>
+                    <span id="active-qr-validity-countdown" style="font-size:12px; font-weight:900; color:#0284c7; font-family:monospace; letter-spacing:0.5px;">20m 00s</span>
+                </div>
+            </div>
+
             <!-- QR Code Container -->
             <style>
                 @keyframes qrStampSlam {
@@ -2850,6 +3122,16 @@ $activeTab = 'profile';
                     style="display:inline-flex; align-items:center; gap:6px; padding:6px 14px; border-radius:100px; font-size:11px; font-weight:800; background:#e0f2fe; color:#0369a1; margin-top:10px; transition:all 0.3s ease;">
                     <i class="fa-solid fa-circle-notch fa-spin"></i> Ready for scan at checkout
                 </div>
+            </div>
+
+            <!-- Dedicated Action Buttons (Use and Cancel) -->
+            <div id="active-qr-claimed-actions" style="display:none; gap:10px; width:100%; margin-top:14px;">
+                <button id="active-qr-btn-use" onclick="window.handleActiveVoucherUse()" style="flex:1; padding:12px; border:none !important; outline:none !important; border-radius:12px; background:#10b981 !important; color:#ffffff !important; font-size:13.5px; font-weight:900; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; box-shadow:0 2px 8px rgba(16,185,129,0.35) !important;" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
+                    <i class="fa-solid fa-check" style="color:#ffffff !important;"></i> Use
+                </button>
+                <button id="active-qr-btn-cancel" onclick="window.handleActiveVoucherCancel()" style="flex:1; padding:12px; border:1.5px solid #fca5a5 !important; outline:none !important; border-radius:12px; background:#ffffff !important; color:#dc2626 !important; font-size:13.5px; font-weight:900; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; box-shadow:0 2px 8px rgba(220,38,38,0.15) !important;" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
+                    <i class="fa-solid fa-xmark" style="color:#dc2626 !important;"></i> Cancel
+                </button>
             </div>
         </div>
     </div>

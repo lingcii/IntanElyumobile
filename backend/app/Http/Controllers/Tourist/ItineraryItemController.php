@@ -181,7 +181,12 @@ class ItineraryItemController extends Controller
             $itin = $item->itinerary;
             $males = $request->has('companion_males') ? max(0, (int)$request->companion_males) : (int)($item->companion_males ?? $itin?->companion_males ?? 0);
             $females = $request->has('companion_females') ? max(0, (int)$request->companion_females) : (int)($item->companion_females ?? $itin?->companion_females ?? 0);
-            $totalPax = $request->has('total_pax') ? max(1, (int)$request->total_pax) : max(1, (int)($item->total_pax ?? $itin?->total_pax ?? (1 + $males + $females)));
+            $adults = $request->has('companion_adults') ? max(0, (int)$request->companion_adults) : (int)($item->companion_adults ?? $itin?->companion_adults ?? 0);
+            $kids = $request->has('companion_kids') ? max(0, (int)$request->companion_kids) : (int)($item->companion_kids ?? $itin?->companion_kids ?? 0);
+            $seniors = $request->has('companion_seniors') ? max(0, (int)$request->companion_seniors) : (int)($item->companion_seniors ?? $itin?->companion_seniors ?? 0);
+            $pwds = $request->has('companion_pwds') ? max(0, (int)$request->companion_pwds) : (int)($item->companion_pwds ?? $itin?->companion_pwds ?? 0);
+            $additionalComps = max($males + $females, $adults + $kids + $seniors + $pwds);
+            $totalPax = $request->has('total_pax') ? max(1, (int)$request->total_pax) : max(1, (int)($item->total_pax ?? $itin?->total_pax ?? (1 + $additionalComps)));
 
             $isFullyVisited = ($item->proof_status === 'approved');
             $item->update([
@@ -190,6 +195,10 @@ class ItineraryItemController extends Controller
                 'is_location_verified' => true,
                 'companion_males'      => $males,
                 'companion_females'    => $females,
+                'companion_adults'     => $adults,
+                'companion_kids'       => $kids,
+                'companion_seniors'    => $seniors,
+                'companion_pwds'       => $pwds,
                 'total_pax'            => $totalPax,
             ]);
 
@@ -455,10 +464,19 @@ class ItineraryItemController extends Controller
             $itin = $item->itinerary;
             $males = $request->has('companion_males') ? max(0, (int)$request->companion_males) : (int)($item->companion_males ?? $itin?->companion_males ?? 0);
             $females = $request->has('companion_females') ? max(0, (int)$request->companion_females) : (int)($item->companion_females ?? $itin?->companion_females ?? 0);
-            $totalPax = $request->has('total_pax') ? max(1, (int)$request->total_pax) : max(1, (int)($item->total_pax ?? $itin?->total_pax ?? (1 + $males + $females)));
+            $adults = $request->has('companion_adults') ? max(0, (int)$request->companion_adults) : (int)($item->companion_adults ?? $itin?->companion_adults ?? 0);
+            $kids = $request->has('companion_kids') ? max(0, (int)$request->companion_kids) : (int)($item->companion_kids ?? $itin?->companion_kids ?? 0);
+            $seniors = $request->has('companion_seniors') ? max(0, (int)$request->companion_seniors) : (int)($item->companion_seniors ?? $itin?->companion_seniors ?? 0);
+            $pwds = $request->has('companion_pwds') ? max(0, (int)$request->companion_pwds) : (int)($item->companion_pwds ?? $itin?->companion_pwds ?? 0);
+            $additionalComps = max($males + $females, $adults + $kids + $seniors + $pwds);
+            $totalPax = $request->has('total_pax') ? max(1, (int)$request->total_pax) : max(1, (int)($item->total_pax ?? $itin?->total_pax ?? (1 + $additionalComps)));
 
             $itemData['companion_males']   = $males;
             $itemData['companion_females'] = $females;
+            $itemData['companion_adults']  = $adults;
+            $itemData['companion_kids']    = $kids;
+            $itemData['companion_seniors'] = $seniors;
+            $itemData['companion_pwds']    = $pwds;
             $itemData['total_pax']         = $totalPax;
 
             $item->update($itemData);

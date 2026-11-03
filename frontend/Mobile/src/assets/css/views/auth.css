@@ -1103,13 +1103,14 @@ select.auth-input option {
 
 .fp-header h3 {
     font-size: 20px;
-    color: #ffffff;
+    color: #0f172a;
     margin: 0 0 8px 0;
+    font-weight: 800;
 }
 
 .fp-header p {
     font-size: 13.5px;
-    color: rgba(255, 255, 255, 0.95);
+    color: #64748b;
     margin: 0;
     font-weight: 500;
 }
@@ -1118,17 +1119,17 @@ select.auth-input option {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    color: #ffffff;
+    color: #1e3a8a;
     text-decoration: none;
     font-size: 14px;
     font-weight: 700;
     margin-bottom: 20px;
-    transition: opacity 0.2s ease;
+    transition: color 0.2s ease, transform 0.2s ease;
 }
 
 .back-link:hover {
-    color: #ffffff;
-    opacity: 0.85;
+    color: #2563eb;
+    transform: translateX(-2px);
 }
 
 /* ============================================================

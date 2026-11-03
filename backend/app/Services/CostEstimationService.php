@@ -194,11 +194,13 @@ class CostEstimationService
         ?float $customFuelEfficiency = null,
         ?string $travelDate = null,
         ?float $customPeakMultiplier = null,
-        ?array $perLegModes = null
+        ?array $perLegModes = null,
+        ?array $companionCounts = null
     ): array {
         if (empty($destinationIds)) {
             return [
                 'entrance_fees'      => 0.00,
+                'environmental_fees' => 0.00,
                 'transit_fares'      => 0.00,
                 'fuel_cost'          => 0.00,
                 'subtotal_cost'      => 0.00,
@@ -210,18 +212,41 @@ class CostEstimationService
             ];
         }
 
-        // 1. Calculate entrance fees & environmental fees of all spots and identify municipalities
+        // Headcount strictly for fee-bearing categories: Adult, Kids, Senior, PWD.
+        // Primary traveler ("You") is 1 adult traveler.
+        $isGroup = ($companionCounts !== null) && in_array(strtolower((string)($companionCounts['trip_type'] ?? '')), ['group', 'with companions', 'companions'], true);
+        $numAdults = 1 + ($isGroup ? max(0, (int)($companionCounts['companion_adults'] ?? 0)) : 0);
+        $numKids = $isGroup ? max(0, (int)($companionCounts['companion_kids'] ?? 0)) : 0;
+        $numSeniors = $isGroup ? max(0, (int)($companionCounts['companion_seniors'] ?? 0)) : 0;
+        $numPwds = $isGroup ? max(0, (int)($companionCounts['companion_pwds'] ?? 0)) : 0;
+
+        // 1. Calculate entrance fees & environmental fees of all spots across the 4 traveler categories
         // NOTE: Spots under maintenance are closed/restricted and do NOT charge entrance or environmental fees.
         // Spots that are simply closed by operating hours (e.g. 6am - 5pm outside operating hours) STILL get their site fees.
         $spots = TouristSpot::with('municipality')->whereIn('id', $destinationIds)->get();
-        $entranceFees = (float) $spots->reduce(function ($carry, $s) {
+        $entranceFees = 0.00;
+        $environmentalFees = 0.00;
+
+        foreach ($spots as $s) {
             if ($s->is_maintenance) {
-                return $carry;
+                continue;
             }
-            $fee = ($s->adult_fee > 0) ? (float)$s->adult_fee : (float)($s->entrance_fee ?? 0);
-            return $carry + $fee;
-        }, 0.0);
-        $environmentalFees = (float) $spots->filter(fn($s) => !$s->is_maintenance)->sum('environmental_fee');
+            $baseAdult = ($s->adult_fee > 0) ? (float)$s->adult_fee : (float)($s->entrance_fee ?? 0);
+            $kidsFee = ($s->kids_fee !== null && $s->kids_fee !== '') ? (float)$s->kids_fee : $baseAdult;
+            $seniorFee = ($s->senior_citizen_fee !== null && $s->senior_citizen_fee !== '' && (float)$s->senior_citizen_fee > 0)
+                ? (float)$s->senior_citizen_fee
+                : ($baseAdult > 0 ? round($baseAdult * 0.8, 2) : 0.0);
+            $pwdFee = ($s->pwd_fee !== null && $s->pwd_fee !== '' && (float)$s->pwd_fee > 0)
+                ? (float)$s->pwd_fee
+                : ($baseAdult > 0 ? round($baseAdult * 0.8, 2) : 0.0);
+
+            $envFee = (float)($s->environmental_fee ?? 0);
+            $envSenior = ($seniorFee > 0 && $baseAdult > 0) ? (float)round($envFee * ($seniorFee / $baseAdult)) : ($envFee > 0 ? (float)round($envFee * 0.8) : 0.0);
+            $envPwd = ($pwdFee > 0 && $baseAdult > 0) ? (float)round($envFee * ($pwdFee / $baseAdult)) : ($envFee > 0 ? (float)round($envFee * 0.8) : 0.0);
+
+            $entranceFees += ($numAdults * $baseAdult) + ($numKids * $kidsFee) + ($numSeniors * $seniorFee) + ($numPwds * $pwdFee);
+            $environmentalFees += ($numAdults * $envFee) + ($numKids * $envFee) + ($numSeniors * $envSenior) + ($numPwds * $envPwd);
+        }
         $siteFeesTotal = $entranceFees + $environmentalFees;
 
         // Extract primary destination municipality (default to San Juan)

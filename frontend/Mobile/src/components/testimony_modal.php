@@ -511,7 +511,7 @@ window.submitTestimony = async function(event) {
             }
 
             if (isRewardAwarded) {
-                const earnedPts = (data && data.earned_points !== undefined) ? parseInt(data.earned_points, 10) : 50;
+                const earnedPts = (data && data.earned_points !== undefined) ? parseInt(data.earned_points, 10) : 25;
                 let newTotal = null;
                 try {
                     const rawUser = localStorage.getItem('auth_user');

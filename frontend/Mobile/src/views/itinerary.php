@@ -638,7 +638,7 @@ try {
                     style="font-size:18px; font-weight:900; color:#ffffff; letter-spacing:-0.2px;">₱0.00</div>
                 <div id="trip-summary-total-cost-sub"
                     style="font-size:10.5px; color:rgba(255,255,255,0.85); font-weight:600; margin-top:2px;">
-                    Est. Total: ₱0.00
+                    Transit: ₱0.00
                 </div>
             </div>
             <button type="button" onclick="window.closeTransitSummaryOpensheet()"
@@ -2748,7 +2748,7 @@ try {
                     `;
                 }
                 if (totalFareEl) totalFareEl.textContent = '₱0.00';
-                if (totalCostSubEl) totalCostSubEl.textContent = 'Est. Total: ₱0.00';
+                if (totalCostSubEl) totalCostSubEl.textContent = 'Transit: ₱0.00';
                 modal.style.display = 'flex';
                 modal.style.pointerEvents = 'auto';
                 return;
@@ -2832,13 +2832,11 @@ try {
             let totalSiteFeesAllSpots = 0;
             let cardsHtml = '';
 
-            let totGeneralEntrance = 0;
             let totAdultEntrance = 0;
             let totChildEntrance = 0;
             let totPwdEntrance = 0;
             let totSeniorEntrance = 0;
 
-            let totGeneralEnvi = 0;
             let totAdultEnvi = 0;
             let totChildEnvi = 0;
             let totPwdEnvi = 0;
@@ -2893,17 +2891,15 @@ try {
                     totalSiteFeesAllSpots += spotPartyCost;
 
                     if (!isMaintenance) {
-                        totGeneralEntrance += (entranceFee > 0 ? entranceFee : baseAdult);
-                        totAdultEntrance += baseAdult;
-                        totChildEntrance += kidsFee;
-                        totPwdEntrance += pwdFee;
-                        totSeniorEntrance += seniorFee;
+                        totAdultEntrance += (numAdults * baseAdult);
+                        totChildEntrance += (numKids * kidsFee);
+                        totPwdEntrance += (numPwds * pwdFee);
+                        totSeniorEntrance += (numSeniors * seniorFee);
 
-                        totGeneralEnvi += envFee;
-                        totAdultEnvi += envFee;
-                        totChildEnvi += envFee;
-                        totPwdEnvi += spotEnvPwd;
-                        totSeniorEnvi += spotEnvSenior;
+                        totAdultEnvi += (numAdults * displayEnvi);
+                        totChildEnvi += (numKids * displayEnvi);
+                        totPwdEnvi += (numPwds * spotEnvPwd);
+                        totSeniorEnvi += (numSeniors * spotEnvSenior);
                     }
 
                     // Vehicle badge / icon
@@ -3013,7 +3009,7 @@ try {
 
             // Attached Fees Summary matching Image 7 inside Trip Cost Breakdown
             const fmtFee = (n) => Number.isInteger(n) ? n.toFixed(0) : n.toFixed(2);
-            const hasAnyFees = (totGeneralEntrance > 0 || totAdultEntrance > 0 || totGeneralEnvi > 0 || totalSiteFeesAllSpots > 0);
+            const hasAnyFees = (totAdultEntrance > 0 || totChildEntrance > 0 || totPwdEntrance > 0 || totSeniorEntrance > 0 || totAdultEnvi > 0 || totChildEnvi > 0 || totPwdEnvi > 0 || totSeniorEnvi > 0 || totalSiteFeesAllSpots > 0);
 
             let feesSummaryHtml = '';
             if (hasAnyFees) {
@@ -3033,9 +3029,6 @@ try {
                                     <i class="fa-solid fa-ticket" style="color:#0284c7; font-size:11px;"></i> Entrance Fee
                                 </div>
                                 <div style="display:flex; flex-direction:column; gap:4px; font-size:10.5px; color:#475569;">
-                                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                                        <span>General:</span><span style="font-weight:700; color:#0f172a;">₱${fmtFee(totGeneralEntrance)}</span>
-                                    </div>
                                     <div style="display:flex; justify-content:space-between; align-items:center;">
                                         <span>Adult:</span><span style="font-weight:700; color:#0f172a;">₱${fmtFee(totAdultEntrance)}</span>
                                     </div>
@@ -3057,9 +3050,6 @@ try {
                                     <i class="fa-solid fa-leaf" style="color:#059669; font-size:11px;"></i> Environmental Fee
                                 </div>
                                 <div style="display:flex; flex-direction:column; gap:4px; font-size:10.5px; color:#475569;">
-                                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                                        <span>General:</span><span style="font-weight:700; color:#0f172a;">₱${fmtFee(totGeneralEnvi)}</span>
-                                    </div>
                                     <div style="display:flex; justify-content:space-between; align-items:center;">
                                         <span>Adult:</span><span style="font-weight:700; color:#0f172a;">₱${fmtFee(totAdultEnvi)}</span>
                                     </div>
@@ -3119,7 +3109,7 @@ try {
                 totalFareEl.textContent = '₱' + totalTripEstimatedCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             }
             if (totalCostSubEl) {
-                totalCostSubEl.textContent = `Transit: ₱${grandTotal.toFixed(2)} • Site & Envi: ₱${totalSiteFeesAllSpots.toFixed(2)}`;
+                totalCostSubEl.textContent = `Transit: ₱${grandTotal.toFixed(2)}`;
                 totalCostSubEl.style.display = 'block';
             }
 
@@ -5514,6 +5504,98 @@ try {
 
             const destinations = draft.map(place => extractTrueSpotId(place)).filter(id => id > 0);
 
+            // Universal local storage updater so saved_trips ALWAYS displays the new trip instantly (0ms)
+            const persistTripLocally = function (tripObj) {
+                if (!tripObj) return;
+                try {
+                    const tripId = String(tripObj.id || tripObj.local_id || '');
+                    const nowIso = new Date().toISOString();
+                    const isQueued = Boolean(tripObj.is_offline_queued);
+                    const enrichedTrip = {
+                        ...tripObj,
+                        id: tripId,
+                        updated_at: tripObj.updated_at || nowIso,
+                        is_offline_queued: isQueued
+                    };
+
+                    if (typeof window.syncTripToAllStorage === 'function') {
+                        window.syncTripToAllStorage(enrichedTrip, { clearQueuedFlag: !isQueued, matchTitle: true });
+                    } else {
+                        // Direct fallback if main.js helper is not loaded
+                        ['intan_elyu_saved_trips', 'intan_elyu_offline_saved_trips_backup'].forEach(k => {
+                            let list = JSON.parse(localStorage.getItem(k) || '[]');
+                            if (!Array.isArray(list)) list = [];
+                            const idx = list.findIndex(t => t && (String(t.id) === tripId || String(t.local_id) === tripId || (editingId && String(t.id) === String(editingId))));
+                            if (idx >= 0) list[idx] = enrichedTrip;
+                            else list.unshift(enrichedTrip);
+                            localStorage.setItem(k, JSON.stringify(list));
+                        });
+                    }
+
+                    // Clean up any queued offline update in OfflineTripManager if saving online
+                    if (!isQueued && window.OfflineTripManager && typeof window.OfflineTripManager.removeQueuedTrip === 'function') {
+                        if (editingId) {
+                            window.OfflineTripManager.removeQueuedTrip('offline_edit_' + editingId);
+                            window.OfflineTripManager.removeQueuedTrip(editingId);
+                        }
+                        if (tripId) {
+                            window.OfflineTripManager.removeQueuedTrip(tripId);
+                        }
+                    }
+                } catch (err) {
+                    console.warn("persistTripLocally error:", err);
+                }
+            };
+
+            const cleanupItineraryDraft = function (finalTripId) {
+                sessionStorage.setItem('just_saved_trip_id', String(finalTripId));
+                sessionStorage.setItem('active_trip_transport_' + finalTripId, effectiveTransport);
+                localStorage.setItem('selected_trip_vehicle_' + finalTripId, effectiveTransport);
+                window._lastRenderedTripsSig = null;
+                window._isStartingTrip = false;
+
+                // Clear stale trip and dashboard caches so saved_trips renders fresh data without flashing old data
+                const curToken = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+                if (curToken) {
+                    const tKey = curToken.substring(0, 10);
+                    localStorage.removeItem('saved_trips_' + tKey);
+                    localStorage.removeItem('dashboard_saved_trips_' + tKey);
+                    localStorage.removeItem('dashboard_trips_' + tKey);
+                }
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key && (key.startsWith('saved_trips_') || key.startsWith('dashboard_saved_trips_') || key.startsWith('dashboard_trips_'))) {
+                        localStorage.removeItem(key);
+                        i--;
+                    }
+                }
+                window._cachedSavedTrips = null;
+
+                // Always clean up draft itinerary and pre-edit backup so old data never restores over new input!
+                localStorage.removeItem('intan_elyu_draft_itinerary');
+                localStorage.removeItem('intan_elyu_pre_edit_backup_draft');
+                sessionStorage.removeItem('intan_elyu_pre_edit_backup_draft');
+                sessionStorage.removeItem('editing_itinerary_id');
+                sessionStorage.removeItem('editing_trip_title');
+                sessionStorage.removeItem('editing_trip_date');
+                sessionStorage.removeItem('editing_trip_budget');
+                sessionStorage.removeItem('editing_trip_transport');
+                sessionStorage.removeItem('editing_trip_type');
+                sessionStorage.removeItem('editing_companion_males');
+                sessionStorage.removeItem('editing_companion_females');
+                sessionStorage.removeItem('editing_total_pax');
+                sessionStorage.removeItem('editing_transport_initialized');
+                localStorage.removeItem('intan_elyu_draft_leg_vehicles');
+                localStorage.removeItem('intan_elyu_draft_trip_transport');
+                localStorage.removeItem('intan_elyu_draft_trip_transports');
+                window.resetSaveModalInputs();
+                document.querySelectorAll('#save-trip-modal').forEach(m => { m.style.display = 'none'; });
+                document.body.classList.remove('itin-confirm-open');
+                const bottomNav = document.getElementById('bottom-navigation');
+                if (bottomNav) bottomNav.classList.remove('nav-hidden');
+                window.renderItinerary();
+            };
+
             let tripPayload = null;
             try {
                 const activeRouteType = document.querySelector('.btn-route-type.active')?.innerText || ((window.currentRouteType === 'alternative' || window.currentRouteType === 'alternate') ? 'Alternative' : 'Recommended');
@@ -5609,103 +5691,15 @@ try {
                         transport_mode: (legTransports && legTransports[idx] && legTransports[idx].transport_mode) ? legTransports[idx].transport_mode : finalTransport,
                         companion_males: compMales,
                         companion_females: compFemales,
+                        companion_adults: compAdults,
+                        companion_kids: compKids,
+                        companion_seniors: compSeniors,
+                        companion_pwds: compPwds,
                         total_pax: totalPax,
                         is_visited: false,
                         proof_image: null,
                         proof_status: null
                     }))
-                };
-
-                // Universal local storage updater so saved_trips ALWAYS displays the new trip instantly (0ms)
-                const persistTripLocally = function (tripObj) {
-                    if (!tripObj) return;
-                    try {
-                        const tripId = String(tripObj.id || tripObj.local_id || '');
-                        const nowIso = new Date().toISOString();
-                        const isQueued = Boolean(tripObj.is_offline_queued);
-                        const enrichedTrip = {
-                            ...tripObj,
-                            id: tripId,
-                            updated_at: tripObj.updated_at || nowIso,
-                            is_offline_queued: isQueued
-                        };
-
-                        if (typeof window.syncTripToAllStorage === 'function') {
-                            window.syncTripToAllStorage(enrichedTrip, { clearQueuedFlag: !isQueued, matchTitle: true });
-                        } else {
-                            // Direct fallback if main.js helper is not loaded
-                            ['intan_elyu_saved_trips', 'intan_elyu_offline_saved_trips_backup'].forEach(k => {
-                                let list = JSON.parse(localStorage.getItem(k) || '[]');
-                                if (!Array.isArray(list)) list = [];
-                                const idx = list.findIndex(t => t && (String(t.id) === tripId || String(t.local_id) === tripId || (editingId && String(t.id) === String(editingId))));
-                                if (idx >= 0) list[idx] = enrichedTrip;
-                                else list.unshift(enrichedTrip);
-                                localStorage.setItem(k, JSON.stringify(list));
-                            });
-                        }
-
-                        // Clean up any queued offline update in OfflineTripManager if saving online
-                        if (!isQueued && window.OfflineTripManager && typeof window.OfflineTripManager.removeQueuedTrip === 'function') {
-                            if (editingId) {
-                                window.OfflineTripManager.removeQueuedTrip('offline_edit_' + editingId);
-                                window.OfflineTripManager.removeQueuedTrip(editingId);
-                            }
-                            if (tripId) {
-                                window.OfflineTripManager.removeQueuedTrip(tripId);
-                            }
-                        }
-                    } catch (err) {
-                        console.warn("persistTripLocally error:", err);
-                    }
-                };
-
-                const cleanupItineraryDraft = function (finalTripId) {
-                    sessionStorage.setItem('just_saved_trip_id', String(finalTripId));
-                    sessionStorage.setItem('active_trip_transport_' + finalTripId, effectiveTransport);
-                    localStorage.setItem('selected_trip_vehicle_' + finalTripId, effectiveTransport);
-                    window._lastRenderedTripsSig = null;
-                    window._isStartingTrip = false;
-
-                    // Clear stale trip and dashboard caches so saved_trips renders fresh data without flashing old data
-                    const curToken = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
-                    if (curToken) {
-                        const tKey = curToken.substring(0, 10);
-                        localStorage.removeItem('saved_trips_' + tKey);
-                        localStorage.removeItem('dashboard_saved_trips_' + tKey);
-                        localStorage.removeItem('dashboard_trips_' + tKey);
-                    }
-                    for (let i = 0; i < localStorage.length; i++) {
-                        const key = localStorage.key(i);
-                        if (key && (key.startsWith('saved_trips_') || key.startsWith('dashboard_saved_trips_') || key.startsWith('dashboard_trips_'))) {
-                            localStorage.removeItem(key);
-                            i--;
-                        }
-                    }
-                    window._cachedSavedTrips = null;
-
-                    // Always clean up draft itinerary and pre-edit backup so old data never restores over new input!
-                    localStorage.removeItem('intan_elyu_draft_itinerary');
-                    localStorage.removeItem('intan_elyu_pre_edit_backup_draft');
-                    sessionStorage.removeItem('intan_elyu_pre_edit_backup_draft');
-                    sessionStorage.removeItem('editing_itinerary_id');
-                    sessionStorage.removeItem('editing_trip_title');
-                    sessionStorage.removeItem('editing_trip_date');
-                    sessionStorage.removeItem('editing_trip_budget');
-                    sessionStorage.removeItem('editing_trip_transport');
-                    sessionStorage.removeItem('editing_trip_type');
-                    sessionStorage.removeItem('editing_companion_males');
-                    sessionStorage.removeItem('editing_companion_females');
-                    sessionStorage.removeItem('editing_total_pax');
-                    sessionStorage.removeItem('editing_transport_initialized');
-                    localStorage.removeItem('intan_elyu_draft_leg_vehicles');
-                    localStorage.removeItem('intan_elyu_draft_trip_transport');
-                    localStorage.removeItem('intan_elyu_draft_trip_transports');
-                    window.resetSaveModalInputs();
-                    document.querySelectorAll('#save-trip-modal').forEach(m => { m.style.display = 'none'; });
-                    document.body.classList.remove('itin-confirm-open');
-                    const bottomNav = document.getElementById('bottom-navigation');
-                    if (bottomNav) bottomNav.classList.remove('nav-hidden');
-                    window.renderItinerary();
                 };
 
                 // Fast offline trip queueing or Guest mode local device save
@@ -6306,16 +6300,45 @@ try {
         window.updateDraftBudget = function (draft) {
             if (!draft) draft = (typeof window.getEffectiveDraft === 'function') ? window.getEffectiveDraft() : JSON.parse(localStorage.getItem('intan_elyu_draft_itinerary') || '[]');
             let actCost = 0, foodCost = 0, transCost = 0;
+            const isGroup = document.querySelector('input[name="trip_companion_type"]:checked')?.value === 'group';
+            const compAdults = isGroup ? Math.max(0, parseInt(document.getElementById('companion-adults-count')?.textContent || '0', 10)) : 0;
+            const compKids = isGroup ? Math.max(0, parseInt(document.getElementById('companion-kids-count')?.textContent || '0', 10)) : 0;
+            const compSeniors = isGroup ? Math.max(0, parseInt(document.getElementById('companion-seniors-count')?.textContent || '0', 10)) : 0;
+            const compPwds = isGroup ? Math.max(0, parseInt(document.getElementById('companion-pwds-count')?.textContent || '0', 10)) : 0;
+            const numAdults = 1 + compAdults;
+            const numKids = compKids;
+            const numSeniors = compSeniors;
+            const numPwds = compPwds;
+            const totalTravelers = numAdults + numKids + numSeniors + numPwds;
+
             // NOTE: Sites under maintenance are closed/restricted and do NOT charge entrance, activity or food fees (₱0.00).
             // Sites that are simply Closed by operating hours (e.g. 6am - 5pm outside operating hours) STILL get their site fees, option fees, and category.
             draft.forEach(item => {
                 if (typeof window.isSpotUnderMaintenance === 'function' && window.isSpotUnderMaintenance(item)) {
                     return; // Exclude Under Maintenance
                 }
-                const adult = parseFloat(item.adult_fee || item.adultFee || 0);
-                const gen = parseFloat(item.entrance_fee || item.fee || 0);
-                actCost += (adult > 0 ? adult : gen);
-                foodCost += parseFloat(item.avg_food_cost) || 150;
+                const adultFee = parseFloat(item.adult_fee || item.adultFee || 0);
+                const entranceFee = parseFloat(item.entrance_fee || item.entranceFee || item.fee || 0);
+                const baseAdult = adultFee > 0 ? adultFee : (entranceFee > 0 ? entranceFee : 0);
+                const kidsFee = (item.kids_fee !== undefined && item.kids_fee !== null && item.kids_fee !== '')
+                    ? (parseFloat(item.kids_fee) || 0)
+                    : baseAdult;
+                const seniorFee = (item.senior_citizen_fee !== undefined && item.senior_citizen_fee !== null && item.senior_citizen_fee !== '' && parseFloat(item.senior_citizen_fee) > 0)
+                    ? parseFloat(item.senior_citizen_fee)
+                    : (baseAdult > 0 ? baseAdult * 0.8 : 0);
+                const pwdFee = (item.pwd_fee !== undefined && item.pwd_fee !== null && item.pwd_fee !== '' && parseFloat(item.pwd_fee) > 0)
+                    ? parseFloat(item.pwd_fee)
+                    : (baseAdult > 0 ? baseAdult * 0.8 : 0);
+                const envFee = parseFloat(item.environmental_fee || item.environmentalFee || item.envFee || 0) || 0;
+
+                const spotEnvSenior = (seniorFee > 0 && baseAdult > 0) ? Math.round(envFee * (seniorFee / baseAdult)) : (envFee > 0 ? Math.round(envFee * 0.8) : 0);
+                const spotEnvPwd = (pwdFee > 0 && baseAdult > 0) ? Math.round(envFee * (pwdFee / baseAdult)) : (envFee > 0 ? Math.round(envFee * 0.8) : 0);
+
+                const spotEntrance = (numAdults * baseAdult) + (numKids * kidsFee) + (numSeniors * seniorFee) + (numPwds * pwdFee);
+                const spotEnvi = (numAdults * envFee) + (numKids * envFee) + (numSeniors * spotEnvSenior) + (numPwds * spotEnvPwd);
+
+                actCost += (spotEntrance + spotEnvi);
+                foodCost += (parseFloat(item.avg_food_cost) || 150) * totalTravelers;
             });
 
             // Calculate dynamic transit cost based on current draft sequence and selected transport
