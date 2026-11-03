@@ -2802,19 +2802,19 @@ $activeTab = 'profile';
                 }
             </style>
             <div
-                style="background:#eff6ff; border:1.5px dashed #bfdbfe; border-radius:20px; padding:16px; margin-bottom:14px;">
+                style="background:#eff6ff; border:1.5px dashed #bfdbfe; border-radius:20px; padding:16px; margin-bottom:14px; position:relative; overflow:hidden;">
+                <div id="active-qr-stamp-overlay"
+                    style="display:none; position:absolute; inset:0; align-items:center; justify-content:center; pointer-events:none; z-index:20;">
+                    <div id="active-qr-stamp-badge"
+                        style="border:4px double #dc2626; color:#dc2626; background:rgba(255,255,255,0.95); padding:10px 26px; border-radius:14px; font-weight:900; font-size:22px; letter-spacing:3px; text-transform:uppercase; transform:rotate(-14deg); box-shadow:0 8px 26px rgba(220,38,38,0.28); display:flex; flex-direction:column; align-items:center; line-height:1.15;">
+                        <span style="font-size:10px; letter-spacing:2px; font-weight:800; color:#b91c1c; margin-bottom:3px;"><i class="fa-solid fa-certificate"></i> VERIFIED</span>
+                        <span>REDEEMED</span>
+                    </div>
+                </div>
                 <div
                     style="background:#ffffff; border-radius:14px; padding:10px; width:170px; height:170px; margin:0 auto 12px; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 14px rgba(0,0,0,0.08); border:1px solid #e2e8f0; position:relative; overflow:hidden;">
                     <img id="active-qr-modal-img" src="" alt="Voucher QR Code"
                         style="width:100%; height:100%; object-fit:contain; transition:filter 0.3s ease, opacity 0.3s ease;">
-                    <div id="active-qr-stamp-overlay"
-                        style="display:none; position:absolute; inset:0; align-items:center; justify-content:center; pointer-events:none; z-index:5;">
-                        <div id="active-qr-stamp-badge"
-                            style="border:3px double #dc2626; color:#dc2626; background:rgba(255,255,255,0.93); padding:6px 14px; border-radius:10px; font-weight:900; font-size:15px; letter-spacing:2px; text-transform:uppercase; transform:rotate(-14deg); box-shadow:0 4px 14px rgba(220,38,38,0.22); display:flex; flex-direction:column; align-items:center; line-height:1.1;">
-                            <span style="font-size:8px; letter-spacing:1.2px; font-weight:800; color:#b91c1c; margin-bottom:2px;"><i class="fa-solid fa-certificate"></i> VERIFIED</span>
-                            <span>REDEEMED</span>
-                        </div>
-                    </div>
                 </div>
 
                 <!-- Verified Digital Pass Badge -->

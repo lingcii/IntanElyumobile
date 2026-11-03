@@ -192,15 +192,15 @@ $backRoute = 'profile';
                     100% { opacity: 1; transform: scale(1) rotate(-14deg); }
                 }
             </style>
-            <div id="modal-claimed-box" style="display: none; background: #eff6ff !important; border: 1.5px dashed #bfdbfe; border-radius: 18px; padding: 16px; margin-bottom: 14px; text-align: center;">
+            <div id="modal-claimed-box" style="display: none; background: #eff6ff !important; border: 1.5px dashed #bfdbfe; border-radius: 18px; padding: 16px; margin-bottom: 14px; text-align: center; position: relative; overflow: hidden;">
+                <div id="modal-qr-stamp-overlay" style="display: none; position: absolute; inset: 0; align-items: center; justify-content: center; pointer-events: none; z-index: 20;">
+                    <div id="modal-qr-stamp-badge" style="border: 4px double #dc2626; color: #dc2626; background: rgba(255,255,255,0.95); padding: 10px 26px; border-radius: 14px; font-weight: 900; font-size: 22px; letter-spacing: 3px; text-transform: uppercase; transform: rotate(-14deg); box-shadow: 0 8px 26px rgba(220,38,38,0.28); display: flex; flex-direction: column; align-items: center; line-height: 1.15;">
+                        <span style="font-size: 10px; letter-spacing: 2px; font-weight: 800; color: #b91c1c; margin-bottom: 3px;"><i class="fa-solid fa-certificate"></i> VERIFIED</span>
+                        <span>REDEEMED</span>
+                    </div>
+                </div>
                 <div style="background: #ffffff; border-radius: 14px; padding: 10px; width: 150px; height: 150px; margin: 0 auto 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 14px rgba(0,0,0,0.08); border: 1px solid #e2e8f0; position: relative; overflow: hidden;">
                     <img id="modal-qr-img" src="" alt="Voucher QR Code" style="width: 100%; height: 100%; object-fit: contain; transition: filter 0.3s ease, opacity 0.3s ease;" onerror="this.style.display='none'">
-                    <div id="modal-qr-stamp-overlay" style="display: none; position: absolute; inset: 0; align-items: center; justify-content: center; pointer-events: none; z-index: 5;">
-                        <div id="modal-qr-stamp-badge" style="border: 3px double #dc2626; color: #dc2626; background: rgba(255,255,255,0.93); padding: 5px 12px; border-radius: 10px; font-weight: 900; font-size: 13.5px; letter-spacing: 1.8px; text-transform: uppercase; transform: rotate(-14deg); box-shadow: 0 4px 14px rgba(220,38,38,0.22); display: flex; flex-direction: column; align-items: center; line-height: 1.1;">
-                            <span style="font-size: 7.5px; letter-spacing: 1px; font-weight: 800; color: #b91c1c; margin-bottom: 2px;"><i class="fa-solid fa-certificate"></i> VERIFIED</span>
-                            <span>REDEEMED</span>
-                        </div>
-                    </div>
                 </div>
                 
                 <!-- Verified Digital Pass Badge -->
@@ -228,7 +228,7 @@ $backRoute = 'profile';
                     </div>
                 </div>
 
-                <p style="margin: 8px 0 0 0; font-size: 11.5px; color: #64748b; line-height: 1.45;">
+                <p id="modal-qr-notice" style="margin: 8px 0 0 0; font-size: 11.5px; color: #64748b; line-height: 1.45;">
                     Present this QR code directly to merchant or staff at checkout for instant scanning.
                 </p>
 
@@ -1206,6 +1206,8 @@ function startLiveRedemptionSync(code) {
                         void stampBadge.offsetWidth;
                         stampBadge.style.animation = 'qrStampSlam 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards';
                     }
+                    const qrNotice = document.getElementById('modal-qr-notice');
+                    if (qrNotice) qrNotice.style.display = 'none';
                     if (window.confetti) {
                         window.confetti({ particleCount: 50, spread: 60, origin: { y: 0.6 } });
                     }
@@ -1417,6 +1419,10 @@ function openVoucherModal(id) {
             }
             if (stampBadge && isRedeemedOnWeb) {
                 stampBadge.style.animation = 'none';
+            }
+            const qrNotice = document.getElementById('modal-qr-notice');
+            if (qrNotice) {
+                qrNotice.style.display = isRedeemedOnWeb ? 'none' : 'block';
             }
             if (isRedeemedOnWeb && statusBadge) {
                 statusBadge.innerHTML = '<i class="fa-solid fa-check-double" style="color:#15803d; font-size:13px;"></i> Voucher Already Redeemed & Verified';

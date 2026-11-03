@@ -1438,7 +1438,7 @@ if (is_dir($imgDir)) {
                         }, 100);
 
                         setTimeout(() => {
-                            const pendingStr = localStorage.getItem('intan_elyu_pending_route');
+                            const pendingStr = localStorage.getItem('intan_elyu_pending_route'); if (pendingStr) window._suppressAutoCenterGPS = true;
                             if (pendingStr) {
                                 localStorage.removeItem('intan_elyu_pending_route');
                                 try {
@@ -1457,7 +1457,7 @@ if (is_dir($imgDir)) {
                                 } catch (e) { console.error('Error parsing pending route:', e); }
                             }
 
-                            const viewStr = localStorage.getItem('intan_elyu_view_destination');
+                            const viewStr = localStorage.getItem('intan_elyu_view_destination'); if (viewStr) window._suppressAutoCenterGPS = true;
                             if (viewStr) {
                                 localStorage.removeItem('intan_elyu_view_destination');
                                 try {
@@ -2883,7 +2883,8 @@ if (is_dir($imgDir)) {
                     }
 
                     // If this is the first live GPS signal, smoothly center the map on the user's real position
-                    if (isRealGps && !_hasAutoCenteredGPS) {
+                    const _sheetEl = document.getElementById('place-details-sheet'); const _suppressGpsFly = Boolean(window._suppressAutoCenterGPS || window.currentDestinationForRoute || (_sheetEl && _sheetEl.classList.contains('active')) || localStorage.getItem('intan_elyu_view_destination') || localStorage.getItem('intan_elyu_pending_route')); if (_suppressGpsFly) _hasAutoCenteredGPS = true;
+                    if (isRealGps && !_hasAutoCenteredGPS && !_suppressGpsFly && (!e.detail || !e.detail.accuracy || Number(e.detail.accuracy) <= 500)) {
                         _hasAutoCenteredGPS = true;
                         window.mapInstance.flyTo({ center: [parseFloat(lng), parseFloat(lat)], zoom: 15, duration: 1200 });
                         if (typeof showToast === 'function') {
@@ -3849,7 +3850,7 @@ if (is_dir($imgDir)) {
                 scrollArea.scrollTop = 0;
                 scrollArea.scrollLeft = 0;
             }
-            window.currentDestinationForRoute = locationData;
+            window.currentDestinationForRoute = locationData; window._suppressAutoCenterGPS = true;
             if (window.activePopup) {
                 window.activePopup.remove();
             }

@@ -474,6 +474,58 @@ include_once __DIR__ . '/../components/testimony_modal.php';
         const TRIP_MAP_CHECKIN_RADIUS_METERS = 70;
         const TRIP_MAP_MAX_GPS_ACCURACY_METERS = 1000;
 
+        if (typeof window.spotHasPolygonBoundary !== 'function') {
+            window.spotHasPolygonBoundary = function (geoJson) {
+                if (!geoJson) return false;
+                try {
+                    let geo = typeof geoJson === 'string' ? JSON.parse(geoJson) : geoJson;
+                    if (typeof geo === 'string') geo = JSON.parse(geo);
+                    if (!geo || typeof geo !== 'object') return false;
+                    if (geo.type === 'Feature' && geo.geometry) geo = geo.geometry;
+                    else if (geo.type === 'FeatureCollection' && Array.isArray(geo.features) && geo.features[0]?.geometry) geo = geo.features[0].geometry;
+                    if (geo.type === 'Polygon' && Array.isArray(geo.coordinates) && geo.coordinates.length > 0 && Array.isArray(geo.coordinates[0]) && geo.coordinates[0].length >= 3) return true;
+                    if (geo.type === 'MultiPolygon' && Array.isArray(geo.coordinates) && geo.coordinates.length > 0) return geo.coordinates.some(poly => Array.isArray(poly) && Array.isArray(poly[0]) && poly[0].length >= 3);
+                } catch (e) { return false; }
+                return false;
+            };
+        }
+
+        if (typeof window.isPointInSpotPolygon !== 'function') {
+            window.isPointInSpotPolygon = function (lat, lng, geoJson, toleranceMeters = 20) {
+                const pLat = Number(lat), pLng = Number(lng);
+                if (!geoJson || lat == null || lng == null || !Number.isFinite(pLat) || !Number.isFinite(pLng)) return false;
+                try {
+                    let geo = typeof geoJson === 'string' ? JSON.parse(geoJson) : geoJson;
+                    if (typeof geo === 'string') geo = JSON.parse(geo);
+                    if (!geo || typeof geo !== 'object') return false;
+                    if (geo.type === 'Feature' && geo.geometry) geo = geo.geometry;
+                    else if (geo.type === 'FeatureCollection' && Array.isArray(geo.features) && geo.features[0]?.geometry) geo = geo.features[0].geometry;
+                    const mPerDegLat = 111320, mPerDegLng = 111320 * Math.cos(pLat * Math.PI / 180);
+                    const checkRing = (ring) => {
+                        if (!Array.isArray(ring) || ring.length < 3) return false;
+                        let inside = false, minEdgeDist = Infinity;
+                        for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+                            const ptI = ring[i], ptJ = ring[j];
+                            if (!Array.isArray(ptI) || !Array.isArray(ptJ)) continue;
+                            const xi = Number(ptI[0]), yi = Number(ptI[1]), xj = Number(ptJ[0]), yj = Number(ptJ[1]);
+                            if (((yi > pLat) !== (yj > pLat)) && (pLng < (xj - xi) * (pLat - yi) / ((yj - yi) || 1e-12) + xi)) inside = !inside;
+                            if (toleranceMeters > 0) {
+                                const ax = (xi - pLng) * mPerDegLng, ay = (yi - pLat) * mPerDegLat, bx = (xj - pLng) * mPerDegLng, by = (yj - pLat) * mPerDegLat;
+                                const dx = bx - ax, dy = by - ay, lenSq = dx * dx + dy * dy;
+                                const t = lenSq > 0 ? Math.max(0, Math.min(1, -(ax * dx + ay * dy) / lenSq)) : 0;
+                                const d = Math.hypot(ax + t * dx, ay + t * dy);
+                                if (d < minEdgeDist) minEdgeDist = d;
+                            }
+                        }
+                        return inside || (toleranceMeters > 0 && minEdgeDist <= toleranceMeters);
+                    };
+                    if (geo.type === 'Polygon' && Array.isArray(geo.coordinates) && geo.coordinates[0]) return checkRing(geo.coordinates[0]);
+                    if (geo.type === 'MultiPolygon' && Array.isArray(geo.coordinates)) return geo.coordinates.some(poly => poly && poly[0] && checkRing(poly[0]));
+                } catch (e) { return false; }
+                return false;
+            };
+        }
+
         window.updateTripMapCheckinAvailability = function (lat, lng, accuracy = null) {
             const userLat = Number(lat);
             const userLng = Number(lng);
@@ -2347,6 +2399,10 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                 restoreCheckinButton();
             };
 
+            if (window._tripLastGpsFix && Number.isFinite(window._tripLastGpsFix.lat) && Number.isFinite(window._tripLastGpsFix.lng) && (!Number.isFinite(window._tripLastGpsFix.accuracy) || window._tripLastGpsFix.accuracy <= 200)) {
+                checkAndProceed(window._tripLastGpsFix.lat, window._tripLastGpsFix.lng, window._tripLastGpsFix.accuracy);
+                return;
+            }
             const cachedPosition = window.deviceLastPos;
             if (cachedPosition && cachedPosition.coords &&
                 Date.now() - Number(cachedPosition.timestamp || 0) < 60000 &&

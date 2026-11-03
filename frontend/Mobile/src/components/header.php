@@ -563,10 +563,21 @@
 
     window.cleanNotifMessage = function(msg) {
         if (!msg) return '';
-        return msg
+        let cleaned = msg
             .replace(/\s*was confirmed by admin/gi, ' was confirmed')
-            .replace(/\s*(?:&|and|,)\s*\+?\d+\s*Points\.?/gi, '.')
-            .replace(/\s*\+?\d+\s*Points\.?/gi, '')
+            .replace(/\s*was approved by admin/gi, ' was approved');
+
+        if (/You earned/i.test(cleaned)) {
+            cleaned = cleaned.replace(/You earned(?:\s*\+?(\d+)\s*Points?\.?)?/gi, (match, pts) => {
+                return pts ? `You earned +${pts} Points!` : 'You earned +50 Points!';
+            });
+        } else {
+            cleaned = cleaned
+                .replace(/\s*(?:&|and|,)\s*\+?\d+\s*Points\.?/gi, '.')
+                .replace(/\.\.+/g, '.');
+        }
+
+        return cleaned
             .replace(/\.\.+/g, '.')
             .replace(/\s+/g, ' ')
             .trim();

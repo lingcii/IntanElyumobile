@@ -759,7 +759,7 @@ if (is_dir($imgDir)) {
         const cStatus = String(dest.classification_status || '').toUpperCase();
         const badgeText = (cStatus === 'EMERGE' || cStatus === 'EMERGING') ? 'EMERGING' : (cStatus === 'POTENTIAL' ? 'POTENTIAL' : 'EXISTING');
         const badgeBg = (cStatus === 'EMERGE' || cStatus === 'EMERGING') ? '#ef4444' : (cStatus === 'POTENTIAL' ? '#10b981' : '#0284c7');
-        const encodedDest = encodeURIComponent(JSON.stringify(dest));
+        const encodedDest = encodeURIComponent(JSON.stringify(dest)).replace(/'/g, '%27');
         const muni = dest.municipality || dest.location || '';
         const ratingRaw = (dest.rating !== undefined && dest.rating !== null && dest.rating !== '') ? dest.rating : dest.reviews_avg_rating;
         const ratingNum = parseFloat(ratingRaw);
@@ -776,7 +776,7 @@ if (is_dir($imgDir)) {
         return `
             <div class="fav-card" data-category="${(dest.category || '').replace(/"/g, '&quot;')}" data-name="${(dest.name || '').replace(/"/g, '&quot;')}" data-municipality="${(dest.municipality || dest.location || '').replace(/"/g, '&quot;')}" onclick="window.viewDestinationOnMap('${encodedDest}')">
                 <span class="spot-card-badge" style="background:${badgeBg}; position:absolute; top:8px; left:8px; z-index:3;">${badgeText}</span>
-                <img src="${img}" alt="${(dest.name || '').replace(/"/g, '&quot;')}" loading="lazy" decoding="async" onerror="if (window.handleImgError) window.handleImgError(this, '${(dest.name || '').replace(/'/g, "\'")}', '${(dest.municipality || '').replace(/'/g, "\'")}'); else this.src='assets/img/no_image.svg';">
+                <img src="${img}" alt="${(dest.name || '').replace(/"/g, '&quot;')}" loading="lazy" decoding="async" onerror="if (window.handleImgError) window.handleImgError(this, '${(dest.name || '').replace(/'/g, "\\'")}', '${(dest.municipality || '').replace(/'/g, "\\'")}'); else this.src='assets/img/no_image.svg';">
                 <div class="fav-card-overlay">
                     <span class="fav-card-name">${dest.name}</span>
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-top:3px;">
@@ -1708,7 +1708,7 @@ window.applyTouristSitesFilterModal = function() {
                             else if (dest.distance < 1.0) distText = `${Math.round((dest.distance * 1000) / 10) * 10}m away`;
                             else distText = `${dest.distance.toFixed(1)} km away`;
                         }
-                        const encodedDest = encodeURIComponent(JSON.stringify(dest));
+                        const encodedDest = encodeURIComponent(JSON.stringify(dest)).replace(/'/g, '%27');
                         return `
                             <div class="fav-card" data-category="${(dest.category || '').replace(/"/g, '&quot;')}" data-name="${(dest.name || '').replace(/"/g, '&quot;')}" data-municipality="${(dest.municipality || dest.location || '').replace(/"/g, '&quot;')}" onclick="window.viewDestinationOnMap('${encodedDest}')">
                                 ${badgeHtml}
@@ -1753,7 +1753,7 @@ window.applyTouristSitesFilterModal = function() {
         const reviewCount = isNaN(count) ? 0 : count;
         const cleanDesc = dest.description ? dest.description.replace(/<[^>]*>?/gm, '').trim() : '';
         const snippet = cleanDesc.length > 0 ? (cleanDesc.length > 75 ? cleanDesc.substring(0, 75) + '...' : cleanDesc) : 'A hidden gem with crystal clear waters and natural beauty.';
-        const encodedDest = encodeURIComponent(JSON.stringify(dest));
+        const encodedDest = encodeURIComponent(JSON.stringify(dest)).replace(/'/g, '%27');
         const isFav = window.isSpotFavorited ? window.isSpotFavorited(dest.id) : false;
 
         const ratingHtml = hasValidRating ? `
@@ -1768,7 +1768,7 @@ window.applyTouristSitesFilterModal = function() {
             <div class="all-spot-card-horizontal" data-category="${(dest.category || '').replace(/"/g, '&quot;')}" data-name="${(dest.name || '').replace(/"/g, '&quot;')}" data-municipality="${(muni || '').replace(/"/g, '&quot;')}" onclick="window.viewDestinationOnMap('${encodedDest}')">
                 <div class="spot-card-thumb-wrap">
                     <span class="spot-card-badge" style="background:${badgeBg};">${badgeText}</span>
-                    <img src="${img}" alt="${(dest.name || '').replace(/"/g, '&quot;')}" loading="lazy" decoding="async" onerror="if (window.handleImgError) window.handleImgError(this, '${(dest.name || '').replace(/'/g, "\'")}', '${(dest.municipality || '').replace(/'/g, "\'")}'); else this.src='assets/img/no_image.svg';">
+                    <img src="${img}" alt="${(dest.name || '').replace(/"/g, '&quot;')}" loading="lazy" decoding="async" onerror="if (window.handleImgError) window.handleImgError(this, '${(dest.name || '').replace(/'/g, "\\'")}', '${(dest.municipality || '').replace(/'/g, "\\'")}'); else this.src='assets/img/no_image.svg';">
                 </div>
                 <div class="spot-card-body">
                     <div class="spot-card-top-row">
@@ -1980,7 +1980,7 @@ window.applyTouristSitesFilterModal = function() {
                     const img = typeof window.getDestImage === 'function'
                         ? window.getDestImage(dest, 150)
                         : (dest.thumbnail_url || dest.image_url || dest.image || 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=150');
-                    const encodedDest = encodeURIComponent(JSON.stringify(dest));
+                    const encodedDest = encodeURIComponent(JSON.stringify(dest)).replace(/'/g, '%27');
                     const locName = dest.location || dest.municipality || 'La Union';
 
                     const cls = (dest.classification || '').toLowerCase();
@@ -2994,7 +2994,7 @@ window.applyTouristSitesFilterModal = function() {
                     trendEl.innerHTML = '';
                     topSpots.forEach(dest => {
                         const img = window.getDestImage(dest, 600);
-                        const encodedDest = encodeURIComponent(JSON.stringify(dest));
+                        const encodedDest = encodeURIComponent(JSON.stringify(dest)).replace(/'/g, '%27');
                         const muni = dest.municipality || dest.location || '';
                         trendEl.innerHTML += `
                         <div class="fav-card" data-category="${(dest.category || '').replace(/"/g, '&quot;')}" onclick="window.viewDestinationOnMap('${encodedDest}')">
@@ -3317,7 +3317,7 @@ window.applyTouristSitesFilterModal = function() {
                         savedPlacesList.forEach(dest => {
                             const img = window.getDestImage(dest, 600);
                             const badgeHtml = dest.classification_status ? `<div style="position: absolute; top: 8px; left: 8px; z-index: 10; padding: 2px 6px; border-radius: 8px; font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#0284c7' : (dest.classification_status === 'EMERGE' ? '#ef4444' : '#10b981')}; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</div>` : '';
-                            const encodedDest = encodeURIComponent(JSON.stringify(dest));
+                            const encodedDest = encodeURIComponent(JSON.stringify(dest)).replace(/'/g, '%27');
                             savedContainer.innerHTML += `
                             <div class="fav-card" data-category="${(dest.category || '').replace(/"/g, '&quot;')}" data-name="${(dest.name || '').replace(/"/g, '&quot;')}" data-municipality="${(dest.municipality || dest.location || '').replace(/"/g, '&quot;')}" onclick="window.viewDestinationOnMap('${encodedDest}')">
                                 ${badgeHtml}
@@ -3647,7 +3647,7 @@ window.applyTouristSitesFilterModal = function() {
                                 distText = `${dest.distance.toFixed(1)} km away`;
                             }
 
-                            const encodedDest = encodeURIComponent(JSON.stringify(dest));
+                            const encodedDest = encodeURIComponent(JSON.stringify(dest)).replace(/'/g, '%27');
                             nearContainer.innerHTML += `
                             <div class="fav-card" data-id="${dest.id}" data-category="${(dest.category || '').replace(/"/g, '&quot;')}" data-name="${(dest.name || '').replace(/"/g, '&quot;')}" data-municipality="${(dest.municipality || dest.location || '').replace(/"/g, '&quot;')}" onclick="window.viewDestinationOnMap('${encodedDest}')">
                                 ${badgeHtml}
@@ -4148,7 +4148,15 @@ window.applyTouristSitesFilterModal = function() {
 
     window.viewDestinationOnMap = function (encodedDest) {
         try {
-            const dest = JSON.parse(decodeURIComponent(encodedDest));
+            let dest = null;
+            if (typeof encodedDest === 'object' && encodedDest !== null) {
+                dest = encodedDest;
+            } else if (typeof encodedDest === 'number') {
+                dest = (window.allTouristSpots || []).find(s => Number(s.id) === Number(encodedDest));
+            } else if (typeof encodedDest === 'string') {
+                dest = JSON.parse(decodeURIComponent(encodedDest));
+            }
+            if (!dest) return;
             localStorage.setItem('intan_elyu_view_destination', JSON.stringify(dest));
             if (typeof window.navigateTo === 'function') {
                 window.navigateTo('map');

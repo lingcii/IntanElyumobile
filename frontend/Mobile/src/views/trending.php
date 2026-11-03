@@ -550,7 +550,7 @@ if (is_dir($imgDir)) {
                     </div>`;
 
                 html += `
-                <div class="trending-card" style="animation-delay:${Math.min(i * 0.04, 0.35)}s" onclick="window.viewTrendingDest(${dest.id}, '${dest.name.replace(/'/g, "\\'")}', '${encodeURIComponent(JSON.stringify(dest))}')">
+                <div class="trending-card" style="animation-delay:${Math.min(i * 0.04, 0.35)}s" onclick="window.viewTrendingDest(${dest.id}, '${dest.name.replace(/'/g, "\\'")}', '${encodeURIComponent(JSON.stringify(dest)).replace(/'/g, '%27')}')">
                     ${dest.classification_status ? `<div class="badge" style="background:${badgeColor};">${badgeLabel}</div>` : ''}
                     ${iconHtml}
                     <img src="${img}" alt="" loading="lazy" decoding="async" onerror="if (window.handleImgError) window.handleImgError(this, '${(dest.name || '').replace(/'/g, "\\'")}', '${(dest.municipality || '').replace(/'/g, "\\'")}'); else this.src='assets/img/no_image.svg';">
@@ -649,7 +649,8 @@ if (is_dir($imgDir)) {
 
         window.viewTrendingDest = function (id, name, encodedDest) {
             try {
-                const dest = JSON.parse(decodeURIComponent(encodedDest));
+                const dest = (typeof encodedDest === 'object' && encodedDest !== null) ? encodedDest : (encodedDest ? JSON.parse(decodeURIComponent(encodedDest)) : ((allDestinations || []).concat(trendingSpots || []).find(s => Number(s.id) === Number(id))));
+                if (!dest) return;
                 localStorage.setItem('intan_elyu_view_destination', JSON.stringify(dest));
                 if (typeof window.navigateTo === 'function') {
                     window.navigateTo('map');

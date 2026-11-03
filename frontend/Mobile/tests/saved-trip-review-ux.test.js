@@ -206,4 +206,39 @@ assert.match(itineraryController, /Completed trips cannot be edited/,
 assert.match(itineraryController, /Trips with checked-in destinations cannot be edited/,
     'backend must reject editing trips with checked-in destinations');
 
+const header = fs.readFileSync(path.join(root, 'src', 'components', 'header.php'), 'utf8');
+const cleanNotifStart = header.indexOf('window.cleanNotifMessage = function');
+const cleanNotifEnd = header.indexOf('window.getNotifTimestamp', cleanNotifStart);
+const cleanNotifContext = { window: {} };
+vm.runInNewContext(header.slice(cleanNotifStart, cleanNotifEnd), cleanNotifContext);
+const cleanNotif = cleanNotifContext.window.cleanNotifMessage;
+
+assert.equal(
+    cleanNotif('Your proof submission for Pagoda Hill has been approved! You earned 50 points.'),
+    'Your proof submission for Pagoda Hill has been approved! You earned +50 Points!'
+);
+assert.equal(
+    cleanNotif('Your proof submission for Pagoda Hill has been approved! You earned'),
+    'Your proof submission for Pagoda Hill has been approved! You earned +50 Points!'
+);
+
+const dashboard = fs.readFileSync(path.join(root, 'src', 'views', 'dashboard.php'), 'utf8');
+assert.doesNotMatch(dashboard, /encodeURIComponent\(JSON\.stringify\(dest\)\)(?!\.replace\(\/'\/g,\s*'%27'\))/,
+    'all destination card inline payloads in dashboard.php must escape single quotes with %27');
+
+const polyStart = main.indexOf('window.spotHasPolygonBoundary = function');
+const polyEnd = main.indexOf('window.executeLocationCheckIn = function', polyStart);
+assert.ok(polyStart > -1 && polyEnd > polyStart, 'spotHasPolygonBoundary and isPointInSpotPolygon must be defined at top-level before executeLocationCheckIn');
+const polyContext = { window: {} };
+vm.runInNewContext(main.slice(polyStart, polyEnd), polyContext);
+const boardingPolygon = {
+    type: 'Polygon',
+    coordinates: [[[120.309889, 16.637810], [120.310270, 16.636253], [120.311225, 16.634680], [120.314165, 16.636095], [120.314138, 16.637534], [120.314058, 16.638459], [120.309889, 16.637810]]]
+};
+assert.equal(polyContext.window.spotHasPolygonBoundary(boardingPolygon), true);
+assert.equal(polyContext.window.isPointInSpotPolygon(16.6355, 120.3115, boardingPolygon), true,
+    'mobile GPS inside polygon border (250m from pin) must be recognized as inside site boundary');
+assert.equal(polyContext.window.isPointInSpotPolygon(16.6500, 120.3500, boardingPolygon), false,
+    'mobile GPS far outside polygon border must return false');
+
 console.log('saved trip and review UX tests passed');

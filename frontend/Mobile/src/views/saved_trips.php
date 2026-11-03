@@ -1183,6 +1183,58 @@ $backRoute = 'itinerary';
 
         const SAVED_TRIP_MAX_GPS_ACCURACY_METERS = 1000;
 
+        if (typeof window.spotHasPolygonBoundary !== 'function') {
+            window.spotHasPolygonBoundary = function (geoJson) {
+                if (!geoJson) return false;
+                try {
+                    let geo = typeof geoJson === 'string' ? JSON.parse(geoJson) : geoJson;
+                    if (typeof geo === 'string') geo = JSON.parse(geo);
+                    if (!geo || typeof geo !== 'object') return false;
+                    if (geo.type === 'Feature' && geo.geometry) geo = geo.geometry;
+                    else if (geo.type === 'FeatureCollection' && Array.isArray(geo.features) && geo.features[0]?.geometry) geo = geo.features[0].geometry;
+                    if (geo.type === 'Polygon' && Array.isArray(geo.coordinates) && geo.coordinates.length > 0 && Array.isArray(geo.coordinates[0]) && geo.coordinates[0].length >= 3) return true;
+                    if (geo.type === 'MultiPolygon' && Array.isArray(geo.coordinates) && geo.coordinates.length > 0) return geo.coordinates.some(poly => Array.isArray(poly) && Array.isArray(poly[0]) && poly[0].length >= 3);
+                } catch (e) { return false; }
+                return false;
+            };
+        }
+
+        if (typeof window.isPointInSpotPolygon !== 'function') {
+            window.isPointInSpotPolygon = function (lat, lng, geoJson, toleranceMeters = 20) {
+                const pLat = Number(lat), pLng = Number(lng);
+                if (!geoJson || lat == null || lng == null || !Number.isFinite(pLat) || !Number.isFinite(pLng)) return false;
+                try {
+                    let geo = typeof geoJson === 'string' ? JSON.parse(geoJson) : geoJson;
+                    if (typeof geo === 'string') geo = JSON.parse(geo);
+                    if (!geo || typeof geo !== 'object') return false;
+                    if (geo.type === 'Feature' && geo.geometry) geo = geo.geometry;
+                    else if (geo.type === 'FeatureCollection' && Array.isArray(geo.features) && geo.features[0]?.geometry) geo = geo.features[0].geometry;
+                    const mPerDegLat = 111320, mPerDegLng = 111320 * Math.cos(pLat * Math.PI / 180);
+                    const checkRing = (ring) => {
+                        if (!Array.isArray(ring) || ring.length < 3) return false;
+                        let inside = false, minEdgeDist = Infinity;
+                        for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+                            const ptI = ring[i], ptJ = ring[j];
+                            if (!Array.isArray(ptI) || !Array.isArray(ptJ)) continue;
+                            const xi = Number(ptI[0]), yi = Number(ptI[1]), xj = Number(ptJ[0]), yj = Number(ptJ[1]);
+                            if (((yi > pLat) !== (yj > pLat)) && (pLng < (xj - xi) * (pLat - yi) / ((yj - yi) || 1e-12) + xi)) inside = !inside;
+                            if (toleranceMeters > 0) {
+                                const ax = (xi - pLng) * mPerDegLng, ay = (yi - pLat) * mPerDegLat, bx = (xj - pLng) * mPerDegLng, by = (yj - pLat) * mPerDegLat;
+                                const dx = bx - ax, dy = by - ay, lenSq = dx * dx + dy * dy;
+                                const t = lenSq > 0 ? Math.max(0, Math.min(1, -(ax * dx + ay * dy) / lenSq)) : 0;
+                                const d = Math.hypot(ax + t * dx, ay + t * dy);
+                                if (d < minEdgeDist) minEdgeDist = d;
+                            }
+                        }
+                        return inside || (toleranceMeters > 0 && minEdgeDist <= toleranceMeters);
+                    };
+                    if (geo.type === 'Polygon' && Array.isArray(geo.coordinates) && geo.coordinates[0]) return checkRing(geo.coordinates[0]);
+                    if (geo.type === 'MultiPolygon' && Array.isArray(geo.coordinates)) return geo.coordinates.some(poly => poly && poly[0] && checkRing(poly[0]));
+                } catch (e) { return false; }
+                return false;
+            };
+        }
+
         window.updateSavedTripCheckinAvailability = function (lat, lng, accuracy = null) {
             const userLat = Number(lat);
             const userLng = Number(lng);
@@ -1225,6 +1277,15 @@ $backRoute = 'itinerary';
                     if (!spotBoundary && spotId && typeof window.getTouristSpotById === 'function') {
                         const spotObj = window.getTouristSpotById(spotId);
                         spotBoundary = spotObj?.boundary_geojson;
+                    }
+                    if (!spotBoundary && Array.isArray(window._cachedSavedTrips)) {
+                        for (const tr of window._cachedSavedTrips) {
+                            const matchedIt = (tr && Array.isArray(tr.items)) ? tr.items.find(it => it && (String(it.id) === String(itemId) || (spotId && String(it.tourist_spot_id || it.destination?.id) === String(spotId)))) : null;
+                            if (matchedIt && matchedIt.destination && matchedIt.destination.boundary_geojson) {
+                                spotBoundary = matchedIt.destination.boundary_geojson;
+                                break;
+                            }
+                        }
                     }
 
                     if (typeof window.spotHasPolygonBoundary === 'function' && window.spotHasPolygonBoundary(spotBoundary)) {
@@ -1538,13 +1599,14 @@ $backRoute = 'itinerary';
                         Boolean(i.is_visited),
                         Boolean(i.is_location_verified),
                         String(i.proof_image || ''),
-                        Number((i.proof_images || []).length)
+                        Number((i.proof_images || []).length),
+                        Boolean(i.destination && i.destination.boundary_geojson)
                     ])
                 ])]);
 
                 const hasExistingTripCards = list.querySelector('.trip-swipe-container') !== null;
                 if (!justSavedId && window._lastRenderedTripsSig === currentRenderSig && hasExistingTripCards) {
-                    return; // Zero DOM teardown, completely silent refresh
+                    refreshSavedTripCheckinAvailability(); return; // Zero DOM teardown, completely silent refresh
                 }
                 window._lastRenderedTripsSig = currentRenderSig;
 
@@ -1635,7 +1697,8 @@ $backRoute = 'itinerary';
                             const firstUnvisitedIdx = sortedTripItems.findIndex(i => !hasProgressedPastStop(i));
                             sortedTripItems.forEach((item, index) => {
                                 if (!item) return;
-                                const dest = item.destination || (typeof window.getTouristSpotById === 'function' ? window.getTouristSpotById(item.tourist_spot_id) : null);
+                                const _liveSpotObj = (typeof window.getTouristSpotById === 'function') ? window.getTouristSpotById(item.tourist_spot_id || (item.destination && item.destination.id)) : null;
+                                const dest = item.destination ? (_liveSpotObj && !item.destination.boundary_geojson && _liveSpotObj.boundary_geojson ? { ...item.destination, boundary_geojson: _liveSpotObj.boundary_geojson } : item.destination) : _liveSpotObj;
                                 const destName = (dest && (dest.name || dest.title)) ? String(dest.name || dest.title) : 'Destination';
                                 const destEscaped = destName.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;');
                                 const spotImgUrl = (typeof window.getDestImage === 'function')
@@ -2817,7 +2880,11 @@ $backRoute = 'itinerary';
 
             const doSubmitCheckin = async (lat, lng) => {
                 const liveSpot = (spotId && typeof window.getTouristSpotById === 'function') ? window.getTouristSpotById(spotId) : null;
-                const spotBoundary = liveSpot?.boundary_geojson || targetItem?.destination?.boundary_geojson;
+                let btnBoundary = null;
+                if (btnEl && btnEl.dataset && btnEl.dataset.boundary) {
+                    try { const dec = decodeURIComponent(btnEl.dataset.boundary); if (dec && dec !== '""' && dec !== 'null') btnBoundary = JSON.parse(dec); } catch (e) {}
+                }
+                const spotBoundary = liveSpot?.boundary_geojson || targetItem?.destination?.boundary_geojson || btnBoundary;
                 const hasPolygon = (typeof window.spotHasPolygonBoundary === 'function') && window.spotHasPolygonBoundary(spotBoundary);
 
                 if (hasPolygon) {
@@ -2963,6 +3030,10 @@ $backRoute = 'itinerary';
 
             const options = { enableHighAccuracy: true, timeout: 7000, maximumAge: 30000 };
 
+            if (Number.isFinite(Number(window.currentGPSLat)) && Number.isFinite(Number(window.currentGPSLng)) && (!window.currentGPSAccuracy || Number(window.currentGPSAccuracy) <= 200)) {
+                doSubmitCheckin(Number(window.currentGPSLat), Number(window.currentGPSLng));
+                return;
+            }
             const cachedPosition = window.deviceLastPos;
             if (cachedPosition && cachedPosition.coords &&
                 Date.now() - Number(cachedPosition.timestamp || 0) < 60000 &&

@@ -4492,6 +4492,74 @@ window.submitProofPhotos = async function () {
     }
 };
 
+window.spotHasPolygonBoundary = function (geoJson) {
+    if (!geoJson) return false;
+    try {
+        let geo = typeof geoJson === 'string' ? JSON.parse(geoJson) : geoJson;
+        if (typeof geo === 'string') geo = JSON.parse(geo);
+        if (!geo || typeof geo !== 'object') return false;
+        if (geo.type === 'Feature' && geo.geometry) geo = geo.geometry;
+        else if (geo.type === 'FeatureCollection' && Array.isArray(geo.features) && geo.features[0]?.geometry) geo = geo.features[0].geometry;
+        if (geo.type === 'Polygon' && Array.isArray(geo.coordinates) && geo.coordinates.length > 0 && Array.isArray(geo.coordinates[0]) && geo.coordinates[0].length >= 3) {
+            return true;
+        }
+        if (geo.type === 'MultiPolygon' && Array.isArray(geo.coordinates) && geo.coordinates.length > 0) {
+            return geo.coordinates.some(poly => Array.isArray(poly) && Array.isArray(poly[0]) && poly[0].length >= 3);
+        }
+    } catch (e) {
+        return false;
+    }
+    return false;
+};
+
+window.isPointInSpotPolygon = function (lat, lng, geoJson) {
+    const toleranceMeters = arguments.length > 3 && arguments[3] !== undefined ? Number(arguments[3]) : 20;
+    const pLat = Number(lat), pLng = Number(lng);
+    if (!geoJson || lat == null || lng == null || !Number.isFinite(pLat) || !Number.isFinite(pLng)) return false;
+    try {
+        let geo = typeof geoJson === 'string' ? JSON.parse(geoJson) : geoJson;
+        if (typeof geo === 'string') geo = JSON.parse(geo);
+        if (!geo || typeof geo !== 'object') return false;
+        if (geo.type === 'Feature' && geo.geometry) geo = geo.geometry;
+        else if (geo.type === 'FeatureCollection' && Array.isArray(geo.features) && geo.features[0]?.geometry) geo = geo.features[0].geometry;
+        const mPerDegLat = 111320;
+        const mPerDegLng = 111320 * Math.cos(pLat * Math.PI / 180);
+        const checkRing = (ring) => {
+            if (!Array.isArray(ring) || ring.length < 3) return false;
+            let inside = false;
+            let minEdgeDist = Infinity;
+            for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+                const ptI = ring[i], ptJ = ring[j];
+                if (!Array.isArray(ptI) || !Array.isArray(ptJ)) continue;
+                const xi = Number(ptI[0]), yi = Number(ptI[1]);
+                const xj = Number(ptJ[0]), yj = Number(ptJ[1]);
+                const intersect = ((yi > pLat) !== (yj > pLat)) &&
+                    (pLng < (xj - xi) * (pLat - yi) / ((yj - yi) || 1e-12) + xi);
+                if (intersect) inside = !inside;
+                if (toleranceMeters > 0) {
+                    const ax = (xi - pLng) * mPerDegLng, ay = (yi - pLat) * mPerDegLat;
+                    const bx = (xj - pLng) * mPerDegLng, by = (yj - pLat) * mPerDegLat;
+                    const dx = bx - ax, dy = by - ay;
+                    const lenSq = dx * dx + dy * dy;
+                    const t = lenSq > 0 ? Math.max(0, Math.min(1, -(ax * dx + ay * dy) / lenSq)) : 0;
+                    const d = Math.hypot(ax + t * dx, ay + t * dy);
+                    if (d < minEdgeDist) minEdgeDist = d;
+                }
+            }
+            return inside || (toleranceMeters > 0 && minEdgeDist <= toleranceMeters);
+        };
+        if (geo.type === 'Polygon' && Array.isArray(geo.coordinates) && geo.coordinates[0]) {
+            return checkRing(geo.coordinates[0]);
+        }
+        if (geo.type === 'MultiPolygon' && Array.isArray(geo.coordinates)) {
+            return geo.coordinates.some(poly => poly && poly[0] && checkRing(poly[0]));
+        }
+    } catch (e) {
+        return false;
+    }
+    return false;
+};
+
 window.executeLocationCheckIn = function (itemId, spotName = '', spotLat = null, spotLng = null, btnEl = null) {
     if (!itemId) return;
 
@@ -4516,53 +4584,6 @@ window.executeLocationCheckIn = function (itemId, spotName = '', spotLat = null,
         token === 'guest_token' ||
         token.startsWith('guest_') ||
         token.startsWith('offline_');
-
-    window.spotHasPolygonBoundary = function (geoJson) {
-        if (!geoJson) return false;
-        try {
-            const geo = typeof geoJson === 'string' ? JSON.parse(geoJson) : geoJson;
-            if (!geo || typeof geo !== 'object') return false;
-            if (geo.type === 'Polygon' && Array.isArray(geo.coordinates) && geo.coordinates.length > 0 && Array.isArray(geo.coordinates[0]) && geo.coordinates[0].length >= 3) {
-                return true;
-            }
-            if (geo.type === 'MultiPolygon' && Array.isArray(geo.coordinates) && geo.coordinates.length > 0) {
-                return true;
-            }
-        } catch (e) {
-            return false;
-        }
-        return false;
-    };
-
-    window.isPointInSpotPolygon = function (lat, lng, geoJson) {
-        if (!geoJson || lat == null || lng == null || isNaN(lat) || isNaN(lng)) return false;
-        try {
-            const geo = typeof geoJson === 'string' ? JSON.parse(geoJson) : geoJson;
-            if (!geo) return false;
-            const checkRing = (ring) => {
-                if (!Array.isArray(ring) || ring.length < 3) return false;
-                let inside = false;
-                for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
-                    const ptI = ring[i], ptJ = ring[j];
-                    const xi = Number(ptI[0]), yi = Number(ptI[1]);
-                    const xj = Number(ptJ[0]), yj = Number(ptJ[1]);
-                    const intersect = ((yi > lat) !== (yj > lat)) &&
-                        (lng < (xj - xi) * (lat - yi) / (yj - yi) + xi);
-                    if (intersect) inside = !inside;
-                }
-                return inside;
-            };
-            if (geo.type === 'Polygon' && Array.isArray(geo.coordinates) && geo.coordinates[0]) {
-                return checkRing(geo.coordinates[0]);
-            }
-            if (geo.type === 'MultiPolygon' && Array.isArray(geo.coordinates)) {
-                return geo.coordinates.some(poly => poly && poly[0] && checkRing(poly[0]));
-            }
-        } catch (e) {
-            return false;
-        }
-        return false;
-    };
 
     const getHaversineDist = (lat1, lon1, lat2, lon2) => {
         const R = 6371e3;
@@ -7770,8 +7791,13 @@ window.navigateTo = navigateTo;
             const altitude = position.coords.altitude;
             const speed = position.coords.speed;
 
-            // Mark as real verified GPS
-            window.currentGPSSource = 'gps';
+            // Do not overwrite an accurate GPS fix with a very coarse IP/network fallback
+            if (accuracy && accuracy > 1000 && window.currentGPSSource === 'gps' && window.currentGPSLat && window.currentGPSLng && (window.currentGPSAccuracy || 9999) < accuracy) {
+                return;
+            }
+
+            const sourceType = (accuracy && accuracy > 500) ? 'network' : 'gps';
+            window.currentGPSSource = sourceType;
             window.currentGPSLat = currentLat;
             window.currentGPSLng = currentLng;
             window.myLat = currentLat;
@@ -7779,11 +7805,12 @@ window.navigateTo = navigateTo;
             window.currentGPSAccuracy = accuracy;
             window.currentGPSAltitude = altitude;
             window.currentGPSSpeed = speed;
+            window.deviceLastPos = { coords: { latitude: currentLat, longitude: currentLng, accuracy: accuracy || 15, source: sourceType }, timestamp: Date.now() };
             window.rememberGpsLocation(currentLat, currentLng, accuracy);
 
             // Broadcast dynamic update for real-time map tracking
             requestAnimationFrame(() => {
-                document.dispatchEvent(new CustomEvent('gpsUpdated', { detail: { lat: currentLat, lng: currentLng, accuracy, altitude, speed, source: 'gps' } }));
+                document.dispatchEvent(new CustomEvent('gpsUpdated', { detail: { lat: currentLat, lng: currentLng, accuracy, altitude, speed, source: sourceType } }));
             });
 
             // Proximity auto check-in is intentionally disabled as check-in requires explicit photo proof submission and pending review.
@@ -7846,7 +7873,7 @@ window.navigateTo = navigateTo;
                     const pos = await Geolocation.getCurrentPosition({
                         enableHighAccuracy: true,
                         timeout: 20000,
-                        maximumAge: 10000
+                        maximumAge: forceFresh ? 0 : 10000
                     });
                     if (pos && pos.coords) {
                         const lat = pos.coords.latitude;
@@ -7858,6 +7885,7 @@ window.navigateTo = navigateTo;
                         window.myLng = lng;
                         window.currentGPSSource = 'gps';
                         window.currentGPSAccuracy = accuracy;
+                        window.deviceLastPos = { coords: { latitude: lat, longitude: lng, accuracy, source: 'gps' }, timestamp: Date.now() };
                         window.rememberGpsLocation(lat, lng, accuracy);
                         document.dispatchEvent(new CustomEvent('gpsUpdated', {
                             detail: { lat, lng, accuracy, source: 'gps', altitude: pos.coords.altitude, speed: pos.coords.speed }
@@ -7877,16 +7905,19 @@ window.navigateTo = navigateTo;
             });
 
             let pos = null;
+            let usedNetworkFallback = false;
 
-            // Pass 1: Try quick warm cache (instant if device recently had a fix)
-            try {
-                pos = await getPositionPromise({
-                    enableHighAccuracy: true,
-                    timeout: 2500,
-                    maximumAge: 60000
-                });
-            } catch (e) {
-                // Warm cache not available, proceed to live request
+            // Pass 1: Try quick warm cache only when not forcing a fresh hardware fix
+            if (!forceFresh) {
+                try {
+                    pos = await getPositionPromise({
+                        enableHighAccuracy: true,
+                        timeout: 2500,
+                        maximumAge: 60000
+                    });
+                } catch (e) {
+                    // Warm cache not available, proceed to live request
+                }
             }
 
             // Pass 2: Request high-accuracy GPS with generous 20-second timeout
@@ -7895,17 +7926,18 @@ window.navigateTo = navigateTo;
                     pos = await getPositionPromise({
                         enableHighAccuracy: true,
                         timeout: 20000,
-                        maximumAge: 10000
+                        maximumAge: forceFresh ? 0 : 10000
                     });
                 } catch (err2) {
                     // Pass 3: If high accuracy timed out or is weak indoors, fallback to network/cell/Wi-Fi positioning
                     if (err2.code === 2 || err2.code === 3) {
                         console.log("High accuracy GPS timed out, trying network/Wi-Fi positioning...");
                         try {
+                            usedNetworkFallback = true;
                             pos = await getPositionPromise({
                                 enableHighAccuracy: false,
                                 timeout: 20000,
-                                maximumAge: 30000
+                                maximumAge: forceFresh ? 0 : 30000
                             });
                         } catch (err3) {
                             // If all timed out but we have a previous GPS in memory, use it
@@ -7924,17 +7956,22 @@ window.navigateTo = navigateTo;
                 const lat = pos.coords.latitude;
                 const lng = pos.coords.longitude;
                 const accuracy = pos.coords.accuracy || 15;
+                if (usedNetworkFallback && accuracy > 1000 && window.currentGPSLat && window.currentGPSLng && (window.currentGPSAccuracy || 9999) < accuracy) {
+                    return { lat: window.currentGPSLat, lng: window.currentGPSLng, source: window.currentGPSSource || 'gps', accuracy: window.currentGPSAccuracy || 20 };
+                }
+                const sourceType = (usedNetworkFallback && accuracy > 500) ? 'network' : 'gps';
                 window.currentGPSLat = lat;
                 window.currentGPSLng = lng;
                 window.myLat = lat;
                 window.myLng = lng;
-                window.currentGPSSource = 'gps';
+                window.currentGPSSource = sourceType;
                 window.currentGPSAccuracy = accuracy;
+                window.deviceLastPos = { coords: { latitude: lat, longitude: lng, accuracy, source: sourceType }, timestamp: Date.now() };
                 window.rememberGpsLocation(lat, lng, accuracy);
                 document.dispatchEvent(new CustomEvent('gpsUpdated', {
-                    detail: { lat, lng, accuracy, source: 'gps', altitude: pos.coords.altitude, speed: pos.coords.speed }
+                    detail: { lat, lng, accuracy, source: sourceType, altitude: pos.coords.altitude, speed: pos.coords.speed }
                 }));
-                return { lat, lng, source: 'gps', accuracy };
+                return { lat, lng, source: sourceType, accuracy };
             }
         }
 
@@ -8241,7 +8278,7 @@ window.navigateTo = navigateTo;
         const img = window.getDestImage ? window.getDestImage(dest, 600) : (dest.photo_url || dest.image || 'assets/img/no_image.svg');
         const badgeText = dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : (dest.classification_status === 'POTENTIAL' ? 'POTENTIAL' : (dest.classification_status || 'EXISTING')));
         const badgeBg = dest.classification_status === 'POTENTIAL' ? '#1e3a8a' : (dest.classification_status === 'EMERGE' ? '#dc2626' : '#0f172a');
-        const encodedDest = encodeURIComponent(JSON.stringify(dest));
+        const encodedDest = encodeURIComponent(JSON.stringify(dest)).replace(/'/g, '%27');
         const muni = dest.municipality || dest.location || '';
         const ratingRaw = (dest.rating !== undefined && dest.rating !== null && dest.rating !== '') ? dest.rating : dest.reviews_avg_rating;
         const ratingNum = parseFloat(ratingRaw);

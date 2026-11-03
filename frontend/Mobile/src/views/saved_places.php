@@ -226,7 +226,7 @@ if (is_dir($imgDir)) {
                     (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL');
 
                 // Add a toggle favorite function inline for removal handling
-                const encodedDest = encodeURIComponent(JSON.stringify(dest));
+                const encodedDest = encodeURIComponent(JSON.stringify(dest)).replace(/'/g, '%27');
                 html += `
                 <div class="trending-card" style="animation-delay:${i * 0.08}s" onclick="window.viewTrendingDest(${dest.id}, '${dest.name.replace(/'/g, "\\'")}', '${encodedDest}')">
                     ${dest.classification_status ? `<div class="badge" style="background:${badgeColor};">${badgeLabel}</div>` : ''}
@@ -329,7 +329,8 @@ if (is_dir($imgDir)) {
 
         window.viewTrendingDest = function (id, name, encodedDest) {
             try {
-                const dest = JSON.parse(decodeURIComponent(encodedDest));
+                const dest = (typeof encodedDest === 'object' && encodedDest !== null) ? encodedDest : (encodedDest ? JSON.parse(decodeURIComponent(encodedDest)) : ((savedPlacesList || []).find(s => Number(s.id) === Number(id))));
+                if (!dest) return;
                 localStorage.setItem('intan_elyu_view_destination', JSON.stringify(dest));
                 window.location.href = '?view=map';
             } catch (e) {

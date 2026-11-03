@@ -156,8 +156,16 @@ class TouristSpot extends Model
         if (is_string($geo)) {
             $geo = json_decode($geo, true);
         }
+        if (is_string($geo)) {
+            $geo = json_decode($geo, true);
+        }
         if (!is_array($geo)) {
             return false;
+        }
+        if (($geo['type'] ?? null) === 'Feature' && isset($geo['geometry']) && is_array($geo['geometry'])) {
+            $geo = $geo['geometry'];
+        } elseif (($geo['type'] ?? null) === 'FeatureCollection' && isset($geo['features'][0]['geometry']) && is_array($geo['features'][0]['geometry'])) {
+            $geo = $geo['features'][0]['geometry'];
         }
         $type = $geo['type'] ?? null;
         $coordinates = $geo['coordinates'] ?? [];
@@ -167,26 +175,34 @@ class TouristSpot extends Model
     /**
      * Determine if a latitude/longitude coordinate falls inside the spot's GeoJSON polygon boundary.
      */
-    public function containsPoint(float $lat, float $lng): bool
+    public function containsPoint(float $lat, float $lng, float $toleranceMeters = 20.0): bool
     {
         $geo = $this->boundary_geojson;
+        if (is_string($geo)) {
+            $geo = json_decode($geo, true);
+        }
         if (is_string($geo)) {
             $geo = json_decode($geo, true);
         }
         if (!is_array($geo)) {
             return false;
         }
+        if (($geo['type'] ?? null) === 'Feature' && isset($geo['geometry']) && is_array($geo['geometry'])) {
+            $geo = $geo['geometry'];
+        } elseif (($geo['type'] ?? null) === 'FeatureCollection' && isset($geo['features'][0]['geometry']) && is_array($geo['features'][0]['geometry'])) {
+            $geo = $geo['features'][0]['geometry'];
+        }
 
         $type = $geo['type'] ?? null;
         $coordinates = $geo['coordinates'] ?? [];
 
         if ($type === 'Polygon' && isset($coordinates[0]) && is_array($coordinates[0])) {
-            return self::isPointInRing($lat, $lng, $coordinates[0]);
+            return self::isPointInRing($lat, $lng, $coordinates[0], $toleranceMeters);
         }
 
         if ($type === 'MultiPolygon' && is_array($coordinates)) {
             foreach ($coordinates as $poly) {
-                if (isset($poly[0]) && is_array($poly[0]) && self::isPointInRing($lat, $lng, $poly[0])) {
+                if (isset($poly[0]) && is_array($poly[0]) && self::isPointInRing($lat, $lng, $poly[0], $toleranceMeters)) {
                     return true;
                 }
             }
@@ -195,11 +211,15 @@ class TouristSpot extends Model
         return false;
     }
 
-    private static function isPointInRing(float $lat, float $lng, array $ring): bool
+    private static function isPointInRing(float $lat, float $lng, array $ring, float $toleranceMeters = 20.0): bool
     {
         $inside = false;
         $count = count($ring);
         if ($count < 3) return false;
+
+        $mPerDegLat = 111320.0;
+        $mPerDegLng = 111320.0 * cos(deg2rad($lat));
+        $minEdgeDist = INF;
 
         for ($i = 0, $j = $count - 1; $i < $count; $j = $i++) {
             $xi = (float) ($ring[$i][0] ?? 0); // lng
@@ -207,18 +227,35 @@ class TouristSpot extends Model
             $xj = (float) ($ring[$j][0] ?? 0); // lng
             $yj = (float) ($ring[$j][1] ?? 0); // lat
 
+            $denom = ($yj - $yi) ?: 1e-12;
             $intersect = (($yi > $lat) !== ($yj > $lat))
-                && ($lng < ($xj - $xi) * ($lat - $yi) / ($yj - $yi) + $xi);
+                && ($lng < ($xj - $xi) * ($lat - $yi) / $denom + $xi);
             if ($intersect) {
                 $inside = !$inside;
             }
+
+            if ($toleranceMeters > 0) {
+                $ax = ($xi - $lng) * $mPerDegLng;
+                $ay = ($yi - $lat) * $mPerDegLat;
+                $bx = ($xj - $lng) * $mPerDegLng;
+                $by = ($yj - $lat) * $mPerDegLat;
+                $dx = $bx - $ax;
+                $dy = $by - $ay;
+                $lenSq = $dx * $dx + $dy * $dy;
+                $t = $lenSq > 0 ? max(0.0, min(1.0, -($ax * $dx + $ay * $dy) / $lenSq)) : 0.0;
+                $d = hypot($ax + $t * $dx, $ay + $t * $dy);
+                if ($d < $minEdgeDist) {
+                    $minEdgeDist = $d;
+                }
+            }
         }
 
-        return $inside;
+        return $inside || ($toleranceMeters > 0 && $minEdgeDist <= $toleranceMeters);
     }
 
     public static function clearSpotCaches(): void
     {
+        \Illuminate\Support\Facades\Cache::forget('public_map_data_v3');
         \Illuminate\Support\Facades\Cache::forget('map:public:spots');
         \Illuminate\Support\Facades\Cache::forget('map:public:spots:v5');
         \Illuminate\Support\Facades\Cache::forget('map:public:spots:v8');
