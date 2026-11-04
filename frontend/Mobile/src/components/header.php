@@ -1039,8 +1039,8 @@
                 if (dot) dot.remove();
                 const msg = el.querySelector('p');
                 if (msg) {
-                    msg.style.fontWeight = '400';
-                    msg.style.color = 'rgba(255, 255, 255, 0.85)';
+                    msg.style.fontWeight = '500';
+                    msg.style.color = '#64748b';
                 }
             }
             const dot = document.getElementById('bell-dot');
@@ -1079,8 +1079,8 @@
                 if (dot) dot.remove();
                 const msg = el.querySelector('p');
                 if (msg) {
-                    msg.style.fontWeight = '400';
-                    msg.style.color = 'rgba(255, 255, 255, 0.85)';
+                    msg.style.fontWeight = '500';
+                    msg.style.color = '#64748b';
                 }
             });
             const dot = document.getElementById('bell-dot');

@@ -228,6 +228,17 @@ assert.equal(
     'Your proof submission for Pagoda Hill has been approved! You earned +25 Points!'
 );
 
+assert.doesNotMatch(
+    header,
+    /msg\.style\.color\s*=\s*['"]rgba\(255,\s*255,\s*255/i,
+    'notification read handlers must not turn message text white against white card background'
+);
+assert.match(
+    header,
+    /msg\.style\.color\s*=\s*['"]#64748b['"]/,
+    'notification read handlers must style read text with legible #64748b'
+);
+
 const dashboard = fs.readFileSync(path.join(root, 'src', 'views', 'dashboard.php'), 'utf8');
 assert.doesNotMatch(dashboard, /encodeURIComponent\(JSON\.stringify\(dest\)\)(?!\.replace\(\/'\/g,\s*'%27'\))/,
     'all destination card inline payloads in dashboard.php must escape single quotes with %27');
