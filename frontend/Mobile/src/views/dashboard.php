@@ -1313,25 +1313,29 @@ if (is_dir($imgDir)) {
                 <div class="category-card-label">Beaches</div>
             </div>
             <div class="category-card" onclick="window.filterCategoryDash('Nature', this)">
-                <div class="category-icon-box"><i class="fa-solid fa-mountain"></i></div>
-                <div class="category-card-label">Nature &<br>Park</div>
+                <div class="category-icon-box"><i class="fa-solid fa-leaf"></i></div>
+                <div class="category-card-label">Nature</div>
             </div>
+            <div class="category-card" onclick="window.filterCategoryDash('Park', this)"><div class="category-icon-box"><i class="fa-solid fa-tree"></i></div><div class="category-card-label">Parks</div></div>
+            <div class="category-card" onclick="window.filterCategoryDash('Cultural', this)"><div class="category-icon-box"><i class="fa-solid fa-masks-theater"></i></div><div class="category-card-label">Cultural</div></div>
             <div class="category-card" onclick="window.filterCategoryDash('Heritage', this)">
                 <div class="category-icon-box"><i class="fa-solid fa-landmark-dome"></i></div>
-                <div class="category-card-label">Cultural &<br>Heritage</div>
+                <div class="category-card-label">Heritage</div>
             </div>
-            <div class="category-card" onclick="window.filterCategoryDash('Food & Dining', this)">
+            <div class="category-card" onclick="window.filterCategoryDash('Restaurant', this)">
                 <div class="category-icon-box"><i class="fa-solid fa-utensils"></i></div>
-                <div class="category-card-label">Food &<br>Dining</div>
+                <div class="category-card-label">Restaurants</div>
             </div>
+            <div class="category-card" onclick="window.filterCategoryDash('Cafe', this)"><div class="category-icon-box"><i class="fa-solid fa-mug-hot"></i></div><div class="category-card-label">Cafes</div></div>
             <div class="category-card" onclick="window.filterCategoryDash('Mountains', this)">
                 <div class="category-icon-box"><i class="fa-solid fa-mountain-sun"></i></div>
                 <div class="category-card-label">Mountains</div>
             </div>
             <div class="category-card" onclick="window.filterCategoryDash('Lakes', this)">
                 <div class="category-icon-box"><i class="fa-solid fa-droplet"></i></div>
-                <div class="category-card-label">Lakes &<br>Falls</div>
+                <div class="category-card-label">Lakes</div>
             </div>
+            <div class="category-card" onclick="window.filterCategoryDash('Waterfall', this)"><div class="category-icon-box"><i class="fa-solid fa-water"></i></div><div class="category-card-label">Waterfalls</div></div>
             <div class="category-card" onclick="window.filterCategoryDash('Farm', this)">
                 <div class="category-icon-box"><i class="fa-solid fa-seedling"></i></div>
                 <div class="category-card-label">Farms</div>
@@ -1780,6 +1784,18 @@ window.applyTouristSitesFilterModal = function() {
         // Direct or token match
         if (c && (c === t || c.includes(t) || (c.length >= 3 && t.includes(c)))) return true;
         if (c && ` ${c} `.includes(` ${t} `)) return true;
+
+        // Individual category rules: do not leak a related category into the selected one.
+        if (t === 'nature') return combined.includes('nature') || combined.includes('garden') || combined.includes('mangrove');
+        if (t === 'park') return combined.includes('park') || combined.includes('plaza') || combined.includes('baywalk');
+        if (t === 'cultural') return combined.includes('cultural') || combined.includes('pottery') || combined.includes('weaving') || combined.includes('traditional art');
+        if (t === 'heritage') return combined.includes('heritage') || combined.includes('historic') || combined.includes('landmark') || combined.includes('monument') || combined.includes('watchtower') || combined.includes('ancestral');
+        if (t === 'museum') return combined.includes('museum') || combined.includes('gallery');
+        if (t === 'religious') return combined.includes('church') || combined.includes('shrine') || combined.includes('basilica') || combined.includes('cathedral') || combined.includes('chapel') || combined.includes('parish') || combined.includes('religious');
+        if (t === 'restaurant') return combined.includes('restaurant') || combined.includes('food') || combined.includes('dining') || combined.includes('eatery') || combined.includes('bistro') || combined.includes('grill');
+        if (t === 'cafe') return combined.includes('cafe') || combined.includes('coffee');
+        if (t === 'lakes' || t === 'lake') return combined.includes('lake') || combined.includes('river') || combined.includes('dam') || combined.includes('spring');
+        if (t === 'waterfall') return combined.includes('waterfall') || combined.includes('falls');
 
         // Beach, Coastal & Surfing
         if (t.includes('beach') || t.includes('surf') || t.includes('coastal') || t.includes('island')) {
@@ -2608,23 +2624,23 @@ window.applyTouristSitesFilterModal = function() {
             ],
             partly_cloudy: [
                 { label: 'Nature & Waterfalls', icon: 'fa-mountain', filter: 'Nature', desc: 'Trails, waterfalls & forest parks' },
-                { label: 'Agri-Tourism & Farms', icon: 'fa-seedling', filter: 'Agri-Tourism', desc: 'Grape farms & eco-tourism sites' },
-                { label: 'Outdoor Sightseeing', icon: 'fa-compass', filter: 'Activities', desc: 'Pleasant outdoor exploration' }
+                { label: 'Agri-Tourism & Farms', icon: 'fa-seedling', filter: 'Farm', desc: 'Grape farms & eco-tourism sites' },
+                { label: 'Outdoor Sightseeing', icon: 'fa-compass', filter: 'Adventure', desc: 'Pleasant outdoor exploration' }
             ],
             cloudy: [
-                { label: 'Cultural & Heritage', icon: 'fa-landmark-dome', filter: 'Heritage', desc: 'Watchtowers, shrines & landmarks' },
-                { label: 'Gardens & Farms', icon: 'fa-leaf', filter: 'Agri-Tourism', desc: 'Botanical gardens & vineyards' },
-                { label: 'Sightseeing Spots', icon: 'fa-camera-retro', filter: 'Nature', desc: 'Cool overcast scenic walks' }
+                { label: 'Heritage Sites', icon: 'fa-landmark-dome', filter: 'Heritage', desc: 'Watchtowers and historic landmarks' },
+                { label: 'Farms', icon: 'fa-leaf', filter: 'Farm', desc: 'Vineyards and farm attractions' },
+                { label: 'Parks', icon: 'fa-tree', filter: 'Park', desc: 'Cool overcast park walks' }
             ],
             rainy: [
-                { label: 'Museums & Cultural', icon: 'fa-building-columns', filter: 'Cultural', desc: 'Indoor galleries, pottery & weaving' },
-                { label: 'Heritage & Churches', icon: 'fa-place-of-worship', filter: 'Heritage', desc: 'Historic churches & covered landmarks' },
-                { label: 'Indoor Dining & Cafes', icon: 'fa-utensils', filter: 'Food', desc: 'Cozy local restaurants & cafes' }
+                { label: 'Museums', icon: 'fa-building-columns', filter: 'Museum', desc: 'Indoor museums and galleries' },
+                { label: 'Churches', icon: 'fa-place-of-worship', filter: 'Religious', desc: 'Churches and covered worship sites' },
+                { label: 'Cafes', icon: 'fa-mug-hot', filter: 'Cafe', desc: 'Cozy indoor cafes' }
             ],
             severe: [
-                { label: 'Indoor Museums & Shelters', icon: 'fa-shield-halved', filter: 'Cultural', desc: 'Safe indoor cultural centers' },
-                { label: 'Covered Heritage Sites', icon: 'fa-landmark', filter: 'Heritage', desc: 'Sheltered historical landmarks' },
-                { label: 'Indoor Dining', icon: 'fa-mug-hot', filter: 'Food', desc: 'Safe indoor dining & rest stops' }
+                { label: 'Museums', icon: 'fa-shield-halved', filter: 'Museum', desc: 'Safe indoor museums' },
+                { label: 'Heritage Sites', icon: 'fa-landmark', filter: 'Heritage', desc: 'Sheltered historical landmarks' },
+                { label: 'Restaurants', icon: 'fa-utensils', filter: 'Restaurant', desc: 'Safe indoor dining stops' }
             ]
         };
 

@@ -367,9 +367,9 @@ class PointsController extends Controller
                     } catch (\Throwable $ignored) {}
                 }
 
-                $voucherExpiresAt = now()->addHours(24);
-                $qrExpiresAt = now()->addMinutes(20);
-                $qrToken = 'elyu_rdm_' . bin2hex(random_bytes(16));
+                $voucherExpiresAt = now()->addDays(3);
+                $qrExpiresAt = null;
+                $qrToken = null;
 
                 $pr = PointRedemption::create([
                     'user_id'            => $user->id,
@@ -410,8 +410,8 @@ class PointsController extends Controller
             \App\Models\Notification::createSafely(
                 $user->id,
                 'favorite_update',
-                'Voucher Redeemed!',
-                "Redeemed voucher {$code} ({$type}). Present code at merchant checkout!",
+                'Voucher Claimed!',
+                "Claimed voucher {$code} ({$type}). Tap Use when you are ready to show the 20-minute QR pass.",
                 ['action_url' => '/discount']
             );
 
@@ -536,6 +536,8 @@ class PointsController extends Controller
                         $exp = $r->voucher_expires_at ? \Carbon\Carbon::parse($r->voucher_expires_at) : ($r->expires_at ? \Carbon\Carbon::parse($r->expires_at) : null);
                         if ($exp && now()->gte($exp)) {
                             $r->status = 'expired';
+                        } elseif ($rawStatus === 'active' && $r->qr_expires_at && now()->lt(\Carbon\Carbon::parse($r->qr_expires_at))) {
+                            $r->status = 'active';
                         } else {
                             $r->status = 'claimed';
                         }
@@ -589,6 +591,8 @@ class PointsController extends Controller
                     $exp = $pr->voucher_expires_at ? \Carbon\Carbon::parse($pr->voucher_expires_at) : null;
                     if ($exp && now()->gte($exp)) {
                         $normStatus = 'expired';
+                    } elseif ($prStatus === 'active' && $pr->qr_expires_at && now()->lt(\Carbon\Carbon::parse($pr->qr_expires_at))) {
+                        $normStatus = 'active';
                     } else {
                         $normStatus = 'claimed';
                     }

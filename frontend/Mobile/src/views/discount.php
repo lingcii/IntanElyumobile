@@ -219,6 +219,7 @@ $backRoute = 'profile';
                     </div>
                 </div>
 
+                <div id="modal-qr-pass-content" style="display:none;">
                 <div style="background: #ffffff; border-radius: 14px; padding: 10px; width: 150px; height: 150px; margin: 0 auto 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 14px rgba(0,0,0,0.08); border: 1px solid #e2e8f0; position: relative; overflow: hidden;">
                     <img id="modal-qr-img" src="" alt="Voucher QR Code" style="width: 100%; height: 100%; object-fit: contain; transition: filter 0.3s ease, opacity 0.3s ease;" onerror="this.style.display='none'">
                 </div>
@@ -254,6 +255,7 @@ $backRoute = 'profile';
 
                 <div id="modal-live-status-badge" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 100px; font-size: 11px; font-weight: 800; background: #e0f2fe; color: #0369a1; margin-top: 10px; transition: all 0.3s ease;">
                     <i class="fa-solid fa-circle-notch fa-spin"></i> Ready for scan at checkout
+                </div>
                 </div>
             </div>
         </div>
@@ -760,12 +762,13 @@ function getUserRedemptionItems() {
 
         const status = (r.status || 'claimed').toLowerCase().trim();
         const isUsed = ['redeemed', 'used', 'completed'].includes(status);
+        const isActive = status === 'active';
         const isCancelled = status === 'cancelled';
         const vExp = r.voucher_expires_at || r.expires_at || (match ? match.expires : null);
         const isTimeExpired = vExp && (new Date(vExp).getTime() < Date.now());
         const isExpired = (status === 'expired') || (!isUsed && !isCancelled && isTimeExpired);
         const isClaimed = !isUsed && !isCancelled && !isExpired;
-        const finalStatus = isUsed ? 'used' : (isCancelled ? 'cancelled' : (isExpired ? 'expired' : 'claimed'));
+        const finalStatus = isUsed ? 'used' : (isCancelled ? 'cancelled' : (isExpired ? 'expired' : (isActive ? 'active' : 'claimed')));
 
         const title = r.type || (match ? match.title : 'Reward Voucher');
         const partner = r.partner_establishment || (match ? match.partner : 'LUPTO Tourism Partner');
@@ -813,6 +816,7 @@ function getUserRedemptionItems() {
             redemptionStatus: finalStatus,
             isRedeemed: isUsed,
             isUsed: isUsed,
+            isActive: isActive,
             isCancelled: isCancelled,
             isClaimed: isClaimed,
             claimed_at: r.claimed_at || r.created_at,
@@ -1235,11 +1239,30 @@ function startLiveRedemptionSync(code) {
             });
             if (res.ok) {
                 const data = await res.json();
-                if (data.status === 'success' && data.is_redeemed) {
+                if (data.status === 'success' && data.voucher_status === 'active' && currentModalItem) {
+                    const changed = currentModalItem.qr_token !== data.qr_token || currentModalItem.qr_expires_at !== data.qr_expires_at;
+                    currentModalItem.status = 'active';
+                    currentModalItem.qr_token = data.qr_token;
+                    currentModalItem.qr_expires_at = data.qr_expires_at;
+                    if (changed) {
+                        const qrImg = document.getElementById('modal-qr-img');
+                        if (qrImg) qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(data.qr_token || code)}`;
+                        startModalTimers(currentModalItem);
+                    }
+                } else if (data.status === 'success' && data.is_redeemed) {
                     const statusBadge = document.getElementById('modal-live-status-badge');
                     const qrImg = document.getElementById('modal-qr-img');
                     const stampOverlay = document.getElementById('modal-qr-stamp-overlay');
                     const stampBadge = document.getElementById('modal-qr-stamp-badge');
+                    const claimedBox = document.getElementById('modal-claimed-box');
+                    const passContent = document.getElementById('modal-qr-pass-content');
+                    const claimedActions = document.getElementById('modal-claimed-actions');
+                    const statusNotice = document.getElementById('modal-status-notice');
+                    stopModalTimers();
+                    if (passContent) passContent.style.display = 'none';
+                    if (claimedActions) claimedActions.style.display = 'none';
+                    if (statusNotice) statusNotice.style.display = 'none';
+                    if (claimedBox) claimedBox.style.minHeight = '140px';
                     if (statusBadge) {
                         statusBadge.innerHTML = `<i class="fa-solid fa-circle-check" style="color:#15803d; font-size:13px;"></i> Redeemed & Verified at ${data.redeemed_by_partner || 'Partner Merchant'}!`;
                         statusBadge.style.background = '#dcfce7';
@@ -1285,7 +1308,7 @@ function startLiveRedemptionSync(code) {
         } catch(e) {}
     };
 
-    setTimeout(check, 1200);
+    void check();
     liveSyncInterval = setInterval(check, 4000);
 }
 
@@ -1393,13 +1416,7 @@ function openVoucherModal(id) {
 
     if (statusNotice && statusNoticeTitle && statusNoticeDesc) {
         if (isAlreadyClaimed && isVoucherRedeemed(item)) {
-            statusNotice.style.display = 'block';
-            statusNotice.style.background = '#fef2f2';
-            statusNotice.style.border = '1px solid #fecaca';
-            statusNoticeTitle.style.color = '#dc2626';
-            statusNoticeTitle.innerHTML = '<i class="fa-solid fa-check-double"></i> Voucher Already Redeemed & Verified';
-            statusNoticeDesc.style.color = '#991b1b';
-            statusNoticeDesc.textContent = 'This voucher has already been redeemed and verified at merchant checkout. It cannot be used again.';
+            statusNotice.style.display = 'none';
         } else if (isExpired) {
             statusNotice.style.display = 'block';
             statusNotice.style.background = '#fef2f2';
@@ -1435,14 +1452,17 @@ function openVoucherModal(id) {
         const claimCode = item.code || 'ELYU-PROMO';
         const activeQrToken = item.qr_token || claimCode;
         const isRedeemedOnWeb = isVoucherRedeemed(item) || item.isUsed || item.status === 'used';
+        const isActiveQr = item.status === 'active' && item.qr_token && item.qr_expires_at && new Date(item.qr_expires_at).getTime() > Date.now();
         const isCancelledItem = item.isCancelled || item.status === 'cancelled';
         const isExpiredItem = item.isExpired || item.status === 'expired';
         const claimedActions = document.getElementById('modal-claimed-actions');
         const vTimerBox = document.getElementById('modal-voucher-timer-box');
         const qrTimerBox = document.getElementById('modal-qr-timer-box');
+        const passContent = document.getElementById('modal-qr-pass-content');
 
         if (claimedBox) {
             claimedBox.style.display = 'block';
+            claimedBox.style.minHeight = isRedeemedOnWeb ? '140px' : '';
             window._currentDiscountClaimCode = claimCode;
             window._currentActiveQrToken = activeQrToken;
             window._isDiscountCodeUnmasked = false;
@@ -1465,7 +1485,7 @@ function openVoucherModal(id) {
             const qrImg = document.getElementById('modal-qr-img');
             const stampOverlay = document.getElementById('modal-qr-stamp-overlay');
             const stampBadge = document.getElementById('modal-qr-stamp-badge');
-            if (qrImg) {
+            if (qrImg && isActiveQr) {
                 qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(activeQrToken)}`;
                 qrImg.style.display = 'block';
                 if (isRedeemedOnWeb || isCancelledItem || isExpiredItem) {
@@ -1482,6 +1502,7 @@ function openVoucherModal(id) {
             if (stampBadge && isRedeemedOnWeb) {
                 stampBadge.style.animation = 'none';
             }
+            if (passContent) passContent.style.display = isActiveQr ? 'block' : 'none';
             const qrNotice = document.getElementById('modal-qr-notice');
             if (qrNotice) {
                 qrNotice.style.display = (isRedeemedOnWeb || isCancelledItem || isExpiredItem) ? 'none' : 'block';
@@ -1513,11 +1534,11 @@ function openVoucherModal(id) {
             if (claimedActions) claimedActions.style.display = 'none';
             if (footerBanner) footerBanner.style.display = 'none';
         } else {
-            // Active Claimed State: Show 20-min QR & Voucher Expiry Dual Timers + Use & Cancel buttons
+            // Claimed vouchers show the three-day timer; the QR appears only after Use.
             if (vTimerBox) vTimerBox.style.display = 'flex';
-            if (qrTimerBox) qrTimerBox.style.display = 'flex';
+            if (qrTimerBox) qrTimerBox.style.display = isActiveQr ? 'flex' : 'none';
             if (footerBanner) footerBanner.style.display = 'flex';
-            if (claimedActions) claimedActions.style.display = 'flex';
+            if (claimedActions) claimedActions.style.display = isActiveQr ? 'none' : 'flex';
 
             const useBtn = document.getElementById('modal-btn-use');
             if (useBtn) {
@@ -1632,14 +1653,14 @@ function startModalTimers(item) {
     const code = item.code || item.voucher_code;
 
     // Voucher expiration timestamp
-    let voucherExpTime = vExpRaw ? new Date(vExpRaw).getTime() : (new Date(item.claimed_at || item.createdAt || Date.now()).getTime() + 24 * 3600 * 1000);
-    // QR code validity timestamp (20 minutes)
-    let qrExpTime = qrExpRaw ? new Date(qrExpRaw).getTime() : (Date.now() + 20 * 60 * 1000);
+    let voucherExpTime = vExpRaw ? new Date(vExpRaw).getTime() : (new Date(item.claimed_at || item.createdAt || Date.now()).getTime() + 3 * 24 * 3600 * 1000);
+    const hasActiveQr = item.status === 'active' && item.qr_token && qrExpRaw;
+    let qrExpTime = hasActiveQr ? new Date(qrExpRaw).getTime() : null;
 
     const updateTick = () => {
         const now = Date.now();
         const vDiff = voucherExpTime - now;
-        const qrDiff = qrExpTime - now;
+        const qrDiff = qrExpTime ? qrExpTime - now : null;
 
         const vCountdownEl = document.getElementById('modal-voucher-countdown');
         const qrCountdownEl = document.getElementById('modal-qr-countdown');
@@ -1647,7 +1668,7 @@ function startModalTimers(item) {
         if (vCountdownEl) {
             vCountdownEl.textContent = formatCountdown(vDiff);
         }
-        if (qrCountdownEl) {
+        if (qrCountdownEl && qrDiff !== null) {
             qrCountdownEl.textContent = formatCountdown(qrDiff);
         }
 
@@ -1688,10 +1709,10 @@ function startModalTimers(item) {
             return;
         }
 
-        // 2. QR Code Expired (20-min validity period up) -> Automatic Refresh!
-        if (qrDiff <= 0) {
+        // Rotate automatically at the server-aligned 20-minute boundary.
+        if (qrDiff !== null && qrDiff <= 0) {
             stopModalTimers();
-            window.refreshModalQrCode(code);
+            void window.refreshModalQrCode(item.code || item.voucher_code || item.redemption_code);
         }
     };
 
@@ -1755,8 +1776,6 @@ window.handleVoucherUse = async function() {
     if (!item) return;
 
     const code = item.code || item.voucher_code;
-    const qrToken = item.qr_token || window._currentActiveQrToken || code;
-
     if (item.status === 'expired' || isVoucherExpired(item)) {
         if (typeof showToast === 'function') showToast("This voucher has expired and cannot be used.", "error");
         return;
@@ -1765,7 +1784,7 @@ window.handleVoucherUse = async function() {
     const useBtn = document.getElementById('modal-btn-use');
     if (useBtn) {
         useBtn.disabled = true;
-        useBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Redeeming...';
+        useBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Activating...';
     }
 
     try {
@@ -1778,58 +1797,27 @@ window.handleVoucherUse = async function() {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
             },
-            body: JSON.stringify({ qr_token: qrToken })
+            body: JSON.stringify({})
         });
         const data = await res.json();
         if (res.ok && data.status === 'success') {
-            if (typeof showToast === 'function') {
-                showToast("🎉 Voucher successfully redeemed and marked as Used!", "success");
-            }
-            if (window.confetti) {
-                window.confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
-            }
+            if (typeof showToast === 'function') showToast('Voucher QR pass is active for 20 minutes.', 'success');
 
-            item.status = 'used';
-            item.redemptionStatus = 'used';
-            item.isUsed = true;
-            item.isClaimed = false;
-            item.redeemed_at = data.redeemed_at || new Date().toISOString();
-
-            stopModalTimers();
-
-            const stampOverlay = document.getElementById('modal-qr-stamp-overlay');
-            const stampBadge = document.getElementById('modal-qr-stamp-badge');
-            const qrImg = document.getElementById('modal-qr-img');
-            const claimedActions = document.getElementById('modal-claimed-actions');
-            const footerBanner = document.getElementById('modal-footer-banner');
-
-            if (stampOverlay) stampOverlay.style.display = 'flex';
-            if (stampBadge) {
-                stampBadge.style.animation = 'none';
-                void stampBadge.offsetWidth;
-                stampBadge.style.animation = 'qrStampSlam 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards';
-            }
-            if (qrImg) {
-                qrImg.style.filter = 'grayscale(1)';
-                qrImg.style.opacity = '0.3';
-            }
-            if (claimedActions) claimedActions.style.display = 'none';
-            if (footerBanner) footerBanner.style.display = 'none';
-
-            const statusNotice = document.getElementById('modal-status-notice');
-            const statusNoticeTitle = document.getElementById('modal-status-notice-title');
-            const statusNoticeDesc = document.getElementById('modal-status-notice-desc');
-            if (statusNotice && statusNoticeTitle && statusNoticeDesc) {
-                statusNotice.style.display = 'block';
-                statusNotice.style.background = '#fef2f2';
-                statusNotice.style.border = '1px solid #fecaca';
-                statusNoticeTitle.style.color = '#dc2626';
-                statusNoticeTitle.innerHTML = '<i class="fa-solid fa-check-double"></i> Voucher Used & Verified';
-                statusNoticeDesc.style.color = '#991b1b';
-                statusNoticeDesc.textContent = 'This voucher has been successfully used and redeemed.';
-            }
-
-            renderDiscounts();
+            item.status = 'active';
+            item.redemptionStatus = 'active';
+            item.isActive = true;
+            item.qr_token = data.qr_token;
+            item.qr_expires_at = data.qr_expires_at;
+            window._currentActiveQrToken = data.qr_token;
+            const rawItem = (window._touristRedemptions || []).find(r =>
+                String(r.voucher_code || r.code || '').toUpperCase() === String(code).toUpperCase()
+            );
+            if (rawItem && rawItem !== item) Object.assign(rawItem, {
+                status: 'active',
+                qr_token: data.qr_token,
+                qr_expires_at: data.qr_expires_at
+            });
+            openVoucherModal(currentVoucherId);
             fetchUserPointsAndRedemptions();
         } else {
             if (typeof showToast === 'function') showToast(data.message || "Failed to use voucher.", "error");
@@ -2116,7 +2104,7 @@ async function handleModalRedeem() {
             setClaimedVouchers(claimed);
 
             const newRedemptionId = (data.data && data.data.id) ? data.data.id : Date.now();
-            const activeQrToken = data.qr_token || claimCode;
+            const activeQrToken = data.qr_token || null;
             const newVoucherItem = {
                 id: newRedemptionId,
                 voucher_id: cleanId,
@@ -2151,6 +2139,7 @@ async function handleModalRedeem() {
             };
 
             currentModalItem = newVoucherItem;
+            currentVoucherId = 'rdm_' + newRedemptionId;
             window._currentActiveQrToken = activeQrToken;
 
             // Immediately register into window._touristRedemptions
@@ -2247,20 +2236,19 @@ async function handleModalRedeem() {
                 const qrImg = document.getElementById('modal-qr-img');
                 const stampOverlay = document.getElementById('modal-qr-stamp-overlay');
                 if (qrImg) {
-                    qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(activeQrToken)}`;
-                    qrImg.style.display = 'block';
-                    qrImg.style.filter = 'none';
-                    qrImg.style.opacity = '1';
+                    qrImg.removeAttribute('src');
                 }
                 if (stampOverlay) {
                     stampOverlay.style.display = 'none';
                 }
 
-                // Show dual timers
+                // The three-day claim timer starts now; QR stays hidden until Use.
                 const vTimerBox = document.getElementById('modal-voucher-timer-box');
                 const qrTimerBox = document.getElementById('modal-qr-timer-box');
+                const passContent = document.getElementById('modal-qr-pass-content');
                 if (vTimerBox) vTimerBox.style.display = 'flex';
-                if (qrTimerBox) qrTimerBox.style.display = 'flex';
+                if (qrTimerBox) qrTimerBox.style.display = 'none';
+                if (passContent) passContent.style.display = 'none';
             }
 
             // Show footer banner with Use and Cancel buttons

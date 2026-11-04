@@ -453,7 +453,6 @@ if (is_dir($imgDir)) {
                     <strong><i class="fa-solid fa-bus-simple"></i> Public vehicle</strong>
                     <button type="button" data-vehicle="tricycle" onclick="window.selectDirectionsVehicle('tricycle', this)"><i class="fa-solid fa-motorcycle"></i>Tricycle</button>
                     <button type="button" data-vehicle="taxi" onclick="window.selectDirectionsVehicle('taxi', this)"><i class="fa-solid fa-taxi"></i>Taxi</button>
-                    <button type="button" data-vehicle="uve" onclick="window.selectDirectionsVehicle('uve', this)"><i class="fa-solid fa-van-shuttle"></i>Utility Vehicle Express (UVE)</button>
                     <button type="button" data-vehicle="pub_regular" onclick="window.selectDirectionsVehicle('pub_regular', this)"><i class="fa-solid fa-bus-simple"></i>PUB Regular</button>
                     <button type="button" data-vehicle="pub_aircon" onclick="window.selectDirectionsVehicle('pub_aircon', this)"><i class="fa-solid fa-bus"></i>PUB Aircon</button>
                     <button type="button" data-vehicle="mpuj" onclick="window.selectDirectionsVehicle('mpuj', this)"><i class="fa-solid fa-van-shuttle"></i>Modern Jeepney (MPUJ)</button>
@@ -4598,13 +4597,14 @@ if (is_dir($imgDir)) {
             const expDetails = document.getElementById('expanded-details');
             if (expDetails) expDetails.style.display = 'flex';
 
-            if (locationData && locationData.id) {
-                window.currentSelectedSpotId = locationData.id;
+            const feedbackSpotId = locationData && (locationData.id || locationData.tourist_spot_id || locationData.destination_id);
+            if (feedbackSpotId) {
+                window.currentSelectedSpotId = feedbackSpotId;
                 window.currentSelectedLocationData = locationData;
                 const testimoniesSec = document.getElementById('sheet-testimonies-section');
                 if (testimoniesSec) {
                     testimoniesSec.style.display = 'block';
-                    fetchTestimonies(locationData.id, locationData);
+                    fetchTestimonies(feedbackSpotId, locationData);
                 }
             }
 
@@ -5192,11 +5192,15 @@ if (is_dir($imgDir)) {
 
 
         // --- Site Testimonies & Policy Recommendations (Offline Resilient) ---
-        async function fetchTestimonies(spotId, locData) {
+        async function fetchTestimonies(spotId, locData, retryCount = 0) {
             const list = document.getElementById('testimonies-list-container');
             const summary = document.getElementById('testimonies-summary-metrics');
             const badge = document.getElementById('sheet-testimonies-badge');
             if (!list) return;
+
+            if (window._testimoniesController) window._testimoniesController.abort();
+            const requestController = typeof AbortController !== 'undefined' ? new AbortController() : null;
+            window._testimoniesController = requestController;
 
             const curLocation = locData || window.currentSelectedLocationData || {};
             let spotClassStatus = curLocation.classification_status || '';
@@ -5433,25 +5437,19 @@ if (is_dir($imgDir)) {
                 const headers = { 'Accept': 'application/json' };
                 if (token) headers['Authorization'] = 'Bearer ' + token;
 
-                const controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
-                const timeoutId = controller ? setTimeout(() => controller.abort(), 7000) : null;
+                const timeoutId = requestController ? setTimeout(() => requestController.abort(), 4500) : null;
 
                 let res = null;
                 try {
-                    res = await fetch(_backendBase + '/api/public/feedback?tourist_spot_id=' + spotId, {
-                        signal: controller ? controller.signal : undefined,
+                    res = await fetch(_backendBase + '/api/public/feedback?tourist_spot_id=' + encodeURIComponent(spotId), {
+                        signal: requestController ? requestController.signal : undefined,
                         headers
                     });
-                    if (!res.ok && token) {
-                        res = await fetch(_backendBase + '/api/tourist/feedback?tourist_spot_id=' + spotId, {
-                            signal: controller ? controller.signal : undefined,
-                            headers
-                        });
-                    }
                 } finally {
                     if (timeoutId) clearTimeout(timeoutId);
                 }
 
+                if (window._testimoniesController !== requestController) return;
                 if (res && res.ok) {
                     const text = await res.text();
                     const d = window.safeJsonParse(text, null);
@@ -5469,6 +5467,12 @@ if (is_dir($imgDir)) {
                     renderEmptyTestimonies(true);
                 }
             } catch (e) {
+                if (window._testimoniesController !== requestController) return;
+                if (e && e.name === 'AbortError' && retryCount < 1) {
+                    list.innerHTML = '<div style="font-size:12px; color:#cbd5e1; text-align:center; padding:16px 10px;"><i class="fa-solid fa-arrows-rotate fa-spin" style="margin-right:6px; color:#38bdf8;"></i> Fetching the latest feedback...</div>';
+                    setTimeout(() => fetchTestimonies(spotId, locData, retryCount + 1), 400);
+                    return;
+                }
                 // Graceful fallback to cached data or offline state - NEVER display error red text
                 if (cachedData) {
                     renderTestimoniesPayload(cachedData, true);
@@ -5694,7 +5698,6 @@ if (is_dir($imgDir)) {
             motorcycle: { label: 'Motorcycle', mode: 'motorcycle', icon: 'fa-motorcycle' },
             van: { label: 'Van', mode: 'driving', icon: 'fa-van-shuttle' },
             taxi: { label: 'Taxi', mode: 'driving', icon: 'fa-taxi' },
-            uve: { label: 'Utility Vehicle Express (UVE)', mode: 'public', icon: 'fa-van-shuttle' },
             pub_regular: { label: 'PUB Regular', mode: 'public', icon: 'fa-bus-simple' },
             pub_aircon: { label: 'PUB Aircon', mode: 'public', icon: 'fa-bus' },
             mpuj: { label: 'Modern Jeepney (MPUJ)', mode: 'public', icon: 'fa-van-shuttle' },
@@ -6057,7 +6060,7 @@ if (is_dir($imgDir)) {
             });
         }
 
-        function drawMapDirectionsRoutes(routes, start, destination) {
+        function drawMapDirectionsRoutes(routes, start, destination, focusOnly = false) {
             if (!window.mapInstance || !routes.length) return;
             const map = window.mapInstance;
             const features = routes.slice(0, 3).map((route, index) => ({
@@ -6085,7 +6088,7 @@ if (is_dir($imgDir)) {
                 }
                 const bounds = new maplibregl.LngLatBounds();
                 routes[0].geometry.coordinates.forEach(coord => bounds.extend(coord));
-                map.fitBounds(bounds, { padding: { top: 160, right: 45, bottom: 325, left: 45 }, maxZoom: 16, duration: 750 });
+                map.fitBounds(bounds, { padding: { top: 110, right: 38, bottom: focusOnly ? 70 : 325, left: 38 }, maxZoom: 16, duration: 750 });
                 setDirectionsMarkers(start, destination);
             };
             if (map.isStyleLoaded()) draw();
@@ -6196,7 +6199,10 @@ if (is_dir($imgDir)) {
 
         window.focusMapDirectionsRoute = function () {
             if (window._directionsLastRoutes && window._directionsLastStart && window._directionsLastDestination) {
-                drawMapDirectionsRoutes(window._directionsLastRoutes, window._directionsLastStart, window._directionsLastDestination);
+                const summary = document.getElementById('map-route-summary');
+                if (summary) summary.classList.remove('open');
+                drawMapDirectionsRoutes(window._directionsLastRoutes, window._directionsLastStart, window._directionsLastDestination, true);
+                if (typeof showToast === 'function') showToast('Route shown on the map. Tap the top route bar to edit it.', 'info');
             }
         };
 

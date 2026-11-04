@@ -976,30 +976,7 @@ try {
                     </div>
                 </div>
 
-                <!-- Option 8: UV Express (UVE) -->
-                <div class="travel-starter-card" data-mode="uve" onclick="window.toggleStarterVehicleMode('uve')">
-                    <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:0;">
-                        <div class="starter-check-box"
-                            style="width:22px; height:22px; border-radius:6px; border:2px solid rgba(255,255,255,0.65); background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; color:#1e3a8a; font-size:12px; font-weight:900; flex-shrink:0; transition:all 0.18s ease;">
-                            <i class="fa-solid fa-check starter-check-icon"
-                                style="color:#1e3a8a !important; display:none;"></i>
-                        </div>
-                        <div class="travel-starter-icon">
-                            <i class="fa-solid fa-van-shuttle"></i>
-                        </div>
-                        <div style="flex:1; min-width:0;">
-                            <div style="font-weight:800; font-size:13.5px; color:#ffffff;">UV Express</div>
-                        </div>
-                    </div>
-                    <div style="text-align:right; flex-shrink:0; margin-left:8px;">
-                        <span class="starter-active-badge"
-                            style="display:none; font-size:10px; font-weight:800; background:rgba(255, 255, 255, 0.22); color:#ffffff; padding:3px 10px; border-radius:100px; text-transform:uppercase; letter-spacing:0.3px;">
-                            <i class="fa-solid fa-check" style="margin-right:3px;"></i> Selected
-                        </span>
-                    </div>
-                </div>
-
-                <!-- Option 9: Regular Bus -->
+                <!-- Option 8: Regular Bus -->
                 <div class="travel-starter-card" data-mode="pub_regular"
                     onclick="window.toggleStarterVehicleMode('pub_regular')">
                     <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:0;">
@@ -2348,15 +2325,6 @@ try {
                     desc: 'Provincial air-conditioned coach bus',
                     icon: 'fa-bus',
                     cost: window.calculateSingleLegCost('pub_aircon', distKm, muniA, muniB),
-                    isRecommended: false,
-                    category: 'Public'
-                },
-                {
-                    mode: 'uve',
-                    name: 'UV Express (UVE)',
-                    desc: 'Express inter-town shuttle service',
-                    icon: 'fa-van-shuttle',
-                    cost: window.calculateSingleLegCost('uve', distKm, muniA, muniB),
                     isRecommended: false,
                     category: 'Public'
                 },
@@ -6438,7 +6406,6 @@ try {
                         key: 'tricycle',
                         badgeHtml: isInterMunicipal ? '<span style="padding:1px 6px; border-radius:100px; font-size:8px; font-weight:800; background:rgba(56,189,248,0.25); color:#7dd3fc;">Local Legs</span>' : ''
                     },
-                    { val: 'uve', name: 'UV Express / Van', icon: 'fa-shuttle-van', available: true, key: 'uve' },
                     { val: 'taxi', name: 'Taxi', icon: 'fa-taxi', available: true, key: 'taxi' }
                 ];
             }

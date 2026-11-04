@@ -33,20 +33,22 @@ $backRoute = 'dashboard';
                 <i class="fa-solid fa-water"></i> Beaches
             </button>
             <button type="button" class="category-tab-btn" data-cat="Nature" onclick="window.switchCategoryTab('Nature', this)">
-                <i class="fa-solid fa-mountain"></i> Nature & Park
+                <i class="fa-solid fa-leaf"></i> Nature
             </button>
+            <button type="button" class="category-tab-btn" data-cat="Park" onclick="window.switchCategoryTab('Park', this)"><i class="fa-solid fa-tree"></i> Parks</button>
+            <button type="button" class="category-tab-btn" data-cat="Cultural" onclick="window.switchCategoryTab('Cultural', this)"><i class="fa-solid fa-masks-theater"></i> Cultural</button>
             <button type="button" class="category-tab-btn" data-cat="Heritage" onclick="window.switchCategoryTab('Heritage', this)">
-                <i class="fa-solid fa-landmark-dome"></i> Cultural & Heritage
+                <i class="fa-solid fa-landmark-dome"></i> Heritage
             </button>
-            <button type="button" class="category-tab-btn" data-cat="Food & Dining" onclick="window.switchCategoryTab('Food & Dining', this)">
-                <i class="fa-solid fa-utensils"></i> Food & Dining
-            </button>
+            <button type="button" class="category-tab-btn" data-cat="Restaurant" onclick="window.switchCategoryTab('Restaurant', this)"><i class="fa-solid fa-utensils"></i> Restaurants</button>
+            <button type="button" class="category-tab-btn" data-cat="Cafe" onclick="window.switchCategoryTab('Cafe', this)"><i class="fa-solid fa-mug-hot"></i> Cafes</button>
             <button type="button" class="category-tab-btn" data-cat="Mountains" onclick="window.switchCategoryTab('Mountains', this)">
                 <i class="fa-solid fa-mountain-sun"></i> Mountains
             </button>
             <button type="button" class="category-tab-btn" data-cat="Lakes" onclick="window.switchCategoryTab('Lakes', this)">
-                <i class="fa-solid fa-droplet"></i> Lakes & Falls
+                <i class="fa-solid fa-droplet"></i> Lakes
             </button>
+            <button type="button" class="category-tab-btn" data-cat="Waterfall" onclick="window.switchCategoryTab('Waterfall', this)"><i class="fa-solid fa-water"></i> Waterfalls</button>
             <button type="button" class="category-tab-btn" data-cat="Farm" onclick="window.switchCategoryTab('Farm', this)">
                 <i class="fa-solid fa-seedling"></i> Farms
             </button>
@@ -74,10 +76,10 @@ $backRoute = 'dashboard';
     <!-- Active Category Meta Bar (Count on Left, Sort on Right) -->
     <div class="categories-meta-bar">
         <span class="categories-count-text" id="categories-count-text">Loading spots...</span>
-        <select id="categories-sort-select" class="categories-sort-select" onchange="window.setCategorySort(this.value)">
+        <select id="categories-sort-select" class="categories-sort-select" aria-label="Sort tourist sites" onchange="window.setCategorySort(this.value)">
             <option value="popular">Most Visited</option>
-            <option value="rating">Top Rated</option>
-            <option value="alpha">Name A-Z</option>
+            <option value="alpha-asc">Name A-Z</option>
+            <option value="alpha-desc">Name Z-A</option>
         </select>
     </div>
 
@@ -107,14 +109,18 @@ $backRoute = 'dashboard';
             if (lower.includes('beach') || lower.includes('surf') || lower.includes('coastal')) return 'Beach';
             if (lower.includes('museum') || lower.includes('gallery')) return 'Museum';
             if (lower.includes('church') || lower.includes('religious') || lower.includes('shrine') || lower.includes('cathedral')) return 'Religious';
-            if (lower.includes('heritage') || lower.includes('cultural') || lower.includes('historic')) return 'Heritage';
-            if (lower.includes('food') || lower.includes('dining') || lower.includes('cafe') || lower.includes('restaurant')) return 'Food & Dining';
+            if (lower.includes('cultural')) return 'Cultural';
+            if (lower.includes('heritage') || lower.includes('historic')) return 'Heritage';
+            if (lower.includes('cafe') || lower.includes('coffee')) return 'Cafe';
+            if (lower.includes('food') || lower.includes('dining') || lower.includes('restaurant')) return 'Restaurant';
             if (lower.includes('mountain') || lower.includes('hiking') || lower.includes('trail') || lower.includes('peak')) return 'Mountains';
-            if (lower.includes('lake') || lower.includes('fall') || lower.includes('waterfall') || lower.includes('river')) return 'Lakes';
+            if (lower.includes('fall') || lower.includes('waterfall')) return 'Waterfall';
+            if (lower.includes('lake') || lower.includes('river')) return 'Lakes';
             if (lower.includes('farm') || lower.includes('agri') || lower.includes('vineyard') || lower.includes('plantation')) return 'Farm';
             if (lower.includes('nightlife') || lower.includes('bar') || lower.includes('club')) return 'Nightlife';
             if (lower.includes('adventure') || lower.includes('camping') || lower.includes('camp')) return 'Adventure';
-            if (lower.includes('nature') || lower.includes('park') || lower.includes('garden')) return 'Nature';
+            if (lower.includes('park') || lower.includes('plaza') || lower.includes('baywalk')) return 'Park';
+            if (lower.includes('nature') || lower.includes('garden')) return 'Nature';
             return raw;
         }
 
@@ -133,25 +139,37 @@ $backRoute = 'dashboard';
                 return combined.includes('beach') || combined.includes('surf') || combined.includes('coastal') || combined.includes('seascape') || combined.includes('island');
             }
             if (t === 'nature') {
-                return combined.includes('nature') || combined.includes('park') || combined.includes('garden') || combined.includes('plaza') || combined.includes('mangrove') || combined.includes('baywalk');
+                return combined.includes('nature') || combined.includes('garden') || combined.includes('mangrove');
+            }
+            if (t === 'park') {
+                return combined.includes('park') || combined.includes('plaza') || combined.includes('baywalk');
+            }
+            if (t === 'cultural') {
+                return combined.includes('cultural') || combined.includes('pottery') || combined.includes('weaving') || combined.includes('traditional art');
             }
             if (t === 'heritage') {
-                return combined.includes('heritage') || combined.includes('historic') || combined.includes('cultural') || combined.includes('landmark') || combined.includes('monument') || combined.includes('museum') || combined.includes('church') || combined.includes('shrine') || combined.includes('watchtower');
+                return combined.includes('heritage') || combined.includes('historic') || combined.includes('landmark') || combined.includes('monument') || combined.includes('watchtower') || combined.includes('ancestral');
             }
-            if (t === 'food & dining' || t === 'food') {
-                return combined.includes('food') || combined.includes('dining') || combined.includes('restaurant') || combined.includes('cafe') || combined.includes('bistro') || combined.includes('eatery') || combined.includes('kitchen');
+            if (t === 'restaurant') {
+                return combined.includes('food') || combined.includes('dining') || combined.includes('restaurant') || combined.includes('bistro') || combined.includes('eatery') || combined.includes('kitchen') || combined.includes('grill');
+            }
+            if (t === 'cafe') {
+                return combined.includes('cafe') || combined.includes('coffee');
             }
             if (t === 'mountains' || t === 'mountain') {
                 return combined.includes('mountain') || combined.includes('peak') || combined.includes('hiking') || combined.includes('trail') || combined.includes('view deck') || combined.includes('viewdeck') || combined.includes('mt.');
             }
             if (t === 'lakes' || t === 'lake') {
-                return combined.includes('lake') || combined.includes('fall') || combined.includes('waterfall') || combined.includes('river') || combined.includes('dam') || combined.includes('spring');
+                return combined.includes('lake') || combined.includes('river') || combined.includes('dam') || combined.includes('spring');
+            }
+            if (t === 'waterfall') {
+                return combined.includes('waterfall') || combined.includes('falls');
             }
             if (t === 'farm') {
                 return combined.includes('farm') || combined.includes('grapes') || combined.includes('plantation') || combined.includes('agri') || combined.includes('vineyard');
             }
             if (t === 'museum') {
-                return combined.includes('museum') || combined.includes('gallery') || combined.includes('cultural') || combined.includes('pottery') || combined.includes('weaving');
+                return combined.includes('museum') || combined.includes('gallery');
             }
             if (t === 'religious') {
                 return combined.includes('church') || combined.includes('shrine') || combined.includes('basilica') || combined.includes('cathedral') || combined.includes('chapel') || combined.includes('parish') || combined.includes('religious');
@@ -211,7 +229,7 @@ $backRoute = 'dashboard';
             const isRainy = cond.includes('rain') || cond.includes('drizzle') || cond.includes('thunder') || cond.includes('storm');
             const isSunny = cond.includes('sunny') || cond.includes('clear');
 
-            if (isRainy && (cat === 'Museum' || cat === 'Heritage' || cat === 'Food & Dining' || cat === 'Religious')) {
+            if (isRainy && (cat === 'Museum' || cat === 'Heritage' || cat === 'Cultural' || cat === 'Restaurant' || cat === 'Cafe' || cat === 'Religious')) {
                 textEl.textContent = `Recommended for today's weather (${wData.condition}): Sheltered indoor & cultural spots`;
                 badgeEl.style.display = 'flex';
                 badgeEl.style.background = '#dbeafe';
@@ -229,7 +247,7 @@ $backRoute = 'dashboard';
         }
 
         window.setCategorySort = function (sortKey) {
-            currentSort = sortKey;
+            currentSort = sortKey || 'popular';
             applyFilters();
         };
 
@@ -275,20 +293,12 @@ $backRoute = 'dashboard';
                 return true;
             });
 
-            // Sorting
             filtered.sort((a, b) => {
-                if (currentSort === 'popular') {
-                    const vDiff = (parseInt(b.visits) || 0) - (parseInt(a.visits) || 0);
-                    if (vDiff !== 0) return vDiff;
-                    return (parseFloat(b.rating || b.reviews_avg_rating || 0)) - (parseFloat(a.rating || a.reviews_avg_rating || 0));
-                } else if (currentSort === 'rating') {
-                    const rDiff = (parseFloat(b.rating || b.reviews_avg_rating || 0)) - (parseFloat(a.rating || a.reviews_avg_rating || 0));
-                    if (Math.abs(rDiff) > 0.01) return rDiff;
-                    return (parseInt(b.visits) || 0) - (parseInt(a.visits) || 0);
-                } else if (currentSort === 'alpha') {
-                    return (a.name || '').localeCompare(b.name || '');
-                }
-                return 0;
+                if (currentSort === 'alpha-asc') return (a.name || '').localeCompare(b.name || '');
+                if (currentSort === 'alpha-desc') return (b.name || '').localeCompare(a.name || '');
+                const visits = (parseInt(b.visits, 10) || 0) - (parseInt(a.visits, 10) || 0);
+                if (visits !== 0) return visits;
+                return (parseFloat(b.rating || b.reviews_avg_rating || 0)) - (parseFloat(a.rating || a.reviews_avg_rating || 0));
             });
 
             if (countText) {

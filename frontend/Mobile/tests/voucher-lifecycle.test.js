@@ -63,9 +63,9 @@ assert.match(profileSource, /id="active-qr-btn-use"/, 'profile modal must have U
 assert.match(profileSource, /id="active-qr-btn-cancel"/, 'profile modal must have Cancel button');
 
 // Use and Cancel only shown when status is Claimed
-assert.match(discountSource, /claimedActions\.style\.display\s*=\s*'flex'/,
+assert.match(discountSource, /claimedActions\.style\.display\s*=\s*isActiveQr \? 'none' : 'flex'/,
     'discount modal must display Use and Cancel buttons only when voucher is claimed');
-assert.match(profileSource, /claimedActions\.style\.display\s*=\s*'flex'/,
+assert.match(profileSource, /claimedActions\.style\.display\s*=\s*isActiveQr \? 'none' : 'flex'/,
     'profile modal must display Use and Cancel buttons only when voucher is claimed');
 
 // 5. Automatic Expiration disables Use button and hides action bar
@@ -74,13 +74,27 @@ assert.match(discountSource, /useBtn\.disabled\s*=\s*true[\s\S]*?claimedActions\
 assert.match(profileSource, /useBtn\.disabled\s*=\s*true[\s\S]*?claimedActions\.style\.display\s*=\s*'none'/,
     'profile modal must hide or disable Use button when voucher expires');
 
-// 6. 20-minute QR Code Automatic Refresh Logic
+// 6. Claim lifetime and 20-minute QR activation logic
 assert.match(voucherControllerSource, /public function refreshQrCode/, 'VoucherController must have refreshQrCode method');
-assert.match(voucherControllerSource, /\$newQrExpiresAt = now\(\)->addMinutes\(20\)/, 'QR expires in exactly 20 minutes');
+assert.match(voucherControllerSource, /while \(\$newQrExpiresAt->lte\(now\(\)\)\)[\s\S]*?addMinutes\(20\)/, 'expired QR windows must rotate in server-aligned 20-minute steps');
 assert.match(voucherControllerSource, /if\s*\(\$voucherExpiresAt\s*&&\s*\$newQrExpiresAt->gt\(\$voucherExpiresAt\)\)\s*\{\s*\$newQrExpiresAt\s*=\s*\$voucherExpiresAt->copy\(\);\s*\}/,
     'QR expiration must be capped at voucher expiration and never extend voucher expiry');
-assert.match(discountSource, /window\.refreshModalQrCode/, 'discount view must provide automated QR refresh');
-assert.match(profileSource, /window\.refreshActiveModalQrCode/, 'profile view must provide automated QR refresh');
+assert.match(voucherControllerSource, /\$voucherExpiresAt = now\(\)->addDays\(3\)/,
+    'a claimed voucher must expire after three days');
+assert.match(voucherControllerSource, /\$qrExpiresAt = null;[\s\S]*?\$qrToken = null;/,
+    'claiming must not expose a QR token before Use is tapped');
+assert.match(voucherControllerSource, /public function useVoucher[\s\S]*?\$qrExpiresAt = \$now->copy\(\)->addMinutes\(20\)/,
+    'Use must start a fresh 20-minute QR session');
+assert.match(voucherControllerSource, /public function useVoucher[\s\S]*?'status' => 'active'/,
+    'Use must activate the QR instead of redeeming the voucher');
+assert.match(discountSource, /item\.status = 'active';[\s\S]*?item\.qr_token = data\.qr_token/,
+    'discount Use action must display the activated QR without marking it redeemed');
+assert.match(profileSource, /item\.status = 'active';[\s\S]*?item\.qr_token = data\.qr_token/,
+    'profile Use action must display the activated QR without marking it redeemed');
+assert.match(discountSource, /qrDiff !== null && qrDiff <= 0[\s\S]*?refreshModalQrCode/,
+    'an expired discount QR must rotate automatically');
+assert.match(profileSource, /qrDiff !== null && qrDiff <= 0[\s\S]*?refreshActiveModalQrCode/,
+    'an expired profile QR must rotate automatically');
 
 // 7. Backend Routes Validation
 assert.match(apiRoutesSource, /Route::post\('\/vouchers\/\{code\}\/use',/, 'API route for voucher use must exist');
@@ -89,7 +103,8 @@ assert.match(apiRoutesSource, /Route::post\('\/vouchers\/\{code\}\/refresh-qr',/
 
 // 8. Backend Security and Timestamp Validations
 assert.match(voucherControllerSource, /now\(\)->gte\(\$voucherExpiresAt\)/, 'useVoucher must validate server-side expiration timestamp');
-assert.match(voucherControllerSource, /The QR code has expired \(20-minute validity limit reached\)/, 'useVoucher must enforce QR 20-min expiration check');
+assert.match(voucherControllerSource, /\$isActive[\s\S]*?now\(\)->gte\(\$qrExpiresAt\)[\s\S]*?'status' => 'active'/,
+    'status checks must rotate an expired QR while keeping the three-day claim active');
 assert.match(voucherControllerSource, /whereIn\('status',\s*\['claimed',\s*'active',\s*'redeemed',\s*'used',\s*'completed'\]\)/,
     'redeemVoucher duplicate claim check must exclude cancelled vouchers');
 assert.match(pointsControllerSource, /!in_array\(\$st,\s*\['cancelled'\]\)/,
@@ -102,5 +117,11 @@ assert.doesNotMatch(profileSource, /^( {4})?(let|const)\s+activeQrTimerInterval/
 // 9. Verify renderDiscounts template variables integrity
 assert.doesNotMatch(discountSource, /\$\{isRedeemed\s*\?/, 'renderDiscounts template literal must not reference undeclared isRedeemed');
 assert.match(discountSource, /const isRedeemed\s*=\s*isUsed;/, 'discount.php must declare isRedeemed alias');
+
+// 10. Redeemed display keeps only the redeemed stamp, without stale QR details.
+assert.match(discountSource, /data\.is_redeemed[\s\S]*?passContent\.style\.display = 'none'[\s\S]*?statusNotice\.style\.display = 'none'/,
+    'discount redeemed state must hide QR/code content and the duplicate redeemed notice');
+assert.match(profileSource, /data\.is_redeemed[\s\S]*?passContent\.style\.display = 'none'[\s\S]*?timersContainer\.style\.display = 'none'/,
+    'profile redeemed state must hide QR/code content and timers');
 
 console.log('All voucher lifecycle tests passed successfully!');

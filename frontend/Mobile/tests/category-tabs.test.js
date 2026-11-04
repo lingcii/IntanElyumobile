@@ -1,4 +1,7 @@
 const assert = require('assert');
+const fs = require('node:fs');
+const path = require('node:path');
+const categoriesSource = fs.readFileSync(path.join(__dirname, '..', 'src', 'views', 'categories.php'), 'utf8');
 
 // Test canonicalization and category matching logic from categories view
 function canonicalizeCategory(cat) {
@@ -120,6 +123,13 @@ assert.strictEqual(farmMatches[0].name, 'Lomboy Grapes Farm');
 const museumMatches = mockSpots.filter(s => matchesCategory(s.category, s.name, s.municipality, 'Museum'));
 assert.strictEqual(museumMatches.length, 1);
 assert.strictEqual(museumMatches[0].name, 'Silid Cultural Museum');
+
+assert.match(categoriesSource, /Most Visited[\s\S]*Name A-Z[\s\S]*Name Z-A/,
+    'the category screen must provide the requested sorting choices');
+assert.doesNotMatch(categoriesSource, /Free Entry|With Entrance Fee/,
+    'entry-fee filters must be removed');
+assert.match(categoriesSource, /currentSort === 'alpha-asc'[\s\S]*currentSort === 'alpha-desc'/,
+    'both alphabetical directions must be implemented');
 
 console.log('Category tab canonicalization & spot matching tests passed!');
 

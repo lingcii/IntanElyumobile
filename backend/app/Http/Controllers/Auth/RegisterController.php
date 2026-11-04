@@ -267,6 +267,8 @@ class RegisterController extends Controller
                 'completed_activities' => 0,
                 'places_visited' => 0,
                 'avatar'         => null,
+                'travel_preferences' => $user->travel_preferences,
+                'is_new_user'    => true,
                 'created_at'     => $user->created_at ? $user->created_at->toIso8601String() : $now->toIso8601String(),
                 'created_at_formatted' => $user->created_at ? $user->created_at->format('M d, Y h:i A') : $now->format('M d, Y h:i A'),
                 'date_created'   => $user->created_at ? $user->created_at->format('M d, Y h:i A') : $now->format('M d, Y h:i A'),

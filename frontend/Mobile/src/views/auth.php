@@ -2438,8 +2438,8 @@
         if (regForm) regForm.reset();
         sessionStorage.removeItem('pending_reg_email');
         setTimeout(() => {
-            if (typeof navigateTo === 'function') navigateTo('dashboard');
-            else window.location.href = '?view=dashboard';
+            if (typeof navigateTo === 'function') navigateTo('onboarding');
+            else window.location.href = '?view=onboarding';
         }, 1800);
     };
 

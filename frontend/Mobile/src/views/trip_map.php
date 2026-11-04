@@ -314,7 +314,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
             { key: 'pub_ordinary', name: 'PUB Ordinary Bus', icon: 'fa-bus-simple', color: '#06b6d4', desc: 'Regular provincial commuter bus', speedKmH: 30 },
             { key: 'tricycle', name: 'Tricycle', icon: 'fa-motorcycle', color: '#10b981', desc: 'Local tricycle', speedKmH: 20 },
             { key: 'taxi', name: 'Taxi', icon: 'fa-taxi', color: '#eab308', desc: 'Metered or chartered taxi', speedKmH: 36 },
-            { key: 'uve', name: 'UV Express / Van', icon: 'fa-van-shuttle', color: '#a855f7', desc: 'UV Express shuttle van', speedKmH: 32 },
+            { key: 'uve', name: 'UV Express / Van', icon: 'fa-van-shuttle', color: '#a855f7', desc: 'Legacy UV Express shuttle van', speedKmH: 32, hiddenFromModal: true },
             { key: 'motorcycle', name: 'Motorcycle', icon: 'fa-motorcycle', color: '#f97316', desc: 'Motorcycle', speedKmH: 36 },
             { key: 'jeepney', name: 'Jeepney', icon: 'fa-van-shuttle', color: '#10b981', desc: 'Public Utility Jeepney', speedKmH: 24, hiddenFromModal: true },
             { key: 'bus', name: 'Bus', icon: 'fa-bus', color: '#38bdf8', desc: 'Provincial bus', speedKmH: 32, hiddenFromModal: true },

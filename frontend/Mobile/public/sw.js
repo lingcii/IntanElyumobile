@@ -1,4 +1,4 @@
-const CACHE_NAME = 'Intan_Elyu_cache-v42-hero-geofence-update';
+const CACHE_NAME = 'Intan_Elyu_cache-v48-live-qr-categories-map';
 const ASSETS = [
     './',
     './index.php',

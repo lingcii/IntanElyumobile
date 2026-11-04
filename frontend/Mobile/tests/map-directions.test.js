@@ -27,8 +27,10 @@ assert.match(mapSource, /id="directions-start-input"[\s\S]*?value="Your location
 assert.match(mapSource, /id="directions-destination-input"[\s\S]*?placeholder="Choose destination"/);
 assert.match(mapSource, /data-vehicle="own_car"[\s\S]*?data-vehicle="tricycle"[\s\S]*?data-vehicle="car"[\s\S]*?data-vehicle="jeepney"[\s\S]*?directions-more-vehicles-btn/,
     'the route search must show Own Car, Tricycle, Car, Jeep, then More');
-assert.match(mapSource, /id="directions-vehicle-menu"[\s\S]*?Utility Vehicle Express \(UVE\)[\s\S]*?PUB Regular[\s\S]*?PUB Aircon[\s\S]*?Modern Jeepney \(MPUJ\)[\s\S]*?Traditional Jeepney \(TPUJ\)/,
+assert.match(mapSource, /id="directions-vehicle-menu"[\s\S]*?PUB Regular[\s\S]*?PUB Aircon[\s\S]*?Modern Jeepney \(MPUJ\)[\s\S]*?Traditional Jeepney \(TPUJ\)/,
     'More must expose the complete private and public vehicle list');
+assert.doesNotMatch(mapSource, /data-vehicle="uve"/,
+    'UVE must not be offered in map direction choices');
 assert.match(mapSource, /window\.toggleDirectionsVehicleMenu[\s\S]*?window\.selectDirectionsVehicle/,
     'the More dropdown and vehicle selection must be interactive');
 assert.match(mapSource, /intan_elyu_route_history_/,

@@ -6,6 +6,8 @@ const mobileRoot = path.join(__dirname, '..');
 const repoRoot = path.join(mobileRoot, '..', '..');
 const auth = fs.readFileSync(path.join(mobileRoot, 'src', 'views', 'auth.php'), 'utf8');
 const controller = fs.readFileSync(path.join(repoRoot, 'backend', 'app', 'Http', 'Controllers', 'Auth', 'RegisterController.php'), 'utf8');
+const loginController = fs.readFileSync(path.join(repoRoot, 'backend', 'app', 'Http', 'Controllers', 'Auth', 'LoginController.php'), 'utf8');
+const main = fs.readFileSync(path.join(mobileRoot, 'src', 'assets', 'js', 'main.js'), 'utf8');
 const routes = fs.readFileSync(path.join(repoRoot, 'backend', 'routes', 'api.php'), 'utf8');
 const resendService = fs.readFileSync(path.join(repoRoot, 'backend', 'app', 'Services', 'ResendMailService.php'), 'utf8');
 const registerMethod = controller.slice(controller.indexOf('public function register'), controller.indexOf('public function verifyOtp'));
@@ -45,7 +47,11 @@ assert.match(auth, /handleResendRegistrationOtp[\s\S]*register\/resend-otp/,
     'the OTP panel must allow a delayed code to be resent');
 assert.match(auth, /showOtpInvalidModal\(errText\)/,
     'a rejected code must show the invalid-code dialog');
-assert.match(auth, /showOtpSuccessModal[\s\S]*navigateTo\('dashboard'\)/,
-    'a verified account must show success and continue to Dashboard');
+assert.match(auth, /showOtpSuccessModal[\s\S]*navigateTo\('onboarding'\)/,
+    'a verified account must show success and continue to Complete Profile');
+assert.match(loginController, /\$isNewUser = !\$user;[\s\S]*'travel_preferences'[\s\S]*'is_new_user'/,
+    'Google authentication must identify new accounts and return profile-completion state');
+assert.match(main, /const postAuthView = [\s\S]*'onboarding'[\s\S]*navigateTo\(postAuthView/,
+    'the direct Google callback must route incomplete accounts to Complete Profile');
 
 console.log('registration OTP flow tests passed');

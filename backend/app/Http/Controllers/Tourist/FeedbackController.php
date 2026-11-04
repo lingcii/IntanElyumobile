@@ -9,6 +9,7 @@ use App\Models\ItineraryItem;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 
 class FeedbackController extends Controller
 {
@@ -23,35 +24,36 @@ class FeedbackController extends Controller
             ?: $request->query('spot_id') 
             ?: $request->query('destination_id');
 
-        $query = SiteFeedback::with('user:id,name,avatar')
-            ->latest();
+        $cacheKey = $spotId ? 'feedback:spot:' . (int) $spotId : null;
+        if ($cacheKey && ($cached = Cache::get($cacheKey))) {
+            return response()->json($cached);
+        }
+
+        $query = SiteFeedback::with('user:id,name,avatar')->latest();
 
         if ($spotId) {
             $query->where('tourist_spot_id', $spotId);
         }
 
-        $feedbacks = $query->get();
+        $feedbacks = $query->limit($spotId ? 20 : 50)->get();
 
         // Calculate summary metrics if spot ID is provided
         $summary = null;
         if ($spotId) {
             $spot = TouristSpot::find($spotId);
             
-            // Calculate distributions
-            $cleanlinessDistribution = SiteFeedback::where('tourist_spot_id', $spotId)
-                ->select('cleanliness_level', DB::raw('count(*) as count'))
-                ->whereNotNull('cleanliness_level')
-                ->groupBy('cleanliness_level')
-                ->pluck('count', 'cleanliness_level');
+            $metrics = SiteFeedback::where('tourist_spot_id', $spotId)
+                ->selectRaw("COUNT(*) as total_reviews, AVG(rating) as average_rating,
+                    SUM(CASE WHEN cleanliness_level = 'clean' THEN 1 ELSE 0 END) as clean_count,
+                    SUM(CASE WHEN cleanliness_level = 'moderate' THEN 1 ELSE 0 END) as moderate_clean_count,
+                    SUM(CASE WHEN cleanliness_level = 'dirty' THEN 1 ELSE 0 END) as dirty_count,
+                    SUM(CASE WHEN safety_level = 'safe' THEN 1 ELSE 0 END) as safe_count,
+                    SUM(CASE WHEN safety_level = 'moderate' THEN 1 ELSE 0 END) as moderate_safe_count,
+                    SUM(CASE WHEN safety_level = 'unsafe' THEN 1 ELSE 0 END) as unsafe_count")
+                ->first();
 
-            $safetyDistribution = SiteFeedback::where('tourist_spot_id', $spotId)
-                ->select('safety_level', DB::raw('count(*) as count'))
-                ->whereNotNull('safety_level')
-                ->groupBy('safety_level')
-                ->pluck('count', 'safety_level');
-
-            $totalReviews = SiteFeedback::where('tourist_spot_id', $spotId)->count();
-            $avgRating = SiteFeedback::where('tourist_spot_id', $spotId)->whereNotNull('rating')->avg('rating');
+            $totalReviews = (int) ($metrics->total_reviews ?? 0);
+            $avgRating = $metrics->average_rating ?? null;
 
             $classStatus = $spot ? $spot->classification_status : 'EXIST';
             $canonClass = \App\Models\Classification::normalizeStatus($classStatus);
@@ -64,24 +66,27 @@ class FeedbackController extends Controller
                 'classification_name'   => $canonClass,
                 'reward_points'         => $rewardPts,
                 'cleanliness' => [
-                    'clean'    => (int) ($cleanlinessDistribution['clean'] ?? 0),
-                    'moderate' => (int) ($cleanlinessDistribution['moderate'] ?? 0),
-                    'dirty'    => (int) ($cleanlinessDistribution['dirty'] ?? 0),
+                    'clean'    => (int) ($metrics->clean_count ?? 0),
+                    'moderate' => (int) ($metrics->moderate_clean_count ?? 0),
+                    'dirty'    => (int) ($metrics->dirty_count ?? 0),
                 ],
                 'safety' => [
-                    'safe'     => (int) ($safetyDistribution['safe'] ?? 0),
-                    'moderate' => (int) ($safetyDistribution['moderate'] ?? 0),
-                    'unsafe'   => (int) ($safetyDistribution['unsafe'] ?? 0),
+                    'safe'     => (int) ($metrics->safe_count ?? 0),
+                    'moderate' => (int) ($metrics->moderate_safe_count ?? 0),
+                    'unsafe'   => (int) ($metrics->unsafe_count ?? 0),
                 ]
             ];
         }
 
-        return response()->json([
+        $payload = [
             'status'  => 'success',
             'success' => true,
             'data'    => $feedbacks,
             'summary' => $summary
-        ]);
+        ];
+        if ($cacheKey) Cache::put($cacheKey, $payload, now()->addMinutes(5));
+
+        return response()->json($payload);
     }
 
     /**
@@ -246,6 +251,9 @@ class FeedbackController extends Controller
         \Illuminate\Support\Facades\Cache::forget('trending:top:5');
         \Illuminate\Support\Facades\Cache::forget('trending:top:10');
         \Illuminate\Support\Facades\Cache::forget('trending:top:50');
+        if ($spotId) {
+            Cache::forget('feedback:spot:' . (int) $spotId);
+        }
 
         // Award gamification points based on spot classification ONLY IF THIS IS THE FIRST REVIEW FOR THIS DESTINATION
         $classificationStatus = $spot ? $spot->classification_status : null;

@@ -11,7 +11,7 @@
     </section>
 
     <section class="onboarding-slide onboarding-slide--photo" data-onboarding-slide="1">
-        <img class="onboarding-backdrop" src="assets/img/onboarding/elyu-coast-morning.jpg" alt="La Union mountain coastline">
+        <img class="onboarding-backdrop" data-tourist-site-photo="0" src="assets/img/onboarding/elyu-coast-morning.jpg" alt="La Union tourist destination">
         <div class="onboarding-photo-shade"></div>
         <div class="onboarding-mini-brand">
             <img src="assets/img/logo.png" alt=""><strong>Elyu</strong><span>DISCOVER LA UNION</span>
@@ -20,7 +20,7 @@
     </section>
 
     <section class="onboarding-slide onboarding-slide--photo" data-onboarding-slide="2">
-        <img class="onboarding-backdrop" src="assets/img/onboarding/elyu-coast-island.jpg" alt="Rock island on the La Union coast">
+        <img class="onboarding-backdrop" data-tourist-site-photo="1" src="assets/img/onboarding/elyu-coast-island.jpg" alt="La Union tourist destination">
         <div class="onboarding-photo-shade onboarding-photo-shade--soft"></div>
         <div class="onboarding-copy onboarding-copy--center">
             <h1>Create<br><strong>Memorable Trips</strong></h1>
@@ -29,7 +29,7 @@
     </section>
 
     <section class="onboarding-slide onboarding-slide--photo onboarding-slide--discover" data-onboarding-slide="3">
-        <img class="onboarding-backdrop" src="assets/img/onboarding/elyu-coast-blue-hour.jpg" alt="La Union coastline at blue hour">
+        <img class="onboarding-backdrop" data-tourist-site-photo="2" src="assets/img/onboarding/elyu-coast-blue-hour.jpg" alt="La Union tourist destination">
         <div class="onboarding-photo-shade onboarding-photo-shade--deep"></div>
         <div class="onboarding-copy onboarding-copy--discover">
             <h1>Discover<br><strong>La Union</strong></h1>
@@ -85,6 +85,30 @@
         const offlinePill = document.getElementById('splash-offline-pill');
         const reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         const slideDuration = reducedMotion ? 650 : 1650;
+
+        async function loadRealTouristSitePhotos() {
+            try {
+                const baseUrl = (window.backendUrl || 'https://api.intan-elyu.online').replace(/\/+$/, '');
+                const response = await fetch(baseUrl + '/api/public/map');
+                if (!response.ok) return;
+                const data = await response.json();
+                const destinations = (data.destinations || []).filter((spot) =>
+                    spot && spot.name && (spot.photo_url || spot.image_url || spot.image || (Array.isArray(spot.images) && spot.images.length))
+                );
+                const photos = splash.querySelectorAll('[data-tourist-site-photo]');
+                destinations.slice(0, photos.length).forEach((spot, index) => {
+                    const imageUrl = typeof window.getDestImage === 'function'
+                        ? window.getDestImage(spot, 1200)
+                        : (spot.photo_url || spot.image_url || spot.image);
+                    if (!imageUrl) return;
+                    photos[index].src = imageUrl;
+                    photos[index].alt = spot.name + ', ' + (spot.municipality || spot.location || 'La Union');
+                });
+            } catch (error) {
+                // Keep bundled La Union photos when the tourist-site API is unavailable.
+            }
+        }
+        loadRealTouristSitePhotos();
 
         function setOfflineStatus() {
             const offline = typeof navigator.onLine === 'boolean' ? !navigator.onLine : window.isAppOnline === false;

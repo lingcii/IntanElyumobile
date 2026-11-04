@@ -249,6 +249,7 @@ class LoginController extends Controller
         $user = User::where('google_id', $google_id)
             ->orWhere('email', $email)
             ->first();
+        $isNewUser = !$user;
 
         if ($user) {
             $updated = false;
@@ -339,6 +340,8 @@ class LoginController extends Controller
                 'places_visited'  => (int) ($user->completed_activities ?? 0),
                 'avatar'          => $user->avatar,
                 'gender'          => $user->gender,
+                'travel_preferences' => $user->travel_preferences,
+                'is_new_user'     => $isNewUser,
             ],
             'vouchers' => $vouchers,
         ]);

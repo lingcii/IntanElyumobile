@@ -18,6 +18,8 @@ assert.match(splash, /showSlide\(index\)[\s\S]*navigateAfterSplash\('auth'\)/,
     'the animation must advance through the scenes before opening Login');
 assert.match(splash, /realTourist[\s\S]*navigateAfterSplash\('dashboard'\)/,
     'signed-in tourists must still bypass Login');
+assert.match(splash, /api\/public\/map[\s\S]*data-tourist-site-photo/,
+    'loading slides must replace bundled fallbacks with real tourist-site photos');
 assert.match(sourceCss, /\.onboarding-slide\.is-active[\s\S]*@keyframes loaderFill/,
     'the onboarding slides and lower loading bar must be animated');
 assert.equal(publicCss, sourceCss, 'web source and packaged splash styles must stay synchronized');

@@ -5,12 +5,19 @@ const path = require('path');
 const views = path.join(__dirname, '..', 'src', 'views');
 const itinerary = fs.readFileSync(path.join(views, 'itinerary.php'), 'utf8');
 const map = fs.readFileSync(path.join(views, 'map.php'), 'utf8');
+const tripMap = fs.readFileSync(path.join(views, 'trip_map.php'), 'utf8');
 const itineraryController = fs.readFileSync(path.join(__dirname, '..', '..', '..', 'backend', 'app', 'Http', 'Controllers', 'Tourist', 'ItineraryController.php'), 'utf8');
 const itemController = fs.readFileSync(path.join(__dirname, '..', '..', '..', 'backend', 'app', 'Http', 'Controllers', 'Tourist', 'ItineraryItemController.php'), 'utf8');
 const feedbackController = fs.readFileSync(path.join(__dirname, '..', '..', '..', 'backend', 'app', 'Http', 'Controllers', 'Tourist', 'FeedbackController.php'), 'utf8');
 
 assert.match(itinerary, /id="trip-transport" value="no_vehicle"/,
     'a new draft must default to no vehicle');
+assert.doesNotMatch(itinerary, /data-mode="uve"|val:\s*'uve'/,
+    'UV Express must not appear in itinerary vehicle selectors');
+assert.doesNotMatch(map, /data-vehicle="uve"/,
+    'UV Express must not appear in the Explore Map vehicle selector');
+assert.match(tripMap, /key:\s*'uve'[\s\S]*?hiddenFromModal:\s*true/,
+    'legacy UV Express trips must remain readable without exposing UVE in the trip-map selector');
 assert.match(itinerary, /openSaveModal[\s\S]*Please choose a vehicle before saving your draft plan\.[\s\S]*Vehicle Required[\s\S]*return;/,
     'Save Draft must show a modal and stop when no vehicle is selected');
 assert.match(itinerary, /if \(window\._isSubmittingItinerary\) return;[\s\S]*window\._isSubmittingItinerary = true;[\s\S]*window\._isSubmittingItinerary = false;/,

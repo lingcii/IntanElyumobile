@@ -336,21 +336,15 @@ class VoucherController extends Controller
                     } catch (\Throwable $ignored) {}
                 }
 
-                // Calculate voucher expiration timestamp
-                $voucherExpiresAt = null;
-                if ($voucher->expires_at && $voucher->expires_at->isFuture()) {
-                    $voucherExpiresAt = $voucher->expires_at;
-                } else {
-                    $voucherExpiresAt = now()->addHours(24);
+                // A claimed voucher lasts three days, but never beyond the campaign deadline.
+                $voucherExpiresAt = now()->addDays(3);
+                if ($voucher->expires_at && $voucher->expires_at->isFuture() && $voucher->expires_at->lt($voucherExpiresAt)) {
+                    $voucherExpiresAt = $voucher->expires_at->copy();
                 }
 
-                // QR code valid for exactly 20 minutes (capped at voucher expiration)
-                $qrExpiresAt = now()->addMinutes(20);
-                if ($voucherExpiresAt && $qrExpiresAt->gt($voucherExpiresAt)) {
-                    $qrExpiresAt = $voucherExpiresAt->copy();
-                }
-
-                $qrToken = 'elyu_qr_' . \Illuminate\Support\Str::random(32);
+                // The QR session starts only after the tourist taps Use.
+                $qrExpiresAt = null;
+                $qrToken = null;
 
                 // 1. Sync with voucher_redemptions (used by web admin / partner scanning)
                 if (\Illuminate\Support\Facades\Schema::hasTable('voucher_redemptions')) {
@@ -423,8 +417,8 @@ class VoucherController extends Controller
             \App\Models\Notification::createSafely(
                 $user->id,
                 'favorite_update',
-                'Voucher Redeemed!',
-                "Claimed '{$voucher->voucher_name}' (Code: {$uniqueCode}). Present code at merchant checkout!",
+                'Voucher Claimed!',
+                "Claimed '{$voucher->voucher_name}'. Tap Use when you are ready to show the 20-minute QR pass.",
                 ['action_url' => '/discount']
             );
 
@@ -432,8 +426,8 @@ class VoucherController extends Controller
                 if (\Illuminate\Support\Facades\Schema::hasTable('activity_logs')) {
                     \App\Models\ActivityLog::create([
                         'user_id'    => $user->id,
-                        'action'     => 'Voucher Redeemed',
-                        'details'    => "Redeemed {$cost} Points for '{$voucher->voucher_name}' (Code: {$uniqueCode})",
+                        'action'     => 'Voucher Claimed',
+                        'details'    => "Claimed '{$voucher->voucher_name}' for {$cost} Points (Code: {$uniqueCode})",
                         'ip_address' => $request->ip() ?? '127.0.0.1',
                     ]);
                 }
@@ -535,6 +529,7 @@ class VoucherController extends Controller
             $pStatus = strtolower($pointRecord->status ?? '');
             
             $isUsed = in_array($vStatus, ['redeemed', 'used', 'completed']) || in_array($pStatus, ['redeemed', 'used', 'completed']);
+            $isActive = !$isUsed && (($vStatus === 'active') || ($pStatus === 'active'));
             $isCancelled = ($vStatus === 'cancelled') || ($pStatus === 'cancelled');
             $isExpired = ($vStatus === 'expired') || ($pStatus === 'expired');
 
@@ -556,7 +551,30 @@ class VoucherController extends Controller
                 }
             }
 
-            $finalStatus = $isUsed ? 'used' : ($isCancelled ? 'cancelled' : ($isExpired ? 'expired' : 'claimed'));
+            $qrExpiresAt = $record->qr_expires_at ? \Carbon\Carbon::parse($record->qr_expires_at) : null;
+            $activeQrToken = $record->qr_token ?? null;
+            if (!$isUsed && !$isCancelled && !$isExpired && $isActive && (!$qrExpiresAt || now()->gte($qrExpiresAt))) {
+                $activeQrToken = 'elyu_qr_' . \Illuminate\Support\Str::random(32);
+                $qrExpiresAt = $qrExpiresAt ?: now();
+                while ($qrExpiresAt->lte(now())) {
+                    $qrExpiresAt->addMinutes(20);
+                }
+                if ($voucherExpiresAt && $qrExpiresAt->gt($voucherExpiresAt)) {
+                    $qrExpiresAt = $voucherExpiresAt->copy();
+                }
+                foreach ([['voucher_redemptions', $voucherRecord], ['point_redemptions', $pointRecord]] as [$table, $row]) {
+                    if ($row) {
+                        \Illuminate\Support\Facades\DB::table($table)->where('id', $row->id)->update([
+                            'status' => 'active',
+                            'qr_token' => $activeQrToken,
+                            'qr_expires_at' => $qrExpiresAt,
+                            'updated_at' => now(),
+                        ]);
+                    }
+                }
+            }
+
+            $finalStatus = $isUsed ? 'used' : ($isCancelled ? 'cancelled' : ($isExpired ? 'expired' : ($isActive ? 'active' : 'claimed')));
             $redeemedRecord = in_array($vStatus, ['redeemed', 'used', 'completed']) ? $voucherRecord : ($pointRecord ?: $record);
 
             $partnerName = 'Official Partner Merchant';
@@ -581,8 +599,8 @@ class VoucherController extends Controller
                 'is_cancelled'         => $isCancelled,
                 'is_expired'           => $isExpired,
                 'voucher_expires_at'   => $voucherExpiresAt ? $voucherExpiresAt->toIso8601String() : null,
-                'qr_expires_at'        => $record->qr_expires_at ? \Carbon\Carbon::parse($record->qr_expires_at)->toIso8601String() : null,
-                'qr_token'             => $record->qr_token ?? null,
+                'qr_expires_at'        => $isActive && $qrExpiresAt ? $qrExpiresAt->toIso8601String() : null,
+                'qr_token'             => $isActive ? $activeQrToken : null,
                 'redeemed_at'          => $redeemedRecord->redeemed_at ?? ($redeemedRecord->updated_at ?? null),
                 'cancelled_at'         => $record->cancelled_at ?? null,
                 'redeemed_by_partner'  => $partnerName,
@@ -598,7 +616,7 @@ class VoucherController extends Controller
 
     /**
      * POST /api/tourist/vouchers/{code}/use
-     * Validate validity, expiration, and mark voucher as Used.
+     * Validate validity and start a 20-minute QR session.
      */
     public function useVoucher(Request $request, string $code): JsonResponse
     {
@@ -672,65 +690,50 @@ class VoucherController extends Controller
                 ], 400);
             }
 
-            // QR token validation if passed
-            $providedQrToken = $request->input('qr_token');
-            if ($providedQrToken && !empty($record->qr_token) && $providedQrToken !== $record->qr_token) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'QR code token is invalid or outdated. Please refresh your QR code.'
-                ], 400);
-            }
-
-            // QR code 20-minute validity expiration validation
-            $qrExpiresAt = $record->qr_expires_at ? \Carbon\Carbon::parse($record->qr_expires_at) : null;
-            if ($providedQrToken && $qrExpiresAt && now()->gte($qrExpiresAt)) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'The QR code has expired (20-minute validity limit reached). Please refresh your QR code.'
-                ], 400);
-            }
-
             $now = now();
+            $existingQrExpiresAt = $record->qr_expires_at ? \Carbon\Carbon::parse($record->qr_expires_at) : null;
+            if ($currentStatus === 'active' && !empty($record->qr_token) && $existingQrExpiresAt && $now->lt($existingQrExpiresAt)) {
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'Voucher QR pass is already active.',
+                    'voucher_status' => 'active',
+                    'qr_token' => $record->qr_token,
+                    'qr_expires_at' => $existingQrExpiresAt->toIso8601String(),
+                    'voucher_expires_at' => $voucherExpiresAt ? $voucherExpiresAt->toIso8601String() : null,
+                    'code' => $code,
+                ]);
+            }
+
+            $qrToken = 'elyu_qr_' . \Illuminate\Support\Str::random(32);
+            $qrExpiresAt = $now->copy()->addMinutes(20);
+            if ($voucherExpiresAt && $qrExpiresAt->gt($voucherExpiresAt)) {
+                $qrExpiresAt = $voucherExpiresAt->copy();
+            }
+
             if ($voucherRecord) {
                 \Illuminate\Support\Facades\DB::table('voucher_redemptions')->where('id', $voucherRecord->id)->update([
-                    'status' => 'used',
-                    'redeemed_at' => $now,
+                    'status' => 'active',
+                    'qr_token' => $qrToken,
+                    'qr_expires_at' => $qrExpiresAt,
                     'updated_at' => $now,
                 ]);
             }
             if ($pointRecord) {
                 \Illuminate\Support\Facades\DB::table('point_redemptions')->where('id', $pointRecord->id)->update([
-                    'status' => 'used',
-                    'redeemed_at' => $now,
+                    'status' => 'active',
+                    'qr_token' => $qrToken,
+                    'qr_expires_at' => $qrExpiresAt,
                     'updated_at' => $now,
                 ]);
             }
 
-            $voucherTitle = $record->reward_name_snapshot ?? ($record->type ?? 'Tourist Voucher');
-            try {
-                if (\Illuminate\Support\Facades\Schema::hasTable('activity_logs')) {
-                    \App\Models\ActivityLog::create([
-                        'user_id'    => $user->id,
-                        'action'     => 'Voucher Used',
-                        'details'    => "Used claimed voucher '{$voucherTitle}' (Code: {$code})",
-                        'ip_address' => $request->ip() ?? '127.0.0.1',
-                    ]);
-                }
-            } catch (\Throwable $e) {}
-
-            \App\Models\Notification::createSafely(
-                $user->id,
-                'favorite_update',
-                'Voucher Used!',
-                "You have successfully redeemed '{$voucherTitle}'. Enjoy your reward!",
-                ['action_url' => '/discount']
-            );
-
             return response()->json([
                 'status' => 'success',
-                'message' => 'Voucher redeemed and marked as Used successfully!',
-                'voucher_status' => 'used',
-                'redeemed_at' => $now->toIso8601String(),
+                'message' => 'Voucher QR pass is active for 20 minutes.',
+                'voucher_status' => 'active',
+                'qr_token' => $qrToken,
+                'qr_expires_at' => $qrExpiresAt->toIso8601String(),
+                'voucher_expires_at' => $voucherExpiresAt ? $voucherExpiresAt->toIso8601String() : null,
                 'code' => $code,
             ]);
         } catch (\Throwable $e) {
@@ -967,9 +970,26 @@ class VoucherController extends Controller
                 ], 400);
             }
 
-            // Generate new QR code token valid for 20 minutes
+            // Keep a live QR window unchanged. When it ends, rotate from the
+            // previous server timestamp so closing/reopening cannot reset it.
+            $existingQrExpiresAt = $record->qr_expires_at ? \Carbon\Carbon::parse($record->qr_expires_at) : null;
+            if ($currentStatus === 'active' && $existingQrExpiresAt && $existingQrExpiresAt->gt(now()) && !empty($record->qr_token)) {
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'QR code is still active.',
+                    'qr_token' => $record->qr_token,
+                    'qr_expires_at' => $existingQrExpiresAt->toIso8601String(),
+                    'voucher_expires_at' => $voucherExpiresAt ? $voucherExpiresAt->toIso8601String() : null,
+                    'voucher_status' => 'active',
+                    'code' => $code,
+                ])->header('Cache-Control', 'no-store, no-cache, must-revalidate');
+            }
+
             $newQrToken = 'elyu_qr_' . \Illuminate\Support\Str::random(32);
-            $newQrExpiresAt = now()->addMinutes(20);
+            $newQrExpiresAt = $existingQrExpiresAt ?: now();
+            while ($newQrExpiresAt->lte(now())) {
+                $newQrExpiresAt->addMinutes(20);
+            }
 
             // Never extend beyond voucher's original expiration time
             if ($voucherExpiresAt && $newQrExpiresAt->gt($voucherExpiresAt)) {
@@ -979,6 +999,7 @@ class VoucherController extends Controller
             $now = now();
             if ($voucherRecord) {
                 \Illuminate\Support\Facades\DB::table('voucher_redemptions')->where('id', $voucherRecord->id)->update([
+                    'status' => 'active',
                     'qr_token' => $newQrToken,
                     'qr_expires_at' => $newQrExpiresAt,
                     'updated_at' => $now,
@@ -986,6 +1007,7 @@ class VoucherController extends Controller
             }
             if ($pointRecord) {
                 \Illuminate\Support\Facades\DB::table('point_redemptions')->where('id', $pointRecord->id)->update([
+                    'status' => 'active',
                     'qr_token' => $newQrToken,
                     'qr_expires_at' => $newQrExpiresAt,
                     'updated_at' => $now,
@@ -998,9 +1020,9 @@ class VoucherController extends Controller
                 'qr_token' => $newQrToken,
                 'qr_expires_at' => $newQrExpiresAt->toIso8601String(),
                 'voucher_expires_at' => $voucherExpiresAt ? $voucherExpiresAt->toIso8601String() : null,
-                'voucher_status' => 'claimed',
+                'voucher_status' => 'active',
                 'code' => $code,
-            ]);
+            ])->header('Cache-Control', 'no-store, no-cache, must-revalidate');
         } catch (\Throwable $e) {
             return response()->json([
                 'status' => 'error',

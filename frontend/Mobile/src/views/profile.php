@@ -1283,12 +1283,16 @@ $activeTab = 'profile';
                     code: claimCode,
                     status: 'claimed',
                     redemptionStatus: 'claimed',
+                    qr_token: null,
+                    qr_expires_at: null,
+                    voucher_expires_at: data.voucher_expires_at || (data.data && data.data.voucher_expires_at) || null,
+                    claimed_at: new Date().toISOString(),
                     redeemed_at: null,
                     created_at: new Date().toISOString(),
                     partner_establishment: (data.data && data.data.partner_establishment) || 'Official Partner Merchant',
                     partner: (data.data && data.data.partner_establishment) || 'Official Partner Merchant',
                     category: (data.data && data.data.category) || 'Food & Dining',
-                    expires_at: data.data && data.data.expires_at,
+                    expires_at: data.voucher_expires_at || (data.data && (data.data.voucher_expires_at || data.data.expires_at)),
                     expiration_type: (data.data && data.data.expiration_type) || 'until_unusable'
                 };
 
@@ -1443,6 +1447,10 @@ $activeTab = 'profile';
                     code: claimCode,
                     status: 'claimed',
                     redemptionStatus: 'claimed',
+                    qr_token: null,
+                    qr_expires_at: null,
+                    voucher_expires_at: data.data && data.data.voucher_expires_at,
+                    claimed_at: new Date().toISOString(),
                     redeemed_at: null,
                     created_at: new Date().toISOString(),
                     partner_establishment: 'LUPTO Eco Tourism',
@@ -2156,13 +2164,14 @@ $activeTab = 'profile';
             }
         }
 
+        const statusLower = (voucher.status || '').toLowerCase();
+        const isActiveQr = statusLower === 'active' && voucher.qr_token && voucher.qr_expires_at && new Date(voucher.qr_expires_at).getTime() > Date.now();
         const activeQrToken = voucher.qr_token || resolvedCode;
-        if (imgEl) {
+        if (imgEl && isActiveQr) {
             imgEl.src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(activeQrToken)}`;
         }
 
         window.currentProfileModalItem = voucher;
-        const statusLower = (voucher.status || '').toLowerCase();
         const isRedeemed = statusLower === 'redeemed' || statusLower === 'used';
         const isCancelled = statusLower === 'cancelled';
         const rawExp = voucher.voucher_expires_at || voucher.expires_at || voucher.valid_until || voucher.expiry_date;
@@ -2171,6 +2180,9 @@ $activeTab = 'profile';
         const stampBadge = document.getElementById('active-qr-stamp-badge');
         const timersContainer = document.getElementById('active-qr-timers-container');
         const claimedActions = document.getElementById('active-qr-claimed-actions');
+        const qrTimerBox = document.getElementById('active-qr-validity-timer-box');
+        const passBox = document.getElementById('active-qr-pass-box');
+        const passContent = document.getElementById('active-qr-pass-content');
 
         if (statusBadge) {
             if (isRedeemed) {
@@ -2184,11 +2196,8 @@ $activeTab = 'profile';
                 }
                 if (stampOverlay) stampOverlay.style.display = 'flex';
                 if (stampBadge) stampBadge.style.animation = 'none';
-                if (noticeEl) {
-                    noticeEl.textContent = 'This voucher has already been redeemed and verified at merchant checkout. It can no longer be used.';
-                    noticeEl.style.color = '#dc2626';
-                    noticeEl.style.fontWeight = '700';
-                }
+                if (passBox) { passBox.style.display = 'block'; passBox.style.minHeight = '140px'; }
+                if (passContent) passContent.style.display = 'none';
                 if (timersContainer) timersContainer.style.display = 'none';
                 if (claimedActions) claimedActions.style.display = 'none';
                 stopActiveQrTimers();
@@ -2202,6 +2211,7 @@ $activeTab = 'profile';
                     imgEl.style.opacity = '0.35';
                 }
                 if (stampOverlay) stampOverlay.style.display = 'none';
+                if (passBox) passBox.style.display = 'none';
                 if (noticeEl) {
                     noticeEl.textContent = 'This voucher claim was cancelled and points were refunded to your account.';
                     noticeEl.style.color = '#dc2626';
@@ -2221,6 +2231,7 @@ $activeTab = 'profile';
                     imgEl.style.opacity = '0.35';
                 }
                 if (stampOverlay) stampOverlay.style.display = 'none';
+                if (passBox) passBox.style.display = 'none';
                 if (noticeEl) {
                     noticeEl.textContent = `This voucher expired on ${expFormatted} and can no longer be redeemed or scanned.`;
                     noticeEl.style.color = '#dc2626';
@@ -2230,7 +2241,10 @@ $activeTab = 'profile';
                 if (claimedActions) claimedActions.style.display = 'none';
                 stopActiveQrTimers();
             } else {
-                statusBadge.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Ready for scan at checkout';
+                statusBadge.style.display = 'inline-flex';
+                statusBadge.innerHTML = isActiveQr
+                    ? '<i class="fa-solid fa-circle-notch fa-spin"></i> Ready for scan at checkout'
+                    : '<i class="fa-regular fa-clock"></i> Claimed — tap Use to activate QR';
                 statusBadge.style.background = '#e0f2fe';
                 statusBadge.style.color = '#0369a1';
                 statusBadge.style.border = 'none';
@@ -2239,20 +2253,24 @@ $activeTab = 'profile';
                     imgEl.style.opacity = '1';
                 }
                 if (stampOverlay) stampOverlay.style.display = 'none';
+                if (passBox) { passBox.style.display = isActiveQr ? 'block' : 'none'; passBox.style.minHeight = ''; }
+                if (passContent) passContent.style.display = isActiveQr ? 'block' : 'none';
                 if (noticeEl) {
+                    noticeEl.style.display = 'block';
                     noticeEl.textContent = 'Present this QR code directly to merchant or staff at checkout for instant scanning.';
                     noticeEl.style.color = '#64748b';
                     noticeEl.style.fontWeight = '500';
                 }
                 if (timersContainer) timersContainer.style.display = 'flex';
-                if (claimedActions) claimedActions.style.display = 'flex';
+                if (qrTimerBox) qrTimerBox.style.display = isActiveQr ? 'flex' : 'none';
+                if (claimedActions) claimedActions.style.display = isActiveQr ? 'none' : 'flex';
                 const useBtn = document.getElementById('active-qr-btn-use');
                 if (useBtn) { useBtn.disabled = false; useBtn.style.opacity = '1'; }
                 const cancelBtn = document.getElementById('active-qr-btn-cancel');
                 if (cancelBtn) { cancelBtn.disabled = false; cancelBtn.style.opacity = '1'; }
 
                 startActiveQrTimers(voucher, resolvedCode);
-                startActiveQrSync(resolvedCode);
+                if (isActiveQr) startActiveQrSync(resolvedCode);
             }
         }
 
@@ -2277,8 +2295,8 @@ $activeTab = 'profile';
         modal.style.display = 'flex';
     };
 
-    window.window.activeQrTimerInterval = window.activeQrTimerInterval || null;
-    window.window.currentProfileModalItem = window.currentProfileModalItem || null;
+    window.activeQrTimerInterval = window.activeQrTimerInterval || null;
+    window.currentProfileModalItem = window.currentProfileModalItem || null;
 
     function formatActiveCountdown(ms) {
         if (ms <= 0) return '00:00';
@@ -2298,19 +2316,20 @@ $activeTab = 'profile';
         const vExpRaw = voucher.voucher_expires_at || voucher.expires_at || voucher.expires || voucher.valid_until;
         const qrExpRaw = voucher.qr_expires_at;
 
-        let voucherExpTime = vExpRaw ? new Date(vExpRaw).getTime() : (Date.now() + 24 * 3600 * 1000);
-        let qrExpTime = qrExpRaw ? new Date(qrExpRaw).getTime() : (Date.now() + 20 * 60 * 1000);
+        let voucherExpTime = vExpRaw ? new Date(vExpRaw).getTime() : (Date.now() + 3 * 24 * 3600 * 1000);
+        const hasActiveQr = voucher.status === 'active' && voucher.qr_token && qrExpRaw;
+        let qrExpTime = hasActiveQr ? new Date(qrExpRaw).getTime() : null;
 
         const updateTick = () => {
             const now = Date.now();
             const vDiff = voucherExpTime - now;
-            const qrDiff = qrExpTime - now;
+            const qrDiff = qrExpTime ? qrExpTime - now : null;
 
             const vCountdownEl = document.getElementById('active-qr-voucher-countdown');
             const qrCountdownEl = document.getElementById('active-qr-validity-countdown');
 
             if (vCountdownEl) vCountdownEl.textContent = formatActiveCountdown(vDiff);
-            if (qrCountdownEl) qrCountdownEl.textContent = formatActiveCountdown(qrDiff);
+            if (qrCountdownEl && qrDiff !== null) qrCountdownEl.textContent = formatActiveCountdown(qrDiff);
 
             if (vDiff <= 0) {
                 stopActiveQrTimers();
@@ -2326,9 +2345,9 @@ $activeTab = 'profile';
                 return;
             }
 
-            if (qrDiff <= 0) {
+            if (qrDiff !== null && qrDiff <= 0) {
                 stopActiveQrTimers();
-                window.refreshActiveModalQrCode(code);
+                void window.refreshActiveModalQrCode(code || voucher.code || voucher.voucher_code || voucher.redemption_code);
             }
         };
 
@@ -2359,8 +2378,8 @@ $activeTab = 'profile';
             const data = await res.json();
             if (res.ok && data.status === 'success') {
                 if (window.currentProfileModalItem) {
-                    currentProfileModalItem.qr_token = data.qr_token;
-                    currentProfileModalItem.qr_expires_at = data.qr_expires_at;
+                    window.currentProfileModalItem.qr_token = data.qr_token;
+                    window.currentProfileModalItem.qr_expires_at = data.qr_expires_at;
                 }
                 const imgEl = document.getElementById('active-qr-modal-img');
                 if (imgEl) {
@@ -2371,7 +2390,7 @@ $activeTab = 'profile';
                     showToast("QR code automatically refreshed (20-min validity)", "info", 2500);
                 }
             } else if (data.voucher_status === 'expired') {
-                if (window.currentProfileModalItem) currentProfileModalItem.status = 'expired';
+                if (window.currentProfileModalItem) window.currentProfileModalItem.status = 'expired';
                 stopActiveQrTimers();
                 fetchPointsAndVouchers(true);
             }
@@ -2384,12 +2403,10 @@ $activeTab = 'profile';
         const item = window.currentProfileModalItem;
         if (!item) return;
         const code = item.voucher_code || item.code || currentActiveQrCode;
-        const qrToken = item.qr_token || code;
-
         const useBtn = document.getElementById('active-qr-btn-use');
         if (useBtn) {
             useBtn.disabled = true;
-            useBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Redeeming...';
+            useBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Activating...';
         }
 
         try {
@@ -2402,32 +2419,15 @@ $activeTab = 'profile';
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify({ qr_token: qrToken })
+                body: JSON.stringify({})
             });
             const data = await res.json();
             if (res.ok && data.status === 'success') {
-                if (typeof showToast === 'function') showToast("🎉 Voucher successfully redeemed and marked as Used!", "success");
-                if (window.confetti) window.confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
-                item.status = 'used';
-                item.redeemed_at = data.redeemed_at || new Date().toISOString();
-                stopActiveQrTimers();
-
-                const stampOverlay = document.getElementById('active-qr-stamp-overlay');
-                const stampBadge = document.getElementById('active-qr-stamp-badge');
-                const imgEl = document.getElementById('active-qr-modal-img');
-                const claimedActions = document.getElementById('active-qr-claimed-actions');
-                const timersContainer = document.getElementById('active-qr-timers-container');
-                if (stampOverlay) stampOverlay.style.display = 'flex';
-                if (stampBadge) {
-                    stampBadge.style.animation = 'none';
-                    void stampBadge.offsetWidth;
-                    stampBadge.style.animation = 'qrStampSlam 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards';
-                }
-                if (imgEl) { imgEl.style.filter = 'grayscale(1)'; imgEl.style.opacity = '0.3'; }
-                if (claimedActions) claimedActions.style.display = 'none';
-                if (timersContainer) timersContainer.style.display = 'none';
-
-                fetchPointsAndVouchers(true);
+                if (typeof showToast === 'function') showToast('Voucher QR pass is active for 20 minutes.', 'success');
+                item.status = 'active';
+                item.qr_token = data.qr_token;
+                item.qr_expires_at = data.qr_expires_at;
+                window.openActiveVoucherQrModal(item);
             } else {
                 if (typeof showToast === 'function') showToast(data.message || "Failed to use voucher.", "error");
                 if (useBtn) { useBtn.disabled = false; useBtn.innerHTML = '<i class="fa-solid fa-check"></i> Use'; }
@@ -2562,19 +2562,34 @@ $activeTab = 'profile';
                 });
                 if (res.ok) {
                     const data = await res.json();
-                    if (data.status === 'success' && data.is_redeemed) {
+                    if (data.status === 'success' && data.voucher_status === 'active' && window.currentProfileModalItem) {
+                        const item = window.currentProfileModalItem;
+                        const changed = item.qr_token !== data.qr_token || item.qr_expires_at !== data.qr_expires_at;
+                        item.status = 'active';
+                        item.qr_token = data.qr_token;
+                        item.qr_expires_at = data.qr_expires_at;
+                        if (changed) {
+                            const imgEl = document.getElementById('active-qr-modal-img');
+                            if (imgEl) imgEl.src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(data.qr_token || code)}`;
+                            startActiveQrTimers(item, code);
+                        }
+                    } else if (data.status === 'success' && data.is_redeemed) {
                         const statusBadge = document.getElementById('active-qr-status-badge');
                         const imgEl = document.getElementById('active-qr-modal-img');
                         const noticeEl = document.getElementById('active-qr-notice');
                         const stampOverlay = document.getElementById('active-qr-stamp-overlay');
                         const stampBadge = document.getElementById('active-qr-stamp-badge');
+                        const passBox = document.getElementById('active-qr-pass-box');
+                        const passContent = document.getElementById('active-qr-pass-content');
+                        const timersContainer = document.getElementById('active-qr-timers-container');
+                        const claimedActions = document.getElementById('active-qr-claimed-actions');
+                        stopActiveQrTimers();
+                        if (passBox) { passBox.style.display = 'block'; passBox.style.minHeight = '140px'; }
+                        if (passContent) passContent.style.display = 'none';
+                        if (timersContainer) timersContainer.style.display = 'none';
+                        if (claimedActions) claimedActions.style.display = 'none';
 
-                        if (statusBadge) {
-                            statusBadge.innerHTML = `<i class="fa-solid fa-circle-check" style="color:#15803d; font-size:13px;"></i> Redeemed & Verified at ${data.redeemed_by_partner || 'Partner Merchant'}!`;
-                            statusBadge.style.background = '#dcfce7';
-                            statusBadge.style.color = '#15803d';
-                            statusBadge.style.border = '1px solid #86efac';
-                        }
+                        if (statusBadge) statusBadge.style.display = 'none';
                         if (imgEl) {
                             imgEl.style.filter = 'grayscale(1)';
                             imgEl.style.opacity = '0.3';
@@ -2587,11 +2602,7 @@ $activeTab = 'profile';
                             void stampBadge.offsetWidth;
                             stampBadge.style.animation = 'qrStampSlam 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards';
                         }
-                        if (noticeEl) {
-                            noticeEl.textContent = 'Redemption complete! This voucher has been officially stamped and can no longer be reused.';
-                            noticeEl.style.color = '#15803d';
-                            noticeEl.style.fontWeight = '700';
-                        }
+                        if (noticeEl) noticeEl.style.display = 'none';
                         if (window.confetti) {
                             window.confetti({ particleCount: 60, spread: 60, origin: { y: 0.6 } });
                         }
@@ -2603,7 +2614,7 @@ $activeTab = 'profile';
             } catch (e) { }
         };
 
-        setTimeout(check, 1200);
+        void check();
         activeQrSyncInterval = setInterval(check, 4000);
     }
 
@@ -3073,7 +3084,7 @@ $activeTab = 'profile';
                     100% { opacity: 1; transform: scale(1) rotate(-14deg); }
                 }
             </style>
-            <div
+            <div id="active-qr-pass-box"
                 style="background:#eff6ff; border:1.5px dashed #bfdbfe; border-radius:20px; padding:16px; margin-bottom:14px; position:relative; overflow:hidden;">
                 <div id="active-qr-stamp-overlay"
                     style="display:none; position:absolute; inset:0; align-items:center; justify-content:center; pointer-events:none; z-index:20;">
@@ -3083,6 +3094,7 @@ $activeTab = 'profile';
                         <span>REDEEMED</span>
                     </div>
                 </div>
+                <div id="active-qr-pass-content" style="display:none;">
                 <div
                     style="background:#ffffff; border-radius:14px; padding:10px; width:170px; height:170px; margin:0 auto 12px; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 14px rgba(0,0,0,0.08); border:1px solid #e2e8f0; position:relative; overflow:hidden;">
                     <img id="active-qr-modal-img" src="" alt="Voucher QR Code"
@@ -3121,6 +3133,7 @@ $activeTab = 'profile';
                 <div id="active-qr-status-badge"
                     style="display:inline-flex; align-items:center; gap:6px; padding:6px 14px; border-radius:100px; font-size:11px; font-weight:800; background:#e0f2fe; color:#0369a1; margin-top:10px; transition:all 0.3s ease;">
                     <i class="fa-solid fa-circle-notch fa-spin"></i> Ready for scan at checkout
+                </div>
                 </div>
             </div>
 

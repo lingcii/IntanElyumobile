@@ -83,6 +83,10 @@ const cloudyRes = sandbox.window.getWeatherRecommendedSpots({ _isForecastDayPick
 assert.strictEqual(cloudyRes.meta.group, 'cloudy');
 assert.strictEqual(cloudyRes.spots[0].spot.name, 'Gapuz Grape Farm', 'Cloudy mode prioritizes matching farm/garden in selected municipality');
 assert(Array.isArray(cloudyRes.meta.categories) && cloudyRes.meta.categories.length === 3, 'Forecast day pick provides related categories for the modal');
+const rainyCategories = rainyRes.meta.categories || [];
+assert.equal(rainyCategories.find(c => c.label === 'Museums & Cultural')?.filter, 'Museum', 'Museums & Cultural opens only the Museum category');
+assert.equal(rainyCategories.find(c => c.label === 'Heritage & Churches')?.filter, 'Religious', 'Heritage & Churches opens only religious sites');
+assert.equal(rainyCategories.find(c => c.label === 'Indoor Dining & Cafes')?.filter, 'Food & Dining', 'Indoor Dining opens only food and dining sites');
 
 // Partly Cloudy -> Recommends Nature/Waterfalls
 const partlyRes = sandbox.window.getWeatherRecommendedSpots({ weather_code: 2, condition: 'Partly Cloudy', location: 'San Gabriel, La Union', temperature: 28 }, sampleSpots);

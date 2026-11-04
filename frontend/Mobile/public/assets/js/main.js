@@ -6967,8 +6967,9 @@ window.navigateTo = navigateTo;
                     sessionStorage.removeItem('elyu_show_offline_bypass_notice');
                 } catch (e) { }
 
+                const postAuthView = (data.user?.is_new_user || !String(data.user?.travel_preferences || '').trim()) ? 'onboarding' : 'dashboard';
                 if (window.history && window.history.replaceState) {
-                    window.history.replaceState({}, document.title, window.location.pathname + '?view=dashboard');
+                    window.history.replaceState({}, document.title, window.location.pathname + '?view=' + postAuthView);
                 }
 
                 const currentOverlay = document.getElementById('global-oauth-overlay');
@@ -7038,7 +7039,7 @@ window.navigateTo = navigateTo;
                     if (typeof showToast === 'function') {
                         showToast(`Welcome back, ${data.user?.name || 'Explorer'}!`, 'success');
                     }
-                    navigateTo('dashboard', true, true);
+                    navigateTo(postAuthView, true, true);
                 }, 1000);
             })
             .catch(err => {
