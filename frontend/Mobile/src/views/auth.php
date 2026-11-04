@@ -1144,8 +1144,7 @@
             }
             const isGuest = user && (user.is_guest || user.is_offline_guest);
             const onboardDone = localStorage.getItem('intan_elyu_onboarding_done_' + (user?.id || 'user'));
-            const hasPreferences = user && user.travel_preferences && user.travel_preferences.trim().length > 0;
-            const shouldOnboard = !isGuest && !onboardDone && (!hasPreferences || user.is_new_user);
+            const shouldOnboard = !isGuest && !onboardDone && user?.is_new_user === true;
             const targetView = shouldOnboard ? 'onboarding' : 'dashboard';
 
             if (typeof navigateTo === 'function') {

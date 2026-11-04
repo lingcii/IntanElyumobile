@@ -56,10 +56,10 @@ assert.match(itinerary, /!navigator\.onLine \|\| window\.isAppOnline === false\)
     'offline itinerary rendering must not wait for an OSRM request');
 assert.match(map, /window\.OFFLINE_MUNICIPALITIES_GEOJSON[\s\S]*"offline-municipalities"[\s\S]*"data": window\.OFFLINE_MUNICIPALITIES_GEOJSON[\s\S]*"offline-municipality-border"/,
     'Explore Map must inline bundled geography so its markers can initialize offline');
-assert.match(map, /"id": "offline-municipality-border"[\s\S]*"line-width": 0[\s\S]*"line-opacity": 0/,
-    'Explore Map must hide bundled municipality boundary lines');
-assert.match(map, /"id": "offline-municipality-fill"[\s\S]*"fill-opacity": 0/,
-    'Explore Map must not tint bundled municipality areas');
+assert.match(map, /"id": "offline-municipality-border"[\s\S]*"line-width": isOfflineMap \? 1 : 0[\s\S]*"line-opacity": isOfflineMap \? 0\.75 : 0/,
+    'Explore Map must show bundled municipality boundaries only while offline');
+assert.match(map, /"id": "offline-municipality-fill"[\s\S]*"fill-opacity": isOfflineMap \? 0\.22 : 0/,
+    'Explore Map must show a lightweight bundled basemap only while offline');
 assert.match(map, /const data = await mapDataPromise;[\s\S]*window\.renderMarkers\(window\.allMapLocations\)[\s\S]*if \(isOfflineMap\) \{[\s\S]*return;/,
     'Explore Map must render cached tourist markers before skipping online municipality zones');
 
@@ -117,6 +117,11 @@ assert.match(itinerary, /spotEnvSenior[\s\S]*spotEnvPwd/,
 
 assert.match(itinerary, /Trip Cost Breakdown[\s\S]*feesSummaryHtml[\s\S]*Entrance Fee[\s\S]*Environmental Fee/,
     'Trip Cost Breakdown card must attach the light-themed Entrance & Environmental Fee summary');
+const costCardStart = itinerary.indexOf('const overallCostCardHtml');
+const costCardEnd = itinerary.indexOf('if (listEl)', costCardStart);
+const costCard = itinerary.slice(costCardStart, costCardEnd);
+assert.ok(costCard.indexOf('${feesSummaryHtml}') < costCard.indexOf('Transit Total'),
+    'Entrance and environmental fee details must appear above the transit/site summary boxes');
 assert.doesNotMatch(itinerary, /cardsHtml \+=[\s\S]*background:linear-gradient\(135deg, #1e3a8a 0%, #172554 100%\)/,
     'Destination stop cards must not contain misplaced dark blue fee cards');
 

@@ -3093,11 +3093,7 @@ $backRoute = 'itinerary';
             const allReviewed = reviewItems.every(item =>
                 window.userReviewedItemIds && window.userReviewedItemIds.has(Number(item.id))
             );
-            if (allReviewed) {
-                window.executeConfirmCompleteTrip();
-                return;
-            }
-            if (reviewItems.length === 1) {
+            if (reviewItems.length === 1 && !allReviewed) {
                 const item = reviewItems[0];
                 const spotId = item.tourist_spot_id || item.destination_id || (item.destination && item.destination.id);
                 const classification = item.classification_status || (item.destination && item.destination.classification_status) || '';
@@ -3348,7 +3344,7 @@ $backRoute = 'itinerary';
                 return;
             }
             button.disabled = remaining.length > 0;
-            button.textContent = remaining.length ? `Review ${remaining.length} destination${remaining.length === 1 ? '' : 's'} first` : 'Complete Trip';
+            button.textContent = remaining.length ? `Review ${remaining.length} destination${remaining.length === 1 ? '' : 's'} first` : 'Save Trip';
             button.style.background = remaining.length ? 'rgba(255,255,255,0.2)' : 'linear-gradient(135deg, #10b981, #059669)';
             button.style.opacity = remaining.length ? '0.72' : '1';
             button.style.cursor = remaining.length ? 'not-allowed' : 'pointer';
@@ -3366,8 +3362,25 @@ $backRoute = 'itinerary';
                 if (typeof showToast === 'function') showToast('Please review every destination before completing this trip.', 'warning');
                 return;
             }
-            window.closeTripCompletionReviewModal();
-            window.executeConfirmCompleteTrip();
+            window.showCompleteTripSaveConfirmation();
+        };
+
+        window.showCompleteTripSaveConfirmation = function () {
+            document.getElementById('complete-trip-save-confirmation')?.remove();
+            document.body.insertAdjacentHTML('beforeend', `
+                <div id="complete-trip-save-confirmation" style="position:fixed;inset:0;z-index:1000002;background:rgba(10,25,60,.78);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);display:flex;align-items:center;justify-content:center;padding:18px;box-sizing:border-box;">
+                    <div style="width:100%;max-width:350px;background:#fff;border-radius:24px;overflow:hidden;text-align:center;box-shadow:0 24px 60px rgba(10,25,60,.45);">
+                        <div style="padding:24px 22px 18px;background:linear-gradient(135deg,#1e3a8a,#2563eb);color:#fff;">
+                            <div style="width:58px;height:58px;border-radius:50%;margin:0 auto 12px;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;font-size:25px;"><i class="fa-solid fa-floppy-disk"></i></div>
+                            <h3 style="margin:0;color:#fff;font-size:19px;font-weight:850;">Save completed trip?</h3>
+                            <p style="margin:7px 0 0;color:rgba(255,255,255,.9);font-size:12.5px;line-height:1.45;">Are you sure you want to save this reviewed trip as completed?</p>
+                        </div>
+                        <div style="padding:16px;display:flex;gap:10px;">
+                            <button type="button" onclick="document.getElementById('complete-trip-save-confirmation')?.remove()" style="flex:1;border:1.5px solid #cbd5e1;border-radius:13px;padding:12px;background:#fff;color:#475569;font-weight:800;">No</button>
+                            <button type="button" onclick="document.getElementById('complete-trip-save-confirmation')?.remove(); window.closeTripCompletionReviewModal(); window.executeConfirmCompleteTrip();" style="flex:1;border:0;border-radius:13px;padding:12px;background:#10b981;color:#fff;font-weight:850;box-shadow:0 4px 12px rgba(16,185,129,.25);">Yes, Save</button>
+                        </div>
+                    </div>
+                </div>`);
         };
 
         window.showTripCompletedSuccessModal = function () {
@@ -3391,23 +3404,9 @@ $backRoute = 'itinerary';
         if (!window._completionReviewListenerBound) {
             window._completionReviewListenerBound = true;
             window.addEventListener('spot-reviewed', () => {
+                const reviewModal = document.getElementById('trip-completion-review-modal');
+                if (reviewModal) reviewModal.style.zIndex = '99998';
                 window.refreshTripCompletionReviewState();
-                const remaining = Array.from(new Set(window._completionReviewRequiredIds || [])).filter(id =>
-                    !(window.userReviewedItemIds && window.userReviewedItemIds.has(Number(id)))
-                );
-                const completionIsOpen = document.getElementById('trip-completion-review-modal') || window._isCompletionReviewFlow || window._pendingCompleteTripId;
-                if (completionIsOpen && window._completionReviewRequired && remaining.length === 0 && !window._completionAutoFinishing) {
-                    const completionButton = document.getElementById('btn-complete-trip-' + window._pendingCompleteTripId);
-                    if (completionButton) {
-                        completionButton.disabled = true;
-                        completionButton.innerHTML = '<i class="fa-solid fa-circle-check" style="margin-right:6px;"></i> Done';
-                    }
-                    window._completionAutoFinishing = true;
-                    setTimeout(() => {
-                        window.finishTripAfterReviews();
-                        window._completionAutoFinishing = false;
-                    }, 180);
-                }
             });
         }
 

@@ -18,16 +18,23 @@ assert.match(splash, /showSlide\(index\)[\s\S]*navigateAfterSplash\('auth'\)/,
     'the animation must advance through the scenes before opening Login');
 assert.match(splash, /realTourist[\s\S]*navigateAfterSplash\('dashboard'\)/,
     'signed-in tourists must still bypass Login');
-assert.match(splash, /api\/public\/map[\s\S]*data-tourist-site-photo/,
-    'loading slides must replace bundled fallbacks with real tourist-site photos');
+assert.doesNotMatch(splash, /api\/public\/map|data-tourist-site-photo/,
+    'loading slides must stay locked to the three selected photos');
 assert.match(sourceCss, /\.onboarding-slide\.is-active[\s\S]*@keyframes loaderFill/,
     'the onboarding slides and lower loading bar must be animated');
 assert.equal(publicCss, sourceCss, 'web source and packaged splash styles must stay synchronized');
 
-for (const name of ['elyu-coast-morning.jpg', 'elyu-coast-island.jpg', 'elyu-coast-blue-hour.jpg']) {
+for (const name of ['ma-cho-temple.webp', 'la-union-waterfall.jpg', 'baluarte-watchtower.jpg']) {
     assert.ok(fs.existsSync(path.join(root, 'src', 'assets', 'img', 'onboarding', name)), `${name} must exist in source assets`);
     assert.ok(fs.existsSync(path.join(root, 'public', 'assets', 'img', 'onboarding', name)), `${name} must exist in packaged assets`);
     assert.match(sourceSw, new RegExp(name.replace('.', '\\.')), `${name} must be available offline`);
+}
+
+for (const name of ['elyu-coast-morning.jpg', 'elyu-coast-island.jpg', 'elyu-coast-blue-hour.jpg']) {
+    assert.doesNotMatch(splash, new RegExp(name.replace('.', '\\.')),
+        `${name} must no longer appear in the loading sequence`);
+    assert.doesNotMatch(sourceSw, new RegExp(name.replace('.', '\\.')),
+        `${name} must no longer be preloaded for the loading sequence`);
 }
 
 console.log('splash onboarding tests passed');

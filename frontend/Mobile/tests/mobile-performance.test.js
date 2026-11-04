@@ -57,8 +57,8 @@ assert.match(tripMapView, /class="trip-map-checkin-btn"[\s\S]*data-dest-lat=[\s\
     'trip-map check-in controls must start unavailable until GPS confirms the tourist is on site');
 assert.match(tripMapView, /window\.OFFLINE_MUNICIPALITIES_GEOJSON[\s\S]*"offline-municipalities"[\s\S]*"data": window\.OFFLINE_MUNICIPALITIES_GEOJSON[\s\S]*"offline-municipality-border"/,
     'the active trip must inline bundled geography so MapLibre load can finish offline');
-assert.match(tripMapView, /"id": "offline-municipality-border"[\s\S]*"line-width": 0[\s\S]*"line-opacity": 0/,
-    'active-trip offline geography must not draw municipality boundary lines');
+assert.match(tripMapView, /"id": "offline-municipality-border"[\s\S]*"line-width": isOfflineMap \? 1 : 0[\s\S]*"line-opacity": isOfflineMap \? 0\.75 : 0/,
+    'active-trip geography must provide visible municipality boundaries only while offline');
 assert.match(tripMapView, /!navigator\.onLine \|\| window\.isAppOnline === false[\s\S]*Promise\.reject\(new Error\('Offline navigation uses the local geodesic route'\)\)[\s\S]*Geodesic route fallback/,
     'active-trip navigation must draw its local route immediately instead of waiting for OSRM offline');
 assert.match(main, /rememberGpsLocation[\s\S]*intan_elyu_last_gps[\s\S]*getRememberedGpsLocation/,

@@ -15,6 +15,9 @@ assert(dashboardSrc.includes('id="smart-weather-rec-section"'), 'Smart Weather R
 assert(dashboardSrc.includes('id="weather-rec-container"'), 'Recommended for Today\'s Weather horizontal container exists');
 assert(dashboardSrc.includes('id="weather-day-picks-modal"'), '5-Day Forecast interactive day pop-up modal exists');
 assert(dashboardSrc.includes('window.openForecastDayPicksModal'), '5-Day Forecast day click handler exists');
+assert(dashboardSrc.includes('window.toggleForecastRecommendations'), 'Forecast recommendations provide Show More/Show Less controls');
+assert(dashboardSrc.includes('data-weather-extra="true"'), 'Extra forecast recommendations start in a collapsible group');
+assert(dashboardSrc.includes('spots: scored.slice(0, 10)'), 'Weather matching retains enough recommendations for Show More');
 
 // 2. Behavioral assertions on weather reconciliation, classification & spot recommendation engine
 const startMarker = 'window.LA_UNION_MUNI_COORDS = {';
@@ -84,9 +87,9 @@ assert.strictEqual(cloudyRes.meta.group, 'cloudy');
 assert.strictEqual(cloudyRes.spots[0].spot.name, 'Gapuz Grape Farm', 'Cloudy mode prioritizes matching farm/garden in selected municipality');
 assert(Array.isArray(cloudyRes.meta.categories) && cloudyRes.meta.categories.length === 3, 'Forecast day pick provides related categories for the modal');
 const rainyCategories = rainyRes.meta.categories || [];
-assert.equal(rainyCategories.find(c => c.label === 'Museums & Cultural')?.filter, 'Museum', 'Museums & Cultural opens only the Museum category');
-assert.equal(rainyCategories.find(c => c.label === 'Heritage & Churches')?.filter, 'Religious', 'Heritage & Churches opens only religious sites');
-assert.equal(rainyCategories.find(c => c.label === 'Indoor Dining & Cafes')?.filter, 'Food & Dining', 'Indoor Dining opens only food and dining sites');
+assert.equal(rainyCategories.find(c => c.label === 'Museums')?.filter, 'Museum', 'Museums opens only the Museum category');
+assert.equal(rainyCategories.find(c => c.label === 'Churches')?.filter, 'Religious', 'Churches opens only religious sites');
+assert.equal(rainyCategories.find(c => c.label === 'Cafes')?.filter, 'Cafe', 'Cafes opens only the Cafe category');
 
 // Partly Cloudy -> Recommends Nature/Waterfalls
 const partlyRes = sandbox.window.getWeatherRecommendedSpots({ weather_code: 2, condition: 'Partly Cloudy', location: 'San Gabriel, La Union', temperature: 28 }, sampleSpots);

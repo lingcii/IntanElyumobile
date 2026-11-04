@@ -626,18 +626,17 @@ class VoucherController extends Controller
                 return response()->json(['status' => 'error', 'message' => 'Unauthenticated.'], 401);
             }
 
-            $voucherRecord = null;
-            if (\Illuminate\Support\Facades\Schema::hasTable('voucher_redemptions')) {
-                $voucherRecord = \Illuminate\Support\Facades\DB::table('voucher_redemptions')
-                    ->where('user_id', $user->id)
-                    ->where(function ($q) use ($code) {
-                        $q->where('redemption_code', $code)
-                          ->orWhere('qr_token', $code);
-                    })->first();
-            }
+            $voucherRecord = \Illuminate\Support\Facades\DB::table('voucher_redemptions')
+                ->where('user_id', $user->id)
+                ->where(function ($q) use ($code) {
+                    $q->where('redemption_code', $code)
+                      ->orWhere('qr_token', $code);
+                })->first();
 
             $pointRecord = null;
-            if (\Illuminate\Support\Facades\Schema::hasTable('point_redemptions')) {
+            // Most claims have a voucher_redemptions row. Only query the legacy
+            // points table when that primary record is absent to keep activation fast.
+            if (!$voucherRecord) {
                 $pointRecord = \Illuminate\Support\Facades\DB::table('point_redemptions')
                     ->where('user_id', $user->id)
                     ->where(function ($q) use ($code) {
@@ -675,6 +674,10 @@ class VoucherController extends Controller
                         'status' => 'expired',
                         'updated_at' => now(),
                     ]);
+                    \Illuminate\Support\Facades\DB::table('point_redemptions')
+                        ->where('user_id', $user->id)
+                        ->where('voucher_code', $voucherRecord->redemption_code)
+                        ->update(['status' => 'expired', 'updated_at' => now()]);
                 }
                 if ($pointRecord) {
                     \Illuminate\Support\Facades\DB::table('point_redemptions')->where('id', $pointRecord->id)->update([
@@ -717,6 +720,15 @@ class VoucherController extends Controller
                     'qr_expires_at' => $qrExpiresAt,
                     'updated_at' => $now,
                 ]);
+                \Illuminate\Support\Facades\DB::table('point_redemptions')
+                    ->where('user_id', $user->id)
+                    ->where('voucher_code', $voucherRecord->redemption_code)
+                    ->update([
+                        'status' => 'active',
+                        'qr_token' => $qrToken,
+                        'qr_expires_at' => $qrExpiresAt,
+                        'updated_at' => $now,
+                    ]);
             }
             if ($pointRecord) {
                 \Illuminate\Support\Facades\DB::table('point_redemptions')->where('id', $pointRecord->id)->update([

@@ -236,6 +236,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                 return;
             }
 
+            const isOfflineMap = !navigator.onLine || window.isAppOnline === false;
             const style = {
                 "version": 8,
                 "glyphs": "https://fonts.openmaptiles.org/{fontstack}/{range}.pbf",
@@ -276,13 +277,13 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                         "id": "offline-municipality-fill",
                         "type": "fill",
                         "source": "offline-municipalities",
-                        "paint": { "fill-color": "#b8dcec", "fill-opacity": 0 }
+                        "paint": { "fill-color": "#b8dcec", "fill-opacity": isOfflineMap ? 0.22 : 0 }
                     },
                     {
                         "id": "offline-municipality-border",
                         "type": "line",
                         "source": "offline-municipalities",
-                        "paint": { "line-color": "#3978a8", "line-width": 0, "line-opacity": 0 }
+                        "paint": { "line-color": "#3978a8", "line-width": isOfflineMap ? 1 : 0, "line-opacity": isOfflineMap ? 0.75 : 0 }
                     }
                 ]
             };

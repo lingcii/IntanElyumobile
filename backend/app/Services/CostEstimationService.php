@@ -241,11 +241,12 @@ class CostEstimationService
                 : ($baseAdult > 0 ? round($baseAdult * 0.8, 2) : 0.0);
 
             $envFee = (float)($s->environmental_fee ?? 0);
+            $kidsEnvFee = $kidsFee > 0 ? $envFee : 0.0;
             $envSenior = ($seniorFee > 0 && $baseAdult > 0) ? (float)round($envFee * ($seniorFee / $baseAdult)) : ($envFee > 0 ? (float)round($envFee * 0.8) : 0.0);
             $envPwd = ($pwdFee > 0 && $baseAdult > 0) ? (float)round($envFee * ($pwdFee / $baseAdult)) : ($envFee > 0 ? (float)round($envFee * 0.8) : 0.0);
 
             $entranceFees += ($numAdults * $baseAdult) + ($numKids * $kidsFee) + ($numSeniors * $seniorFee) + ($numPwds * $pwdFee);
-            $environmentalFees += ($numAdults * $envFee) + ($numKids * $envFee) + ($numSeniors * $envSenior) + ($numPwds * $envPwd);
+            $environmentalFees += ($numAdults * $envFee) + ($numKids * $kidsEnvFee) + ($numSeniors * $envSenior) + ($numPwds * $envPwd);
         }
         $siteFeesTotal = $entranceFees + $environmentalFees;
 

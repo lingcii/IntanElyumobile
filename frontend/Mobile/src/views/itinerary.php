@@ -2847,6 +2847,7 @@ try {
                     const displaySenior = seniorFee > 0 ? seniorFee : 0;
                     const displayEntrance = entranceFee > 0 ? entranceFee : 0;
                     const displayEnvi = envFee > 0 ? envFee : 0;
+                    const childEnvFee = kidsFee > 0 ? displayEnvi : 0;
 
                     const hasSiteFees = !isMaintenance && (displayAdult > 0 || displayChild > 0 || displayPwd > 0 || displaySenior > 0 || displayEntrance > 0 || displayEnvi > 0);
                     const baseTotal = displayAdult + displayChild + displayPwd + displaySenior + displayEntrance + displayEnvi;
@@ -2854,7 +2855,7 @@ try {
                     const spotEnvSenior = (seniorFee > 0 && baseAdult > 0) ? Math.round(displayEnvi * (seniorFee / baseAdult)) : (displayEnvi > 0 ? Math.round(displayEnvi * 0.8) : 0);
                     const spotEnvPwd = (pwdFee > 0 && baseAdult > 0) ? Math.round(displayEnvi * (pwdFee / baseAdult)) : (displayEnvi > 0 ? Math.round(displayEnvi * 0.8) : 0);
                     const spotEntranceCatTotal = (numAdults * baseAdult) + (numKids * kidsFee) + (numSeniors * seniorFee) + (numPwds * pwdFee);
-                    const spotEnvTotal = (numAdults * displayEnvi) + (numKids * displayEnvi) + (numSeniors * spotEnvSenior) + (numPwds * spotEnvPwd);
+                    const spotEnvTotal = (numAdults * displayEnvi) + (numKids * childEnvFee) + (numSeniors * spotEnvSenior) + (numPwds * spotEnvPwd);
                     const spotPartyCost = isMaintenance ? 0 : (spotEntranceCatTotal + spotEnvTotal);
                     totalSiteFeesAllSpots += spotPartyCost;
 
@@ -2865,7 +2866,7 @@ try {
                         totSeniorEntrance += (numSeniors * seniorFee);
 
                         totAdultEnvi += (numAdults * displayEnvi);
-                        totChildEnvi += (numKids * displayEnvi);
+                        totChildEnvi += (numKids * childEnvFee);
                         totPwdEnvi += (numPwds * spotEnvPwd);
                         totSeniorEnvi += (numSeniors * spotEnvSenior);
                     }
@@ -3056,6 +3057,7 @@ try {
                             ₱${(grandTotal + totalSiteFeesAllSpots).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </span>
                     </div>
+                    ${feesSummaryHtml}
                     <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
                         <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:7px 9px;">
                             <div style="font-size:9.5px; font-weight:700; color:#64748b; text-transform:uppercase;">Transit Total</div>
@@ -3066,7 +3068,6 @@ try {
                             <div style="font-size:12.5px; font-weight:800; color:#059669;">₱${totalSiteFeesAllSpots.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
                         </div>
                     </div>
-                    ${feesSummaryHtml}
                 </div>
             `;
 
@@ -4496,7 +4497,8 @@ try {
                 const envPwd = (pwdFee > 0 && baseAdult > 0) ? Math.round(env * (pwdFee / baseAdult)) : (env > 0 ? Math.round(env * 0.8) : 0);
 
                 const spotEntranceFees = (numAdults * baseAdult) + (numKids * kidsFee) + (numSeniors * seniorFee) + (numPwds * pwdFee);
-                const spotEnvFees = (numAdults * env) + (numKids * env) + (numSeniors * envSenior) + (numPwds * envPwd);
+                const childEnv = kidsFee > 0 ? env : 0;
+                const spotEnvFees = (numAdults * env) + (numKids * childEnv) + (numSeniors * envSenior) + (numPwds * envPwd);
 
                 feesTotal += spotEntranceFees + spotEnvFees;
             });
@@ -6303,7 +6305,8 @@ try {
                 const spotEnvPwd = (pwdFee > 0 && baseAdult > 0) ? Math.round(envFee * (pwdFee / baseAdult)) : (envFee > 0 ? Math.round(envFee * 0.8) : 0);
 
                 const spotEntrance = (numAdults * baseAdult) + (numKids * kidsFee) + (numSeniors * seniorFee) + (numPwds * pwdFee);
-                const spotEnvi = (numAdults * envFee) + (numKids * envFee) + (numSeniors * spotEnvSenior) + (numPwds * spotEnvPwd);
+                const childEnvFee = kidsFee > 0 ? envFee : 0;
+                const spotEnvi = (numAdults * envFee) + (numKids * childEnvFee) + (numSeniors * spotEnvSenior) + (numPwds * spotEnvPwd);
 
                 actCost += (spotEntrance + spotEnvi);
                 foodCost += (parseFloat(item.avg_food_cost) || 150) * totalTravelers;

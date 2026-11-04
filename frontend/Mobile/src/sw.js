@@ -1,4 +1,4 @@
-const CACHE_NAME = 'Intan_Elyu_cache-v48-live-qr-categories-map';
+const CACHE_NAME = 'Intan_Elyu_cache-v51-review-choice-weather';
 const ASSETS = [
     './',
     './index.php',
@@ -10,6 +10,7 @@ const ASSETS = [
     './index.php?view=splash&ajax=1',
     './index.php?view=auth&ajax=1',
     './index.php?view=dashboard&ajax=1',
+    './index.php?view=categories&ajax=1',
     './index.php?view=map&ajax=1',
     './index.php?view=itinerary&ajax=1',
     './index.php?view=saved_trips&ajax=1',
@@ -22,9 +23,9 @@ const ASSETS = [
     './assets/js/main.js',
     './assets/img/logo.png',
     './assets/img/no_image.svg',
-    './assets/img/onboarding/elyu-coast-morning.jpg',
-    './assets/img/onboarding/elyu-coast-island.jpg',
-    './assets/img/onboarding/elyu-coast-blue-hour.jpg',
+    './assets/img/onboarding/ma-cho-temple.webp',
+    './assets/img/onboarding/la-union-waterfall.jpg',
+    './assets/img/onboarding/baluarte-watchtower.jpg',
     './assets/la_union_municipalities.json',
     // Component CSS
     './assets/css/components/header.css',
@@ -32,6 +33,7 @@ const ASSETS = [
     './assets/css/components/modals.css',
     // View CSS
     './assets/css/views/dashboard.css',
+    './assets/css/views/categories.css',
     './assets/css/views/map.css',
     './assets/css/views/itinerary.css',
     './assets/css/views/trip_map.css',

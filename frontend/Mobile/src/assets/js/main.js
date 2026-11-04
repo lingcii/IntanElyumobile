@@ -6967,7 +6967,7 @@ window.navigateTo = navigateTo;
                     sessionStorage.removeItem('elyu_show_offline_bypass_notice');
                 } catch (e) { }
 
-                const postAuthView = (data.user?.is_new_user || !String(data.user?.travel_preferences || '').trim()) ? 'onboarding' : 'dashboard';
+                const postAuthView = data.user?.is_new_user === true ? 'onboarding' : 'dashboard';
                 if (window.history && window.history.replaceState) {
                     window.history.replaceState({}, document.title, window.location.pathname + '?view=' + postAuthView);
                 }
@@ -9120,6 +9120,42 @@ window.navigateTo = navigateTo;
                 }
             } catch (e) { }
         }
+    };
+
+    // App-styled replacement for native <select> dialogs in the mobile WebView.
+    window.openAppChoiceModal = function ({ title = 'Choose an option', options = [], value = '', onSelect } = {}) {
+        document.getElementById('app-choice-modal')?.remove();
+        const escapeHtml = text => String(text ?? '').replace(/[&<>"']/g, char => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
+        })[char]);
+        const modal = document.createElement('div');
+        modal.id = 'app-choice-modal';
+        modal.style.cssText = 'position:fixed;inset:0;z-index:1000015;background:rgba(6,11,25,.72);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;padding:18px;box-sizing:border-box;';
+        modal.innerHTML = `
+            <div style="width:100%;max-width:390px;max-height:82vh;background:#fff;border-radius:24px;overflow:hidden;box-shadow:0 24px 60px rgba(10,25,60,.45);display:flex;flex-direction:column;">
+                <div style="background:linear-gradient(135deg,#1e3a8a,#2563eb);padding:17px 18px;color:#fff;display:flex;align-items:center;justify-content:space-between;gap:12px;">
+                    <h3 style="margin:0;color:#fff;font-size:17px;font-weight:850;">${escapeHtml(title)}</h3>
+                    <button type="button" data-choice-close style="width:34px;height:34px;border:0;border-radius:50%;background:rgba(255,255,255,.2);color:#fff;font-size:18px;display:flex;align-items:center;justify-content:center;"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <div style="padding:12px;overflow-y:auto;background:#f8fafc;">
+                    ${options.map(option => {
+                        const selected = String(option.value) === String(value);
+                        return `<button type="button" data-choice-value="${escapeHtml(option.value)}" style="width:100%;border:${selected ? '2px solid #2563eb' : '1px solid #e2e8f0'};background:${selected ? '#eff6ff' : '#fff'};border-radius:14px;padding:12px 13px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:10px;text-align:left;color:#0f172a;font-size:13px;font-weight:750;">
+                            <span>${escapeHtml(option.label)}</span><i class="fa-${selected ? 'solid' : 'regular'} fa-circle${selected ? '-check' : ''}" style="color:${selected ? '#2563eb' : '#94a3b8'};font-size:17px;"></i>
+                        </button>`;
+                    }).join('')}
+                </div>
+            </div>`;
+        const close = () => modal.remove();
+        modal.addEventListener('click', event => {
+            if (event.target === modal || event.target.closest('[data-choice-close]')) return close();
+            const optionButton = event.target.closest('[data-choice-value]');
+            if (!optionButton) return;
+            const selected = options.find(option => String(option.value) === optionButton.dataset.choiceValue);
+            if (selected && typeof onSelect === 'function') onSelect(selected.value, selected.label);
+            close();
+        });
+        document.body.appendChild(modal);
     };
 
     const schedulePrewarm = () => {

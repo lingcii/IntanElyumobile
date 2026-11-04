@@ -1461,7 +1461,7 @@ if (is_dir($imgDir)) {
 
         <div style="margin-bottom:14px;">
             <label style="display:block; font-size:11.5px; font-weight:800; color:#334155; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px;">Municipality / Location</label>
-            <select id="dash-filter-muni" style="width:100%; padding:10px 14px; border-radius:12px; border:1.5px solid #cbd5e1; background:#f8fafc; font-size:13.5px; font-weight:600; color:#0f172a; outline:none;">
+            <select id="dash-filter-muni" style="display:none;">
                 <option value="All">All Municipalities in La Union</option>
                 <option value="near">📍 Near Me (Within 1km of Location)</option>
                 <option value="San Fernando">San Fernando City</option>
@@ -1485,27 +1485,30 @@ if (is_dir($imgDir)) {
                 <option value="Santo Tomas">Santo Tomas</option>
                 <option value="Rosario">Rosario</option>
             </select>
+            <button type="button" id="dash-filter-muni-button" onclick="window.openDashboardFilterChoice('muni')" style="width:100%;padding:11px 14px;border-radius:12px;border:1.5px solid #cbd5e1;background:#f8fafc;color:#0f172a;font-size:13.5px;font-weight:650;display:flex;align-items:center;justify-content:space-between;text-align:left;"><span>All Municipalities in La Union</span><i class="fa-solid fa-chevron-down" style="color:#64748b;font-size:11px;"></i></button>
         </div>
 
         <div style="margin-bottom:14px;">
             <label style="display:block; font-size:11.5px; font-weight:800; color:#334155; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px;">Classification</label>
-            <select id="dash-filter-status" style="width:100%; padding:10px 14px; border-radius:12px; border:1.5px solid #cbd5e1; background:#f8fafc; font-size:13.5px; font-weight:600; color:#0f172a; outline:none;">
+            <select id="dash-filter-status" style="display:none;">
                 <option value="All">All Classifications</option>
                 <option value="EXIST">Existing Sites (Established)</option>
                 <option value="EMERGE">Emerging Sites (Popular & Growing)</option>
                 <option value="POTENTIAL">Potential Sites (Hidden Gems)</option>
             </select>
+            <button type="button" id="dash-filter-status-button" onclick="window.openDashboardFilterChoice('status')" style="width:100%;padding:11px 14px;border-radius:12px;border:1.5px solid #cbd5e1;background:#f8fafc;color:#0f172a;font-size:13.5px;font-weight:650;display:flex;align-items:center;justify-content:space-between;text-align:left;"><span>All Classifications</span><i class="fa-solid fa-chevron-down" style="color:#64748b;font-size:11px;"></i></button>
         </div>
 
         <div style="margin-bottom:20px;">
             <label style="display:block; font-size:11.5px; font-weight:800; color:#334155; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px;">Sort Order</label>
-            <select id="dash-filter-sort" style="width:100%; padding:10px 14px; border-radius:12px; border:1.5px solid #cbd5e1; background:#f8fafc; font-size:13.5px; font-weight:600; color:#0f172a; outline:none;">
+            <select id="dash-filter-sort" style="display:none;">
                 <option value="default">Default (Featured)</option>
                 <option value="distance_asc">📍 Nearest First (Within 1km)</option>
                 <option value="rating_desc">Highest Rated (★ 5.0 → 1.0)</option>
                 <option value="visits_desc">Most Visited / Popular</option>
                 <option value="name_asc">Alphabetical (A → Z)</option>
             </select>
+            <button type="button" id="dash-filter-sort-button" onclick="window.openDashboardFilterChoice('sort')" style="width:100%;padding:11px 14px;border-radius:12px;border:1.5px solid #cbd5e1;background:#f8fafc;color:#0f172a;font-size:13.5px;font-weight:650;display:flex;align-items:center;justify-content:space-between;text-align:left;"><span>Default (Featured)</span><i class="fa-solid fa-chevron-down" style="color:#64748b;font-size:11px;"></i></button>
         </div>
 
         <div style="display:flex; gap:10px;">
@@ -1520,6 +1523,29 @@ if (is_dir($imgDir)) {
 </div>
 
 <script>
+window.setDashboardFilterChoice = function(field, value) {
+    const select = document.getElementById(`dash-filter-${field}`);
+    const button = document.getElementById(`dash-filter-${field}-button`);
+    if (!select) return;
+    select.value = value;
+    const selectedOption = Array.from(select.options).find(option => option.value === select.value);
+    const label = selectedOption?.textContent?.trim() || '';
+    const labelEl = button?.querySelector('span');
+    if (labelEl) labelEl.textContent = label;
+};
+
+window.openDashboardFilterChoice = function(field) {
+    const select = document.getElementById(`dash-filter-${field}`);
+    if (!select || typeof window.openAppChoiceModal !== 'function') return;
+    const titles = { muni: 'Choose Municipality', status: 'Choose Classification', sort: 'Choose Sort Order' };
+    window.openAppChoiceModal({
+        title: titles[field] || 'Choose Filter',
+        value: select.value,
+        options: Array.from(select.options).map(option => ({ value: option.value, label: option.textContent.trim() })),
+        onSelect: value => window.setDashboardFilterChoice(field, value)
+    });
+};
+
 window.openTouristSitesFilterModal = function() {
     const modal = document.getElementById('tourist-sites-filter-modal');
     if (modal) {
@@ -1537,16 +1563,16 @@ window.openTouristSitesFilterModal = function() {
         const statusEl = document.getElementById('dash-filter-status');
         const sortEl = document.getElementById('dash-filter-sort');
 
-        if (muniEl) muniEl.value = fState.muni || 'All';
-        if (statusEl) statusEl.value = fState.status || 'All';
-        if (sortEl) sortEl.value = fState.sort || 'default';
+        if (muniEl) window.setDashboardFilterChoice('muni', fState.muni || 'All');
+        if (statusEl) window.setDashboardFilterChoice('status', fState.status || 'All');
+        if (sortEl) window.setDashboardFilterChoice('sort', fState.sort || 'default');
 
         // Connect Near Me chip to modal form if Near Me chip is active
         if (window._currentTouristSitesChip === 'near') {
             if (muniEl && (fState.muni === 'All' || fState.muni === 'near')) {
-                muniEl.value = 'near';
+                window.setDashboardFilterChoice('muni', 'near');
             } else if (sortEl && fState.sort === 'default') {
-                sortEl.value = 'distance_asc';
+                window.setDashboardFilterChoice('sort', 'distance_asc');
             }
         }
 
@@ -1569,9 +1595,9 @@ window.resetTouristSitesFilterModal = function() {
     const muniEl = document.getElementById('dash-filter-muni');
     const statusEl = document.getElementById('dash-filter-status');
     const sortEl = document.getElementById('dash-filter-sort');
-    if (muniEl) muniEl.value = 'All';
-    if (statusEl) statusEl.value = 'All';
-    if (sortEl) sortEl.value = 'default';
+    if (muniEl) window.setDashboardFilterChoice('muni', 'All');
+    if (statusEl) window.setDashboardFilterChoice('status', 'All');
+    if (sortEl) window.setDashboardFilterChoice('sort', 'default');
     window._currentTouristFilterState = { muni: 'All', status: 'All', sort: 'default' };
     const filterBtn = document.getElementById('btn-tourist-filter');
     if (filterBtn) {
@@ -2819,7 +2845,7 @@ window.applyTouristSitesFilterModal = function() {
         return {
             isSevere,
             meta,
-            spots: scored.slice(0, 5)
+            spots: scored.slice(0, 10)
         };
     };
 
@@ -3062,7 +3088,8 @@ window.applyTouristSitesFilterModal = function() {
             </div>
         ` : '';
 
-        const spotsHtml = (spots && spots.length > 0) ? spots.map(({ spot, reason }) => {
+        const initialRecommendationCount = 3;
+        const spotsHtml = (spots && spots.length > 0) ? spots.map(({ spot, reason }, index) => {
             const img = window.getDestImage(spot, 300);
             const muni = spot.municipality || spot.location || (typeof window.resolveMunicipalityName === 'function' ? window.resolveMunicipalityName(spot) : 'La Union');
             const encodedDest = encodeURIComponent(JSON.stringify(spot)).replace(/'/g, '%27');
@@ -3070,8 +3097,8 @@ window.applyTouristSitesFilterModal = function() {
             const inDraft = draftIds.has(String(spot.id));
 
             return `
-                <div onclick="window.closeForecastDayPicksModal(); window.closeWeatherModal(); window.viewDestinationOnMap('${encodedDest}')"
-                    style="background:#ffffff; border:1.5px solid #e2e8f0; border-radius:16px; padding:10px; display:flex; align-items:center; gap:11px; cursor:pointer; box-shadow:0 2px 8px rgba(15,23,42,0.04);">
+                <div ${index >= initialRecommendationCount ? 'data-weather-extra="true"' : ''} onclick="window.closeForecastDayPicksModal(); window.closeWeatherModal(); window.viewDestinationOnMap('${encodedDest}')"
+                    style="background:#ffffff; border:1.5px solid #e2e8f0; border-radius:16px; padding:10px; display:${index >= initialRecommendationCount ? 'none' : 'flex'}; align-items:center; gap:11px; cursor:pointer; box-shadow:0 2px 8px rgba(15,23,42,0.04);">
                     <img src="${img}" alt="${safeName}" loading="lazy" decoding="async"
                         style="width:62px; height:62px; border-radius:12px; object-fit:cover; flex-shrink:0; background:#f1f5f9;"
                         onerror="if (window.handleImgError) window.handleImgError(this, '${(spot.name || '').replace(/'/g, "\\'")}', '${(muni || '').replace(/'/g, "\\'")}'); else this.src='assets/img/no_image.svg';">
@@ -3125,6 +3152,10 @@ window.applyTouristSitesFilterModal = function() {
                 <div style="display:flex; flex-direction:column; gap:8px;">
                     ${spotsHtml}
                 </div>
+                ${spots && spots.length > initialRecommendationCount ? `
+                    <button type="button" onclick="window.toggleForecastRecommendations(this)" data-expanded="false" style="width:100%;margin-top:10px;padding:10px;border-radius:12px;border:1.5px solid #bfdbfe;background:#eff6ff;color:#1e3a8a;font-size:11.5px;font-weight:850;display:flex;align-items:center;justify-content:center;gap:6px;">
+                        <span>Show More (${spots.length - initialRecommendationCount})</span><i class="fa-solid fa-chevron-down"></i>
+                    </button>` : ''}
             </div>
         `;
 
@@ -3134,6 +3165,20 @@ window.applyTouristSitesFilterModal = function() {
     window.closeForecastDayPicksModal = function () {
         const modal = document.getElementById('weather-day-picks-modal');
         if (modal) modal.style.display = 'none';
+    };
+
+    window.toggleForecastRecommendations = function (button) {
+        const expanded = button?.dataset.expanded === 'true';
+        const body = document.getElementById('day-picks-modal-body');
+        body?.querySelectorAll('[data-weather-extra="true"]').forEach(card => {
+            card.style.display = expanded ? 'none' : 'flex';
+        });
+        if (!button) return;
+        button.dataset.expanded = expanded ? 'false' : 'true';
+        const count = body?.querySelectorAll('[data-weather-extra="true"]').length || 0;
+        button.innerHTML = expanded
+            ? `<span>Show More (${count})</span><i class="fa-solid fa-chevron-down"></i>`
+            : '<span>Show Less</span><i class="fa-solid fa-chevron-up"></i>';
     };
 
     window.updateWeatherModal = function (raw) {

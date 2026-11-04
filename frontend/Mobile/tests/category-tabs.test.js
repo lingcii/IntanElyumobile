@@ -2,6 +2,9 @@ const assert = require('assert');
 const fs = require('node:fs');
 const path = require('node:path');
 const categoriesSource = fs.readFileSync(path.join(__dirname, '..', 'src', 'views', 'categories.php'), 'utf8');
+const serviceWorkerSource = fs.readFileSync(path.join(__dirname, '..', 'src', 'sw.js'), 'utf8');
+const dashboardSource = fs.readFileSync(path.join(__dirname, '..', 'src', 'views', 'dashboard.php'), 'utf8');
+const mainSource = fs.readFileSync(path.join(__dirname, '..', 'src', 'assets', 'js', 'main.js'), 'utf8');
 
 // Test canonicalization and category matching logic from categories view
 function canonicalizeCategory(cat) {
@@ -130,6 +133,20 @@ assert.doesNotMatch(categoriesSource, /Free Entry|With Entrance Fee/,
     'entry-fee filters must be removed');
 assert.match(categoriesSource, /currentSort === 'alpha-asc'[\s\S]*currentSort === 'alpha-desc'/,
     'both alphabetical directions must be implemented');
+assert.match(serviceWorkerSource, /index\.php\?view=categories&ajax=1/,
+    'the category screen must be available from the offline app shell');
+assert.match(serviceWorkerSource, /assets\/css\/views\/categories\.css/,
+    'category styling must be cached for offline use');
+assert.match(categoriesSource, /parsed\?\.data\?\.destinations[\s\S]*parsed\?\.spots/,
+    'the category screen must understand wrapped offline spot caches');
+assert.doesNotMatch(categoriesSource, /window\.handleImgError\(this/,
+    'a failed offline image must not fuzzy-match an unrelated tourist image');
+assert.match(mainSource, /window\.openAppChoiceModal[\s\S]*id = 'app-choice-modal'/,
+    'mobile choices must use an app-styled modal instead of the native platform dialog');
+assert.match(dashboardSource, /openDashboardFilterChoice\('muni'\)[\s\S]*openDashboardFilterChoice\('status'\)[\s\S]*openDashboardFilterChoice\('sort'\)/,
+    'municipality, classification, and sort filters must use the app choice modal');
+assert.match(categoriesSource, /openCategorySortModal\(\)[\s\S]*openAppChoiceModal/,
+    'category sorting must use the app choice modal');
 
 console.log('Category tab canonicalization & spot matching tests passed!');
 

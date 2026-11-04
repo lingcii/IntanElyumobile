@@ -35,6 +35,7 @@ function testCompanionFeeCalculation() {
     const seniorFee = spot.senior_citizen_fee > 0 ? spot.senior_citizen_fee : (baseAdult * 0.8);
     const pwdFee = spot.pwd_fee > 0 ? spot.pwd_fee : (baseAdult * 0.8);
     const envFee = spot.environmental_fee || 0;
+    const childEnvFee = kidsFee > 0 ? envFee : 0;
     const spotEnvSenior = (seniorFee > 0 && baseAdult > 0) ? Math.round(envFee * (seniorFee / baseAdult)) : Math.round(envFee * 0.8);
     const spotEnvPwd = (pwdFee > 0 && baseAdult > 0) ? Math.round(envFee * (pwdFee / baseAdult)) : Math.round(envFee * 0.8);
 
@@ -44,7 +45,7 @@ function testCompanionFeeCalculation() {
     const totPwdEntrance = numPwds * pwdFee;
 
     const totAdultEnvi = numAdults * envFee;
-    const totChildEnvi = numKids * envFee;
+    const totChildEnvi = numKids * childEnvFee;
     const totSeniorEnvi = numSeniors * spotEnvSenior;
     const totPwdEnvi = numPwds * spotEnvPwd;
 
@@ -66,6 +67,11 @@ function testCompanionFeeCalculation() {
 
     assert.strictEqual(totalSiteFees, 740);
 
+    const freeChildFee = 0;
+    const freeChildEnvFee = freeChildFee > 0 ? envFee : 0;
+    assert.strictEqual(numKids * freeChildEnvFee, 0,
+        'children with free entrance must not be charged an environmental fee');
+
     // 2. Inspect frontend/Mobile/src/views/itinerary.php content for exact requirements
     const itineraryPhp = fs.readFileSync(path.join(__dirname, '../src/views/itinerary.php'), 'utf8');
 
@@ -82,7 +88,8 @@ function testCompanionFeeCalculation() {
     assert.ok(itineraryPhp.includes('totSeniorEntrance += (numSeniors * seniorFee)'), 'Senior entrance must multiply count');
 
     assert.ok(itineraryPhp.includes('totAdultEnvi += (numAdults * displayEnvi)'), 'Adult env must multiply count');
-    assert.ok(itineraryPhp.includes('totChildEnvi += (numKids * displayEnvi)'), 'Child env must multiply count');
+    assert.ok(itineraryPhp.includes('const childEnvFee = kidsFee > 0 ? displayEnvi : 0'), 'Free children must have no environmental fee');
+    assert.ok(itineraryPhp.includes('totChildEnvi += (numKids * childEnvFee)'), 'Child env must use the free-child rule');
     assert.ok(itineraryPhp.includes('totPwdEnvi += (numPwds * spotEnvPwd)'), 'PWD env must multiply count');
     assert.ok(itineraryPhp.includes('totSeniorEnvi += (numSeniors * spotEnvSenior)'), 'Senior env must multiply count');
 

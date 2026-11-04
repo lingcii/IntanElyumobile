@@ -76,11 +76,14 @@ $backRoute = 'dashboard';
     <!-- Active Category Meta Bar (Count on Left, Sort on Right) -->
     <div class="categories-meta-bar">
         <span class="categories-count-text" id="categories-count-text">Loading spots...</span>
-        <select id="categories-sort-select" class="categories-sort-select" aria-label="Sort tourist sites" onchange="window.setCategorySort(this.value)">
+        <select id="categories-sort-select" class="categories-sort-select" aria-label="Sort tourist sites" onchange="window.setCategorySort(this.value)" style="display:none;">
             <option value="popular">Most Visited</option>
             <option value="alpha-asc">Name A-Z</option>
             <option value="alpha-desc">Name Z-A</option>
         </select>
+        <button type="button" id="categories-sort-button" class="categories-sort-select" onclick="window.openCategorySortModal()" style="display:inline-flex;align-items:center;gap:7px;">
+            <span>Most Visited</span><i class="fa-solid fa-chevron-down" style="font-size:9px;"></i>
+        </button>
     </div>
 
     <!-- Spots Grid -->
@@ -248,7 +251,23 @@ $backRoute = 'dashboard';
 
         window.setCategorySort = function (sortKey) {
             currentSort = sortKey || 'popular';
+            const select = document.getElementById('categories-sort-select');
+            if (select) select.value = currentSort;
+            const selectedOption = select ? Array.from(select.options).find(option => option.value === currentSort) : null;
+            const label = document.querySelector('#categories-sort-button span');
+            if (label && selectedOption) label.textContent = selectedOption.textContent.trim();
             applyFilters();
+        };
+
+        window.openCategorySortModal = function () {
+            const select = document.getElementById('categories-sort-select');
+            if (!select || typeof window.openAppChoiceModal !== 'function') return;
+            window.openAppChoiceModal({
+                title: 'Sort Tourist Sites',
+                value: currentSort,
+                options: Array.from(select.options).map(option => ({ value: option.value, label: option.textContent.trim() })),
+                onSelect: value => window.setCategorySort(value)
+            });
         };
 
         window.clearCategorySearch = function () {
@@ -349,7 +368,7 @@ $backRoute = 'dashboard';
                     <div class="categories-spot-card" onclick="window.viewCategorySpot(${dest.id}, '${(dest.name || '').replace(/'/g, "\\'")}', '${encodeURIComponent(JSON.stringify(dest)).replace(/'/g, '%27')}')">
                         ${dest.classification_status ? `<div class="badge" style="background:${badgeColor};">${badgeLabel}</div>` : ''}
                         <div class="top-cat-icon"><i class="fa-solid fa-compass"></i></div>
-                        <img src="${img}" alt="" loading="lazy" decoding="async" onerror="if (window.handleImgError) window.handleImgError(this, '${(dest.name || '').replace(/'/g, "\\'")}', '${(dest.municipality || '').replace(/'/g, "\\'")}'); else this.src='assets/img/no_image.svg';">
+                        <img src="${img}" alt="" loading="lazy" decoding="async" onerror="this.onerror=null; this.src='assets/img/no_image.svg';">
                         <div class="overlay">
                             <div class="name">${dest.name}</div>
                             <div class="meta-muni"><i class="fa-solid fa-location-dot" style="font-size:8px; margin-right:3px;"></i>${muni}</div>
@@ -421,9 +440,10 @@ $backRoute = 'dashboard';
                     const fallbackSpotsRaw = localStorage.getItem('intan_elyu_cached_spots_map');
                     if (fallbackSpotsRaw) {
                         const parsed = JSON.parse(fallbackSpotsRaw);
-                        if (Array.isArray(parsed) && parsed.length > 0) {
-                            allDestinations = parsed;
-                        }
+                        const cachedSpots = Array.isArray(parsed)
+                            ? parsed
+                            : (parsed?.data?.destinations || parsed?.data?.spots || parsed?.destinations || parsed?.spots || []);
+                        if (Array.isArray(cachedSpots) && cachedSpots.length > 0) allDestinations = cachedSpots;
                     }
                 } catch (e) {}
             }

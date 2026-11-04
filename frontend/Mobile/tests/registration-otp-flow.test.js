@@ -51,7 +51,11 @@ assert.match(auth, /showOtpSuccessModal[\s\S]*navigateTo\('onboarding'\)/,
     'a verified account must show success and continue to Complete Profile');
 assert.match(loginController, /\$isNewUser = !\$user;[\s\S]*'travel_preferences'[\s\S]*'is_new_user'/,
     'Google authentication must identify new accounts and return profile-completion state');
-assert.match(main, /const postAuthView = [\s\S]*'onboarding'[\s\S]*navigateTo\(postAuthView/,
-    'the direct Google callback must route incomplete accounts to Complete Profile');
+assert.match(loginController, /'travel_preferences'\s*=>\s*\$user->travel_preferences,[\s\S]*'is_new_user'\s*=>\s*false/,
+    'normal login must explicitly identify existing accounts');
+assert.match(auth, /const shouldOnboard = [^;]*user\?\.is_new_user === true;/,
+    'existing email and Google users must bypass Complete Profile');
+assert.match(main, /const postAuthView = data\.user\?\.is_new_user === true \? 'onboarding' : 'dashboard';/,
+    'the direct Google callback must show Complete Profile only for a newly created account');
 
 console.log('registration OTP flow tests passed');

@@ -1313,7 +1313,7 @@ if (is_dir($imgDir)) {
                         "source": "offline-municipalities",
                         "paint": {
                             "fill-color": "#b8dcec",
-                            "fill-opacity": 0
+                            "fill-opacity": isOfflineMap ? 0.22 : 0
                         }
                     },
                     {
@@ -1322,8 +1322,8 @@ if (is_dir($imgDir)) {
                         "source": "offline-municipalities",
                         "paint": {
                             "line-color": "#3978a8",
-                            "line-width": 0,
-                            "line-opacity": 0
+                            "line-width": isOfflineMap ? 1 : 0,
+                            "line-opacity": isOfflineMap ? 0.75 : 0
                         }
                     }
                 ]
@@ -6128,7 +6128,35 @@ if (is_dir($imgDir)) {
                     resolveDirectionsPoint(mapDirectionsState.start),
                     resolveDirectionsPoint(mapDirectionsState.destination)
                 ]);
-                if (!navigator.onLine || window.isAppOnline === false) throw new Error('Route preview needs an internet connection.');
+                if (!navigator.onLine || window.isAppOnline === false) {
+                    const toRadians = value => value * Math.PI / 180;
+                    const latDelta = toRadians(destination.lat - start.lat);
+                    const lngDelta = toRadians(destination.lng - start.lng);
+                    const a = Math.sin(latDelta / 2) ** 2
+                        + Math.cos(toRadians(start.lat)) * Math.cos(toRadians(destination.lat)) * Math.sin(lngDelta / 2) ** 2;
+                    const distanceMeters = 6371000 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+                    const speedKph = mapDirectionsState.mode === 'public' ? 25 : (mapDirectionsState.mode === 'motorcycle' ? 30 : 35);
+                    const offlineRoute = {
+                        distance: distanceMeters,
+                        duration: Math.max(60, (distanceMeters / 1000) / speedKph * 3600),
+                        geometry: {
+                            type: 'LineString',
+                            coordinates: [[start.lng, start.lat], [destination.lng, destination.lat]]
+                        }
+                    };
+                    drawMapDirectionsRoutes([offlineRoute], start, destination);
+                    window._directionsLastRoutes = [offlineRoute];
+                    window._directionsLastStart = start;
+                    window._directionsLastDestination = destination;
+                    const minutes = Math.max(1, Math.round(offlineRoute.duration / 60));
+                    if (primaryTime) primaryTime.textContent = `${minutes} min`;
+                    if (primaryDistance) primaryDistance.textContent = `(${(distanceMeters / 1000).toFixed(1)} km)`;
+                    document.querySelectorAll('#map-route-vehicle-strip [data-route-vehicle] .route-vehicle-time').forEach(time => {
+                        time.textContent = `${minutes} min`;
+                    });
+                    if (meta) meta.textContent = 'Offline straight-line preview; road routing updates when connected';
+                    return;
+                }
                 const url = `https://router.project-osrm.org/route/v1/driving/${start.lng},${start.lat};${destination.lng},${destination.lat}?overview=full&geometries=geojson&alternatives=true&steps=false`;
                 const response = await fetch(url, { signal: controller.signal });
                 if (!response.ok) throw new Error('The route service is unavailable.');

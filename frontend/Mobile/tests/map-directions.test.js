@@ -41,6 +41,12 @@ assert.match(mapSource, /historyCount > 0/,
     'the More from recent history control must be available whenever history exists');
 assert.match(mapSource, /overview=full&geometries=geojson&alternatives=true/,
     'route previews must request real geometry and supported alternatives');
+assert.match(mapSource, /Offline straight-line preview; road routing updates when connected/,
+    'route preview must provide a usable geometry while offline');
+assert.doesNotMatch(mapSource, /Route preview needs an internet connection/,
+    'offline mode must not reject route preview outright');
+assert.match(mapSource, /fill-opacity": isOfflineMap \? 0\.22 : 0[\s\S]*line-opacity": isOfflineMap \? 0\.75 : 0/,
+    'the bundled municipality basemap must be visible offline');
 assert.match(mapSource, /map\.addSource\('map-directions-route'/);
 assert.match(mapSource, /map\.fitBounds\(bounds/);
 assert.match(mapSource, /setDirectionsBaseMarkersVisible\(false\)/,

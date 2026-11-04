@@ -87,6 +87,14 @@ assert.match(voucherControllerSource, /public function useVoucher[\s\S]*?\$qrExp
     'Use must start a fresh 20-minute QR session');
 assert.match(voucherControllerSource, /public function useVoucher[\s\S]*?'status' => 'active'/,
     'Use must activate the QR instead of redeeming the voucher');
+const useVoucherSource = voucherControllerSource.slice(
+    voucherControllerSource.indexOf('public function useVoucher'),
+    voucherControllerSource.indexOf('public function cancelVoucher')
+);
+assert.doesNotMatch(useVoucherSource, /Schema::hasTable/,
+    'voucher activation must not perform schema-discovery queries on every tap');
+assert.match(useVoucherSource, /if \(!\$voucherRecord\)[\s\S]*DB::table\('point_redemptions'\)/,
+    'voucher activation must query the legacy points record only as a fallback');
 assert.match(discountSource, /item\.status = 'active';[\s\S]*?item\.qr_token = data\.qr_token/,
     'discount Use action must display the activated QR without marking it redeemed');
 assert.match(profileSource, /item\.status = 'active';[\s\S]*?item\.qr_token = data\.qr_token/,

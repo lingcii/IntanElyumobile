@@ -153,20 +153,26 @@ assert.match(testimony, /closeWriteTestimonyModal\(false, this\)[\s\S]*trigger\.
     'Cancel and close must target the visible review modal even if SPA navigation left a duplicate');
 assert.match(testimony, /response\.json\(\)\.catch\(\(\) => \(\{\}\)\)/,
     'review submission must handle non-JSON backend errors without breaking the modal');
-assert.match(trips, /spot-reviewed[\s\S]*remaining\.length === 0[\s\S]*finishTripAfterReviews/,
-    'saving the final required review must finish the trip automatically');
+assert.match(trips, /spot-reviewed[\s\S]*refreshTripCompletionReviewState/,
+    'saving a required review must return to and refresh the review list');
+assert.doesNotMatch(trips, /spot-reviewed[\s\S]{0,900}finishTripAfterReviews/,
+    'saving the final review must not complete the trip without confirmation');
 assert.match(trips, /openSavedTripReview[\s\S]*tripReadyToComplete[\s\S]*_pendingCompleteTripId[\s\S]*startReviewFromCompletion/,
     'a final review opened from the trip card must enter the completion flow');
-assert.match(trips, /completionButton\.innerHTML = '[^']*Done'/,
-    'the Complete action must visibly become Done after the final review succeeds');
-assert.match(trips, /Review every destination before completing[\s\S]*Complete Trip/,
+assert.match(trips, /remaining\.length \? `Review \$\{remaining\.length\}[\s\S]*: 'Save Trip'/,
+    'the review action must become Save Trip after all destinations are reviewed');
+assert.match(trips, /Review every destination before completing[\s\S]*Save Trip/,
     'completion must remain gated until every destination is reviewed');
+assert.match(trips, /showCompleteTripSaveConfirmation[\s\S]*Are you sure you want to save this reviewed trip as completed\?[\s\S]*>No<[\s\S]*Yes, Save/,
+    'Save Trip must show a custom Yes/No confirmation modal');
+assert.match(trips, />No<[\s\S]*complete-trip-save-confirmation[^\n]*remove\(\)[\s\S]*Yes, Save/,
+    'No must only close the confirmation so the review screen remains open');
 assert.match(trips, /Trip Successfully Completed![\s\S]*View Trip History/,
     'successful completion must show a confirmation modal linking to history');
 assert.match(trips, /markTripAsCompletedLocally\(id,[\s\S]*switchSavedTripsTab\('history'\)/,
     'completed trips must move into Trip History immediately');
-assert.match(trips, /const allReviewed = reviewItems\.every[\s\S]*executeConfirmCompleteTrip\(\)/,
-    'a trip whose stops were already reviewed must complete directly into Trip History');
+assert.match(trips, /const allReviewed = reviewItems\.every[\s\S]*showTripCompletionReviewModal\(reviewItems, true\)/,
+    'a trip whose stops were already reviewed must still show the review-and-save screen');
 assert.match(itineraryController, /whereNull\('visited_at'\)[\s\S]*orWhereNull\('proof_image'\)[\s\S]*orWhere\('proof_status', 'rejected'\)/,
     'trip completion must accept submitted pending proof while rejecting missing or rejected proof');
 assert.match(trips, /cachedPosition[\s\S]*timestamp[\s\S]*accuracy/,
