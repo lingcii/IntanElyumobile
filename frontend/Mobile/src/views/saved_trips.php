@@ -1965,9 +1965,6 @@ $backRoute = 'itinerary';
                                                     <button type="button" class="btn-primary" style="padding:8px 14px; font-size:11.5px; font-weight:800; border-radius:100px; background:linear-gradient(135deg, #00f2fe, #0284c7); border:none !important; outline:none !important; color:#fff; cursor:pointer; display:inline-flex; align-items:center; gap:5px;" onclick="event.stopPropagation(); window.executeLocationCheckIn('${item.id}', '${destEscaped}', ${dest?.latitude || 'null'}, ${dest?.longitude || 'null'}, this)">
                                                         <i class="fa-solid fa-location-crosshairs"></i> Check In
                                                     </button>
-                                                    <button type="button" class="btn-primary" style="padding:8px 14px; font-size:11.5px; font-weight:800; border-radius:100px; background:rgba(255,255,255,0.18); border:none !important; outline:none !important; color:#fff; cursor:pointer; display:inline-flex; align-items:center; gap:5px;" onclick="event.stopPropagation(); window.openProofUploadModal('${item.id}', '${destEscaped}')">
-                                                        <i class="fa-solid fa-camera"></i> Upload Proof
-                                                    </button>
                                                 </div>`))))))
                                         }
                                         ${!isStopUnlocked ? `<div style="display:flex;align-items:center;gap:6px;color:#dbeafe;font-size:11px;font-weight:800;"><i class="fa-solid fa-lock"></i> Complete the previous destination to unlock</div>` : (!isCheckinQueued ? `<div class="saved-trip-validation-actions">

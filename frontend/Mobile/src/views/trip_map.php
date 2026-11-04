@@ -818,8 +818,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                     </div>`;
                 } else {
                     actionBtnHtml = `<div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
-                        <button ${checkInButtonAttrs} onclick="event.stopPropagation(); window.executeLocationCheckIn('${item.id}', '${destEscaped}', ${lat}, ${lng}, this)" style="background:linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color:#ffffff; border:none; padding:6px 11px; border-radius:100px; font-weight:800; font-size:10.5px; box-shadow:0 2px 8px rgba(2,132,199,0.3); cursor:pointer; white-space:nowrap;"><i class="fa-solid fa-location-crosshairs" style="margin-right:3px;"></i> Check In</button>
-                        <button onclick="event.stopPropagation(); window.openProofUploadModal('${item.id}', '${destEscaped}')" style="background:#f1f5f9; color:#1e3a8a; border:1.5px solid #cbd5e1; padding:6px 11px; border-radius:100px; font-weight:800; font-size:10.5px; cursor:pointer; white-space:nowrap;"><i class="fa-solid fa-camera" style="margin-right:3px;"></i> Proof</button>
+                        <button ${checkInButtonAttrs} onclick="event.stopPropagation(); window.executeLocationCheckIn('${item.id}', '${destEscaped}', ${lat}, ${lng}, this)" style="background:linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color:#ffffff; border:none; padding:6px 12px; border-radius:100px; font-weight:800; font-size:10.5px; box-shadow:0 2px 8px rgba(2,132,199,0.3); cursor:pointer; white-space:nowrap;"><i class="fa-solid fa-location-crosshairs" style="margin-right:3px;"></i> Check In</button>
                     </div>`;
                 }
 

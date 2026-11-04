@@ -189,6 +189,11 @@ assert.equal(tripProgressContext.hasSubmittedStopProof({ is_location_verified: t
     'Trip Map must advance to the next stop while submitted proof awaits approval');
 assert.equal(tripProgressContext.hasSubmittedStopProof({ is_location_verified: true, proof_status: 'rejected', proof_image: 'proof.jpg' }), false,
     'Trip Map must not advance past rejected proof');
+
+assert.doesNotMatch(tripMap, /Check In<\/button>\s*<button[^>]*openProofUploadModal[^>]*>Proof<\/button>/,
+    'Trip Map must hide the proof button until checked in');
+assert.match(tripMap, /isLocationVerified\s*&&\s*!hasProof[\s\S]*openProofUploadModal[\s\S]*Upload Proof/,
+    'Trip Map must show the upload proof button only once location is checked in');
 assert.match(main, /transientNavClasses[\s\S]*classList\.remove\(\.\.\.transientNavClasses\)/,
     'navigation must clear stale modal and keyboard visibility state between screens');
 assert.doesNotMatch(main, /noNavViews = \[[^\]]*'saved_trips'/,
