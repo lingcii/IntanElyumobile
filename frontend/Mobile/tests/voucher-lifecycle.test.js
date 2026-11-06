@@ -101,6 +101,18 @@ assert.match(profileSource, /item\.status = 'active';[\s\S]*?item\.qr_token = da
     'profile Use action must display the activated QR without marking it redeemed');
 assert.match(discountSource, /id="voucher-cancel-confirm-modal"[\s\S]*?window\.handleVoucherCancel\(true\)/,
     'discount cancellation must use the styled in-app confirmation modal');
+assert.match(discountSource, /id="modal-expiry-badge"[\s\S]*?id="modal-status-notice"/,
+    'modal expiry badge must appear above the status notice card');
+assert.match(discountSource, /handleVoucherCancel[\s\S]*?promptBox\.style\.display\s*=\s*'none'[\s\S]*?claimedBox\.style\.display\s*=\s*'none'/,
+    'cancelling a voucher must immediately hide the claim prompt card and claimed box');
+assert.match(discountSource, /isNearOneDay[\s\S]*?vCountdownEl\.style\.color\s*=\s*isNearOneDay\s*\?\s*'#dc2626'\s*:\s*'#000000'/,
+    'discount voucher countdown must turn red when within 1 day and black otherwise');
+assert.match(profileSource, /isNearOneDay[\s\S]*?vCountdownEl\.style\.color\s*=\s*isNearOneDay\s*\?\s*'#dc2626'\s*:\s*'#000000'/,
+    'profile voucher countdown must turn red when within 1 day and black otherwise');
+assert.match(discountSource, /const isStatusItem = isUsed \|\| isCancelled \|\| isActive \|\| isClaimed \|\| isCardExpired;[\s\S]*?!isStatusItem && v\.badge/,
+    'voucher cards must omit status badges from the top right');
+assert.match(discountSource, /font-size:\s*13\.5px;\s*font-weight:\s*800;[\s\S]*?\$\{v\.title\}/,
+    'voucher card title font size must be reduced');
 assert.doesNotMatch(discountSource, /confirm\("Are you sure you want to cancel this voucher claim/,
     'discount cancellation must not use the native browser confirmation dialog');
 const primaryActivationStart = useVoucherSource.indexOf('if ($voucherRecord)', useVoucherSource.indexOf("$qrToken ="));
@@ -140,5 +152,21 @@ assert.match(discountSource, /data\.is_redeemed[\s\S]*?passContent\.style\.displ
     'discount redeemed state must hide QR/code content and the duplicate redeemed notice');
 assert.match(profileSource, /data\.is_redeemed[\s\S]*?passContent\.style\.display = 'none'[\s\S]*?timersContainer\.style\.display = 'none'/,
     'profile redeemed state must hide QR/code content and timers');
+
+// 11. Day, Hours, and Mins Countdown Formatting
+assert.match(discountSource, /days > 0[\s\S]*?\$\{days\}d \$\{hours\}h \$\{pad\(minutes\)\}m/, 'discount countdown must format multi-day durations as Day, Hours, and mins');
+assert.match(profileSource, /days > 0[\s\S]*?\$\{days\}d \$\{hours\}h \$\{pad\(minutes\)\}m/, 'profile countdown must format multi-day durations as Day, Hours, and mins');
+
+// 12. Profile in-app cancellation modal & deduplication
+assert.match(profileSource, /id="active-voucher-cancel-confirm-modal"/, 'profile view must use styled in-app cancel modal');
+assert.doesNotMatch(profileSource, /confirm\("Are you sure you want to cancel this voucher claim/, 'profile view must not use native browser confirm');
+assert.match(profileSource, /deduplicatedActiveVouchers/, 'profile view must deduplicate active voucher cards');
+assert.match(profileSource, /if \(st === 'cancelled'\) return;/, 'profile view must exclude cancelled vouchers from active list');
+
+// 13. Available Catalog Vouchers must not be marked as Used or Active
+assert.match(discountSource, /const isActive = v\.isActive !== undefined \? v\.isActive : \(isRedemptionItem \? \(v\.status === 'active'\) : isVoucherInUse\(v\)\);/,
+    'catalog items must not treat status=active as user-activated in-use status');
+assert.match(discountSource, /const isAlreadyClaimed = isRedemptionItem \|\| isVoucherClaimed\(item\) \|\| isVoucherInUse\(item\) \|\| isVoucherRedeemed\(item\);/,
+    'modal must not treat catalog status=active as already claimed');
 
 console.log('All voucher lifecycle tests passed successfully!');

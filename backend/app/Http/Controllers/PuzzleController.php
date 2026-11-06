@@ -51,7 +51,7 @@ class PuzzleController extends Controller
                     'name' => $spot->name,
                     'location' => $munName,
                     'image' => $imageUrl,
-                    'desc' => "Rearrange the tiles to reveal the image of {$spot->name} in {$munName}! Solve to earn <strong style=\"color: #38bdf8;\">+100 Points</strong>."
+                    'desc' => "Rearrange the tiles to reveal the image of {$spot->name} in {$munName}! Solve to earn <strong style=\"color: #38bdf8;\">+50 Points</strong>."
                 ]);
             })->values();
 

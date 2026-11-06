@@ -458,7 +458,7 @@ $activeTab = 'profile';
         const pts = Math.max(0, parseInt(newPoints, 10) || 0);
         window._userPointsBalance = pts;
 
-        document.querySelectorAll('#profile-points-val, #stat-points, #stat-xp, #full-deals-user-points, #dash-stat-points').forEach(el => {
+        document.querySelectorAll('#profile-points-val, #stat-points, #stat-xp, #full-deals-user-points, #dash-stat-points, #game-points-val').forEach(el => {
             el.textContent = pts.toLocaleString();
         });
         document.querySelectorAll('#discount-user-pts').forEach(el => {
@@ -514,6 +514,20 @@ $activeTab = 'profile';
             }
         } catch (e) { }
     };
+
+    function getNormalizedVoucherKey(v) {
+        if (!v) return '';
+        const vid = String(v.voucher_id || v.dbId || '').replace(/^db_/, '').trim();
+        const rawTitle = v.type === 'pasalubong_discount' ? '₱50 Pasalubong Discount' : (v.type === 'environmental_fee' ? 'Waived Environmental Fee' : (v.title || v.voucher_name || v.name || v.type || ''));
+        const normTitle = rawTitle.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 20);
+        const partner = String(v.partner_establishment || v.partner || v.merchant || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+        if (vid && vid !== '0') return `id_${vid}`;
+        if (normTitle) return `title_${normTitle}_${partner}`;
+        return `code_${String(v.voucher_code || v.code || v.redemption_code || '').toUpperCase().trim()}`;
+    }
+    if (typeof window !== 'undefined') {
+        window.getNormalizedVoucherKey = getNormalizedVoucherKey;
+    }
 
     function sortVouchersNewestFirst(vouchers, mode = 'claimed') {
         const fields = mode === 'redeemed'
@@ -580,6 +594,7 @@ $activeTab = 'profile';
 
         rawVouchers.forEach(v => {
             const st = (v.status || '').toLowerCase().trim();
+            if (st === 'cancelled') return;
             const isRedeemed = ['redeemed', 'used', 'completed'].includes(st);
             let isExpired = st === 'expired';
             if (!isExpired && v.expires_at && (v.expiration_type === 'date' || v.expiration_type === 'fixed_date')) {
@@ -595,8 +610,21 @@ $activeTab = 'profile';
             }
         });
 
-        const sortedActiveVouchers = sortVouchersNewestFirst(activeVouchers, 'claimed');
+        const sortedRawActive = sortVouchersNewestFirst(activeVouchers, 'claimed');
         const sortedHistoryVouchers = sortVouchersNewestFirst(historyVouchers, 'redeemed');
+
+        // Deduplicate active vouchers: keep only the latest active claim per voucher template/id
+        const deduplicatedActiveVouchers = [];
+        const seenActiveKeys = new Set();
+        sortedRawActive.forEach(v => {
+            const dedupeKey = window.getNormalizedVoucherKey(v);
+            if (dedupeKey && !seenActiveKeys.has(dedupeKey)) {
+                seenActiveKeys.add(dedupeKey);
+                deduplicatedActiveVouchers.push(v);
+            }
+        });
+
+        const sortedActiveVouchers = deduplicatedActiveVouchers;
 
         window._cachedActiveVouchers = sortedActiveVouchers;
         window._cachedHistoryVouchers = sortedHistoryVouchers;
@@ -1814,7 +1842,23 @@ $activeTab = 'profile';
         const container = document.getElementById('full-vouchers-list');
         if (!container) return;
 
-        const activeVouchers = window._cachedActiveVouchers || [];
+        const rawActive = window._cachedActiveVouchers || [];
+        const seenActive = new Set();
+        const activeVouchers = [];
+        rawActive.forEach(v => {
+            if (!v) return;
+            const st = String(v.status || '').toLowerCase().trim();
+            if (st === 'cancelled') return;
+            const expRaw = v.voucher_expires_at || v.expires_at || v.expires;
+            if (expRaw && new Date(String(expRaw).replace(' ', 'T')).getTime() < Date.now()) {
+                return;
+            }
+            const key = typeof window.getNormalizedVoucherKey === 'function' ? window.getNormalizedVoucherKey(v) : (v.voucher_id || v.title);
+            if (!seenActive.has(key)) {
+                seenActive.add(key);
+                activeVouchers.push(v);
+            }
+        });
         const historyVouchers = window._cachedHistoryVouchers || [];
         const totalVouchers = activeVouchers.length + historyVouchers.length;
 
@@ -2128,6 +2172,30 @@ $activeTab = 'profile';
         const modal = window.ensureProfileModalOnBody('active-voucher-qr-modal');
         if (!modal) return;
 
+        // Silent deduplication on card click: prune duplicate active entries from cached lists
+        try {
+            if (typeof window.getNormalizedVoucherKey === 'function') {
+                const seen = new Set();
+                if (Array.isArray(window._cachedActiveVouchers)) {
+                    window._cachedActiveVouchers = window._cachedActiveVouchers.filter(v => {
+                        const k = window.getNormalizedVoucherKey(v);
+                        if (seen.has(k)) return false;
+                        seen.add(k);
+                        return true;
+                    });
+                }
+                const seenRdm = new Set();
+                if (Array.isArray(window._touristRedemptions)) {
+                    window._touristRedemptions = window._touristRedemptions.filter(r => {
+                        const k = window.getNormalizedVoucherKey(r);
+                        if (seenRdm.has(k)) return false;
+                        seenRdm.add(k);
+                        return true;
+                    });
+                }
+            }
+        } catch(e) {}
+
         const titleEl = document.getElementById('active-qr-modal-title');
         const partnerEl = document.getElementById('active-qr-modal-partner');
         const imgEl = document.getElementById('active-qr-modal-img');
@@ -2260,9 +2328,19 @@ $activeTab = 'profile';
                 if (qrTimerBox) qrTimerBox.style.display = isActiveQr ? 'flex' : 'none';
                 if (claimedActions) claimedActions.style.display = isActiveQr ? 'none' : 'flex';
                 const useBtn = document.getElementById('active-qr-btn-use');
-                if (useBtn) { useBtn.disabled = false; useBtn.style.opacity = '1'; }
+                if (useBtn) {
+                    useBtn.disabled = false;
+                    useBtn.style.opacity = '1';
+                    useBtn.style.pointerEvents = 'auto';
+                    useBtn.innerHTML = '<i class="fa-solid fa-check"></i> Use';
+                }
                 const cancelBtn = document.getElementById('active-qr-btn-cancel');
-                if (cancelBtn) { cancelBtn.disabled = false; cancelBtn.style.opacity = '1'; }
+                if (cancelBtn) {
+                    cancelBtn.disabled = false;
+                    cancelBtn.style.opacity = '1';
+                    cancelBtn.style.pointerEvents = 'auto';
+                    cancelBtn.innerHTML = '<i class="fa-solid fa-xmark"></i> Cancel';
+                }
 
                 startActiveQrTimers(voucher, resolvedCode);
                 if (isActiveQr) startActiveQrSync(resolvedCode);
@@ -2296,10 +2374,14 @@ $activeTab = 'profile';
     function formatActiveCountdown(ms) {
         if (ms <= 0) return '00:00';
         const totalSeconds = Math.floor(ms / 1000);
-        const hours = Math.floor(totalSeconds / 3600);
+        const days = Math.floor(totalSeconds / 86400);
+        const hours = Math.floor((totalSeconds % 86400) / 3600);
         const minutes = Math.floor((totalSeconds % 3600) / 60);
         const seconds = totalSeconds % 60;
         const pad = (n) => String(n).padStart(2, '0');
+        if (days > 0) {
+            return `${days}d ${hours}h ${pad(minutes)}m`;
+        }
         if (hours > 0) return `${hours}h ${pad(minutes)}m ${pad(seconds)}s`;
         return `${pad(minutes)}m ${pad(seconds)}s`;
     }
@@ -2311,9 +2393,13 @@ $activeTab = 'profile';
         const vExpRaw = voucher.voucher_expires_at || voucher.expires_at || voucher.expires || voucher.valid_until;
         const qrExpRaw = voucher.qr_expires_at;
 
-        let voucherExpTime = vExpRaw ? new Date(vExpRaw).getTime() : (Date.now() + 3 * 24 * 3600 * 1000);
+        const claimBase = voucher.claimed_at || voucher.created_at || voucher.redeemed_at;
+        const safeVExp = vExpRaw ? String(vExpRaw).replace(' ', 'T') : null;
+        let voucherExpTime = (safeVExp && !isNaN(new Date(safeVExp).getTime()))
+            ? new Date(safeVExp).getTime()
+            : (new Date(claimBase || Date.now()).getTime() + 3 * 24 * 3600 * 1000);
         const hasActiveQr = voucher.status === 'active' && voucher.qr_token && qrExpRaw;
-        let qrExpTime = hasActiveQr ? new Date(qrExpRaw).getTime() : null;
+        let qrExpTime = hasActiveQr ? new Date(String(qrExpRaw).replace(' ', 'T')).getTime() : null;
 
         const updateTick = () => {
             const now = Date.now();
@@ -2323,7 +2409,11 @@ $activeTab = 'profile';
             const vCountdownEl = document.getElementById('active-qr-voucher-countdown');
             const qrCountdownEl = document.getElementById('active-qr-validity-countdown');
 
-            if (vCountdownEl) vCountdownEl.textContent = formatActiveCountdown(vDiff);
+            if (vCountdownEl) {
+                vCountdownEl.textContent = formatActiveCountdown(vDiff);
+                const isNearOneDay = vDiff <= (24 * 60 * 60 * 1000);
+                vCountdownEl.style.color = isNearOneDay ? '#dc2626' : '#000000';
+            }
             if (qrCountdownEl && qrDiff !== null) qrCountdownEl.textContent = formatActiveCountdown(qrDiff);
 
             if (vDiff <= 0) {
@@ -2395,14 +2485,20 @@ $activeTab = 'profile';
     };
 
     window.handleActiveVoucherUse = async function() {
+        if (window._voucherActionInFlight) return;
         const item = window.currentProfileModalItem;
         if (!item) return;
         const code = item.voucher_code || item.code || currentActiveQrCode;
         const useBtn = document.getElementById('active-qr-btn-use');
+        const cancelBtn = document.getElementById('active-qr-btn-cancel');
         if (useBtn) {
             useBtn.disabled = true;
             useBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Activating...';
         }
+        if (cancelBtn) {
+            cancelBtn.disabled = true;
+        }
+        window._voucherActionInFlight = true;
 
         try {
             const baseUrl = getProfileBackendUrl();
@@ -2422,30 +2518,72 @@ $activeTab = 'profile';
                 item.status = 'active';
                 item.qr_token = data.qr_token;
                 item.qr_expires_at = data.qr_expires_at;
+
+                const normCode = String(code).toUpperCase().trim();
+                (window._cachedActiveVouchers || []).forEach(v => {
+                    const vc = String(v.voucher_code || v.code || v.redemption_code || '').toUpperCase().trim();
+                    if (vc === normCode) {
+                        v.status = 'active';
+                        v.qr_token = data.qr_token;
+                        v.qr_expires_at = data.qr_expires_at;
+                    }
+                });
+                (window._touristRedemptions || []).forEach(r => {
+                    const rc = String(r.voucher_code || r.code || r.redemption_code || '').toUpperCase().trim();
+                    if (rc === normCode) {
+                        r.status = 'active';
+                        r.qr_token = data.qr_token;
+                        r.qr_expires_at = data.qr_expires_at;
+                    }
+                });
+
                 window.openActiveVoucherQrModal(item);
             } else {
                 if (typeof showToast === 'function') showToast(data.message || "Failed to use voucher.", "error");
-                if (useBtn) { useBtn.disabled = false; useBtn.innerHTML = '<i class="fa-solid fa-check"></i> Use'; }
             }
         } catch(e) {
             if (typeof showToast === 'function') showToast("Network error. Please try again.", "error");
-            if (useBtn) { useBtn.disabled = false; useBtn.innerHTML = '<i class="fa-solid fa-check"></i> Use'; }
+        } finally {
+            window._voucherActionInFlight = false;
+            if (useBtn) {
+                useBtn.disabled = false;
+                useBtn.innerHTML = '<i class="fa-solid fa-check"></i> Use';
+            }
+            if (cancelBtn) {
+                cancelBtn.disabled = false;
+                cancelBtn.innerHTML = '<i class="fa-solid fa-xmark"></i> Cancel';
+            }
         }
     };
 
-    window.handleActiveVoucherCancel = async function() {
+    window.closeActiveVoucherCancelConfirm = function() {
+        const modal = document.getElementById('active-voucher-cancel-confirm-modal');
+        if (modal) modal.style.display = 'none';
+    };
+
+    window.handleActiveVoucherCancel = async function(confirmed = false) {
         const item = window.currentProfileModalItem;
         if (!item) return;
         const code = item.voucher_code || item.code || currentActiveQrCode;
 
-        if (!confirm("Are you sure you want to cancel this voucher claim? Your points will be refunded to your account.")) {
+        if (!confirmed) {
+            const confirmModal = window.ensureProfileModalOnBody ? window.ensureProfileModalOnBody('active-voucher-cancel-confirm-modal') : document.getElementById('active-voucher-cancel-confirm-modal');
+            if (confirmModal) confirmModal.style.display = 'flex';
             return;
         }
+        window.closeActiveVoucherCancelConfirm();
+
+        if (window._voucherActionInFlight) return;
+        window._voucherActionInFlight = true;
 
         const cancelBtn = document.getElementById('active-qr-btn-cancel');
+        const useBtn = document.getElementById('active-qr-btn-use');
         if (cancelBtn) {
             cancelBtn.disabled = true;
             cancelBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Cancelling...';
+        }
+        if (useBtn) {
+            useBtn.disabled = true;
         }
 
         try {
@@ -2457,32 +2595,93 @@ $activeTab = 'profile';
                     'Accept': 'application/json',
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
-                }
+                },
+                body: JSON.stringify({})
             });
             const data = await res.json();
             if (res.ok && data.status === 'success') {
                 if (typeof showToast === 'function') showToast(data.message || "Voucher claim cancelled. Points refunded!", "info");
                 item.status = 'cancelled';
                 stopActiveQrTimers();
+                stopActiveQrSync();
 
-                const imgEl = document.getElementById('active-qr-modal-img');
-                const claimedActions = document.getElementById('active-qr-claimed-actions');
-                const timersContainer = document.getElementById('active-qr-timers-container');
-                if (imgEl) { imgEl.style.filter = 'grayscale(1)'; imgEl.style.opacity = '0.3'; }
-                if (claimedActions) claimedActions.style.display = 'none';
-                if (timersContainer) timersContainer.style.display = 'none';
+                const normalizedCode = String(code).toUpperCase().trim();
+                const vid = String(item.voucher_id || item.dbId || '').replace(/^db_/, '');
+
+                // Remove from in-memory active vouchers
+                if (Array.isArray(window._cachedActiveVouchers)) {
+                    window._cachedActiveVouchers = window._cachedActiveVouchers.filter(v => {
+                        const vc = String(v.voucher_code || v.code || v.redemption_code || '').toUpperCase().trim();
+                        const vVid = String(v.voucher_id || v.dbId || '').replace(/^db_/, '');
+                        return vc !== normalizedCode && (!vid || vVid !== vid);
+                    });
+                }
+
+                // Remove from window._touristRedemptions
+                if (Array.isArray(window._touristRedemptions)) {
+                    window._touristRedemptions = window._touristRedemptions.filter(r => {
+                        const rc = String(r.voucher_code || r.code || r.redemption_code || '').toUpperCase().trim();
+                        const rVid = String(r.voucher_id || r.dbId || '').replace(/^db_/, '');
+                        return rc !== normalizedCode && (!vid || rVid !== vid);
+                    });
+                }
+
+                // Remove from localStorage
+                try {
+                    const uid = (function() {
+                        try {
+                            const u = JSON.parse(localStorage.getItem('auth_user') || '{}');
+                            if (u && (u.id || u.user_id)) return String(u.id || u.user_id);
+                        } catch(e) {}
+                        const tok = getProfileAuthToken();
+                        return (tok && tok.length > 10) ? 'tok_' + tok.substring(0, 12) : 'guest';
+                    })();
+                    const storageKey = 'intan_elyu_claimed_vouchers_' + uid;
+                    let claimed = JSON.parse(localStorage.getItem(storageKey) || '[]');
+                    claimed = claimed.filter(k => {
+                        const sk = String(k).toUpperCase().trim();
+                        return sk !== normalizedCode && sk !== String(vid).toUpperCase() && sk !== ('DB_' + String(vid).toUpperCase());
+                    });
+                    localStorage.setItem(storageKey, JSON.stringify(claimed));
+
+                    const tok = getProfileAuthToken();
+                    if (tok) {
+                        const ptsKey = 'points_balance_' + tok.substring(0, 10);
+                        const rawPts = localStorage.getItem(ptsKey);
+                        if (rawPts) {
+                            const parsed = JSON.parse(rawPts);
+                            const target = (parsed.data || parsed);
+                            if (Array.isArray(target.vouchers)) {
+                                target.vouchers = target.vouchers.filter(v => {
+                                    const vc = String(v.voucher_code || v.code || v.redemption_code || '').toUpperCase().trim();
+                                    const vVid = String(v.voucher_id || v.dbId || '').replace(/^db_/, '');
+                                    return vc !== normalizedCode && (!vid || vVid !== vid);
+                                });
+                            }
+                            if (data.new_balance !== undefined) target.points = data.new_balance;
+                            localStorage.setItem(ptsKey, JSON.stringify(parsed));
+                        }
+                    }
+                } catch(e) {}
 
                 if (data.new_balance !== undefined) {
                     window.syncUserPointsEverywhere(data.new_balance);
                 }
+
+                if (typeof window.switchFullVouchersTab === 'function') {
+                    window.switchFullVouchersTab(window._currentVouchersTab || 'all');
+                }
+                window.closeActiveVoucherQrModal();
                 fetchPointsAndVouchers(true);
             } else {
                 if (typeof showToast === 'function') showToast(data.message || "Failed to cancel voucher claim.", "error");
-                if (cancelBtn) { cancelBtn.disabled = false; cancelBtn.innerHTML = '<i class="fa-solid fa-xmark"></i> Cancel'; }
             }
         } catch(e) {
             if (typeof showToast === 'function') showToast("Network error. Please try again.", "error");
+        } finally {
+            window._voucherActionInFlight = false;
             if (cancelBtn) { cancelBtn.disabled = false; cancelBtn.innerHTML = '<i class="fa-solid fa-xmark"></i> Cancel'; }
+            if (useBtn) { useBtn.disabled = false; useBtn.innerHTML = '<i class="fa-solid fa-check"></i> Use'; }
         }
     };
 
@@ -2759,25 +2958,22 @@ $activeTab = 'profile';
             localStorage.setItem(storageKey, JSON.stringify(claimed));
         } catch(e) {}
 
-        // Add to window._cachedActiveVouchers and window._touristRedemptions
+        // Add to window._cachedActiveVouchers and window._touristRedemptions (deduplicating existing)
         if (detail.voucher) {
+            const vKey = typeof window.getNormalizedVoucherKey === 'function' ? window.getNormalizedVoucherKey(detail.voucher) : (detail.voucher.voucher_id || detail.voucher.title);
             if (!Array.isArray(window._cachedActiveVouchers)) window._cachedActiveVouchers = [];
-            const dCode = (vCode || '').toUpperCase().trim();
-            const exists = window._cachedActiveVouchers.some(v => {
-                const c = (v.voucher_code || v.code || '').toUpperCase().trim();
-                return c && dCode && c === dCode;
+            window._cachedActiveVouchers = window._cachedActiveVouchers.filter(v => {
+                const k = typeof window.getNormalizedVoucherKey === 'function' ? window.getNormalizedVoucherKey(v) : (v.voucher_id || v.title);
+                return !k || k !== vKey;
             });
-            if (!exists) {
-                window._cachedActiveVouchers.unshift(detail.voucher);
-            }
+            window._cachedActiveVouchers.unshift(detail.voucher);
+
             if (!Array.isArray(window._touristRedemptions)) window._touristRedemptions = [];
-            const rExists = window._touristRedemptions.some(r => {
-                const c = (r.voucher_code || r.code || '').toUpperCase().trim();
-                return c && dCode && c === dCode;
+            window._touristRedemptions = window._touristRedemptions.filter(r => {
+                const k = typeof window.getNormalizedVoucherKey === 'function' ? window.getNormalizedVoucherKey(r) : (r.voucher_id || r.title);
+                return !k || k !== vKey;
             });
-            if (!rExists) {
-                window._touristRedemptions.unshift(detail.voucher);
-            }
+            window._touristRedemptions.unshift(detail.voucher);
         }
 
         // Re-render Active Vouchers
@@ -2843,7 +3039,7 @@ $activeTab = 'profile';
             } else {
                 // When navigating away from profile, close open modals and stop polling
                 if (typeof window.closeRedeemConfirmModal === 'function') window.closeRedeemConfirmModal(false);
-                ['full-history-modal', 'full-vouchers-modal', 'full-deals-modal', 'active-voucher-qr-modal', 'trip-details-modal', 'reward-details-modal', 'redeem-confirm-modal'].forEach(id => {
+                ['full-history-modal', 'full-vouchers-modal', 'full-deals-modal', 'active-voucher-qr-modal', 'active-voucher-cancel-confirm-modal', 'trip-details-modal', 'reward-details-modal', 'redeem-confirm-modal'].forEach(id => {
                     const m = document.getElementById(id);
                     if (m) m.style.display = 'none';
                 });
@@ -2879,7 +3075,7 @@ $activeTab = 'profile';
 
     // Immediately port all modals to document.body so they stay above bottom-navigation and blur out the nav bar behind backdrop
     setTimeout(() => {
-        ['full-history-modal', 'full-vouchers-modal', 'full-deals-modal', 'active-voucher-qr-modal', 'trip-details-modal', 'reward-details-modal', 'redeem-confirm-modal'].forEach(id => {
+        ['full-history-modal', 'full-vouchers-modal', 'full-deals-modal', 'active-voucher-qr-modal', 'active-voucher-cancel-confirm-modal', 'trip-details-modal', 'reward-details-modal', 'redeem-confirm-modal'].forEach(id => {
             if (window.ensureProfileModalOnBody) window.ensureProfileModalOnBody(id);
         });
     }, 50);
@@ -3018,6 +3214,19 @@ $activeTab = 'profile';
     </div>
 </div>
 
+<!-- Active Voucher Cancel Confirmation Modal -->
+<div id="active-voucher-cancel-confirm-modal" role="dialog" aria-modal="true" aria-labelledby="active-voucher-cancel-confirm-title" style="display:none; position:fixed; inset:0; z-index:120000; background:rgba(15,23,42,.72); align-items:center; justify-content:center; padding:24px; backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);">
+    <div style="width:100%; max-width:340px; background:#fff; border-radius:22px; padding:24px 20px 18px; box-shadow:0 20px 55px rgba(15,23,42,.4); text-align:center;">
+        <div style="width:54px; height:54px; margin:0 auto 13px; border-radius:50%; display:flex; align-items:center; justify-content:center; background:#fef2f2; color:#dc2626; font-size:22px;"><i class="fa-solid fa-ticket"></i></div>
+        <h3 id="active-voucher-cancel-confirm-title" style="margin:0 0 8px; color:#0f172a; font-size:18px; font-weight:800;">Cancel voucher claim?</h3>
+        <p style="margin:0 0 20px; color:#64748b; font-size:13px; line-height:1.5;">Your voucher will be cancelled and the used points will be refunded to your account.</p>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <button type="button" onclick="window.closeActiveVoucherCancelConfirm()" style="min-height:44px; border:1.5px solid #cbd5e1; border-radius:13px; background:#fff; color:#334155; font-weight:800; cursor:pointer;">No, Keep It</button>
+            <button type="button" onclick="window.handleActiveVoucherCancel(true)" style="min-height:44px; border:0; border-radius:13px; background:#dc2626; color:#fff; font-weight:800; cursor:pointer;">Yes, Cancel</button>
+        </div>
+    </div>
+</div>
+
 <!-- Dedicated Active Voucher QR Pass Modal -->
 <div id="active-voucher-qr-modal" onclick="if(event.target===this)window.closeActiveVoucherQrModal()"
     style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.85); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:9999999 !important; justify-content:center; align-items:center; padding:20px;">
@@ -3061,7 +3270,7 @@ $activeTab = 'profile';
                     <span style="font-size:11px; font-weight:800; color:#1e3a8a; display:flex; align-items:center; gap:6px;">
                         <i class="fa-regular fa-clock" style="color:#2563eb; font-size:12px;"></i> Voucher Expiration:
                     </span>
-                    <span id="active-qr-voucher-countdown" style="font-size:12px; font-weight:900; color:#dc2626; font-family:monospace; letter-spacing:0.5px;">--:--</span>
+                    <span id="active-qr-voucher-countdown" style="font-size:12px; font-weight:900; color:#000000; font-family:monospace; letter-spacing:0.5px;">--:--</span>
                 </div>
                 <div id="active-qr-validity-timer-box" style="background:#ffffff; border:1.5px solid #bfdbfe; border-radius:12px; padding:8px 12px; display:flex; align-items:center; justify-content:space-between; box-shadow:0 2px 6px rgba(30,58,138,0.05);">
                     <span style="font-size:11px; font-weight:800; color:#0284c7; display:flex; align-items:center; gap:6px;">

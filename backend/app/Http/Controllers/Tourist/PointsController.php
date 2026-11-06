@@ -135,7 +135,7 @@ class PointsController extends Controller
             ], 429);
         }
 
-        $xp = 30;
+        $xp = 50;
         try {
             if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'xp')) {
                 $user->increment('xp', $xp);
@@ -266,7 +266,7 @@ class PointsController extends Controller
         $gameConfig = [
             'memory_match'  => ['xp' => 25, 'points' => 25, 'desc' => 'Completed La Union Memory Card Match'],
             'word_scramble' => ['xp' => 25, 'points' => 25, 'desc' => 'Unscrambled La Union Eco Explorer Words'],
-            'puzzle'        => ['xp' => 30, 'points' => 30, 'desc' => 'Successfully solved a sliding block puzzle'],
+            'puzzle'        => ['xp' => 50, 'points' => 50, 'desc' => 'Successfully solved a sliding block puzzle'],
             'trivia'        => ['xp' => 20, 'points' => 20, 'desc' => 'Answered La Union trivia questions correctly'],
         ];
 
@@ -627,13 +627,33 @@ class PointsController extends Controller
                 ]);
             }
 
-            return $merged->sortByDesc(function ($voucher) {
+            $sorted = $merged->sortByDesc(function ($voucher) {
                 $status = strtolower($voucher->status ?? '');
                 $date = in_array($status, ['redeemed', 'used', 'completed'])
                     ? ($voucher->redeemed_at ?? $voucher->updated_at ?? $voucher->created_at ?? null)
                     : ($voucher->claimed_at ?? $voucher->created_at ?? $voucher->updated_at ?? null);
                 return $date ? strtotime((string) $date) : 0;
             })->values();
+
+            // Deduplicate active claims so the tourist never receives multiple active passes for the same voucher
+            $deduped = collect();
+            $seenActiveKeys = [];
+            foreach ($sorted as $v) {
+                $st = strtolower($v->status ?? '');
+                if (in_array($st, ['claimed', 'active'])) {
+                    $vid = (string) ($v->voucher_id ?? '');
+                    $vTitle = strtolower(preg_replace('/[^a-z0-9]/', '', substr($v->type ?? '', 0, 20)));
+                    $vPartner = strtolower(preg_replace('/[^a-z0-9]/', '', $v->partner_establishment ?? ''));
+                    $dedupeKey = $vid !== '' && $vid !== '0' ? "id_{$vid}" : "title_{$vTitle}_{$vPartner}";
+                    if (!empty($dedupeKey) && in_array($dedupeKey, $seenActiveKeys, true)) {
+                        continue; // Skip older active duplicate
+                    }
+                    $seenActiveKeys[] = $dedupeKey;
+                }
+                $deduped->push($v);
+            }
+
+            return $deduped;
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::warning('PointsController getUserVouchers error: ' . $e->getMessage());
             return collect();

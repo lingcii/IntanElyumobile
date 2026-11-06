@@ -7752,20 +7752,29 @@ window.navigateTo = navigateTo;
 
     // Initialize Service Worker
     if ('serviceWorker' in navigator && (window.location.protocol === 'https:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
-        window.addEventListener('load', function () {
-            try {
-                // Resolve sw.js relative to document.baseURI to support clean routes and sub-directories without 404
-                const swUrl = document.baseURI ? new URL('sw.js', document.baseURI).href : 'sw.js';
-                navigator.serviceWorker.register(swUrl).then(function (registration) {
-                    console.log('ServiceWorker registration successful with scope: ', registration.scope);
-                    try { registration.update().catch(function(){}); } catch(e) {}
-                }).catch(function (err) {
-                    console.warn('ServiceWorker registration note: ', err);
-                });
-            } catch (e) {
-                console.warn('ServiceWorker init skipped: ', e);
+        if (!window._swRegistrationInitiated) {
+            window._swRegistrationInitiated = true;
+            const registerSW = function () {
+                try {
+                    // Resolve sw.js relative to document.baseURI to support clean routes and sub-directories without 404
+                    const swUrl = document.baseURI ? new URL('sw.js', document.baseURI).href : 'sw.js';
+                    navigator.serviceWorker.register(swUrl).then(function (registration) {
+                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                        try { registration.update().catch(function(){}); } catch(e) {}
+                    }).catch(function (err) {
+                        console.warn('ServiceWorker registration note: ', err);
+                    });
+                } catch (e) {
+                    console.warn('ServiceWorker init skipped: ', e);
+                }
+            };
+
+            if (document.readyState === 'complete') {
+                registerSW();
+            } else {
+                window.addEventListener('load', registerSW, { once: true });
             }
-        });
+        }
     }
 
     // --- Custom In-App Notifications for WebViews ---
@@ -8790,6 +8799,34 @@ window.navigateTo = navigateTo;
 
     window.noImageFallback = 'assets/img/no_image.svg';
 
+    function safeCacheSet(key, valueStr) {
+        try {
+            localStorage.setItem(key, valueStr);
+            return true;
+        } catch (e) {
+            const isQuota = e && (e.name === 'QuotaExceededError' || e.code === 22 || e.code === 1014 || e.number === -2147024882);
+            if (!isQuota) return false;
+            try {
+                const preserveKeys = ['auth_user', 'auth_user_backup', 'intan_elyu_user', 'intan_elyu_token', 'Intan_Elyu_Token', 'api_token', 'user_role', 'offline_queue'];
+                const keysToRemove = [];
+                for (let i = 0; i < localStorage.length; i++) {
+                    const k = localStorage.key(i);
+                    if (!k || preserveKeys.includes(k)) continue;
+                    if (k.startsWith('dashboard_data_') || k.startsWith('dashboard_rank_') || k.startsWith('places_cache_') || k.includes('_cache') || k.startsWith('weather_') || k.startsWith('points_balance_')) {
+                        keysToRemove.push(k);
+                    }
+                }
+                keysToRemove.forEach(k => {
+                    try { localStorage.removeItem(k); } catch (_) {}
+                });
+                localStorage.setItem(key, valueStr);
+                return true;
+            } catch (_) {
+                return false;
+            }
+        }
+    }
+
     /**
      * Stale-While-Revalidate Caching fetch helper
      * @param {string} cacheKey - The key to use in localStorage
@@ -8830,7 +8867,7 @@ window.navigateTo = navigateTo;
                 }
                 const data = await request;
                 if (data !== undefined) {
-                    localStorage.setItem(cacheKey, JSON.stringify({
+                    safeCacheSet(cacheKey, JSON.stringify({
                         data: data,
                         timestamp: Date.now()
                     }));
@@ -8853,6 +8890,29 @@ window.navigateTo = navigateTo;
                 }
             }
         }
+    };
+
+    window.syncUserPointsEverywhere = window.syncUserPointsEverywhere || function (newPoints) {
+        const pts = Math.max(0, parseInt(newPoints, 10) || 0);
+        window._userPointsBalance = pts;
+        document.querySelectorAll('#profile-points-val, #stat-points, #stat-xp, #full-deals-user-points, #dash-stat-points, #game-points-val').forEach(el => {
+            el.textContent = pts.toLocaleString();
+        });
+        document.querySelectorAll('#discount-user-pts').forEach(el => {
+            el.textContent = `${pts.toLocaleString()} Points`;
+        });
+        try {
+            ['auth_user', 'auth_user_backup', 'intan_elyu_user'].forEach(key => {
+                const raw = localStorage.getItem(key);
+                if (raw) {
+                    const obj = JSON.parse(raw);
+                    if (obj && typeof obj === 'object') {
+                        obj.points = pts;
+                        localStorage.setItem(key, JSON.stringify(obj));
+                    }
+                }
+            });
+        } catch (_) {}
     };
 
     // ── Badges Removed: Safe No-Op Handlers & Residual DOM Purge ────────────────

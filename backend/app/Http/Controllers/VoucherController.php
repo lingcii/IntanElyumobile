@@ -489,30 +489,29 @@ class VoucherController extends Controller
             $voucherRecord = null;
             $pointRecord = null;
 
-            if (\Illuminate\Support\Facades\Schema::hasTable('voucher_redemptions')) {
-                $query = \Illuminate\Support\Facades\DB::table('voucher_redemptions')
-                    ->where(function ($q) use ($code) {
-                        $q->where('redemption_code', $code)
-                          ->orWhere('qr_token', $code);
-                    });
+            $query = \Illuminate\Support\Facades\DB::table('voucher_redemptions')
+                ->where(function ($q) use ($code) {
+                    $q->where('redemption_code', $code)
+                      ->orWhere('qr_token', $code);
+                });
 
-                if ($user) {
-                    $query->where('user_id', $user->id);
-                }
-
-                $voucherRecord = $query->first();
+            if ($user) {
+                $query->where('user_id', $user->id);
             }
 
-            if (\Illuminate\Support\Facades\Schema::hasTable('point_redemptions')) {
-                $query = \Illuminate\Support\Facades\DB::table('point_redemptions')
+            $voucherRecord = $query->first();
+
+            $pointRecord = null;
+            if (!$voucherRecord) {
+                $pQuery = \Illuminate\Support\Facades\DB::table('point_redemptions')
                     ->where(function ($q) use ($code) {
                         $q->where('voucher_code', $code)
                           ->orWhere('qr_token', $code);
                     });
                 if ($user) {
-                    $query->where('user_id', $user->id);
+                    $pQuery->where('user_id', $user->id);
                 }
-                $pointRecord = $query->first();
+                $pointRecord = $pQuery->first();
             }
 
             if (!$voucherRecord && !$pointRecord) {
@@ -759,18 +758,15 @@ class VoucherController extends Controller
                 return response()->json(['status' => 'error', 'message' => 'Unauthenticated.'], 401);
             }
 
-            $voucherRecord = null;
-            if (\Illuminate\Support\Facades\Schema::hasTable('voucher_redemptions')) {
-                $voucherRecord = \Illuminate\Support\Facades\DB::table('voucher_redemptions')
-                    ->where('user_id', $user->id)
-                    ->where(function ($q) use ($code) {
-                        $q->where('redemption_code', $code)
-                          ->orWhere('qr_token', $code);
-                    })->first();
-            }
+            $voucherRecord = \Illuminate\Support\Facades\DB::table('voucher_redemptions')
+                ->where('user_id', $user->id)
+                ->where(function ($q) use ($code) {
+                    $q->where('redemption_code', $code)
+                      ->orWhere('qr_token', $code);
+                })->first();
 
             $pointRecord = null;
-            if (\Illuminate\Support\Facades\Schema::hasTable('point_redemptions')) {
+            if (!$voucherRecord) {
                 $pointRecord = \Illuminate\Support\Facades\DB::table('point_redemptions')
                     ->where('user_id', $user->id)
                     ->where(function ($q) use ($code) {
@@ -910,18 +906,15 @@ class VoucherController extends Controller
                 return response()->json(['status' => 'error', 'message' => 'Unauthenticated.'], 401);
             }
 
-            $voucherRecord = null;
-            if (\Illuminate\Support\Facades\Schema::hasTable('voucher_redemptions')) {
-                $voucherRecord = \Illuminate\Support\Facades\DB::table('voucher_redemptions')
-                    ->where('user_id', $user->id)
-                    ->where(function ($q) use ($code) {
-                        $q->where('redemption_code', $code)
-                          ->orWhere('qr_token', $code);
-                    })->first();
-            }
+            $voucherRecord = \Illuminate\Support\Facades\DB::table('voucher_redemptions')
+                ->where('user_id', $user->id)
+                ->where(function ($q) use ($code) {
+                    $q->where('redemption_code', $code)
+                      ->orWhere('qr_token', $code);
+                })->first();
 
             $pointRecord = null;
-            if (\Illuminate\Support\Facades\Schema::hasTable('point_redemptions')) {
+            if (!$voucherRecord) {
                 $pointRecord = \Illuminate\Support\Facades\DB::table('point_redemptions')
                     ->where('user_id', $user->id)
                     ->where(function ($q) use ($code) {
