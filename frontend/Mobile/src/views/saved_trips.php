@@ -784,6 +784,9 @@ $backRoute = 'itinerary';
                                 return getLocalTripsCombined();
                             }
                             if (response.status === 401) {
+                                if (window.shouldPreserveAuthSession && window.shouldPreserveAuthSession()) {
+                                    return getLocalTripsCombined();
+                                }
                                 localStorage.removeItem('intan_elyu_token');
                                 localStorage.removeItem('Intan_Elyu_Token');
                                 if (typeof showToast === 'function') showToast("Session expired. Please log in again.");

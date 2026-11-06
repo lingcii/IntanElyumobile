@@ -5728,6 +5728,9 @@ try {
 
                 if (response.status === 401) {
                     if (!isGuest) {
+                        if (window.shouldPreserveAuthSession && window.shouldPreserveAuthSession()) {
+                            throw new TypeError('Network disconnected while saving itinerary');
+                        }
                         localStorage.removeItem('intan_elyu_token');
                         localStorage.removeItem('Intan_Elyu_Token');
                         showToast("Session expired. Please log in again.");

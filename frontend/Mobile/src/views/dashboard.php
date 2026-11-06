@@ -4763,7 +4763,9 @@ window.applyTouristSitesFilterModal = function() {
                         if (res.status === 401) {
                             const isOfflineGuest = localStorage.getItem('intan_elyu_offline_guest') === 'true' || localStorage.getItem('intan_elyu_offline_mode') === 'true';
                             const isGuestToken = isOfflineGuest || !token || token === 'guest_token' || token === 'offline_guest_token' || token.indexOf('guest_') === 0 || token.indexOf('offline_') === 0 || localStorage.getItem('intan_elyu_guest') === 'true';
-                            const isNetOffline = (typeof navigator.onLine === 'boolean' && !navigator.onLine) || window.isAppOnline === false || localStorage.getItem('intan_elyu_offline_mode') === 'true';
+                            const isNetOffline = window.shouldPreserveAuthSession
+                                ? window.shouldPreserveAuthSession()
+                                : ((typeof navigator.onLine === 'boolean' && !navigator.onLine) || window.isAppOnline === false || localStorage.getItem('intan_elyu_offline_mode') === 'true');
                             if (isGuestToken || isNetOffline) {
                                 console.warn("Guest mode or offline active; suppressing auth redirect.");
                                 throw new Error("Guest/Offline session");

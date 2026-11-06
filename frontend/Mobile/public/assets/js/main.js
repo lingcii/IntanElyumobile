@@ -53,6 +53,16 @@ window.isExpectedAbortError = function (error) {
     return error.name === 'AbortError' || /\b(?:abort|aborted)\b/i.test(String(error.message || error));
 };
 
+window._lastNetworkDisconnectAt = 0;
+window.shouldPreserveAuthSession = function () {
+    const recentlyDisconnected = window._lastNetworkDisconnectAt > 0
+        && (Date.now() - window._lastNetworkDisconnectAt) < 15000;
+    return (typeof navigator.onLine === 'boolean' && !navigator.onLine)
+        || window.isAppOnline === false
+        || localStorage.getItem('intan_elyu_offline_mode') === 'true'
+        || recentlyDisconnected;
+};
+
     /**
      * Stale-While-Revalidate Caching fetch helper
      * Placed early in main.js so all views and async scripts have immediate access.
@@ -2454,6 +2464,7 @@ window.OfflineProfileManager = {
             offlineDebounceTimeout = null;
         }
 
+        window._lastNetworkDisconnectAt = 0;
         window.isAppOnline = true;
         enforceAllOfflineBadgesHidden();
         [50, 150, 300, 600, 1200, 2000].forEach(d => setTimeout(enforceAllOfflineBadgesHidden, d));
@@ -2481,6 +2492,8 @@ window.OfflineProfileManager = {
     };
 
     window.notifyAppOffline = function () {
+        window._lastNetworkDisconnectAt = Date.now();
+        try { localStorage.setItem('intan_elyu_offline_mode', 'true'); } catch(e) {}
         // Debounce offline notification to avoid false alarms from mobile network handoffs
         if (offlineDebounceTimeout) clearTimeout(offlineDebounceTimeout);
         offlineDebounceTimeout = setTimeout(() => {
@@ -3079,6 +3092,9 @@ window.fetchSavedTrips = async function (forceRefresh = false) {
                         return getLocalTripsCombined();
                     }
                     if (response.status === 401) {
+                        if (window.shouldPreserveAuthSession && window.shouldPreserveAuthSession()) {
+                            return getLocalTripsCombined();
+                        }
                         if (typeof window.clearExpiredAuthSession === 'function') {
                             window.clearExpiredAuthSession();
                         }
