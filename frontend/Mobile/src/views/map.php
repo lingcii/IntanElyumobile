@@ -253,8 +253,11 @@ if (is_dir($imgDir)) {
             <div class="map-search" style="position:relative;">
                 <i class="fa-solid fa-location-arrow"></i>
                 <input type="text" id="map-search-input" placeholder="Search places on map..." autocomplete="off">
+                <button type="button" id="map-search-clear" class="map-search-clear" onclick="window.clearMapSearch()" style="display:none;" aria-label="Clear Search">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
             </div>
-            <div id="map-search-suggestions" class="map-search-suggestions"></div>
+            <div id="map-search-suggestions" class="map-search-suggestions" style="background:#ffffff;"></div>
         </div>
         <!-- Categories Container -->
         <div class="map-categories" id="map-categories-container">
@@ -521,7 +524,7 @@ if (is_dir($imgDir)) {
         .map-route-endpoints { z-index: 9701; }
         .map-route-summary {
             z-index: 9700;
-            display: flex !important;
+            display: none !important;
             visibility: hidden;
             opacity: 0;
             pointer-events: none;
@@ -532,11 +535,29 @@ if (is_dir($imgDir)) {
             -webkit-backdrop-filter: none !important;
         }
         .map-route-summary.open {
+            display: flex !important;
             visibility: visible;
             opacity: 1;
             pointer-events: auto;
             transform: translateY(0);
             transition-delay: 0s;
+        }
+        body.map-search-active .map-route-summary,
+        body.keyboard-open .map-route-summary,
+        body.map-search-active #map-route-summary,
+        body.keyboard-open #map-route-summary,
+        body.map-search-active .map-directions-panel,
+        body.keyboard-open .map-directions-panel,
+        body.map-search-active #map-directions-panel,
+        body.keyboard-open #map-directions-panel,
+        body.map-search-active .map-categories,
+        body.keyboard-open .map-categories,
+        body.map-search-active #map-categories-container,
+        body.keyboard-open #map-categories-container {
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
         }
         .route-sheet-actions,
         .route-sheet-actions button {
@@ -2419,7 +2440,7 @@ if (is_dir($imgDir)) {
             }
         });
 
-        window.filterCategory = function (category, element) {
+        window.filterCategory = function (category, element, shouldFitBounds = true) {
             window.currentActiveCategory = category;
             document.querySelectorAll('.category-pill').forEach(pill => pill.classList.remove('active'));
             if (element) element.classList.add('active');
@@ -2461,7 +2482,10 @@ if (is_dir($imgDir)) {
             }
 
             const validFiltered = filtered.filter(loc => loc.lat && loc.lng && !isNaN(parseFloat(loc.lat)) && !isNaN(parseFloat(loc.lng)));
-            if (validFiltered.length > 0 && window.mapInstance) {
+            
+            // Only adjust camera if explicitly requested, NOT searching, and NOT showing 'All'
+            const isSearching = document.body.classList.contains('map-search-active') || (searchInput && document.activeElement === searchInput);
+            if (shouldFitBounds && !isSearching && category !== 'All' && validFiltered.length > 0 && window.mapInstance) {
                 if (validFiltered.length === 1) {
                     // Single destination: fly smoothly right to it with high zoom
                     window.mapInstance.flyTo({
@@ -2481,10 +2505,10 @@ if (is_dir($imgDir)) {
                         duration: 800
                     });
                 }
-                if (typeof showToast === 'function' && category !== 'All') {
+                if (typeof showToast === 'function') {
                     showToast(`Showing ${validFiltered.length} spot${validFiltered.length !== 1 ? 's' : ''} for ${category}`);
                 }
-            } else if (category !== 'All' && typeof showToast === 'function') {
+            } else if (category !== 'All' && !isSearching && typeof showToast === 'function' && validFiltered.length === 0) {
                 showToast(`No spots found for ${category}`);
             }
         };
@@ -2509,34 +2533,6 @@ if (is_dir($imgDir)) {
             const searchInput = document.getElementById('map-search-input');
             const suggestionsEl = document.getElementById('map-search-suggestions');
 
-            function getCatColor(cat) {
-                const c = (cat || '').toLowerCase();
-                if (c.includes('beach') || c.includes('surf')) return '#0ea5e9';
-                if (c.includes('mountain') || c.includes('nature') || c.includes('park')) return '#10b981';
-                if (c.includes('historic') || c.includes('culture') || c.includes('museum')) return '#d97706';
-                if (c.includes('water') || c.includes('fall') || c.includes('river')) return '#3b82f6';
-                if (c.includes('adventure')) return '#ef4444';
-                if (c.includes('farm')) return '#84cc16';
-                if (c.includes('religio') || c.includes('church')) return '#8b5cf6';
-                if (c.includes('hotel') || c.includes('resort') || c.includes('stay')) return '#f43f5e';
-                if (c.includes('food') || c.includes('restaurant') || c.includes('cafe')) return '#f97316';
-                return '#007AFF';
-            }
-
-            function getCatIcon(cat) {
-                const c = (cat || '').toLowerCase();
-                if (c.includes('beach') || c.includes('surf')) return 'fa-umbrella-beach';
-                if (c.includes('mountain') || c.includes('nature') || c.includes('park')) return 'fa-mountain';
-                if (c.includes('historic') || c.includes('culture') || c.includes('museum')) return 'fa-landmark';
-                if (c.includes('water') || c.includes('fall') || c.includes('river')) return 'fa-water';
-                if (c.includes('adventure')) return 'fa-person-hiking';
-                if (c.includes('farm')) return 'fa-tractor';
-                if (c.includes('religio') || c.includes('church')) return 'fa-place-of-worship';
-                if (c.includes('hotel') || c.includes('resort') || c.includes('stay')) return 'fa-bed';
-                if (c.includes('food') || c.includes('restaurant') || c.includes('cafe')) return 'fa-utensils';
-                return 'fa-location-dot';
-            }
-
             function highlightMatch(text, query) {
                 if (!text) return '';
                 if (!query) return text;
@@ -2545,58 +2541,164 @@ if (is_dir($imgDir)) {
                 const before = text.slice(0, idx);
                 const matched = text.slice(idx, idx + query.length);
                 const after = text.slice(idx + query.length);
-                return `${before}<mark class="search-highlight" style="background:rgba(56,189,248,0.22); color:#38bdf8; font-weight:700; padding:0 3px; border-radius:4px;">${matched}</mark>${after}`;
+                return `${before}<mark style="background:rgba(2,132,199,0.12); color:#0284c7; font-weight:800; padding:0 2px; border-radius:3px;">${matched}</mark>${after}`;
             }
 
             function renderSuggestions(query) {
                 if (!suggestionsEl) return;
                 const q = (query || '').toLowerCase().trim();
-                const locations = window.allMapLocations || [];
-                let matches = [];
-                if (q.length === 0) {
-                    // Show some popular/recent spots when search is empty
-                    matches = locations.slice(0, 5);
-                } else {
-                    matches = locations.filter(loc => {
-                        const name = (loc.name || '').toLowerCase();
-                        const muni = (loc.municipality || '').toLowerCase();
-                        const cat = (loc.category || '').toLowerCase();
-                        return name.includes(q) || muni.includes(q) || cat.includes(q);
-                    }).slice(0, 8);
+
+                const clearBtn = document.getElementById('map-search-clear');
+                if (clearBtn) {
+                    clearBtn.style.display = q.length > 0 ? 'flex' : 'none';
                 }
-                if (matches.length === 0 || !searchInput || searchInput !== document.activeElement) {
+
+                // Resolve spots data
+                let locations = window.allMapLocations || [];
+                if (!locations || locations.length === 0) {
+                    locations = window.allTouristSpots || [];
+                }
+                if (!locations || locations.length === 0) {
+                    try {
+                        const cached = localStorage.getItem('public_map_data');
+                        if (cached) {
+                            const parsed = JSON.parse(cached);
+                            locations = parsed.destinations || parsed?.data?.destinations || [];
+                            window.allMapLocations = locations;
+                        }
+                    } catch (err) {}
+                }
+
+                if (!searchInput || (searchInput !== document.activeElement && !document.body.classList.contains('map-search-active'))) {
                     suggestionsEl.classList.remove('open');
                     return;
                 }
-                suggestionsEl.innerHTML = matches.map(loc => {
-                    const color = getCatColor(loc.category);
-                    const icon = getCatIcon(loc.category);
-                    const highlightedName = highlightMatch(loc.name, q);
-                    const subtitle = loc.municipality ? (loc.municipality + (loc.category ? ' • ' + loc.category : '')) : (loc.category || '');
-                    const highlightedSubtitle = highlightMatch(subtitle, q);
-                    const safeLat = loc.lat !== undefined && loc.lat !== null ? loc.lat : loc.latitude;
-                    const safeLng = loc.lng !== undefined && loc.lng !== null ? loc.lng : loc.longitude;
 
-                    return `
-                    <div class="map-search-suggestion-item" data-id="${loc.id}" data-lat="${safeLat}" data-lng="${safeLng}"
-                        onpointerdown="event.preventDefault(); window.selectMapSearchSuggestion('${loc.id}')"
-                        onclick="window.selectMapSearchSuggestion('${loc.id}')">
-                        <div class="suggestion-icon" style="background:#ffffff !important; color:#0284c7 !important; border:none !important; box-shadow:0 2px 6px rgba(0,0,0,0.18);">
-                            <i class="fa-solid ${icon}" style="color:#0284c7 !important;"></i>
+                let matches = [];
+                if (q.length === 0) {
+                    // Show rich suggested spots when search is clicked/empty (up to 15)
+                    matches = locations.slice(0, 15);
+                } else {
+                    matches = locations.filter(loc => {
+                        const name = (loc.name || '').toLowerCase();
+                        const muni = (loc.municipality || loc.location || '').toLowerCase();
+                        const cat = (loc.category || '').toLowerCase();
+                        const desc = (loc.description || '').toLowerCase();
+                        return name.includes(q) || muni.includes(q) || cat.includes(q) || desc.includes(q);
+                    }).slice(0, 15);
+                }
+
+                if (matches.length > 0) {
+                    let html = '';
+                    matches.forEach(dest => {
+                        const img = typeof window.getDestImage === 'function'
+                            ? window.getDestImage(dest, 150)
+                            : (dest.thumbnail_url || dest.image_url || dest.image || 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=150');
+                        const locName = dest.location || dest.municipality || 'La Union';
+                        const safeLat = dest.lat !== undefined && dest.lat !== null ? dest.lat : dest.latitude;
+                        const safeLng = dest.lng !== undefined && dest.lng !== null ? dest.lng : dest.longitude;
+
+                        const cls = (dest.classification || dest.classification_status || '').toLowerCase();
+                        let badgeBg = '#0284c7';
+                        let badgeLabel = dest.classification || 'Existing';
+                        if (cls.includes('potential')) { badgeBg = '#10b981'; badgeLabel = 'Potential'; }
+                        else if (cls.includes('emerging') || cls.includes('emerge')) { badgeBg = '#ef4444'; badgeLabel = 'Emerging'; }
+
+                        const displayName = q ? highlightMatch(dest.name || '', q) : (dest.name || '');
+
+                        html += `
+                            <div class="map-search-suggestion-item" data-id="${dest.id}" data-lat="${safeLat}" data-lng="${safeLng}"
+                                 style="display:flex; align-items:center; gap:12px; padding:9px 12px; border-radius:12px; cursor:pointer; transition:background 0.15s ease; border-bottom:1px solid #f1f5f9; touch-action:pan-y; user-select:none; -webkit-user-select:none;"
+                                 onmouseover="this.style.background='#f8fafc'" 
+                                 onmouseout="this.style.background='transparent'">
+                                <img src="${img}" alt="${(dest.name||'').replace(/"/g, '&quot;')}" 
+                                     onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=150';" 
+                                     style="width:42px; height:42px; border-radius:10px; object-fit:cover; border:1px solid #e2e8f0; flex-shrink:0;">
+                                <div style="flex:1; min-width:0;">
+                                    <div style="display:flex; align-items:center; gap:6px; margin-bottom:2px;">
+                                        <div style="font-size:13.5px; font-weight:700; color:#0f172a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${displayName}</div>
+                                        <span style="font-size:9.5px; font-weight:700; text-transform:uppercase; color:#ffffff; background:${badgeBg}; padding:1px 6px; border-radius:6px; flex-shrink:0;">${badgeLabel}</span>
+                                    </div>
+                                    <div style="font-size:11.5px; font-weight:500; color:#64748b; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                                        <i class="fa-solid fa-location-dot" style="color:#0284c7; margin-right:4px;"></i>${locName}
+                                    </div>
+                                </div>
+                                <i class="fa-solid fa-chevron-right" style="color:#cbd5e1; font-size:12px; margin-left:4px; flex-shrink:0;"></i>
+                            </div>
+                        `;
+                    });
+                    suggestionsEl.innerHTML = html;
+                    suggestionsEl.classList.add('open');
+                    updateSuggestionsHeight();
+                } else if (q.length > 0) {
+                    suggestionsEl.innerHTML = `
+                        <div style="padding:22px 14px; text-align:center;">
+                            <i class="fa-solid fa-location-dot" style="font-size:22px; color:#cbd5e1; margin-bottom:6px; display:block;"></i>
+                            <div style="font-size:13px; font-weight:700; color:#0f172a;">No places found</div>
+                            <div style="font-size:11.5px; color:#64748b; margin-top:2px;">We couldn't find any spot matching "${(query||'').replace(/"/g, '&quot;')}"</div>
                         </div>
-                        <div class="suggestion-info" style="flex:1; min-width:0; overflow:hidden;">
-                            <div class="suggestion-name" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${highlightedName}</div>
-                            <div class="suggestion-sub" style="font-size:11px; opacity:0.75; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${highlightedSubtitle}</div>
-                        </div>
-                    </div>
-                `;
-                }).join('');
-                suggestionsEl.classList.add('open');
+                    `;
+                    suggestionsEl.classList.add('open');
+                    updateSuggestionsHeight();
+                } else {
+                    suggestionsEl.classList.remove('open');
+                }
             }
+
+            function updateSuggestionsHeight() {
+                if (!suggestionsEl || !searchInput) return;
+                const searchWrap = searchInput.closest('.map-search') || searchInput;
+                const searchBottom = searchWrap.getBoundingClientRect().bottom;
+                const vpHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+                const isKeyboardOpen = document.body.classList.contains('keyboard-open') || 
+                    (window.visualViewport && window.visualViewport.height < window.innerHeight * 0.78);
+
+                let available;
+                if (isKeyboardOpen) {
+                    // When keyboard is visible, fit cleanly above keyboard with 12px gap, capped at 380px
+                    available = Math.max(200, Math.min(380, Math.floor(vpHeight - searchBottom - 12)));
+                } else {
+                    // When keyboard is gone, stay sliced & compact — do NOT go through to the bottom edge!
+                    const maxClearance = Math.max(200, window.innerHeight - searchBottom - 120);
+                    available = Math.min(360, maxClearance);
+                }
+                suggestionsEl.style.maxHeight = available + 'px';
+            }
+
+            if (window.visualViewport) {
+                window.visualViewport.addEventListener('resize', () => {
+                    if (document.body.classList.contains('map-search-active')) {
+                        updateSuggestionsHeight();
+                    }
+                });
+            }
+
+            window.clearMapSearch = function () {
+                if (searchInput) {
+                    searchInput.value = '';
+                    const clearBtn = document.getElementById('map-search-clear');
+                    if (clearBtn) clearBtn.style.display = 'none';
+                    const activeCatEl = document.querySelector('.category-pill.active');
+                    const activeCat = activeCatEl ? activeCatEl.innerText : 'All';
+                    window.filterCategory(activeCat, activeCatEl || document.querySelector('.category-pill'), false);
+                    renderSuggestions('');
+                    searchInput.focus();
+                }
+            };
 
             window.selectMapSearchSuggestion = function (locIdOrObj) {
                 if (!locIdOrObj) return;
-                const locations = window.allMapLocations || [];
+                let locations = window.allMapLocations || [];
+                if (!locations.length && window.allTouristSpots) locations = window.allTouristSpots;
+                if (!locations.length) {
+                    try {
+                        const cached = localStorage.getItem('public_map_data');
+                        if (cached) {
+                            const parsed = JSON.parse(cached);
+                            locations = parsed.destinations || parsed?.data?.destinations || [];
+                        }
+                    } catch (e) {}
+                }
                 const loc = (typeof locIdOrObj === 'object')
                     ? locIdOrObj
                     : locations.find(l => String(l.id) === String(locIdOrObj));
@@ -2612,6 +2714,8 @@ if (is_dir($imgDir)) {
                 if (searchInput) {
                     searchInput.value = loc.name || '';
                     searchInput.blur();
+                    const clearBtn = document.getElementById('map-search-clear');
+                    if (clearBtn) clearBtn.style.display = 'flex';
                 }
 
                 // 3. Deactivate search keyboard overlay state
@@ -2684,9 +2788,11 @@ if (is_dir($imgDir)) {
             if (searchInput) {
                 // Input event — filter map markers AND show suggestions
                 searchInput.addEventListener('input', () => {
+                    const clearBtn = document.getElementById('map-search-clear');
+                    if (clearBtn) clearBtn.style.display = searchInput.value.length > 0 ? 'flex' : 'none';
                     const activeCatEl = document.querySelector('.category-pill.active');
                     const activeCat = activeCatEl ? activeCatEl.innerText : 'All';
-                    window.filterCategory(activeCat, activeCatEl || document.querySelector('.category-pill'));
+                    window.filterCategory(activeCat, activeCatEl || document.querySelector('.category-pill'), false);
                     renderSuggestions(searchInput.value);
                 });
 
@@ -2700,7 +2806,20 @@ if (is_dir($imgDir)) {
                     const mNav = document.getElementById('magic-nav');
                     if (bNav) bNav.classList.add('keyboard-hidden');
                     if (mNav) mNav.classList.add('keyboard-hidden');
+                    const clearBtn = document.getElementById('map-search-clear');
+                    if (clearBtn) clearBtn.style.display = searchInput.value.length > 0 ? 'flex' : 'none';
+
+                    // Close any open bottom sheets or route preview sheets
+                    if (typeof window.closeSheet === 'function') window.closeSheet();
+                    if (typeof window.closeNearbySitesSheet === 'function') window.closeNearbySitesSheet();
+                    const routeSummary = document.getElementById('map-route-summary');
+                    if (routeSummary) routeSummary.classList.remove('open');
+                    const routeEndpoints = document.getElementById('map-route-endpoints');
+                    if (routeEndpoints) routeEndpoints.classList.remove('open');
+
                     renderSuggestions(searchInput.value);
+                    if (typeof updateSuggestionsHeight === 'function') updateSuggestionsHeight();
+                    if (window.mapInstance) requestAnimationFrame(() => window.mapInstance.resize());
                 };
 
                 deactivateMapSearch = (immediate = false) => {
@@ -2732,22 +2851,75 @@ if (is_dir($imgDir)) {
                 searchInput.addEventListener('focus', activateMapSearch);
                 searchInput.addEventListener('click', activateMapSearch);
 
-                // Click and touch on suggestions via delegation
+                // Touch scrolling & selection on suggestions via delegation (allows smooth touch scroll without accidental clicks)
                 if (suggestionsEl) {
-                    const handleSelect = (e) => {
+                    let touchStartY = 0;
+                    let touchStartX = 0;
+                    let isTouchScrolling = false;
+                    let lastScrollEndTime = 0;
+
+                    // Prevent desktop mouse click / scrollbar drag from blurring search input
+                    suggestionsEl.addEventListener('mousedown', (e) => {
+                        e.preventDefault();
+                    });
+
+                    // Track touch movements to differentiate scroll swipes from intentional taps
+                    suggestionsEl.addEventListener('touchstart', (e) => {
+                        if (e.touches && e.touches.length > 0) {
+                            touchStartY = e.touches[0].clientY;
+                            touchStartX = e.touches[0].clientX;
+                            isTouchScrolling = false;
+                        }
+                    }, { passive: true });
+
+                    suggestionsEl.addEventListener('touchmove', (e) => {
+                        if (e.touches && e.touches.length > 0) {
+                            const dy = Math.abs(e.touches[0].clientY - touchStartY);
+                            const dx = Math.abs(e.touches[0].clientX - touchStartX);
+                            if (dy > 6 || dx > 6) {
+                                isTouchScrolling = true;
+                            }
+                        }
+                    }, { passive: true });
+
+                    suggestionsEl.addEventListener('touchend', () => {
+                        if (isTouchScrolling) {
+                            lastScrollEndTime = Date.now();
+                            setTimeout(() => {
+                                isTouchScrolling = false;
+                            }, 220);
+                        }
+                    }, { passive: true });
+
+                    suggestionsEl.addEventListener('touchcancel', () => {
+                        isTouchScrolling = false;
+                    }, { passive: true });
+
+                    suggestionsEl.addEventListener('click', (e) => {
+                        // Suppress selection if user was swiping/scrolling through the cards
+                        if (isTouchScrolling || (Date.now() - lastScrollEndTime < 220)) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            return;
+                        }
                         const item = e.target.closest('.map-search-suggestion-item');
                         if (!item) return;
-                        e.preventDefault();
-                        e.stopPropagation();
                         const id = item.dataset.id;
                         if (id && typeof window.selectMapSearchSuggestion === 'function') {
                             window.selectMapSearchSuggestion(id);
                         }
-                    };
-                    suggestionsEl.addEventListener('pointerdown', handleSelect);
-                    suggestionsEl.addEventListener('touchstart', handleSelect, { passive: false });
-                    suggestionsEl.addEventListener('click', handleSelect);
+                    });
                 }
+
+                // Dismiss search dropdown when clicking outside
+                document.addEventListener('click', (e) => {
+                    const floatingHeader = document.querySelector('.map-floating-header');
+                    if (suggestionsEl && suggestionsEl.classList.contains('open') && floatingHeader && !floatingHeader.contains(e.target)) {
+                        if (typeof deactivateMapSearch === 'function') {
+                            deactivateMapSearch(true);
+                        }
+                    }
+                });
 
                 // Keyboard navigation
                 searchInput.addEventListener('keydown', (e) => {
@@ -2783,9 +2955,6 @@ if (is_dir($imgDir)) {
                     items.forEach(el => el.classList.remove('active'));
                     if (activeIdx >= 0) items[activeIdx].classList.add('active');
                 });
-
-                // Blur — hide suggestions with smooth transition and restore nav bar & classification button
-                searchInput.addEventListener('blur', deactivateMapSearch);
             }
 
             const locateBtn = document.getElementById('btn-locate-me');
@@ -6311,7 +6480,13 @@ if (is_dir($imgDir)) {
                     const newCatEl = Array.from(document.querySelectorAll('.category-pill')).find(el => el.innerText === prevCat);
                     window.filterCategory(prevCat, newCatEl || document.querySelector('.category-pill'));
                 }
-            } catch (e) { console.error('Map spots refresh error:', e); }
+            } catch (e) { 
+                if (navigator.onLine === false || (e && e.message && e.message.includes('fetch'))) {
+                    console.warn('Map spots background refresh skipped (offline/unreachable):', e.message || e);
+                } else {
+                    console.error('Map spots refresh error:', e); 
+                }
+            }
         }
 
         window.refreshMapSpots = function (force = false) {

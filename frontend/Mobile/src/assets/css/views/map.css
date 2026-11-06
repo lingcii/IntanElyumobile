@@ -8,7 +8,7 @@ body[data-view="map"],
 body[data-view="map"] #app-container,
 body[data-view="map"] #main-content {
     height: 100vh !important;
-    height: 100dvh !important;
+    height: 100% !important;
     width: 100% !important;
     margin: 0 !important;
     padding: 0 !important;
@@ -107,30 +107,29 @@ body[data-view="map"] #main-content {
     filter: none !important;
 }
 
-/* ── Search Suggestions Dropdown (Matching Nearby Sheet Style) ── */
+/* ── Search Suggestions Dropdown (Clean White Theme - Exactly like Dashboard) ── */
 .map-search-suggestions {
     position: absolute;
     top: calc(100% + 8px);
     left: 0;
     right: 0;
-    background: linear-gradient(180deg, rgba(30, 58, 138, 0.98) 0%, rgba(63, 125, 183, 0.96) 50%, rgba(2, 132, 199, 0.96) 100%);
-    backdrop-filter: blur(32px);
-    -webkit-backdrop-filter: blur(32px);
-    border: none !important;
-    outline: none !important;
-    border-radius: 20px;
-    box-shadow: 0 10px 30px rgba(10, 25, 60, 0.35) !important;
-    max-height: min(280px, calc(100vh - 360px));
+    background: #ffffff;
+    border-radius: 18px;
+    border: 1.5px solid #e2e8f0 !important;
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.14) !important;
+    max-height: min(360px, calc(100vh - 180px));
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+    overscroll-behavior: contain;
     scrollbar-width: none;
     -ms-overflow-style: none;
-    z-index: 60;
-    padding: 8px;
+    z-index: 1000;
+    padding: 6px;
     opacity: 0;
     visibility: hidden;
     transform: translateY(-8px) scale(0.97);
-    transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.25s ease;
+    transition: opacity 0.22s ease, transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.22s ease;
     pointer-events: none;
 }
 
@@ -139,6 +138,16 @@ body[data-view="map"] #main-content {
     visibility: visible;
     transform: translateY(0) scale(1);
     pointer-events: auto;
+}
+
+body.keyboard-open .map-search-suggestions,
+body.map-search-active .map-search-suggestions {
+    max-height: min(380px, calc(100dvh - 120px));
+}
+
+body.keyboard-open .map-categories,
+body.map-search-active .map-categories {
+    display: none !important;
 }
 
 .map-search-suggestions::-webkit-scrollbar {
@@ -152,73 +161,51 @@ body[data-view="map"] #main-content {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 10px 12px;
-    border-radius: 16px;
+    padding: 9px 12px;
+    border-radius: 12px;
     cursor: pointer;
-    background: rgba(255, 255, 255, 0.14);
+    background: transparent;
     border: none !important;
     outline: none !important;
-    margin-bottom: 6px;
-    transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), background 0.22s ease;
+    border-bottom: 1px solid #f1f5f9;
+    transition: background 0.15s ease;
+    touch-action: pan-y;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .map-search-suggestion-item:last-child {
-    margin-bottom: 0;
+    border-bottom: none;
 }
 
 .map-search-suggestion-item:hover,
 .map-search-suggestion-item.active {
-    background: rgba(255, 255, 255, 0.25);
+    background: #f8fafc !important;
     border: none !important;
     outline: none !important;
-    transform: translateY(-1px);
+    transform: none;
 }
 
-.map-search-suggestion-item .suggestion-icon {
-    width: 36px;
-    height: 36px;
-    border-radius: 12px;
+.map-search-clear {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: rgba(255, 255, 255, 0.85);
+    cursor: pointer;
+    font-size: 14px;
+    padding: 0 4px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 14px;
-    flex-shrink: 0;
-    background: rgba(255, 255, 255, 0.25);
-    color: #ffffff;
-    border: none !important;
-    outline: none !important;
 }
 
-.map-search-suggestion-item .suggestion-info {
-    flex: 1;
-    min-width: 0;
+.map-search-clear:hover {
+    color: #ffffff;
 }
 
-.map-search-suggestion-item .suggestion-name {
-    font-size: 14px;
-    font-weight: 800;
-    color: #ffffff;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.map-search-suggestion-item .suggestion-category {
-    font-size: 11px;
-    font-weight: 600;
-    color: #ffffff;
-    opacity: 0.9;
-    margin-left: 6px;
-}
-
-.map-search-suggestion-item .suggestion-municipality {
-    font-size: 10.5px;
-    color: #ffffff;
-    opacity: 0.9;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    flex-shrink: 0;
+body.map-search-active .map-floating-header {
+    z-index: 1005;
 }
 
 /* ── Category Pills ── */

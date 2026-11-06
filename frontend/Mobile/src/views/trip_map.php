@@ -420,7 +420,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
         // Immediate frame-0 vehicle and pax initialization so there is zero flicker
         (function initImmediateVehicleAndPax() {
             const urlParams = new URLSearchParams(window.location.search);
-            const tripId = urlParams.get('trip_id') || sessionStorage.getItem('active_trip_id') || window.currentTripId;
+            const tripId = urlParams.get('trip_id') || urlParams.get('id') || sessionStorage.getItem('active_trip_id') || window.currentTripId;
             if (tripId) {
                 const v = resolveTripVehicle(null, tripId);
                 applyVehicleToUI(v);
@@ -818,7 +818,8 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                     </div>`;
                 } else {
                     actionBtnHtml = `<div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
-                        <button ${checkInButtonAttrs} onclick="event.stopPropagation(); window.executeLocationCheckIn('${item.id}', '${destEscaped}', ${lat}, ${lng}, this)" style="background:linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color:#ffffff; border:none; padding:6px 12px; border-radius:100px; font-weight:800; font-size:10.5px; box-shadow:0 2px 8px rgba(2,132,199,0.3); cursor:pointer; white-space:nowrap;"><i class="fa-solid fa-location-crosshairs" style="margin-right:3px;"></i> Check In</button>
+                        <button ${checkInButtonAttrs} onclick="event.stopPropagation(); window.executeLocationCheckIn('${item.id}', '${destEscaped}', ${lat}, ${lng}, this)" style="background:linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color:#ffffff; border:none; padding:6px 11px; border-radius:100px; font-weight:800; font-size:10.5px; box-shadow:0 2px 8px rgba(2,132,199,0.3); cursor:pointer; white-space:nowrap;"><i class="fa-solid fa-location-crosshairs" style="margin-right:3px;"></i> Check In</button>
+                        <button onclick="event.stopPropagation(); window.openProofUploadModal('${item.id}', '${destEscaped}')" style="background:#f1f5f9; color:#1e3a8a; border:1.5px solid #cbd5e1; padding:6px 11px; border-radius:100px; font-weight:800; font-size:10.5px; cursor:pointer; white-space:nowrap;"><i class="fa-solid fa-camera" style="margin-right:3px;"></i> Proof</button>
                     </div>`;
                 }
 
@@ -919,14 +920,40 @@ include_once __DIR__ . '/../components/testimony_modal.php';
         function loadTripData() {
             window.loadTripData = loadTripData;
             window._isStartingTrip = false;
-            const urlParams = new URLSearchParams(window.location.search);
-            const tripId = urlParams.get('trip_id') || sessionStorage.getItem('active_trip_id') || window.currentTripId;
-            window.currentTripId = tripId;
 
-            if (!tripId) {
-                if (typeof showToast === 'function') showToast("No trip ID provided.");
+            // Guard: Never execute if trip map is unmounted or another view is active
+            const mapContainer = document.getElementById('trip-map');
+            const curView = document.body.getAttribute('data-view') || (window.state ? window.state.currentView : '');
+            if (!mapContainer || (curView && curView !== 'trip_map')) {
                 return;
             }
+
+            const urlParams = new URLSearchParams(window.location.search);
+            let tripId = urlParams.get('trip_id') || urlParams.get('id') || sessionStorage.getItem('active_trip_id') || window.currentTripId;
+            if (!tripId && window.currentTrip && window.currentTrip.id) {
+                tripId = String(window.currentTrip.id);
+            }
+            if (!tripId) {
+                try {
+                    tripId = localStorage.getItem('active_trip_id') || localStorage.getItem('intan_elyu_active_trip_id');
+                } catch (e) {}
+            }
+
+            if (!tripId) {
+                console.warn("No trip ID provided for trip_map.");
+                if (typeof showToast === 'function') {
+                    showToast("No trip selected. Redirecting to your trips...", "info");
+                }
+                if (typeof window.navigateTo === 'function') {
+                    window.navigateTo('saved_trips');
+                } else {
+                    window.location.href = '?view=saved_trips';
+                }
+                return;
+            }
+
+            window.currentTripId = String(tripId);
+            sessionStorage.setItem('active_trip_id', String(tripId));
 
             const clearLoadingTripToast = () => {
                 document.querySelectorAll('#toast-container .toast-card').forEach(toast => {
@@ -2466,12 +2493,12 @@ include_once __DIR__ . '/../components/testimony_modal.php';
 
         // Automatically refresh route and pins when offline check-ins or trips finish syncing
         window.addEventListener('checkins-synced', () => {
-            if (typeof loadTripData === 'function') {
+            if (document.getElementById('trip-map') && typeof loadTripData === 'function') {
                 loadTripData();
             }
         });
         window.addEventListener('tripsSynced', () => {
-            if (typeof loadTripData === 'function') {
+            if (document.getElementById('trip-map') && typeof loadTripData === 'function') {
                 loadTripData();
             }
         });
