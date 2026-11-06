@@ -179,7 +179,7 @@ $activeTab = 'leaderboard';
         // Check cache for this specific sort mode
         try {
             const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('api_token');
-            const cacheKey = `leaderboard_data_v26_${mode}_` + (token ? token.substring(0, 10) : 'public');
+            const cacheKey = `leaderboard_data_v27_${mode}_` + (token ? token.substring(0, 10) : 'public');
             const stored = localStorage.getItem(cacheKey);
             if (stored) {
                 const parsed = JSON.parse(stored);
@@ -852,8 +852,8 @@ $activeTab = 'leaderboard';
         try {
             const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('api_token');
             const tokenSuffix = token ? token.substring(0, 10) : 'public';
-            const cacheKeyMode = 'leaderboard_data_v26_' + currentSortMode + '_' + tokenSuffix;
-            const cacheKeyLegacy = 'leaderboard_data_v26_' + tokenSuffix;
+            const cacheKeyMode = 'leaderboard_data_v27_' + currentSortMode + '_' + tokenSuffix;
+            const cacheKeyLegacy = 'leaderboard_data_v27_' + tokenSuffix;
             const storedRaw = localStorage.getItem(cacheKeyMode) || 
                               localStorage.getItem(cacheKeyLegacy);
             if (storedRaw) {
@@ -930,7 +930,8 @@ $activeTab = 'leaderboard';
                 const controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
                 const timeoutId = controller ? setTimeout(() => controller.abort(), 8000) : null;
                 try {
-                    const res = await fetch(url, { headers: reqHeaders, signal: controller ? controller.signal : undefined });
+                    const requestUrl = url + (url.includes('?') ? '&' : '?') + '_t=' + Date.now();
+                    const res = await fetch(requestUrl, { headers: reqHeaders, signal: controller ? controller.signal : undefined, cache: 'no-store' });
                     if (timeoutId) clearTimeout(timeoutId);
                     if (res.ok) {
                         const json = await res.json();
@@ -949,8 +950,9 @@ $activeTab = 'leaderboard';
                 applyLeaderboardData(fetchedData);
                 try {
                     const tokenSuffix = token ? token.substring(0, 10) : 'public';
-                    localStorage.setItem(`leaderboard_data_v26_${sortMode}_${tokenSuffix}`, JSON.stringify(fetchedData));
-                    localStorage.setItem(`leaderboard_data_v26_${tokenSuffix}`, JSON.stringify(fetchedData));
+                    localStorage.setItem(`leaderboard_data_v27_${sortMode}_${tokenSuffix}`, JSON.stringify(fetchedData));
+                    localStorage.setItem(`leaderboard_data_v27_${tokenSuffix}`, JSON.stringify(fetchedData));
+                    window.leaderboardNeedsRefresh = false;
                 } catch (e) { }
                 if (force && typeof showToast === 'function') {
                     showToast('Leaderboard rankings synced!', 'success', 3000);
@@ -965,8 +967,9 @@ $activeTab = 'leaderboard';
             if (token) {
                 try {
                     const ptsBase = bUrl || 'https://api.intan-elyu.online';
-                    const ptsRes = await fetch(ptsBase + '/api/tourist/points/balance', {
-                        headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/json' }
+                    const ptsRes = await fetch(ptsBase + '/api/tourist/points/balance?_t=' + Date.now(), {
+                        headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/json' },
+                        cache: 'no-store'
                     });
                     if (ptsRes.ok) {
                         const d = await ptsRes.json();
@@ -987,6 +990,23 @@ $activeTab = 'leaderboard';
                                     }
                                 }
                             }
+                            if (cachedMeData) {
+                                cachedMeData.points = ptsVal;
+                                cachedMeData.total_points = ptsVal;
+                                cachedMeData.pts = ptsVal;
+                                window._cachedMeData = cachedMeData;
+                            }
+                            const selfId = Number(cachedMeData?.id || cachedMeData?.user_id || 0);
+                            if (selfId > 0) {
+                                rawLeadersList = rawLeadersList.map(user => Number(user.id || user.user_id || 0) === selfId
+                                    ? { ...user, points: ptsVal, total_points: ptsVal, pts: ptsVal }
+                                    : user);
+                                window._cachedRawLeadersList = rawLeadersList;
+                            }
+                            const authUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
+                            authUser.points = ptsVal;
+                            localStorage.setItem('auth_user', JSON.stringify(authUser));
+                            renderLeaderboardUI();
                         }
                     }
                 } catch (e) { }

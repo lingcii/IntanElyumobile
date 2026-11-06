@@ -3819,7 +3819,7 @@ try {
                             </div>
                             <div style="display:flex; gap:14px; align-items:flex-start;">
                                 <div class="stop-thumbnail-wrapper">
-                                    <img src="${r2ThumbUrl}" alt="${place.name}" loading="lazy" onerror="this.onerror=null; this.src='assets/img/no_image.svg';">
+                                    <img src="${r2ThumbUrl}" alt="${place.name}" data-spot-id="${place.id || ''}" loading="lazy" onerror="if(window.handleImgError){const p=(window.itineraryDraft||[]).find(x=>String(x.id)===String(this.dataset.spotId));window.handleImgError(this,p?.name||'',p?.municipality||'');}else{this.onerror=null;this.src='assets/img/no_image.svg';}">
                                 </div>
                                 <div style="flex:1; min-width:0;">
                                     <h3 class="place-name" style="margin:0 0 2px 0 !important; font-size:14px !important; font-weight:800; color:#ffffff; letter-spacing:-0.2px; line-height:1.2; white-space:normal !important; overflow:visible !important; text-overflow:clip !important; word-break:break-word;">${place.name}</h3>
@@ -5841,6 +5841,7 @@ try {
                     // Bundled municipal geometry gives every offline map real geographic context.
                     draftMap.createPane('offlineBasePane');
                     draftMap.getPane('offlineBasePane').style.zIndex = 250;
+                    const isOfflineDraftMap = !navigator.onLine || window.isAppOnline === false;
                     Promise.resolve(window.OFFLINE_MUNICIPALITIES_GEOJSON)
                         .then(geojson => {
                             if (!draftMap || !geojson) return;
@@ -5852,7 +5853,7 @@ try {
                                     weight: 0,
                                     opacity: 0,
                                     fillColor: '#b8dcec',
-                                    fillOpacity: 0
+                                    fillOpacity: isOfflineDraftMap ? 0.18 : 0
                                 }
                             }).addTo(draftMap);
                             offlineBase._isOfflineBaseLayer = true;

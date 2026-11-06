@@ -1,4 +1,4 @@
-const CACHE_NAME = 'Intan_Elyu_cache-v51-review-choice-weather';
+const CACHE_NAME = 'Intan_Elyu_cache-v55-maintenance-ui';
 const ASSETS = [
     './',
     './index.php',
@@ -14,9 +14,16 @@ const ASSETS = [
     './index.php?view=map&ajax=1',
     './index.php?view=itinerary&ajax=1',
     './index.php?view=saved_trips&ajax=1',
+    './index.php?view=saved_places&ajax=1',
     './index.php?view=trip_map&ajax=1',
     './index.php?view=leaderboard&ajax=1',
     './index.php?view=profile&ajax=1',
+    './index.php?view=puzzles&ajax=1',
+    './index.php?view=discount&ajax=1',
+    './index.php?view=settings&ajax=1',
+    './index.php?view=help&ajax=1',
+    './index.php?view=terms&ajax=1',
+    './index.php?view=about&ajax=1',
     './index.php?view=download',
     './index.php?view=download&ajax=1',
     './assets/css/style.css',
@@ -26,6 +33,9 @@ const ASSETS = [
     './assets/img/onboarding/ma-cho-temple.webp',
     './assets/img/onboarding/la-union-waterfall.jpg',
     './assets/img/onboarding/baluarte-watchtower.jpg',
+    './assets/img/onboarding/elyu-coast-blue-hour.jpg',
+    './assets/img/onboarding/elyu-coast-island.jpg',
+    './assets/img/onboarding/elyu-coast-morning.jpg',
     './assets/la_union_municipalities.json',
     // Component CSS
     './assets/css/components/header.css',

@@ -3246,7 +3246,7 @@ window.applyTouristSitesFilterModal = function() {
         } catch (e) {}
 
         const locCacheKey = `intan_elyu_weather_v3_${Number(lat).toFixed(2)}_${Number(lng).toFixed(2)}`;
-        const applyWeatherUI = (rawWData) => {
+        const applyWeatherUI = (rawWData, source = 'live') => {
             if (!rawWData) return;
             const wData = window.reconcileRealtimeWeatherData(rawWData);
             if (!wData.location || wData.location.includes('My Location')) {
@@ -3259,6 +3259,11 @@ window.applyTouristSitesFilterModal = function() {
             if (windEl) windEl.textContent = `${wData.wind_speed} km/h`;
             if (uvEl) uvEl.textContent = wData.uv_index;
             if (iconEl) iconEl.innerHTML = window.renderWeatherIconHtml(wData.icon, wData.fa_icon);
+            if (gpsStatusEl) {
+                gpsStatusEl.textContent = wData.is_fallback
+                    ? 'Weather Estimate'
+                    : (source === 'cached' ? 'Recent Weather' : (isCurrentLoc ? 'Live GPS' : 'Live Weather'));
+            }
             window.updateWeatherModal(wData);
             if (typeof window.renderSmartWeatherRecommendations === 'function') {
                 window.renderSmartWeatherRecommendations(wData);
@@ -3272,7 +3277,7 @@ window.applyTouristSitesFilterModal = function() {
             if (rawLoc) {
                 const parsedLoc = window.safeJsonParse ? window.safeJsonParse(rawLoc, null) : JSON.parse(rawLoc);
                 if (parsedLoc && parsedLoc.data) {
-                    applyWeatherUI({ ...parsedLoc.data, location: parsedLoc.data.location || displayLocName });
+                    applyWeatherUI({ ...parsedLoc.data, location: parsedLoc.data.location || displayLocName }, 'cached');
                     if (parsedLoc.timestamp && (Date.now() - parsedLoc.timestamp < 45000)) {
                         freshLocCacheHit = true;
                     }
@@ -3292,11 +3297,12 @@ window.applyTouristSitesFilterModal = function() {
         try {
             const apiBase = getDashBackendUrl();
             const isCurrentParam = isCurrentLoc ? '&is_current_location=1' : '';
-            const url = `${apiBase}/api/public/weather?lat=${lat}&lng=${lng}&location=${encodeURIComponent(displayLocName)}${isCurrentParam}`;
+            const url = `${apiBase}/api/public/weather?lat=${lat}&lng=${lng}&location=${encodeURIComponent(displayLocName)}${isCurrentParam}&_t=${Date.now()}`;
 
-            const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+            const res = await fetch(url, { headers: { 'Accept': 'application/json' }, cache: 'no-store' });
             if (!res.ok) throw new Error('Weather request failed with status ' + res.status);
             const rawData = await res.json();
+            if (rawData?.is_fallback) throw new Error('Live weather provider is temporarily unavailable');
             const data = window.reconcileRealtimeWeatherData(rawData);
 
             try {
@@ -3314,22 +3320,23 @@ window.applyTouristSitesFilterModal = function() {
                 if (rawW) cachedW = (window.safeJsonParse ? window.safeJsonParse(rawW, null) : JSON.parse(rawW))?.data;
             } catch(err) {}
 
-            if (cachedW) {
-                applyWeatherUI({ ...cachedW, location: cachedW.location || displayLocName });
+            if (cachedW && !cachedW.is_fallback) {
+                applyWeatherUI({ ...cachedW, location: cachedW.location || displayLocName }, 'cached');
             } else {
                 applyWeatherUI({
-                    temperature: 29,
-                    feels_like: 31,
-                    condition: 'Partly Cloudy',
+                    temperature: '--',
+                    feels_like: '--',
+                    condition: 'Weather unavailable',
                     location: displayLocName,
-                    humidity: 72,
-                    wind_speed: 14,
-                    uv_index: 6,
+                    humidity: '--',
+                    wind_speed: '--',
+                    uv_index: '--',
                     weather_code: 2,
                     weather_group: 'partly_cloudy',
                     icon: '⛅',
                     fa_icon: 'fa-cloud-sun',
-                    forecast: []
+                    forecast: [],
+                    is_fallback: true
                 });
             }
         }

@@ -102,6 +102,18 @@ $backRoute = 'profile';
     </div>
 </div>
 
+<div id="voucher-cancel-confirm-modal" role="dialog" aria-modal="true" aria-labelledby="voucher-cancel-confirm-title" style="display:none; position:fixed; inset:0; z-index:12000; background:rgba(15,23,42,.72); align-items:center; justify-content:center; padding:24px; backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);">
+    <div style="width:100%; max-width:340px; background:#fff; border-radius:22px; padding:24px 20px 18px; box-shadow:0 20px 55px rgba(15,23,42,.4); text-align:center;">
+        <div style="width:54px; height:54px; margin:0 auto 13px; border-radius:50%; display:flex; align-items:center; justify-content:center; background:#fef2f2; color:#dc2626; font-size:22px;"><i class="fa-solid fa-ticket"></i></div>
+        <h3 id="voucher-cancel-confirm-title" style="margin:0 0 8px; color:#0f172a; font-size:18px;">Cancel voucher claim?</h3>
+        <p style="margin:0 0 20px; color:#64748b; font-size:13px; line-height:1.5;">Your voucher will be cancelled and the used points will be refunded to your account.</p>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <button type="button" onclick="window.closeVoucherCancelConfirm()" style="min-height:44px; border:1.5px solid #cbd5e1; border-radius:13px; background:#fff; color:#334155; font-weight:800;">No, Keep It</button>
+            <button type="button" onclick="window.handleVoucherCancel(true)" style="min-height:44px; border:0; border-radius:13px; background:#dc2626; color:#fff; font-weight:800;">Yes, Cancel</button>
+        </div>
+    </div>
+</div>
+
 
 
 <div id="voucher-modal" onclick="if (event.target === this) closeVoucherModal();" style="display:none; position:fixed; inset:0; z-index:10000; background:rgba(15,23,42,0.68); align-items:center; justify-content:center; padding:18px; backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); opacity:0; transition:opacity 0.3s ease;">
@@ -1835,7 +1847,12 @@ window.handleVoucherUse = async function() {
     }
 };
 
-window.handleVoucherCancel = async function() {
+window.closeVoucherCancelConfirm = function() {
+    const modal = document.getElementById('voucher-cancel-confirm-modal');
+    if (modal) modal.style.display = 'none';
+};
+
+window.handleVoucherCancel = async function(confirmed = false) {
     let item = currentModalItem;
     if (!item && currentVoucherId) {
         item = vouchersData.find(v => v.id === currentVoucherId) || getUserRedemptionItems().find(v => v.id === currentVoucherId);
@@ -1844,9 +1861,12 @@ window.handleVoucherCancel = async function() {
 
     const code = item.code || item.voucher_code;
 
-    if (!confirm("Are you sure you want to cancel this voucher claim? Your points will be refunded to your account.")) {
+    if (!confirmed) {
+        const confirmModal = document.getElementById('voucher-cancel-confirm-modal');
+        if (confirmModal) confirmModal.style.display = 'flex';
         return;
     }
+    window.closeVoucherCancelConfirm();
 
     const cancelBtn = document.getElementById('modal-btn-cancel');
     if (cancelBtn) {

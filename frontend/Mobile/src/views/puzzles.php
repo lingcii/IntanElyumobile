@@ -624,6 +624,18 @@ include __DIR__ . '/../components/header.php';
         // ----------------------------------------------------
         const R2_PUBLIC_BASE = 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/tourist_spots/';
 
+        const LOCAL_PUZZLE_IMAGES = [
+            { name: 'Ma-Cho Temple', location: 'San Fernando', image: 'assets/img/onboarding/ma-cho-temple.webp' },
+            { name: 'La Union Waterfall', location: 'La Union', image: 'assets/img/onboarding/la-union-waterfall.jpg' },
+            { name: 'Baluarte Watchtower', location: 'Luna', image: 'assets/img/onboarding/baluarte-watchtower.jpg' },
+            { name: 'Elyu Coast at Blue Hour', location: 'La Union', image: 'assets/img/onboarding/elyu-coast-blue-hour.jpg' },
+            { name: 'Elyu Island Coast', location: 'La Union', image: 'assets/img/onboarding/elyu-coast-island.jpg' },
+            { name: 'Elyu Coast in the Morning', location: 'La Union', image: 'assets/img/onboarding/elyu-coast-morning.jpg' }
+        ].map(item => ({
+            ...item,
+            desc: `Rearrange the tiles to reveal ${item.name}! Solve to earn <strong style="color: #38bdf8;">+30 Points</strong>.`
+        }));
+
         const PUZZLE_IMAGES = [
             {
                 name: "Immuki Island",
@@ -636,8 +648,17 @@ include __DIR__ . '/../components/header.php';
                 location: "Agoo",
                 image: R2_PUBLIC_BASE + "spot_6a689fe582fe5.jpg",
                 desc: 'Rearrange the tiles to reveal the lush pine trees of Agoo Eco Fun World! Solve to earn <strong style="color: #38bdf8;">+30 Points</strong>.'
-            }
+            },
+            ...LOCAL_PUZZLE_IMAGES
         ];
+
+        const PUZZLE_FALLBACK_IMAGES = LOCAL_PUZZLE_IMAGES.map(item => item.image);
+
+        function getPuzzleFallbackImage(item) {
+            const seed = String(item?.name || item?.location || 'elyu');
+            const index = [...seed].reduce((sum, char) => sum + char.charCodeAt(0), 0) % PUZZLE_FALLBACK_IMAGES.length;
+            return PUZZLE_FALLBACK_IMAGES[index];
+        }
 
         let currentPuzzleItem = PUZZLE_IMAGES[0];
         let dbPuzzleSpots = [];
@@ -647,6 +668,46 @@ include __DIR__ . '/../components/header.php';
         let puzzleSolved = false;
         let pendingConfirmAction = null;
 
+        function normalizePuzzleSpots(spots, baseUrl = '') {
+            if (!Array.isArray(spots)) return [];
+            return spots.flatMap(spot => {
+                const images = [...new Set([
+                    spot.image,
+                    spot.photo_url,
+                    spot.cover_image,
+                    ...(Array.isArray(spot.images) ? spot.images : [])
+                ].filter(Boolean))];
+
+                return images.map((image, imageIndex) => {
+                    let imageUrl = image;
+                    if (typeof window.resolveImageUrl === 'function') {
+                        imageUrl = window.resolveImageUrl(imageUrl);
+                    } else if (imageUrl && imageUrl.includes('spot_')) {
+                        const match = imageUrl.match(/(spot_[a-z0-9_]+\.(?:jpg|jpeg|png|webp|gif))/i);
+                        if (match) imageUrl = R2_PUBLIC_BASE + match[1];
+                    } else if (imageUrl && !imageUrl.startsWith('http') && !imageUrl.startsWith('data:')) {
+                        imageUrl = baseUrl + imageUrl;
+                    }
+
+                    return {
+                        id: spot.id ? `${spot.id}-${imageIndex}` : `${spot.name || 'spot'}-${imageIndex}`,
+                        name: spot.name || 'La Union Tourist Site',
+                        location: spot.location || spot.municipality || 'La Union',
+                        image: imageUrl,
+                        desc: spot.desc || `Rearrange the tiles to reveal ${spot.name || 'this La Union tourist site'}! Solve to earn <strong style="color: #38bdf8;">+100 Points</strong>.`
+                    };
+                });
+            }).filter(spot => spot.image);
+        }
+
+        function selectNextPuzzle(pool) {
+            if (!pool.length) return null;
+            const currentIndex = currentPuzzleItem
+                ? pool.findIndex(item => item.image === currentPuzzleItem.image)
+                : -1;
+            return pool[(currentIndex + 1) % pool.length];
+        }
+
         async function fetchDatabasePuzzleSpots() {
             try {
                 const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('api_token');
@@ -654,32 +715,16 @@ include __DIR__ . '/../components/header.php';
                 if (token) headers['Authorization'] = 'Bearer ' + token;
 
                 const _baseUrl = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || window.location.origin)).replace(/\/+$/, '');
-                let res = await fetch(_baseUrl + '/api/puzzles/spots', { headers });
+                let res = await fetch(_baseUrl + '/api/puzzles/spots?_t=' + Date.now(), { headers, cache: 'no-store' });
                 if (!res.ok) {
-                    res = await fetch(_baseUrl + '/api/tourist/puzzles/spots', { headers });
+                    res = await fetch(_baseUrl + '/api/tourist/puzzles/spots?_t=' + Date.now(), { headers, cache: 'no-store' });
                 }
 
                 if (res.ok) {
                     const data = await res.json();
                     if (data.status === 'success' && Array.isArray(data.spots) && data.spots.length > 0) {
-                        dbPuzzleSpots = data.spots.map(s => {
-                            let imgUrl = s.image;
-                            if (typeof window.resolveImageUrl === 'function') {
-                                imgUrl = window.resolveImageUrl(imgUrl);
-                            } else if (imgUrl && imgUrl.includes('spot_')) {
-                                const m = imgUrl.match(/(spot_[a-z0-9_]+\.(?:jpg|jpeg|png|webp|gif))/i);
-                                if (m) imgUrl = R2_PUBLIC_BASE + m[1];
-                            } else if (imgUrl && !imgUrl.startsWith('http') && !imgUrl.startsWith('data:')) {
-                                imgUrl = _baseUrl + imgUrl;
-                            }
-                            return {
-                                name: s.name,
-                                location: s.location,
-                                image: imgUrl,
-                                desc: s.desc
-                            };
-                        });
-                        // If it was the fallback default, replace with a random spot from database
+                        dbPuzzleSpots = normalizePuzzleSpots(data.spots, _baseUrl);
+                        // Replace the emergency image with the first item in the full live catalog.
                         if (!currentPuzzleItem || PUZZLE_IMAGES.some(p => p.image === currentPuzzleItem.image)) {
                             initPuzzle(true);
                         }
@@ -692,14 +737,12 @@ include __DIR__ . '/../components/header.php';
             // Offline resilience fallback
             if (!dbPuzzleSpots.length) {
                 try {
-                    const localSpots = JSON.parse(localStorage.getItem('intan_elyu_cached_spots_map') || '[]');
-                    if (Array.isArray(localSpots) && localSpots.length > 0) {
-                        dbPuzzleSpots = localSpots.filter(s => s.image || s.cover_image).map(s => ({
-                            name: s.name,
-                            location: s.municipality || s.location || 'La Union',
-                            image: s.image || s.cover_image,
-                            desc: s.description || ''
-                        }));
+                    const cached = JSON.parse(localStorage.getItem('intan_elyu_cached_spots_map') || '[]');
+                    const localSpots = Array.isArray(cached)
+                        ? cached
+                        : (cached?.data?.destinations || cached?.data?.spots || cached?.destinations || cached?.spots || []);
+                    if (localSpots.length > 0) {
+                        dbPuzzleSpots = normalizePuzzleSpots(localSpots);
                         if (dbPuzzleSpots.length > 0) initPuzzle(true);
                     }
                 } catch (e) { }
@@ -811,7 +854,15 @@ include __DIR__ . '/../components/header.php';
                 }
                 if (targetContainer) targetContainer.style.display = 'flex';
                 const targetImgEl = document.getElementById('puzzle-target-img');
-                if (targetImgEl && currentPuzzleItem) targetImgEl.src = currentPuzzleItem.image;
+                if (targetImgEl && currentPuzzleItem) {
+                    targetImgEl.onerror = () => {
+                        targetImgEl.onerror = null;
+                        currentPuzzleItem.resolvedImage = getPuzzleFallbackImage(currentPuzzleItem);
+                        targetImgEl.src = currentPuzzleItem.resolvedImage;
+                        renderPuzzleBoard();
+                    };
+                    targetImgEl.src = currentPuzzleItem.resolvedImage || currentPuzzleItem.image || getPuzzleFallbackImage(currentPuzzleItem);
+                }
                 if (statsContainer) statsContainer.style.display = 'flex';
                 if (boardWrapper) boardWrapper.style.display = 'flex';
                 if (controlsWrapper) controlsWrapper.style.display = 'flex';
@@ -904,8 +955,7 @@ include __DIR__ . '/../components/header.php';
 
             const pool = (dbPuzzleSpots && dbPuzzleSpots.length > 0) ? dbPuzzleSpots : PUZZLE_IMAGES;
             if (forceNewImage || !currentPuzzleItem) {
-                const randomIdx = Math.floor(Math.random() * pool.length);
-                currentPuzzleItem = pool[randomIdx];
+                currentPuzzleItem = selectNextPuzzle(pool);
             }
 
             updatePuzzleInfoUI();
@@ -973,17 +1023,7 @@ include __DIR__ . '/../components/header.php';
 
         function changePuzzle() {
             const pool = (dbPuzzleSpots && dbPuzzleSpots.length > 0) ? dbPuzzleSpots : PUZZLE_IMAGES;
-            if (pool.length > 1 && currentPuzzleItem) {
-                let newIdx = Math.floor(Math.random() * pool.length);
-                let attempts = 0;
-                while (pool[newIdx].image === currentPuzzleItem.image && attempts < 10) {
-                    newIdx = Math.floor(Math.random() * pool.length);
-                    attempts++;
-                }
-                currentPuzzleItem = pool[newIdx];
-            } else if (pool.length > 0) {
-                currentPuzzleItem = pool[0];
-            }
+            currentPuzzleItem = selectNextPuzzle(pool);
 
             updatePuzzleInfoUI();
             resetPuzzleState();
@@ -1011,11 +1051,13 @@ include __DIR__ . '/../components/header.php';
                     div.className = 'puzzle-tile puzzle-empty';
                 } else {
                     div.className = 'puzzle-tile';
-                    div.style.backgroundImage = `url('${currentPuzzleItem.image}')`;
-                    div.style.backgroundSize = '300px 300px';
+                    const primaryImage = currentPuzzleItem.resolvedImage || currentPuzzleItem.image || getPuzzleFallbackImage(currentPuzzleItem);
+                    const fallbackImage = getPuzzleFallbackImage(currentPuzzleItem);
+                    div.style.backgroundImage = `url("${primaryImage}"), url("${fallbackImage}")`;
+                    div.style.backgroundSize = '300px 300px, 300px 300px';
                     const x = (val % 3) * 100;
                     const y = Math.floor(val / 3) * 100;
-                    div.style.backgroundPosition = `-${x}px -${y}px`;
+                    div.style.backgroundPosition = `-${x}px -${y}px, -${x}px -${y}px`;
                     div.onclick = () => moveTile(index);
                 }
                 board.appendChild(div);

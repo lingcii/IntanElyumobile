@@ -11,6 +11,8 @@ const mapView = fs.readFileSync(path.join(root, 'src', 'views', 'map.php'), 'utf
 const tripMapView = fs.readFileSync(path.join(root, 'src', 'views', 'trip_map.php'), 'utf8');
 const dashboardView = fs.readFileSync(path.join(root, 'src', 'views', 'dashboard.php'), 'utf8');
 const leaderboardView = fs.readFileSync(path.join(root, 'src', 'views', 'leaderboard.php'), 'utf8');
+const puzzlesView = fs.readFileSync(path.join(root, 'src', 'views', 'puzzles.php'), 'utf8');
+const puzzleController = fs.readFileSync(path.join(root, '..', '..', 'backend', 'app', 'Http', 'Controllers', 'PuzzleController.php'), 'utf8');
 const serviceWorker = fs.readFileSync(path.join(root, 'src', 'sw.js'), 'utf8');
 const publicServiceWorker = fs.readFileSync(path.join(root, 'public', 'sw.js'), 'utf8');
 
@@ -57,8 +59,8 @@ assert.match(tripMapView, /class="trip-map-checkin-btn"[\s\S]*data-dest-lat=[\s\
     'trip-map check-in controls must start unavailable until GPS confirms the tourist is on site');
 assert.match(tripMapView, /window\.OFFLINE_MUNICIPALITIES_GEOJSON[\s\S]*"offline-municipalities"[\s\S]*"data": window\.OFFLINE_MUNICIPALITIES_GEOJSON[\s\S]*"offline-municipality-border"/,
     'the active trip must inline bundled geography so MapLibre load can finish offline');
-assert.match(tripMapView, /"id": "offline-municipality-border"[\s\S]*"line-width": isOfflineMap \? 1 : 0[\s\S]*"line-opacity": isOfflineMap \? 0\.75 : 0/,
-    'active-trip geography must provide visible municipality boundaries only while offline');
+assert.match(tripMapView, /"id": "offline-municipality-border"[\s\S]*"line-width": 0[\s\S]*"line-opacity": 0/,
+    'active-trip geography must initialize offline without visible municipality borders');
 assert.match(tripMapView, /!navigator\.onLine \|\| window\.isAppOnline === false[\s\S]*Promise\.reject\(new Error\('Offline navigation uses the local geodesic route'\)\)[\s\S]*Geodesic route fallback/,
     'active-trip navigation must draw its local route immediately instead of waiting for OSRM offline');
 assert.match(main, /rememberGpsLocation[\s\S]*intan_elyu_last_gps[\s\S]*getRememberedGpsLocation/,
@@ -67,8 +69,10 @@ assert.match(tripMapView, /executeLocationCheckIn = async function[\s\S]*request
     'offline check-in must use Capacitor native GPS before the WebView geolocation fallback');
 assert.match(main, /if \(typeof target\.onerror === 'function'\) return;/,
     'the global image handler must allow destination cards to load bundled offline fallbacks');
-assert.doesNotMatch(serviceWorker, /'\.\/index\.php\?view=(?:discount|trending|puzzles|settings)&ajax=1'/,
-    'service-worker install must not preload every secondary module');
+['saved_places', 'saved_trips', 'puzzles', 'discount', 'settings', 'help', 'terms', 'about'].forEach(view => {
+    assert.match(serviceWorker, new RegExp(`view=${view}&ajax=1`),
+        `${view} must be available from the sidebar while offline`);
+});
 assert.match(dashboardView, /if \(window\._dashboardInitPromise\) return window\._dashboardInitPromise/,
     'Home must coalesce overlapping initialization requests');
 assert.match(dashboardView, /!forceRefresh && window\._dashboardLastInitCompletedAt[\s\S]*< 1500/,
@@ -97,6 +101,24 @@ assert.doesNotMatch(leaderboardView, /setInterval\(/,
     'Leaderboard must remain event-driven without an automatic polling interval');
 assert.match(leaderboardView, /for \(const url of \[\.\.\.new Set\(candidates\)\]\)/,
     'Leaderboard fallback requests must not retry the same endpoint twice');
+assert.match(leaderboardView, /requestUrl = url[\s\S]*?_t=' \+ Date\.now\(\)[\s\S]*?cache: 'no-store'/,
+    'Leaderboard refreshes must bypass stale browser and proxy responses');
+assert.match(leaderboardView, /points\/balance\?_t=' \+ Date\.now\(\)[\s\S]*?renderLeaderboardUI\(\)/,
+    'a refreshed point balance must immediately rerender the current explorer');
+assert.match(puzzlesView, /LOCAL_PUZZLE_IMAGES[\s\S]*?ma-cho-temple\.webp[\s\S]*?la-union-waterfall\.jpg[\s\S]*?baluarte-watchtower\.jpg/,
+    'GameZone puzzles must use bundled images when remote images are unavailable');
+assert.match(puzzlesView, /LOCAL_PUZZLE_IMAGES[\s\S]*?elyu-coast-blue-hour\.jpg[\s\S]*?elyu-coast-island\.jpg[\s\S]*?elyu-coast-morning\.jpg/,
+    'GameZone must retain several emergency images when no tourist-site catalog is available');
+assert.match(serviceWorker, /elyu-coast-blue-hour\.jpg[\s\S]*?elyu-coast-island\.jpg[\s\S]*?elyu-coast-morning\.jpg/,
+    'the expanded puzzle image pool must be available offline');
+assert.match(puzzleController, /with\(\['municipality', 'images'\]\)[\s\S]*?flatMap/,
+    'the puzzle API must include every tourist site gallery image');
+assert.doesNotMatch(puzzleController, /limit\(20\)|inRandomOrder\(\)/,
+    'the puzzle API must not cap or randomly omit tourist-site images');
+assert.match(puzzlesView, /normalizePuzzleSpots[\s\S]*?\.\.\.\(Array\.isArray\(spot\.images\)[\s\S]*?selectNextPuzzle/,
+    'GameZone must flatten full site galleries and cycle through the catalog without random repeats');
+assert.match(puzzlesView, /cached\?\.data\?\.destinations \|\| cached\?\.data\?\.spots/,
+    'offline GameZone must understand the complete cached map catalog');
 
 assert.match(main, /window\._tripMapApprovalPollingInterval/,
     'navigation teardown must clear trip map polling interval');

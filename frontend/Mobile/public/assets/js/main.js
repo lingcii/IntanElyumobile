@@ -523,6 +523,15 @@ window.OfflineCheckinManager = {
         let previewUrl = data.previewUrl || null;
         const photoData = data.image || data.imageFile || data.photo || null;
 
+        // Keep the queue entry small; the original remains in IndexedDB for upload.
+        if (typeof previewUrl === 'string' && previewUrl.startsWith('data:') && previewUrl.length > 60000) {
+            try {
+                previewUrl = await this.createThumbnail(previewUrl, 120, 0.65) || previewUrl;
+            } catch (thumbErr) {
+                console.warn('Could not reduce offline photo preview:', thumbErr);
+            }
+        }
+
         if (!previewUrl && photoData) {
             try {
                 previewUrl = await this.createThumbnail(photoData, 120, 0.65);
@@ -2616,7 +2625,7 @@ window.OfflineProfileManager = {
     }
 })();
 
-// Sync the mobile lock screen with Laravel maintenance mode (HTTP 503).
+// Sync the mobile lock screen with the admin portal's shared maintenance setting.
 (function initMobileMaintenanceModeSync() {
     const MAINTENANCE_CHECK_INTERVAL_MS = 2000;
     let maintenanceCheckInFlight = false;
@@ -2631,23 +2640,61 @@ window.OfflineProfileManager = {
         overlay.setAttribute('role', 'alertdialog');
         overlay.setAttribute('aria-modal', 'true');
         overlay.setAttribute('aria-labelledby', 'mobile-maintenance-title');
-        overlay.style.cssText = 'display:none; position:fixed; inset:0; z-index:2147483647; padding:24px; background:linear-gradient(160deg,#0b1a3d 0%,#1e3a8a 55%,#1689d8 100%); color:#fff; align-items:center; justify-content:center; text-align:center; font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;';
+        overlay.style.cssText = 'display:none; position:fixed; inset:0; z-index:2147483647; overflow:hidden; padding:max(24px,env(safe-area-inset-top)) 22px max(24px,env(safe-area-inset-bottom)); background:linear-gradient(155deg,#071733 0%,#123b86 52%,#0785c9 100%); color:#fff; align-items:center; justify-content:center; text-align:center; font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; isolation:isolate;';
         overlay.innerHTML = `
-            <div style="width:100%; max-width:390px; padding:32px 24px; border-radius:28px; background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.22); box-shadow:0 18px 50px rgba(0,0,0,0.28); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);">
-                <div style="width:72px; height:72px; margin:0 auto 20px; border-radius:22px; display:flex; align-items:center; justify-content:center; background:#fff; color:#1e3a8a; font-size:31px;"><i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i></div>
-                <h1 id="mobile-maintenance-title" style="margin:0 0 12px; font-size:25px; line-height:1.2; font-weight:900;">Under Maintenance</h1>
-                <p style="margin:0 0 24px; color:rgba(255,255,255,0.88); font-size:14px; line-height:1.65;">Intan Elyu is temporarily unavailable while our team performs maintenance. Please check again shortly.</p>
-                <button id="mobile-maintenance-retry" type="button" style="width:100%; padding:14px 18px; border:0; border-radius:15px; background:#fff; color:#1e3a8a; font-size:14px; font-weight:900; cursor:pointer;"><i class="fa-solid fa-rotate" aria-hidden="true" style="margin-right:7px;"></i> Check Again</button>
-            </div>`;
+            <style>
+                #mobile-maintenance-overlay .mm-orb{position:absolute;border-radius:50%;filter:blur(4px);pointer-events:none;z-index:-1}.mm-orb-one{width:270px;height:270px;top:-110px;right:-90px;background:rgba(56,189,248,.18)}.mm-orb-two{width:230px;height:230px;bottom:-100px;left:-90px;background:rgba(34,211,238,.16)}
+                #mobile-maintenance-overlay .mm-shell{width:100%;max-width:390px}.mm-brand{display:inline-flex;align-items:center;gap:9px;margin-bottom:22px;color:rgba(255,255,255,.92);font-size:12px;font-weight:900;letter-spacing:1.8px;text-transform:uppercase}.mm-brand img{width:30px;height:30px;border-radius:10px;background:#fff;padding:4px;box-shadow:0 7px 18px rgba(0,0,0,.18)}
+                #mobile-maintenance-overlay .mm-card{position:relative;overflow:hidden;padding:30px 23px 24px;border:1px solid rgba(255,255,255,.24);border-radius:30px;background:linear-gradient(145deg,rgba(255,255,255,.18),rgba(255,255,255,.09));box-shadow:0 24px 65px rgba(2,12,35,.38);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px)}
+                #mobile-maintenance-overlay .mm-status{display:inline-flex;align-items:center;gap:7px;margin-bottom:22px;padding:7px 11px;border-radius:100px;background:rgba(7,23,51,.28);color:#dff7ff;font-size:10px;font-weight:800;letter-spacing:.5px;text-transform:uppercase}.mm-status-dot{width:7px;height:7px;border-radius:50%;background:#67e8f9;box-shadow:0 0 0 5px rgba(103,232,249,.13);animation:mmPulse 1.8s ease-in-out infinite}
+                #mobile-maintenance-overlay .mm-icon-wrap{position:relative;width:88px;height:88px;margin:0 auto 22px;display:grid;place-items:center;border-radius:28px;background:#fff;color:#173f91;box-shadow:0 16px 35px rgba(4,22,64,.28)}.mm-icon-wrap:after{content:'';position:absolute;inset:-8px;border:1px solid rgba(255,255,255,.24);border-radius:34px;animation:mmHalo 2.2s ease-in-out infinite}.mm-icon-wrap svg{width:42px;height:42px}
+                #mobile-maintenance-overlay h1{margin:0 0 11px;font-size:26px;line-height:1.15;font-weight:900;letter-spacing:-.4px}.mm-message{min-height:66px;margin:0;color:rgba(255,255,255,.86);font-size:13.5px;line-height:1.65}.mm-safety{display:flex;align-items:center;justify-content:center;gap:7px;margin:18px 0 22px;color:#cffafe;font-size:11px;font-weight:700}.mm-safety svg{width:15px;height:15px;flex:none}
+                #mobile-maintenance-overlay .mm-retry{width:100%;min-height:50px;border:0;border-radius:16px;background:#fff;color:#173f91;display:flex;align-items:center;justify-content:center;gap:9px;font-size:14px;font-weight:900;cursor:pointer;box-shadow:0 12px 28px rgba(2,12,35,.2);transition:transform .16s ease,opacity .16s ease}.mm-retry:active{transform:scale(.98)}.mm-retry:disabled{cursor:wait;opacity:.78}.mm-retry svg{width:17px;height:17px}.mm-retry.is-checking svg{animation:mmSpin .8s linear infinite}
+                #mobile-maintenance-overlay .mm-checked{margin-top:14px;color:rgba(255,255,255,.62);font-size:10.5px;font-weight:600}.mm-footer{margin-top:18px;color:rgba(255,255,255,.64);font-size:10.5px;font-weight:600}
+                @keyframes mmPulse{50%{opacity:.45;transform:scale(.82)}}@keyframes mmHalo{50%{transform:scale(1.05);opacity:.45}}@keyframes mmSpin{to{transform:rotate(360deg)}}
+                @media(max-height:620px){#mobile-maintenance-overlay .mm-brand{margin-bottom:12px}.mm-card{padding:22px 20px 18px!important}.mm-status{margin-bottom:15px!important}.mm-icon-wrap{width:70px!important;height:70px!important;margin-bottom:16px!important}.mm-icon-wrap svg{width:34px!important;height:34px!important}.mm-safety{margin:12px 0 16px!important}}
+                @media(prefers-reduced-motion:reduce){#mobile-maintenance-overlay *{animation:none!important;transition:none!important}}
+            </style>
+            <div class="mm-orb mm-orb-one"></div><div class="mm-orb mm-orb-two"></div>
+            <main class="mm-shell">
+                <div class="mm-brand"><img src="assets/img/logo.png" alt=""><span>Intan Elyu</span></div>
+                <section class="mm-card">
+                    <div class="mm-status"><span class="mm-status-dot"></span>Maintenance in progress</div>
+                    <div class="mm-icon-wrap" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5-5L12 3.6 9.6 6 7.3 3.7a4 4 0 0 0 5 5l-8.5 8.5a2.1 2.1 0 0 0 3 3l8.5-8.5a4 4 0 0 0 5-5L18 9l-2.4-2.4 2.3-2.3a4 4 0 0 0-3.2 2z"/><path d="m5 3 16 16"/></svg></div>
+                    <h1 id="mobile-maintenance-title">Under Maintenance</h1>
+                    <p id="mobile-maintenance-message" class="mm-message">We’re making Intan Elyu better for you. The app will be available again shortly.</p>
+                    <div class="mm-safety"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-8 9-4.5-1.5-8-4-8-9V5l8-3 8 3z"/><path d="m9 12 2 2 4-4"/></svg>Your saved trips and account are safe</div>
+                    <button id="mobile-maintenance-retry" class="mm-retry" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6v5h-5"/><path d="M4 18v-5h5"/><path d="M18.5 9A7 7 0 0 0 6.1 6.1L4 8m16 8-2.1 1.9A7 7 0 0 1 5.5 15"/></svg><span>Check Again</span></button>
+                    <div id="mobile-maintenance-checked" class="mm-checked" aria-live="polite">We’ll reconnect automatically</div>
+                </section>
+                <div class="mm-footer">Thank you for your patience</div>
+            </main>`;
         document.body.appendChild(overlay);
-        document.getElementById('mobile-maintenance-retry')?.addEventListener('click', () => window.checkMobileMaintenanceMode());
+        document.getElementById('mobile-maintenance-retry')?.addEventListener('click', async function () {
+            if (this.disabled) return;
+            this.disabled = true;
+            this.classList.add('is-checking');
+            const label = this.querySelector('span');
+            if (label) label.textContent = 'Checking...';
+            await window.checkMobileMaintenanceMode();
+            this.disabled = false;
+            this.classList.remove('is-checking');
+            if (label) label.textContent = 'Check Again';
+        });
         return overlay;
     }
 
-    window.setMobileMaintenanceMode = function (enabled) {
+    window.setMobileMaintenanceMode = function (enabled, status = null) {
         const overlay = ensureMaintenanceOverlay();
         if (!overlay) return;
         window.isMobileMaintenanceMode = Boolean(enabled);
+        const message = overlay.querySelector('#mobile-maintenance-message');
+        const customMessage = String(status?.message || '').trim();
+        if (message) message.textContent = customMessage && !/^maintenance mode$/i.test(customMessage)
+            ? customMessage
+            : 'We’re making Intan Elyu better for you. The app will be available again shortly.';
+        const checked = overlay.querySelector('#mobile-maintenance-checked');
+        if (checked) checked.textContent = `Last checked ${new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`;
         overlay.style.display = enabled ? 'flex' : 'none';
         document.documentElement.style.overflow = enabled ? 'hidden' : '';
         document.body.style.overflow = enabled ? 'hidden' : '';
@@ -2660,15 +2707,16 @@ window.OfflineProfileManager = {
             const baseUrl = (typeof window.getBackendUrl === 'function'
                 ? window.getBackendUrl()
                 : (window.backendUrl || window.BACKEND_URL || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
-            const response = await fetch(baseUrl + '/api/public/map?maintenance_probe=' + Date.now(), {
-                method: 'HEAD',
+            const response = await fetch(baseUrl + '/api/public/maintenance-status?_t=' + Date.now(), {
+                method: 'GET',
                 cache: 'no-store',
                 headers: { 'Accept': 'application/json', 'Cache-Control': 'no-cache' }
             });
             if (response.status === 503) {
                 window.setMobileMaintenanceMode(true);
             } else if (response.ok) {
-                window.setMobileMaintenanceMode(false);
+                const status = await response.json();
+                window.setMobileMaintenanceMode(status?.active === true, status);
             }
         } catch (error) {
             // Offline mode owns network failures; they are not maintenance signals.
@@ -3625,14 +3673,17 @@ window.renderSavedTrips = function (itineraries) {
                                             ${photosStripHtml}
                                         </div>` :
                                         (isQueued ?
-                                            `<div style="display:flex; align-items:center; gap:10px; margin-top:4px;">
+                                            `<div style="display:flex; align-items:center; gap:10px; margin-top:4px; flex-wrap:wrap;">
                                                 ${queuedThumbnailHtml}
-                                                <div>
+                                                <div style="flex:1; min-width:150px;">
                                                     <span style="background:rgba(245,158,11,0.25); border:none !important; outline:none !important; color:#fbbf24; font-size:11px; font-weight:800; padding:3px 10px; border-radius:100px; display:inline-flex; align-items:center; gap:4px;">
                                                         <i class="fa-solid fa-clock-rotate-left"></i> Queued for Sync (Offline)
                                                     </span>
                                                     <span style="font-size:10px; color:#ffffff; opacity:0.85; display:block; margin-top:4px;"><i class="fa-solid fa-camera" style="color:#fbbf24; margin-right:4px;"></i>Saved on device &bull; Auto-syncs when online</span>
                                                 </div>
+                                                <button type="button" class="saved-trip-proof-btn" onclick="event.stopPropagation(); window.openProofUploadModal('${item.id}', '${destEscaped}')">
+                                                    <i class="fa-solid fa-camera"></i> ${hasProof ? 'Update Proof' : 'Upload Proof'}
+                                                </button>
                                             </div>` :
                                         (isPhotoApproved && !isLocVerified ?
                                             `<div style="display:flex; flex-direction:column; gap:8px; margin-top:4px;">
@@ -3734,7 +3785,7 @@ window.renderSavedTrips = function (itineraries) {
         });
 
         list.innerHTML = html || emptyStateHtml;
-        list.querySelectorAll('button[onclick*="executeLocationCheckIn"], button[onclick*="openProofUploadModal"]').forEach(button => {
+        list.querySelectorAll('button[onclick*="executeLocationCheckIn"]').forEach(button => {
             const row = button.parentElement;
             button.remove();
             if (row && row.children.length === 0 && !row.textContent.trim()) row.remove();
@@ -4176,7 +4227,7 @@ window.handleProofPhotosSelected = async function (input) {
     window.renderProofThumbnailsGrid();
 };
 
-window.applyPhotoProofUpdateLocally = function (itemId, proofUrls, proofStatus = 'pending') {
+window.applyPhotoProofUpdateLocally = function (itemId, proofUrls, proofStatus = 'pending', isQueued = false) {
     if (!itemId) return;
     const targetIdStr = String(itemId);
     const urls = Array.isArray(proofUrls) ? proofUrls : (proofUrls ? [proofUrls] : []);
@@ -4191,7 +4242,7 @@ window.applyPhotoProofUpdateLocally = function (itemId, proofUrls, proofStatus =
             proof_image: urls[0],
             proof_images: urls,
             proof_status: proofStatus,
-            is_queued: false,
+            is_queued: Boolean(isQueued),
             spot_id: spotId
         });
     }
@@ -4209,7 +4260,7 @@ window.applyPhotoProofUpdateLocally = function (itemId, proofUrls, proofStatus =
                         proof_image: urls[0],
                         proof_images: urls,
                         proof_status: proofStatus,
-                        is_offline_queued: false,
+                        is_offline_queued: Boolean(isQueued),
                         rejection_reason: null
                     };
                 }
@@ -4374,7 +4425,7 @@ window.submitProofPhotos = async function () {
 
     if (isOfflineItem) {
         if (window.OfflineCheckinManager) {
-            await window.OfflineCheckinManager.queueOfflineCheckin({
+            const queuedEntry = await window.OfflineCheckinManager.queueOfflineCheckin({
                 type: 'itinerary',
                 itemId: itemId,
                 spotId: spotId,
@@ -4387,6 +4438,8 @@ window.submitProofPhotos = async function () {
                 capturedAt: window.getPhilippineTimestampISO(),
                 isPhotoUploadOnly: true
             });
+            const queuedPreview = queuedEntry?.previewUrl || previewUrls[0] || null;
+            if (queuedPreview) window.applyPhotoProofUpdateLocally(itemId, [queuedPreview], 'pending', true);
         }
         window.closeProofUploadModal();
         if (typeof showToast === 'function') {
@@ -4410,7 +4463,7 @@ window.submitProofPhotos = async function () {
 
     const fallbackOffline = async (reason) => {
         if (window.OfflineCheckinManager) {
-            await window.OfflineCheckinManager.queueOfflineCheckin({
+            const queuedEntry = await window.OfflineCheckinManager.queueOfflineCheckin({
                 type: 'itinerary',
                 itemId: itemId,
                 spotId: spotId,
@@ -4423,6 +4476,8 @@ window.submitProofPhotos = async function () {
                 capturedAt: window.getPhilippineTimestampISO(),
                 isPhotoUploadOnly: true
             });
+            const queuedPreview = queuedEntry?.previewUrl || previewUrls[0] || null;
+            if (queuedPreview) window.applyPhotoProofUpdateLocally(itemId, [queuedPreview], 'pending', true);
             window.closeProofUploadModal();
             if (typeof showToast === 'function') {
                 showToast('📍 Saved Offline! Photo proof saved on device. Auto-syncs when online.', 'success');

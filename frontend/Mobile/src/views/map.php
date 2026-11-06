@@ -1313,7 +1313,7 @@ if (is_dir($imgDir)) {
                         "source": "offline-municipalities",
                         "paint": {
                             "fill-color": "#b8dcec",
-                            "fill-opacity": isOfflineMap ? 0.22 : 0
+                            "fill-opacity": 0
                         }
                     },
                     {
@@ -1322,8 +1322,8 @@ if (is_dir($imgDir)) {
                         "source": "offline-municipalities",
                         "paint": {
                             "line-color": "#3978a8",
-                            "line-width": isOfflineMap ? 1 : 0,
-                            "line-opacity": isOfflineMap ? 0.75 : 0
+                            "line-width": 0,
+                            "line-opacity": 0
                         }
                     }
                 ]
@@ -6097,6 +6097,8 @@ if (is_dir($imgDir)) {
 
         window.previewMapDirectionsRoute = async function () {
             window.closeMapDirectionsPanel();
+            if (typeof window.closeSheet === 'function') window.closeSheet();
+            if (typeof window.closeNearbySitesSheet === 'function') window.closeNearbySitesSheet();
             const summary = document.getElementById('map-route-summary');
             const endpoints = document.getElementById('map-route-endpoints');
             const title = document.getElementById('map-route-summary-title');

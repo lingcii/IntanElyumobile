@@ -18,6 +18,14 @@ assert(dashboardSrc.includes('window.openForecastDayPicksModal'), '5-Day Forecas
 assert(dashboardSrc.includes('window.toggleForecastRecommendations'), 'Forecast recommendations provide Show More/Show Less controls');
 assert(dashboardSrc.includes('data-weather-extra="true"'), 'Extra forecast recommendations start in a collapsible group');
 assert(dashboardSrc.includes('spots: scored.slice(0, 10)'), 'Weather matching retains enough recommendations for Show More');
+assert.match(dashboardSrc, /api\/public\/weather\?[\s\S]*?_t=\$\{Date\.now\(\)\}[\s\S]*?cache: 'no-store'/,
+    'live weather requests bypass stale browser and proxy caches');
+assert.match(dashboardSrc, /if \(rawData\?\.is_fallback\) throw new Error/,
+    'provider estimates must not be cached or presented as live weather');
+assert.match(dashboardSrc, /condition: 'Weather unavailable'/,
+    'the dashboard must clearly disclose when neither live nor recent weather is available');
+assert.doesNotMatch(dashboardSrc, /temperature: 29,[\s\S]{0,180}condition: 'Partly Cloudy'/,
+    'a failed weather request must not display hard-coded conditions as live data');
 
 // 2. Behavioral assertions on weather reconciliation, classification & spot recommendation engine
 const startMarker = 'window.LA_UNION_MUNI_COORDS = {';

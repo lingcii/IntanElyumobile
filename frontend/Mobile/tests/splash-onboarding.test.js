@@ -33,8 +33,6 @@ for (const name of ['ma-cho-temple.webp', 'la-union-waterfall.jpg', 'baluarte-wa
 for (const name of ['elyu-coast-morning.jpg', 'elyu-coast-island.jpg', 'elyu-coast-blue-hour.jpg']) {
     assert.doesNotMatch(splash, new RegExp(name.replace('.', '\\.')),
         `${name} must no longer appear in the loading sequence`);
-    assert.doesNotMatch(sourceSw, new RegExp(name.replace('.', '\\.')),
-        `${name} must no longer be preloaded for the loading sequence`);
 }
 
 console.log('splash onboarding tests passed');

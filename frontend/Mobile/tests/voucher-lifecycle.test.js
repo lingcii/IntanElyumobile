@@ -99,6 +99,15 @@ assert.match(discountSource, /item\.status = 'active';[\s\S]*?item\.qr_token = d
     'discount Use action must display the activated QR without marking it redeemed');
 assert.match(profileSource, /item\.status = 'active';[\s\S]*?item\.qr_token = data\.qr_token/,
     'profile Use action must display the activated QR without marking it redeemed');
+assert.match(discountSource, /id="voucher-cancel-confirm-modal"[\s\S]*?window\.handleVoucherCancel\(true\)/,
+    'discount cancellation must use the styled in-app confirmation modal');
+assert.doesNotMatch(discountSource, /confirm\("Are you sure you want to cancel this voucher claim/,
+    'discount cancellation must not use the native browser confirmation dialog');
+const primaryActivationStart = useVoucherSource.indexOf('if ($voucherRecord)', useVoucherSource.indexOf("$qrToken ="));
+const legacyActivationStart = useVoucherSource.indexOf('if ($pointRecord)', primaryActivationStart);
+const primaryActivationSource = useVoucherSource.slice(primaryActivationStart, legacyActivationStart);
+assert.doesNotMatch(primaryActivationSource, /DB::table\('point_redemptions'\)/,
+    'primary voucher activation must not wait for a redundant legacy-table update');
 assert.match(discountSource, /qrDiff !== null && qrDiff <= 0[\s\S]*?refreshModalQrCode/,
     'an expired discount QR must rotate automatically');
 assert.match(profileSource, /qrDiff !== null && qrDiff <= 0[\s\S]*?refreshActiveModalQrCode/,

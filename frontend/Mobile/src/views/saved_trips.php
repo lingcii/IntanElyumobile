@@ -1898,14 +1898,17 @@ $backRoute = 'itinerary';
                                                 ${photosStripHtml}
                                             </div>` :
                                             (isCheckinQueued ?
-                                                `<div style="display:flex; align-items:center; gap:10px; margin-top:4px;">
+                                                `<div style="display:flex; align-items:center; gap:10px; margin-top:4px; flex-wrap:wrap;">
                                                     ${queuedThumbnailHtml}
-                                                    <div>
+                                                    <div style="flex:1; min-width:150px;">
                                                         <span style="background:rgba(245,158,11,0.25); border:none !important; outline:none !important; color:#fbbf24; font-size:11px; font-weight:800; padding:3px 10px; border-radius:100px; display:inline-flex; align-items:center; gap:4px;">
                                                             <i class="fa-solid fa-clock-rotate-left"></i> Queued for Sync (Offline)
                                                         </span>
                                                         <span style="font-size:10px; color:#ffffff; opacity:0.85; display:block; margin-top:4px;"><i class="fa-solid fa-camera" style="color:#fbbf24; margin-right:4px;"></i>Saved on device &bull; Auto-syncs when online</span>
                                                     </div>
+                                                    <button type="button" class="saved-trip-proof-btn" onclick="event.stopPropagation(); window.openProofUploadModal('${item.id}', '${destEscaped}')">
+                                                        <i class="fa-solid fa-camera"></i> ${hasProof ? 'Update Proof' : 'Upload Proof'}
+                                                    </button>
                                                 </div>` :
                                             (isPhotoApproved && !isLocVerified ?
                                                 `<div style="display:flex; flex-direction:column; gap:8px; margin-top:4px;">
@@ -2047,7 +2050,7 @@ $backRoute = 'itinerary';
                     if (detail) detail.classList.add('expanded');
                     if (chevron) chevron.classList.add('rotated');
                 });
-                list.querySelectorAll('button[onclick*="executeLocationCheckIn"]:not(.saved-trip-checkin-btn), button[onclick*="openProofUploadModal"]:not(.saved-trip-proof-btn)').forEach(button => {
+                list.querySelectorAll('button[onclick*="executeLocationCheckIn"]:not(.saved-trip-checkin-btn)').forEach(button => {
                     const row = button.parentElement;
                     button.remove();
                     if (row && row.children.length === 0 && !row.textContent.trim()) row.remove();
@@ -2488,7 +2491,7 @@ $backRoute = 'itinerary';
             window.renderProofThumbnailsGrid();
         };
 
-        window.applyPhotoProofUpdateLocally = function (itemId, proofUrls, proofStatus = 'pending') {
+        window.applyPhotoProofUpdateLocally = function (itemId, proofUrls, proofStatus = 'pending', isQueued = false) {
             if (!itemId) return;
             const targetIdStr = String(itemId);
             const urls = Array.isArray(proofUrls) ? proofUrls : (proofUrls ? [proofUrls] : []);
@@ -2504,7 +2507,7 @@ $backRoute = 'itinerary';
                     proof_image: urls[0],
                     proof_images: urls,
                     proof_status: proofStatus,
-                    is_queued: false,
+                    is_queued: Boolean(isQueued),
                     spot_id: spotId
                 });
             }
@@ -2522,7 +2525,7 @@ $backRoute = 'itinerary';
                                 proof_image: urls[0],
                                 proof_images: urls,
                                 proof_status: proofStatus,
-                                is_offline_queued: false,
+                                is_offline_queued: Boolean(isQueued),
                                 rejection_reason: null
                             };
                         }
@@ -2693,7 +2696,7 @@ $backRoute = 'itinerary';
             // If item is created offline or app is offline, store in OfflineCheckinManager and finish instantly!
             if (isOfflineItem) {
                 if (window.OfflineCheckinManager) {
-                    await window.OfflineCheckinManager.queueOfflineCheckin({
+                    const queuedEntry = await window.OfflineCheckinManager.queueOfflineCheckin({
                         type: 'itinerary',
                         itemId: itemId,
                         spotId: spotId,
@@ -2706,6 +2709,8 @@ $backRoute = 'itinerary';
                         capturedAt: (typeof window.getPhilippineTimestampISO === 'function' ? window.getPhilippineTimestampISO() : new Date().toISOString()),
                         isPhotoUploadOnly: true
                     });
+                    const queuedPreview = queuedEntry?.previewUrl || previewUrls[0] || null;
+                    if (queuedPreview) window.applyPhotoProofUpdateLocally(itemId, [queuedPreview], 'pending', true);
                 }
                 window.closeProofUploadModal();
                 if (typeof showToast === 'function') {
@@ -2731,7 +2736,7 @@ $backRoute = 'itinerary';
 
             const fallbackOffline = async (reason) => {
                 if (window.OfflineCheckinManager) {
-                    await window.OfflineCheckinManager.queueOfflineCheckin({
+                    const queuedEntry = await window.OfflineCheckinManager.queueOfflineCheckin({
                         type: 'itinerary',
                         itemId: itemId,
                         spotId: spotId,
@@ -2744,6 +2749,8 @@ $backRoute = 'itinerary';
                         capturedAt: (typeof window.getPhilippineTimestampISO === 'function' ? window.getPhilippineTimestampISO() : new Date().toISOString()),
                         isPhotoUploadOnly: true
                     });
+                    const queuedPreview = queuedEntry?.previewUrl || previewUrls[0] || null;
+                    if (queuedPreview) window.applyPhotoProofUpdateLocally(itemId, [queuedPreview], 'pending', true);
                     window.closeProofUploadModal();
                     if (typeof showToast === 'function') {
                         showToast('📍 Saved Offline! Photo proof saved on device. Auto-syncs when online.', 'success');

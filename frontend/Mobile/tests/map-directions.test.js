@@ -45,8 +45,8 @@ assert.match(mapSource, /Offline straight-line preview; road routing updates whe
     'route preview must provide a usable geometry while offline');
 assert.doesNotMatch(mapSource, /Route preview needs an internet connection/,
     'offline mode must not reject route preview outright');
-assert.match(mapSource, /fill-opacity": isOfflineMap \? 0\.22 : 0[\s\S]*line-opacity": isOfflineMap \? 0\.75 : 0/,
-    'the bundled municipality basemap must be visible offline');
+assert.match(mapSource, /fill-opacity": 0[\s\S]*line-width": 0[\s\S]*line-opacity": 0/,
+    'the bundled municipality geometry must initialize the offline map without visible borders');
 assert.match(mapSource, /map\.addSource\('map-directions-route'/);
 assert.match(mapSource, /map\.fitBounds\(bounds/);
 assert.match(mapSource, /setDirectionsBaseMarkersVisible\(false\)/,
@@ -104,6 +104,8 @@ assert.match(mapSource, /primaryDistance\.textContent = `\(\$\{distance\}\)`[\s\
     'non-car routes must retain real route kilometers and label their time as estimated');
 assert.match(mainSource, /id: 'map-directions-panel', fn: window\.closeMapDirectionsPanel/,
     'Android and browser back actions must close the directions screen first');
+assert.match(mapSource, /previewMapDirectionsRoute = async function \(\) \{[\s\S]*?window\.closeSheet\(\)[\s\S]*?window\.closeNearbySitesSheet\(\)/,
+    'route preview must close destination sheets before showing route endpoints');
 
 assert.match(mapSource, /api\/public\/map\?_t=\$\{Date\.now\(\)\}[\s\S]*?cache: 'no-store'/,
     'map refreshes must bypass stale browser and proxy responses');

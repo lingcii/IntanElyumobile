@@ -53,7 +53,8 @@ class WeatherController extends Controller
         });
 
         if (!$weatherData || !isset($weatherData['current'])) {
-            return response()->json($this->getFallbackData($location, $isCurrentLocation));
+            return response()->json($this->getFallbackData($location, $isCurrentLocation))
+                ->header('Cache-Control', 'no-store, no-cache, must-revalidate');
         }
 
         $current = $weatherData['current'];
@@ -144,7 +145,7 @@ class WeatherController extends Controller
             'forecast' => $forecast,
             'is_fallback' => false,
             'updated_at' => now()->toIso8601String()
-        ]);
+        ])->header('Cache-Control', 'no-store, no-cache, must-revalidate');
     }
 
     /**

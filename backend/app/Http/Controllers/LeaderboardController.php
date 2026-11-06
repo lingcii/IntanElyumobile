@@ -159,7 +159,8 @@ class LeaderboardController extends Controller
             ],
             'offset' => $offset,
             'limit' => $limit,
-        ]);
+            'updated_at' => now()->toIso8601String(),
+        ])->header('Cache-Control', 'no-store, no-cache, must-revalidate');
     }
 
     /**

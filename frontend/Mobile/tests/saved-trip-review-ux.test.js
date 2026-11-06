@@ -58,10 +58,12 @@ assert.match(renderSource, /class="saved-trip-checkin-btn[\s\S]*data-dest-lat=[\
     'each destination card must include a lower-right check-in button that starts disabled');
 assert.match(renderSource, /executeLocationCheckIn"\]:not\(\.saved-trip-checkin-btn\)/,
     'legacy card controls may be removed without deleting the GPS-aware check-in button');
-assert.match(renderSource, /isLocVerified && \(!hasProof \|\| isRejected\)[\s\S]*class="saved-trip-proof-btn"[\s\S]*Proof of Validation[\s\S]*openProofUploadModal/,
+assert.match(renderSource, /isLocVerified && \(!hasProof \|\| isRejected\)[\s\S]*class="saved-trip-proof-btn"[\s\S]*openProofUploadModal[\s\S]*Proof of Validation/,
     'a verified check-in must reveal the proof-of-validation upload beside it');
-assert.match(renderSource, /openProofUploadModal"\]:not\(\.saved-trip-proof-btn\)/,
-    'legacy proof controls may be removed without deleting the post-check-in proof action');
+assert.doesNotMatch(renderSource, /button\[onclick\*="openProofUploadModal"\]/,
+    'proof upload actions must remain clickable after a saved-trip card renders');
+assert.match(renderSource, /Queued for Sync \(Offline\)[\s\S]*saved-trip-proof-btn[\s\S]*Update Proof/,
+    'an offline queued proof must expose an action to inspect or replace the local photo');
 assert.match(trips, /SAVED_TRIP_CHECKIN_RADIUS_METERS = 70[\s\S]*gpsUpdated[\s\S]*updateSavedTripCheckinAvailability/,
     'live GPS updates must enable check-in only within the backend 70-meter radius');
 const proximityStart = trips.indexOf('const SAVED_TRIP_CHECKIN_RADIUS_METERS = 70');
@@ -119,8 +121,8 @@ const proofSubmitStart = trips.indexOf('window.submitProofPhotos = async functio
 const proofSuccessStart = trips.indexOf('if (response.ok && data.success)', proofSubmitStart);
 assert.ok(proofSubmitStart >= 0 && proofSuccessStart > proofSubmitStart,
     'proof submission workflow must be present');
-assert.doesNotMatch(trips.slice(proofSubmitStart, proofSuccessStart), /applyPhotoProofUpdateLocally/,
-    'failed or queued uploads must not be marked as backend-submitted optimistically');
+assert.match(trips.slice(proofSubmitStart, proofSuccessStart), /applyPhotoProofUpdateLocally\(itemId, \[queuedPreview\], 'pending', true\)/,
+    'offline proofs must render immediately as local queued previews without claiming backend submission');
 assert.match(trips.slice(proofSuccessStart), /applyPhotoProofUpdateLocally\(itemId, permanentUrls, data\.proof_status \|\| 'pending'\)[\s\S]*fetchSavedTrips\(true\)/,
     'successful backend proof submission must update immediately and refresh authoritative state');
 assert.match(trips, /const resolvedStatus = serverStatus \|\|/,

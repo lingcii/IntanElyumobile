@@ -157,6 +157,28 @@ Route::get('/serve-image.php', function (\Illuminate\Http\Request $request) use 
     return $serveFileHandler($file);
 });
 
+// Shared web/mobile maintenance switch managed by the admin portal.
+Route::get('/public/maintenance-status', function () {
+    try {
+        $raw = \Illuminate\Support\Facades\DB::table('system_settings')
+            ->where('key', 'maintenance_mode')
+            ->value('value');
+        $setting = is_string($raw) ? json_decode($raw, true) : null;
+        $targets = array_map('strtolower', is_array($setting['targets'] ?? null) ? $setting['targets'] : []);
+        $active = (bool) ($setting['active'] ?? false) && in_array('mobile', $targets, true);
+
+        return response()->json([
+            'active' => $active,
+            'targets' => $targets,
+            'message' => $setting['message'] ?? 'Maintenance Mode',
+            'updated_at' => now()->toIso8601String(),
+        ])->header('Cache-Control', 'no-store, no-cache, must-revalidate');
+    } catch (\Throwable $e) {
+        return response()->json(['active' => false, 'targets' => []])
+            ->header('Cache-Control', 'no-store, no-cache, must-revalidate');
+    }
+});
+
 // Puzzle Tourist Spot Images (Public)
 Route::match(['GET', 'POST', 'OPTIONS'], '/puzzles/spots', [PuzzleController::class, 'spots']);
 
@@ -1644,7 +1666,6 @@ Route::get('/lupto/tourists', $touristsHandler);
 Route::get('/picto/tourists', $touristsHandler);
 Route::get('/pitco/tourists', $touristsHandler);
 Route::get('/municipal/tourists', $touristsHandler);
-
 
 
 

@@ -720,15 +720,6 @@ class VoucherController extends Controller
                     'qr_expires_at' => $qrExpiresAt,
                     'updated_at' => $now,
                 ]);
-                \Illuminate\Support\Facades\DB::table('point_redemptions')
-                    ->where('user_id', $user->id)
-                    ->where('voucher_code', $voucherRecord->redemption_code)
-                    ->update([
-                        'status' => 'active',
-                        'qr_token' => $qrToken,
-                        'qr_expires_at' => $qrExpiresAt,
-                        'updated_at' => $now,
-                    ]);
             }
             if ($pointRecord) {
                 \Illuminate\Support\Facades\DB::table('point_redemptions')->where('id', $pointRecord->id)->update([
