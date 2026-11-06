@@ -175,9 +175,9 @@ $activeTab = 'profile';
 
         <!-- Card Body Area (Pure White Background like Notification Modal) -->
         <div style="padding: 20px 18px; background: #ffffff;">
-            <!-- Catalog list: Redeem Rewards -->
+            <!-- Catalog list: Claim Rewards -->
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                <h5 style="margin: 0; font-size: 14.5px; font-weight: 800; color: #0f172a; text-align: left;">Redeem
+                <h5 style="margin: 0; font-size: 14.5px; font-weight: 800; color: #0f172a; text-align: left;">Claim
                     Rewards</h5>
                 <button type="button" onclick="navigateTo('discount')"
                     style="background: #eff6ff !important; border: 1px solid #bfdbfe !important; outline: none !important; color: #1e3a8a !important; font-size: 11px; font-weight: 800; cursor: pointer; padding: 4px 12px; border-radius: 100px; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s ease;"
@@ -618,7 +618,6 @@ $activeTab = 'profile';
                     claimedSet.add(v.voucher_id);
                     claimedSet.add('db_' + v.voucher_id);
                 }
-                if (v.id) claimedSet.add(v.id);
                 const c = v.voucher_code || v.code || v.redemption_code;
                 if (c) claimedSet.add(c);
             });
@@ -788,8 +787,6 @@ $activeTab = 'profile';
             if (code) {
                 const c = String(code).toLowerCase().trim();
                 claimedSet.add(c);
-                const prefix = c.split('-')[0];
-                if (prefix) claimedSet.add(prefix);
             }
             const title = v.type || v.title || v.voucher_name || v.name;
             if (title) {
@@ -805,11 +802,9 @@ $activeTab = 'profile';
             const dbIdStr = String(v.dbId || '').toLowerCase().trim();
             const titleStr = String(v.title || v.voucher_name || '').toLowerCase().trim();
             const codeStr = String(v.code || v.voucher_code || '').toLowerCase().trim();
-            const codePrefix = codeStr.split('-')[0];
-
             if (claimedSet.has(idStr) || claimedSet.has('db_' + idStr) || claimedSet.has(cleanId) || claimedSet.has('db_' + cleanId)) return false;
             if (dbIdStr && (claimedSet.has(dbIdStr) || claimedSet.has('db_' + dbIdStr))) return false;
-            if (codeStr && (claimedSet.has(codeStr) || claimedSet.has(codePrefix))) return false;
+            if (codeStr && claimedSet.has(codeStr)) return false;
             if (titleStr && claimedSet.has(titleStr)) return false;
             if (v.is_expired) return false;
 
@@ -817,7 +812,7 @@ $activeTab = 'profile';
             const isMatch = allRedemptions.some(r => {
                 if (!r) return false;
                 const rVid = String(r.voucher_id || r.dbId || '').replace(/^db_/, '');
-                if (cleanId && rVid && cleanId === rVid) return true;
+                if (cleanId && rVid) return cleanId === rVid;
                 const rCode = (r.voucher_code || r.code || '').toUpperCase().trim();
                 const vCode = (v.code || v.voucher_code || '').toUpperCase().trim();
                 if (rCode && vCode && (rCode === vCode || rCode.startsWith(vCode + '-'))) return true;
@@ -1331,7 +1326,7 @@ $activeTab = 'profile';
                     vouchers: (window._cachedActiveVouchers || []).concat(window._cachedHistoryVouchers || [])
                 });
 
-                // 7. Immediately re-filter and re-render Rewards Catalog (disappears instantly from Redeem Rewards)
+                // 7. Immediately re-filter and re-render Rewards Catalog (disappears instantly from Claim Rewards)
                 if (window._rawVouchersCatalog) {
                     window.renderCatalogRewards(window._rawVouchersCatalog);
                 }
@@ -1362,7 +1357,7 @@ $activeTab = 'profile';
                 // 11. Open active QR pass modal immediately
                 window.openActiveVoucherQrModal(newVoucherItem);
             } else {
-                if (typeof showToast === 'function') showToast(data.message || "Failed to redeem voucher.");
+                if (typeof showToast === 'function') showToast(data.message || "Failed to claim voucher.");
             }
         } catch (error) {
             console.error("Redemption error:", error);
@@ -1588,7 +1583,7 @@ $activeTab = 'profile';
             const matchRedemption = userRedemptions.find(r => {
                 if (!r) return false;
                 const rVid = String(r.voucher_id || r.dbId || '').replace(/^db_/, '');
-                if (vidStr && rVid && vidStr === rVid) return true;
+                if (vidStr && rVid) return vidStr === rVid;
                 const rCode = (r.voucher_code || r.code || '').toUpperCase().trim();
                 const vCode = (voucher.code || voucher.voucher_code || '').toUpperCase().trim();
                 if (rCode && vCode && (rCode === vCode || rCode.startsWith(vCode + '-'))) return true;
@@ -1683,7 +1678,7 @@ $activeTab = 'profile';
             } else {
                 redeemBtn.style.background = '#ffffff !important';
                 redeemBtn.style.color = '#1e3a8a !important';
-                redeemBtn.innerHTML = `<i class="fa-solid fa-gift" style="color:#1e3a8a !important;"></i> <span style="color:#1e3a8a !important; font-weight:900;">Redeem for ${cost.toLocaleString()} Points</span>`;
+                redeemBtn.innerHTML = `<i class="fa-solid fa-gift" style="color:#1e3a8a !important;"></i> <span style="color:#1e3a8a !important; font-weight:900;">Claim for ${cost.toLocaleString()} Points</span>`;
                 redeemBtn.onclick = function () {
                     window.closeRewardDetailsModal();
                     const vid = voucher.dbId || voucher.id;
@@ -3265,14 +3260,14 @@ $activeTab = 'profile';
             style="background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%) !important; padding:14px 18px; flex-shrink:0; border:none !important;">
             <button type="button" id="reward-modal-redeem-btn"
                 style="width:100%; padding:12px; border:none !important; outline:none !important; border-radius:12px; background:#ffffff !important; color:#1e3a8a !important; font-size:13.5px; font-weight:900; cursor:pointer; box-shadow:0 2px 8px rgba(0,0,0,0.18) !important; display:flex; align-items:center; justify-content:center; gap:8px;">
-                <i class="fa-solid fa-gift" style="color:#1e3a8a;"></i> <span style="color:#1e3a8a;">Redeem for <strong
+                <i class="fa-solid fa-gift" style="color:#1e3a8a;"></i> <span style="color:#1e3a8a;">Claim for <strong
                         id="reward-modal-cost-text" style="color:#1e3a8a;">-- Points</strong></span>
             </button>
         </div>
     </div>
 </div>
 
-<!-- Redeem Confirmation Modal -->
+<!-- Claim Confirmation Modal -->
 <div id="redeem-confirm-modal" onclick="if(event.target===this)window.closeRedeemConfirmModal(false)"
     style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(10,25,60,0.68); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:9999999 !important; justify-content:center; align-items:center; padding:20px; opacity:0; transition:opacity 0.22s ease;">
     <div
@@ -3281,11 +3276,11 @@ $activeTab = 'profile';
         <div
             style="background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%) !important; padding:14px 18px; flex-shrink:0; display:flex; justify-content:space-between; align-items:center; border:none !important;">
             <div style="font-size:15px; font-weight:800; color:#ffffff; display:flex; align-items:center; gap:8px;">
-                <i class="fa-solid fa-gift" style="color:#00f2fe; font-size:14px;"></i> Confirm Redemption
+                <i class="fa-solid fa-gift" style="color:#00f2fe; font-size:14px;"></i> Confirm Claim
             </div>
             <button type="button" onclick="window.closeRedeemConfirmModal(false)"
                 style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:14px; box-shadow:0 2px 8px rgba(0,0,0,0.2) !important; position:relative; z-index:100; pointer-events:auto !important; touch-action:manipulation;"
-                aria-label="Close Confirm Redemption Modal">
+                aria-label="Close Confirm Claim Modal">
                 <i class="fa-solid fa-xmark" style="color:#1e3a8a !important; pointer-events:none;"></i>
             </button>
         </div>
@@ -3297,7 +3292,7 @@ $activeTab = 'profile';
                 <i class="fa-solid fa-ticket" style="color:#1e3a8a;"></i>
             </div>
             <div style="font-size:13px; font-weight:700; color:#64748b; margin-bottom:6px;">
-                Are you sure you want to redeem
+                Are you sure you want to claim
             </div>
             <h4 id="redeem-confirm-title"
                 style="margin:0 0 12px; font-size:16.5px; font-weight:800; color:#0f172a; line-height:1.35; word-break:break-word;">

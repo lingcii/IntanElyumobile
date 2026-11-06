@@ -748,7 +748,7 @@ function isVoucherClaimed(v) {
         const uk = sk.toUpperCase();
         if (cleanId && (lk === cleanId || lk === 'db_' + cleanId)) return true;
         if (cleanDbId && (lk === cleanDbId || lk === 'db_' + cleanDbId)) return true;
-        if (codeStr && (uk === codeStr || uk.startsWith(codeStr + '-'))) return true;
+        if (codeStr && uk === codeStr) return true;
         if (titleStr && lk === titleStr) return true;
         return false;
     })) return true;
@@ -882,8 +882,6 @@ function syncClaimedVouchersWithData() {
                 }
                 if (vCode) {
                     claimedSet.add(vCode);
-                    const prefix = vCode.split('-')[0];
-                    if (prefix) claimedSet.add(prefix);
                 }
                 if (title) {
                     claimedSet.add(title);
@@ -2086,7 +2084,7 @@ async function handleModalRedeem() {
 
     const btn = document.getElementById('modal-redeem-btn');
     if (btn) {
-        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Redeeming...';
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Claiming...';
         btn.disabled = true;
     }
 
@@ -2118,7 +2116,7 @@ async function handleModalRedeem() {
             item.status = 'claimed';
 
             let claimed = getClaimedVouchers();
-            [item.id, 'db_' + item.id, cleanId, 'db_' + cleanId, claimCode, claimCode.split('-')[0], String(item.title).toLowerCase().trim()].forEach(k => {
+            [item.id, 'db_' + item.id, cleanId, 'db_' + cleanId, claimCode, String(item.title).toLowerCase().trim()].forEach(k => {
                 if (k && !claimed.includes(k)) claimed.push(k);
             });
             setClaimedVouchers(claimed);
@@ -2287,9 +2285,9 @@ async function handleModalRedeem() {
             renderDiscounts();
             fetchUserPointsAndRedemptions();
         } else {
-            if (typeof showToast === 'function') showToast(data.message || "Failed to redeem voucher.");
+            if (typeof showToast === 'function') showToast(data.message || "Failed to claim voucher.");
             if (btn) {
-                btn.innerHTML = `<i class="fa-solid fa-gift"></i> Redeem for ${cost} Points`;
+                btn.innerHTML = `<i class="fa-solid fa-gift"></i> Claim for ${cost} Points`;
                 btn.disabled = false;
             }
         }
@@ -2297,7 +2295,7 @@ async function handleModalRedeem() {
         console.error("Redemption error:", e);
         if (typeof showToast === 'function') showToast("Network error. Please try again.");
         if (btn) {
-            btn.innerHTML = `<i class="fa-solid fa-gift"></i> Redeem for ${cost} Points`;
+            btn.innerHTML = `<i class="fa-solid fa-gift"></i> Claim for ${cost} Points`;
             btn.disabled = false;
         }
     }

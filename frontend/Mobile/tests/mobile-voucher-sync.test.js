@@ -63,6 +63,20 @@ assert.match(profileSource, /window\._visibleProfileDeals = visibleDeals[\s\S]*?
     'reward taps must resolve against the same four visible rewards');
 assert.match(profileSource, />My Vouchers<\/h5>/,
     'profile claimed voucher section must be labelled My Vouchers');
+assert.match(profileSource, />Claim\s*Rewards<\/h5>/,
+    'profile reward catalog must use Claim Rewards wording');
+assert.match(profileSource, /Claim for \$\{cost\.toLocaleString\(\)\} Points/,
+    'profile reward action must use Claim for points wording');
+assert.doesNotMatch(profileSource, /claimedSet\.add\(v\.id\)/,
+    'redemption row IDs must not be mistaken for catalog voucher IDs');
+assert.doesNotMatch(profileSource, /const prefix = c\.split\('-'\)\[0\]/,
+    'a shared redemption-code prefix must not hide unrelated profile rewards');
+assert.doesNotMatch(source, /claimCode\.split\('-'\)\[0\]/,
+    'a shared redemption-code prefix must not hide unrelated discount rewards');
+assert.match(profileSource, /if \(cleanId && rVid\) return cleanId === rVid;/,
+    'profile catalog matching must prefer the exact voucher ID over a shared code prefix');
+assert.doesNotMatch(source, /uk\.startsWith\(codeStr \+ '-'/,
+    'stored claim-code prefixes must not hide unrelated discount rewards');
 assert.match(source, /localRedemption\.status = 'redeemed';[\s\S]*?fetchUserPointsAndRedemptions\(\);/,
     'a live merchant redemption must immediately update and refresh the mobile voucher list');
 assert.match(source, /public\/redemptions\/\$\{encodeURIComponent\(code\)\}\/status`, \{\s*cache: 'no-store'/,
