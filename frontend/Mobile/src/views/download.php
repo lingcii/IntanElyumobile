@@ -22,7 +22,7 @@ if (!$localApk) {
 $apkSizeStr = $localApk && file_exists($localApk) ? '~' . round(filesize($localApk) / (1024 * 1024), 1) . ' MB' : '~226 MB';
 
 $buildGradle = dirname(__DIR__, 2) . '/android/app/build.gradle';
-$appVersion = 'v0.0.0';
+$appVersion = 'v1.4.11';
 if (file_exists($buildGradle)) {
   $gradleContent = file_get_contents($buildGradle);
   if (preg_match('/versionName\s+["\']([^"\']+)["\']/', $gradleContent, $matches)) {
@@ -316,6 +316,9 @@ $gdriveMirrorUrl = getenv('APK_GDRIVE_MIRROR_URL') ?: '';
           <div class="dl-trust-row">
             <div class="dl-trust-pill">
               <i class="fa-solid fa-shield-halved" style="color:#10b981;"></i> Verified Safe & Signed
+            </div>
+            <div class="dl-trust-pill">
+              <i class="fa-solid fa-key" style="color:#0284c7;"></i> 2FA Security Protection
             </div>
             <div class="dl-trust-pill">
               <i class="fa-solid fa-mobile-screen" style="color:#6366f1;"></i> Android 8.0+
@@ -880,7 +883,7 @@ $gdriveMirrorUrl = getenv('APK_GDRIVE_MIRROR_URL') ?: '';
               lagoons, cliff jumps, and scenic bamboo rafting.</p>
             <div class="spot-meta-row">
               <span class="spot-fee">Fee: ₱30 Eco-Fee</span>
-              <span class="spot-points-tag"><i class="fa-solid fa-trophy" style="color:#ef4444;"></i> +100 Pts</span>
+              <span class="spot-points-tag"><i class="fa-solid fa-trophy" style="color:#ef4444;"></i> +45 Pts</span>
             </div>
           </div>
         </div>
@@ -900,7 +903,7 @@ $gdriveMirrorUrl = getenv('APK_GDRIVE_MIRROR_URL') ?: '';
               academies, craft cafes, and sunset coastal gatherings.</p>
             <div class="spot-meta-row">
               <span class="spot-fee">Free Public Access</span>
-              <span class="spot-points-tag"><i class="fa-solid fa-trophy" style="color:#2563eb;"></i> +50 Pts</span>
+              <span class="spot-points-tag"><i class="fa-solid fa-trophy" style="color:#2563eb;"></i> +25 Pts</span>
             </div>
           </div>
         </div>
@@ -920,7 +923,7 @@ $gdriveMirrorUrl = getenv('APK_GDRIVE_MIRROR_URL') ?: '';
               turquoise snorkeling lagoons tucked away along the coastline.</p>
             <div class="spot-meta-row">
               <span class="spot-fee">Fee: ₱20 Environmental</span>
-              <span class="spot-points-tag"><i class="fa-solid fa-trophy" style="color:#ef4444;"></i> +100 Pts</span>
+              <span class="spot-points-tag"><i class="fa-solid fa-trophy" style="color:#ef4444;"></i> +45 Pts</span>
             </div>
           </div>
         </div>
@@ -940,7 +943,7 @@ $gdriveMirrorUrl = getenv('APK_GDRIVE_MIRROR_URL') ?: '';
               stone shoreline and the shimmering West Philippine Sea.</p>
             <div class="spot-meta-row">
               <span class="spot-fee">Free Public Access</span>
-              <span class="spot-points-tag"><i class="fa-solid fa-trophy" style="color:#2563eb;"></i> +50 Pts</span>
+              <span class="spot-points-tag"><i class="fa-solid fa-trophy" style="color:#2563eb;"></i> +25 Pts</span>
             </div>
           </div>
         </div>
@@ -961,7 +964,7 @@ $gdriveMirrorUrl = getenv('APK_GDRIVE_MIRROR_URL') ?: '';
               vine and taste locally pressed fruit wines.</p>
             <div class="spot-meta-row">
               <span class="spot-fee">Fee: ₱25-₱50 Entrance</span>
-              <span class="spot-points-tag"><i class="fa-solid fa-trophy" style="color:#2563eb;"></i> +50 Pts</span>
+              <span class="spot-points-tag"><i class="fa-solid fa-trophy" style="color:#2563eb;"></i> +25 Pts</span>
             </div>
           </div>
         </div>
@@ -981,7 +984,7 @@ $gdriveMirrorUrl = getenv('APK_GDRIVE_MIRROR_URL') ?: '';
               colonial era carving through lush mountain foothills.</p>
             <div class="spot-meta-row">
               <span class="spot-fee">Free / Eco Donation</span>
-              <span class="spot-points-tag"><i class="fa-solid fa-trophy" style="color:#10b981;"></i> +75 Pts</span>
+              <span class="spot-points-tag"><i class="fa-solid fa-trophy" style="color:#10b981;"></i> +35 Pts</span>
             </div>
           </div>
         </div>
@@ -1322,7 +1325,7 @@ $gdriveMirrorUrl = getenv('APK_GDRIVE_MIRROR_URL') ?: '';
       el.addEventListener('click', function(e) {
         if (!navigator.onLine) {
           e.preventDefault();
-          alert("Internet connection required to download the Intan Elyu APK package (~226 MB). Please connect to Wi-Fi or mobile data.");
+          alert("Internet connection required to download the Intan Elyu APK package (~219 MB). Please connect to Wi-Fi or mobile data.");
         }
       });
     });

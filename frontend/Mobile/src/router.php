@@ -160,6 +160,12 @@ if ($path === '/favicon.ico') {
 // Check and serve local static assets (excluding .php files, supporting URL-encoded characters like spaces %20 and commas)
 $decodedPath = urldecode($path);
 $localStaticFile = __DIR__ . $decodedPath;
+if (!file_exists($localStaticFile) || !is_file($localStaticFile)) {
+    $altStaticFile = dirname(__DIR__) . '/public' . $decodedPath;
+    if (file_exists($altStaticFile) && is_file($altStaticFile)) {
+        $localStaticFile = $altStaticFile;
+    }
+}
 if (file_exists($localStaticFile) && is_file($localStaticFile)) {
     $ext = strtolower(pathinfo($localStaticFile, PATHINFO_EXTENSION));
     $staticMimeMap = [
@@ -278,6 +284,12 @@ if (strpos($path, '/api/image/') === 0) {
     if (strpos($path, '/api/image/municipalities/') === 0) {
         $relativePath = substr($path, strlen('/api/image/municipalities/'));
         $localPath = __DIR__ . '/assets/img/MUNICIPALITIES/' . urldecode($relativePath);
+        if (!file_exists($localPath)) {
+            $altLocalPath = dirname(__DIR__) . '/public/assets/img/MUNICIPALITIES/' . urldecode($relativePath);
+            if (file_exists($altLocalPath)) {
+                $localPath = $altLocalPath;
+            }
+        }
         if (file_exists($localPath)) {
             serveCachedImage($localPath);
             return true;
