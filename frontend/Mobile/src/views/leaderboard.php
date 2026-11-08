@@ -24,7 +24,7 @@ $activeTab = 'leaderboard';
 
     <!-- Your Current Standing Banner -->
     <div id="my-standing-banner" class="standing-banner-card stagger-1" style="display: none;"
-        onclick="if(window.myUserData) showUserProfile(window.myUserData.name, window.myUserData.avatar, window.myUserData.pts, window.myUserData.rank, window.myUserData.activities, window.myUserData.location, window.myUserData.bio, true)">
+        onclick="if(typeof window.isGuestUser === 'function' && window.isGuestUser()){ if(typeof window.promptGuestLogin === 'function') window.promptGuestLogin('view your profile'); else navigateTo('auth'); } else if(window.myUserData) showUserProfile(window.myUserData.name, window.myUserData.avatar, window.myUserData.pts, window.myUserData.rank, window.myUserData.activities, window.myUserData.location, window.myUserData.bio, true)">
         <div style="display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1;">
             <div class="standing-rank-avatar-wrap">
                 <img id="my-standing-avatar" class="standing-rank-avatar"
@@ -36,7 +36,7 @@ $activeTab = 'leaderboard';
                 <div class="standing-name-row">
                     <span id="my-explorer-title"
                         style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Your Standing</span>
-                    <span
+                    <span id="my-standing-tag"
                         style="font-size: 9.5px; background: rgba(0, 242, 254, 0.2); color: #00f2fe; padding: 2px 7px; border-radius: 100px; font-weight: 800; border: none !important; outline: none !important;">YOU</span>
                 </div>
                 <div class="standing-subtext" id="my-standing-subtext">Loading rank details...</div>
@@ -206,6 +206,15 @@ $activeTab = 'leaderboard';
             const authUser = JSON.parse(localStorage.getItem('auth_user') || localStorage.getItem('intan_elyu_user') || '{}');
             const myRealId = Number(authUser.id || authUser.user_id || 0);
             const myRealEmail = String(authUser.email || '').trim().toLowerCase();
+            const isGuest = (typeof window.isGuestUser === 'function' && window.isGuestUser()) ||
+                !authUser ||
+                !authUser.id ||
+                authUser.id === 'guest' ||
+                authUser.id === 'offline_guest' ||
+                authUser.is_guest === true ||
+                authUser.is_offline_guest === true ||
+                localStorage.getItem('intan_elyu_guest') === 'true' ||
+                localStorage.getItem('intan_elyu_offline_guest') === 'true';
 
             // Invalidate cachedMeData if it belongs to a previous user
             if (cachedMeData && ((myRealId > 0 && Number(cachedMeData.id || cachedMeData.user_id || 0) !== myRealId) || (myRealEmail && cachedMeData.email && String(cachedMeData.email).trim().toLowerCase() !== myRealEmail))) {
@@ -215,16 +224,36 @@ $activeTab = 'leaderboard';
                 window._cachedMyRank = null;
             }
 
-            const myExplorerNum = (cachedMeData && (cachedMeData.tourist_number || cachedMeData.tourist_id || cachedMeData.explorer_number || cachedMeData.user_id || cachedMeData.id)) || authUser.tourist_number || authUser.tourist_id || authUser.id || authUser.user_id || (cachedMyRank && cachedMyRank < 999 ? cachedMyRank : '');
-            const myExplorerName = myExplorerNum ? `Explorer #${myExplorerNum}` : 'Explorer';
             const titleEl = document.getElementById('my-explorer-title');
+            const tagEl = document.getElementById('my-standing-tag');
             const avatarEl = document.getElementById('my-standing-avatar');
             const subtext = document.getElementById('my-standing-subtext');
             const rankCircle = document.getElementById('my-rank-circle');
-            if (titleEl) titleEl.textContent = myExplorerName;
-            if (avatarEl) avatarEl.src = (cachedMeData && cachedMeData.avatar) ? cachedMeData.avatar : (authUser.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(myExplorerName)}&background=007AFF&color=fff&rounded=true&bold=true&size=128`);
-            if (rankCircle) rankCircle.textContent = (cachedMyRank && cachedMyRank < 999) ? '#' + cachedMyRank : '★';
-            if (subtext) subtext.textContent = 'Syncing rankings...';
+
+            if (isGuest) {
+                if (titleEl) titleEl.textContent = 'Guest';
+                if (tagEl) tagEl.textContent = 'GUEST';
+                if (rankCircle) rankCircle.style.display = 'none';
+                if (subtext) subtext.textContent = 'Guest';
+                if (avatarEl) avatarEl.src = 'https://ui-avatars.com/api/?name=Guest&background=007AFF&color=fff&rounded=true&bold=true&size=128';
+            } else {
+                const myExplorerNum = (cachedMeData && (cachedMeData.tourist_number || cachedMeData.tourist_id || cachedMeData.explorer_number || cachedMeData.user_id || cachedMeData.id)) || authUser.tourist_number || authUser.tourist_id || authUser.id || authUser.user_id || (cachedMyRank && cachedMyRank < 999 ? cachedMyRank : '');
+                const myExplorerName = myExplorerNum ? `Explorer #${myExplorerNum}` : 'Explorer';
+                if (titleEl) titleEl.textContent = myExplorerName;
+                if (tagEl) tagEl.textContent = 'YOU';
+                if (avatarEl) avatarEl.src = (cachedMeData && cachedMeData.avatar) ? cachedMeData.avatar : (authUser.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(myExplorerName)}&background=007AFF&color=fff&rounded=true&bold=true&size=128`);
+                if (rankCircle) {
+                    rankCircle.style.display = 'flex';
+                    rankCircle.textContent = (cachedMyRank && cachedMyRank < 999) ? '#' + cachedMyRank : '★';
+                }
+                const myPts = parseInt(authUser.points || authUser.xp || 0);
+                const myActs = parseInt(authUser.completed_activities || authUser.places_visited || 0);
+                if (subtext) {
+                    subtext.textContent = (currentSortMode === 'visited')
+                        ? `${myActs} ${myActs === 1 ? 'Spot' : 'Spots'} Visited`
+                        : `${myPts.toLocaleString()} Points`;
+                }
+            }
         }
 
         if (podiumContainer && (!rawLeadersList || rawLeadersList.length === 0)) {
@@ -373,40 +402,47 @@ $activeTab = 'leaderboard';
             const rankCircle = document.getElementById('my-rank-circle');
             const subtext = document.getElementById('my-standing-subtext');
             const titleEl = document.getElementById('my-explorer-title');
+            const tagEl = document.getElementById('my-standing-tag');
             const avatarEl = document.getElementById('my-standing-avatar');
+
+            const isGuest = (typeof window.isGuestUser === 'function' && window.isGuestUser()) ||
+                !authUser ||
+                !authUser.id ||
+                authUser.id === 'guest' ||
+                authUser.id === 'offline_guest' ||
+                authUser.is_guest === true ||
+                authUser.is_offline_guest === true ||
+                localStorage.getItem('intan_elyu_guest') === 'true' ||
+                localStorage.getItem('intan_elyu_offline_guest') === 'true';
 
             if (banner) {
                 banner.style.display = 'flex';
-                if (avatarEl) avatarEl.src = myAvatar;
-                if (titleEl) titleEl.textContent = myDisplayName;
-                if (rankCircle) {
-                    if (cachedMyRank && cachedMyRank < 999) {
-                        rankCircle.textContent = '#' + cachedMyRank;
-                    } else if (hasEarnedRank && myRankNum !== '—') {
-                        rankCircle.textContent = String(myRankNum).startsWith('#') ? myRankNum : '#' + myRankNum;
-                    } else {
-                        rankCircle.textContent = '—';
+                if (isGuest) {
+                    if (avatarEl) avatarEl.src = 'https://ui-avatars.com/api/?name=Guest&background=007AFF&color=fff&rounded=true&bold=true&size=128';
+                    if (titleEl) titleEl.textContent = 'Guest';
+                    if (tagEl) tagEl.textContent = 'GUEST';
+                    if (rankCircle) rankCircle.style.display = 'none';
+                    if (subtext) subtext.textContent = 'Guest';
+                } else {
+                    if (avatarEl) avatarEl.src = myAvatar;
+                    if (titleEl) titleEl.textContent = myDisplayName;
+                    if (tagEl) tagEl.textContent = 'YOU';
+                    if (rankCircle) {
+                        rankCircle.style.display = 'flex';
+                        if (cachedMyRank && cachedMyRank < 999) {
+                            rankCircle.textContent = '#' + cachedMyRank;
+                        } else if (hasEarnedRank && myRankNum !== '—') {
+                            rankCircle.textContent = String(myRankNum).startsWith('#') ? myRankNum : '#' + myRankNum;
+                        } else {
+                            rankCircle.textContent = '—';
+                        }
                     }
-                }
-                if (subtext) {
-                    const hasActs = myActivities > 0;
-                    const actsText = hasActs ? `${myActivities} ${myActivities === 1 ? 'Spot' : 'Spots'} Visited` : '';
-                    const ptsText = `${myPts.toLocaleString()} Points`;
-
-                    if (cachedMyRank && cachedMyRank < 999) {
+                    if (subtext) {
                         if (currentSortMode === 'visited') {
-                            subtext.textContent = hasActs ? `Rank #${cachedMyRank} • ${actsText} • ${ptsText}` : `Rank #${cachedMyRank} • ${ptsText}`;
+                            subtext.textContent = `${myActivities} ${myActivities === 1 ? 'Spot' : 'Spots'} Visited`;
                         } else {
-                            subtext.textContent = hasActs ? `Rank #${cachedMyRank} • ${ptsText} • ${actsText}` : `Rank #${cachedMyRank} • ${ptsText}`;
+                            subtext.textContent = `${myPts.toLocaleString()} Points`;
                         }
-                    } else if (myPts > 0 || hasActs) {
-                        if (currentSortMode === 'visited') {
-                            subtext.textContent = hasActs ? `${actsText} • ${ptsText}` : ptsText;
-                        } else {
-                            subtext.textContent = hasActs ? `${ptsText} • ${actsText}` : ptsText;
-                        }
-                    } else {
-                        subtext.textContent = 'Check in at spots or play games to earn Points and rank!';
                     }
                 }
             }
@@ -680,7 +716,9 @@ $activeTab = 'leaderboard';
                         const subtext = document.getElementById('my-standing-subtext');
                         if (subtext && window.myUserData) {
                             const uActs = window.myUserData.activities || 0;
-                        subtext.textContent = (uActs > 0) ? `${livePts.toLocaleString()} Points • ${uActs} ${uActs === 1 ? 'Spot' : 'Spots'} Visited` : `${livePts.toLocaleString()} Points`;
+                            subtext.textContent = (currentSortMode === 'visited')
+                                ? `${uActs} ${uActs === 1 ? 'Spot' : 'Spots'} Visited`
+                                : `${livePts.toLocaleString()} Points`;
                         }
                         try {
                             const authUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
@@ -980,13 +1018,10 @@ $activeTab = 'leaderboard';
                                 const subtext = document.getElementById('my-standing-subtext');
                                 if (subtext) {
                                     const currentActivities = window.myUserData.activities || (cachedMeData ? parseInt(cachedMeData.completed_activities ?? cachedMeData.activities ?? cachedMeData.places_visited ?? 0) : 0);
-                                    const hasCurrentActs = currentActivities > 0;
-                                    const actsStr = hasCurrentActs ? `${currentActivities} ${currentActivities === 1 ? 'Spot' : 'Spots'} Visited` : '';
-                                    const ptsStr = `${ptsVal.toLocaleString()} Points`;
                                     if (currentSortMode === 'visited') {
-                                        subtext.textContent = hasCurrentActs ? `${actsStr} • ${ptsStr}` : ptsStr;
+                                        subtext.textContent = `${currentActivities} ${currentActivities === 1 ? 'Spot' : 'Spots'} Visited`;
                                     } else {
-                                        subtext.textContent = hasCurrentActs ? `${ptsStr} • ${actsStr}` : ptsStr;
+                                        subtext.textContent = `${ptsVal.toLocaleString()} Points`;
                                     }
                                 }
                             }

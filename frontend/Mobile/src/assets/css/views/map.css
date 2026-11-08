@@ -888,6 +888,8 @@ body.map-search-active .btn-classification-wrapper,
     font-size: 12.5px;
     color: #f1f5f9;
     line-height: 1.55;
+    text-align: justify !important;
+    text-justify: inter-word !important;
 }
 
 .dest-advisory-box {

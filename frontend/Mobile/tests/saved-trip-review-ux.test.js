@@ -60,6 +60,8 @@ assert.match(renderSource, /executeLocationCheckIn"\]:not\(\.saved-trip-checkin-
     'legacy card controls may be removed without deleting the GPS-aware check-in button');
 assert.match(renderSource, /isLocVerified && \(!hasProof \|\| isRejected\)[\s\S]*class="saved-trip-proof-btn"[\s\S]*openProofUploadModal[\s\S]*Proof of Validation/,
     'a verified check-in must reveal the proof-of-validation upload beside it');
+assert.doesNotMatch(renderSource, /isLocVerified && !hasProof[\s\S]{0,650}Upload Proof/,
+    'a verified check-in without proof must not render a duplicate blue Upload Proof button above Proof of Validation');
 assert.doesNotMatch(renderSource, /button\[onclick\*="openProofUploadModal"\]/,
     'proof upload actions must remain clickable after a saved-trip card renders');
 assert.match(renderSource, /Queued for Sync \(Offline\)[\s\S]*saved-trip-proof-btn[\s\S]*Update Proof/,

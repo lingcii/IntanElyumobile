@@ -1020,6 +1020,9 @@
             localStorage.setItem('Intan_Elyu_Token', data.token);
             localStorage.setItem('api_token', data.token);
             localStorage.setItem('intan_elyu_real_token_backup', data.token);
+            if (typeof data.user !== 'undefined' && typeof data.user.two_factor_enabled !== 'undefined') {
+                localStorage.setItem('intan_elyu_2fa_active', data.user.two_factor_enabled ? 'true' : 'false');
+            }
             localStorage.setItem('intan_elyu_2fa_active', 'true');
             if (window.AppStorage) {
                 try {
@@ -1596,6 +1599,9 @@
             localStorage.setItem('Intan_Elyu_Token', data.token);
             localStorage.setItem('api_token', data.token);
             localStorage.setItem('intan_elyu_real_token_backup', data.token);
+            if (typeof data.user !== 'undefined' && typeof data.user.two_factor_enabled !== 'undefined') {
+                localStorage.setItem('intan_elyu_2fa_active', data.user.two_factor_enabled ? 'true' : 'false');
+            }
             if (window.AppStorage) {
                 try {
                     window.AppStorage.setItem('auth_user', data.user);
@@ -2326,6 +2332,9 @@
                 localStorage.setItem('Intan_Elyu_Token', data.token);
                 localStorage.setItem('api_token', data.token);
                 localStorage.setItem('intan_elyu_real_token_backup', data.token);
+            if (typeof data.user !== 'undefined' && typeof data.user.two_factor_enabled !== 'undefined') {
+                localStorage.setItem('intan_elyu_2fa_active', data.user.two_factor_enabled ? 'true' : 'false');
+            }
                 if (window.AppStorage) {
                     try {
                         window.AppStorage.setItem('auth_user', data.user);
@@ -2375,6 +2384,9 @@
             localStorage.setItem('Intan_Elyu_Token', data.token);
             localStorage.setItem('api_token', data.token);
             localStorage.setItem('intan_elyu_real_token_backup', data.token);
+            if (typeof data.user !== 'undefined' && typeof data.user.two_factor_enabled !== 'undefined') {
+                localStorage.setItem('intan_elyu_2fa_active', data.user.two_factor_enabled ? 'true' : 'false');
+            }
             if (window.AppStorage) {
                 try {
                     window.AppStorage.setItem('auth_user', data.user);
@@ -3046,6 +3058,9 @@
             localStorage.setItem('Intan_Elyu_Token', data.token);
             localStorage.setItem('api_token', data.token);
             localStorage.setItem('intan_elyu_real_token_backup', data.token);
+            if (typeof data.user !== 'undefined' && typeof data.user.two_factor_enabled !== 'undefined') {
+                localStorage.setItem('intan_elyu_2fa_active', data.user.two_factor_enabled ? 'true' : 'false');
+            }
             if (window.AppStorage) {
                 try {
                     window.AppStorage.setItem('auth_user', data.user);

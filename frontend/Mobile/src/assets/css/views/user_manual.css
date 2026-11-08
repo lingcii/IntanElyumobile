@@ -1,13 +1,13 @@
 /* ============================================================
  * User Manual View Styles - user_manual.css
- * Intan Elyu Mobile — Clean Solid Royal Navy Theme
- * All Icons and Text Pure White - Solid Text Backgrounds
+ * Intan Elyu Mobile — Clean Modern Light Theme with White Cards
+ * Crisp Slate Typography & Royal Blue Accents
  * ============================================================ */
 
 html:has(body[data-view="user_manual"]),
 body[data-view="user_manual"] {
-    background: #ffffff !important;
-    background-color: #ffffff !important;
+    background: #f8fafc !important;
+    background-color: #f8fafc !important;
     color: #0f172a !important;
     scrollbar-width: none !important;
     -ms-overflow-style: none !important;
@@ -18,8 +18,8 @@ body[data-view="user_manual"] {
 
 body[data-view="user_manual"] #app-container,
 body[data-view="user_manual"] #main-content {
-    background: #ffffff !important;
-    background-color: #ffffff !important;
+    background: #f8fafc !important;
+    background-color: #f8fafc !important;
     width: 100% !important;
     max-width: 100% !important;
     overflow-x: hidden !important;
@@ -33,7 +33,7 @@ body[data-view="user_manual"] .mobile-header {
     border: none !important;
     outline: none !important;
     border-bottom: none !important;
-    box-shadow: none !important;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.12) !important;
 }
 
 html:has(body[data-view="user_manual"])::-webkit-scrollbar,
@@ -52,8 +52,8 @@ body[data-view="user_manual"]::-webkit-scrollbar,
     padding-left: clamp(14px, 4vw, 18px) !important;
     padding-right: clamp(14px, 4vw, 18px) !important;
     padding-bottom: 40px !important;
-    background: #ffffff !important;
-    background-color: #ffffff !important;
+    background: #f8fafc !important;
+    background-color: #f8fafc !important;
     color: #0f172a;
     font-family: 'Inter', sans-serif;
     scrollbar-width: none !important;
@@ -68,17 +68,17 @@ body[data-view="user_manual"] #bottom-navigation {
 }
 
 /* ============================================================
- * HERO CARD - SOLID ROYAL BLUE (#1e3a8a)
+ * HERO CARD - WHITE CARD (#ffffff)
  * ============================================================ */
 .manual-hero {
-    background: #1e3a8a !important;
-    background-color: #1e3a8a !important;
-    border: 1px solid #254b9e !important;
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
     outline: none !important;
     border-radius: 22px;
     padding: 20px 16px;
     margin-bottom: 16px;
-    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12) !important;
+    box-shadow: 0 4px 18px rgba(15, 23, 42, 0.08) !important;
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
     width: 100% !important;
@@ -91,9 +91,9 @@ body[data-view="user_manual"] #bottom-navigation {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    background: #132456 !important;
-    background-color: #132456 !important;
-    border: 1px solid #28448f !important;
+    background: #1e3a8a !important;
+    background-color: #1e3a8a !important;
+    border: none !important;
     outline: none !important;
     color: #ffffff !important;
     font-size: 11px;
@@ -103,6 +103,7 @@ body[data-view="user_manual"] #bottom-navigation {
     margin-bottom: 12px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    box-shadow: 0 2px 8px rgba(30, 58, 138, 0.22) !important;
 }
 
 .manual-hero-badge i {
@@ -113,12 +114,12 @@ body[data-view="user_manual"] #bottom-navigation {
     font-size: 22px;
     font-weight: 900;
     margin: 0 0 8px 0;
-    color: #ffffff !important;
+    color: #0f172a !important;
     line-height: 1.25;
 }
 
 .manual-hero h1 span {
-    color: #ffffff !important;
+    color: #1e3a8a !important;
 }
 
 .manual-hero p,
@@ -134,7 +135,7 @@ body[data-view="user_manual"] #bottom-navigation {
 
 .manual-hero p {
     font-size: 13px;
-    color: #ffffff !important;
+    color: #475569 !important;
     line-height: 1.5;
     margin: 0 0 16px 0;
     opacity: 1 !important;
@@ -150,26 +151,26 @@ body[data-view="user_manual"] #bottom-navigation {
 .manual-search-box input {
     width: 100%;
     padding: 12px 16px 12px 42px;
-    background: #132456 !important;
-    background-color: #132456 !important;
-    border: 1px solid #28448f !important;
+    background: #f8fafc !important;
+    background-color: #f8fafc !important;
+    border: 1.5px solid #cbd5e1 !important;
     outline: none !important;
     border-radius: 14px;
-    color: #ffffff !important;
+    color: #0f172a !important;
     font-size: 13px;
     transition: all 0.2s;
     box-sizing: border-box;
 }
 
 .manual-search-box input::placeholder {
-    color: rgba(255, 255, 255, 0.8) !important;
+    color: #94a3b8 !important;
 }
 
 .manual-search-box input:focus {
-    background: #0f1c44 !important;
-    background-color: #0f1c44 !important;
-    border-color: #ffffff !important;
-    box-shadow: 0 0 0 2px #ffffff !important;
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    border-color: #1e3a8a !important;
+    box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.12) !important;
 }
 
 .manual-search-box i {
@@ -177,7 +178,7 @@ body[data-view="user_manual"] #bottom-navigation {
     left: 14px;
     top: 50%;
     transform: translateY(-50%);
-    color: #ffffff !important;
+    color: #64748b !important;
     font-size: 15px;
 }
 
@@ -192,11 +193,11 @@ body[data-view="user_manual"] #bottom-navigation {
 
 .manual-chip {
     flex-shrink: 0;
-    background: #132456 !important;
-    background-color: #132456 !important;
-    border: 1px solid #28448f !important;
+    background: #f1f5f9 !important;
+    background-color: #f1f5f9 !important;
+    border: 1px solid #e2e8f0 !important;
     outline: none !important;
-    color: #ffffff !important;
+    color: #334155 !important;
     font-size: 11px;
     font-weight: 700;
     padding: 7px 14px;
@@ -208,26 +209,26 @@ body[data-view="user_manual"] #bottom-navigation {
 }
 
 .manual-chip:hover, .manual-chip.active {
-    background: #ffffff !important;
-    background-color: #ffffff !important;
-    border: 1px solid #ffffff !important;
+    background: #1e3a8a !important;
+    background-color: #1e3a8a !important;
+    border: 1px solid #1e3a8a !important;
     outline: none !important;
-    color: #1e3a8a !important;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15) !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 14px rgba(30, 58, 138, 0.25) !important;
 }
 
 /* ============================================================
- * SECTION CARD - SOLID ROYAL BLUE (#1e3a8a)
+ * SECTION CARD - WHITE CARD (#ffffff)
  * ============================================================ */
 .manual-section {
-    background: #1e3a8a !important;
-    background-color: #1e3a8a !important;
-    border: 1px solid #254b9e !important;
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
     outline: none !important;
     border-radius: 20px;
     padding: 20px;
     margin-bottom: 20px;
-    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12) !important;
+    box-shadow: 0 4px 18px rgba(15, 23, 42, 0.08) !important;
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
 }
@@ -237,7 +238,7 @@ body[data-view="user_manual"] #bottom-navigation {
     align-items: center;
     gap: 12px;
     margin-bottom: 16px;
-    border-bottom: 1px solid #28448f !important;
+    border-bottom: 1px solid #f1f5f9 !important;
     padding-bottom: 12px;
 }
 
@@ -250,63 +251,113 @@ body[data-view="user_manual"] #bottom-navigation {
     justify-content: center;
     font-size: 18px;
     flex-shrink: 0;
-    background: #132456 !important;
-    background-color: #132456 !important;
-    border: 1px solid #28448f !important;
+    background: #1e3a8a !important;
+    background-color: #1e3a8a !important;
+    border: none !important;
     outline: none !important;
     color: #ffffff !important;
+    box-shadow: 0 4px 10px rgba(30, 58, 138, 0.22) !important;
 }
 
 .manual-section-icon i {
     color: #ffffff !important;
 }
 
-.manual-section-icon.blue,
-.manual-section-icon.purple,
-.manual-section-icon.green,
-.manual-section-icon.yellow,
+.manual-section-icon.blue {
+    background: #1e3a8a !important;
+    background-color: #1e3a8a !important;
+    border: none !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 10px rgba(30, 58, 138, 0.25) !important;
+}
+.manual-section-icon.blue i {
+    color: #ffffff !important;
+}
+
+.manual-section-icon.purple {
+    background: #7e22ce !important;
+    background-color: #7e22ce !important;
+    border: none !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 10px rgba(126, 34, 206, 0.25) !important;
+}
+.manual-section-icon.purple i {
+    color: #ffffff !important;
+}
+
+.manual-section-icon.green {
+    background: #10b981 !important;
+    background-color: #10b981 !important;
+    border: none !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 10px rgba(16, 185, 129, 0.25) !important;
+}
+.manual-section-icon.green i {
+    color: #ffffff !important;
+}
+
+.manual-section-icon.yellow {
+    background: #f59e0b !important;
+    background-color: #f59e0b !important;
+    border: none !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 10px rgba(245, 158, 11, 0.25) !important;
+}
+.manual-section-icon.yellow i {
+    color: #ffffff !important;
+}
+
 .manual-section-icon.red {
-    background: #132456 !important;
-    background-color: #132456 !important;
-    border: 1px solid #28448f !important;
+    background: #ef4444 !important;
+    background-color: #ef4444 !important;
+    border: none !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 10px rgba(239, 68, 68, 0.25) !important;
+}
+.manual-section-icon.red i {
     color: #ffffff !important;
 }
 
 .manual-section-title {
     font-size: 17px;
     font-weight: 800;
-    color: #ffffff !important;
+    color: #0f172a !important;
     margin: 0 0 2px 0;
 }
 
 .manual-section-sub {
     font-size: 12px;
-    color: #ffffff !important;
+    color: #64748b !important;
     margin: 0;
-    opacity: 0.9 !important;
+    opacity: 1 !important;
+}
+
+.manual-section p {
+    color: #334155 !important;
 }
 
 /* ============================================================
- * STEP CARDS - SOLID NAVY BACKGROUND FOR TEXT (#132456)
+ * STEP CARDS - LIGHT CRISP CONTAINER (#f8fafc)
  * ============================================================ */
 .step-card {
     display: flex;
     gap: 12px;
-    background: #132456 !important;
-    background-color: #132456 !important;
-    border: 1px solid #28448f !important;
+    background: #f8fafc !important;
+    background-color: #f8fafc !important;
+    border: 1px solid #e2e8f0 !important;
     outline: none !important;
     border-radius: 14px;
     padding: 14px;
     margin-bottom: 10px;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.03) !important;
 }
 
 .step-num {
     width: 26px;
     height: 26px;
     border-radius: 50%;
-    background: #2563eb !important;
-    background-color: #2563eb !important;
+    background: #1e3a8a !important;
+    background-color: #1e3a8a !important;
     color: #ffffff !important;
     font-weight: 900;
     font-size: 12px;
@@ -314,7 +365,7 @@ body[data-view="user_manual"] #bottom-navigation {
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    border: 1px solid #3b82f6 !important;
+    border: 1px solid #1e3a8a !important;
     box-shadow: none !important;
 }
 
@@ -325,13 +376,13 @@ body[data-view="user_manual"] #bottom-navigation {
 .step-title {
     font-size: 13px;
     font-weight: 700;
-    color: #ffffff !important;
+    color: #0f172a !important;
     margin-bottom: 4px;
 }
 
 .step-desc {
     font-size: 12px;
-    color: #ffffff !important;
+    color: #334155 !important;
     line-height: 1.5;
     opacity: 1 !important;
 }
@@ -343,21 +394,21 @@ body[data-view="user_manual"] #bottom-navigation {
 
 .step-desc li {
     margin-bottom: 4px;
-    color: #ffffff !important;
+    color: #475569 !important;
 }
 
 .step-desc strong {
-    color: #ffffff !important;
+    color: #0f172a !important;
     font-weight: 800;
 }
 
 /* ============================================================
- * INFO BOXES - SOLID NAVY BACKGROUND (#132456)
+ * INFO BOXES - CLEAN LIGHT ACCENT BOXES
  * ============================================================ */
 .manual-info-box {
-    background: #132456 !important;
-    background-color: #132456 !important;
-    border: 1px solid #28448f !important;
+    background: #eff6ff !important;
+    background-color: #eff6ff !important;
+    border: 1px solid #bfdbfe !important;
     outline: none !important;
     border-radius: 12px;
     padding: 12px;
@@ -366,29 +417,29 @@ body[data-view="user_manual"] #bottom-navigation {
     align-items: flex-start;
     gap: 10px;
     font-size: 12px;
-    color: #ffffff !important;
+    color: #1e3a8a !important;
 }
 
 .manual-info-box i {
-    color: #ffffff !important;
+    color: #1e3a8a !important;
     font-size: 16px;
     margin-top: 1px;
 }
 
 .manual-info-box.warning {
-    background: #78350f !important;
-    background-color: #78350f !important;
-    border: 1px solid #92400e !important;
+    background: #fef2f2 !important;
+    background-color: #fef2f2 !important;
+    border: 1px solid #fecaca !important;
     outline: none !important;
-    color: #ffffff !important;
+    color: #991b1b !important;
 }
 
 .manual-info-box.warning i {
-    color: #ffffff !important;
+    color: #dc2626 !important;
 }
 
 /* ============================================================
- * GRID CARDS - SOLID NAVY BACKGROUND FOR TEXT (#132456)
+ * GRID CARDS - LIGHT CRISP CONTAINER (#f8fafc)
  * ============================================================ */
 .grid-cards {
     display: grid;
@@ -398,38 +449,39 @@ body[data-view="user_manual"] #bottom-navigation {
 }
 
 .grid-card-item {
-    background: #132456 !important;
-    background-color: #132456 !important;
-    border: 1px solid #28448f !important;
+    background: #f8fafc !important;
+    background-color: #f8fafc !important;
+    border: 1px solid #e2e8f0 !important;
     outline: none !important;
     border-radius: 14px;
     padding: 12px;
     text-align: center;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.03) !important;
 }
 
 .grid-card-icon {
     font-size: 22px;
     margin-bottom: 6px;
-    color: #ffffff !important;
+    color: #1e3a8a !important;
 }
 
 .grid-card-item h4 {
     font-size: 12px;
     font-weight: 800;
-    color: #ffffff !important;
+    color: #0f172a !important;
     margin: 0 0 4px 0;
 }
 
 .grid-card-item p {
     font-size: 10px;
-    color: #ffffff !important;
+    color: #475569 !important;
     margin: 0;
     line-height: 1.4;
-    opacity: 0.95 !important;
+    opacity: 1 !important;
 }
 
 /* ============================================================
- * REFERENCE TABLE - SOLID NAVY BACKGROUND (#132456)
+ * REFERENCE TABLE - CLEAN WHITE TABLE (#ffffff)
  * ============================================================ */
 .ref-table {
     width: 100%;
@@ -439,27 +491,28 @@ body[data-view="user_manual"] #bottom-navigation {
     font-size: 12px;
     border-radius: 12px;
     overflow: hidden;
-    border: 1px solid #28448f !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.03) !important;
 }
 
 .ref-table th {
-    background: #132456 !important;
-    background-color: #132456 !important;
-    color: #ffffff !important;
+    background: #f1f5f9 !important;
+    background-color: #f1f5f9 !important;
+    color: #1e3a8a !important;
     text-align: left;
     padding: 10px 12px;
     font-size: 11px;
     font-weight: 800;
     text-transform: uppercase;
-    border-bottom: 1px solid #28448f !important;
+    border-bottom: 1px solid #e2e8f0 !important;
 }
 
 .ref-table td {
     padding: 10px 12px;
-    border-bottom: 1px solid #28448f !important;
-    color: #ffffff !important;
-    background: #132456 !important;
-    background-color: #132456 !important;
+    border-bottom: 1px solid #f1f5f9 !important;
+    color: #334155 !important;
+    background: #ffffff !important;
+    background-color: #ffffff !important;
 }
 
 .ref-table tr:last-child td {
@@ -467,5 +520,5 @@ body[data-view="user_manual"] #bottom-navigation {
 }
 
 .ref-table td strong {
-    color: #ffffff !important;
+    color: #1e3a8a !important;
 }

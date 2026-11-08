@@ -1,6 +1,6 @@
 <?php
 $pageTitle = 'Edit Profile';
-$backRoute = 'profile';
+$backRoute = 'settings';
 ?>
 
 <?php include __DIR__ . '/../components/header.php'; ?>
@@ -11,20 +11,19 @@ $backRoute = 'profile';
         <i class="fa-solid fa-cloud-slash" style="color: #f59e0b;"></i>
         <span>Offline Mode &bull; Edits will save locally and sync when online</span>
     </div>
-    <div class="edit-profile-card">
-        <!-- Avatar Section -->
-        <div class="avatar-upload">
-            <div class="avatar-preview" id="avatar-preview">
-                <i class="fa-solid fa-user" id="avatar-icon"></i>
-                <img id="avatar-img" alt="Avatar" style="display:none;">
+    <form class="edit-profile-form" id="edit-profile-form" onsubmit="saveProfile(event)" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
+        <div class="edit-profile-card">
+            <!-- Avatar Section -->
+            <div class="avatar-upload">
+                <div class="avatar-preview" id="avatar-preview">
+                    <i class="fa-solid fa-user" id="avatar-icon"></i>
+                    <img id="avatar-img" alt="Avatar" style="display:none;">
+                </div>
+                <div class="avatar-btn" onclick="window.openImagePickerModal()" title="Change Profile Picture">
+                    <i class="fa-solid fa-camera"></i>
+                </div>
+                <input type="file" id="avatar-input" accept="image/*" style="display:none;" onchange="previewAvatar(event)">
             </div>
-            <div class="avatar-btn" onclick="window.openImagePickerModal()" title="Change Profile Picture">
-                <i class="fa-solid fa-camera"></i>
-            </div>
-            <input type="file" id="avatar-input" accept="image/*" style="display:none;" onchange="previewAvatar(event)">
-        </div>
-
-        <form class="edit-profile-form" onsubmit="saveProfile(event)">
             <!-- Personal Info -->
             <div class="edit-section-title">
                 Personal Details
@@ -171,45 +170,47 @@ $backRoute = 'profile';
                 </div>
             </div>
 
-            <!-- Actions -->
-            <div class="form-actions">
-                <button class="btn-save-profile" type="submit" id="btn-save">
-                    <i class="fa-solid fa-check"></i> <span>Save Changes</span>
-                </button>
-                <button class="btn-cancel-profile" type="button" onclick="navigateTo('profile')">
-                    Cancel
-                </button>
             </div>
-        </form>
-    </div>
+        </div>
+
+        <!-- Intact Bottom Footer for Actions (Outside Card) -->
+        <div class="edit-profile-footer">
+            <button class="btn-cancel-profile" type="button" onclick="navigateTo('settings')">
+                Cancel
+            </button>
+            <button class="btn-save-profile" type="submit" id="btn-save" form="edit-profile-form">
+                <i class="fa-solid fa-check"></i> <span>Save Changes</span>
+            </button>
+        </div>
+    </form>
 </div>
 
 <!-- Image Picker Choice Modal (Top-level full-viewport position) -->
 <div id="image-picker-modal" onclick="if(event.target===this) window.closeImagePickerModal()"
-    style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; width:100vw; height:100vh; background:rgba(0,0,0,0.8); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); z-index:999999; align-items:flex-end; justify-content:center; padding:0; margin:0; box-sizing:border-box;">
+    style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; width:100vw; height:100vh; background:rgba(15,23,42,0.5); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); z-index:999999; align-items:flex-end; justify-content:center; padding:0; margin:0; box-sizing:border-box;">
     <div
-        style="background:linear-gradient(135deg, rgba(30,41,59,0.98) 0%, rgba(15,23,42,1) 100%); border-top:1px solid rgba(56,189,248,0.3); border-radius:28px 28px 0 0; width:100%; max-width:500px; padding:26px 22px; box-shadow:0 -10px 45px rgba(0,0,0,0.8); animation:slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1); box-sizing:border-box;">
+        style="background:#ffffff; border-radius:28px 28px 0 0; width:100%; max-width:500px; padding:24px 22px max(24px, env(safe-area-inset-bottom)); box-shadow:0 -10px 40px rgba(0,0,0,0.18); animation:slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1); box-sizing:border-box;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
             <h3
-                style="margin:0; font-size:17px; font-weight:800; color:#f8fafc; display:flex; align-items:center; gap:10px;">
-                <i class="fa-solid fa-image" style="color:#38bdf8; font-size:18px;"></i> Select Profile Photo
+                style="margin:0; font-size:17px; font-weight:800; color:#0f172a; display:flex; align-items:center; gap:10px;">
+                <i class="fa-solid fa-image" style="color:#1e3a8a; font-size:18px;"></i> Select Profile Photo
             </h3>
             <button type="button" onclick="window.closeImagePickerModal()"
-                style="background:rgba(255,255,255,0.08); border:none; color:#94a3b8; width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer;">
+                style="background:#f1f5f9; border:none; color:#64748b; width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer;">
                 <i class="fa-solid fa-xmark" style="font-size:15px;"></i>
             </button>
         </div>
         <div style="display:flex; flex-direction:column; gap:12px;">
             <button type="button" onclick="window.selectImageSource('camera')"
-                style="width:100%; padding:15px; background:linear-gradient(135deg, rgba(56,189,248,0.18) 0%, rgba(37,99,235,0.22) 100%); border:1px solid rgba(56,189,248,0.35); border-radius:18px; color:#38bdf8; font-size:14px; font-weight:700; display:flex; align-items:center; justify-content:center; gap:10px; cursor:pointer; transition:transform 0.15s ease, box-shadow 0.15s ease;">
-                <i class="fa-solid fa-camera" style="font-size:17px;"></i> Take Photo with Camera
+                style="width:100%; padding:15px; background:#1e3a8a; border:none; border-radius:18px; color:#ffffff; font-size:14px; font-weight:700; display:flex; align-items:center; justify-content:center; gap:10px; cursor:pointer; box-shadow:0 4px 14px rgba(30,58,138,0.25); transition:transform 0.15s ease;">
+                <i class="fa-solid fa-camera" style="font-size:17px; color:#ffffff;"></i> Take Photo with Camera
             </button>
             <button type="button" onclick="window.selectImageSource('gallery')"
-                style="width:100%; padding:15px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.12); border-radius:18px; color:#f8fafc; font-size:14px; font-weight:700; display:flex; align-items:center; justify-content:center; gap:10px; cursor:pointer; transition:transform 0.15s ease, background 0.15s ease;">
-                <i class="fa-solid fa-images" style="font-size:17px; color:#38bdf8;"></i> Choose from Photo Gallery
+                style="width:100%; padding:15px; background:#f8fafc; border:1.5px solid #e2e8f0; border-radius:18px; color:#0f172a; font-size:14px; font-weight:700; display:flex; align-items:center; justify-content:center; gap:10px; cursor:pointer; transition:transform 0.15s ease, background 0.15s ease;">
+                <i class="fa-solid fa-images" style="font-size:17px; color:#1e3a8a;"></i> Choose from Photo Gallery
             </button>
             <button type="button" onclick="window.closeImagePickerModal()"
-                style="width:100%; padding:12px; background:transparent; border:none; color:#94a3b8; font-size:13px; font-weight:600; cursor:pointer; margin-top:4px;">
+                style="width:100%; padding:12px; background:transparent; border:none; color:#64748b; font-size:13.5px; font-weight:700; cursor:pointer; margin-top:4px;">
                 Cancel
             </button>
         </div>
@@ -914,7 +915,7 @@ $backRoute = 'profile';
                 window.dashboardNeedsRefresh = true;
                 window.dispatchEvent(new CustomEvent('userProfileUpdated', { detail: stored }));
                 if (typeof showToast === 'function') showToast('Profile saved on device! Will sync when online.', 'info', 5000);
-                if (typeof navigateTo === 'function') navigateTo('profile');
+                if (typeof navigateTo === 'function') navigateTo('settings');
                 return;
             }
 
@@ -996,7 +997,7 @@ $backRoute = 'profile';
                     // Notify active components of real-time profile update
                     window.dispatchEvent(new CustomEvent('userProfileUpdated', { detail: data.user || stored }));
                     if (typeof showToast === 'function') showToast('Profile updated successfully!');
-                    if (typeof navigateTo === 'function') navigateTo('profile');
+                    if (typeof navigateTo === 'function') navigateTo('settings');
                 } else {
                     let errMsg = data.message || ('Failed to update profile (HTTP ' + res.status + ')');
                     if (data.errors) {
@@ -1036,7 +1037,7 @@ $backRoute = 'profile';
                     window.dashboardNeedsRefresh = true;
                     window.dispatchEvent(new CustomEvent('userProfileUpdated', { detail: stored }));
                     if (typeof showToast === 'function') showToast('Profile saved on device! Will sync when online.', 'info', 5000);
-                    if (typeof navigateTo === 'function') navigateTo('profile');
+                    if (typeof navigateTo === 'function') navigateTo('settings');
                     return;
                 }
                 if (typeof showToast === 'function') showToast(err.message || 'Error updating profile');

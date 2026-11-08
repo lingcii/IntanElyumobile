@@ -234,7 +234,7 @@ class MapController extends Controller
      */
     public function publicFares(Request $request): JsonResponse
     {
-        $cacheKey = 'map:public:fares:v5';
+        $cacheKey = 'map:public:fares:v6';
 
         $fares = \Illuminate\Support\Facades\Cache::remember($cacheKey, 7200, function () {
             $allActiveGuides = FareGuide::with(['matrices' => function ($q) {
@@ -322,7 +322,16 @@ class MapController extends Controller
             foreach ($allActiveGuides as $g) {
                 $gData = $formatGuide($g);
                 $vKey = strtolower(trim(preg_replace('/[^a-zA-Z0-9]/', '_', $g->vehicle_type)));
-                $isAllMuni = stripos($g->region, 'All Municipalities') !== false || stripos($g->title, 'All Municipalities') !== false;
+                $regUpper = strtoupper($g->region ?: '');
+                $titleUpper = strtoupper($g->title ?: '');
+                $isAllMuni = str_contains($regUpper, 'ALL MUNICIPALITIES') 
+                    || str_contains($titleUpper, 'ALL MUNICIPALITIES')
+                    || str_contains($regUpper, 'LA UNION')
+                    || str_contains($titleUpper, 'LA UNION')
+                    || str_contains($regUpper, 'LUPTO')
+                    || str_contains($titleUpper, 'LUPTO')
+                    || str_contains($regUpper, 'PROVINCIAL')
+                    || str_contains($titleUpper, 'PROVINCIAL');
 
                 if ($isAllMuni) {
                     foreach ($byMunicipality as $mKey => &$mMap) {

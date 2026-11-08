@@ -50,7 +50,7 @@ class CostEstimationService
                     ->first();
             }
 
-            if (!$guide) {
+            if (!$guide || $guide->matrices_count === 0) {
                 $guide = FareGuide::where('status', 'active')
                     ->where('vehicle_type', 'Tricycle')
                     ->withCount('matrices')
@@ -391,10 +391,12 @@ class CostEstimationService
                             $distB = round(max(0.1, $distKm - $distA), 2);
                             $fareA = $this->estimateTransitFare($distA, 'tricycle', $muniA);
                             $fareB = $this->estimateTransitFare($distB, 'tricycle', $muniB);
-                            $legFare += round($fareA + $fareB, 2);
+                            $subFare = max(25.00, round(($fareA + $fareB) * 2, 2));
                         } else {
-                            $legFare += round($this->estimateTransitFare($distKm, 'tricycle', $muniA), 2);
+                            $subFare = max(25.00, round($this->estimateTransitFare($distKm, 'tricycle', $muniA) * 2, 2));
                         }
+                        $subDisc = round($subFare * 0.8, 2);
+                        $legFare += round(($numAdults * $subFare) + (($numKids + $numSeniors + $numPwds) * $subDisc), 2);
                     } else {
                         $targetMode = ($sNorm === 'private_bus') ? 'pub_aircon' : $sNorm;
                         if ($crosses) {
@@ -404,10 +406,12 @@ class CostEstimationService
                             $totalLegTransit = $this->estimateTransitFare($distKm, $targetMode, $muniA);
                             $pA = round($fareA, 2);
                             $eB = max(0.00, round($totalLegTransit - $pA, 2));
-                            $legFare += round($pA + $eB, 2);
+                            $subFare = round($pA + $eB, 2);
                         } else {
-                            $legFare += round($this->estimateTransitFare($distKm, $targetMode, $muniA), 2);
+                            $subFare = round($this->estimateTransitFare($distKm, $targetMode, $muniA), 2);
                         }
+                        $subDisc = round($subFare * 0.8, 2);
+                        $legFare += round(($numAdults * $subFare) + (($numKids + $numSeniors + $numPwds) * $subDisc), 2);
                     }
                 }
                 $isPrivate = $allPrivate;
@@ -435,11 +439,13 @@ class CostEstimationService
                     $fareB = $this->estimateTransitFare($distB, 'tricycle', $muniB);
                     $priceA = round($fareA, 2);
                     $estimateB = round($fareB, 2);
-                    $legFare = round($priceA + $estimateB, 2);
+                    $unitFare = max(25.00, round(($priceA + $estimateB) * 2, 2));
                 } else {
                     $priceA = round($this->estimateTransitFare($distKm, 'tricycle', $muniA), 2);
-                    $legFare = $priceA;
+                    $unitFare = max(25.00, round($priceA * 2, 2));
                 }
+                $discFare = round($unitFare * 0.8, 2);
+                $legFare = round(($numAdults * $unitFare) + (($numKids + $numSeniors + $numPwds) * $discFare), 2);
                 $transitFares += $legFare;
             } else {
                 // Public Transit (MPUJ, TPUJ, PUB Aircon, PUB Ordinary, Van)
@@ -451,11 +457,13 @@ class CostEstimationService
                     $totalLegTransit = $this->estimateTransitFare($distKm, $targetMode, $muniA);
                     $priceA = round($fareA, 2);
                     $estimateB = max(0.00, round($totalLegTransit - $priceA, 2));
-                    $legFare = round($priceA + $estimateB, 2);
+                    $unitFare = round($priceA + $estimateB, 2);
                 } else {
                     $priceA = round($this->estimateTransitFare($distKm, $targetMode, $muniA), 2);
-                    $legFare = $priceA;
+                    $unitFare = $priceA;
                 }
+                $discFare = round($unitFare * 0.8, 2);
+                $legFare = round(($numAdults * $unitFare) + (($numKids + $numSeniors + $numPwds) * $discFare), 2);
                 $transitFares += $legFare;
             }
 

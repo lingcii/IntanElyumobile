@@ -85,6 +85,11 @@ try {
             <div id="draft-map-container"
                 style="height: 140px; width:100%; border-radius: 18px; overflow: hidden; border: none !important; outline: none !important; position:relative; background:#cadce4; box-shadow: none;">
                 <div id="itinerary-map" style="width:100%; height:100%;"></div>
+                <button type="button" id="btn-itinerary-full-preview" onclick="window.openItineraryFullMapPreview()"
+                    style="position:absolute; top:8px; right:8px; z-index:1000; width:34px; height:34px; background:linear-gradient(135deg, rgba(30, 58, 138, 0.92) 0%, rgba(63, 125, 183, 0.9) 100%); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); border:none !important; outline:none !important; border-radius:10px; display:flex; align-items:center; justify-content:center; color:#ffffff; font-size:14px; box-shadow:0 4px 12px rgba(10,25,60,0.28); cursor:pointer; transition:transform 0.15s ease;"
+                    title="Full Preview in Map" aria-label="Full Preview in Map">
+                    <i class="fa-solid fa-expand"></i>
+                </button>
             </div>
 
          
@@ -1049,6 +1054,38 @@ try {
 
     </div>
 </div>
+
+<!-- Fullscreen Itinerary Route Preview Modal -->
+<div id="itinerary-fullscreen-map-modal"
+    style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; width:100vw; height:100vh; z-index:999999; background:#0a0f1c; flex-direction:column;">
+    
+    <!-- Header Bar matching the App Mobile Header Style -->
+    <div class="mobile-header"
+        style="position:absolute !important; top:0 !important; left:0 !important; transform:none !important; width:100% !important; max-width:100% !important; background:#1e3a8a !important; padding:10px clamp(12px, 3.8vw, 18px) !important; padding-top:max(env(safe-area-inset-top, 0px), 36px) !important; display:flex !important; justify-content:space-between !important; align-items:center !important; z-index:10000 !important; box-sizing:border-box !important; border:none !important; outline:none !important; box-shadow:none !important;">
+        <button type="button" class="header-icon" onclick="window.closeItineraryFullscreenMap()" title="Back" aria-label="Back"
+            style="width:38px; height:38px; border-radius:12px; background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(0,0,0,0.15) !important;">
+            <i class="fa-solid fa-arrow-left" style="color:#1e3a8a !important;"></i>
+        </button>
+        <h1 class="header-title"
+            style="font-size:17px; font-weight:800; color:#ffffff !important; margin:0; letter-spacing:-0.3px; text-align:center; flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding:0 8px;">
+            Route Preview
+        </h1>
+        <button type="button" class="header-icon" onclick="window.fitItineraryFullscreenMapBounds()" title="Recenter Route" aria-label="Recenter Route"
+            style="width:38px; height:38px; border-radius:12px; background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(0,0,0,0.15) !important;">
+            <i class="fa-solid fa-crosshairs" style="color:#1e3a8a !important;"></i>
+        </button>
+    </div>
+
+    <!-- Bottom Floating Stats Pill -->
+    <div id="itinerary-fs-bottom-stats"
+        style="position:absolute; bottom:calc(max(env(safe-area-inset-bottom, 0px), 16px) + 12px); left:50%; transform:translateX(-50%); z-index:10000; background:linear-gradient(135deg, rgba(30, 58, 138, 0.95) 0%, rgba(63, 125, 183, 0.92) 100%); backdrop-filter:blur(15px); -webkit-backdrop-filter:blur(15px); padding:8px 18px; border-radius:100px; color:#ffffff; font-size:12.5px; font-weight:800; display:flex; align-items:center; gap:8px; box-shadow:0 6px 20px rgba(0,0,0,0.3); pointer-events:none; white-space:nowrap;">
+        <span id="itinerary-fs-stats">0.0 km &bull; 0 min</span>
+    </div>
+
+    <!-- The Fullscreen Leaflet Map Canvas -->
+    <div id="itinerary-fullscreen-map" style="width:100%; height:100%; background:#cadce4;"></div>
+</div>
+
 <script>
     (function () {
         if (typeof window.setTxt !== 'function') {
@@ -1272,7 +1309,7 @@ try {
         };
 
         // SWR Caching for Fare Rates & Vehicle Types (Eliminates redundant Railway hits)
-        const FARES_CACHE_KEY = 'public_fare_data';
+        const FARES_CACHE_KEY = 'public_fare_data_v2';
         const FARES_CACHE_TTL = 3600000; // 1 hour TTL
         let cachedFarePayload = null;
         try {
@@ -1354,16 +1391,20 @@ try {
                         fareEntry = muniObj[normType];
                     } else if ((normType === 'tricycle' || normType === 'trike') && muniObj.tricycle) {
                         fareEntry = muniObj.tricycle;
-                    } else if ((normType === 'tricycle' || normType === 'trike') && muniObj.default) {
+                    } else if ((normType === 'tricycle' || normType === 'trike') && muniObj.default && String(muniObj.default.vehicle_type || '').toLowerCase().includes('tri')) {
                         fareEntry = muniObj.default;
                     }
                 }
-                if (!fareEntry && (normType === 'tricycle' || normType === 'trike')) {
-                    // Fallback to any active tricycle tariff guide in by_municipality (e.g. LUPTO North/South/East Routes)
-                    for (const k of Object.keys(byMuni)) {
-                        const candidate = byMuni[k]?.tricycle || (String(byMuni[k]?.default?.vehicle_type || '').toLowerCase() === 'tricycle' ? byMuni[k].default : null);
-                        if (candidate && Array.isArray(candidate.rates) && candidate.rates.length > (!fareEntry?.rates ? 0 : fareEntry.rates.length)) {
-                            fareEntry = candidate;
+                if ((normType === 'tricycle' || normType === 'trike') && (!fareEntry || !fareEntry.rates || fareEntry.rates.length === 0)) {
+                    // Fallback to top-level window.fareData['tricycle'] or any active tricycle tariff guide in by_municipality (e.g. LUPTO North/South/East Routes)
+                    if (window.fareData['tricycle'] && Array.isArray(window.fareData['tricycle'].rates) && window.fareData['tricycle'].rates.length > 0) {
+                        fareEntry = window.fareData['tricycle'];
+                    } else {
+                        for (const k of Object.keys(byMuni)) {
+                            const candidate = byMuni[k]?.tricycle || (String(byMuni[k]?.default?.vehicle_type || '').toLowerCase().includes('tri') ? byMuni[k].default : null);
+                            if (candidate && Array.isArray(candidate.rates) && candidate.rates.length > (!fareEntry?.rates ? 0 : fareEntry.rates.length)) {
+                                fareEntry = candidate;
+                            }
                         }
                     }
                 }
@@ -1527,7 +1568,66 @@ try {
             return '<i class="fa-solid fa-car" style="color:#00f2fe;"></i>';
         };
 
-        // ---- Point-to-Point (P2P) Fare Calculator ----
+        // ---- Point-to-Point (P2P) Fare & Party Headcount Engine ----
+        window.getPartyHeadcount = function () {
+            const isGroup = document.querySelector('input[name="trip_companion_type"]:checked')?.value === 'group';
+            if (!isGroup) {
+                const savedType = sessionStorage.getItem('editing_trip_type');
+                if (savedType === 'group') {
+                    const numA = 1 + Math.max(0, parseInt(sessionStorage.getItem('editing_companion_adults') || '0', 10));
+                    const numK = Math.max(0, parseInt(sessionStorage.getItem('editing_companion_kids') || '0', 10));
+                    const numS = Math.max(0, parseInt(sessionStorage.getItem('editing_companion_seniors') || '0', 10));
+                    const numP = Math.max(0, parseInt(sessionStorage.getItem('editing_companion_pwds') || '0', 10));
+                    return { isGroup: true, numAdults: numA, numKids: numK, numSeniors: numS, numPwds: numP, totalPax: (numA + numK + numS + numP) };
+                }
+                return { isGroup: false, numAdults: 1, numKids: 0, numSeniors: 0, numPwds: 0, totalPax: 1 };
+            }
+            const compMales = Math.max(0, parseInt(document.getElementById('companion-males-count')?.textContent || '0', 10));
+            const compFemales = Math.max(0, parseInt(document.getElementById('companion-females-count')?.textContent || '0', 10));
+            const compAdults = Math.max(0, parseInt(document.getElementById('companion-adults-count')?.textContent || '0', 10));
+            const compKids = Math.max(0, parseInt(document.getElementById('companion-kids-count')?.textContent || '0', 10));
+            const compSeniors = Math.max(0, parseInt(document.getElementById('companion-seniors-count')?.textContent || '0', 10));
+            const compPwds = Math.max(0, parseInt(document.getElementById('companion-pwds-count')?.textContent || '0', 10));
+
+            const totalGenderCompanions = compMales + compFemales;
+            let numAdults = 1 + compAdults;
+            let numKids = compKids;
+            let numSeniors = compSeniors;
+            let numPwds = compPwds;
+            const categorized = compAdults + compKids + compSeniors + compPwds;
+            if (totalGenderCompanions > 0 && categorized < totalGenderCompanions) {
+                numAdults += (totalGenderCompanions - categorized);
+            }
+            const totalPax = 1 + Math.max(totalGenderCompanions, categorized);
+            return { isGroup: true, numAdults, numKids, numSeniors, numPwds, totalPax };
+        };
+
+        window.calculatePartyTransitFare = function (unitCost, mode) {
+            const cost = parseFloat(unitCost) || 0;
+            if (cost <= 0) return 0;
+            if (!mode) return cost;
+
+            const norm = (typeof window.normalizeVehicleKey === 'function')
+                ? window.normalizeVehicleKey(mode)
+                : String(mode).toLowerCase().trim().replace(/[- ]+/g, '_');
+
+            if (['own_car', 'car', 'motorcycle', 'taxi', 'walking', 'walk', 'no_vehicle'].includes(norm)) {
+                return cost;
+            }
+
+            const party = (typeof window.getPartyHeadcount === 'function')
+                ? window.getPartyHeadcount()
+                : { isGroup: false, numAdults: 1, numKids: 0, numSeniors: 0, numPwds: 0 };
+
+            if (!party.isGroup) {
+                return cost;
+            }
+
+            const discountedUnit = Math.round(cost * 0.8 * 100) / 100;
+            const totalPartyCost = (party.numAdults * cost) + ((party.numKids + party.numSeniors + party.numPwds) * discountedUnit);
+            return Math.round(totalPartyCost * 100) / 100;
+        };
+
         window.calculateSingleLegCost = function (mode, distKm, muniA, muniB) {
             if (!mode) return 0;
             const subParts = window.parseCompositeTransportModes(mode);
@@ -1559,11 +1659,13 @@ try {
                     if (pA === null || pA === undefined || pA === 0) pA = Math.max(15, 15 + Math.max(0, Math.ceil(dA) - 1) * 3);
                     let pB = window.getFareFromMatrix('tricycle', dB, cleanB);
                     if (pB === null || pB === undefined || pB === 0) pB = Math.max(15, 15 + Math.max(0, Math.ceil(dB) - 1) * 3);
-                    return Math.round((pA + pB) * 100) / 100;
+                    const trikeFare = Math.max(25, (pA + pB) * 2); // 2x multiplier for direct tricycle drop-off, minimum ₱25
+                    return Math.round(trikeFare * 100) / 100;
                 } else {
                     let p = window.getFareFromMatrix('tricycle', d, cleanA || cleanB);
                     if (p === null || p === undefined || p === 0) p = Math.max(15, 15 + Math.max(0, Math.ceil(d) - 1) * 3);
-                    return Math.round(p * 100) / 100;
+                    const trikeFare = Math.max(25, p * 2); // 2x multiplier for direct tricycle drop-off, minimum ₱25
+                    return Math.round(trikeFare * 100) / 100;
                 }
             }
 
@@ -2072,7 +2174,8 @@ try {
                     }
                 }
 
-                const cost = window.calculateSingleLegCost(modes.join(' + '), distKm, muniA, muniB);
+                const unitCost = window.calculateSingleLegCost(modes.join(' + '), distKm, muniA, muniB);
+                const cost = window.calculatePartyTransitFare(unitCost, modes.join(' + '));
 
                 let name = '';
                 let icon = 'fa-car';
@@ -2104,6 +2207,7 @@ try {
                     icon: icon,
                     cost: cost,
                     leg_cost: cost,
+                    unit_cost: unitCost,
                     distance_km: distKm,
                     warning: !hasInaccessible ? (isNonDrivable && modes.includes('own_car') ? 'Trailhead drop-off only' : null) : warningReason,
                     is_inaccessible: hasInaccessible,
@@ -2133,14 +2237,18 @@ try {
                     name = `${subModes.length} Vehicles`;
                 }
 
+                const unitCost = resolved.cost;
+                const cost = window.calculatePartyTransitFare(unitCost, resolved.mode);
+
                 return {
                     ...resolved,
                     transport_mode: resolved.mode,
                     transport_modes: subModes,
                     name: name,
                     full_names: subModes.map(m => window.getVehicleDisplayName(m)).join(', '),
-                    cost: resolved.cost,
-                    leg_cost: resolved.cost,
+                    cost: cost,
+                    leg_cost: cost,
+                    unit_cost: unitCost,
                     distance_km: distKm,
                     warning: check.allowed ? resolved.warning : check.reason,
                     is_inaccessible: !check.allowed,
@@ -2325,7 +2433,7 @@ try {
                     name: 'MPUJ (Modern Jeepney)',
                     desc: 'Air-conditioned modern commuter jeepney',
                     icon: 'fa-bus-simple',
-                    cost: window.calculateSingleLegCost('mpuj', distKm, muniA, muniB),
+                    cost: window.calculatePartyTransitFare(window.calculateSingleLegCost('mpuj', distKm, muniA, muniB), 'mpuj'),
                     isRecommended: mpujOptimal,
                     category: 'Public'
                 },
@@ -2334,7 +2442,7 @@ try {
                     name: 'TPUJ (Traditional Jeepney)',
                     desc: 'Classic open-air commuter jeepney',
                     icon: 'fa-van-shuttle',
-                    cost: window.calculateSingleLegCost('tpuj', distKm, muniA, muniB),
+                    cost: window.calculatePartyTransitFare(window.calculateSingleLegCost('tpuj', distKm, muniA, muniB), 'tpuj'),
                     isRecommended: false,
                     category: 'Public'
                 },
@@ -2343,7 +2451,7 @@ try {
                     name: 'Tricycle',
                     desc: (!isCross ? 'Direct point-to-point drop-off' : 'Local town & beach transit'),
                     icon: 'fa-motorcycle',
-                    cost: window.calculateSingleLegCost('tricycle', distKm, muniA, muniB),
+                    cost: window.calculatePartyTransitFare(window.calculateSingleLegCost('tricycle', distKm, muniA, muniB), 'tricycle'),
                     isRecommended: trikeOptimal,
                     category: 'Public'
                 },
@@ -2352,7 +2460,7 @@ try {
                     name: 'PUB Regular (Ordinary Bus)',
                     desc: 'Provincial highway regular passenger bus',
                     icon: 'fa-bus',
-                    cost: window.calculateSingleLegCost('pub_regular', distKm, muniA, muniB),
+                    cost: window.calculatePartyTransitFare(window.calculateSingleLegCost('pub_regular', distKm, muniA, muniB), 'pub_regular'),
                     isRecommended: false,
                     category: 'Public'
                 },
@@ -2361,7 +2469,7 @@ try {
                     name: 'PUB Aircon (Aircon Bus)',
                     desc: 'Provincial air-conditioned coach bus',
                     icon: 'fa-bus',
-                    cost: window.calculateSingleLegCost('pub_aircon', distKm, muniA, muniB),
+                    cost: window.calculatePartyTransitFare(window.calculateSingleLegCost('pub_aircon', distKm, muniA, muniB), 'pub_aircon'),
                     isRecommended: false,
                     category: 'Public'
                 },
@@ -2538,7 +2646,8 @@ try {
             let totalLegFare = 0;
             if (!isSiteMaint) {
                 selectedModes.forEach(m => {
-                    totalLegFare += window.calculateSingleLegCost(m, window.currentLegModalDistKm, window.currentLegModalMuniA, window.currentLegModalMuniB);
+                    const u = window.calculateSingleLegCost(m, window.currentLegModalDistKm, window.currentLegModalMuniA, window.currentLegModalMuniB);
+                    totalLegFare += window.calculatePartyTransitFare(u, m);
                 });
             }
             const fareEl = document.getElementById('leg-modal-total-fare');
@@ -2659,7 +2768,8 @@ try {
 
             let totalCost = 0;
             selectedModes.forEach(m => {
-                totalCost += window.calculateSingleLegCost(m, window.currentLegModalDistKm, window.currentLegModalMuniA, window.currentLegModalMuniB);
+                const u = window.calculateSingleLegCost(m, window.currentLegModalDistKm, window.currentLegModalMuniA, window.currentLegModalMuniB);
+                totalCost += window.calculatePartyTransitFare(u, m);
             });
 
             const displayNames = selectedModes.map(m => window.getVehicleDisplayName(m));
@@ -4185,6 +4295,114 @@ try {
             }
         };
 
+        var itineraryFsMap = null;
+        var itineraryFsLayers = [];
+
+        window.openItineraryFullMapPreview = function () {
+            const modal = document.getElementById('itinerary-fullscreen-map-modal');
+            if (!modal) return;
+            modal.style.display = 'flex';
+
+            const distTxt = document.getElementById('draft-map-dist')?.textContent || '';
+            const timeTxt = document.getElementById('draft-map-time')?.textContent || '';
+            const statsEl = document.getElementById('itinerary-fs-stats');
+            if (statsEl) {
+                statsEl.textContent = (distTxt && timeTxt) ? `${distTxt} • ${timeTxt}` : (distTxt || timeTxt || 'Route Preview');
+            }
+
+            const mapDiv = document.getElementById('itinerary-fullscreen-map');
+            if (!itineraryFsMap && typeof L !== 'undefined' && mapDiv) {
+                itineraryFsMap = L.map(mapDiv, {
+                    attributionControl: false,
+                    zoomControl: false,
+                    scrollWheelZoom: true,
+                    dragging: true,
+                    touchZoom: true,
+                    doubleClickZoom: true
+                }).setView([16.6159, 120.3210], 13);
+                window.itineraryFsMap = itineraryFsMap;
+
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 19,
+                    subdomains: ['a', 'b', 'c'],
+                    detectRetina: true
+                }).addTo(itineraryFsMap);
+
+                // Add zoom control at bottom-right
+                L.control.zoom({ position: 'bottomright' }).addTo(itineraryFsMap);
+
+                // Bundled municipal geometry
+                if (window.OFFLINE_MUNICIPALITIES_GEOJSON) {
+                    try {
+                        L.geoJSON(window.OFFLINE_MUNICIPALITIES_GEOJSON, {
+                            interactive: false,
+                            style: { stroke: false, weight: 0, opacity: 0, fillColor: '#b8dcec', fillOpacity: 0.15 }
+                        }).addTo(itineraryFsMap);
+                    } catch (e) { }
+                }
+            }
+
+            syncFullscreenMapLayers();
+
+            setTimeout(() => {
+                if (itineraryFsMap) {
+                    itineraryFsMap.invalidateSize();
+                    window.fitItineraryFullscreenMapBounds();
+                }
+            }, 120);
+        };
+
+        window.closeItineraryFullscreenMap = function () {
+            const modal = document.getElementById('itinerary-fullscreen-map-modal');
+            if (modal) modal.style.display = 'none';
+        };
+
+        window.fitItineraryFullscreenMapBounds = function () {
+            if (!itineraryFsMap) return;
+            if (draftMap && draftMap.getBounds && draftMap.getBounds().isValid && draftMap.getBounds().isValid()) {
+                itineraryFsMap.fitBounds(draftMap.getBounds(), { padding: [100, 40], maxZoom: 16, animate: true });
+            }
+        };
+
+        function syncFullscreenMapLayers() {
+            if (!itineraryFsMap) return;
+            itineraryFsLayers.forEach(l => {
+                try { itineraryFsMap.removeLayer(l); } catch (e) { }
+            });
+            itineraryFsLayers = [];
+
+            if (draftMap) {
+                draftMap.eachLayer(layer => {
+                    if (layer instanceof L.TileLayer) return;
+                    if (layer._isOfflineBaseLayer) return;
+
+                    if (layer instanceof L.Polyline && !(layer instanceof L.Polygon)) {
+                        const latlngs = layer.getLatLngs();
+                        const opts = layer.options || {};
+                        const poly = L.polyline(latlngs, {
+                            color: opts.color || '#00f2fe',
+                            weight: (opts.weight || 4.5) + 1,
+                            opacity: opts.opacity || 1,
+                            dashArray: opts.dashArray || null,
+                            lineJoin: 'round',
+                            lineCap: 'round'
+                        }).addTo(itineraryFsMap);
+                        itineraryFsLayers.push(poly);
+                    } else if (layer instanceof L.Marker) {
+                        const mOpts = layer.options || {};
+                        const marker = L.marker(layer.getLatLng(), {
+                            icon: mOpts.icon || new L.Icon.Default(),
+                            zIndexOffset: mOpts.zIndexOffset || 500
+                        }).addTo(itineraryFsMap);
+                        if (layer.getPopup && layer.getPopup()) {
+                            marker.bindPopup(layer.getPopup().getContent(), { autoPanPadding: [20, 20] });
+                        }
+                        itineraryFsLayers.push(marker);
+                    }
+                });
+            }
+        }
+
         // Real-time dynamic GPS listener (Singleton listener to prevent duplicates)
         let _gpsUpdateTimeout = null;
         if (window._itineraryGpsHandler) {
@@ -4871,6 +5089,12 @@ try {
             if (typeof window.calculateModalBudget === 'function') {
                 window.calculateModalBudget();
             }
+            if (typeof window.updateItineraryMainBudgetDisplay === 'function') {
+                window.updateItineraryMainBudgetDisplay();
+            }
+            if (typeof window.renderItinerary === 'function') {
+                window.renderItinerary(true);
+            }
         };
 
         window.adjustCompanionCount = function (type, delta) {
@@ -4952,6 +5176,12 @@ try {
             window.updateCompanionHeadcountSummary();
             if (typeof window.calculateModalBudget === 'function') {
                 window.calculateModalBudget();
+            }
+            if (typeof window.updateItineraryMainBudgetDisplay === 'function') {
+                window.updateItineraryMainBudgetDisplay();
+            }
+            if (typeof window.renderItinerary === 'function') {
+                window.renderItinerary(true);
             }
         };
 

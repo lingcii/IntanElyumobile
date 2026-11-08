@@ -192,16 +192,20 @@ if (is_dir($imgDir)) {
             }
         }
 
+        const isTrike = (normType === 'tricycle' || normType === 'trike');
+        const trikeMultiplier = isTrike ? 2 : 1;
+
         if (nextMatch) {
-            const fare = parseFloat(nextMatch.regular_fare);
+            const rawFare = parseFloat(nextMatch.regular_fare) * trikeMultiplier;
+            const fare = isTrike ? Math.max(25, rawFare) : rawFare;
             const boundaryKm = parseFloat(nextMatch.distance_km);
             const prevKm = prevMatch ? parseFloat(prevMatch.distance_km) : 0;
             const passed = prevMatch !== null && dKm > prevKm;
 
             return {
                 fare: fare,
-                discountedFare: parseFloat(nextMatch.discounted_fare || (fare * 0.8)),
-                baseFare: parseFloat(fareEntry.base_fare || rates[0].regular_fare),
+                discountedFare: parseFloat(nextMatch.discounted_fare ? (nextMatch.discounted_fare * trikeMultiplier) : (fare * 0.8)),
+                baseFare: parseFloat(fareEntry.base_fare || rates[0].regular_fare) * trikeMultiplier,
                 boundaryKm: boundaryKm,
                 prevBoundaryKm: prevKm,
                 isPassedBoundary: passed,
@@ -220,12 +224,13 @@ if (is_dir($imgDir)) {
             const perKm = (normType === 'tricycle' || normType === 'trike') ? 2.0 : 1.8;
             const projectedNextKm = Math.ceil(dKm);
             const nextBoundaryExtra = Math.max(1, projectedNextKm - maxD);
-            const fare = Math.round(parseFloat(maxRate.regular_fare) + (nextBoundaryExtra * perKm));
+            const rawFare = Math.round(parseFloat(maxRate.regular_fare) + (nextBoundaryExtra * perKm));
+            const fare = isTrike ? Math.max(25, rawFare * trikeMultiplier) : (rawFare * trikeMultiplier);
 
             return {
                 fare: fare,
                 discountedFare: Math.round(fare * 0.8),
-                baseFare: parseFloat(fareEntry.base_fare || rates[0].regular_fare),
+                baseFare: parseFloat(fareEntry.base_fare || rates[0].regular_fare) * trikeMultiplier,
                 boundaryKm: projectedNextKm,
                 prevBoundaryKm: maxD,
                 isPassedBoundary: true,
@@ -372,6 +377,13 @@ if (is_dir($imgDir)) {
     </div>
 
     <!-- Action Buttons Stack (Stacked on the Right Side) -->
+    <!-- 0. Full Preview Button (4 L Lines / Viewport Expand) -->
+    <div class="btn-full-preview animate-slide-up" id="btn-full-preview" onclick="window.triggerMapFullPreview()"
+        style="position: absolute; bottom: calc(295px + env(safe-area-inset-bottom)); right: 10px !important; left: auto !important; width: 44px; height: 44px; background: linear-gradient(135deg, rgba(30, 58, 138, 0.9) 0%, rgba(63, 125, 183, 0.88) 100%); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: none !important; outline: none !important; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #ffffff; font-size: 17px; box-shadow: 0 8px 20px rgba(10, 25, 60, 0.3); z-index: 900; cursor: pointer; transition: all 0.2s;"
+        title="Full Map Preview" aria-label="Full Map Preview">
+        <i class="fa-solid fa-expand"></i>
+    </div>
+
     <!-- 1. Layer Toggle Button -->
     <div class="btn-layer-toggle animate-slide-up" id="btn-layer-toggle"
         style="position: absolute; bottom: calc(235px + env(safe-area-inset-bottom)); right: 10px !important; left: auto !important; width: 44px; height: 44px; background: linear-gradient(135deg, rgba(30, 58, 138, 0.9) 0%, rgba(63, 125, 183, 0.88) 100%); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: none !important; outline: none !important; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #ffffff; font-size: 18px; box-shadow: 0 8px 20px rgba(10, 25, 60, 0.3); z-index: 900; cursor: pointer; transition: all 0.2s;">
@@ -509,7 +521,7 @@ if (is_dir($imgDir)) {
 
     <style>
         .map-directions-panel{position:absolute;inset:0;z-index:1200;background:#fff;color:#0f172a;display:flex;visibility:hidden;pointer-events:none;flex-direction:column;overflow:hidden;padding-top:max(14px,env(safe-area-inset-top));transform:translateX(18px);opacity:0;transition:transform .22s cubic-bezier(.16,1,.3,1),opacity .18s ease,visibility 0s linear .22s}.map-directions-panel.open{visibility:visible;pointer-events:auto;transform:translateX(0);opacity:1;transition-delay:0s}.directions-topbar{display:grid;grid-template-columns:42px minmax(0,1fr) 42px;align-items:center;gap:8px;padding:12px 14px 8px}.directions-back,.directions-swap{width:42px;height:42px;border:0;background:transparent;color:#1e3a8a;font-size:18px;border-radius:50%;display:flex;align-items:center;justify-content:center}.directions-swap i{transform:rotate(90deg)}.directions-fields{position:relative;display:flex;flex-direction:column;gap:8px}.directions-field-row{height:46px;border:1.5px solid #d5dce8;border-radius:9px;display:flex;align-items:center;gap:11px;padding:0 12px;background:#fff;box-shadow:0 1px 3px rgba(15,23,42,.05)}.directions-field-row:focus-within{border-color:#1e3a8a;box-shadow:0 0 0 3px rgba(30,58,138,.1)}.directions-field-row input{width:100%;min-width:0;border:0!important;outline:0!important;background:transparent!important;color:#0f172a;font-size:15px;padding:0;box-shadow:none!important}.directions-dot-start{width:9px;height:9px;border-radius:50%;background:#2563eb;box-shadow:0 0 0 5px #dbeafe;flex:0 0 auto}.directions-dot-destination{color:#1e3a8a;font-size:15px;width:12px;text-align:center}.directions-connector{position:absolute;left:16px;top:43px;height:13px;border-left:2px dotted #94a3b8}.directions-modes{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:6px 18px 14px;border-bottom:1px solid #e2e8f0}.directions-mode{min-height:48px;border:0;border-radius:16px;background:#f1f5f9;color:#1e3a8a;display:flex;align-items:center;justify-content:center;gap:7px;font-size:12px;font-weight:800}.directions-mode i{font-size:16px;color:#1e3a8a}.directions-mode.active{background:#dbeafe;box-shadow:inset 0 0 0 1px #93c5fd}.directions-results-header{display:flex;justify-content:space-between;align-items:center;padding:18px 22px 7px}.directions-results-header strong{font-size:13px;color:#334155;text-transform:uppercase;letter-spacing:.35px}.directions-results-header button{border:0;background:transparent;color:#1e3a8a;font-size:12px;font-weight:800}.directions-results{flex:1;overflow-y:auto;padding:0 18px}.directions-result{width:100%;display:flex;align-items:center;gap:13px;padding:13px 4px;border:0;border-bottom:1px solid #e2e8f0;background:#fff;text-align:left;color:#0f172a}.directions-result-icon{width:34px;height:34px;flex:0 0 34px;border-radius:50%;background:#eef2f7;color:#1e3a8a;display:flex;align-items:center;justify-content:center}.directions-result strong,.directions-result span{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.directions-result strong{font-size:14px;font-weight:700}.directions-result span{font-size:12px;color:#64748b;margin-top:3px}.directions-empty{text-align:center;color:#64748b;font-size:13px;padding:46px 20px;line-height:1.5}.directions-more{border:0;border-top:1px solid #e2e8f0;background:#fff;color:#1e3a8a;font-size:13px;font-weight:800;padding:15px 20px max(16px,env(safe-area-inset-bottom));display:none}.map-route-summary{position:absolute;left:12px;right:12px;bottom:calc(105px + env(safe-area-inset-bottom));z-index:910;display:none;align-items:center;justify-content:space-between;gap:10px;background:#fff;border-radius:18px;padding:11px 12px;box-shadow:0 10px 30px rgba(10,25,60,.3)}.map-route-summary.open{display:flex}.map-route-summary-main{display:flex;align-items:center;gap:10px;min-width:0;flex:1}.map-route-summary-icon{width:38px;height:38px;flex:0 0 38px;border-radius:12px;background:#dbeafe;color:#1e3a8a;display:flex;align-items:center;justify-content:center}.map-route-summary strong,.map-route-summary span{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.map-route-summary strong{font-size:13px;color:#0f172a}.map-route-summary span{font-size:11px;color:#64748b;margin-top:2px}.map-route-summary-actions{display:flex;gap:5px}.map-route-summary-actions button{height:34px;border:0;border-radius:10px;background:#1e3a8a;color:#fff;padding:0 10px;font-size:11px;font-weight:800}.map-route-summary-actions button:last-child{width:34px;padding:0}.map-directions-open #magic-nav,.map-directions-open #bottom-navigation{visibility:hidden!important;pointer-events:none!important}
-        .map-route-active #magic-nav,.map-route-active #bottom-navigation,.map-route-active .map-floating-header{visibility:hidden!important;pointer-events:none!important}.map-route-endpoints{position:absolute;left:14px;right:14px;top:max(14px,env(safe-area-inset-top));z-index:920;display:none;gap:7px}.map-route-endpoints.open{display:flex}.map-route-endpoints>button:first-child{min-width:0;flex:1;border:0;border-radius:18px;background:#fff;padding:10px 14px;display:grid;grid-template-columns:12px minmax(0,1fr);align-items:center;gap:4px 10px;text-align:left;box-shadow:0 8px 24px rgba(10,25,60,.28);color:#334155}.map-route-endpoints>button:last-child{width:48px;border:0;border-radius:16px;background:#fff;color:#1e3a8a;font-size:18px;box-shadow:0 8px 24px rgba(10,25,60,.28)}.map-route-endpoints span,.map-route-endpoints strong{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:13px}.map-route-endpoints strong{color:#0f172a}.route-endpoint-dot{width:8px;height:8px;border-radius:50%;background:#2563eb;box-shadow:0 0 0 3px #dbeafe}.map-route-endpoints .fa-location-dot{color:#dc2626}.route-endpoint-divider{grid-column:2;height:1px;background:#e2e8f0;width:100%}.map-route-summary{left:0;right:0;bottom:0;z-index:930;display:none!important;align-items:stretch;justify-content:flex-start;gap:0;background:#fff;border-radius:26px 26px 0 0;padding:9px 18px max(18px,env(safe-area-inset-bottom));box-shadow:0 -10px 34px rgba(10,25,60,.3);flex-direction:column}.map-route-summary.open{display:flex!important}.route-sheet-handle{width:54px;height:5px;border-radius:5px;background:#cbd5e1;margin:0 auto 11px}.route-sheet-header{display:flex;align-items:center;justify-content:space-between}.route-sheet-header>strong{font-size:24px;color:#0f172a}.route-sheet-header>div{display:flex;gap:7px}.route-sheet-header button{width:38px;height:38px;border:0;border-radius:50%;background:#f1f5f9;color:#1e3a8a;font-size:14px}.route-sheet-modes{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:13px -4px 12px;border-bottom:1px solid #e2e8f0}.route-sheet-modes button{border:0;background:transparent;color:#64748b;padding:8px 4px 11px;font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:6px;border-bottom:3px solid transparent}.route-sheet-modes button.active{color:#1e3a8a;border-bottom-color:#1e3a8a}.route-sheet-overview strong{font-size:22px;color:#0f172a;display:block}.route-sheet-overview>span{font-size:12px;color:#64748b;display:block;margin-top:4px}.route-sheet-actions{display:grid;grid-template-columns:1.15fr 1.15fr .8fr;gap:7px;margin-top:15px}.route-sheet-actions button{min-height:44px;border:0;border-radius:15px;background:#dbeafe;color:#1e3a8a;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:6px}.route-sheet-actions button:first-child{background:#1e3a8a;color:#fff}
+        .map-route-active #magic-nav,.map-route-active #bottom-navigation,.map-route-active .map-floating-header{visibility:hidden!important;pointer-events:none!important}.map-route-endpoints{position:absolute;left:14px;right:14px;top:max(14px,env(safe-area-inset-top));z-index:920;display:none;gap:7px}.map-route-endpoints.open{display:flex}.map-route-endpoints>button:first-child{min-width:0;flex:1;border:0;border-radius:18px;background:#fff;padding:10px 14px;display:grid;grid-template-columns:12px minmax(0,1fr);align-items:center;gap:4px 10px;text-align:left;box-shadow:0 8px 24px rgba(10,25,60,.28);color:#334155}.map-route-endpoints>button:last-child{width:48px;border:0;border-radius:16px;background:#fff;color:#1e3a8a;font-size:18px;box-shadow:0 8px 24px rgba(10,25,60,.28)}.map-route-endpoints span,.map-route-endpoints strong{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:13px}.map-route-endpoints strong{color:#0f172a}.route-endpoint-dot{width:8px;height:8px;border-radius:50%;background:#2563eb;box-shadow:0 0 0 3px #dbeafe}.map-route-endpoints .fa-location-dot{color:#dc2626}.route-endpoint-divider{grid-column:2;height:1px;background:#e2e8f0;width:100%}.map-route-summary{left:0;right:0;bottom:0;z-index:930;display:none!important;align-items:stretch;justify-content:flex-start;gap:0;background:#fff;border-radius:22px 22px 0 0;padding:7px 14px max(12px,env(safe-area-inset-bottom));box-shadow:0 -8px 28px rgba(10,25,60,.25);flex-direction:column}.map-route-summary.open{display:flex!important}.route-sheet-handle{width:42px;height:4px;border-radius:4px;background:#cbd5e1;margin:0 auto 7px}.route-sheet-header{display:flex;align-items:center;justify-content:space-between}.route-sheet-header>strong{font-size:17px;color:#0f172a}.route-sheet-header>div{display:flex;gap:5px}.route-sheet-header button{width:32px;height:32px;border:0;border-radius:50%;background:#f1f5f9;color:#1e3a8a;font-size:12px}.route-sheet-modes{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin:8px -4px 8px;border-bottom:1px solid #e2e8f0}.route-sheet-modes button{border:0;background:transparent;color:#64748b;padding:5px 3px 8px;font-size:11.5px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:5px;border-bottom:2.5px solid transparent}.route-sheet-modes button.active{color:#1e3a8a;border-bottom-color:#1e3a8a}.route-sheet-overview strong{font-size:16px;color:#0f172a;display:block}.route-sheet-overview>span{font-size:10.5px;color:#64748b;display:block;margin-top:2px}.route-sheet-actions{display:grid;grid-template-columns:1.15fr 1.15fr .8fr;gap:6px;margin-top:9px}.route-sheet-actions button{min-height:36px;border:0;border-radius:12px;background:#dbeafe;color:#1e3a8a;font-size:10.5px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:5px}.route-sheet-actions button:first-child{background:#1e3a8a;color:#fff}
         /* Route mode owns the map viewport: keep the sheet crisp, above the app nav, and animate it in. */
         body.map-route-active #magic-nav,
         body.map-route-active #bottom-navigation {
@@ -520,8 +532,16 @@ if (is_dir($imgDir)) {
             backdrop-filter: none !important;
             -webkit-backdrop-filter: none !important;
         }
+        body.map-route-preview #magic-nav,
+        body.map-route-preview #bottom-navigation {
+            display: flex !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            pointer-events: auto !important;
+        }
         .map-directions-panel { z-index: 9800; }
         .map-route-endpoints { z-index: 9701; }
+        #place-details-sheet { z-index: 10000 !important; }
         .map-route-summary {
             z-index: 9700;
             display: none !important;
@@ -546,10 +566,6 @@ if (is_dir($imgDir)) {
         body.keyboard-open .map-route-summary,
         body.map-search-active #map-route-summary,
         body.keyboard-open #map-route-summary,
-        body.map-search-active .map-directions-panel,
-        body.keyboard-open .map-directions-panel,
-        body.map-search-active #map-directions-panel,
-        body.keyboard-open #map-directions-panel,
         body.map-search-active .map-categories,
         body.keyboard-open .map-categories,
         body.map-search-active #map-categories-container,
@@ -745,7 +761,7 @@ if (is_dir($imgDir)) {
 
                 <!-- Fee Options Breakdown Grid (Adult, Child, PWD, Senior Citizen, Envi Fee) -->
                 <div id="sheet-fee-options-container"
-                    style="margin-top:10px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.18); display:flex; flex-direction:column; gap:6px; width:100%;">
+                    style="margin-top:8px; padding-top:8px; border-top:1px solid rgba(255,255,255,0.18); display:flex; flex-direction:column; gap:4px; width:100%;">
                     <!-- Dynamically populated in JavaScript with Adult, Child, PWD, Senior Citizen, Envi Fee -->
                 </div>
             </div>
@@ -852,27 +868,23 @@ if (is_dir($imgDir)) {
 
             <!-- Available Vehicles / Transportation Card (Shown only if available vehicles exist) -->
             <div id="sheet-vehicles-card" class="dest-vehicles-card"
-                style="display:none; flex-direction:column; background:linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border:none !important; outline:none !important; border-radius:18px; padding:14px 16px; margin-bottom:12px; box-shadow:0 4px 14px rgba(32, 63, 141, 0.28) !important;">
-                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
-                    <div style="display:flex; align-items:center; gap:10px;">
-                        <div
-                            style="width:34px; height:34px; border-radius:10px; background:#ffffff !important; display:flex; align-items:center; justify-content:center; color:#1e3a8a !important; font-size:15px; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.18);">
-                            <i class="fa-solid fa-van-shuttle" style="color:#1e3a8a !important;"></i>
-                        </div>
-                        <div style="display:flex; flex-direction:column;">
-                            <span
-                                style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.8); text-transform:uppercase; letter-spacing:0.5px;">Transportation</span>
-                            <span style="font-size:13px; font-weight:800; color:#ffffff;">Available Vehicles</span>
-                        </div>
+                style="display:none; flex-direction:row; align-items:center; justify-content:space-between; gap:10px; background:linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border:none !important; outline:none !important; border-radius:18px; padding:12px 14px; margin-bottom:12px; box-shadow:0 4px 14px rgba(32, 63, 141, 0.28) !important;">
+                <div style="display:flex; align-items:center; gap:10px; min-width:0;">
+                    <div
+                        style="width:34px; height:34px; border-radius:10px; background:#ffffff !important; display:flex; align-items:center; justify-content:center; color:#1e3a8a !important; font-size:15px; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.18);">
+                        <i class="fa-solid fa-van-shuttle" style="color:#1e3a8a !important;"></i>
                     </div>
-                    <span id="sheet-vehicles-count-badge"
-                        style="font-size:11px; font-weight:800; padding:3px 10px; border-radius:100px; background:rgba(255,255,255,0.2); color:#ffffff;">--</span>
+                    <div style="display:flex; flex-direction:column; min-width:0;">
+                        <span
+                            style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.8); text-transform:uppercase; letter-spacing:0.5px;">Transportation</span>
+                        <span style="font-size:13px; font-weight:800; color:#ffffff;">Available Vehicles</span>
+                    </div>
                 </div>
 
-                <!-- Vehicles Action Button (White button with royal blue text) -->
-                <button id="sheet-btn-view-vehicles" type="button" onclick="window.openSpotVehiclesModal()"
-                    style="width:100%; border:none !important; outline:none !important; border-radius:14px; padding:12px 14px; font-size:13px; font-weight:800; display:flex; align-items:center; justify-content:center; gap:8px; transition:all 0.2s ease; background:#ffffff !important; color:#1e3a8a !important; box-shadow:0 4px 14px rgba(0,0,0,0.15); cursor:pointer;">
-                    <i class="fa-solid fa-van-shuttle" style="color:#1e3a8a !important;"></i> View Available Vehicles
+                <!-- Vehicles Action Button on Right Side -->
+                <button id="sheet-btn-view-vehicles" type="button" onclick="window.openSpotVehiclesModal()" aria-label="View Vehicles"
+                    style="width:auto; height:36px; padding:0 12px; flex-shrink:0; border:none !important; outline:none !important; border-radius:12px; font-size:11px; font-weight:800; display:inline-flex; align-items:center; justify-content:center; transition:all 0.2s ease; background:#ffffff !important; color:#1e3a8a !important; box-shadow:0 4px 14px rgba(0,0,0,0.15); cursor:pointer;">
+                    View Vehicles
                 </button>
             </div>
 
@@ -912,7 +924,7 @@ if (is_dir($imgDir)) {
                             <div class="dest-guide-title">
                                 <i class="fa-solid fa-signs-post"></i> Route Guide
                             </div>
-                            <p id="sheet-manual-guide" class="dest-guide-text"></p>
+                            <p id="sheet-manual-guide" class="dest-guide-text" style="text-align:justify; text-justify:inter-word;"></p>
                         </div>
 
                         <!-- Nearby Amenities Box with Individual Distances -->
@@ -952,7 +964,7 @@ if (is_dir($imgDir)) {
                                     <i class="fa-solid fa-headset" style="color:#00f2fe;"></i> Tourist Support & Service
                                     Centers
                                 </span>
-                                <span class="dest-support-badge" id="sheet-support-badge">Service Centers</span>
+                                <span class="dest-support-badge" id="sheet-support-badge" style="display:none;"></span>
                             </div>
 
                             <!-- Dynamic Service Centers list -->
@@ -2812,6 +2824,7 @@ if (is_dir($imgDir)) {
                     // Close any open bottom sheets or route preview sheets
                     if (typeof window.closeSheet === 'function') window.closeSheet();
                     if (typeof window.closeNearbySitesSheet === 'function') window.closeNearbySitesSheet();
+                    if (typeof window.closeMapDirectionsPanel === 'function') window.closeMapDirectionsPanel();
                     const routeSummary = document.getElementById('map-route-summary');
                     if (routeSummary) routeSummary.classList.remove('open');
                     const routeEndpoints = document.getElementById('map-route-endpoints');
@@ -3927,16 +3940,13 @@ if (is_dir($imgDir)) {
         window.updateSheetFavButton = function (isSaved) {
             const favBtn = document.getElementById('sheet-fav-btn');
             if (!favBtn) return;
+            favBtn.style.setProperty('background', '#ffffff', 'important');
+            favBtn.style.setProperty('border', '1.5px solid #e2e8f0', 'important');
+            favBtn.style.setProperty('box-shadow', '0 2px 8px rgba(15, 23, 42, 0.08)', 'important');
             if (isSaved) {
-                favBtn.style.setProperty('background', 'linear-gradient(135deg, #fee2e2 0%, #fecaca 100%)', 'important');
-                favBtn.style.setProperty('border', '1.5px solid #f87171', 'important');
-                favBtn.style.setProperty('box-shadow', '0 4px 12px rgba(239, 68, 68, 0.25)', 'important');
-                favBtn.innerHTML = '<i class="fa-solid fa-heart" style="color:#dc2626 !important; font-size:20px; transform:scale(1.08); transition:transform 0.2s;"></i>';
+                favBtn.innerHTML = '<i class="fa-solid fa-heart" style="color:#ef4444 !important; font-size:20px; transform:scale(1.08); transition:transform 0.2s;"></i>';
                 favBtn.title = 'Saved to favorites';
             } else {
-                favBtn.style.setProperty('background', '#ffffff', 'important');
-                favBtn.style.setProperty('border', '1.5px solid #e2e8f0', 'important');
-                favBtn.style.setProperty('box-shadow', '0 2px 8px rgba(15, 23, 42, 0.08)', 'important');
                 favBtn.innerHTML = '<i class="fa-regular fa-heart" style="color:#ef4444 !important; font-size:20px;"></i>';
                 favBtn.title = 'Save to favorites';
             }
@@ -4512,57 +4522,57 @@ if (is_dir($imgDir)) {
                     if (hasAnyFees) {
                         feeOptionsContainer.style.display = 'flex';
                         feeOptionsContainer.innerHTML = `
-                            <div style="font-size:10.5px; font-weight:800; color:rgba(255,255,255,0.85); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px; display:flex; align-items:center; gap:5px;">
-                                <i class="fa-solid fa-tags" style="color:#00f2fe; font-size:10px;"></i> Fee Options & Categories
+                            <div style="font-size:9px; font-weight:800; color:rgba(255,255,255,0.85); text-transform:uppercase; letter-spacing:0.4px; margin-bottom:2px; display:flex; align-items:center; gap:4px;">
+                                <i class="fa-solid fa-tags" style="color:#00f2fe; font-size:8.5px;"></i> Fee Options & Categories
                             </div>
-                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; width:100%;">
-                                <div style="background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.18); border-radius:10px; padding:7px 10px; display:flex; align-items:center; justify-content:space-between;">
-                                    <span style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.9); display:flex; align-items:center; gap:6px;">
-                                        <i class="fa-solid fa-user" style="color:#00f2fe; font-size:11px;"></i> Adult
+                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:4px; width:100%;">
+                                <div style="background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.18); border-radius:8px; padding:4px 8px; display:flex; align-items:center; justify-content:space-between;">
+                                    <span style="font-size:9.5px; font-weight:700; color:rgba(255,255,255,0.9); display:flex; align-items:center; gap:4px;">
+                                        <i class="fa-solid fa-user" style="color:#00f2fe; font-size:9.5px;"></i> Adult
                                     </span>
-                                    <span style="font-size:11.5px; font-weight:800; color:#ffffff;">${displayAdult > 0 ? `₱${displayAdult.toFixed(2)}` : 'Free'}</span>
+                                    <span style="font-size:10px; font-weight:800; color:#ffffff;">${displayAdult > 0 ? `₱${displayAdult.toFixed(2)}` : 'Free'}</span>
                                 </div>
-                                <div style="background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.18); border-radius:10px; padding:7px 10px; display:flex; align-items:center; justify-content:space-between;">
-                                    <span style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.9); display:flex; align-items:center; gap:6px;">
-                                        <i class="fa-solid fa-child" style="color:#fed7aa; font-size:11px;"></i> Child
+                                <div style="background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.18); border-radius:8px; padding:4px 8px; display:flex; align-items:center; justify-content:space-between;">
+                                    <span style="font-size:9.5px; font-weight:700; color:rgba(255,255,255,0.9); display:flex; align-items:center; gap:4px;">
+                                        <i class="fa-solid fa-child" style="color:#fed7aa; font-size:9.5px;"></i> Child
                                     </span>
-                                    <span style="font-size:11.5px; font-weight:800; color:#ffffff;">${displayChild > 0 ? `₱${displayChild.toFixed(2)}` : 'Free'}</span>
+                                    <span style="font-size:10px; font-weight:800; color:#ffffff;">${displayChild > 0 ? `₱${displayChild.toFixed(2)}` : 'Free'}</span>
                                 </div>
-                                <div style="background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.18); border-radius:10px; padding:7px 10px; display:flex; align-items:center; justify-content:space-between;">
-                                    <span style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.9); display:flex; align-items:center; gap:6px;">
-                                        <i class="fa-solid fa-wheelchair" style="color:#c4b5fd; font-size:11px;"></i> PWD
+                                <div style="background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.18); border-radius:8px; padding:4px 8px; display:flex; align-items:center; justify-content:space-between;">
+                                    <span style="font-size:9.5px; font-weight:700; color:rgba(255,255,255,0.9); display:flex; align-items:center; gap:4px;">
+                                        <i class="fa-solid fa-wheelchair" style="color:#c4b5fd; font-size:9.5px;"></i> PWD
                                     </span>
-                                    <span style="font-size:11.5px; font-weight:800; color:#ffffff;">${displayPwd > 0 ? `₱${displayPwd.toFixed(2)}` : 'Free'}</span>
+                                    <span style="font-size:10px; font-weight:800; color:#ffffff;">${displayPwd > 0 ? `₱${displayPwd.toFixed(2)}` : 'Free'}</span>
                                 </div>
-                                <div style="background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.18); border-radius:10px; padding:7px 10px; display:flex; align-items:center; justify-content:space-between;">
-                                    <span style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.9); display:flex; align-items:center; gap:6px;">
-                                        <i class="fa-solid fa-person-cane" style="color:#fbcfe8; font-size:11px;"></i> Senior Citizen
+                                <div style="background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.18); border-radius:8px; padding:4px 8px; display:flex; align-items:center; justify-content:space-between;">
+                                    <span style="font-size:9.5px; font-weight:700; color:rgba(255,255,255,0.9); display:flex; align-items:center; gap:4px;">
+                                        <i class="fa-solid fa-person-cane" style="color:#fbcfe8; font-size:9.5px;"></i> Senior Citizen
                                     </span>
-                                    <span style="font-size:11.5px; font-weight:800; color:#ffffff;">${displaySenior > 0 ? `₱${displaySenior.toFixed(2)}` : 'Free'}</span>
+                                    <span style="font-size:10px; font-weight:800; color:#ffffff;">${displaySenior > 0 ? `₱${displaySenior.toFixed(2)}` : 'Free'}</span>
                                 </div>
                             </div>
                             <!-- Entrance next to Environmental in a 2-column card (fee text removed) -->
-                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; width:100%; margin-top:2px;">
-                                <div style="background:rgba(255,255,255,0.14); border:1px solid rgba(255,255,255,0.2); border-radius:10px; padding:7px 10px; display:flex; align-items:center; justify-content:space-between;">
-                                    <span style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.95); display:flex; align-items:center; gap:6px; white-space:nowrap;">
-                                        <i class="fa-solid fa-ticket" style="color:#00f2fe; font-size:11px;"></i> Entrance
+                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:4px; width:100%; margin-top:2px;">
+                                <div style="background:rgba(255,255,255,0.14); border:1px solid rgba(255,255,255,0.2); border-radius:8px; padding:4px 8px; display:flex; align-items:center; justify-content:space-between;">
+                                    <span style="font-size:9.5px; font-weight:700; color:rgba(255,255,255,0.95); display:flex; align-items:center; gap:4px; white-space:nowrap;">
+                                        <i class="fa-solid fa-ticket" style="color:#00f2fe; font-size:9.5px;"></i> Entrance
                                     </span>
-                                    <span style="font-size:11.5px; font-weight:800; color:#ffffff; white-space:nowrap; margin-left:4px;">${displayEntrance > 0 ? `₱${displayEntrance.toFixed(2)}` : 'Free'}</span>
+                                    <span style="font-size:10px; font-weight:800; color:#ffffff; white-space:nowrap; margin-left:4px;">${displayEntrance > 0 ? `₱${displayEntrance.toFixed(2)}` : 'Free'}</span>
                                 </div>
-                                <div style="background:rgba(255,255,255,0.14); border:1px solid rgba(255,255,255,0.2); border-radius:10px; padding:7px 10px; display:flex; align-items:center; justify-content:space-between;">
-                                    <span style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.95); display:flex; align-items:center; gap:6px; white-space:nowrap;">
-                                        <i class="fa-solid fa-leaf" style="color:#34d399; font-size:11px;"></i> Environmental
+                                <div style="background:rgba(255,255,255,0.14); border:1px solid rgba(255,255,255,0.2); border-radius:8px; padding:4px 8px; display:flex; align-items:center; justify-content:space-between;">
+                                    <span style="font-size:9.5px; font-weight:700; color:rgba(255,255,255,0.95); display:flex; align-items:center; gap:4px; white-space:nowrap;">
+                                        <i class="fa-solid fa-leaf" style="color:#34d399; font-size:9.5px;"></i> Environmental
                                     </span>
-                                    <span style="font-size:11.5px; font-weight:800; color:#ffffff; white-space:nowrap; margin-left:4px;">${displayEnvi > 0 ? `₱${displayEnvi.toFixed(2)}` : 'Free'}</span>
+                                    <span style="font-size:10px; font-weight:800; color:#ffffff; white-space:nowrap; margin-left:4px;">${displayEnvi > 0 ? `₱${displayEnvi.toFixed(2)}` : 'Free'}</span>
                                 </div>
                             </div>
                         `;
                     } else {
                         feeOptionsContainer.style.display = 'flex';
                         feeOptionsContainer.innerHTML = `
-                            <div style="background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.22); border-radius:10px; padding:8px 12px; display:flex; align-items:center; justify-content:center; gap:8px;">
-                                <i class="fa-solid fa-circle-info" style="color:#00f2fe; font-size:13px;"></i>
-                                <span style="font-size:11.5px; font-weight:700; color:#ffffff;">Free admission for Adults, Children, PWD & Senior Citizens</span>
+                            <div style="background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.22); border-radius:8px; padding:5px 10px; display:flex; align-items:center; justify-content:center; gap:6px;">
+                                <i class="fa-solid fa-circle-info" style="color:#00f2fe; font-size:11px;"></i>
+                                <span style="font-size:10px; font-weight:700; color:#ffffff;">Free admission for Adults, Children, PWD & Senior Citizens</span>
                             </div>
                         `;
                     }
@@ -4588,25 +4598,9 @@ if (is_dir($imgDir)) {
             }
 
             if (hasVehicles) {
-                const getVehIcon = (name) => {
-                    const n = (name || '').toLowerCase();
-                    if (n.includes('car') || n.includes('sedan') || n.includes('suv')) return 'fa-car';
-                    if (n.includes('motorcycle') || n.includes('motor') || n.includes('scooter') || n.includes('bike')) return 'fa-motorcycle';
-                    if (n.includes('van') || n.includes('uve')) return 'fa-van-shuttle';
-                    if (n.includes('pub') || n.includes('bus')) return 'fa-bus';
-                    if (n.includes('puj') || n.includes('jeep')) return 'fa-bus-simple';
-                    if (n.includes('trike') || n.includes('tricycle')) return 'fa-bicycle';
-                    if (n.includes('taxi')) return 'fa-taxi';
-                    return 'fa-car-side';
-                };
-
                 if (vehCountBadge) {
-                    vehCountBadge.textContent = `${allVehicles.length} Available`;
-                    vehCountBadge.style.background = 'rgba(255, 255, 255, 0.2)';
-                    vehCountBadge.style.color = '#ffffff';
+                    vehCountBadge.style.display = 'none';
                 }
-
-
 
                 if (btnViewVehicles) {
                     btnViewVehicles.disabled = false;
@@ -4616,7 +4610,7 @@ if (is_dir($imgDir)) {
                     btnViewVehicles.style.background = '#ffffff';
                     btnViewVehicles.style.color = '#1e3a8a';
                     btnViewVehicles.style.boxShadow = '0 4px 14px rgba(0, 0, 0, 0.15)';
-                    btnViewVehicles.innerHTML = `<i class="fa-solid fa-van-shuttle" style="color:#1e3a8a;"></i> View Available Vehicles (${allVehicles.length})`;
+                    btnViewVehicles.innerHTML = 'View Vehicles';
                 }
             }
 
@@ -4639,24 +4633,30 @@ if (is_dir($imgDir)) {
                     scContainer.style.display = 'flex';
                     scContainer.style.flexDirection = 'column';
                     scContainer.style.gap = '6px';
-                    if (supportBadgeEl) supportBadgeEl.textContent = `${locationData.service_centers.length} Service Center${locationData.service_centers.length > 1 ? 's' : ''}`;
-                    scContainer.innerHTML = locationData.service_centers.map(sc => `
+                    if (supportBadgeEl) supportBadgeEl.style.display = 'none';
+                    scContainer.innerHTML = locationData.service_centers.map(sc => {
+                        const scName = (sc.name || '').trim();
+                        const scType = (sc.type || '').trim();
+                        const isRedundantType = !scType || scType.toLowerCase() === scName.toLowerCase() || scName.toLowerCase().includes(scType.toLowerCase());
+                        const typeBadge = isRedundantType ? '' : `<span style="font-size:9.5px; font-weight:700; color:#ffffff; background:rgba(255,255,255,0.18); padding:1px 6px; border-radius:4px;">${scType}</span>`;
+                        return `
                     <div style="background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.18); border-radius:12px; padding:8px 10px;">
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px;">
                             <span style="font-size:12px; font-weight:800; color:#00f2fe; display:flex; align-items:center; gap:5px;">
-                                <i class="fa-solid fa-building-flag" style="font-size:11px;"></i> ${sc.name}
+                                <i class="fa-solid fa-building-flag" style="font-size:11px;"></i> ${scName}
                             </span>
-                            <span style="font-size:9.5px; font-weight:700; color:#ffffff; background:rgba(255,255,255,0.18); padding:1px 6px; border-radius:4px;">${sc.type || 'Terminal'}</span>
+                            ${typeBadge}
                         </div>
                         ${sc.address ? `<div style="font-size:11px; color:rgba(255,255,255,0.9); margin-bottom:2px;"><i class="fa-solid fa-location-dot" style="font-size:10px; color:#00f2fe; margin-right:4px;"></i>${sc.address}</div>` : ''}
                         ${sc.contact_number ? `<div style="font-size:11px; color:#34d399; font-weight:700;"><i class="fa-solid fa-phone" style="font-size:10px; margin-right:4px;"></i><a href="tel:${sc.contact_number}" style="color:#34d399; text-decoration:none;">${sc.contact_number}</a></div>` : ''}
                     </div>
-                `).join('');
+                `;
+                    }).join('');
                 } else {
                     if (supportBox) supportBox.style.display = 'none';
                     scContainer.style.display = 'none';
                     scContainer.innerHTML = '';
-                    if (supportBadgeEl) supportBadgeEl.textContent = 'Service Centers';
+                    if (supportBadgeEl) supportBadgeEl.style.display = 'none';
                 }
             }
 
@@ -4814,6 +4814,13 @@ if (is_dir($imgDir)) {
             if (placeSheet) {
                 if (placeSheet.closeSheet) placeSheet.closeSheet();
                 else placeSheet.classList.remove('active');
+            }
+            if (window._returnToEndpointsAfterDetails) {
+                window._returnToEndpointsAfterDetails = false;
+                const endpoints = document.getElementById('map-route-endpoints');
+                if (endpoints && document.body.classList.contains('map-route-active')) {
+                    endpoints.classList.add('open');
+                }
             }
         };
 
@@ -5143,12 +5150,12 @@ if (is_dir($imgDir)) {
             const dbFare = (type) => window.getFareFromMatrix(type, distanceKm, targetMuni);
 
             if (tightRoads) {
-                const trikeFare = dbFare('tricycle') ?? Math.round(16.32 + (Math.max(0, distanceKm - 1.7) * 2.0));
+                const trikeFare = dbFare('tricycle') ?? Math.max(25, (Math.max(15, 15 + Math.max(0, Math.ceil(distanceKm) - 1) * 3)) * 2);
                 faresHtml += createCard('Tricycle', 'fa-motorcycle', 'var(--secondary-color)', 'Only vehicle that fits narrow/tight roads', trikeFare, '24/7 (Night Rates 10PM+)', true);
             } else {
                 // Public Vehicles - Official LTFRB & Municipal Fare Matrices
                 if (distanceKm <= 12) {
-                    const trikeFare = dbFare('tricycle') ?? Math.round(16.32 + (Math.max(0, distanceKm - 1.7) * 2.0));
+                    const trikeFare = dbFare('tricycle') ?? Math.max(25, (Math.max(15, 15 + Math.max(0, Math.ceil(distanceKm) - 1) * 3)) * 2);
                     faresHtml += createCard('Tricycle', 'fa-motorcycle', 'var(--secondary-color)', 'Fits narrow roads, best for local transfers', trikeFare, '24/7 (Night Rates 10PM+)', true);
                 }
 
@@ -5426,7 +5433,6 @@ if (is_dir($imgDir)) {
                         </div>
                         <div style="display:inline-flex; align-items:center; background:rgba(0,242,254,0.15); border:1px solid rgba(0,242,254,0.3); padding:4px 10px; border-radius:100px; flex-shrink:0; margin-left:auto;">
                             <span style="font-size:11px; color:#ffffff; font-weight:800; white-space:nowrap;">Visitor Insights (${reviewCount})</span>
-                            ${isOfflineCached ? '<span style="font-size:9.5px; color:#fde047; font-weight:800; background:rgba(250,204,21,0.2); padding:1px 5px; border-radius:4px; margin-left:4px;">Offline</span>' : ''}
                         </div>
                     </div>`;
                 } else {
@@ -5491,14 +5497,14 @@ if (is_dir($imgDir)) {
                         const safeBg = safeVal === 'Safe' ? '#10b981' : (safeVal === 'Moderate' ? '#f59e0b' : '#ef4444');
 
                         const metricsHtml = `
-                        <div style="display:flex; align-items:center; gap:8px; margin:8px 0; flex-wrap:wrap;">
-                            <div style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.14); border-radius:8px; padding:3px 8px; display:inline-flex; align-items:center; gap:5px;">
-                                <span style="font-size:9.5px; color:rgba(255,255,255,0.75); text-transform:uppercase; font-weight:800; letter-spacing:0.3px;">Cleanliness</span>
-                                <span style="font-size:10px; font-weight:800; color:#ffffff; background:${cleanBg}; padding:1.5px 6px; border-radius:5px;">${cleanVal}</span>
+                        <div style="display:flex; align-items:center; gap:5px; margin:5px 0; flex-wrap:wrap;">
+                            <div style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.14); border-radius:6px; padding:2px 6px; display:inline-flex; align-items:center; gap:4px;">
+                                <span style="font-size:8px; color:rgba(255,255,255,0.75); text-transform:uppercase; font-weight:800; letter-spacing:0.2px;">Cleanliness</span>
+                                <span style="font-size:8.5px; font-weight:800; color:#ffffff; background:${cleanBg}; padding:1px 4.5px; border-radius:4px;">${cleanVal}</span>
                             </div>
-                            <div style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.14); border-radius:8px; padding:3px 8px; display:inline-flex; align-items:center; gap:5px;">
-                                <span style="font-size:9.5px; color:rgba(255,255,255,0.75); text-transform:uppercase; font-weight:800; letter-spacing:0.3px;">Safety</span>
-                                <span style="font-size:10px; font-weight:800; color:#ffffff; background:${safeBg}; padding:1.5px 6px; border-radius:5px;">${safeVal}</span>
+                            <div style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.14); border-radius:6px; padding:2px 6px; display:inline-flex; align-items:center; gap:4px;">
+                                <span style="font-size:8px; color:rgba(255,255,255,0.75); text-transform:uppercase; font-weight:800; letter-spacing:0.2px;">Safety</span>
+                                <span style="font-size:8.5px; font-weight:800; color:#ffffff; background:${safeBg}; padding:1px 4.5px; border-radius:4px;">${safeVal}</span>
                             </div>
                         </div>`;
 
@@ -5544,13 +5550,13 @@ if (is_dir($imgDir)) {
                             extraCardsHtml += renderCard(d.data[i]);
                         }
                         html += `
-                        <div id="extra-testimonies-container" data-total-count="${d.data.length}" style="display:none; flex-direction:column; gap:10px; margin-top:10px; max-height:0; opacity:0; transform:translateY(-8px); overflow:hidden; transition:max-height 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease, transform 0.35s ease;">
+                        <div id="extra-testimonies-container" data-total-count="${d.data.length}" style="display:flex; flex-direction:column; gap:10px; margin-top:0; max-height:0; opacity:0; transform:translateY(-6px); overflow:hidden; pointer-events:none; will-change:max-height, opacity, transform, margin-top; transition:max-height 0.38s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.32s ease, transform 0.32s cubic-bezier(0.22, 1, 0.36, 1), margin-top 0.32s ease;">
                             ${extraCardsHtml}
                         </div>
                         <div style="display:flex; justify-content:center; margin-top:6px;">
-                            <button id="btn-toggle-testimonies" onclick="window.toggleAllTestimonies()" style="background:rgba(255,255,255,0.18); border:none !important; color:#ffffff; font-size:11px; font-weight:800; padding:8px 18px; border-radius:20px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; transition:all 0.2s cubic-bezier(0.16, 1, 0.3, 1);">
+                            <button id="btn-toggle-testimonies" onclick="window.toggleAllTestimonies()" style="background:rgba(255,255,255,0.18); border:none !important; color:#ffffff; font-size:11px; font-weight:800; padding:8px 18px; border-radius:20px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; transition:all 0.25s cubic-bezier(0.22, 1, 0.36, 1);">
                                 <span id="toggle-testimonies-text">View All Feedback (${d.data.length})</span>
-                                <i class="fa-solid fa-chevron-down" id="toggle-testimonies-chevron" style="transition:transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1); color:#ffffff;"></i>
+                                <i class="fa-solid fa-chevron-down" id="toggle-testimonies-chevron" style="transition:transform 0.35s cubic-bezier(0.22, 1, 0.36, 1); color:#ffffff;"></i>
                             </button>
                         </div>`;
                     }
@@ -5571,7 +5577,7 @@ if (is_dir($imgDir)) {
                     </div>
                     <div style="font-size:13.5px; font-weight:800; color:#ffffff; margin-bottom:12px;">${isOffline ? 'Offline Reviews Mode' : 'No Feedback Yet'}</div>
                     <div style="display:inline-flex; align-items:center; gap:6px; font-size:10.5px; font-weight:700; color:#ffffff; background:rgba(255,255,255,0.18); padding:5px 12px; border-radius:20px;">
-                        <i class="fa-solid fa-route" style="color:#ffffff;"></i> Review available in Trip Map & Visited Stops
+                        Review available in Trip Map & Visited Stops
                     </div>
                 </div>`;
             };
@@ -5661,29 +5667,37 @@ if (is_dir($imgDir)) {
 
             if (!isExpanded) {
                 extraContainer.style.display = 'flex';
-                void extraContainer.offsetHeight; // force reflow
-                extraContainer.style.maxHeight = '2500px';
+                extraContainer.style.maxHeight = '0px';
+                void extraContainer.offsetHeight;
+                const targetHeight = Math.max(extraContainer.scrollHeight + 24, 120);
+                extraContainer.classList.add('expanded');
+                extraContainer.style.pointerEvents = 'auto';
+                extraContainer.style.marginTop = '8px';
+                extraContainer.style.maxHeight = targetHeight + 'px';
                 extraContainer.style.opacity = '1';
                 extraContainer.style.transform = 'translateY(0)';
-                extraContainer.classList.add('expanded');
 
                 if (btnText) btnText.textContent = 'Show Less';
                 if (chevron) chevron.style.transform = 'rotate(180deg)';
+
+                setTimeout(() => {
+                    if (extraContainer.classList.contains('expanded')) {
+                        extraContainer.style.maxHeight = 'none';
+                    }
+                }, 390);
             } else {
-                extraContainer.style.maxHeight = '0';
-                extraContainer.style.opacity = '0';
-                extraContainer.style.transform = 'translateY(-8px)';
+                extraContainer.style.maxHeight = extraContainer.scrollHeight + 'px';
+                void extraContainer.offsetHeight;
                 extraContainer.classList.remove('expanded');
+                extraContainer.style.pointerEvents = 'none';
+                extraContainer.style.maxHeight = '0px';
+                extraContainer.style.marginTop = '0px';
+                extraContainer.style.opacity = '0';
+                extraContainer.style.transform = 'translateY(-6px)';
 
                 const totalCount = extraContainer.dataset.totalCount || '';
                 if (btnText) btnText.textContent = 'View All Feedback' + (totalCount ? ` (${totalCount})` : '');
                 if (chevron) chevron.style.transform = 'rotate(0deg)';
-
-                setTimeout(() => {
-                    if (!extraContainer.classList.contains('expanded')) {
-                        extraContainer.style.display = 'none';
-                    }
-                }, 380);
             }
         };
 
@@ -6029,6 +6043,21 @@ if (is_dir($imgDir)) {
             return 'fa-location-dot';
         }
 
+        function getDirectionsLocations() {
+            if (Array.isArray(window.allMapLocations) && window.allMapLocations.length > 0) {
+                return window.allMapLocations;
+            }
+            if (Array.isArray(window.allTouristSpots) && window.allTouristSpots.length > 0) {
+                return window.allTouristSpots;
+            }
+            try {
+                const cached = JSON.parse(localStorage.getItem('public_map_data') || 'null');
+                const list = cached?.data?.destinations || cached?.destinations || [];
+                if (Array.isArray(list) && list.length > 0) return list;
+            } catch (e) { }
+            return [];
+        }
+
         function renderDirectionsResults(query = '') {
             const resultsEl = document.getElementById('directions-results');
             const titleEl = document.getElementById('directions-results-title');
@@ -6038,21 +6067,24 @@ if (is_dir($imgDir)) {
 
             const cleanQuery = String(query || '').trim().toLowerCase();
             const isSearch = cleanQuery.length > 0;
+            const history = getDirectionsHistory();
+            const catalog = getDirectionsLocations().map(normalizeDirectionsPlace).filter(Boolean);
             let results;
             if (isSearch) {
-                results = (window.allMapLocations || []).map(normalizeDirectionsPlace).filter(Boolean).filter(place =>
+                results = catalog.filter(place =>
                     [place.name, place.address, place.category].some(text => String(text || '').toLowerCase().includes(cleanQuery))
                 ).slice(0, 12);
-            } else {
-                const history = getDirectionsHistory();
+            } else if (history.length > 0) {
                 results = mapDirectionsState.showAllHistory ? history : history.slice(0, 5);
+            } else {
+                results = catalog.slice(0, 12);
             }
 
             window._directionsRenderedResults = results;
-            if (titleEl) titleEl.textContent = isSearch ? 'Matching destinations' : 'Recent destinations';
-            if (clearBtn) clearBtn.style.display = !isSearch && results.length ? 'block' : 'none';
+            if (titleEl) titleEl.textContent = isSearch ? 'Matching destinations' : (history.length > 0 ? 'Recent destinations' : 'Destinations');
+            if (clearBtn) clearBtn.style.display = !isSearch && history.length > 0 ? 'block' : 'none';
             if (moreBtn) {
-                const historyCount = getDirectionsHistory().length;
+                const historyCount = history.length;
                 moreBtn.style.display = !isSearch && historyCount > 0 ? 'block' : 'none';
                 moreBtn.textContent = mapDirectionsState.showAllHistory ? 'Show less history' : 'More from recent history';
             }
@@ -6066,7 +6098,7 @@ if (is_dir($imgDir)) {
                 const imageUrl = getDirectionsPlaceImage(place);
                 const visual = imageUrl
                     ? `<img src="${escapeDirectionsText(imageUrl)}" alt="" loading="lazy" onerror="this.onerror=null;this.src='assets/img/no_image.svg'">`
-                    : `<i class="fa-solid ${directionsIcon(place, !isSearch)}"></i>`;
+                    : `<i class="fa-solid ${directionsIcon(place, !isSearch && history.length > 0)}"></i>`;
                 return `
                 <button type="button" class="directions-result" onclick="window.chooseMapDirectionsResult(${index})">
                     <span class="directions-result-icon">${visual}</span>
@@ -6131,6 +6163,8 @@ if (is_dir($imgDir)) {
         window.openMapDirections = function () {
             const panel = document.getElementById('map-directions-panel');
             if (!panel) return;
+            document.body.classList.remove('map-search-active');
+            document.getElementById('map-search-suggestions')?.classList.remove('open');
             panel.classList.add('open');
             panel.setAttribute('aria-hidden', 'false');
             document.body.classList.add('map-directions-open');
@@ -6279,6 +6313,7 @@ if (is_dir($imgDir)) {
             renderRouteVehicleStrip(mapDirectionsState.destination);
             const selectedVehicle = directionsVehicles[mapDirectionsState.vehicle] || directionsVehicles.own_car;
             document.body.classList.add('map-route-active');
+            document.body.classList.remove('map-route-preview');
             setDirectionsBaseMarkersVisible(false);
             if (summary) summary.classList.add('open');
             if (endpoints) endpoints.classList.add('open');
@@ -6392,6 +6427,14 @@ if (is_dir($imgDir)) {
             const endpoints = document.getElementById('map-route-endpoints');
             if (endpoints) endpoints.classList.remove('open');
             document.body.classList.remove('map-route-active');
+            document.body.classList.remove('map-route-preview');
+            const bottomNav = document.getElementById('bottom-navigation') || document.getElementById('magic-nav');
+            if (bottomNav) {
+                bottomNav.style.removeProperty('display');
+                bottomNav.style.removeProperty('visibility');
+                bottomNav.style.removeProperty('opacity');
+                bottomNav.style.removeProperty('pointer-events');
+            }
             setDirectionsBaseMarkersVisible(true);
             if (typeof window.updateVisibleMarkers === 'function') window.updateVisibleMarkers();
         };
@@ -6400,9 +6443,61 @@ if (is_dir($imgDir)) {
             if (window._directionsLastRoutes && window._directionsLastStart && window._directionsLastDestination) {
                 const summary = document.getElementById('map-route-summary');
                 if (summary) summary.classList.remove('open');
+                document.body.classList.add('map-route-preview');
+                const bottomNav = document.getElementById('bottom-navigation') || document.getElementById('magic-nav');
+                if (bottomNav) {
+                    bottomNav.style.setProperty('display', 'flex', 'important');
+                    bottomNav.style.setProperty('visibility', 'visible', 'important');
+                    bottomNav.style.setProperty('opacity', '1', 'important');
+                    bottomNav.style.setProperty('pointer-events', 'auto', 'important');
+                }
                 drawMapDirectionsRoutes(window._directionsLastRoutes, window._directionsLastStart, window._directionsLastDestination, true);
                 if (typeof showToast === 'function') showToast('Route shown on the map. Tap the top route bar to edit it.', 'info');
             }
+        };
+
+        window.triggerMapFullPreview = function () {
+            if (typeof window.closeSheet === 'function') window.closeSheet();
+            if (typeof window.closeNearbySitesSheet === 'function') window.closeNearbySitesSheet();
+            if (typeof window.closeMapDirectionsPanel === 'function') window.closeMapDirectionsPanel();
+            if (typeof window.toggleClassificationMenu === 'function') window.toggleClassificationMenu(false);
+
+            const summary = document.getElementById('map-route-summary');
+            if (summary && summary.classList.contains('open')) {
+                window.focusMapDirectionsRoute();
+                return;
+            }
+
+            if (window._directionsLastRoutes && window._directionsLastStart && window._directionsLastDestination) {
+                window.focusMapDirectionsRoute();
+                return;
+            }
+
+            const map = window.mapInstance;
+            if (!map) return;
+            const locations = window.allMapLocations || [];
+            if (locations.length > 0 && typeof maplibregl !== 'undefined') {
+                const bounds = new maplibregl.LngLatBounds();
+                locations.forEach(loc => {
+                    const lat = parseFloat(loc.latitude || loc.lat);
+                    const lng = parseFloat(loc.longitude || loc.lng);
+                    if (!isNaN(lat) && !isNaN(lng)) {
+                        bounds.extend([lng, lat]);
+                    }
+                });
+                if (!bounds.isEmpty()) {
+                    map.fitBounds(bounds, {
+                        padding: { top: 120, bottom: 120, left: 40, right: 40 },
+                        maxZoom: 14,
+                        duration: 800
+                    });
+                    if (typeof showToast === 'function') showToast('Full map preview', 'info');
+                    return;
+                }
+            }
+
+            map.flyTo({ center: [120.32, 16.62], zoom: 11, duration: 800 });
+            if (typeof showToast === 'function') showToast('Full map preview', 'info');
         };
 
         window.showDirectionsDestinationDetails = function () {
@@ -6421,6 +6516,9 @@ if (is_dir($imgDir)) {
             }
             const summary = document.getElementById('map-route-summary');
             if (summary) summary.classList.remove('open');
+            const endpoints = document.getElementById('map-route-endpoints');
+            if (endpoints) endpoints.classList.remove('open');
+            window._returnToEndpointsAfterDetails = true;
             window.openSheet(destination, true);
         };
 
@@ -6447,10 +6545,15 @@ if (is_dir($imgDir)) {
             { input: directionsDestinationInput, field: 'destination' }
         ].forEach(item => {
             if (!item.input) return;
-            item.input.addEventListener('focus', () => {
+            const handleActivate = () => {
                 mapDirectionsState.activeField = item.field;
-                renderDirectionsResults(item.input.value === 'Your location' ? '' : item.input.value);
-            });
+                const currentSelectedName = mapDirectionsState[item.field]?.name || '';
+                const val = item.input.value;
+                const shouldShowList = !val || val === 'Your location' || val === currentSelectedName;
+                renderDirectionsResults(shouldShowList ? '' : val);
+            };
+            item.input.addEventListener('focus', handleActivate);
+            item.input.addEventListener('click', handleActivate);
             item.input.addEventListener('input', () => renderDirectionsResults(item.input.value));
         });
 

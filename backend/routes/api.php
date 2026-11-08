@@ -1183,6 +1183,8 @@ Route::prefix('tourist')->middleware('tourist.auth')->group(function () use ($va
     Route::post('/change-password', [TouristProfileController::class, 'changePassword']);
     Route::post('/2fa/toggle', [TouristProfileController::class, 'toggle2FA']);
     Route::post('/2fa/verify', [TouristProfileController::class, 'verify2FA']);
+    Route::post('/2fa/request-disable', [TouristProfileController::class, 'requestDisable2FA']);
+    Route::post('/2fa/confirm-disable', [TouristProfileController::class, 'confirmDisable2FA']);
     Route::get('/leaderboard', [LeaderboardController::class, 'index']);
 
     Route::post('/destinations/{id}/favorite', [FavoriteController::class, 'toggle']);

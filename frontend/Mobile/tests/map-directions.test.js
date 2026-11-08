@@ -119,5 +119,11 @@ assert.match(mapSource, /fallbackCache\?\.data\?\.destinations/,
     'the map must understand the shared wrapped offline cache format');
 assert.match(mapSource, /visibilitychange[\s\S]*?window\.refreshMapSpots\(true\)/,
     'returning to the visible map must silently request current tourist sites');
+assert.doesNotMatch(mapSource, /body\.keyboard-open\s+[.#]map-directions-panel/,
+    'focusing Choose destination must not hide the directions panel when the keyboard opens');
+assert.match(mapSource, /id="sheet-manual-guide"[^>]*text-align:justify/,
+    'Route Guide text in the map sheet must be justified');
+assert.doesNotMatch(mapSource, /Visitor Insights \(\$\{reviewCount\}\)[\s\S]{0,160}>Offline</,
+    'Offline badge must not be shown beside Visitor Insights');
 
 console.log('map directions tests passed');

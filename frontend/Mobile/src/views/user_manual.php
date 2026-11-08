@@ -61,7 +61,7 @@ $backRoute = 'settings';
                 <p class="manual-section-sub">Gamified tourism companion for La Union, Philippines</p>
             </div>
         </div>
-        <p style="font-size: 13px; color: #ffffff; line-height: 1.5; margin-bottom: 12px;">
+        <p style="font-size: 13px; color: #334155; line-height: 1.5; margin-bottom: 12px;">
             Intan Elyu provides smart interactive maps, AI-assisted itinerary planning, AR location verification,
             mini-games, and local merchant voucher rewards.
         </p>
@@ -309,7 +309,7 @@ $backRoute = 'settings';
         <div class="step-card">
             <div class="step-num">1</div>
             <div class="step-content">
-                <div class="step-title">Slide Puzzle (+100 Points)</div>
+                <div class="step-title">Slide Puzzle (+50 Points)</div>
                 <div class="step-desc">Rearrange image tiles of iconic La Union landmarks into their complete picture.
                 </div>
             </div>
@@ -317,14 +317,14 @@ $backRoute = 'settings';
         <div class="step-card">
             <div class="step-num">2</div>
             <div class="step-content">
-                <div class="step-title">Memory Match (+75 Points)</div>
+                <div class="step-title">Memory Match (+25 Points)</div>
                 <div class="step-desc">Flip cards and match matching pairs of famous Elyu tourist spots.</div>
             </div>
         </div>
         <div class="step-card">
             <div class="step-num">3</div>
             <div class="step-content">
-                <div class="step-title">Word Scramble (+75 Points)</div>
+                <div class="step-title">Word Scramble (+25 Points)</div>
                 <div class="step-desc">Unscramble letters to spell La Union municipalities, attractions, and beaches.
                 </div>
             </div>
@@ -484,27 +484,27 @@ $backRoute = 'settings';
             <tbody>
                 <tr>
                     <td>AR / Photo Check-In</td>
-                    <td><strong style="color:#ffffff;">+25, +35, or +45 Points</strong> (Existing, Potential, Emerging)</td>
+                    <td><strong style="color:#1e3a8a;">+25, +35, or +45 Points</strong> (Existing, Potential, Emerging)</td>
                     <td>Explore Map / Saved Trips</td>
                 </tr>
                 <tr>
                     <td>Complete Itinerary Trip</td>
-                    <td><strong style="color:#ffffff;">+100 Points</strong></td>
+                    <td><strong style="color:#1e3a8a;">+100 Points</strong></td>
                     <td>Trip Planner / Saved Trips</td>
                 </tr>
                 <tr>
                     <td>Solve Slide Puzzle</td>
-                    <td><strong style="color:#ffffff;">+100 Points</strong></td>
+                    <td><strong style="color:#1e3a8a;">+50 Points</strong></td>
                     <td>GameZone</td>
                 </tr>
                 <tr>
                     <td>Complete Memory Match</td>
-                    <td><strong style="color:#ffffff;">+75 Points</strong></td>
+                    <td><strong style="color:#1e3a8a;">+25 Points</strong></td>
                     <td>GameZone</td>
                 </tr>
                 <tr>
                     <td>Solve Word Scramble</td>
-                    <td><strong style="color:#ffffff;">+75 Points</strong></td>
+                    <td><strong style="color:#1e3a8a;">+25 Points</strong></td>
                     <td>GameZone</td>
                 </tr>
             </tbody>

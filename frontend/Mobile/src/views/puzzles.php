@@ -63,9 +63,12 @@ include __DIR__ . '/../components/header.php';
             </p>
 
             <!-- Target Reference Image Preview -->
-            <div id="puzzle-target-container"
-                style="margin-top: 8px; display: flex; align-items: center; justify-content: center; gap: 8px; background: rgba(0,0,0,0.22) !important; border: 1px solid rgba(255,255,255,0.15) !important; outline: none !important; border-radius: 12px; padding: 5px 12px; width: fit-content; margin-left: auto; margin-right: auto;">
-                <span style="font-size: 11.5px; color: #ffffff; font-weight: 800;">Target Goal:</span>
+            <div id="puzzle-target-container" onclick="openTargetGoalPreviewModal()" role="button" tabindex="0"
+                title="Tap to preview full reference image" aria-label="Tap to preview full reference image"
+                style="margin-top: 8px; display: flex; align-items: center; justify-content: center; gap: 8px; background: rgba(0,0,0,0.22) !important; border: 1px solid rgba(255,255,255,0.2) !important; outline: none !important; border-radius: 12px; padding: 5px 12px; width: fit-content; margin-left: auto; margin-right: auto; cursor: pointer; transition: transform 0.15s ease, background 0.15s ease;">
+                <span style="font-size: 11.5px; color: #ffffff; font-weight: 800; display: inline-flex; align-items: center; gap: 5px;">
+                    Target Goal <i class="fa-solid fa-magnifying-glass-plus" style="font-size: 10.5px; color: #38bdf8;"></i>:
+                </span>
                 <img id="puzzle-target-img"
                     src="https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/tourist_spots/spot_6a686f4d0f48b.jpg"
                     alt="Target"
@@ -104,24 +107,25 @@ include __DIR__ . '/../components/header.php';
             </div>
         </div>
 
-        <!-- Puzzle Board Container -->
-        <div id="puzzle-board-wrapper" style="display: flex; justify-content: center; margin-bottom: 20px;">
+        <!-- Puzzle Board Container Card (Matching Memory Match card style) -->
+        <div id="puzzle-board-wrapper"
+            style="background: #ffffff; border-radius: 22px; padding: 18px 12px; margin-bottom: 18px; box-shadow: 0 4px 18px rgba(32, 63, 141, 0.1); border: 1.5px solid #e2e8f0; display: flex; flex-direction: column; align-items: center;">
             <div id="puzzle-board"
                 style="width: 308px; height: 308px; background: #0c1a30; border: 3px solid rgba(255, 255, 255, 0.45) !important; outline: 2px solid rgba(32, 63, 141, 0.6) !important; border-radius: 18px; position: relative; overflow: hidden; display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); gap: 4px; padding: 4px; box-sizing: border-box; box-shadow: 0 10px 28px rgba(32, 63, 141, 0.25);">
                 <!-- 9 Grid items dynamic -->
             </div>
-        </div>
 
-        <div id="puzzle-controls"
-            style="display: flex; gap: 8px; justify-content: center; align-items: center; flex-wrap: wrap;">
-            <button onclick="promptResetPuzzle()"
-                style="background: #f1f5f9 !important; border: none !important; outline: none !important; color: #203f8d !important; padding: 8px 15px; border-radius: 12px; font-weight: 800; font-size: 11.5px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.06) !important;">
-                <i class="fa-solid fa-arrows-rotate" style="color: #203f8d !important; font-size: 11px;"></i> Reset Puzzle
-            </button>
-            <button onclick="promptChangePuzzle()"
-                style="background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline: none !important; color: #ffffff !important; padding: 8px 15px; border-radius: 12px; font-weight: 800; font-size: 11.5px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important;">
-                <i class="fa-solid fa-shuffle" style="color: #ffffff !important; font-size: 11px;"></i> Change Puzzle
-            </button>
+            <div id="puzzle-controls"
+                style="display: flex; gap: 8px; justify-content: center; align-items: center; flex-wrap: wrap; margin-top: 16px; width: 100%;">
+                <button onclick="promptResetPuzzle()"
+                    style="background: #f1f5f9 !important; border: none !important; outline: none !important; color: #203f8d !important; padding: 8px 15px; border-radius: 12px; font-weight: 800; font-size: 11.5px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.06) !important;">
+                    <i class="fa-solid fa-arrows-rotate" style="color: #203f8d !important; font-size: 11px;"></i> Reset Puzzle
+                </button>
+                <button onclick="promptChangePuzzle()"
+                    style="background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline: none !important; color: #ffffff !important; padding: 8px 15px; border-radius: 12px; font-weight: 800; font-size: 11.5px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important;">
+                    <i class="fa-solid fa-shuffle" style="color: #ffffff !important; font-size: 11px;"></i> Change Puzzle
+                </button>
+            </div>
         </div>
     </div>
 
@@ -218,40 +222,44 @@ include __DIR__ . '/../components/header.php';
         </div>
 
 
-        <!-- Scramble Question Indicator & Step Dots -->
-        <div id="scramble-nav-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; padding: 0 4px;">
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <span id="scramble-step-badge" style="font-size: 11.5px; font-weight: 800; color: #203f8d; background: #e0e7ff; padding: 4px 12px; border-radius: 100px;">
-                    Word 1 of 4
-                </span>
+        <!-- Scramble Navigation, Slider & Controls Container Card (Matching Memory Match card style) -->
+        <div id="scramble-board-wrapper"
+            style="background: #ffffff; border-radius: 22px; padding: 18px 14px; margin-bottom: 18px; box-shadow: 0 4px 18px rgba(32, 63, 141, 0.1); border: 1.5px solid #e2e8f0;">
+            <!-- Scramble Question Indicator & Step Dots -->
+            <div id="scramble-nav-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; padding: 0 4px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span id="scramble-step-badge" style="font-size: 11.5px; font-weight: 800; color: #203f8d; background: #e0e7ff; padding: 4px 12px; border-radius: 100px;">
+                        Word 1 of 4
+                    </span>
+                </div>
+                <!-- 4 Dot Step Indicators -->
+                <div id="scramble-dots" style="display: flex; align-items: center; gap: 6px;">
+                    <span class="scramble-dot" style="width: 22px; height: 8px; border-radius: 10px; background: #203f8d; transition: all 0.25s ease;"></span>
+                    <span class="scramble-dot" style="width: 8px; height: 8px; border-radius: 10px; background: #cbd5e1; transition: all 0.25s ease;"></span>
+                    <span class="scramble-dot" style="width: 8px; height: 8px; border-radius: 10px; background: #cbd5e1; transition: all 0.25s ease;"></span>
+                    <span class="scramble-dot" style="width: 8px; height: 8px; border-radius: 10px; background: #cbd5e1; transition: all 0.25s ease;"></span>
+                </div>
             </div>
-            <!-- 4 Dot Step Indicators -->
-            <div id="scramble-dots" style="display: flex; align-items: center; gap: 6px;">
-                <span class="scramble-dot" style="width: 22px; height: 8px; border-radius: 10px; background: #203f8d; transition: all 0.25s ease;"></span>
-                <span class="scramble-dot" style="width: 8px; height: 8px; border-radius: 10px; background: #cbd5e1; transition: all 0.25s ease;"></span>
-                <span class="scramble-dot" style="width: 8px; height: 8px; border-radius: 10px; background: #cbd5e1; transition: all 0.25s ease;"></span>
-                <span class="scramble-dot" style="width: 8px; height: 8px; border-radius: 10px; background: #cbd5e1; transition: all 0.25s ease;"></span>
-            </div>
-        </div>
 
-        <!-- Slider Viewport & Track -->
-        <div id="scramble-slider-viewport" style="width: 100%; overflow: hidden; border-radius: 20px; margin-bottom: 16px;">
-            <div id="scramble-container" style="display: flex; width: 100%; transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1); will-change: transform;">
-                <!-- 4 Scrambled Words Slider -->
+            <!-- Slider Viewport & Track -->
+            <div id="scramble-slider-viewport" style="width: 100%; overflow: hidden; position: relative; margin: 0 0 16px 0; padding: 0; box-sizing: border-box; border-radius: 18px;">
+                <div id="scramble-container" style="display: flex; flex-direction: row; flex-wrap: nowrap; width: 100%; margin: 0; padding: 0; gap: 0; box-sizing: border-box; transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1); will-change: transform;">
+                    <!-- 4 Scrambled Words Slider -->
+                </div>
             </div>
-        </div>
 
-        <!-- Sliding Navigation Buttons -->
-        <div id="scramble-slider-controls" style="display: flex; gap: 8px; align-items: center;">
-            <button id="scramble-prev-btn" type="button" onclick="prevScrambleQuestion()"
-                style="display: none; background: #f1f5f9 !important; border: none !important; outline: none !important; color: #203f8d !important; padding: 10px 16px; border-radius: 12px; font-weight: 800; font-size: 12.5px; cursor: pointer; align-items: center; gap: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.06);">
-                <i class="fa-solid fa-arrow-left" style="font-size: 11px;"></i> Prev
-            </button>
-            <button id="scramble-action-btn" type="button" onclick="handleScrambleActionClick()"
-                style="flex: 1; border: none !important; outline: none !important; background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; color: white; padding: 11px 18px; border-radius: 12px; font-weight: 800; font-size: 12.5px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 7px; box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important; transition: all 0.25s ease;">
-                <span id="scramble-action-btn-text">Next Word</span>
-                <i id="scramble-action-btn-icon" class="fa-solid fa-arrow-right" style="font-size: 11px;"></i>
-            </button>
+            <!-- Sliding Navigation Buttons -->
+            <div id="scramble-slider-controls" style="display: flex; gap: 8px; align-items: center;">
+                <button id="scramble-prev-btn" type="button" onclick="prevScrambleQuestion()"
+                    style="display: none; background: #f1f5f9 !important; border: none !important; outline: none !important; color: #203f8d !important; padding: 10px 16px; border-radius: 12px; font-weight: 800; font-size: 12.5px; cursor: pointer; align-items: center; gap: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.06);">
+                    <i class="fa-solid fa-arrow-left" style="font-size: 11px;"></i> Prev
+                </button>
+                <button id="scramble-action-btn" type="button" onclick="handleScrambleActionClick()"
+                    style="flex: 1; border: none !important; outline: none !important; background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; color: white; padding: 11px 18px; border-radius: 12px; font-weight: 800; font-size: 12.5px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 7px; box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important; transition: all 0.25s ease;">
+                    <span id="scramble-action-btn-text">Next Word</span>
+                    <i id="scramble-action-btn-icon" class="fa-solid fa-arrow-right" style="font-size: 11px;"></i>
+                </button>
+            </div>
         </div>
     </div>
 
@@ -444,20 +452,76 @@ include __DIR__ . '/../components/header.php';
         </div>
     </div>
 
+    <!-- Target Goal Preview Modal (Reference Image Inspection) -->
+    <div id="target-goal-preview-modal" onclick="if(event.target===this) closeTargetGoalPreviewModal();"
+        style="display:none; position:fixed; inset:0; z-index:99999; background:rgba(10,15,28,0.85); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); align-items:center; justify-content:center; padding:18px; box-sizing:border-box;">
+        <div style="background:#ffffff; border-radius:24px; width:100%; max-width:360px; overflow:hidden; box-shadow:0 24px 60px rgba(0,0,0,0.45); animation:popInGameModal 0.22s cubic-bezier(0.16,1,0.3,1) forwards; display:flex; flex-direction:column;">
+            <div style="padding:14px 18px; background:#1e3a8a; display:flex; align-items:center; justify-content:space-between; color:#ffffff;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <i class="fa-solid fa-bullseye" style="color:#38bdf8; font-size:15px;"></i>
+                    <strong style="font-size:14px; letter-spacing:-0.2px;">Target Goal Reference</strong>
+                </div>
+                <button type="button" onclick="closeTargetGoalPreviewModal()" aria-label="Close"
+                    style="width:30px; height:30px; border-radius:50%; background:rgba(255,255,255,0.18); border:none; color:#ffffff; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center;">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div style="padding:14px; background:#ffffff; text-align:center;">
+                <img id="target-goal-preview-img" src="" alt="Target Goal"
+                    style="width:100%; height:auto; max-height:280px; object-fit:cover; border-radius:14px; border:1.5px solid #e2e8f0; box-shadow:0 6px 18px rgba(0,0,0,0.08); display:block; margin:0 auto;">
+                <div id="target-goal-preview-name" style="margin-top:12px; font-size:14px; font-weight:800; color:#0f172a;">
+                    Spot Name
+                </div>
+                <div style="font-size:11.5px; color:#64748b; margin-top:3px; font-weight:500;">
+                    Match your tiles to this exact photo to solve the puzzle!
+                </div>
+            </div>
+            <div style="padding:12px 16px; background:#f8fafc; border-top:1px solid #e2e8f0; display:flex; justify-content:center;">
+                <button type="button" onclick="closeTargetGoalPreviewModal()"
+                    style="width:100%; height:42px; border-radius:14px; background:#1e3a8a; color:#ffffff; border:none; font-size:13px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; box-shadow:0 4px 12px rgba(30,58,138,0.25);">
+                    <i class="fa-solid fa-puzzle-piece"></i> Got it, Back to Puzzle
+                </button>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 
 <script>
     (function () {
-        // Guest mode restriction check
+        // User profile and Guest mode restriction check
+        let _authUser = {};
+        try {
+            _authUser = JSON.parse(localStorage.getItem('auth_user') || localStorage.getItem('intan_elyu_user') || '{}');
+        } catch (e) { }
+
+        const _isRealUser = Boolean(
+            _authUser && 
+            _authUser.id && 
+            _authUser.id !== 'guest' && 
+            _authUser.id !== 'offline_guest' && 
+            !_authUser.is_guest && 
+            !_authUser.is_offline_guest
+        );
+
+        if (_isRealUser) {
+            try {
+                localStorage.removeItem('intan_elyu_guest');
+                localStorage.removeItem('intan_elyu_offline_guest');
+            } catch (e) { }
+        }
+
         const _authToken = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('api_token') || '';
-        const _isGuest = !_authToken || 
-            _authToken === 'guest_token' || 
-            _authToken === 'offline_guest_token' || 
-            _authToken.startsWith('guest_') || 
-            _authToken.startsWith('offline_') || 
-            localStorage.getItem('intan_elyu_guest') === 'true' || 
-            localStorage.getItem('intan_elyu_offline_guest') === 'true';
+        const _isGuest = (typeof window.isGuestUser === 'function' && window.isGuestUser()) ||
+            (!_isRealUser && (
+                !_authToken || 
+                _authToken === 'guest_token' || 
+                _authToken === 'offline_guest_token' || 
+                _authToken.startsWith('guest_') || 
+                localStorage.getItem('intan_elyu_guest') === 'true' || 
+                localStorage.getItem('intan_elyu_offline_guest') === 'true'
+            ));
 
         // Guests may browse GameZone, but any attempt to play a mode opens the login-required modal.
         function showGuestGameLoginModal() {
@@ -495,6 +559,15 @@ include __DIR__ . '/../components/header.php';
 
             // Let the guest know up-front that playing requires an account
             setTimeout(showGuestGameLoginModal, 350);
+        } else {
+            // Immediately populate points for authenticated users from cached user data
+            const immediatePts = _authUser.points !== undefined 
+                ? Number(_authUser.points) 
+                : (_authUser.total_points !== undefined ? Number(_authUser.total_points) : Number(_authUser.xp ?? 0));
+            const ptsEl = document.getElementById('game-points-val');
+            if (ptsEl && !isNaN(immediatePts)) {
+                ptsEl.textContent = Number(immediatePts).toLocaleString();
+            }
         }
 
         // Load points balance
@@ -509,12 +582,14 @@ include __DIR__ . '/../components/header.php';
                     const ptsEl = document.getElementById('game-points-val');
                     if (ptsEl) ptsEl.textContent = Number(window._userPointsBalance).toLocaleString();
                 } else {
-                    const _cachedAuth = JSON.parse(localStorage.getItem('auth_user') || '{}');
+                    const _cachedAuth = JSON.parse(localStorage.getItem('auth_user') || localStorage.getItem('intan_elyu_user') || '{}');
                     const fallbackPts = _cachedAuth.points !== undefined 
                         ? Number(_cachedAuth.points) 
-                        : Number(_cachedAuth.xp ?? 0);
+                        : (_cachedAuth.total_points !== undefined ? Number(_cachedAuth.total_points) : Number(_cachedAuth.xp ?? 0));
                     const ptsEl = document.getElementById('game-points-val');
-                    if (ptsEl && fallbackPts !== undefined) ptsEl.textContent = Number(fallbackPts).toLocaleString();
+                    if (ptsEl && fallbackPts !== undefined && !isNaN(fallbackPts)) {
+                        ptsEl.textContent = Number(fallbackPts).toLocaleString();
+                    }
                 }
             } catch (e) { }
 
@@ -531,11 +606,16 @@ include __DIR__ . '/../components/header.php';
                     if (ptsEl) ptsEl.textContent = Number(userPoints).toLocaleString();
                     window._userPointsBalance = userPoints;
 
-                    // Update auth_user in localStorage so other pages have the latest points
+                    // Update auth_user and intan_elyu_user in localStorage so other pages have the latest points
                     try {
                         const authUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
                         authUser.points = userPoints;
                         localStorage.setItem('auth_user', JSON.stringify(authUser));
+                    } catch (e) { }
+                    try {
+                        const intanUser = JSON.parse(localStorage.getItem('intan_elyu_user') || '{}');
+                        intanUser.points = userPoints;
+                        localStorage.setItem('intan_elyu_user', JSON.stringify(intanUser));
                     } catch (e) { }
 
                     if (typeof window.syncUserPointsEverywhere === 'function') {
@@ -682,7 +762,6 @@ include __DIR__ . '/../components/header.php';
             return PUZZLE_FALLBACK_IMAGES[index];
         }
 
-        let currentPuzzleItem = PUZZLE_IMAGES[0];
         let dbPuzzleSpots = [];
         let tiles = [];
         let moves = 0;
@@ -722,13 +801,24 @@ include __DIR__ . '/../components/header.php';
             }).filter(spot => spot.image);
         }
 
-        function selectNextPuzzle(pool) {
-            if (!pool.length) return null;
-            const currentIndex = currentPuzzleItem
-                ? pool.findIndex(item => item.image === currentPuzzleItem.image)
-                : -1;
-            return pool[(currentIndex + 1) % pool.length];
+        function selectNextPuzzle(pool, avoidCurrent = true) {
+            if (!pool || !pool.length) return null;
+            if (pool.length === 1) return pool[0];
+            if (avoidCurrent && currentPuzzleItem) {
+                const candidates = pool.filter(item => 
+                    item.image !== currentPuzzleItem.image && 
+                    item.name !== currentPuzzleItem.name
+                );
+                if (candidates.length > 0) {
+                    const rnd = Math.floor(Math.random() * candidates.length);
+                    return candidates[rnd];
+                }
+            }
+            const rnd = Math.floor(Math.random() * pool.length);
+            return pool[rnd];
         }
+
+        let currentPuzzleItem = selectNextPuzzle(PUZZLE_IMAGES, false);
 
         async function fetchDatabasePuzzleSpots() {
             try {
@@ -746,10 +836,9 @@ include __DIR__ . '/../components/header.php';
                     const data = await res.json();
                     if (data.status === 'success' && Array.isArray(data.spots) && data.spots.length > 0) {
                         dbPuzzleSpots = normalizePuzzleSpots(data.spots, _baseUrl);
-                        // Replace the emergency image with the first item in the full live catalog.
-                        if (!currentPuzzleItem || PUZZLE_IMAGES.some(p => p.image === currentPuzzleItem.image)) {
-                            initPuzzle(true);
-                        }
+                        // Pick a random real tourist spot from the database catalog
+                        currentPuzzleItem = selectNextPuzzle(dbPuzzleSpots, false);
+                        initPuzzle(false);
                     }
                 }
             } catch (e) {
@@ -765,7 +854,10 @@ include __DIR__ . '/../components/header.php';
                         : (cached?.data?.destinations || cached?.data?.spots || cached?.destinations || cached?.spots || []);
                     if (localSpots.length > 0) {
                         dbPuzzleSpots = normalizePuzzleSpots(localSpots);
-                        if (dbPuzzleSpots.length > 0) initPuzzle(true);
+                        if (dbPuzzleSpots.length > 0) {
+                            currentPuzzleItem = selectNextPuzzle(dbPuzzleSpots, false);
+                            initPuzzle(false);
+                        }
                     }
                 } catch (e) { }
             }
@@ -939,12 +1031,14 @@ include __DIR__ . '/../components/header.php';
             const finishedBanner = document.getElementById('scramble-finished-banner');
             const mechanicsEl = document.getElementById('scramble-mechanics-wrapper');
             const statsBarEl = document.getElementById('scramble-stats-bar');
+            const boardWrapper = document.getElementById('scramble-board-wrapper');
 
             const isDone = isGameDoneToday('word_scramble');
 
             if (isDone) {
                 if (titleEl) titleEl.style.display = 'none';
                 if (descEl) descEl.style.display = 'none';
+                if (boardWrapper) boardWrapper.style.display = 'none';
                 if (navHeader) navHeader.style.display = 'none';
                 if (sliderViewport) sliderViewport.style.display = 'none';
                 if (sliderControls) sliderControls.style.display = 'none';
@@ -959,6 +1053,7 @@ include __DIR__ . '/../components/header.php';
                     descEl.style.display = 'block';
                     descEl.innerHTML = `Unscramble all 4 La Union municipal & landmark names to earn <strong style="color: #00f2fe;">+25 Points</strong>!`;
                 }
+                if (boardWrapper) boardWrapper.style.display = 'block';
                 if (navHeader) navHeader.style.display = 'flex';
                 if (sliderViewport) sliderViewport.style.display = 'block';
                 if (sliderControls) sliderControls.style.display = 'flex';
@@ -992,7 +1087,7 @@ include __DIR__ . '/../components/header.php';
 
             const pool = (dbPuzzleSpots && dbPuzzleSpots.length > 0) ? dbPuzzleSpots : PUZZLE_IMAGES;
             if (forceNewImage || !currentPuzzleItem) {
-                currentPuzzleItem = selectNextPuzzle(pool);
+                currentPuzzleItem = selectNextPuzzle(pool, true);
             }
 
             updatePuzzleInfoUI();
@@ -1060,7 +1155,7 @@ include __DIR__ . '/../components/header.php';
 
         function changePuzzle() {
             const pool = (dbPuzzleSpots && dbPuzzleSpots.length > 0) ? dbPuzzleSpots : PUZZLE_IMAGES;
-            currentPuzzleItem = selectNextPuzzle(pool);
+            currentPuzzleItem = selectNextPuzzle(pool, true);
 
             updatePuzzleInfoUI();
             resetPuzzleState();
@@ -1474,12 +1569,27 @@ include __DIR__ . '/../components/header.php';
             if (!container) return;
             container.innerHTML = '';
 
+            const viewport = document.getElementById('scramble-slider-viewport');
+            if (viewport) {
+                viewport.scrollLeft = 0;
+                if (!viewport._hasScrollGuard) {
+                    viewport._hasScrollGuard = true;
+                    viewport.addEventListener('scroll', () => {
+                        if (viewport.scrollLeft !== 0) viewport.scrollLeft = 0;
+                    }, { passive: true });
+                }
+            }
+
             currentScrambleWords.forEach((item, index) => {
                 const card = document.createElement('div');
                 card.className = 'scramble-card';
                 card.id = `scramble-card-${index}`;
+                card.style.flex = '0 0 100%';
                 card.style.width = '100%';
+                card.style.minWidth = '100%';
+                card.style.maxWidth = '100%';
                 card.style.flexShrink = '0';
+                card.style.margin = '0';
                 card.style.boxSizing = 'border-box';
 
                 card.innerHTML = `
@@ -1496,7 +1606,7 @@ include __DIR__ . '/../components/header.php';
                     </span>
                 </div>
             </div>
-            <div id="scramble-word-display-${index}" style="font-size: 18px; font-weight: 900; color: #ffffff !important; letter-spacing: 3px; margin-bottom: 10px; text-align: center; background: rgba(0,0,0,0.28) !important; padding: 10px; border-radius: 12px; border: none !important; outline: none !important; text-shadow: 0 2px 4px rgba(0,0,0,0.4); user-select: none;">
+            <div id="scramble-word-display-${index}" style="font-size: 18px; font-weight: 900; color: #ffffff !important; letter-spacing: 3px; margin-bottom: 10px; text-align: center; background: rgba(0,0,0,0.28) !important; padding: 10px; border-radius: 12px; border: none !important; outline: none !important; text-shadow: 0 2px 4px rgba(0,0,0,0.4); user-select: none; word-break: break-word; overflow-wrap: break-word;">
                 ${item.scrambled}
             </div>
             <p style="margin: 0 0 10px 0; font-size: 11.5px; color: #ffffff !important; font-weight: 600; text-shadow: 0 1px 2px rgba(0,0,0,0.4); line-height: 1.4;">
@@ -1515,6 +1625,11 @@ include __DIR__ . '/../components/header.php';
         function goToScrambleQuestion(index) {
             if (index < 0 || index >= currentScrambleWords.length) return;
             currentScrambleIndex = index;
+
+            const viewport = document.getElementById('scramble-slider-viewport');
+            if (viewport) {
+                viewport.scrollLeft = 0;
+            }
 
             const container = document.getElementById('scramble-container');
             if (container) {
@@ -1564,7 +1679,15 @@ include __DIR__ . '/../components/header.php';
             }
 
             setTimeout(() => {
-                if (curInput) curInput.focus();
+                if (curInput) {
+                    try {
+                        curInput.focus({ preventScroll: true });
+                    } catch (e) {
+                        curInput.focus();
+                    }
+                }
+                const vp = document.getElementById('scramble-slider-viewport');
+                if (vp) vp.scrollLeft = 0;
             }, 250);
         }
 
@@ -2133,6 +2256,31 @@ include __DIR__ . '/../components/header.php';
                 action();
             }
         }
+
+        function openTargetGoalPreviewModal() {
+            const modal = document.getElementById('target-goal-preview-modal');
+            const imgEl = document.getElementById('target-goal-preview-img');
+            const nameEl = document.getElementById('target-goal-preview-name');
+            if (!modal) return;
+            if (currentPuzzleItem) {
+                const targetSrc = currentPuzzleItem.resolvedImage || currentPuzzleItem.image || getPuzzleFallbackImage(currentPuzzleItem);
+                if (imgEl) imgEl.src = targetSrc;
+                if (nameEl) nameEl.textContent = currentPuzzleItem.name || 'Tourist Spot';
+            }
+            modal.style.display = 'flex';
+            document.body.classList.add('modal-blurred');
+            document.documentElement.classList.add('modal-blurred');
+        }
+
+        function closeTargetGoalPreviewModal() {
+            const modal = document.getElementById('target-goal-preview-modal');
+            if (modal) modal.style.display = 'none';
+            document.body.classList.remove('modal-blurred');
+            document.documentElement.classList.remove('modal-blurred');
+        }
+
+        window.openTargetGoalPreviewModal = openTargetGoalPreviewModal;
+        window.closeTargetGoalPreviewModal = closeTargetGoalPreviewModal;
 
         // Global Smooth Button Click Feedback Listener
         document.addEventListener('click', (e) => {
