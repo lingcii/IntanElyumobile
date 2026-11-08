@@ -37,6 +37,7 @@ $gdriveMirrorUrl = getenv('APK_GDRIVE_MIRROR_URL') ?: '';
 <html lang="en">
 
 <head>
+  <base href="<?= (isset($_SERVER['REQUEST_URI']) && strpos($_SERVER['REQUEST_URI'], '/views/') !== false) ? '../' : './' ?>">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Intan Elyu — Official Tourism Portal & Mobile App | Province of La Union</title>

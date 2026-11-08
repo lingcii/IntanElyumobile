@@ -157,8 +157,21 @@ if ($path === '/favicon.ico') {
     exit;
 }
 
+// Standalone Download Portal Routing:
+if ($path === '/download' || $path === '/download.php') {
+    include __DIR__ . '/views/download.php';
+    exit;
+}
+if ($path === '/views/download.php') {
+    header('Location: index.php?view=download', true, 301);
+    exit;
+}
+
 // Check and serve local static assets (excluding .php files, supporting URL-encoded characters like spaces %20 and commas)
 $decodedPath = urldecode($path);
+if (strpos($decodedPath, '/views/assets/') === 0) {
+    $decodedPath = substr($decodedPath, 6);
+}
 $localStaticFile = __DIR__ . $decodedPath;
 if (!file_exists($localStaticFile) || !is_file($localStaticFile)) {
     $altStaticFile = dirname(__DIR__) . '/public' . $decodedPath;
