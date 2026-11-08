@@ -33,10 +33,10 @@ class CostEstimationService
         if (in_array($normType, ['tricycle', 'trike'])) {
             $muni = $municipality ? trim(strtolower($municipality)) : null;
             
-            // Only resolve tricycle guide if the requested municipality actually has an active tricycle matrix in LUPTO
             if ($muni) {
                 $cleanMuni = trim(preg_replace('/^(municipality of|city of)\s+/i', '', $muni));
                 $cleanMuni = trim(preg_replace('/,\s*la\s*union$/i', '', $cleanMuni));
+                $cleanMuni = trim(preg_replace('/\s+city$/i', '', $cleanMuni));
 
                 $guide = FareGuide::where('status', 'active')
                     ->where('vehicle_type', 'Tricycle')
@@ -44,6 +44,17 @@ class CostEstimationService
                         $q->whereRaw('LOWER(region) LIKE ?', ["%{$cleanMuni}%"])
                           ->orWhereRaw('LOWER(title) LIKE ?', ["%{$cleanMuni}%"]);
                     })
+                    ->withCount('matrices')
+                    ->orderByDesc('matrices_count')
+                    ->latest('effective_date')
+                    ->first();
+            }
+
+            if (!$guide) {
+                $guide = FareGuide::where('status', 'active')
+                    ->where('vehicle_type', 'Tricycle')
+                    ->withCount('matrices')
+                    ->orderByDesc('matrices_count')
                     ->latest('effective_date')
                     ->first();
             }
@@ -111,8 +122,9 @@ class CostEstimationService
             if ($maxEntry) {
                 $maxDist = (float) $maxEntry->distance_km;
                 $maxFare = (float) $maxEntry->regular_fare;
-                $extraDist = max(0, $distanceKm - $maxDist);
-                $perKmRate = (strcasecmp($guide->vehicle_type, 'Tricycle') === 0) ? 2.00 : 1.80;
+                $isTrike = (strcasecmp($guide->vehicle_type, 'Tricycle') === 0);
+                $extraDist = $isTrike ? ceil(max(0, $distanceKm - $maxDist)) : max(0, $distanceKm - $maxDist);
+                $perKmRate = $isTrike ? 3.00 : 1.80;
                 return round($maxFare + ($extraDist * $perKmRate), 2);
             }
         }
@@ -134,7 +146,7 @@ class CostEstimationService
                 return round(15.00 + (max(0, $distanceKm - 5) * 2.20), 2);
             case 'tricycle':
             case 'trike':
-                return 0.00;
+                return round(15.00 + (max(0, ceil($distanceKm) - 1) * 3.00), 2);
             default:
                 return 0.00;
         }

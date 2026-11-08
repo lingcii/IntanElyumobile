@@ -287,6 +287,11 @@ class MapController extends Controller
                 return in_array(strtoupper($g->vehicle_type), ['UVE', 'UV EXPRESS', 'VAN']);
             });
 
+            $tricycleGuide = $allActiveGuides
+                ->filter(fn ($g) => in_array(strtoupper(trim($g->vehicle_type)), ['TRICYCLE', 'TRIKE']))
+                ->sortByDesc(fn ($g) => $g->matrices->count())
+                ->first();
+
             $allMuniNames = Municipality::pluck('name')->toArray();
             if (empty($allMuniNames)) {
                 $allMuniNames = [
@@ -331,24 +336,26 @@ class MapController extends Controller
                     $rawRegion = trim($g->region ?: $g->title);
                     $cleanMuni = trim(preg_replace('/^(municipality of|city of)\s+/i', '', $rawRegion));
                     $cleanMuni = trim(preg_replace('/,\s*la\s*union$/i', '', $cleanMuni));
+                    $cleanMuniShort = trim(preg_replace('/\s+city$/i', '', $cleanMuni));
                     $mKey = strtolower(trim(preg_replace('/[^a-zA-Z0-9]/', '_', $cleanMuni)));
                     $mRaw = strtolower($cleanMuni);
+                    $mKeyShort = strtolower(trim(preg_replace('/[^a-zA-Z0-9]/', '_', $cleanMuniShort)));
+                    $mRawShort = strtolower($cleanMuniShort);
 
-                    if (!isset($byMunicipality[$mKey])) {
-                        $byMunicipality[$mKey] = [];
-                        $byMunicipality[$mRaw] = [];
-                        $activeVehiclesByMuni[$mKey] = [];
-                        $activeVehiclesByMuni[$mRaw] = [];
-                    }
-
-                    $byMunicipality[$mKey][$vKey] = $gData;
-                    $byMunicipality[$mRaw][$vKey] = $gData;
-                    $byMunicipality[$mKey]['default'] = $gData;
-                    $byMunicipality[$mRaw]['default'] = $gData;
-
-                    if (!in_array($g->vehicle_type, $activeVehiclesByMuni[$mKey])) {
-                        $activeVehiclesByMuni[$mKey][] = $g->vehicle_type;
-                        $activeVehiclesByMuni[$mRaw][] = $g->vehicle_type;
+                    foreach (array_unique([$mKey, $mRaw, $mKeyShort, $mRawShort]) as $targetKey) {
+                        if ($targetKey === '') continue;
+                        if (!isset($byMunicipality[$targetKey])) {
+                            $byMunicipality[$targetKey] = [];
+                            $activeVehiclesByMuni[$targetKey] = [];
+                        }
+                        $existingSteps = isset($byMunicipality[$targetKey][$vKey]['rates']) ? count($byMunicipality[$targetKey][$vKey]['rates']) : 0;
+                        if ($existingSteps <= count($gData['rates'] ?? [])) {
+                            $byMunicipality[$targetKey][$vKey] = $gData;
+                            $byMunicipality[$targetKey]['default'] = $gData;
+                        }
+                        if (!in_array($g->vehicle_type, $activeVehiclesByMuni[$targetKey])) {
+                            $activeVehiclesByMuni[$targetKey][] = $g->vehicle_type;
+                        }
                     }
                 }
             }
@@ -359,7 +366,7 @@ class MapController extends Controller
                 'pub_aircon' => $formatGuide($pubAirconGuide),
                 'pub_ordinary' => $formatGuide($pubOrdinaryGuide),
                 'pub_regular' => $formatGuide($pubOrdinaryGuide),
-                'tricycle' => null, // Tricycle is municipality-specific, found under by_municipality
+                'tricycle' => $formatGuide($tricycleGuide),
                 'uve' => $formatGuide($uveGuide),
                 // Compatibility aliases
                 'jeepney' => $formatGuide($mpujGuide ?? $tpujGuide),

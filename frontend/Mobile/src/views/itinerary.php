@@ -1311,6 +1311,15 @@ try {
 
 
 
+        window.recalculateCosts = function () {
+            if (typeof window.renderItinerary === 'function') {
+                window.renderItinerary(true);
+            }
+            if (typeof window.calculateModalBudget === 'function') {
+                window.calculateModalBudget();
+            }
+        };
+
         window.getFareFromMatrix = function (vehicleType, distanceKm, municipality = null) {
             if (!window.fareData) return null;
 
@@ -1329,12 +1338,17 @@ try {
             }
 
             // 2. Municipality lookup for local / inter-municipal guides
-            const cleanMuni = municipality ? municipality.toString().trim().replace(/^(municipality of|city of)\s+/i, '').replace(/,\s*la\s*union$/i, '') : '';
+            const cleanMuni = municipality ? municipality.toString().trim().replace(/^(municipality of|city of)\s+/i, '').replace(/,\s*la\s*union$/i, '').replace(/\s+city$/i, '').trim() : '';
             const muniKey = cleanMuni.toLowerCase().replace(/[^a-z0-9]/g, '_');
             const muniRaw = cleanMuni.toLowerCase();
 
-            if (!fareEntry && window.fareData.by_municipality) {
-                const muniObj = window.fareData.by_municipality[muniKey] || window.fareData.by_municipality[muniRaw];
+            if (window.fareData.by_municipality) {
+                const byMuni = window.fareData.by_municipality;
+                let muniObj = (cleanMuni && (byMuni[muniKey] || byMuni[muniRaw] || byMuni[muniKey + '_city'] || byMuni[muniRaw + ' city'])) || null;
+                if (!muniObj && cleanMuni) {
+                    const matchedKey = Object.keys(byMuni).find(k => k.includes(muniKey) || muniKey.includes(k));
+                    if (matchedKey) muniObj = byMuni[matchedKey];
+                }
                 if (muniObj) {
                     if (muniObj[normType]) {
                         fareEntry = muniObj[normType];
@@ -1342,6 +1356,15 @@ try {
                         fareEntry = muniObj.tricycle;
                     } else if ((normType === 'tricycle' || normType === 'trike') && muniObj.default) {
                         fareEntry = muniObj.default;
+                    }
+                }
+                if (!fareEntry && (normType === 'tricycle' || normType === 'trike')) {
+                    // Fallback to any active tricycle tariff guide in by_municipality (e.g. LUPTO North/South/East Routes)
+                    for (const k of Object.keys(byMuni)) {
+                        const candidate = byMuni[k]?.tricycle || (String(byMuni[k]?.default?.vehicle_type || '').toLowerCase() === 'tricycle' ? byMuni[k].default : null);
+                        if (candidate && Array.isArray(candidate.rates) && candidate.rates.length > (!fareEntry?.rates ? 0 : fareEntry.rates.length)) {
+                            fareEntry = candidate;
+                        }
                     }
                 }
             }
@@ -1357,6 +1380,7 @@ try {
                 } else if (normType === 'tricycle' || normType === 'trike') {
                     fareEntry = (cleanMuni && window.fareData?.by_municipality?.[muniKey]?.tricycle)
                         || (cleanMuni && window.fareData?.by_municipality?.[muniRaw]?.tricycle)
+                        || window.fareData['tricycle']
                         || null;
                 } else if (normType === 'bus' || normType === 'private_bus') {
                     fareEntry = window.fareData['pub_aircon'] || window.fareData['pub_ordinary'] || window.fareData['bus'];
@@ -1368,8 +1392,9 @@ try {
             }
 
             if (!fareEntry || !fareEntry.rates) return null;
-            const rates = Array.isArray(fareEntry.rates) ? fareEntry.rates : Object.values(fareEntry.rates);
-            if (!rates || rates.length === 0) return null;
+            const rawRates = Array.isArray(fareEntry.rates) ? fareEntry.rates : Object.values(fareEntry.rates);
+            if (!rawRates || rawRates.length === 0) return null;
+            const rates = [...rawRates].sort((a, b) => (parseFloat(a?.distance_km) || 0) - (parseFloat(b?.distance_km) || 0));
 
             // Stage ceiling lookup: find first stage bracket where rate.distance_km >= dKm
             let match = null;
@@ -1387,8 +1412,10 @@ try {
                 if (maxRate && maxRate.regular_fare != null) {
                     const maxD = parseFloat(maxRate.distance_km || 0);
                     const extra = Math.max(0, dKm - maxD);
-                    const perKm = (normType === 'tricycle' || normType === 'trike') ? 2.0 : 1.8;
-                    return Math.round(parseFloat(maxRate.regular_fare) + (extra * perKm));
+                    const isTrike = (normType === 'tricycle' || normType === 'trike');
+                    const perKm = isTrike ? 3.0 : 1.8;
+                    const extraUnits = isTrike ? Math.ceil(extra) : extra;
+                    return Math.round(parseFloat(maxRate.regular_fare) + (extraUnits * perKm));
                 }
             }
 
@@ -1529,13 +1556,13 @@ try {
                     const dA = Math.round((d / 2.0) * 100) / 100;
                     const dB = Math.max(0.1, Math.round((d - dA) * 100) / 100);
                     let pA = window.getFareFromMatrix('tricycle', dA, cleanA);
-                    if (pA === null || pA === undefined || pA === 0) pA = Math.max(15, Math.round(15 + Math.max(0, dA - 1.5) * 2.0));
+                    if (pA === null || pA === undefined || pA === 0) pA = Math.max(15, 15 + Math.max(0, Math.ceil(dA) - 1) * 3);
                     let pB = window.getFareFromMatrix('tricycle', dB, cleanB);
-                    if (pB === null || pB === undefined || pB === 0) pB = Math.max(15, Math.round(15 + Math.max(0, dB - 1.5) * 2.0));
+                    if (pB === null || pB === undefined || pB === 0) pB = Math.max(15, 15 + Math.max(0, Math.ceil(dB) - 1) * 3);
                     return Math.round((pA + pB) * 100) / 100;
                 } else {
-                    let p = window.getFareFromMatrix('tricycle', d, cleanA);
-                    if (p === null || p === undefined || p === 0) p = Math.max(15, Math.round(15 + Math.max(0, d - 1.5) * 2.0));
+                    let p = window.getFareFromMatrix('tricycle', d, cleanA || cleanB);
+                    if (p === null || p === undefined || p === 0) p = Math.max(15, 15 + Math.max(0, Math.ceil(d) - 1) * 3);
                     return Math.round(p * 100) / 100;
                 }
             }
@@ -1565,7 +1592,7 @@ try {
                 const estB = Math.max(0, full - pA);
                 return Math.round((pA + estB) * 100) / 100;
             } else {
-                let p = window.getFareFromMatrix(targetVeh, d, cleanA);
+                let p = window.getFareFromMatrix(targetVeh, d, cleanA || cleanB);
                 if (p === null) {
                     if (norm === 'mpuj' || norm === 'jeepney') p = Math.max(15, Math.round(15 + Math.max(0, d - 4) * 2.2));
                     else if (norm === 'tpuj') p = Math.max(13, Math.round(13 + Math.max(0, d - 4) * 1.8));
@@ -1580,8 +1607,8 @@ try {
 
         window.resolveLegOptimalTransport = function (fromSpot, toSpot, distKm, globalMode) {
             const d = parseFloat(distKm) || 1.5;
-            const muniA = fromSpot ? window.getSpotMuniName(fromSpot) : '';
             const muniB = toSpot ? window.getSpotMuniName(toSpot) : '';
+            const muniA = fromSpot ? window.getSpotMuniName(fromSpot) : muniB;
             const cleanA = muniA.replace(/^(municipality of|city of)\s+/i, '').replace(/,\s*la\s*union$/i, '').trim().toLowerCase();
             const cleanB = muniB.replace(/^(municipality of|city of)\s+/i, '').replace(/,\s*la\s*union$/i, '').trim().toLowerCase();
             const isCross = Boolean(cleanA && cleanB && cleanA !== cleanB);
@@ -1948,7 +1975,10 @@ try {
             if (legIdx === 0) {
                 const toLat = toSpot.lat || toSpot.latitude;
                 const toLng = toSpot.lng || toSpot.longitude;
-                if (typeof window.getDistanceAndETA === 'function' && toLat && toLng) {
+                const placeKey = String(toSpot.id || toSpot.name);
+                if (window._cachedNextStopOSRM && window._cachedNextStopOSRM.spotKey === placeKey && window._cachedNextStopOSRM.distanceKm) {
+                    distKm = window._cachedNextStopOSRM.distanceKm;
+                } else if (typeof window.getDistanceAndETA === 'function' && toLat && toLng) {
                     const eta = window.getDistanceAndETA(toLat, toLng);
                     if (eta && eta.distanceKm) distKm = eta.distanceKm;
                 }
@@ -1960,7 +1990,10 @@ try {
                 const fromLng = fromSpot.lng || fromSpot.longitude;
                 const toLat = toSpot.lat || toSpot.latitude;
                 const toLng = toSpot.lng || toSpot.longitude;
-                if (typeof window.calculateLegETA === 'function' && fromLat && fromLng && toLat && toLng) {
+                const legKey = `${fromSpot.id || fromSpot.name}_${toSpot.id || toSpot.name}`;
+                if (window._cachedLegOSRM && window._cachedLegOSRM[legKey] && window._cachedLegOSRM[legKey].distanceKm) {
+                    distKm = window._cachedLegOSRM[legKey].distanceKm;
+                } else if (typeof window.calculateLegETA === 'function' && fromLat && fromLng && toLat && toLng) {
                     const eta = window.calculateLegETA(fromLat, fromLng, toLat, toLng);
                     if (eta && eta.distanceKm) distKm = eta.distanceKm;
                 }
@@ -2039,9 +2072,7 @@ try {
                     }
                 }
 
-                const cost = (override.leg_cost !== null && override.leg_cost !== undefined)
-                    ? parseFloat(override.leg_cost)
-                    : window.calculateSingleLegCost(modes.join(' + '), distKm, muniA, muniB);
+                const cost = window.calculateSingleLegCost(modes.join(' + '), distKm, muniA, muniB);
 
                 let name = '';
                 let icon = 'fa-car';
@@ -2153,14 +2184,17 @@ try {
 
             const toSpot = draft[legIdx];
             const fromSpot = (legIdx === 0) ? null : draft[legIdx - 1];
-            const muniA = fromSpot ? window.getSpotMuniName(fromSpot) : '';
             const muniB = window.getSpotMuniName(toSpot);
+            const muniA = fromSpot ? window.getSpotMuniName(fromSpot) : muniB;
 
             let distKm = 2.0;
             if (legIdx === 0) {
                 const toLat = toSpot.lat || toSpot.latitude;
                 const toLng = toSpot.lng || toSpot.longitude;
-                if (typeof window.getDistanceAndETA === 'function' && toLat && toLng) {
+                const placeKey = String(toSpot.id || toSpot.name);
+                if (window._cachedNextStopOSRM && window._cachedNextStopOSRM.spotKey === placeKey && window._cachedNextStopOSRM.distanceKm) {
+                    distKm = window._cachedNextStopOSRM.distanceKm;
+                } else if (typeof window.getDistanceAndETA === 'function' && toLat && toLng) {
                     const eta = window.getDistanceAndETA(toLat, toLng);
                     if (eta && eta.distanceKm) distKm = eta.distanceKm;
                 }
@@ -2169,7 +2203,10 @@ try {
                 const fromLng = fromSpot.lng || fromSpot.longitude;
                 const toLat = toSpot.lat || toSpot.latitude;
                 const toLng = toSpot.lng || toSpot.longitude;
-                if (typeof window.calculateLegETA === 'function' && fromLat && fromLng && toLat && toLng) {
+                const legKey = `${fromSpot.id || fromSpot.name}_${toSpot.id || toSpot.name}`;
+                if (window._cachedLegOSRM && window._cachedLegOSRM[legKey] && window._cachedLegOSRM[legKey].distanceKm) {
+                    distKm = window._cachedLegOSRM[legKey].distanceKm;
+                } else if (typeof window.calculateLegETA === 'function' && fromLat && fromLng && toLat && toLng) {
                     const eta = window.calculateLegETA(fromLat, fromLng, toLat, toLng);
                     if (eta && eta.distanceKm) distKm = eta.distanceKm;
                 }
@@ -6171,11 +6208,31 @@ try {
                             spotKey: firstKey
                         };
 
+                        window._cachedLegOSRM = window._cachedLegOSRM || {};
+                        if (routeData.legs && Array.isArray(routeData.legs)) {
+                            const hasGpsStart = Boolean(userGpsLat && userGpsLng);
+                            routeData.legs.forEach((legObj, rIdx) => {
+                                let lDist = (legObj.distance || 0) / 1000;
+                                if (isAlt) lDist *= 1.12;
+                                const draftIdx = hasGpsStart ? rIdx : rIdx + 1;
+                                if (draftIdx > 0 && draft[draftIdx - 1] && draft[draftIdx]) {
+                                    const fSpot = draft[draftIdx - 1];
+                                    const tSpot = draft[draftIdx];
+                                    const lKey = `${fSpot.id || fSpot.name}_${tSpot.id || tSpot.name}`;
+                                    window._cachedLegOSRM[lKey] = { distanceKm: lDist };
+                                }
+                            });
+                        }
+
                         const nextEtaEl = document.getElementById('itinerary-next-eta');
                         if (nextEtaEl) {
                             nextEtaEl.innerHTML = `
                                 <span style="color:#1e3a8a !important; font-weight:700; font-size:10px; letter-spacing:-0.1px;">${leg0DistText} away &bull; ~${leg0DurText} drive from your location</span>
                             `;
+                        }
+
+                        if (typeof window.renderItinerary === 'function') {
+                            window.renderItinerary(true);
                         }
 
                         const updateRouteScale = () => {

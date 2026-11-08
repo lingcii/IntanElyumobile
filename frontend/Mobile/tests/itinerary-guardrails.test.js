@@ -125,4 +125,11 @@ assert.ok(costCard.indexOf('${feesSummaryHtml}') < costCard.indexOf('Transit Tot
 assert.doesNotMatch(itinerary, /cardsHtml \+=[\s\S]*background:linear-gradient\(135deg, #1e3a8a 0%, #172554 100%\)/,
     'Destination stop cards must not contain misplaced dark blue fee cards');
 
+assert.match(itinerary, /window\.getFareFromMatrix\('tricycle',\s*d,\s*cleanA\s*\|\|\s*cleanB\)/,
+    'calculateSingleLegCost must pass cleanA || cleanB for tricycle so starting-point legs resolve the destination municipality tariff');
+assert.match(itinerary, /15\s*\+\s*Math\.max\(0,\s*Math\.ceil\(d\)\s*-\s*1\)\s*\*\s*3/,
+    'tricycle fallback tariff must follow the LUPTO ₱15 base + ₱3/km stage ceiling breakdown (e.g. 2.9 km -> ₱21.00)');
+assert.match(itinerary, /getLegTransportInfo[\s\S]*window\._cachedNextStopOSRM\s*&&\s*window\._cachedNextStopOSRM\.spotKey\s*===\s*placeKey/,
+    'getLegTransportInfo must synchronize leg 0 distance with OSRM road distance when available');
+
 console.log('Itinerary guardrail checks passed.');
