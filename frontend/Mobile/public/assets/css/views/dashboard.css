@@ -7,17 +7,9 @@
  * ============================================================ */
 
 @keyframes pulseGlow {
-    0% {
-        box-shadow: 0 0 15px rgba(56, 189, 248, 0.2);
-}
-
-    50% {
-        box-shadow: 0 0 25px rgba(56, 189, 248, 0.4);
-}
-
-    100% {
-        box-shadow: 0 0 15px rgba(56, 189, 248, 0.2);
-}
+    0%, 50%, 100% {
+        box-shadow: none !important;
+    }
 }
 
 @keyframes shimmerFill {
@@ -189,7 +181,7 @@ body[data-view="dashboard"] .mobile-header .header-icon i {
 
     box-shadow: none !important;
 
-    animation: pulseGlow 4s infinite ease-in-out;
+    animation: none !important;
 
     flex-shrink: 0;
 

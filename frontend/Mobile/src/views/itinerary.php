@@ -1057,29 +1057,81 @@ try {
 
 <!-- Fullscreen Itinerary Route Preview Modal -->
 <div id="itinerary-fullscreen-map-modal"
-    style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; width:100vw; height:100vh; z-index:999999; background:#0a0f1c; flex-direction:column;">
+    style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; width:100vw; height:100vh; z-index:999980; background:#0a0f1c; flex-direction:column;">
     
     <!-- Header Bar matching the App Mobile Header Style -->
     <div class="mobile-header"
         style="position:absolute !important; top:0 !important; left:0 !important; transform:none !important; width:100% !important; max-width:100% !important; background:#1e3a8a !important; padding:10px clamp(12px, 3.8vw, 18px) !important; padding-top:max(env(safe-area-inset-top, 0px), 36px) !important; display:flex !important; justify-content:space-between !important; align-items:center !important; z-index:10000 !important; box-sizing:border-box !important; border:none !important; outline:none !important; box-shadow:none !important;">
         <button type="button" class="header-icon" onclick="window.closeItineraryFullscreenMap()" title="Back" aria-label="Back"
-            style="width:38px; height:38px; border-radius:12px; background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(0,0,0,0.15) !important;">
+            style="width:38px; height:38px; border-radius:12px; background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(0,0,0,0.15) !important;"
+            onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">
             <i class="fa-solid fa-arrow-left" style="color:#1e3a8a !important;"></i>
         </button>
         <h1 class="header-title"
             style="font-size:17px; font-weight:800; color:#ffffff !important; margin:0; letter-spacing:-0.3px; text-align:center; flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding:0 8px;">
             Route Preview
         </h1>
-        <button type="button" class="header-icon" onclick="window.fitItineraryFullscreenMapBounds()" title="Recenter Route" aria-label="Recenter Route"
-            style="width:38px; height:38px; border-radius:12px; background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(0,0,0,0.15) !important;">
-            <i class="fa-solid fa-crosshairs" style="color:#1e3a8a !important;"></i>
+        <button type="button" class="header-icon" onclick="typeof toggleNotifications === 'function' ? toggleNotifications() : null" title="Notifications" aria-label="Notifications"
+            style="width:38px; height:38px; border-radius:12px; background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(0,0,0,0.15) !important; position:relative;"
+            onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">
+            <i class="fa-solid fa-bell" style="color:#1e3a8a !important;"></i>
+            <div class="bell-dot" id="fs-bell-dot" style="position:absolute; top:8px; right:8px; width:7px; height:7px; background:#ef4444; border-radius:50%; display:none;"></div>
         </button>
     </div>
 
-    <!-- Bottom Floating Stats Pill -->
-    <div id="itinerary-fs-bottom-stats"
-        style="position:absolute; bottom:calc(max(env(safe-area-inset-bottom, 0px), 16px) + 12px); left:50%; transform:translateX(-50%); z-index:10000; background:linear-gradient(135deg, rgba(30, 58, 138, 0.95) 0%, rgba(63, 125, 183, 0.92) 100%); backdrop-filter:blur(15px); -webkit-backdrop-filter:blur(15px); padding:8px 18px; border-radius:100px; color:#ffffff; font-size:12.5px; font-weight:800; display:flex; align-items:center; gap:8px; box-shadow:0 6px 20px rgba(0,0,0,0.3); pointer-events:none; white-space:nowrap;">
-        <span id="itinerary-fs-stats">0.0 km &bull; 0 min</span>
+    <!-- Map Legend on Bottom Left (Above Cards Dock) - Minimizable -->
+    <div id="itinerary-fs-legend"
+        style="position:absolute; bottom:calc(max(env(safe-area-inset-bottom, 0px), 12px) + 72px); left:12px; z-index:9999; background:rgba(255, 255, 255, 0.94); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); border-radius:14px; box-shadow:0 4px 14px rgba(10, 25, 60, 0.12); border:1px solid rgba(226, 232, 240, 0.85); display:flex; flex-direction:column; pointer-events:auto; min-width:115px; overflow:hidden; transition:all 0.25s cubic-bezier(0.16, 1, 0.3, 1);">
+        <div onclick="window.toggleItineraryFsLegend()"
+            style="display:flex; align-items:center; justify-content:space-between; padding:7px 10px; cursor:pointer; user-select:none; gap:8px;">
+            <span style="font-size:9.5px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; color:#64748b;">Legend</span>
+            <i id="itinerary-fs-legend-chevron" class="fa-solid fa-chevron-down" style="font-size:9px; color:#64748b; transition:transform 0.25s ease;"></i>
+        </div>
+        <div id="itinerary-fs-legend-body"
+            style="display:flex; flex-direction:column; gap:6px; padding:0 10px 8px 10px; max-height:120px; opacity:1; overflow:hidden; transition:max-height 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease, padding 0.25s ease;">
+            <div style="display:flex; align-items:center; gap:7px; font-size:10.5px; font-weight:700; color:#1e3a8a;">
+                <span style="width:10px; height:10px; border-radius:50%; background:#0284c7; border:2px solid #ffffff; box-shadow:0 0 0 1.5px #0284c7; flex-shrink:0;"></span>
+                <span>You</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:7px; font-size:10.5px; font-weight:700; color:#1e3a8a;">
+                <span style="width:14px; height:14px; border-radius:50%; background:linear-gradient(135deg, #00f2fe, #0284c7); color:#fff; font-size:8px; font-weight:900; display:inline-flex; align-items:center; justify-content:center; flex-shrink:0;">#</span>
+                <span>Trip Stops</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:7px; font-size:10.5px; font-weight:700; color:#1e3a8a;">
+                <span style="width:16px; height:3px; border-radius:2px; background:#00f2fe; flex-shrink:0;"></span>
+                <span>Route</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Action Controls on Bottom Right -->
+    <div style="position:absolute; right:12px; bottom:calc(max(env(safe-area-inset-bottom, 0px), 12px) + 72px); z-index:10000; display:flex; flex-direction:column; gap:6px; align-items:center;">
+        <button type="button" id="btn-fs-recenter" onclick="window.fitItineraryFullscreenMapBounds()" title="Recenter Route" aria-label="Recenter Route"
+            style="width:42px; height:42px; border-radius:12px; background:#0284c7 !important; border:none !important; outline:none !important; color:#ffffff !important; font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 14px rgba(2, 132, 199, 0.4) !important; transition:transform 0.15s ease;"
+            onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">
+            <i class="fa-solid fa-route" style="color:#ffffff !important;"></i>
+        </button>
+        <button type="button" id="btn-fs-locate-me" onclick="window.locateItineraryFullscreenMap()" title="My Location" aria-label="Locate Me"
+            style="width:42px; height:42px; border-radius:12px; background:#0284c7 !important; border:none !important; outline:none !important; color:#ffffff !important; font-size:17px; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 14px rgba(2, 132, 199, 0.4) !important; transition:transform 0.15s ease;"
+            onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">
+            <i class="fa-solid fa-crosshairs" style="color:#ffffff !important;"></i>
+        </button>
+    </div>
+
+    <!-- Bottom Container: Trip Stop Cards Background Dock -->
+    <div id="itinerary-fs-bottom-panel"
+        style="position:absolute; bottom:calc(max(env(safe-area-inset-bottom, 0px), 12px) + 10px); left:12px; right:12px; z-index:10000; pointer-events:none; box-sizing:border-box;">
+        
+        <!-- Frosted Background Container Dock for Cards -->
+        <div id="itinerary-fs-cards-container"
+            style="background:rgba(255, 255, 255, 0.82) !important; backdrop-filter:blur(20px) !important; -webkit-backdrop-filter:blur(20px) !important; border-radius:18px !important; padding:7px 8px !important; border:1px solid rgba(255, 255, 255, 0.95) !important; box-shadow:0 10px 30px rgba(10, 25, 60, 0.16) !important; pointer-events:auto !important; width:100% !important; box-sizing:border-box !important;">
+            
+            <!-- Trip Stop Cards Carousel -->
+            <div id="itinerary-fs-cards-carousel" class="hide-scrollbar"
+                style="display:flex; gap:9px; overflow-x:auto; padding:2px; scroll-snap-type:x mandatory; -webkit-overflow-scrolling:touch; scrollbar-width:none;">
+                <!-- Populated via renderItineraryFsCards() -->
+            </div>
+        </div>
     </div>
 
     <!-- The Fullscreen Leaflet Map Canvas -->
@@ -4297,18 +4349,177 @@ try {
 
         var itineraryFsMap = null;
         var itineraryFsLayers = [];
+        window.myFsDraftMarker = null;
+
+        function renderItineraryFsCards() {
+            const container = document.getElementById('itinerary-fs-cards-carousel');
+            const panel = document.getElementById('itinerary-fs-bottom-panel');
+            if (!container) return;
+            const draft = JSON.parse(localStorage.getItem('intan_elyu_draft_itinerary') || '[]');
+            if (!draft || draft.length === 0) {
+                container.innerHTML = '';
+                if (panel) panel.style.display = 'none';
+                return;
+            }
+            if (panel) panel.style.display = 'block';
+            let html = '';
+            draft.forEach((place, index) => {
+                const rawName = String(place.name || place.title || `Stop ${index + 1}`).trim();
+                const cleanName = rawName.replace(/\\'/g, "'").replace(/\\"/g, '"').replace(/\\\\/g, '\\');
+                const safeName = cleanName.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+                const pLat = parseFloat(place.lat || place.latitude || 0);
+                const pLng = parseFloat(place.lng || place.longitude || 0);
+                html += `
+                <div class="itinerary-fs-card" id="fs-card-${index}" onclick="window.zoomToItineraryFsStop(${index}, ${pLat}, ${pLng})"
+                    style="flex:0 0 auto; scroll-snap-align:center; background:#ffffff !important; border:1.5px solid #e2e8f0 !important; border-radius:14px; padding:7px 13px; display:flex; align-items:center; gap:8px; box-shadow:0 2px 8px rgba(10, 25, 60, 0.08) !important; cursor:pointer; transition:all 0.2s ease; max-width:220px; min-width:110px;">
+                    <div style="width:22px; height:22px; border-radius:50%; background:linear-gradient(135deg, #00f2fe, #0284c7); color:#ffffff; display:flex; align-items:center; justify-content:center; font-size:10.5px; font-weight:900; flex-shrink:0;">
+                        ${index + 1}
+                    </div>
+                    <span style="font-size:12px; font-weight:800; color:#0f172a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                        ${safeName}
+                    </span>
+                </div>`;
+            });
+            container.innerHTML = html;
+        }
+
+        window.toggleItineraryFsLegend = function () {
+            const body = document.getElementById('itinerary-fs-legend-body');
+            const chevron = document.getElementById('itinerary-fs-legend-chevron');
+            if (!body || !chevron) return;
+            const isCollapsed = body.style.maxHeight === '0px' || body.getAttribute('data-collapsed') === 'true';
+            if (isCollapsed) {
+                body.style.maxHeight = '120px';
+                body.style.opacity = '1';
+                body.style.padding = '0 10px 8px 10px';
+                body.setAttribute('data-collapsed', 'false');
+                chevron.style.transform = 'rotate(0deg)';
+            } else {
+                body.style.maxHeight = '0px';
+                body.style.opacity = '0';
+                body.style.padding = '0 10px 0 10px';
+                body.setAttribute('data-collapsed', 'true');
+                chevron.style.transform = 'rotate(180deg)';
+            }
+        };
+
+        window.zoomToItineraryFsStop = function (index, lat, lng) {
+            if (!itineraryFsMap) return;
+            const pLat = parseFloat(lat);
+            const pLng = parseFloat(lng);
+            if (!isNaN(pLat) && !isNaN(pLng) && pLat !== 0 && pLng !== 0) {
+                itineraryFsMap.flyTo([pLat, pLng], 16, { animate: true, duration: 1.2 });
+            }
+
+            // Highlight the clicked card
+            document.querySelectorAll('.itinerary-fs-card').forEach(c => {
+                c.style.borderColor = '#e2e8f0';
+                c.style.background = '#ffffff';
+                c.style.transform = 'scale(1)';
+                c.style.boxShadow = '0 4px 14px rgba(10, 25, 60, 0.14)';
+            });
+            const activeCard = document.getElementById(`fs-card-${index}`);
+            if (activeCard) {
+                activeCard.style.borderColor = '#0284c7';
+                activeCard.style.background = '#f0f9ff';
+                activeCard.style.transform = 'scale(1.04)';
+                activeCard.style.boxShadow = '0 6px 18px rgba(2, 132, 199, 0.25)';
+                activeCard.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+            }
+
+            // Open marker popup on fullscreen map
+            const targetMarker = itineraryFsLayers.find(l => l instanceof L.Marker && l._stopIndex === index);
+            if (targetMarker && targetMarker.openPopup) {
+                targetMarker.openPopup();
+            }
+        };
+
+        window.locateItineraryFullscreenMap = async function () {
+            if (!itineraryFsMap) return;
+            const btn = document.getElementById('btn-fs-locate-me');
+            if (btn) {
+                btn.style.transform = 'scale(0.9)';
+                setTimeout(() => { if (btn) btn.style.transform = 'scale(1)'; }, 150);
+            }
+
+            let lat = window.myLat || window.currentGPSLat;
+            let lng = window.myLng || window.currentGPSLng;
+
+            const applyZoom = (uLat, uLng) => {
+                window.myLat = uLat;
+                window.myLng = uLng;
+                window.currentGPSLat = uLat;
+                window.currentGPSLng = uLng;
+
+                if (!window.myFsDraftMarker) {
+                    const myIconHtml = `
+                        <div class="gps-user-marker-icon">
+                            <div class="gps-user-marker-wave"></div>
+                            <div class="gps-user-marker-inner"></div>
+                        </div>
+                    `;
+                    const myIcon = L.divIcon({
+                        className: 'custom-leaflet-marker',
+                        html: myIconHtml,
+                        iconSize: [36, 36],
+                        iconAnchor: [18, 18]
+                    });
+                    window.myFsDraftMarker = L.marker([uLat, uLng], { icon: myIcon, zIndexOffset: 2000 })
+                        .addTo(itineraryFsMap)
+                        .bindPopup('<div style="font-size:10px; font-weight:800; color:#1e3a8a;">📍 Your Location</div><div style="font-size:8.5px; color:#64748b;">Starting Point</div>', { closeButton: false });
+                } else {
+                    window.myFsDraftMarker.setLatLng([uLat, uLng]);
+                    if (!itineraryFsMap.hasLayer(window.myFsDraftMarker)) {
+                        window.myFsDraftMarker.addTo(itineraryFsMap);
+                    }
+                }
+                itineraryFsMap.flyTo([uLat, uLng], 16, { animate: true, duration: 1.2 });
+                try { window.myFsDraftMarker.openPopup(); } catch (e) { }
+                if (typeof showToast === 'function') showToast("Zoomed to your location 📍");
+            };
+
+            if (lat && lng) {
+                applyZoom(lat, lng);
+            } else if (typeof showToast === 'function') {
+                showToast("Acquiring GPS location...");
+            }
+
+            if (typeof window.requestPreciseLocation === 'function') {
+                try {
+                    const loc = await window.requestPreciseLocation(true);
+                    if (loc && loc.lat && loc.lng) {
+                        applyZoom(loc.lat, loc.lng);
+                        return;
+                    }
+                } catch (e) { }
+            }
+            if (typeof window.resolveUserLocation === 'function') {
+                try {
+                    const loc = await window.resolveUserLocation(true);
+                    if (loc && loc.lat && loc.lng) {
+                        applyZoom(loc.lat, loc.lng);
+                        return;
+                    }
+                } catch (e) { }
+            }
+            if (!lat || !lng) {
+                if (typeof showToast === 'function') showToast("Unable to detect GPS position", "warning");
+            }
+        };
 
         window.openItineraryFullMapPreview = function () {
             const modal = document.getElementById('itinerary-fullscreen-map-modal');
             if (!modal) return;
             modal.style.display = 'flex';
 
-            const distTxt = document.getElementById('draft-map-dist')?.textContent || '';
-            const timeTxt = document.getElementById('draft-map-time')?.textContent || '';
-            const statsEl = document.getElementById('itinerary-fs-stats');
-            if (statsEl) {
-                statsEl.textContent = (distTxt && timeTxt) ? `${distTxt} • ${timeTxt}` : (distTxt || timeTxt || 'Route Preview');
+            // Hide bottom navigation
+            const bNav = document.getElementById('bottom-navigation');
+            if (bNav) {
+                bNav.classList.add('nav-hidden');
+                bNav.style.setProperty('display', 'none', 'important');
             }
+
+            renderItineraryFsCards();
 
             const mapDiv = document.getElementById('itinerary-fullscreen-map');
             if (!itineraryFsMap && typeof L !== 'undefined' && mapDiv) {
@@ -4318,7 +4529,9 @@ try {
                     scrollWheelZoom: true,
                     dragging: true,
                     touchZoom: true,
-                    doubleClickZoom: true
+                    doubleClickZoom: true,
+                    minZoom: 11,
+                    maxZoom: 19
                 }).setView([16.6159, 120.3210], 13);
                 window.itineraryFsMap = itineraryFsMap;
 
@@ -4327,19 +4540,6 @@ try {
                     subdomains: ['a', 'b', 'c'],
                     detectRetina: true
                 }).addTo(itineraryFsMap);
-
-                // Add zoom control at bottom-right
-                L.control.zoom({ position: 'bottomright' }).addTo(itineraryFsMap);
-
-                // Bundled municipal geometry
-                if (window.OFFLINE_MUNICIPALITIES_GEOJSON) {
-                    try {
-                        L.geoJSON(window.OFFLINE_MUNICIPALITIES_GEOJSON, {
-                            interactive: false,
-                            style: { stroke: false, weight: 0, opacity: 0, fillColor: '#b8dcec', fillOpacity: 0.15 }
-                        }).addTo(itineraryFsMap);
-                    } catch (e) { }
-                }
             }
 
             syncFullscreenMapLayers();
@@ -4349,18 +4549,80 @@ try {
                     itineraryFsMap.invalidateSize();
                     window.fitItineraryFullscreenMapBounds();
                 }
-            }, 120);
+            }, 180);
         };
 
         window.closeItineraryFullscreenMap = function () {
             const modal = document.getElementById('itinerary-fullscreen-map-modal');
             if (modal) modal.style.display = 'none';
+
+            // Restore bottom navigation
+            const bNav = document.getElementById('bottom-navigation');
+            if (bNav) {
+                bNav.classList.remove('nav-hidden');
+                bNav.style.removeProperty('display');
+            }
         };
 
         window.fitItineraryFullscreenMapBounds = function () {
             if (!itineraryFsMap) return;
-            if (draftMap && draftMap.getBounds && draftMap.getBounds().isValid && draftMap.getBounds().isValid()) {
-                itineraryFsMap.fitBounds(draftMap.getBounds(), { padding: [100, 40], maxZoom: 16, animate: true });
+
+            const routeBounds = L.latLngBounds([]);
+            let hasPoints = false;
+
+            // 1. Include all stop locations from draft itinerary
+            try {
+                const draft = JSON.parse(localStorage.getItem('intan_elyu_draft_itinerary') || '[]');
+                draft.forEach(p => {
+                    const lat = parseFloat(p.lat || p.latitude);
+                    const lng = parseFloat(p.lng || p.longitude);
+                    if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
+                        routeBounds.extend([lat, lng]);
+                        hasPoints = true;
+                    }
+                });
+            } catch (e) { }
+
+            // 2. Include all polyline points and markers in fullscreen layers
+            if (Array.isArray(itineraryFsLayers)) {
+                itineraryFsLayers.forEach(l => {
+                    if (l instanceof L.Polyline && !(l instanceof L.Polygon)) {
+                        if (typeof l.getBounds === 'function' && l.getBounds().isValid && l.getBounds().isValid()) {
+                            routeBounds.extend(l.getBounds());
+                            hasPoints = true;
+                        }
+                    } else if (l instanceof L.Marker && l.getLatLng) {
+                        const ll = l.getLatLng();
+                        if (ll && !isNaN(ll.lat) && !isNaN(ll.lng) && ll.lat !== 0) {
+                            routeBounds.extend(ll);
+                            hasPoints = true;
+                        }
+                    }
+                });
+            }
+
+            // 3. Include user GPS if present
+            if (window.myFsDraftMarker && window.myFsDraftMarker.getLatLng) {
+                const uPos = window.myFsDraftMarker.getLatLng();
+                if (uPos && !isNaN(uPos.lat) && !isNaN(uPos.lng) && uPos.lat !== 0) {
+                    routeBounds.extend(uPos);
+                    hasPoints = true;
+                }
+            }
+
+            if (hasPoints && routeBounds.isValid()) {
+                // Fit nicely with vertical padding for header (top) and card dock (bottom)
+                itineraryFsMap.fitBounds(routeBounds, {
+                    paddingTopLeft: [24, 65],
+                    paddingBottomRight: [24, 120],
+                    maxZoom: 15,
+                    animate: true,
+                    duration: 0.8
+                });
+            } else if (draftMap && draftMap.getCenter) {
+                itineraryFsMap.setView(draftMap.getCenter(), 13, { animate: true });
+            } else {
+                itineraryFsMap.setView([16.6159, 120.3210], 13, { animate: true });
             }
         };
 
@@ -4375,6 +4637,8 @@ try {
                 draftMap.eachLayer(layer => {
                     if (layer instanceof L.TileLayer) return;
                     if (layer._isOfflineBaseLayer) return;
+                    if (layer instanceof L.Polygon) return;
+                    if (layer instanceof L.GeoJSON) return;
 
                     if (layer instanceof L.Polyline && !(layer instanceof L.Polygon)) {
                         const latlngs = layer.getLatLngs();
@@ -4397,6 +4661,8 @@ try {
                         if (layer.getPopup && layer.getPopup()) {
                             marker.bindPopup(layer.getPopup().getContent(), { autoPanPadding: [20, 20] });
                         }
+                        marker._stopIndex = layer._stopIndex;
+                        marker._isUserGps = layer._isUserGps;
                         itineraryFsLayers.push(marker);
                     }
                 });
@@ -6123,7 +6389,7 @@ try {
                                     weight: 0,
                                     opacity: 0,
                                     fillColor: '#b8dcec',
-                                    fillOpacity: isOfflineDraftMap ? 0.18 : 0
+                                    fillOpacity: 0
                                 }
                             }).addTo(draftMap);
                             offlineBase._isOfflineBaseLayer = true;
@@ -6230,6 +6496,7 @@ try {
                 const marker = L.marker(ll, { icon: stopIcon })
                     .addTo(draftMap)
                     .bindPopup(`<div style="font-size:9.5px; font-weight:800; color:#1e3a8a; line-height:1.15;">Stop ${index + 1}: ${place.name}</div><div style="font-size:8px; color:#64748b; margin-top:1px;">${place.location || place.address || (place.municipality ? place.municipality + ', La Union' : 'La Union')}</div>`, { closeButton: false, autoPanPadding: [10, 10] });
+                marker._stopIndex = index;
                 draftMarkers.push(marker);
                 window.draftPlaceMarkers.push(marker);
             });
