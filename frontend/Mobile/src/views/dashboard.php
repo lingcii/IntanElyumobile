@@ -1957,18 +1957,20 @@ window.applyTouristSitesFilterModal = function() {
     };
 
     // Filter Chips for Tourist Sites (Mockup Screen 2)
-    window.filterTouristSitesChip = function(type, btn) {
-        window._currentTouristSitesChip = type;
-
-        // Visual chip selection
+    window.syncTouristSitesChipUI = function(chipType) {
+        const activeType = chipType || window._currentTouristSitesChip || 'all';
         const chips = document.querySelectorAll('.dash-filter-chips .dash-chip');
-        chips.forEach(c => c.classList.remove('active'));
-        if (btn) {
-            btn.classList.add('active');
-        } else {
-            const chipBtn = document.querySelector(`.dash-filter-chips .dash-chip[onclick*="'${type}'"]`);
-            if (chipBtn) chipBtn.classList.add('active');
-        }
+        chips.forEach(c => {
+            const onClickAttr = c.getAttribute('onclick') || '';
+            const matches = onClickAttr.includes(`'${activeType}'`);
+            c.classList.toggle('active', matches);
+        });
+    };
+
+    window.filterTouristSitesChip = function(type, btn) {
+        window._currentTouristSitesChip = type || 'all';
+        window.syncTouristSitesChipUI(window._currentTouristSitesChip);
+        if (btn) btn.classList.add('active');
 
         if (!window._currentTouristFilterState) {
             window._currentTouristFilterState = { muni: 'All', status: 'All', sort: 'default' };
@@ -1995,7 +1997,24 @@ window.applyTouristSitesFilterModal = function() {
             }
         }
 
-        if (!window.allTouristSpots || window.allTouristSpots.length === 0) return;
+        if (!window.allTouristSpots || window.allTouristSpots.length === 0) {
+            try {
+                const mapCache = window.safeJsonParse ? window.safeJsonParse(localStorage.getItem('public_map_data'), null) : JSON.parse(localStorage.getItem('public_map_data') || 'null');
+                const cachedSpots = (mapCache && (mapCache.destinations || mapCache.data?.destinations || mapCache.spots || mapCache.data?.spots)) || null;
+                if (cachedSpots && cachedSpots.length > 0) {
+                    window.allTouristSpots = cachedSpots
+                        .filter(d => !d.status || !['pending', 'draft', 'rejected'].includes(d.status.toLowerCase()))
+                        .sort((a, b) => (b.id || 0) - (a.id || 0));
+                }
+            } catch (e) {}
+        }
+
+        if (!window.allTouristSpots || window.allTouristSpots.length === 0) {
+            if (typeof window.fetchAllTouristSpots === 'function') {
+                window.fetchAllTouristSpots();
+            }
+            return;
+        }
 
         const statusMap = { 'EXIST': 'Existing', 'EMERGE': 'Emerging', 'POTENTIAL': 'Potential' };
         const stLabel = fState && fState.status !== 'All' ? (statusMap[fState.status] || fState.status) : '';
@@ -2003,6 +2022,17 @@ window.applyTouristSitesFilterModal = function() {
         const muniLabel = hasSpecificMuni ? fState.muni : '';
 
         let spots = typeof window.getFilteredTouristSpots === 'function' ? window.getFilteredTouristSpots() : [...window.allTouristSpots];
+
+        const applyChipRender = (list, lbl) => {
+            if (typeof window.renderAllTouristSpots === 'function') {
+                window._applyingChipRender = true;
+                try {
+                    window.renderAllTouristSpots(list, lbl);
+                } finally {
+                    window._applyingChipRender = false;
+                }
+            }
+        };
 
         if (type === 'top') {
             spots.sort((a, b) => {
@@ -2015,11 +2045,10 @@ window.applyTouristSitesFilterModal = function() {
             else if (stLabel) label = `Top Rated · ${stLabel}`;
             else if (muniLabel) label = `Top Rated in ${muniLabel}`;
 
-            if (typeof window.renderAllTouristSpots === 'function') {
-                window.renderAllTouristSpots(spots, label);
-            }
+            applyChipRender(spots, label);
         } else if (type === 'near') {
             const runNearMeFilter = (lat, lng) => {
+                if (window._currentTouristSitesChip !== 'near') return;
                 const uLat = parseFloat(lat);
                 const uLng = parseFloat(lng);
                 let baseSpots = typeof window.getFilteredTouristSpots === 'function' ? window.getFilteredTouristSpots() : [...window.allTouristSpots];
@@ -2049,9 +2078,7 @@ window.applyTouristSitesFilterModal = function() {
                 else if (stLabel) label = `Near Me · ${stLabel}`;
                 else if (muniLabel) label = `Near Me · ${muniLabel}`;
 
-                if (typeof window.renderAllTouristSpots === 'function') {
-                    window.renderAllTouristSpots(nearSpots, label);
-                }
+                applyChipRender(nearSpots, label);
             };
 
             const userLat = window.userCurrentCoords?.lat || window.currentGPSLat || window.currentWeatherLocation?.lat;
@@ -2079,9 +2106,7 @@ window.applyTouristSitesFilterModal = function() {
             else if (stLabel) label = stLabel;
             else if (muniLabel) label = muniLabel;
 
-            if (typeof window.renderAllTouristSpots === 'function') {
-                window.renderAllTouristSpots(spots, label);
-            }
+            applyChipRender(spots, label);
         }
     };
 
@@ -2208,6 +2233,14 @@ window.applyTouristSitesFilterModal = function() {
     window.toggleAllSpotsMore = window.navigateToTouristSitesPage;
 
     window.renderAllTouristSpots = function (spots, activeCat = 'All') {
+        if (activeCat === 'All' && !window._applyingChipRender && window._currentTouristSitesChip && window._currentTouristSitesChip !== 'all') {
+            if (typeof window.filterTouristSitesChip === 'function') {
+                return window.filterTouristSitesChip(window._currentTouristSitesChip);
+            }
+        }
+        if (typeof window.syncTouristSitesChipUI === 'function') {
+            window.syncTouristSitesChipUI(window._currentTouristSitesChip || 'all');
+        }
         const container = document.getElementById('all-spots-container');
         const countBadge = document.getElementById('all-spots-count-badge');
         const subtitle = document.getElementById('all-spots-subtitle');
@@ -3479,6 +3512,9 @@ window.applyTouristSitesFilterModal = function() {
                     clearTimeout(window._gpsDebounceTimer);
                     window._gpsDebounceTimer = setTimeout(() => {
                         window.loadNearMe(liveLat, liveLng);
+                        if (window._currentTouristSitesChip === 'near' && typeof window.filterTouristSitesChip === 'function') {
+                            window.filterTouristSitesChip('near');
+                        }
                     }, 1500);
                 }
             }
@@ -3695,7 +3731,8 @@ window.applyTouristSitesFilterModal = function() {
             });
             const tripsSig = JSON.stringify(itineraries.slice(0, 3).map(t => [String(t.id || t.local_id || ''), String(t.title || ''), String(t.trip_date || '')]));
             const hasTripCards = tripsContainer.querySelectorAll('.dash-trip-card, .trip-swipe-container').length > 0;
-            if (window._lastDashTripsSig === tripsSig && hasTripCards) {
+            const hasTripsLoading = Boolean(tripsContainer.querySelector('.dash-loading-state'));
+            if (window._lastDashTripsSig === tripsSig && hasTripCards && !hasTripsLoading) {
                 return; // Silent: prevent DOM rebuild & flicker
             }
             window._lastDashTripsSig = tripsSig;
@@ -4019,9 +4056,9 @@ window.applyTouristSitesFilterModal = function() {
         }
 
         // Early fetch for tourist spots
-        if (typeof window.fetchAllTouristSpots === 'function') {
-            window.fetchAllTouristSpots();
-        }
+        const spotsPromise = (typeof window.fetchAllTouristSpots === 'function')
+            ? Promise.resolve(window.fetchAllTouristSpots()).catch(() => {})
+            : Promise.resolve();
 
         // Non-blocking coordinate resolution
         let currentCoords = window.userCurrentCoords || (window.currentGPSLat && window.currentGPSLng ? { lat: window.currentGPSLat, lng: window.currentGPSLng } : null);
@@ -4162,7 +4199,8 @@ window.applyTouristSitesFilterModal = function() {
                 const trendingList = (data.trending && data.trending.length > 0) ? data.trending.slice(0, 10) : [];
                 const trendSig = JSON.stringify(trendingList.map(d => [String(d.id || ''), String(d.name || '')]));
                 const hasTrendCards = trendingContainer.querySelectorAll('.fav-card').length > 0;
-                if (!window._lastDashTrendingSig || window._lastDashTrendingSig !== trendSig || !hasTrendCards) {
+                const hasTrendLoading = Boolean(trendingContainer.querySelector('.dash-loading-state'));
+                if (!window._lastDashTrendingSig || window._lastDashTrendingSig !== trendSig || !hasTrendCards || hasTrendLoading) {
                     window._lastDashTrendingSig = trendSig;
                     trendingContainer.innerHTML = '';
                     if (trendingList.length > 0) {
@@ -4195,18 +4233,23 @@ window.applyTouristSitesFilterModal = function() {
             // Populate Saved Places (Limit to top 5, "See All" opens full list)
             const savedContainer = document.getElementById('saved-places-container');
             if (savedContainer) {
-                const savedPlacesList = (data.savedPlaces && data.savedPlaces.length > 0) ? data.savedPlaces.slice(0, 5) : [];
+                const removedSet = window._removedSavedPlaceIds || new Set();
+                const allValidSaved = Array.isArray(data.savedPlaces)
+                    ? data.savedPlaces.filter(p => p && !removedSet.has(String(p.id)))
+                    : null;
+                if (allValidSaved !== null) {
+                    try {
+                        localStorage.setItem('intan_elyu_saved_place_ids', JSON.stringify(allValidSaved.map(p => p.id)));
+                    } catch (e) { }
+                }
+                const savedPlacesList = (allValidSaved && allValidSaved.length > 0) ? allValidSaved.slice(0, 5) : [];
                 const savedSig = JSON.stringify(savedPlacesList.map(p => [String(p.id || ''), String(p.name || '')]));
                 const hasSavedCards = savedContainer.querySelectorAll('.fav-card').length > 0;
-                if (!window._lastDashSavedSig || window._lastDashSavedSig !== savedSig || !hasSavedCards) {
+                const hasSavedLoading = Boolean(savedContainer.querySelector('.dash-loading-state'));
+                if (!window._lastDashSavedSig || window._lastDashSavedSig !== savedSig || !hasSavedCards || hasSavedLoading) {
                     window._lastDashSavedSig = savedSig;
                     savedContainer.innerHTML = '';
                     if (savedPlacesList.length > 0) {
-                        try {
-                            const savedIds = data.savedPlaces.map(p => p.id);
-                            localStorage.setItem('intan_elyu_saved_place_ids', JSON.stringify(savedIds));
-                        } catch (e) { }
-
                         savedContainer.classList.remove('is-empty');
                         savedContainer.style.paddingLeft = '';
                         savedContainer.style.paddingRight = '';
@@ -4249,7 +4292,8 @@ window.applyTouristSitesFilterModal = function() {
 
             const recContainer = document.getElementById('recommended-container');
             const recSig = Array.isArray(data.recommended) ? data.recommended.map(d => d.id).join(',') : '';
-            if (recContainer && data.recommended && (recContainer._lastRecSig !== recSig || !recContainer.children.length)) {
+            const hasRecLoading = Boolean(recContainer && recContainer.querySelector('.dash-loading-state'));
+            if (recContainer && data.recommended && (recContainer._lastRecSig !== recSig || !recContainer.children.length || hasRecLoading)) {
                 recContainer._lastRecSig = recSig;
                 recContainer.innerHTML = '';
                 if (data.timeLabel) {
@@ -4259,27 +4303,36 @@ window.applyTouristSitesFilterModal = function() {
                 const INITIAL_SHOW = 2;
                 const allDests = data.recommended;
 
-                // Render first 2
-                allDests.slice(0, INITIAL_SHOW).forEach(dest => {
-                    recContainer.innerHTML += buildRecommendedItem(dest);
-                });
+                if (allDests.length > 0) {
+                    // Render first 2
+                    allDests.slice(0, INITIAL_SHOW).forEach(dest => {
+                        recContainer.innerHTML += buildRecommendedItem(dest);
+                    });
 
-                // Hidden extras container
-                if (allDests.length > INITIAL_SHOW) {
-                    const extras = allDests.slice(INITIAL_SHOW);
-                    const extraHtml = extras.map(dest => buildRecommendedItem(dest)).join('');
+                    // Hidden extras container
+                    if (allDests.length > INITIAL_SHOW) {
+                        const extras = allDests.slice(INITIAL_SHOW);
+                        const extraHtml = extras.map(dest => buildRecommendedItem(dest)).join('');
 
-                    recContainer.innerHTML += `
-                    <div id="rec-extras" style="overflow:hidden; max-height:0; transition: max-height 0.4s ease;">
-                        ${extraHtml}
-                    </div>
-                    <button id="btn-view-more-rec"
-                        onclick="window.toggleRecommendedMore()"
-                        style="width:100%; margin-top:10px; padding:12px; border-radius:14px; border: none; outline:none; background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%); color:#ffffff; font-size:13px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow: 0 4px 12px rgba(32, 63, 141, 0.25); transition: all 0.2s;">
-                        <i class="fa-solid fa-chevron-down" id="rec-chevron" style="font-size:11px; transition: transform 0.3s;"></i>
-                        View ${extras.length} More
-                    </button>
-                `;
+                        recContainer.innerHTML += `
+                        <div id="rec-extras" style="overflow:hidden; max-height:0; transition: max-height 0.4s ease;">
+                            ${extraHtml}
+                        </div>
+                        <button id="btn-view-more-rec"
+                            onclick="window.toggleRecommendedMore()"
+                            style="width:100%; margin-top:10px; padding:12px; border-radius:14px; border: none; outline:none; background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%); color:#ffffff; font-size:13px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow: 0 4px 12px rgba(32, 63, 141, 0.25); transition: all 0.2s;">
+                            <i class="fa-solid fa-chevron-down" id="rec-chevron" style="font-size:11px; transition: transform 0.3s;"></i>
+                            View ${extras.length} More
+                        </button>
+                    `;
+                    }
+                } else {
+                    recContainer.innerHTML = `
+                    <div class="dash-empty-state">
+                        <div class="dash-empty-icon-wrap"><i class="fa-solid fa-compass"></i></div>
+                        <div class="dash-empty-title">No Recommendations</div>
+                        <div class="dash-empty-desc">Explore more tourist spots to receive customized recommendations.</div>
+                    </div>`;
                 }
             }
 
@@ -4298,8 +4351,9 @@ window.applyTouristSitesFilterModal = function() {
         } else {
             // Check fallback from public_map_data or cached spots map
             try {
-                const mapCache = window.safeJsonParse ? window.safeJsonParse(localStorage.getItem('public_map_data'), null)?.data : null;
-                const spots = (mapCache && mapCache.destinations) || (window.allTouristSpots && window.allTouristSpots.length > 0 ? window.allTouristSpots : null);
+                const rawMapCache = window.safeJsonParse ? window.safeJsonParse(localStorage.getItem('public_map_data'), null) : null;
+                const mapCache = rawMapCache ? (rawMapCache.data || rawMapCache) : null;
+                const spots = (mapCache && (mapCache.destinations || mapCache.spots)) || (window.allTouristSpots && window.allTouristSpots.length > 0 ? window.allTouristSpots : null);
                 if (spots && spots.length > 0) {
                     const activeSpots = spots.filter(d => !d.status || !['pending', 'draft', 'rejected'].includes(d.status.toLowerCase()));
                     renderDashboard({
@@ -4844,14 +4898,18 @@ window.applyTouristSitesFilterModal = function() {
                         throw new Error("Trips fetch failed");
                     },
                     (itinData) => {
-                        if (itinData) renderSavedTrips(itinData);
+                        renderSavedTrips(itinData || []);
                     },
                     Boolean(forceRefresh || window.dashboardNeedsRefresh),
                     60000 // 1 minute TTL
-                ).catch(e => console.warn('Trips fetch handled:', e));
+                ).catch(e => {
+                    console.warn('Trips fetch handled:', e);
+                    renderSavedTrips([]);
+                });
             }
 
-            await Promise.allSettled([dashPromise, rankPromise, tripsPromise]);
+            await Promise.allSettled([dashPromise, rankPromise, tripsPromise, spotsPromise]);
+            handleDashboardEmptyOrError();
             window.dashboardNeedsRefresh = false;
         } catch (e) {
             console.error('dashboardInit error:', e);
@@ -4863,23 +4921,34 @@ window.applyTouristSitesFilterModal = function() {
             forceRefresh = true;
             window._appColdBoot = false;
         }
+        const currentDashDom = document.getElementById('trending-container');
+        if (window._dashboardInitPromise && window._dashboardInitDomNode && window._dashboardInitDomNode !== currentDashDom) {
+            window._dashboardInitPromise = null;
+        }
         if (window._dashboardInitPromise) return window._dashboardInitPromise;
 
         const now = Date.now();
-        if (!forceRefresh && window._dashboardLastInitCompletedAt && now - window._dashboardLastInitCompletedAt < 1500) {
+        const hasLoadingPlaceholders = Boolean(document.querySelector('#trending-container .dash-loading-state, #all-spots-container .dash-loading-state, #saved-trips-container .dash-loading-state, #saved-places-container .dash-loading-state, #recommended-container .dash-loading-state'));
+        if (!forceRefresh && window._dashboardLastInitCompletedAt && now - window._dashboardLastInitCompletedAt < 1500 && !hasLoadingPlaceholders) {
             return Promise.resolve(window._lastDashboardPayload || null);
         }
         window._viewRenderedAt = window._viewRenderedAt || {};
-        if (!forceRefresh && !window.dashboardNeedsRefresh && (now - (window._viewRenderedAt['dashboard'] || 0) < 180000) && document.getElementById('recommended-container')?.children.length) {
+        if (!forceRefresh && !hasLoadingPlaceholders && !window.dashboardNeedsRefresh && (now - (window._viewRenderedAt['dashboard'] || 0) < 180000) && document.getElementById('recommended-container')?.children.length) {
             return Promise.resolve(window._lastDashboardPayload || null);
         }
 
+        window._dashboardInitDomNode = currentDashDom;
         const request = dashboardInitOnce(forceRefresh).finally(() => {
             if (window._dashboardInitPromise === request) {
                 window._dashboardInitPromise = null;
                 window._dashboardLastInitCompletedAt = Date.now();
                 window._viewRenderedAt['dashboard'] = Date.now();
                 window.dashboardNeedsRefresh = false;
+            }
+            const latestDom = document.getElementById('trending-container');
+            const stillHasLoading = Boolean(document.querySelector('#trending-container .dash-loading-state, #all-spots-container .dash-loading-state, #saved-trips-container .dash-loading-state, #saved-places-container .dash-loading-state, #recommended-container .dash-loading-state'));
+            if (latestDom && stillHasLoading && latestDom !== currentDashDom) {
+                dashboardInit(false);
             }
         });
         window._dashboardInitPromise = request;
@@ -4999,31 +5068,41 @@ window.applyTouristSitesFilterModal = function() {
         }
 
         // Update local cached dashboard and saved places state
-        try {
-            const tokenPrefix = token ? token.substring(0, 10) : '';
-            localStorage.removeItem('saved_places_' + tokenPrefix);
+        if (typeof window.syncSavedPlaceLocalState === 'function') {
+            window.syncSavedPlaceLocalState(destId, !isRemoving);
+        } else {
+            try {
+                const tokenPrefix = token ? token.substring(0, 10) : '';
+                localStorage.removeItem('saved_places_' + tokenPrefix);
 
-            let savedIds = JSON.parse(localStorage.getItem('intan_elyu_saved_place_ids') || '[]');
-            if (isRemoving) {
-                savedIds = savedIds.filter(id => id != destId);
-            } else {
-                if (!savedIds.some(id => id == destId)) savedIds.push(destId);
-            }
-            localStorage.setItem('intan_elyu_saved_place_ids', JSON.stringify(savedIds));
+                let savedIds = JSON.parse(localStorage.getItem('intan_elyu_saved_place_ids') || '[]');
+                if (isRemoving) {
+                    savedIds = savedIds.filter(id => id != destId);
+                } else {
+                    if (!savedIds.some(id => id == destId)) savedIds.push(destId);
+                }
+                localStorage.setItem('intan_elyu_saved_place_ids', JSON.stringify(savedIds));
 
-            for (let i = 0; i < localStorage.length; i++) {
-                const k = localStorage.key(i);
-                if (k && k.startsWith('dashboard_data_')) {
-                    const cached = JSON.parse(localStorage.getItem(k) || '{}');
-                    if (cached.savedPlaces && Array.isArray(cached.savedPlaces)) {
-                        if (isRemoving) {
-                            cached.savedPlaces = cached.savedPlaces.filter(p => p.id != destId);
+                for (let i = 0; i < localStorage.length; i++) {
+                    const k = localStorage.key(i);
+                    if (k && k.startsWith('dashboard_data_')) {
+                        const cached = JSON.parse(localStorage.getItem(k) || '{}');
+                        if (cached.savedPlaces && Array.isArray(cached.savedPlaces)) {
+                            if (isRemoving) {
+                                cached.savedPlaces = cached.savedPlaces.filter(p => p.id != destId);
+                            }
+                            localStorage.setItem(k, JSON.stringify(cached));
                         }
-                        localStorage.setItem(k, JSON.stringify(cached));
+                        if (cached.data && Array.isArray(cached.data.savedPlaces)) {
+                            if (isRemoving) {
+                                cached.data.savedPlaces = cached.data.savedPlaces.filter(p => p.id != destId);
+                            }
+                            localStorage.setItem(k, JSON.stringify(cached));
+                        }
                     }
                 }
-            }
-        } catch (e) { }
+            } catch (e) { }
+        }
 
         // 2. BACKGROUND NETWORK REQUEST OR OFFLINE QUEUE
         const isOfflineFavoriteAction = (typeof navigator.onLine === 'boolean') ? !navigator.onLine : (window.isAppOnline === false);
@@ -5037,8 +5116,10 @@ window.applyTouristSitesFilterModal = function() {
                 credentials: 'include',
                 headers: {
                     'Accept': 'application/json',
+                    'Content-Type': 'application/json',
                     'Authorization': 'Bearer ' + token
-                }
+                },
+                body: JSON.stringify({ action: isRemoving ? 'remove' : 'add' })
             }).catch(e => {
                 console.warn('Background favorite sync error, queuing locally:', e);
                 if (window.OfflineFavoriteManager && typeof window.OfflineFavoriteManager.queueToggle === 'function') {

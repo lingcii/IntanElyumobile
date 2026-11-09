@@ -407,11 +407,75 @@ class ProfileController extends Controller
     }
 
     /**
+     * Dispatch 2FA security code via 3-tier delivery pipeline (Resend HTTPS API -> Default Mailer -> Gmail TLS 587 fallback)
+     */
+    private function sendTwoFactorEmail($user, string $code, string $action = 'activation'): bool
+    {
+        if (!$user || empty($user->email)) {
+            return false;
+        }
+
+        $mailable = new \App\Mail\TwoFactorCodeMail($user, $code, $action);
+        $subject = $action === 'deactivation'
+            ? 'Intan Elyu — Let Us Know If It\'s You (2FA Deactivation)'
+            : 'Intan Elyu — Your 2FA Security Code';
+
+        // Priority 1: Resend HTTPS API (Port 443, bypasses cloud SMTP blocks)
+        try {
+            $renderedHtml = $mailable->render();
+            if (\App\Services\ResendMailService::send($user->email, $subject, $renderedHtml)) {
+                return true;
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Resend 2FA email failed, falling back to mailer: ' . $e->getMessage());
+        }
+
+        // Priority 2: Configured default mailer
+        try {
+            \Illuminate\Support\Facades\Mail::to($user->email)->send($mailable);
+            return true;
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Primary mailer failed for 2FA email: ' . $e->getMessage());
+        }
+
+        // Priority 3: Explicit Gmail TLS Port 587 fallback
+        $smtpUsername = env('MAIL_USERNAME') ?: config('mail.mailers.smtp.username');
+        $smtpPassword = env('MAIL_PASSWORD') ?: config('mail.mailers.smtp.password');
+        if (!empty($smtpUsername) && !empty($smtpPassword)) {
+            try {
+                config([
+                    'mail.from.address' => env('MAIL_FROM_ADDRESS') ?: $smtpUsername,
+                    'mail.from.name'    => env('MAIL_FROM_NAME', 'Intan Elyu'),
+                ]);
+                $gmailMailer = app('mail.manager')->build([
+                    'transport'  => 'smtp',
+                    'host'       => env('MAIL_HOST', 'smtp.gmail.com'),
+                    'port'       => 587,
+                    'encryption' => 'tls',
+                    'username'   => $smtpUsername,
+                    'password'   => $smtpPassword,
+                    'timeout'    => 12,
+                ]);
+                $gmailMailer->to($user->email)->send($mailable);
+                return true;
+            } catch (\Throwable $fallbackEx) {
+                \Illuminate\Support\Facades\Log::error('Fallback Gmail TLS mailer failed for 2FA email: ' . $fallbackEx->getMessage());
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * POST /api/tourist/2fa/toggle
      */
     public function toggle2FA(Request $request): JsonResponse
     {
-        $user = $request->user();
+        $user = $request->user() ?: $request->get('_tourist_user');
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'Unauthenticated.'], 401);
+        }
+
         $enable = $request->boolean('enable', true);
 
         if (!$enable) {
@@ -439,18 +503,13 @@ class ProfileController extends Controller
         Cache::put("2fa_setup_code:{$user->id}", $code, 600);
 
         // Dispatch Gmail Notification
-        try {
-            if ($user->email) {
-                \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\TwoFactorCodeMail($user, $code));
-            }
-        } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::warning("2FA email notification failed: " . $e->getMessage());
-        }
+        $emailSent = $this->sendTwoFactorEmail($user, $code, 'activation');
 
         return response()->json([
             'success'               => true,
             'enabled'               => false,
             'awaiting_verification' => true,
+            'email_sent'            => $emailSent,
             'email'                 => $user->email,
             'message'               => "Verification code sent to {$user->email}"
         ]);
@@ -461,7 +520,11 @@ class ProfileController extends Controller
      */
     public function verify2FA(Request $request): JsonResponse
     {
-        $user = $request->user();
+        $user = $request->user() ?: $request->get('_tourist_user');
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'Unauthenticated.'], 401);
+        }
+
         $code = trim((string) $request->input('code'));
 
         $cachedCode = Cache::get("2fa_setup_code:{$user->id}");
@@ -515,20 +578,13 @@ class ProfileController extends Controller
         Cache::put("2fa_disable_code:{$user->id}", $code, 600);
 
         // Dispatch Gmail Notification
-        try {
-            if ($user->email) {
-                \Illuminate\Support\Facades\Mail::to($user->email)->send(
-                    new \App\Mail\TwoFactorCodeMail($user, $code, 'deactivation')
-                );
-            }
-        } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::warning("2FA deactivation email notification failed: " . $e->getMessage());
-        }
+        $emailSent = $this->sendTwoFactorEmail($user, $code, 'deactivation');
 
         return response()->json([
-            'success' => true,
-            'email'   => $user->email,
-            'message' => "Security verification code sent to {$user->email}"
+            'success'    => true,
+            'email_sent' => $emailSent,
+            'email'      => $user->email,
+            'message'    => "Security verification code sent to {$user->email}"
         ]);
     }
 

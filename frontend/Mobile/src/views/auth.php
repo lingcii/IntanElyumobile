@@ -1574,13 +1574,6 @@
                 throw new Error(data.error || data.message || 'Invalid login credentials.');
             }
 
-            // Check if Two-Factor Authentication (2FA) is required
-            if (data.requires_2fa) {
-                window._pending2FALogin = { email: email, password: password, remember: remember };
-                window.openAuthLogin2FAModal(data.email || email);
-                return;
-            }
-
             if (remember) {
                 localStorage.setItem('intan_elyu_remembered_email', email);
                 localStorage.setItem('intan_elyu_remember_me', '1');

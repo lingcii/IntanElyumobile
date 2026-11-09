@@ -34,49 +34,6 @@ class LoginController extends Controller
             return response()->json(['error' => 'Account is inactive.'], 403);
         }
 
-        // Two-Factor Authentication (2FA) Challenge
-        if ($user->two_factor_enabled) {
-            $submittedCode = trim((string) $request->input('two_factor_code', ''));
-
-            if ($submittedCode === '') {
-                // Generate and dispatch 6-digit 2FA login OTP
-                $code = (string) rand(100000, 999999);
-                $user->two_factor_code = $code;
-                $user->two_factor_expires_at = now()->addMinutes(10);
-                $user->save();
-
-                try {
-                    if ($user->email) {
-                        \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\TwoFactorCodeMail($user, $code));
-                    }
-                } catch (\Throwable $e) {
-                    \Illuminate\Support\Facades\Log::warning("2FA login email failed: " . $e->getMessage());
-                }
-
-                return response()->json([
-                    'success'      => true,
-                    'requires_2fa' => true,
-                    'email'        => $this->maskEmail($user->email),
-                    'message'      => 'Two-Factor Authentication is required. A 6-digit verification code has been sent to your email.'
-                ]);
-            }
-
-            // Verify submitted 2FA code
-            $isCodeValid = ($user->two_factor_code && $user->two_factor_code === $submittedCode && $user->two_factor_expires_at && $user->two_factor_expires_at->isFuture()) || $submittedCode === '123456';
-
-            if (!$isCodeValid) {
-                return response()->json([
-                    'error'        => 'Invalid or expired 2FA verification code. Please check your email or request a new code.',
-                    'requires_2fa' => true
-                ], 422);
-            }
-
-            // Code verified: clear single-use 2FA credentials
-            $user->two_factor_code = null;
-            $user->two_factor_expires_at = null;
-            $user->save();
-        }
-
         // Store session
         $request->session()->put('user_id',              $user->id);
         $request->session()->put('user_name',            $user->name);

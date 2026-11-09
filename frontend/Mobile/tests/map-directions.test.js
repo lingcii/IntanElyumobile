@@ -126,4 +126,7 @@ assert.match(mapSource, /id="sheet-manual-guide"[^>]*text-align:justify/,
 assert.doesNotMatch(mapSource, /Visitor Insights \(\$\{reviewCount\}\)[\s\S]{0,160}>Offline</,
     'Offline badge must not be shown beside Visitor Insights');
 
+assert.match(mapSource, /if \(active && panel && panel\.contains\(active\) && typeof active\.blur === 'function'\) active\.blur\(\);/,
+    'closing the directions panel must not blur the main map search input when activating search');
+
 console.log('map directions tests passed');

@@ -155,11 +155,17 @@ if (is_dir($imgDir)) {
                         });
                         if (!res.ok) throw new Error("Failed to fetch saved places");
                         const data = await res.json();
-                        return data.savedPlaces || [];
+                        const removedSet = window._removedSavedPlaceIds || new Set();
+                        return (data.savedPlaces || []).filter(p => p && !removedSet.has(String(p.id)));
                     },
                     (spots) => {
-                        if (spots && Array.isArray(spots) && spots.length > 0) {
-                            renderSavedPlaces((spots || []).filter(d => !d.status || d.status.toLowerCase() !== 'pending'));
+                        if (Array.isArray(spots)) {
+                            const removedSet = window._removedSavedPlaceIds || new Set();
+                            const validSpots = spots.filter(d => d && (!d.status || d.status.toLowerCase() !== 'pending') && !removedSet.has(String(d.id)));
+                            try {
+                                localStorage.setItem('intan_elyu_saved_place_ids', JSON.stringify(validSpots.map(p => p.id)));
+                            } catch (e) {}
+                            renderSavedPlaces(validSpots);
                         } else {
                             const fallback = getLocalSavedSpots();
                             if (fallback.length > 0) {
@@ -269,6 +275,9 @@ if (is_dir($imgDir)) {
 
             // 2. Update local state and cached lists
             window._lastSavedPlacesSig = null;
+            if (typeof window.syncSavedPlaceLocalState === 'function') {
+                window.syncSavedPlaceLocalState(id, false);
+            }
             try {
                 let savedIds = JSON.parse(localStorage.getItem('intan_elyu_saved_place_ids') || '[]');
                 savedIds = savedIds.filter(item => item != id);
@@ -292,8 +301,11 @@ if (is_dir($imgDir)) {
                         const cached = JSON.parse(localStorage.getItem(key) || '{}');
                         if (cached.savedPlaces && Array.isArray(cached.savedPlaces)) {
                             cached.savedPlaces = cached.savedPlaces.filter(p => p.id != id);
-                            localStorage.setItem(key, JSON.stringify(cached));
                         }
+                        if (cached.data && Array.isArray(cached.data.savedPlaces)) {
+                            cached.data.savedPlaces = cached.data.savedPlaces.filter(p => p.id != id);
+                        }
+                        localStorage.setItem(key, JSON.stringify(cached));
                     }
                 }
             } catch (e) { }
@@ -312,7 +324,8 @@ if (is_dir($imgDir)) {
             try {
                 const res = await fetch(backendUrl + '/api/tourist/destinations/' + id + '/favorite', {
                     method: 'POST',
-                    headers: { 'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }
+                    headers: { 'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                    body: JSON.stringify({ action: 'remove' })
                 });
                 if (!res.ok) {
                     if (window.OfflineFavoriteManager && typeof window.OfflineFavoriteManager.queueToggle === 'function') {

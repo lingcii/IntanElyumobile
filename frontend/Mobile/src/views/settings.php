@@ -609,7 +609,12 @@ $backRoute = 'dashboard';
 
             try {
                 delete window._viewHtmlCache?.['settings'];
-                localStorage.removeItem('elyu_view_cache_v18_settings');
+                for (let i = localStorage.length - 1; i >= 0; i--) {
+                    const k = localStorage.key(i);
+                    if (k && k.startsWith('elyu_view_cache_') && k.endsWith('_settings')) {
+                        localStorage.removeItem(k);
+                    }
+                }
             } catch (e) { }
 
             window.dispatchEvent(new CustomEvent('twoFactorStateChanged', { detail: { enabled: val } }));

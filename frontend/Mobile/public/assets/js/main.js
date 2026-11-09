@@ -176,7 +176,7 @@ try {
     for (let i = localStorage.length - 1; i >= 0; i--) {
         const k = localStorage.key(i);
         if (k && (
-            (k.startsWith('elyu_view_cache_') && !k.startsWith('elyu_view_cache_v18_')) ||
+            (k.startsWith('elyu_view_cache_') && !k.startsWith('elyu_view_cache_v20_')) ||
             k.startsWith('elyu_view_cache_v13_') ||
             k.startsWith('elyu_view_cache_v14_') ||
             k.startsWith('leaderboard_data_v15_') || 
@@ -5922,12 +5922,12 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
 
         if (!html) {
             try {
-                const cached = localStorage.getItem('elyu_view_cache_v18_' + targetView);
+                const cached = localStorage.getItem('elyu_view_cache_v20_' + targetView);
                 if (isValidViewPartial(cached)) {
                     html = cached;
                     window._viewHtmlCache[targetView] = html;
                 } else if (cached) {
-                    localStorage.removeItem('elyu_view_cache_v18_' + targetView);
+                    localStorage.removeItem('elyu_view_cache_v20_' + targetView);
                 }
             } catch (e) {}
         }
@@ -5938,7 +5938,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
             fetchViewPartial(targetView, extraParams).then((freshHtml) => {
                 if (!isValidViewPartial(freshHtml)) return;
                 window._viewHtmlCache[targetView] = freshHtml;
-                try { localStorage.setItem('elyu_view_cache_v18_' + targetView, freshHtml); } catch (e) { }
+                try { localStorage.setItem('elyu_view_cache_v20_' + targetView, freshHtml); } catch (e) { }
                 window.dispatchEvent(new CustomEvent('viewCacheUpdated', { detail: { view: targetView } }));
             }).catch((fetchErr) => {
                 if (!window.isExpectedAbortError(fetchErr)) {
@@ -5951,7 +5951,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                 if (isValidViewPartial(freshHtml)) {
                     html = freshHtml;
                     window._viewHtmlCache[targetView] = html;
-                    try { localStorage.setItem('elyu_view_cache_v18_' + targetView, html); } catch(e) {}
+                    try { localStorage.setItem('elyu_view_cache_v20_' + targetView, html); } catch(e) {}
                 }
             } catch (fetchErr) {
                 if (!window.isExpectedAbortError(fetchErr)) {
@@ -8892,6 +8892,78 @@ window.navigateTo = navigateTo;
         }
     };
 
+    window.syncSavedPlaceLocalState = function (destId, isSaved, spotObj) {
+        if (destId === undefined || destId === null) return;
+        const targetIdStr = String(destId);
+        window._removedSavedPlaceIds = window._removedSavedPlaceIds || new Set();
+        if (isSaved) {
+            window._removedSavedPlaceIds.delete(targetIdStr);
+        } else {
+            window._removedSavedPlaceIds.add(targetIdStr);
+        }
+        window.savedPlaceIdsFetched = true;
+        window._lastDashSavedSig = null;
+        window._lastSavedPlacesSig = null;
+        window.dashboardNeedsRefresh = true;
+
+        try {
+            let savedIds = JSON.parse(localStorage.getItem('intan_elyu_saved_place_ids') || '[]');
+            if (!Array.isArray(savedIds)) savedIds = [];
+            savedIds = savedIds.filter(id => String(id) !== targetIdStr);
+            if (isSaved) savedIds.push(destId);
+            localStorage.setItem('intan_elyu_saved_place_ids', JSON.stringify(savedIds));
+        } catch (e) {}
+
+        const updateList = (list) => {
+            if (!Array.isArray(list)) return list;
+            let next = list.filter(p => p && String(p.id) !== targetIdStr);
+            if (isSaved && spotObj && spotObj.id !== undefined) {
+                next.unshift(spotObj);
+            }
+            return next;
+        };
+
+        if (window._lastDashboardPayload && Array.isArray(window._lastDashboardPayload.savedPlaces)) {
+            window._lastDashboardPayload.savedPlaces = updateList(window._lastDashboardPayload.savedPlaces);
+        }
+
+        try {
+            const rawDashPayload = localStorage.getItem('dashboard_cached_payload');
+            if (rawDashPayload) {
+                const parsedDash = JSON.parse(rawDashPayload);
+                if (parsedDash && Array.isArray(parsedDash.savedPlaces)) {
+                    parsedDash.savedPlaces = updateList(parsedDash.savedPlaces);
+                    localStorage.setItem('dashboard_cached_payload', JSON.stringify(parsedDash));
+                }
+            }
+        } catch (e) {}
+
+        try {
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (!key) continue;
+                if (key.startsWith('dashboard_data_')) {
+                    const cached = JSON.parse(localStorage.getItem(key) || '{}');
+                    if (cached && Array.isArray(cached.savedPlaces)) {
+                        cached.savedPlaces = updateList(cached.savedPlaces);
+                    }
+                    if (cached && cached.data && Array.isArray(cached.data.savedPlaces)) {
+                        cached.data.savedPlaces = updateList(cached.data.savedPlaces);
+                    }
+                    localStorage.setItem(key, JSON.stringify(cached));
+                } else if (key.startsWith('saved_places_')) {
+                    const cached = JSON.parse(localStorage.getItem(key) || '{}');
+                    if (cached && Array.isArray(cached.data)) {
+                        cached.data = updateList(cached.data);
+                        localStorage.setItem(key, JSON.stringify(cached));
+                    } else if (Array.isArray(cached)) {
+                        localStorage.setItem(key, JSON.stringify(updateList(cached)));
+                    }
+                }
+            }
+        } catch (e) {}
+    };
+
     window.syncUserPointsEverywhere = window.syncUserPointsEverywhere || function (newPoints) {
         const pts = Math.max(0, parseInt(newPoints, 10) || 0);
         window._userPointsBalance = pts;
@@ -9242,11 +9314,11 @@ window.navigateTo = navigateTo;
 
         for (const v of viewsToPrewarm.filter(view => view !== state.currentView)) {
             try {
-                if (!window._viewHtmlCache[v] && !localStorage.getItem('elyu_view_cache_v18_' + v)) {
+                if (!window._viewHtmlCache[v] && !localStorage.getItem('elyu_view_cache_v20_' + v)) {
                     const text = await fetchViewPartial(v, new URLSearchParams());
                     if (text && text.length > 50) {
                         window._viewHtmlCache[v] = text;
-                        try { localStorage.setItem('elyu_view_cache_v18_' + v, text); } catch (e) { }
+                        try { localStorage.setItem('elyu_view_cache_v20_' + v, text); } catch (e) { }
                     }
                 }
             } catch (e) { }

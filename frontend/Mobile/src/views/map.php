@@ -2809,6 +2809,15 @@ if (is_dir($imgDir)) {
                 });
 
                 activateMapSearch = () => {
+                    // Close any open bottom sheets or route preview sheets first without blurring searchInput
+                    if (typeof window.closeSheet === 'function' && document.getElementById('place-details-sheet')?.classList.contains('active')) window.closeSheet();
+                    if (typeof window.closeNearbySitesSheet === 'function' && document.getElementById('nearby-sites-sheet')?.classList.contains('active')) window.closeNearbySitesSheet();
+                    if (typeof window.closeMapDirectionsPanel === 'function' && document.getElementById('map-directions-panel')?.classList.contains('open')) window.closeMapDirectionsPanel();
+                    const routeSummary = document.getElementById('map-route-summary');
+                    if (routeSummary) routeSummary.classList.remove('open');
+                    const routeEndpoints = document.getElementById('map-route-endpoints');
+                    if (routeEndpoints) routeEndpoints.classList.remove('open');
+
                     document.body.classList.add('keyboard-open');
                     document.body.classList.add('map-search-active');
                     const classWrapper = document.getElementById('btn-classification-wrapper');
@@ -2820,15 +2829,6 @@ if (is_dir($imgDir)) {
                     if (mNav) mNav.classList.add('keyboard-hidden');
                     const clearBtn = document.getElementById('map-search-clear');
                     if (clearBtn) clearBtn.style.display = searchInput.value.length > 0 ? 'flex' : 'none';
-
-                    // Close any open bottom sheets or route preview sheets
-                    if (typeof window.closeSheet === 'function') window.closeSheet();
-                    if (typeof window.closeNearbySitesSheet === 'function') window.closeNearbySitesSheet();
-                    if (typeof window.closeMapDirectionsPanel === 'function') window.closeMapDirectionsPanel();
-                    const routeSummary = document.getElementById('map-route-summary');
-                    if (routeSummary) routeSummary.classList.remove('open');
-                    const routeEndpoints = document.getElementById('map-route-endpoints');
-                    if (routeEndpoints) routeEndpoints.classList.remove('open');
 
                     renderSuggestions(searchInput.value);
                     if (typeof updateSuggestionsHeight === 'function') updateSuggestionsHeight();
@@ -3988,17 +3988,27 @@ if (is_dir($imgDir)) {
             }
 
             // 3. Clear cached dashboard data so other views reflect the change immediately
-            const tokenPrefix = token ? token.substring(0, 10) : '';
-            localStorage.removeItem('saved_places_' + tokenPrefix);
-            for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                if (key && key.startsWith('dashboard_data_')) {
-                    const cached = JSON.parse(localStorage.getItem(key) || '{}');
-                    if (cached.savedPlaces && Array.isArray(cached.savedPlaces)) {
-                        if (!willBeSaved) {
-                            cached.savedPlaces = cached.savedPlaces.filter(p => p.id != destId);
+            if (typeof window.syncSavedPlaceLocalState === 'function') {
+                window.syncSavedPlaceLocalState(destId, willBeSaved, window.currentDestinationForRoute);
+            } else {
+                const tokenPrefix = token ? token.substring(0, 10) : '';
+                localStorage.removeItem('saved_places_' + tokenPrefix);
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key && key.startsWith('dashboard_data_')) {
+                        const cached = JSON.parse(localStorage.getItem(key) || '{}');
+                        if (cached.savedPlaces && Array.isArray(cached.savedPlaces)) {
+                            if (!willBeSaved) {
+                                cached.savedPlaces = cached.savedPlaces.filter(p => p.id != destId);
+                            }
+                            localStorage.setItem(key, JSON.stringify(cached));
                         }
-                        localStorage.setItem(key, JSON.stringify(cached));
+                        if (cached.data && Array.isArray(cached.data.savedPlaces)) {
+                            if (!willBeSaved) {
+                                cached.data.savedPlaces = cached.data.savedPlaces.filter(p => p.id != destId);
+                            }
+                            localStorage.setItem(key, JSON.stringify(cached));
+                        }
                     }
                 }
             }
@@ -4009,8 +4019,10 @@ if (is_dir($imgDir)) {
                 credentials: 'include',
                 headers: {
                     'Accept': 'application/json',
+                    'Content-Type': 'application/json',
                     'Authorization': 'Bearer ' + token,
-                }
+                },
+                body: JSON.stringify({ action: willBeSaved ? 'add' : 'remove' })
             }).catch(e => {
                 console.warn('Background favorite sync error:', e);
             });
@@ -4374,7 +4386,8 @@ if (is_dir($imgDir)) {
                 }).then(r => r.ok ? r.text() : null).then(txt => {
                     const d = txt ? window.safeJsonParse(txt, null) : null;
                     if (d && d.savedPlaces) {
-                        const ids = d.savedPlaces.map(p => p.id);
+                        const removedSet = window._removedSavedPlaceIds || new Set();
+                        const ids = d.savedPlaces.map(p => p.id).filter(id => !removedSet.has(String(id)));
                         localStorage.setItem('intan_elyu_saved_place_ids', JSON.stringify(ids));
                         window.savedPlaceIdsFetched = true;
                         if (window.currentDestinationForRoute) {
@@ -6189,7 +6202,7 @@ if (is_dir($imgDir)) {
             document.body.classList.remove('map-directions-open');
             closeDirectionsVehicleMenu();
             const active = document.activeElement;
-            if (active && typeof active.blur === 'function') active.blur();
+            if (active && panel && panel.contains(active) && typeof active.blur === 'function') active.blur();
         };
 
         window.chooseMapDirectionsResult = function (index) {

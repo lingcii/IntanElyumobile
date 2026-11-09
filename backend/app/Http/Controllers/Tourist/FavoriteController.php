@@ -23,12 +23,25 @@ class FavoriteController extends Controller
             return response()->json(['message' => 'This tourist destination is not currently available.'], 404);
         }
 
-        $existing = Favorite::where('user_id', $user->id)
-            ->where('tourist_spot_id', $id)
-            ->first();
+        $action = strtolower((string) $request->input('action', ''));
+        $query = Favorite::where('user_id', $user->id)
+            ->where('tourist_spot_id', $id);
 
-        if ($existing) {
-            $existing->delete();
+        if ($action === 'remove') {
+            $query->delete();
+            return response()->json(['status' => 'removed', 'message' => 'Removed from Saved Places.']);
+        }
+
+        if ($action === 'add') {
+            Favorite::firstOrCreate([
+                'user_id'         => $user->id,
+                'tourist_spot_id' => $id,
+            ]);
+            return response()->json(['status' => 'added', 'message' => 'Added to Saved Places! ❤️']);
+        }
+
+        if ($query->exists()) {
+            $query->delete();
             return response()->json(['status' => 'removed', 'message' => 'Removed from Saved Places.']);
         }
 

@@ -127,4 +127,7 @@ assert.match(dashboardView, /window\._appColdBoot/,
 assert.match(dashboardView, /recContainer\._lastRecSig !== recSig/,
     'recommended container must not wipe innerHTML when data is unchanged');
 
+assert.match(dashboardView, /const hasLoadingPlaceholders = Boolean\(document\.querySelector\('#trending-container \.dash-loading-state/,
+    'dashboardInit must never skip hydration while loading placeholders are in the DOM');
+
 console.log('mobile performance tests passed');
