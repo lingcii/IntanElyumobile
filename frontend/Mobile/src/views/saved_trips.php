@@ -1892,11 +1892,9 @@ $backRoute = 'itinerary';
                                                         <span style="color:#ef4444; font-size:12px; font-weight:800; display:inline-flex; align-items:center; gap:5px;">
                                                             <i class="fa-solid fa-circle-xmark"></i> Photo Proof Rejected
                                                         </span>
-                                                        <span style="font-size:10px; color:#fca5a5; display:block; margin-top:2px;">${item.rejection_reason || 'Please upload a clearer photo taken at this destination.'}</span>
+                                                        <span style="font-size:10px; color:#fca5a5; display:block; margin-top:2px;">${item.rejection_reason || 'Please upload a clearer photo taken at this destination during active trip.'}</span>
                                                     </div>
-                                                    <button type="button" class="btn-primary" style="padding:7px 14px; font-size:11.5px; font-weight:800; border-radius:100px; background:linear-gradient(135deg, #ef4444, #dc2626); border:none !important; outline:none !important; color:#fff; cursor:pointer;" onclick="event.stopPropagation(); window.openProofUploadModal('${item.id}', '${destEscaped}')">
-                                                        <i class="fa-solid fa-camera" style="margin-right:4px;"></i> Re-upload Proof
-                                                    </button>
+                                                    <span style="font-size:10.5px; color:#fca5a5; font-weight:700;"><i class="fa-solid fa-camera" style="margin-right:3px;"></i> Start trip to re-take proof</span>
                                                 </div>
                                                 ${photosStripHtml}
                                             </div>` :
@@ -1909,22 +1907,16 @@ $backRoute = 'itinerary';
                                                         </span>
                                                         <span style="font-size:10px; color:#ffffff; opacity:0.85; display:block; margin-top:4px;"><i class="fa-solid fa-camera" style="color:#fbbf24; margin-right:4px;"></i>Saved on device &bull; Auto-syncs when online</span>
                                                     </div>
-                                                    <button type="button" class="saved-trip-proof-btn" onclick="event.stopPropagation(); window.openProofUploadModal('${item.id}', '${destEscaped}')">
-                                                        <i class="fa-solid fa-camera"></i> ${hasProof ? 'Update Proof' : 'Upload Proof'}
-                                                    </button>
                                                 </div>` :
                                             (isPhotoApproved && !isLocVerified ?
                                                 `<div style="display:flex; flex-direction:column; gap:8px; margin-top:4px;">
                                                     <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
                                                         <div>
                                                             <span style="background:rgba(52,199,89,0.18); border:none !important; outline:none !important; color:#34c759; font-size:11px; font-weight:800; padding:3px 10px; border-radius:100px; display:inline-flex; align-items:center; gap:5px;">
-                                                                <i class="fa-solid fa-circle-check"></i> Photo Approved &bull; ⚠️ Check-in Required
+                                                                <i class="fa-solid fa-circle-check"></i> Photo Approved
                                                             </span>
-                                                            <span style="font-size:10px; color:#ffffff; opacity:0.8; display:block; margin-top:4px;">Photo proof verified! Please check in to complete this stop.</span>
+                                                            <span style="font-size:10px; color:#ffffff; opacity:0.8; display:block; margin-top:4px;">Start trip to complete on-site check-in.</span>
                                                         </div>
-                                                        <button type="button" class="btn-primary" style="padding:7px 14px; font-size:11.5px; font-weight:800; border-radius:100px; background:linear-gradient(135deg, #00f2fe, #0284c7); border:none !important; outline:none !important; color:#fff; cursor:pointer;" onclick="event.stopPropagation(); window.executeLocationCheckIn('${item.id}', '${destEscaped}', ${dest?.latitude || 'null'}, ${dest?.longitude || 'null'}, this)">
-                                                            <i class="fa-solid fa-location-crosshairs" style="margin-right:4px;"></i> Check In
-                                                        </button>
                                                     </div>
                                                     ${photosStripHtml}
                                                 </div>` :
@@ -1945,13 +1937,9 @@ $backRoute = 'itinerary';
                                                     <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
                                                         <div>
                                                             <span style="background:rgba(245,158,11,0.22); border:none !important; outline:none !important; color:#fbbf24; font-size:11px; font-weight:800; padding:3px 10px; border-radius:100px; display:inline-flex; align-items:center; gap:5px;">
-                                                                <i class="fa-solid fa-camera"></i> Photo Ready &bull; ⚠️ GPS Check-in Required
+                                                                <i class="fa-solid fa-camera"></i> Photo Ready &bull; Start Trip to Check In
                                                             </span>
-                                                            <span style="font-size:10px; color:#ffffff; opacity:0.8; display:block; margin-top:4px;">Please check in on-site to verify location</span>
                                                         </div>
-                                                        <button type="button" class="btn-primary" style="padding:7px 14px; font-size:11.5px; font-weight:800; border-radius:100px; background:linear-gradient(135deg, #00f2fe, #0284c7); border:none !important; outline:none !important; color:#fff; cursor:pointer;" onclick="event.stopPropagation(); window.executeLocationCheckIn('${item.id}', '${destEscaped}', ${dest?.latitude || 'null'}, ${dest?.longitude || 'null'}, this)">
-                                                            <i class="fa-solid fa-location-crosshairs" style="margin-right:4px;"></i> Check In
-                                                        </button>
                                                     </div>
                                                     ${photosStripHtml}
                                                 </div>` :
@@ -1959,37 +1947,23 @@ $backRoute = 'itinerary';
                                                 `<div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:4px; flex-wrap:wrap;">
                                                     <div>
                                                         <span style="background:rgba(52,199,89,0.18); border:none !important; outline:none !important; color:#34c759; font-size:11px; font-weight:800; padding:3px 10px; border-radius:100px; display:inline-flex; align-items:center; gap:5px;">
-                                                            <i class="fa-solid fa-circle-check"></i> Checked In &bull; ⚠️ Photo Proof Required
+                                                            <i class="fa-solid fa-circle-check"></i> Location Verified
                                                         </span>
-                                                        <span style="font-size:10px; color:#ffffff; opacity:0.8; display:block; margin-top:4px;">Take or upload photos to complete check-in</span>
+                                                        <span style="font-size:10px; color:#ffffff; opacity:0.8; display:block; margin-top:4px;">Photo proof can be uploaded during active trip</span>
                                                     </div>
                                                 </div>` :
-                                                `<div style="display:flex; align-items:center; gap:8px; margin-top:6px; flex-wrap:wrap;">
-                                                    <button type="button" class="btn-primary" style="padding:8px 14px; font-size:11.5px; font-weight:800; border-radius:100px; background:linear-gradient(135deg, #00f2fe, #0284c7); border:none !important; outline:none !important; color:#fff; cursor:pointer; display:inline-flex; align-items:center; gap:5px;" onclick="event.stopPropagation(); window.executeLocationCheckIn('${item.id}', '${destEscaped}', ${dest?.latitude || 'null'}, ${dest?.longitude || 'null'}, this)">
-                                                        <i class="fa-solid fa-location-crosshairs"></i> Check In
-                                                    </button>
+                                                `<div style="display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:6px;">
+                                                    <span style="background:rgba(255,255,255,0.12); color:rgba(255,255,255,0.78); font-size:10.5px; font-weight:700; padding:3px 9px; border-radius:100px; display:inline-flex; align-items:center; gap:4px;">
+                                                        <i class="fa-regular fa-circle"></i> Not Visited
+                                                    </span>
+                                                    <span style="font-size:10.5px; color:rgba(255,255,255,0.7); font-weight:600;">
+                                                        <i class="fa-solid fa-route" style="color:#38bdf8; margin-right:3px;"></i> Start Trip to Check In
+                                                    </span>
                                                 </div>`))))))
                                         }
-                                        ${!isStopUnlocked ? `<div style="display:flex;align-items:center;gap:6px;color:#dbeafe;font-size:11px;font-weight:800;"><i class="fa-solid fa-lock"></i> Complete the previous destination to unlock</div>` : (!isCheckinQueued ? `<div class="saved-trip-validation-actions">
-                                            <button type="button"
-                                                class="saved-trip-checkin-btn ${(isLocVerified || isApproved) ? 'is-checked' : ''}"
-                                                data-stop-unlocked="${isStopUnlocked}"
-                                                data-dest-lat="${destinationLatAttr}"
-                                                data-dest-lng="${destinationLngAttr}"
-                                                data-item-id="${item.id}"
-                                                data-tourist-spot-id="${item.tourist_spot_id || (dest ? dest.id : '')}"
-                                                data-boundary="${encodeURIComponent(JSON.stringify(dest?.boundary_geojson || ''))}"
-                                                data-checked="${(isLocVerified || isApproved) ? 'true' : 'false'}"
-                                                aria-disabled="true"
-                                                disabled
-                                                onclick="event.stopPropagation(); window.executeLocationCheckIn('${item.id}', '${destEscaped}', ${destinationLatAttr || 'null'}, ${destinationLngAttr || 'null'}, this)">
-                                                <i class="fa-solid ${(isLocVerified || isApproved) ? 'fa-circle-check' : 'fa-location-crosshairs'}"></i>
-                                                ${(isLocVerified || isApproved) ? 'Checked In' : 'Check In'}
-                                            </button>
-                                            ${(isLocVerified && (!hasProof || isRejected)) ? `<button type="button" class="saved-trip-proof-btn" onclick="event.stopPropagation(); window.openProofUploadModal('${item.id}', '${destEscaped}')">
-                                                <i class="fa-solid fa-camera"></i> ${isRejected ? 'Re-upload Proof' : 'Proof of Validation'}
-                                            </button>` : ''}
-                                        </div>` : '')}
+                                        ${(isLocVerified && (!hasProof || isRejected)) ? `<div class="saved-trip-validation-actions" style="margin-top:6px;">
+                                            <span style="font-size:10.5px; color:#fca5a5; font-weight:600;"><i class="fa-solid fa-circle-info"></i> Resume trip on map to complete photo proof</span>
+                                        </div>` : ''}
                                     </div>
                                 </div>`;
                             });

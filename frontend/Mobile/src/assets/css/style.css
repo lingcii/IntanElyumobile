@@ -1191,3 +1191,4 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
 @keyframes app-pull-refresh-spin {
     to { transform: rotate(360deg); }
 }
+

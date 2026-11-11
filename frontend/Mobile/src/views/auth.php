@@ -583,7 +583,7 @@
             </button>
         </div>
 
-        <div id="privacy-modal-scroll-body" class="privacy-modal-scroll-body">
+        <div id="privacy-modal-scroll-body" class="privacy-modal-scroll-body" onscroll="window.handlePrivacyModalScroll(this)">
             <div class="policy-welcome-banner">
                 <p>
                     Welcome to <strong>Intan Elyu Tourism Management System</strong>. In strict
@@ -1797,6 +1797,20 @@
         await window.submitRegistrationAndTrigger2FA();
     };
 
+    window.handlePrivacyModalScroll = function (el) {
+        if (!el) return;
+        const reachedBottom = (el.scrollTop + el.clientHeight >= el.scrollHeight - 35);
+        if (reachedBottom) {
+            window._privacyScrolledToBottom = true;
+            const acceptBtn = document.getElementById('btn-accept-policy-proceed');
+            const chk = document.getElementById('chk-accept-privacy');
+            if (acceptBtn && chk && chk.checked) {
+                acceptBtn.classList.remove('is-disabled');
+                acceptBtn.removeAttribute('disabled');
+            }
+        }
+    };
+
     window.syncPrivacyCheckbox = function (isChecked) {
         const box = document.getElementById('box-chk-accept-privacy');
         const chk = document.getElementById('chk-accept-privacy');
@@ -1814,7 +1828,8 @@
         }
 
         if (acceptBtn) {
-            if (isChecked) {
+            const isScrolled = !!window._privacyScrolledToBottom;
+            if (isChecked && isScrolled) {
                 acceptBtn.classList.remove('is-disabled');
                 acceptBtn.removeAttribute('disabled');
             } else {
@@ -1904,6 +1919,13 @@
         }
 
         const chk = document.getElementById('chk-accept-privacy');
+        const isScrolled = !!window._privacyScrolledToBottom;
+        if (!isScrolled) {
+            if (typeof showToast === 'function') {
+                showToast('Please scroll down to read the Terms & Privacy Policy first.', 'warning', 2500);
+            }
+            return;
+        }
         if (!chk || !chk.checked) {
             const box = document.getElementById('box-chk-accept-privacy');
             if (box) {

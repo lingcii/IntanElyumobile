@@ -5,7 +5,7 @@ $backRoute = 'dashboard';
 
 <?php include __DIR__ . '/../components/header.php'; ?>
 
-<div class="terms-container has-header animate-slide-up">
+<div class="terms-container has-header animate-slide-up" style="overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y;">
     <div class="terms-card">
         <h3><i class="fa-solid fa-file-lines"></i> Terms of Service</h3>
         <p>By using Intan Elyu, you agree to these terms. If you do not agree, please do not use the app.</p>

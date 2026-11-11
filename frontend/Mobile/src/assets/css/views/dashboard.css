@@ -491,7 +491,7 @@ body[data-view="dashboard"] .mobile-header .header-icon i {
 /* Weather Widget */
 
 .weather-card {
-    background: linear-gradient(135deg, #1d4085 0%, #173570 100%) !important;
+    background: #173570 !important;
 
     border: none !important;
 
@@ -2032,7 +2032,7 @@ body[data-view="dashboard"] .mobile-header .header-icon i {
 /* Modernized Royal Blue Weather Card */
 
 .weather-card {
-    background: linear-gradient(135deg, #1d4085 0%, #173570 100%) !important;
+    background: #173570 !important;
 
     border-radius: 24px !important;
 

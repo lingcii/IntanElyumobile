@@ -187,13 +187,13 @@ if (is_dir($imgDir)) {
         z-index: 1 !important;
     }
 
-    /* Weather Card: Decreased Height & Sleek Compact Proportions */
+    /* Weather Card: Elevated Modern Aesthetic (Solid Color, No Gradient) */
     .weather-card {
-        background: linear-gradient(135deg, #1d4085 0%, #173570 100%) !important;
-        border-radius: 22px !important;
-        padding: 12px 16px !important;
-        box-shadow: 0 6px 20px rgba(23, 53, 112, 0.25) !important;
-        border: none !important;
+        background: #173570 !important;
+        border-radius: 20px !important;
+        padding: 14px 16px !important;
+        box-shadow: 0 8px 24px rgba(23, 53, 112, 0.28) !important;
+        border: 1px solid rgba(255, 255, 255, 0.12) !important;
         outline: none !important;
         color: #ffffff !important;
         cursor: pointer !important;
@@ -204,73 +204,99 @@ if (is_dir($imgDir)) {
         flex-direction: column !important;
         width: 100% !important;
         box-sizing: border-box !important;
+        transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease !important;
+    }
+    .weather-card:active {
+        transform: scale(0.985) !important;
     }
     .weather-top-row {
         display: flex !important;
         align-items: center !important;
-        justify-content: flex-start !important;
+        justify-content: space-between !important;
         width: 100% !important;
-        margin-bottom: 4px !important;
+        margin-bottom: 6px !important;
     }
     .weather-loc-badge {
         display: inline-flex !important;
         align-items: center !important;
         gap: 5px !important;
-        font-size: 11.5px !important;
+        font-size: 12px !important;
         font-weight: 700 !important;
         color: #ffffff !important;
         white-space: nowrap !important;
+        letter-spacing: -0.1px !important;
     }
     .weather-loc-badge i {
         color: #38bdf8 !important;
         font-size: 11px !important;
+    }
+    .weather-date-pill {
+        font-size: 10.5px !important;
+        font-weight: 700 !important;
+        color: rgba(255, 255, 255, 0.95) !important;
+        background: rgba(255, 255, 255, 0.12) !important;
+        border: 1px solid rgba(255, 255, 255, 0.15) !important;
+        padding: 3px 8px !important;
+        border-radius: 100px !important;
+        letter-spacing: 0.1px !important;
+        white-space: nowrap !important;
+        backdrop-filter: blur(4px) !important;
     }
     .weather-mid-row {
         display: flex !important;
         justify-content: space-between !important;
         align-items: center !important;
         width: 100% !important;
-        margin: 2px 0 8px 0 !important;
+        margin: 4px 0 10px 0 !important;
     }
     .weather-left-info {
         flex: 1 !important;
         min-width: 0 !important;
+        padding-right: 8px !important;
     }
     .weather-temp-wrap {
         display: flex !important;
-        align-items: center !important;
+        align-items: baseline !important;
         gap: 6px !important;
+        line-height: 1 !important;
     }
     .weather-temp-val {
-        font-size: 30px !important;
-        font-weight: 900 !important;
-        letter-spacing: -0.8px !important;
+        font-size: 34px !important;
+        font-weight: 800 !important;
+        letter-spacing: -1px !important;
         line-height: 1 !important;
         color: #ffffff !important;
     }
     .weather-icon-badge {
-        font-size: 22px !important;
+        font-size: 20px !important;
         line-height: 1 !important;
     }
     .weather-desc-main {
-        font-size: 13.5px !important;
-        font-weight: 800 !important;
+        font-size: 14.5px !important;
+        font-weight: 700 !important;
         color: #ffffff !important;
-        margin-top: 2px !important;
+        margin-top: 3px !important;
+        letter-spacing: -0.2px !important;
     }
     .weather-tip-msg {
-        font-size: 10.5px !important;
+        font-size: 11px !important;
         color: rgba(255, 255, 255, 0.85) !important;
-        font-weight: 600 !important;
-        margin-top: 1px !important;
+        font-weight: 500 !important;
+        margin-top: 2px !important;
+        line-height: 1.35 !important;
     }
     .weather-art-wrap {
         flex-shrink: 0 !important;
-        margin-left: 10px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        margin-left: 8px !important;
     }
     .weather-art-wrap svg {
-        width: 78px !important;
-        height: 50px !important;
+        width: 76px !important;
+        height: 52px !important;
+        display: block !important;
+        filter: none !important;
     }
     .weather-bottom-row {
         display: flex !important;
@@ -278,53 +304,82 @@ if (is_dir($imgDir)) {
         justify-content: space-between !important;
         width: 100% !important;
         gap: 6px !important;
-        border-top: 1px solid rgba(255, 255, 255, 0.15) !important;
-        padding-top: 8px !important;
+        border-top: 1px solid rgba(255, 255, 255, 0.12) !important;
+        padding-top: 9px !important;
+    }
+    .weather-stats-group {
+        display: flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+        flex-wrap: nowrap !important;
     }
     .weather-stat-pill {
         display: inline-flex !important;
         align-items: center !important;
         gap: 4px !important;
         font-size: 10.5px !important;
-        font-weight: 700 !important;
+        font-weight: 600 !important;
         color: #ffffff !important;
+        background: rgba(255, 255, 255, 0.08) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        padding: 3.5px 7px !important;
+        border-radius: 8px !important;
+        white-space: nowrap !important;
     }
-    .weather-stat-pill i {
+    .weather-stat-pill.stat-humidity i {
         color: #38bdf8 !important;
         font-size: 10px !important;
     }
+    .weather-stat-pill.stat-wind i {
+        color: #7dd3fc !important;
+        font-size: 10px !important;
+    }
+    .weather-stat-pill.stat-uv i {
+        color: #facc15 !important;
+        font-size: 10px !important;
+    }
     .weather-forecast-pill {
-        background: rgba(255, 255, 255, 0.18) !important;
+        background: rgba(255, 255, 255, 0.16) !important;
+        border: 1px solid rgba(255, 255, 255, 0.24) !important;
         border-radius: 100px !important;
         padding: 4px 10px !important;
-        font-size: 10px !important;
-        font-weight: 800 !important;
+        font-size: 10.5px !important;
+        font-weight: 700 !important;
         color: #ffffff !important;
         display: inline-flex !important;
         align-items: center !important;
         gap: 4px !important;
         cursor: pointer !important;
         margin-left: auto !important;
+        white-space: nowrap !important;
+        backdrop-filter: blur(4px) !important;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1) !important;
+        transition: all 0.15s ease !important;
+    }
+    .weather-forecast-pill:active {
+        transform: scale(0.96) !important;
+        background: rgba(255, 255, 255, 0.25) !important;
     }
     .weather-gps-badge {
         margin-left: auto !important;
-        background: rgba(56, 189, 248, 0.22) !important;
-        color: #ffffff !important;
-        border: 1px solid rgba(56, 189, 248, 0.45) !important;
+        background: rgba(56, 189, 248, 0.16) !important;
+        color: #e0f2fe !important;
+        border: 1px solid rgba(56, 189, 248, 0.38) !important;
         border-radius: 100px !important;
-        padding: 3px 10px !important;
-        font-size: 10px !important;
-        font-weight: 800 !important;
+        padding: 3px 9px !important;
+        font-size: 10.5px !important;
+        font-weight: 700 !important;
         display: inline-flex !important;
         align-items: center !important;
         gap: 4px !important;
         cursor: pointer !important;
         white-space: nowrap !important;
+        backdrop-filter: blur(4px) !important;
         transition: transform 0.15s ease, background 0.15s ease !important;
     }
     .weather-gps-badge:active {
         transform: scale(0.95) !important;
-        background: rgba(56, 189, 248, 0.35) !important;
+        background: rgba(56, 189, 248, 0.3) !important;
     }
     .weather-gps-badge i {
         color: #38bdf8 !important;
@@ -333,11 +388,23 @@ if (is_dir($imgDir)) {
     .weather-best-time-bar {
         display: flex !important;
         align-items: center !important;
-        gap: 6px !important;
-        background: rgba(15, 23, 42, 0.24) !important;
+        gap: 7px !important;
+        background: rgba(255, 255, 255, 0.09) !important;
         border: 1px solid rgba(255, 255, 255, 0.14) !important;
         border-radius: 12px !important;
-        padding: 6px 10px !important;
+        padding: 7px 12px !important;
+        margin-bottom: 9px !important;
+        font-size: 11px !important;
+        font-weight: 600 !important;
+        color: rgba(255, 255, 255, 0.95) !important;
+        line-height: 1.35 !important;
+        backdrop-filter: blur(4px) !important;
+    }
+    .weather-best-time-bar i {
+        color: #38bdf8 !important;
+        font-size: 11.5px !important;
+        flex-shrink: 0 !important;
+    }
         margin-bottom: 8px !important;
         font-size: 10.5px !important;
         font-weight: 600 !important;
@@ -1128,53 +1195,54 @@ if (is_dir($imgDir)) {
                 <i class="fa-solid fa-location-dot"></i>
                 <span id="weather-loc">Detecting GPS location...</span>
             </div>
-            <span id="weather-gps-badge" class="weather-gps-badge" onclick="event.stopPropagation(); window.locateMeForWeather();" title="Real-Time GPS Weather (Tap to Refresh)">
-                <i class="fa-solid fa-location-crosshairs"></i>
-                <span id="weather-gps-status">Live GPS</span>
-            </span>
+            <div style="display:flex; align-items:center; gap:6px;">
+                <span id="weather-today-date" class="weather-date-pill"></span>
+                <span id="weather-gps-badge" class="weather-gps-badge" onclick="event.stopPropagation(); window.locateMeForWeather();" title="Real-Time GPS Weather (Tap to Refresh)">
+                    <i class="fa-solid fa-location-crosshairs"></i>
+                    <span id="weather-gps-status">Live GPS</span>
+                </span>
+            </div>
         </div>
         <div class="weather-mid-row">
             <div class="weather-left-info">
                 <div class="weather-temp-wrap">
                     <span class="weather-temp-val" id="weather-temp">31°C</span>
-                    <span class="weather-icon-badge" id="weather-icon">☁️</span>
+                    <span class="weather-icon-badge" id="weather-icon" style="display:none !important;"></span>
                 </div>
                 <div class="weather-desc-main" id="weather-desc">Overcast</div>
-                <div class="weather-tip-msg" id="weather-tip">Good for outdoor activities</div>
+                <div class="weather-tip-msg" id="weather-tip">Cool overcast skies — comfortable for heritage sites, gardens & sightseeing</div>
             </div>
             <div class="weather-art-wrap" aria-hidden="true">
-                <div class="weather-3d-cloud">
-                    <svg viewBox="0 0 120 80" width="95" height="62" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <circle cx="45" cy="45" r="24" fill="rgba(255, 255, 255, 0.95)" />
-                        <circle cx="72" cy="40" r="30" fill="rgba(255, 255, 255, 0.95)" />
-                        <circle cx="92" cy="50" r="18" fill="rgba(255, 255, 255, 0.95)" />
-                        <rect x="25" y="44" width="80" height="24" rx="12" fill="rgba(255, 255, 255, 0.95)" />
-                        <path d="M32 64 Q 60 70 95 64" stroke="rgba(15, 23, 42, 0.12)" stroke-width="3" stroke-linecap="round" />
+                <div id="weather-art-container">
+                    <svg viewBox="0 0 100 70" width="76" height="52" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M28 50 C20 50 14 44.5 14 37 C14 29.8 19.5 24 26.8 23.6 C29.8 14.5 38.5 8 49 8 C61.2 8 71.3 16.5 72.8 28 C78.5 29 83 33.8 83 39.5 C83 46.2 77.4 51.5 70.5 51.5 L28 51.5 Z" fill="rgba(255, 255, 255, 0.45)"/>
+                        <path d="M22 38 C16 38 12 42.5 12 48 C12 53.5 16.5 58 22 58 L66 58 C71.5 58 76 53.5 76 48 C76 42.8 72 38.5 66.8 38.1 C65.5 31 59.5 25.5 52 25.5 C46.5 25.5 41.8 28.5 39.5 33 C37.8 31.8 35.8 31 33.5 31 C28 31 23.5 34.5 22 38 Z" fill="#ffffff"/>
                     </svg>
                 </div>
             </div>
         </div>
         <!-- Best Time to Visit Strip -->
         <div class="weather-best-time-bar" id="weather-best-time-strip">
-            <i class="fa-regular fa-clock"></i>
-            <span>Best Time to Visit: <strong id="weather-best-time">7:00 AM – 10:00 AM (~28°C)</strong></span>
+            <span>Best Time to Visit: <strong id="weather-best-time">8AM – 10AM (~28°C)</strong></span>
         </div>
         <div class="weather-bottom-row">
-            <div class="weather-stat-pill">
-                <i class="fa-solid fa-droplet"></i>
-                <span id="weather-humidity">68%</span>
+            <div class="weather-stats-group">
+                <div class="weather-stat-pill stat-humidity" title="Humidity">
+                    <i class="fa-solid fa-droplet"></i>
+                    <span id="weather-humidity">68%</span>
+                </div>
+                <div class="weather-stat-pill stat-wind" title="Wind Speed">
+                    <i class="fa-solid fa-wind"></i>
+                    <span id="weather-wind">13 km/h</span>
+                </div>
+                <div class="weather-stat-pill stat-uv" title="UV Index">
+                    <i class="fa-solid fa-sun"></i>
+                    <span>UV <strong id="weather-uv">8</strong></span>
+                </div>
             </div>
-            <div class="weather-stat-pill">
-                <i class="fa-solid fa-wind"></i>
-                <span id="weather-wind">13 km/h</span>
-            </div>
-            <div class="weather-stat-pill">
-                <i class="fa-solid fa-sun"></i>
-                <span>UV <strong id="weather-uv">8</strong></span>
-            </div>
-            <div class="weather-forecast-pill">
+            <div class="weather-forecast-pill" title="View 5-Day Forecast">
                 <span>5-Day Forecast</span>
-                <i class="fa-solid fa-chevron-right" style="font-size: 9px;"></i>
+                <i class="fa-solid fa-chevron-right" style="font-size: 8.5px;"></i>
             </div>
         </div>
     </div>
@@ -1186,7 +1254,6 @@ if (is_dir($imgDir)) {
     <div id="smart-weather-rec-section" class="weather-rec-section stagger-2">
         <div class="weather-rec-header">
             <h3 class="weather-rec-title">
-                <i class="fa-solid fa-wand-magic-sparkles" style="color: #0284c7; font-size: 13px;"></i>
                 <span>Recommended for Today's Weather</span>
             </h3>
             <span id="weather-rec-condition-badge" class="weather-rec-badge">⛅ Partly Cloudy</span>
@@ -1229,9 +1296,16 @@ if (is_dir($imgDir)) {
                 
                 <!-- Current Detailed Weather Card (Sky Blue Gradient Card in White Middle) -->
                 <div
-                    style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%) !important; border: 1.5px solid #bae6fd; border-radius: 20px; padding: 18px 20px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 4px 14px rgba(2, 132, 199, 0.08);">
+                    style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%) !important; border: 1.5px solid #bae6fd; border-radius: 20px; padding: 18px 20px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; box-shadow: none !important; position: relative;">
                     <div>
-                        <div style="font-size: 40px; font-weight: 900; color: #0369a1; letter-spacing: -1.5px; line-height: 1;" id="modal-temp">29°C</div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <div style="font-size: 40px; font-weight: 900; color: #0369a1; letter-spacing: -1.5px; line-height: 1;" id="modal-temp">29°C</div>
+                            <button type="button" id="btn-weather-reset-today" onclick="window.selectWeatherForecastDay(-1)"
+                                style="display: none; background: #0284c7; border: none; outline: none; color: #ffffff; font-size: 10px; font-weight: 800; padding: 3px 9px; border-radius: 100px; cursor: pointer; transition: transform 0.15s ease;"
+                                onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">
+                                <i class="fa-solid fa-arrow-rotate-left" style="font-size: 9px; margin-right: 3px;"></i> Today
+                            </button>
+                        </div>
                         <div style="font-size: 14.5px; font-weight: 800; color: #0284c7; margin-top: 6px;" id="modal-condition">Partly Cloudy</div>
                         <div style="font-size: 11.5px; color: #64748b; font-weight: 600; margin-top: 4px; line-height: 1.4;" id="modal-feels">Feels like 31°C · Humidity 75% · Wind 12km/h</div>
                     </div>
@@ -1245,7 +1319,6 @@ if (is_dir($imgDir)) {
                     <h4 style="margin: 0; font-size: 14px; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 7px; letter-spacing: -0.2px;">
                         <i class="fa-solid fa-calendar-days" style="color: #0284c7;"></i> 5-Day Forecast
                     </h4>
-                    <span style="font-size: 10.5px; font-weight: 700; color: #0284c7; background: #e0f2fe; padding: 3px 9px; border-radius: 100px;">Tap a day for picks</span>
                 </div>
 
                 <!-- 5-Day Forecast Grid -->
@@ -2577,27 +2650,14 @@ window.applyTouristSitesFilterModal = function() {
         const todayCondLower = todayCond.toLowerCase();
         const todayRain = (today && today.rain_prob !== undefined) ? Number(today.rain_prob) : 0;
 
-        if (code <= 2 || /^(clear|sunny|mainly clear|partly cloudy)/i.test(condStr)) {
-            if (/thunder|storm|squall|heavy rain|typhoon/i.test(todayCondLower) && todayRain >= 50) {
+        // Strictly honor live observed condition; only override if active severe weather is reported
+        if (code <= 3 || /^(clear|sunny|mainly clear|partly cloudy|overcast)/i.test(condStr)) {
+            if (/thunder|storm|squall|heavy rain|typhoon/i.test(todayCondLower) && todayRain >= 75) {
                 data.condition = todayCond || 'Thunderstorm';
                 data.weather_code = (today && today.weather_code) ? Number(today.weather_code) : 95;
                 data.weather_group = 'severe';
                 data.icon = (today && today.icon) || '⛈️';
                 data.fa_icon = (today && today.fa_icon) || 'fa-cloud-bolt';
-                delete data.short_description;
-            } else if ((/rain|drizzle|shower/i.test(todayCondLower) && todayRain >= 45) || todayRain >= 65) {
-                data.condition = (/rain|drizzle|shower|thunder|storm/i.test(todayCondLower)) ? todayCond : 'Rain Showers';
-                data.weather_code = (today && today.weather_code && Number(today.weather_code) >= 51) ? Number(today.weather_code) : 61;
-                data.weather_group = 'rainy';
-                data.icon = (today && today.icon && today.icon !== '☀️' && today.icon !== '🌙') ? today.icon : '🌧️';
-                data.fa_icon = (today && today.fa_icon && !String(today.fa_icon).includes('sun') && !String(today.fa_icon).includes('moon')) ? today.fa_icon : 'fa-cloud-rain';
-                delete data.short_description;
-            } else if (/overcast|fog|^cloudy$/i.test(todayCondLower) && code === 0) {
-                data.condition = todayCond || 'Overcast';
-                data.weather_code = 3;
-                data.weather_group = 'cloudy';
-                data.icon = (today && today.icon) || '☁️';
-                data.fa_icon = (today && today.fa_icon) || 'fa-cloud';
                 delete data.short_description;
             }
         }
@@ -2668,10 +2728,10 @@ window.applyTouristSitesFilterModal = function() {
         };
 
         const defaultBestTime = {
-            sunny: '7:00 AM – 10:00 AM & 4:00 PM – 6:00 PM (Avoid midday UV)',
-            partly_cloudy: '7:30 AM – 11:00 AM & 3:00 PM – 5:30 PM (~' + temp + '°C)',
-            cloudy: '8:00 AM – 5:00 PM (Comfortable all-day sightseeing)',
-            rainy: '10:00 AM – 4:00 PM (Indoor cultural & dining hours)',
+            sunny: '7AM – 10AM & 4PM – 6PM (Avoid midday UV)',
+            partly_cloudy: '7:30AM – 11AM & 3PM – 5:30PM (~' + temp + '°C)',
+            cloudy: '8AM – 5PM (Comfortable all-day sightseeing)',
+            rainy: '10AM – 4PM (Indoor cultural & dining hours)',
             severe: 'Stay indoors or visit sheltered cultural sites until storm clears'
         };
 
@@ -2939,7 +2999,15 @@ window.applyTouristSitesFilterModal = function() {
         if (tipEl) tipEl.textContent = meta.shortDesc;
 
         const bestTimeEl = document.getElementById('weather-best-time');
-        if (bestTimeEl) bestTimeEl.textContent = meta.bestTime;
+        if (bestTimeEl) {
+            let bt = String(meta.bestTime || '');
+            bt = bt.replace(/(\d{1,2}):00\s*(AM|PM)/gi, '$1$2').replace(/(\d{1,2}):(\d{2})\s*(AM|PM)/gi, '$1:$2$3');
+            bestTimeEl.textContent = bt;
+        }
+
+        if (typeof window.renderWeatherCardArtSvg === 'function') {
+            window.renderWeatherCardArtSvg(reconciled.condition, reconciled.is_day);
+        }
 
         // Weather Alerts Banner removed per user request
         const alertBanner = document.getElementById('weather-alert-banner');
@@ -3008,7 +3076,7 @@ window.applyTouristSitesFilterModal = function() {
                         <div class="weather-rec-actions">
                             ${ratingHtml}
                             <button type="button" class="weather-rec-itin-btn" style="${inDraft ? 'background:#10b981 !important;' : ''}" onclick="event.stopPropagation(); window.quickAddWeatherSpotToItinerary('${encodedDest}', this)">
-                                <i class="fa-solid ${inDraft ? 'fa-check' : 'fa-plus'}"></i> ${inDraft ? 'Added' : 'Itinerary'}
+                                <i class="fa-solid ${inDraft ? 'fa-check' : 'fa-plus'}"></i> ${inDraft ? 'Added' : 'Add'}
                             </button>
                         </div>
                     </div>
@@ -3027,9 +3095,74 @@ window.applyTouristSitesFilterModal = function() {
             else if (faIcon.includes('cloud')) color = '#94a3b8';
             else if (faIcon.includes('smog')) color = '#cbd5e1';
 
-            return `<i class="fa-solid ${faIcon}" style="color:${color}; filter:drop-shadow(0 0 10px ${color}80);"></i>`;
+            return `<i class="fa-solid ${faIcon}" style="color:${color};"></i>`;
         }
         return iconEmoji || '⛅';
+    };
+
+    window.renderWeatherCardArtSvg = function (conditionStr, isDay = 1) {
+        const cond = String(conditionStr || '').toLowerCase();
+        const container = document.getElementById('weather-art-container');
+        if (!container) return;
+
+        if (/thunder|storm|lightning/i.test(cond)) {
+            container.innerHTML = `
+                <svg viewBox="0 0 100 70" width="76" height="52" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M22 38 C16 38 12 42.5 12 48 C12 53.5 16.5 58 22 58 L66 58 C71.5 58 76 53.5 76 48 C76 42.8 72 38.5 66.8 38.1 C65.5 31 59.5 25.5 52 25.5 C46.5 25.5 41.8 28.5 39.5 33 C37.8 31.8 35.8 31 33.5 31 C28 31 23.5 34.5 22 38 Z" fill="#e2e8f0"/>
+                    <polygon points="46,45 38,58 45,58 41,70 55,54 48,54" fill="#fbbf24"/>
+                </svg>
+            `;
+        } else if (/rain|drizzle|shower/i.test(cond)) {
+            container.innerHTML = `
+                <svg viewBox="0 0 100 70" width="76" height="52" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M22 36 C16 36 12 40.5 12 46 C12 51.5 16.5 56 22 56 L66 56 C71.5 56 76 51.5 76 46 C76 40.8 72 36.5 66.8 36.1 C65.5 29 59.5 23.5 52 23.5 C46.5 23.5 41.8 26.5 39.5 31 C37.8 29.8 35.8 29 33.5 29 C28 29 23.5 32.5 22 36 Z" fill="#ffffff"/>
+                    <line x1="30" y1="60" x2="26" y2="68" stroke="#38bdf8" stroke-width="2.5" stroke-linecap="round"/>
+                    <line x1="45" y1="60" x2="41" y2="68" stroke="#38bdf8" stroke-width="2.5" stroke-linecap="round"/>
+                    <line x1="60" y1="60" x2="56" y2="68" stroke="#38bdf8" stroke-width="2.5" stroke-linecap="round"/>
+                </svg>
+            `;
+        } else if (/clear|sunny/i.test(cond)) {
+            if (!isDay) {
+                container.innerHTML = `
+                    <svg viewBox="0 0 100 70" width="76" height="52" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M56 16 C44 16 34 26 34 38 C34 50 44 60 56 60 C59.5 60 62.8 59.2 65.7 57.7 C57.5 55.5 51.5 48 51.5 39 C51.5 30 57.5 22.5 65.7 20.3 C62.8 18.8 59.5 18 56 16 Z" fill="#fde047"/>
+                        <circle cx="28" cy="22" r="2" fill="#e0f2fe"/>
+                        <circle cx="24" cy="42" r="1.5" fill="#e0f2fe"/>
+                        <circle cx="76" cy="30" r="1.5" fill="#e0f2fe"/>
+                    </svg>
+                `;
+            } else {
+                container.innerHTML = `
+                    <svg viewBox="0 0 100 70" width="76" height="52" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="50" cy="35" r="17" fill="#f59e0b"/>
+                        <circle cx="50" cy="35" r="13" fill="#fbbf24"/>
+                        <line x1="50" y1="10" x2="50" y2="14" stroke="#fbbf24" stroke-width="3" stroke-linecap="round"/>
+                        <line x1="50" y1="56" x2="50" y2="60" stroke="#fbbf24" stroke-width="3" stroke-linecap="round"/>
+                        <line x1="25" y1="35" x2="29" y2="35" stroke="#fbbf24" stroke-width="3" stroke-linecap="round"/>
+                        <line x1="71" y1="35" x2="75" y2="35" stroke="#fbbf24" stroke-width="3" stroke-linecap="round"/>
+                        <line x1="32" y1="17" x2="35" y2="20" stroke="#fbbf24" stroke-width="2.5" stroke-linecap="round"/>
+                        <line x1="65" y1="50" x2="68" y2="53" stroke="#fbbf24" stroke-width="2.5" stroke-linecap="round"/>
+                        <line x1="32" y1="53" x2="35" y2="50" stroke="#fbbf24" stroke-width="2.5" stroke-linecap="round"/>
+                        <line x1="65" y1="20" x2="68" y2="17" stroke="#fbbf24" stroke-width="2.5" stroke-linecap="round"/>
+                    </svg>
+                `;
+            }
+        } else if (/partly cloudy/i.test(cond)) {
+            container.innerHTML = `
+                <svg viewBox="0 0 100 70" width="76" height="52" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="60" cy="24" r="14" fill="#fbbf24"/>
+                    <path d="M22 36 C16 36 12 40.5 12 46 C12 51.5 16.5 56 22 56 L66 56 C71.5 56 76 51.5 76 46 C76 40.8 72 36.5 66.8 36.1 C65.5 29 59.5 23.5 52 23.5 C46.5 23.5 41.8 26.5 39.5 31 C37.8 29.8 35.8 29 33.5 29 C28 29 23.5 32.5 22 36 Z" fill="#ffffff"/>
+                </svg>
+            `;
+        } else {
+            // Overcast / Cloudy / Default: modern layered cloud
+            container.innerHTML = `
+                <svg viewBox="0 0 100 70" width="76" height="52" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M28 50 C20 50 14 44.5 14 37 C14 29.8 19.5 24 26.8 23.6 C29.8 14.5 38.5 8 49 8 C61.2 8 71.3 16.5 72.8 28 C78.5 29 83 33.8 83 39.5 C83 46.2 77.4 51.5 70.5 51.5 L28 51.5 Z" fill="rgba(255, 255, 255, 0.45)"/>
+                    <path d="M22 38 C16 38 12 42.5 12 48 C12 53.5 16.5 58 22 58 L66 58 C71.5 58 76 53.5 76 48 C76 42.8 72 38.5 66.8 38.1 C65.5 31 59.5 25.5 52 25.5 C46.5 25.5 41.8 28.5 39.5 33 C37.8 31.8 35.8 31 33.5 31 C28 31 23.5 34.5 22 38 Z" fill="#ffffff"/>
+                </svg>
+            `;
+        }
     };
 
     window.selectForecastCategory = function (catFilter) {
@@ -3142,7 +3275,7 @@ window.applyTouristSitesFilterModal = function() {
                     </div>
                     <button type="button" onclick="event.stopPropagation(); window.quickAddWeatherSpotToItinerary('${encodedDest}', this)"
                         style="background:${inDraft ? '#10b981' : '#1e3a8a'} !important; color:#ffffff !important; border:none !important; border-radius:9px; padding:6px 10px; font-size:10px; font-weight:800; cursor:pointer; flex-shrink:0;">
-                        <i class="fa-solid ${inDraft ? 'fa-check' : 'fa-plus'}"></i> ${inDraft ? 'Added' : 'Itinerary'}
+                        <i class="fa-solid ${inDraft ? 'fa-check' : 'fa-plus'}"></i> ${inDraft ? 'Added' : 'Add'}
                     </button>
                 </div>
             `;
@@ -3214,10 +3347,64 @@ window.applyTouristSitesFilterModal = function() {
             : '<span>Show Less</span><i class="fa-solid fa-chevron-up"></i>';
     };
 
+    window.selectWeatherForecastDay = function (idx) {
+        const wData = window._lastForecastData || window._lastWeatherData;
+        if (!wData) return;
+
+        const modalTemp = document.getElementById('modal-temp');
+        const modalCondition = document.getElementById('modal-condition');
+        const modalFeels = document.getElementById('modal-feels');
+        const modalIcon = document.getElementById('modal-icon');
+        const resetBtn = document.getElementById('btn-weather-reset-today');
+
+        // If clicking the active day again, or idx is -1, restore to TODAY's live weather
+        if (window._activeForecastDayIdx === idx || idx === -1) {
+            window._activeForecastDayIdx = -1;
+            if (resetBtn) resetBtn.style.display = 'none';
+            document.querySelectorAll('.forecast-day-row').forEach(row => {
+                row.style.background = '#f8fafc';
+                row.style.borderColor = '#e2e8f0';
+                row.style.boxShadow = 'none';
+            });
+            if (modalTemp) modalTemp.textContent = `${wData.temperature}°C`;
+            if (modalCondition) modalCondition.textContent = `Today · ${wData.condition}`;
+            if (modalFeels) modalFeels.textContent = `Feels like ${wData.feels_like}°C · Humidity ${wData.humidity}% · Wind ${wData.wind_speed}km/h`;
+            if (modalIcon) modalIcon.innerHTML = window.renderWeatherIconHtml(wData.icon, wData.fa_icon);
+            return;
+        }
+
+        if (!Array.isArray(wData.forecast) || !wData.forecast[idx]) return;
+        window._activeForecastDayIdx = idx;
+        const dayItem = wData.forecast[idx];
+
+        // Reveal the "Today" return button on the hero card
+        if (resetBtn) resetBtn.style.display = 'inline-flex';
+
+        // Highlight selected upcoming day in the list
+        document.querySelectorAll('.forecast-day-row').forEach((row, rIdx) => {
+            if (rIdx === idx) {
+                row.style.background = '#f0f9ff';
+                row.style.borderColor = '#0284c7';
+                row.style.boxShadow = 'none';
+            } else {
+                row.style.background = '#f8fafc';
+                row.style.borderColor = '#e2e8f0';
+                row.style.boxShadow = 'none';
+            }
+        });
+
+        // Switch the top hero card to this selected upcoming day
+        if (modalTemp) modalTemp.textContent = `${dayItem.temp_max}°C`;
+        if (modalCondition) modalCondition.textContent = `${dayItem.day} · ${dayItem.condition}`;
+        if (modalFeels) modalFeels.textContent = `High ${dayItem.temp_max}°C · Low ${dayItem.temp_min}°C · ${dayItem.rain_prob}% rain chance`;
+        if (modalIcon) modalIcon.innerHTML = window.renderWeatherIconHtml(dayItem.icon, dayItem.fa_icon);
+    };
+
     window.updateWeatherModal = function (raw) {
         if (!raw) return;
         const data = window.reconcileRealtimeWeatherData(raw);
         window._lastForecastData = data;
+        window._activeForecastDayIdx = -1;
 
         const modalLoc = document.getElementById('modal-weather-loc');
         const modalTemp = document.getElementById('modal-temp');
@@ -3225,25 +3412,27 @@ window.applyTouristSitesFilterModal = function() {
         const modalFeels = document.getElementById('modal-feels');
         const modalIcon = document.getElementById('modal-icon');
         const forecastContainer = document.getElementById('weather-forecast-container');
+        const resetBtn = document.getElementById('btn-weather-reset-today');
 
+        if (resetBtn) resetBtn.style.display = 'none';
         if (modalLoc) modalLoc.textContent = data.location;
         if (modalTemp) modalTemp.textContent = `${data.temperature}°C`;
-        if (modalCondition) modalCondition.textContent = data.condition;
+        if (modalCondition) modalCondition.textContent = `Today · ${data.condition}`;
         if (modalFeels) modalFeels.textContent = `Feels like ${data.feels_like}°C · Humidity ${data.humidity}% · Wind ${data.wind_speed}km/h`;
         if (modalIcon) modalIcon.innerHTML = window.renderWeatherIconHtml(data.icon, data.fa_icon);
 
         if (forecastContainer && data.forecast && data.forecast.length > 0) {
             forecastContainer.innerHTML = data.forecast.map((item, idx) => `
-                <div class="forecast-day-row" onclick="window.openForecastDayPicksModal(${idx})"
-                    style="background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 16px; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: transform 0.15s ease, border-color 0.15s ease;"
-                    onpointerdown="this.style.transform='scale(0.98)'; this.style.borderColor='#38bdf8';"
-                    onpointerup="this.style.transform='scale(1)'; this.style.borderColor='#e2e8f0';">
+                <div class="forecast-day-row" onclick="window.selectWeatherForecastDay(${idx})"
+                    style="background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 16px; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: all 0.2s ease;"
+                    onpointerdown="this.style.transform='scale(0.98)';"
+                    onpointerup="this.style.transform='scale(1)';">
                     <div style="display: flex; align-items: center; gap: 14px;">
                         <span style="font-size: 26px; width: 34px; text-align: center; display: inline-block;">${window.renderWeatherIconHtml(item.icon, item.fa_icon)}</span>
                         <div>
                             <div style="font-size: 14px; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 6px;">
                                 <span>${item.day}</span>
-                                <span style="font-size: 9.5px; font-weight: 800; color: #0284c7; background: #e0f2fe; padding: 2px 7px; border-radius: 100px;">View Picks &rsaquo;</span>
+                                <span onclick="event.stopPropagation(); window.openForecastDayPicksModal(${idx})" style="font-size: 9.5px; font-weight: 800; color: #0284c7; background: #e0f2fe; padding: 2px 7px; border-radius: 100px; cursor: pointer;">View Picks &rsaquo;</span>
                             </div>
                             <div style="font-size: 11.5px; color: #64748b; font-weight: 600;">${item.condition}</div>
                         </div>
@@ -3272,13 +3461,19 @@ window.applyTouristSitesFilterModal = function() {
         const gpsStatusEl = document.getElementById('weather-gps-status');
         if (gpsStatusEl) gpsStatusEl.textContent = isCurrentLoc ? 'Live GPS' : 'GPS Sync';
 
-        // Purge legacy v1/v2 weather caches & manual dropdown locks so real-time weather is always accurate
+        // Purge legacy v1/v2/v3 weather caches & manual dropdown locks so real-time weather is always freshly fetched
         try {
             localStorage.removeItem('intan_elyu_manual_loc');
             localStorage.removeItem('intan_elyu_cached_weather');
+            localStorage.removeItem('intan_elyu_cached_weather_v3');
         } catch (e) {}
 
-        const locCacheKey = `intan_elyu_weather_v3_${Number(lat).toFixed(2)}_${Number(lng).toFixed(2)}`;
+        const locCacheKey = `intan_elyu_weather_v4_${Number(lat).toFixed(2)}_${Number(lng).toFixed(2)}`;
+        const dateBadgeEl = document.getElementById('weather-today-date');
+        if (dateBadgeEl) {
+            const now = new Date();
+            dateBadgeEl.textContent = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+        }
         const applyWeatherUI = (rawWData, source = 'live') => {
             if (!rawWData) return;
             const wData = window.reconcileRealtimeWeatherData(rawWData);
@@ -3340,7 +3535,7 @@ window.applyTouristSitesFilterModal = function() {
 
             try {
                 const payload = JSON.stringify({ data, timestamp: Date.now() });
-                localStorage.setItem('intan_elyu_cached_weather_v3', payload);
+                localStorage.setItem('intan_elyu_cached_weather_v4', payload);
                 localStorage.setItem(locCacheKey, payload);
             } catch(e) {}
 
@@ -3349,7 +3544,7 @@ window.applyTouristSitesFilterModal = function() {
             console.warn('Weather fetch error, checking cache or fallback:', e);
             let cachedW = null;
             try {
-                const rawW = localStorage.getItem(locCacheKey) || localStorage.getItem('intan_elyu_cached_weather_v3');
+                const rawW = localStorage.getItem(locCacheKey) || localStorage.getItem('intan_elyu_cached_weather_v4');
                 if (rawW) cachedW = (window.safeJsonParse ? window.safeJsonParse(rawW, null) : JSON.parse(rawW))?.data;
             } catch(err) {}
 

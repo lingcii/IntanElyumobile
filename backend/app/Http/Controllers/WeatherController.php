@@ -36,11 +36,11 @@ class WeatherController extends Controller
                 $response = Http::timeout(6)->get('https://api.open-meteo.com/v1/forecast', [
                     'latitude' => $lat,
                     'longitude' => $lng,
-                    'current' => 'temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m,is_day,apparent_temperature,precipitation,rain,showers',
-                    'hourly' => 'temperature_2m,precipitation_probability,weather_code,wind_speed_10m',
-                    'daily' => 'weather_code,temperature_2m_max,temperature_2m_min,uv_index_max,precipitation_probability_max',
+                    'current' => 'temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m,is_day,apparent_temperature,precipitation,rain,showers,cloud_cover',
+                    'hourly' => 'temperature_2m,precipitation_probability,precipitation,weather_code,wind_speed_10m',
+                    'daily' => 'weather_code,temperature_2m_max,temperature_2m_min,uv_index_max,precipitation_probability_max,precipitation_sum',
                     'timezone' => 'Asia/Manila',
-                    'forecast_days' => 5
+                    'forecast_days' => 6
                 ]);
 
                 if ($response->successful()) {
@@ -70,7 +70,7 @@ class WeatherController extends Controller
         $todayRainProb = isset($daily['precipitation_probability_max'][0]) ? (int) round($daily['precipitation_probability_max'][0]) : 0;
         $todayDailyCode = isset($daily['weather_code'][0]) ? (int) $daily['weather_code'][0] : $code;
 
-        // Reconcile coarse current.weather_code with active hourly/daily precipitation so rain/storms are reflected in real time
+        // Reconcile current weather condition strictly with active physical rainfall
         $currentHourIso = now('Asia/Manila')->format('Y-m-d\TH:00');
         $currentHourCode = $code;
         $currentHourRainProb = $todayRainProb;
@@ -82,25 +82,93 @@ class WeatherController extends Controller
             }
         }
         $activePrecip = floatval($current['precipitation'] ?? 0) + floatval($current['rain'] ?? 0) + floatval($current['showers'] ?? 0);
-        if ($code <= 2) {
-            if ($currentHourCode >= 51) {
-                $code = $currentHourCode;
-            } elseif ($activePrecip > 0.1) {
-                $code = $todayDailyCode >= 51 ? $todayDailyCode : 61;
-            } elseif (($currentHourRainProb >= 60 || $todayRainProb >= 75) && $todayDailyCode >= 51) {
-                // If today has high rain probability and storm/rain daily code, use rain showers (80) unless current hour itself is severe
-                $code = in_array($currentHourCode, [65, 67, 82, 95, 96, 99], true) ? $currentHourCode : ($todayDailyCode >= 95 ? 80 : $todayDailyCode);
+        
+        // Only override clear/cloudy sky if there is active physical precipitation or severe current storm
+        if ($activePrecip > 0.1 || in_array($currentHourCode, [65, 67, 82, 95, 96, 99], true)) {
+            $code = $currentHourCode >= 51 ? $currentHourCode : ($todayDailyCode >= 51 ? $todayDailyCode : 61);
+        } elseif ($code <= 2) {
+            // Check current cloud cover / observation: if mostly cloudy/overcast (>70% clouds or code 3), reflect Overcast
+            $currentCloud = floatval($current['cloud_cover'] ?? 0);
+            if ($currentHourCode === 3 || $currentCloud >= 70 || in_array($todayDailyCode, [3, 51, 53], true)) {
+                $code = 3; // Overcast (no sun icon)
             }
         }
 
         $conditionMeta = $this->interpretWeatherCode($code, $isDay);
 
-        // Process 5-day forecast
+        // Process upcoming forecast days (Days 1 to 5) so Today is solely presented in the top hero card
         $forecast = [];
         if (isset($daily['time'])) {
             foreach ($daily['time'] as $i => $dateStr) {
+                // Skip index 0 (Today), because Today is already featured in the main top hero card
+                if ($i === 0) {
+                    continue;
+                }
                 $dayCode = (int) ($daily['weather_code'][$i] ?? 0);
                 $dayRainProb = (int) round($daily['precipitation_probability_max'][$i] ?? 0);
+                $dayPrecipSum = (float) ($daily['precipitation_sum'][$i] ?? 0);
+
+                // Dynamically evaluate active daytime hours for this specific forecast day
+                if (!empty($hourly['time']) && is_array($hourly['time'])) {
+                    $daytimeProbs = [];
+                    $daytimeCodes = [];
+                    $daytimePrecip = [];
+                    foreach ($hourly['time'] as $hIdx => $hTimeStr) {
+                        if (str_starts_with($hTimeStr, $dateStr)) {
+                            $hourNum = (int) substr($hTimeStr, 11, 2);
+                            // Active daytime tourist hours: 06:00 to 18:00
+                            if ($hourNum >= 6 && $hourNum <= 18) {
+                                if (isset($hourly['precipitation_probability'][$hIdx])) {
+                                    $daytimeProbs[] = (int) $hourly['precipitation_probability'][$hIdx];
+                                }
+                                if (isset($hourly['weather_code'][$hIdx])) {
+                                    $daytimeCodes[] = (int) $hourly['weather_code'][$hIdx];
+                                }
+                                if (isset($hourly['precipitation'][$hIdx])) {
+                                    $daytimePrecip[] = (float) $hourly['precipitation'][$hIdx];
+                                }
+                            }
+                        }
+                    }
+
+                    $maxDaytimePrecip = !empty($daytimePrecip) ? max($daytimePrecip) : 0;
+                    $daytimeTotalMm = !empty($daytimePrecip) ? array_sum($daytimePrecip) : $dayPrecipSum;
+
+                    // If physical rainfall is merely trace (< 1.0mm in a whole day), do not report deceptive 100% rain
+                    if ($daytimeTotalMm < 1.0 && $maxDaytimePrecip < 0.5) {
+                        // Normalize light coastal humidity probability to realistic 15%-25%
+                        $dayRainProb = min(25, !empty($daytimeProbs) ? (int) round(array_sum($daytimeProbs) / count($daytimeProbs)) : 20);
+                    } elseif (!empty($daytimeProbs)) {
+                        $dayRainProb = (int) round(max($daytimeProbs));
+                    }
+
+                    // Dynamically pick the most representative daytime weather code
+                    if (!empty($daytimeCodes)) {
+                        // Filter out drizzle code 51/53 if there is no significant accumulation
+                        $cleanCodes = array_map(function($c) use ($daytimeTotalMm) {
+                            if (in_array($c, [51, 53, 55], true) && $daytimeTotalMm < 1.0) {
+                                return 2; // Partly cloudy
+                            }
+                            if (in_array($c, [45, 48], true)) {
+                                return 1; // Mainly clear / coastal haze
+                            }
+                            return $c;
+                        }, $daytimeCodes);
+
+                        $codeCounts = array_count_values($cleanCodes);
+                        arsort($codeCounts);
+                        $dominantDayCode = array_key_first($codeCounts);
+                        
+                        if ($dayRainProb < 50 && $dominantDayCode <= 3) {
+                            $dayCode = $dominantDayCode;
+                        } elseif ($dayRainProb >= 50 && $dayCode <= 2) {
+                            $dayCode = 80; // Rain showers
+                        } else {
+                            $dayCode = $dominantDayCode;
+                        }
+                    }
+                }
+
                 $dayMeta = $this->interpretWeatherCode($dayCode, 1);
                 $dayOfWeek = date('D', strtotime($dateStr));
                 
@@ -325,14 +393,17 @@ class WeatherController extends Controller
         if (in_array($code, [65, 67, 82, 95, 96, 99], true) || $windSpeed >= 40) {
             return 'severe';
         }
-        if (in_array($code, [51, 53, 55, 56, 57, 61, 63, 66, 80, 81], true) || $rainProb >= 65) {
+        if (in_array($code, [51, 53, 55, 56, 57, 61, 63, 66, 80, 81], true)) {
             return 'rainy';
         }
         if (in_array($code, [3, 45, 48], true)) {
             return 'cloudy';
         }
         if (in_array($code, [1, 2], true)) {
-            return 'partly_cloudy';
+            return ($rainProb >= 65) ? 'rainy' : 'partly_cloudy';
+        }
+        if ($rainProb >= 65) {
+            return 'rainy';
         }
         return 'sunny';
     }
@@ -389,7 +460,7 @@ class WeatherController extends Controller
         }
 
         // Compute Best Time to Visit from today's hourly forecast (06:00 to 18:00)
-        $bestTime = '7:00 AM – 10:00 AM & 3:30 PM – 5:30 PM (Cooler hours)';
+        $bestTime = '7AM – 10AM & 3:30PM – 5:30PM (Cooler hours)';
         $hourlySlots = [];
         if (!empty($hourly['time']) && is_array($hourly['time'])) {
             $todayPrefix = now('Asia/Manila')->format('Y-m-d');
@@ -437,8 +508,8 @@ class WeatherController extends Controller
                 $best = $dayCandidates[0];
                 $startHr = $best['hour'];
                 $endHr = min(18, $startHr + 2);
-                $startFormatted = date('g:00 A', mktime($startHr, 0, 0));
-                $endFormatted = date('g:00 A', mktime($endHr, 0, 0));
+                $startFormatted = date('gA', mktime($startHr, 0, 0));
+                $endFormatted = date('gA', mktime($endHr, 0, 0));
                 $bestTime = "{$startFormatted} – {$endFormatted} (~{$best['temp']}°C, {$best['rain']}% rain)";
             }
         } elseif ($weatherGroup === 'severe') {

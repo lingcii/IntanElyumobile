@@ -6432,6 +6432,11 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                     window.mapInstance = null;
                 }
 
+                // Clean up any stray view-specific fixed containers attached directly to body
+                document.querySelectorAll('body > #itin-fixed-bottom-bar, body > #itin-spot-details-modal').forEach(el => {
+                    try { el.remove(); } catch (e) { }
+                });
+
                 mainContent.innerHTML = html;
                 document.body.setAttribute('data-view', targetView);
 

@@ -184,6 +184,7 @@ class ItineraryController extends Controller
             'companion_kids'    => (int) ($itinerary->companion_kids ?? 0),
             'companion_seniors' => (int) ($itinerary->companion_seniors ?? 0),
             'companion_pwds'    => (int) ($itinerary->companion_pwds ?? 0),
+            'companion_ages'    => $itinerary->companion_ages ?? [],
             'total_pax'         => (int) ($itinerary->total_pax ?? 1),
             'created_at'        => $itinerary->created_at?->toIso8601String(),
             'updated_at'        => $itinerary->updated_at?->toIso8601String(),
@@ -329,6 +330,8 @@ class ItineraryController extends Controller
             'companion_kids'    => 'nullable|integer|min:0',
             'companion_seniors' => 'nullable|integer|min:0',
             'companion_pwds'    => 'nullable|integer|min:0',
+            'companion_ages'    => 'nullable|array',
+            'companion_ages.*'  => 'nullable|integer|min:0|max:125',
             'total_pax'         => 'nullable|integer|min:1',
             'client_request_id' => 'nullable|string|max:100',
             'leg_transports'    => 'nullable|array',
@@ -494,6 +497,9 @@ class ItineraryController extends Controller
                 $itineraryData['companion_kids']    = $companionKids;
                 $itineraryData['companion_seniors'] = $companionSeniors;
                 $itineraryData['companion_pwds']    = $companionPwds;
+            }
+            if ($request->has('companion_ages') && Schema::hasColumn('itineraries', 'companion_ages')) {
+                $itineraryData['companion_ages'] = $request->input('companion_ages');
             }
 
             $itinerary = Itinerary::create($itineraryData);
@@ -799,6 +805,8 @@ class ItineraryController extends Controller
             'companion_kids'    => 'nullable|integer|min:0',
             'companion_seniors' => 'nullable|integer|min:0',
             'companion_pwds'    => 'nullable|integer|min:0',
+            'companion_ages'    => 'nullable|array',
+            'companion_ages.*'  => 'nullable|integer|min:0|max:125',
             'total_pax'         => 'nullable|integer|min:1',
             'destinations'      => 'nullable|array',
             'destinations.*'    => 'integer|exists:tourist_spots,id',
@@ -847,6 +855,9 @@ class ItineraryController extends Controller
                 $updateData['companion_pwds'] = $cp;
                 $updateData['total_pax'] = max(1, (int)($updateData['total_pax'] ?? (1 + $addComp)));
             }
+        }
+        if ($request->has('companion_ages') && Schema::hasColumn('itineraries', 'companion_ages')) {
+            $updateData['companion_ages'] = $request->input('companion_ages');
         }
         if (!Schema::hasColumn('itineraries', 'companion_adults')) {
             unset($updateData['companion_adults'], $updateData['companion_kids'], $updateData['companion_seniors'], $updateData['companion_pwds']);

@@ -82,9 +82,6 @@ body[data-view="itinerary"] .itinerary-container,
 .itinerary-container .swipe-content h2, 
 .itinerary-container .swipe-content h3, 
 .itinerary-container .swipe-content h4,
-.itinerary-container .starting-point-card h2, 
-.itinerary-container .starting-point-card h3, 
-.itinerary-container .starting-point-card h4,
 .itinerary-container .empty-state-card h2, 
 .itinerary-container .empty-state-card h3, 
 .itinerary-container .empty-state-card h4 {
@@ -707,18 +704,18 @@ body[data-view="itinerary"] .itinerary-container,
 }
 
 .starting-point-card {
-    background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important;
-    border: none !important;
+    background: #ffffff !important;
+    border: 1.5px solid #e2e8f0 !important;
     outline: none !important;
-    border-radius: 22px !important;
-    padding: 16px 18px !important;
-    box-shadow: none !important;
+    border-radius: 20px !important;
+    padding: 14px 16px !important;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05) !important;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
     cursor: pointer;
-    transition: transform 0.2s ease;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .starting-point-card:hover {
@@ -791,9 +788,9 @@ body[data-view="itinerary"] .itinerary-container,
 }
 
 .starting-point-label {
-    font-size: 10px;
+    font-size: 10.5px;
     font-weight: 800;
-    color: #f59e0b;
+    color: #0284c7 !important;
     text-transform: uppercase;
     letter-spacing: 0.6px;
     display: flex;
@@ -804,9 +801,9 @@ body[data-view="itinerary"] .itinerary-container,
 
 .starting-point-title {
     margin: 0 0 3px 0;
-    font-size: 15px;
+    font-size: 15.5px;
     font-weight: 800;
-    color: #ffffff;
+    color: #0f172a !important;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -821,13 +818,14 @@ body[data-view="itinerary"] .itinerary-container,
     font-weight: 500;
 }
 
+.stops-swap-divider.starting-leg-divider,
 .starting-leg-divider {
     position: relative !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    margin: 12px 0 10px !important;
-    height: 36px !important;
+    margin: 0 !important;
+    height: 4px !important;
 }
 
 .starting-leg-icon-pill {
@@ -1035,7 +1033,6 @@ body[data-view="itinerary"] .itinerary-container,
 }
 
 /* Universal container gradient, outline & shadow/glow removal */
-.itinerary-container .starting-point-card,
 .itinerary-container .swipe-content,
 .itinerary-container .empty-state-card,
 .itinerary-container .timeline-item .swipe-content,
@@ -1517,13 +1514,14 @@ body[data-view="itinerary"] .itinerary-container,
     to { transform: translateY(0); opacity: 1; }
 }
 
+.stops-swap-divider.starting-leg-divider,
 .starting-leg-divider {
     position: relative !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    margin: 12px 0 10px !important;
-    height: 36px !important;
+    margin: 0 !important;
+    height: 4px !important;
 }
 
 .starting-leg-icon-pill {
@@ -1677,4 +1675,18 @@ input[type=number] {
 .custom-leaflet-marker {
     background: transparent !important;
     border: none !important;
+}
+
+
+/* Option 1: Clean White Starting Point Origin Card */
+.itinerary-container .starting-point-card {
+    background: #ffffff !important;
+    border: 1.5px solid #e2e8f0 !important;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05) !important;
+}
+.itinerary-container .starting-point-card .starting-point-title {
+    color: #0f172a !important;
+}
+.itinerary-container .starting-point-card .starting-point-label {
+    color: #0284c7 !important;
 }

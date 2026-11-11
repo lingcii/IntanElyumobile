@@ -24,6 +24,7 @@ class Itinerary extends Model
         'companion_kids',
         'companion_seniors',
         'companion_pwds',
+        'companion_ages',
         'total_pax',
     ];
 
@@ -38,6 +39,7 @@ class Itinerary extends Model
         'companion_kids'    => 'integer',
         'companion_seniors' => 'integer',
         'companion_pwds'    => 'integer',
+        'companion_ages'    => 'array',
         'total_pax'         => 'integer',
     ];
 
