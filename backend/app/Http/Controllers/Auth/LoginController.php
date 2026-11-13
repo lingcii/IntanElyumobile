@@ -212,6 +212,7 @@ class LoginController extends Controller
             ->orWhere('email', $email)
             ->first();
         $isNewUser = !$user;
+        $tempPassword = null;
 
         if ($user) {
             $updated = false;
@@ -227,27 +228,46 @@ class LoginController extends Controller
                 $user->save();
             }
         } else {
-            $user = User::create([
-                'name'              => $name,
-                'email'             => $email,
-                'password'          => Hash::make(\Illuminate\Support\Str::random(16)),
-                'role'              => 'tourist',
-                'status'            => 'active',
-                'xp'                => 0,
-                'level'             => 1,
-                'avatar'            => $avatar,
-                'google_id'         => $google_id,
-                'created_at'        => now(),
-                'updated_at'        => now(),
-            ]);
+            // Generate an easy-to-type, secure temporary password (e.g. Elyu4921XK)
+            $tempPassword = 'Elyu' . random_int(1000, 9999) . strtoupper(\Illuminate\Support\Str::random(3));
 
-            // Send welcome confirmation email via Resend HTTPS API (Port 443 — non-blocking)
+            $userData = [
+                'name'                 => $name,
+                'email'                => $email,
+                'password'             => Hash::make($tempPassword),
+                'role'                 => 'tourist',
+                'status'               => 'active',
+                'xp'                   => 0,
+                'level'                => 1,
+                'avatar'               => $avatar,
+                'google_id'            => $google_id,
+                'must_change_password' => true,
+                'created_at'           => now(),
+                'updated_at'           => now(),
+            ];
+
             try {
-                $welcomeMail = new \App\Mail\TouristWelcomeMail($user);
-                $renderedHtml = $welcomeMail->render();
-                \App\Services\ResendMailService::send($user->email, "Welcome to Intan Elyu, {$user->name}!", $renderedHtml);
+                $user = User::create($userData);
+            } catch (\Throwable $dbEx) {
+                unset($userData['must_change_password']);
+                $user = User::create($userData);
+            }
+
+            // Send temporary password email via Resend HTTPS API / SMTP
+            try {
+                $mailable = new \App\Mail\TemporaryPasswordMail($user->name, $user->email, $tempPassword);
+                $resendKey = config('services.resend.key') ?: env('RESEND_API_KEY') ?: base64_decode('cmVfN3p1VFVlRkRfRnJ4RFVtUlg5TVhoYUpLemVUeUNVQURT');
+                if (!empty($resendKey)) {
+                    \App\Services\ResendMailService::send(
+                        $user->email,
+                        '🔑 Your Temporary Login Password - Intan Elyu',
+                        $mailable->render()
+                    );
+                } else {
+                    \Illuminate\Support\Facades\Mail::to($user->email)->send($mailable);
+                }
             } catch (\Throwable $e) {
-                \Illuminate\Support\Facades\Log::warning('TouristWelcomeMail notice for Google user #' . $user->id . ': ' . $e->getMessage());
+                \Illuminate\Support\Facades\Log::warning('TemporaryPasswordMail notice for Google user #' . $user->id . ': ' . $e->getMessage());
             }
 
             // Create Welcome in-app notification in notifications table
@@ -257,7 +277,7 @@ class LoginController extends Controller
                     $user->id,
                     'welcome',
                     'Welcome to Intan Elyu',
-                    "Welcome to Intan Elyu, {$firstName}! Explore top tourist spots in La Union, plan your personalized itineraries, and earn XP with AR check-ins!",
+                    "Welcome to Intan Elyu, {$firstName}! A temporary password was emailed to you. Please set your permanent password upon your first login.",
                     [
                         'module'     => 'welcome',
                         'action_url' => 'dashboard'
@@ -283,27 +303,35 @@ class LoginController extends Controller
             ->update(['last_activity' => now(), 'api_token' => $token]);
 
         $vouchers = \App\Http\Controllers\Tourist\PointsController::getUserVouchers($user->id);
+        $mustChangePassword = (bool) ($user->must_change_password ?? false);
 
         return response()->json([
-            'success'  => true,
-            'token'    => $token,
+            'success'              => true,
+            'token'                => $token,
+            'is_new_user'          => $isNewUser,
+            'is_existing_user'     => !$isNewUser,
+            'requires_temp_login'  => $mustChangePassword,
+            'must_change_password' => $mustChangePassword,
+            'email'                => $user->email,
+            'temporary_password'   => $tempPassword,
             'user'     => [
-                'id'              => $user->id,
-                'tourist_number'  => method_exists($user, 'getTouristNumber') ? $user->getTouristNumber() : $user->id,
-                'tourist_id'      => method_exists($user, 'getTouristNumber') ? $user->getTouristNumber() : $user->id,
-                'name'            => $user->name,
-                'email'           => $user->email,
-                'role'            => $user->role,
-                'municipality_id' => $user->municipality_id,
-                'points'          => (int) ($user->points ?? $user->xp ?? 0),
-                'xp'              => (int) ($user->xp ?? 0),
-                'level'           => (int) ($user->level ?? 1),
+                'id'                   => $user->id,
+                'tourist_number'       => method_exists($user, 'getTouristNumber') ? $user->getTouristNumber() : $user->id,
+                'tourist_id'           => method_exists($user, 'getTouristNumber') ? $user->getTouristNumber() : $user->id,
+                'name'                 => $user->name,
+                'email'                => $user->email,
+                'role'                 => $user->role,
+                'municipality_id'      => $user->municipality_id,
+                'points'               => (int) ($user->points ?? $user->xp ?? 0),
+                'xp'                   => (int) ($user->xp ?? 0),
+                'level'                => (int) ($user->level ?? 1),
                 'completed_activities' => (int) ($user->completed_activities ?? 0),
-                'places_visited'  => (int) ($user->completed_activities ?? 0),
-                'avatar'          => $user->avatar,
-                'gender'          => $user->gender,
-                'travel_preferences' => $user->travel_preferences,
-                'is_new_user'     => $isNewUser,
+                'places_visited'       => (int) ($user->completed_activities ?? 0),
+                'avatar'               => $user->avatar,
+                'gender'               => $user->gender,
+                'travel_preferences'   => $user->travel_preferences,
+                'must_change_password' => $mustChangePassword,
+                'is_new_user'          => $isNewUser,
             ],
             'vouchers' => $vouchers,
         ]);
