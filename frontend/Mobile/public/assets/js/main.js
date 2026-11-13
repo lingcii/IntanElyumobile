@@ -5778,6 +5778,17 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
     // Prevent overlapping navigations
     if (state.isNavigating) return;
 
+    // Require permanent password change before entering onboarding
+    if (typeof viewName === 'string' && viewName.split(/[?&]/)[0] === 'onboarding') {
+        try {
+            const u = JSON.parse(localStorage.getItem('auth_user') || 'null');
+            if (u && u.must_change_password && typeof window.promptTemporaryPasswordChange === 'function') {
+                window.promptTemporaryPasswordChange(() => navigateTo(viewName, addToHistory, fade));
+                return;
+            }
+        } catch (e) {}
+    }
+
     // Parse pure view name and any query parameters passed in viewName (e.g. 'trip_map&trip_id=123' or 'trip_map?trip_id=123')
     let targetView = viewName;
     const extraParams = new URLSearchParams();
@@ -6718,7 +6729,8 @@ window.navigateTo = navigateTo;
             { id: 'push-notification-modal', fn: window.closePushNotificationModal },
             { id: 'game-confirm-modal', fn: window.closeGameConfirm },
             { id: 'game-success-modal', fn: window.closeGameSuccess },
-            { id: 'game-alert-modal', fn: window.closeGameAlert }
+            { id: 'game-alert-modal', fn: window.closeGameAlert },
+            { id: 'trip-guide-modal', fn: window.closeTripGuideModal }
         ];
 
         for (const item of knownModalClosers) {
@@ -6869,15 +6881,16 @@ window.navigateTo = navigateTo;
             }
 
             localStorage.setItem('intan_elyu_token', directToken);
+            let parsedUserObj = null;
             if (directUser) {
                 try {
                     let userStr = directUser;
                     if (typeof userStr === 'string' && (userStr.startsWith('%') || userStr.includes('%22') || userStr.includes('%7B'))) {
                         try { userStr = decodeURIComponent(userStr); } catch (eDec) {}
                     }
-                    const parsedUser = typeof userStr === 'object' ? userStr : JSON.parse(userStr);
-                    localStorage.setItem('auth_user', JSON.stringify(parsedUser));
-                    if (window.AppStorage) window.AppStorage.setItem('auth_user', parsedUser);
+                    parsedUserObj = typeof userStr === 'object' ? userStr : JSON.parse(userStr);
+                    localStorage.setItem('auth_user', JSON.stringify(parsedUserObj));
+                    if (window.AppStorage) window.AppStorage.setItem('auth_user', parsedUserObj);
                 } catch (e) { }
             }
             if (window.AppStorage) window.AppStorage.setItem('intan_elyu_token', directToken);
@@ -6890,11 +6903,24 @@ window.navigateTo = navigateTo;
                 sessionStorage.removeItem('elyu_show_offline_bypass_notice');
             } catch (e) { }
 
+            const targetView = parsedUserObj?.is_new_user === true ? 'onboarding' : 'dashboard';
             if (window.history && window.history.replaceState) {
-                window.history.replaceState({}, document.title, window.location.pathname + '?view=dashboard');
+                window.history.replaceState({}, document.title, window.location.pathname + '?view=' + targetView);
+            }
+            if (parsedUserObj && parsedUserObj.must_change_password) {
+                const openModal = () => promptTemporaryPasswordChange(() => {
+                    if (typeof showToast === 'function') showToast('Logged in successfully!', 'success');
+                    navigateTo(targetView, true, true);
+                });
+                if (document.body) {
+                    openModal();
+                } else {
+                    document.addEventListener('DOMContentLoaded', openModal, { once: true });
+                }
+                return;
             }
             if (typeof showToast === 'function') showToast('Logged in successfully!', 'success');
-            navigateTo('dashboard', true, true);
+            navigateTo(targetView, true, true);
             return;
         }
 
@@ -7112,6 +7138,15 @@ window.navigateTo = navigateTo;
                         setTimeout(() => ov.remove(), 300);
                     }
                     window._isProcessingGoogleOAuth = false;
+                    if (data.must_change_password || data.user?.must_change_password) {
+                        promptTemporaryPasswordChange(() => {
+                            if (typeof showToast === 'function') {
+                                showToast(`Welcome, ${data.user?.name || 'Explorer'}!`, 'success');
+                            }
+                            navigateTo(postAuthView, true, true);
+                        });
+                        return;
+                    }
                     if (typeof showToast === 'function') {
                         showToast(`Welcome back, ${data.user?.name || 'Explorer'}!`, 'success');
                     }
@@ -7128,6 +7163,104 @@ window.navigateTo = navigateTo;
                 navigateTo('auth', true, false);
             });
     };
+
+    window.promptTemporaryPasswordChange = promptTemporaryPasswordChange;
+    function promptTemporaryPasswordChange(onSuccess) {
+        const existing = document.getElementById('temp-password-change-modal');
+        if (existing) existing.remove();
+
+        const modal = document.createElement('div');
+        modal.id = 'temp-password-change-modal';
+        modal.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(15,23,42,0.78);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:20px;';
+        modal.innerHTML = `
+            <div style="background:#ffffff;border-radius:20px;max-width:380px;width:100%;padding:24px;box-shadow:0 20px 50px rgba(0,0,0,0.3);color:#0f172a;font-family:inherit;">
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+                    <div style="width:38px;height:38px;border-radius:12px;background:#eff6ff;color:#1e3a8a;display:flex;align-items:center;justify-content:center;font-size:18px;">
+                        <i class="fa-solid fa-key"></i>
+                    </div>
+                    <div>
+                        <h3 style="margin:0;font-size:17px;font-weight:800;color:#1e3a8a;">Set Permanent Password</h3>
+                        <p style="margin:2px 0 0;font-size:12px;color:#64748b;">Required before completing your profile</p>
+                    </div>
+                </div>
+                <p style="font-size:13px;color:#475569;margin:0 0 14px;line-height:1.45;">
+                    A temporary password was sent to your email. Please set your own permanent password (at least 8 characters with letters and numbers).
+                </p>
+                <form id="temp-password-change-form" style="display:flex;flex-direction:column;gap:10px;">
+                    <input type="password" id="temp-new-password" placeholder="New password" required autocomplete="new-password"
+                        style="width:100%;box-sizing:border-box;padding:11px 13px;border:1.5px solid #cbd5e1;border-radius:12px;font-size:14px;outline:none;">
+                    <input type="password" id="temp-confirm-password" placeholder="Confirm new password" required autocomplete="new-password"
+                        style="width:100%;box-sizing:border-box;padding:11px 13px;border:1.5px solid #cbd5e1;border-radius:12px;font-size:14px;outline:none;">
+                    <div id="temp-password-error" style="display:none;color:#dc2626;font-size:12px;font-weight:600;"></div>
+                    <button type="submit" id="temp-password-submit"
+                        style="margin-top:4px;padding:12px;border:none;border-radius:12px;background:linear-gradient(135deg,#1e3a8a,#3f7db7);color:#ffffff;font-weight:700;font-size:14px;cursor:pointer;">
+                        Save Password &amp; Continue
+                    </button>
+                </form>
+            </div>
+        `;
+        document.body.appendChild(modal);
+
+        const form = document.getElementById('temp-password-change-form');
+        const errEl = document.getElementById('temp-password-error');
+        const btn = document.getElementById('temp-password-submit');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            errEl.style.display = 'none';
+            const pw = document.getElementById('temp-new-password').value;
+            const confirmPw = document.getElementById('temp-confirm-password').value;
+
+            if (pw.length < 8 || !/[A-Za-z]/.test(pw) || !/[0-9]/.test(pw)) {
+                errEl.textContent = 'Password must be at least 8 characters and include both letters and numbers.';
+                errEl.style.display = 'block';
+                return;
+            }
+            if (pw !== confirmPw) {
+                errEl.textContent = 'Passwords do not match.';
+                errEl.style.display = 'block';
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = 'Saving...';
+            try {
+                const backend = (typeof window.getBackendUrl === 'function') ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online');
+                const token = localStorage.getItem('intan_elyu_token');
+                const res = await fetch(backend + '/api/change-temporary-password', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify({ new_password: pw, new_password_confirmation: confirmPw })
+                });
+                const resData = await res.json();
+                if (!res.ok || resData.success === false) {
+                    throw new Error(resData.message || 'Failed to update password.');
+                }
+                if (resData.token) {
+                    localStorage.setItem('intan_elyu_token', resData.token);
+                    if (window.AppStorage) window.AppStorage.setItem('intan_elyu_token', resData.token);
+                }
+                try {
+                    const storedUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
+                    storedUser.must_change_password = false;
+                    localStorage.setItem('auth_user', JSON.stringify(storedUser));
+                    if (window.AppStorage) window.AppStorage.setItem('auth_user', storedUser);
+                } catch (err) {}
+
+                modal.remove();
+                if (typeof onSuccess === 'function') onSuccess();
+            } catch (err) {
+                errEl.textContent = err.message || 'Failed to update password.';
+                errEl.style.display = 'block';
+                btn.disabled = false;
+                btn.textContent = 'Save Password & Continue';
+            }
+        });
+    }
 
     // Check for Google OAuth token immediately on script execution
     window.initGoogleOAuthHandler();
