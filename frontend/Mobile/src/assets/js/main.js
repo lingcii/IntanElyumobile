@@ -6896,11 +6896,16 @@ window.navigateTo = navigateTo;
             if (window.history && window.history.replaceState) {
                 window.history.replaceState({}, document.title, window.location.pathname + '?view=' + targetView);
             }
-            if (parsedUserObj?.must_change_password === true) {
-                promptTemporaryPasswordChange(() => {
+            if (parsedUserObj && parsedUserObj.must_change_password) {
+                const openModal = () => promptTemporaryPasswordChange(() => {
                     if (typeof showToast === 'function') showToast('Logged in successfully!', 'success');
                     navigateTo(targetView, true, true);
                 });
+                if (document.body) {
+                    openModal();
+                } else {
+                    document.addEventListener('DOMContentLoaded', openModal, { once: true });
+                }
                 return;
             }
             if (typeof showToast === 'function') showToast('Logged in successfully!', 'success');
