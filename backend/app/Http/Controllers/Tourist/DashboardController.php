@@ -127,60 +127,72 @@ class DashboardController extends Controller
             $recommended = collect();
         }
 
-        // Stats — Calculate true distinct places visited from itinerary items
-        $placesVisited = (int) DB::table('itinerary_items')
-            ->join('itineraries', 'itinerary_items.itinerary_id', '=', 'itineraries.id')
-            ->where('itineraries.user_id', $user->id)
-            ->where('itinerary_items.is_visited', true)
-            ->whereNotNull('itinerary_items.tourist_spot_id')
-            ->distinct('itinerary_items.tourist_spot_id')
-            ->count('itinerary_items.tourist_spot_id');
-
-        // Fallback to distinct completed itinerary spot count or completed_activities counter
-        if ($placesVisited === 0) {
-            $completedTripsSpotCount = (int) DB::table('itinerary_items')
+        // Stats — Calculate true distinct places visited, never dropping below user's cumulative completed_activities
+        $placesVisited = (int) ($user->completed_activities ?? 0);
+        try {
+            $itemPlaces = (int) DB::table('itinerary_items')
                 ->join('itineraries', 'itinerary_items.itinerary_id', '=', 'itineraries.id')
                 ->where('itineraries.user_id', $user->id)
-                ->where('itineraries.status', 'completed')
+                ->where('itinerary_items.is_visited', true)
                 ->whereNotNull('itinerary_items.tourist_spot_id')
                 ->distinct('itinerary_items.tourist_spot_id')
                 ->count('itinerary_items.tourist_spot_id');
+            $placesVisited = max($placesVisited, $itemPlaces);
+        } catch (\Throwable $e) {}
 
-            $placesVisited = max($completedTripsSpotCount, (int) ($user->completed_activities ?? 0));
-        } else {
-            $placesVisited = max($placesVisited, (int) ($user->completed_activities ?? 0));
+        // Fallback to distinct completed itinerary spot count if still 0
+        if ($placesVisited === 0) {
+            try {
+                $completedTripsSpotCount = (int) DB::table('itinerary_items')
+                    ->join('itineraries', 'itinerary_items.itinerary_id', '=', 'itineraries.id')
+                    ->where('itineraries.user_id', $user->id)
+                    ->where('itineraries.status', 'completed')
+                    ->whereNotNull('itinerary_items.tourist_spot_id')
+                    ->distinct('itinerary_items.tourist_spot_id')
+                    ->count('itinerary_items.tourist_spot_id');
+                $placesVisited = max($completedTripsSpotCount, (int) ($user->completed_activities ?? 0));
+            } catch (\Throwable $e) {}
         }
 
         // Rank — Technique 2: Server-Side Caching + Technique 6: Materialized Views
-        $myRank = Cache::remember("rank:user:{$user->id}", 60, function () use ($user) {
-            try {
-                if (\Illuminate\Support\Facades\Schema::hasTable('leaderboard_cache')) {
-                    $cached = DB::table('leaderboard_cache')->where('user_id', $user->id)->first();
-                    if ($cached) {
-                        return (int) $cached->rank;
-                    }
-                }
+        $userPoints = (int) ($user->points ?? $user->xp ?? 0);
+        $userPlaces = (int) ($user->completed_activities ?? 0);
+        $myRank = null;
 
-                $rankData = DB::selectOne("
-                    WITH ranked AS (
-                        SELECT
-                            u.id AS user_id,
-                            ROW_NUMBER() OVER (
-                                ORDER BY
-                                    COALESCE(u.xp, 0) DESC,
-                                    COALESCE(u.completed_activities, 0) DESC,
-                                    u.created_at ASC
-                            ) AS `rank`
-                        FROM users u
-                        WHERE u.role = 'tourist' AND u.status = 'active'
-                    )
-                    SELECT `rank` FROM ranked WHERE user_id = ?
-                ", [$user->id]);
-                return $rankData ? (int) $rankData->rank : 1;
-            } catch (\Throwable $e) {
-                return 1;
-            }
-        });
+        // If the tourist has 0 points and 0 places/activities, they are unranked (null)
+        if ($userPoints > 0 || $userPlaces > 0) {
+            $myRank = Cache::remember("rank:user:{$user->id}", 60, function () use ($user) {
+                try {
+                    if (\Illuminate\Support\Facades\Schema::hasTable('leaderboard_cache')) {
+                        $cached = DB::table('leaderboard_cache')->where('user_id', $user->id)->first();
+                        if ($cached && (int) ($cached->total_points ?? 0) > 0) {
+                            return (int) $cached->rank;
+                        }
+                    }
+
+                    $rankData = DB::selectOne("
+                        WITH ranked AS (
+                            SELECT
+                                u.id AS user_id,
+                                ROW_NUMBER() OVER (
+                                    ORDER BY
+                                        COALESCE(u.points, u.xp, 0) DESC,
+                                        COALESCE(u.completed_activities, 0) DESC,
+                                        u.created_at ASC
+                                ) AS `rank`
+                            FROM users u
+                            WHERE u.role = 'tourist' 
+                              AND (u.status = 'active' OR u.status IS NULL)
+                              AND (COALESCE(u.points, 0) > 0 OR COALESCE(u.xp, 0) > 0 OR COALESCE(u.completed_activities, 0) > 0)
+                        )
+                        SELECT `rank` FROM ranked WHERE user_id = ?
+                    ", [$user->id]);
+                    return $rankData ? (int) $rankData->rank : null;
+                } catch (\Throwable $e) {
+                    return null;
+                }
+            });
+        }
 
         // Points balance directly from users table
         $points = (int) ($user->points ?? 0);

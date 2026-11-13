@@ -569,7 +569,7 @@ if ($isAjax) {
     </div>
 
     <?php
-    $noNavViews = ['splash', 'auth', 'about', 'terms', 'edit_profile', 'help', 'trip_map', 'saved_trips', 'saved_places', 'trending', 'reset-password', 'puzzles', 'discount', 'settings', 'user_manual', 'download', 'categories'];
+    $noNavViews = ['splash', 'auth', 'about', 'terms', 'edit_profile', 'help', 'trip_map', 'saved_places', 'trending', 'reset-password', 'puzzles', 'discount', 'settings', 'user_manual', 'download', 'categories'];
     $navHiddenClass = in_array($view, $noNavViews) ? 'nav-hidden' : '';
     ?>
     <!-- Bottom Navigation Bar (Locked to viewport bottom) -->

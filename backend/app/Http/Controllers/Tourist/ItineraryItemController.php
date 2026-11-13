@@ -188,10 +188,10 @@ class ItineraryItemController extends Controller
             $additionalComps = max($males + $females, $adults + $kids + $seniors + $pwds);
             $totalPax = $request->has('total_pax') ? max(1, (int)$request->total_pax) : max(1, (int)($item->total_pax ?? $itin?->total_pax ?? (1 + $additionalComps)));
 
-            $isFullyVisited = ($item->proof_status === 'approved');
+            $isFullyVisited = true;
             $item->update([
                 'visited_at'           => $effectiveTime,
-                'is_visited'           => $isFullyVisited,
+                'is_visited'           => true,
                 'is_location_verified' => true,
                 'companion_males'      => $males,
                 'companion_females'    => $females,
@@ -201,6 +201,45 @@ class ItineraryItemController extends Controller
                 'companion_pwds'       => $pwds,
                 'total_pax'            => $totalPax,
             ]);
+
+            // Award points immediately upon check-in
+            $rewardPoints = \App\Models\Classification::getPointsForStatus($spot->classification_status);
+            $canonical = \App\Models\Classification::normalizeStatus($spot->classification_status);
+            $pointsAwarded = false;
+
+            if ($user) {
+                try {
+                    $newXp = ($user->xp ?? 0) + $rewardPoints;
+                    $newLevel = (int) floor($newXp / 1000) + 1;
+                    $user->update([
+                        'xp'    => $newXp,
+                        'level' => $newLevel,
+                    ]);
+
+                    \App\Models\UserPoint::awardPointsSafely(
+                        $user->id,
+                        $rewardPoints,
+                        'check_in',
+                        "GPS Check-in at " . $spot->name . " ({$canonical})",
+                        $spot->id
+                    );
+
+                    $user->increment('completed_activities');
+                    $pointsAwarded = true;
+
+                    \Illuminate\Support\Facades\Cache::forget("rank:user:{$user->id}");
+                    \Illuminate\Support\Facades\Cache::forget("profile:trips:{$user->id}");
+
+                    \App\Models\Notification::createSafely(
+                        $user->id,
+                        'checkin_approved',
+                        'Check-in Verified!',
+                        "You checked in at {$spot->name}! Earned +{$rewardPoints} Points & XP ({$canonical})."
+                    );
+                } catch (\Throwable $e) {
+                    Log::warning("Points awarding on check-in failed: " . $e->getMessage());
+                }
+            }
 
             try {
                 $shouldUpdatePing = !$user->last_gps_ping_at || ($effectiveTime->gte(Carbon::parse($user->last_gps_ping_at)));
@@ -220,7 +259,8 @@ class ItineraryItemController extends Controller
                 'is_location_verified' => true,
                 'visited_at'           => $effectiveTime->toIso8601String(),
                 'distance'             => round($distanceMeters) . 'm',
-                'message'              => "Location verified at {$spot->name}! 📍 Photo proof is required to earn points.",
+                'points_earned'        => $pointsAwarded ? $rewardPoints : 0,
+                'message'              => "Checked in at {$spot->name}! 📍 +{$rewardPoints} Points & XP earned! Uploading photo is optional.",
             ]);
         } catch (\Illuminate\Validation\ValidationException $ve) {
             return response()->json([
@@ -299,17 +339,37 @@ class ItineraryItemController extends Controller
 
             $item->update([
                 'proof_image'      => $jsonImages,
-                'proof_status'     => 'pending',
+                'proof_status'     => 'approved',
                 'visited_at'       => $effectiveTime,
+                'is_visited'       => true,
                 'rejection_reason' => null,
             ]);
 
+            // Also attach photos into the tourist spot's gallery so they appear in tourist site details
+            $spotId = $item->tourist_spot_id ?? $item->destination_id ?? ($item->destination ? $item->destination->id : null);
+            if ($spotId && class_exists('App\Models\TouristSpotImage')) {
+                foreach ($storedUrls as $pUrl) {
+                    try {
+                        \App\Models\TouristSpotImage::firstOrCreate([
+                            'spot_id'   => $spotId,
+                            'photo_url' => $pUrl,
+                        ], [
+                            'is_primary' => false,
+                            'sort_order' => 99,
+                        ]);
+                    } catch (\Throwable $imgErr) {
+                        Log::warning("Could not sync uploaded photo to tourist spot gallery: " . $imgErr->getMessage());
+                    }
+                }
+            }
+
             return response()->json([
                 'success'      => true,
-                'proof_status' => 'pending',
+                'proof_status' => 'approved',
+                'is_visited'   => true,
                 'proof_image'  => $storedUrls[0],
                 'proof_images' => $storedUrls,
-                'message'      => 'Photo proof submitted! Awaiting review before completion.',
+                'message'      => 'Photos uploaded and added to the tourist site gallery!',
             ]);
         } catch (\Throwable $ex) {
             Log::error("Proof upload error on item {$id}: " . $ex->getMessage());
@@ -436,9 +496,8 @@ class ItineraryItemController extends Controller
                 ], 403);
             }
 
-            $isFullyVisited = ($item->proof_status === 'approved');
             $itemData = [
-                'is_visited'           => $isFullyVisited,
+                'is_visited'           => true,
                 'visited_at'           => $effectiveTime,
                 'is_location_verified' => true,
             ];
@@ -457,7 +516,22 @@ class ItineraryItemController extends Controller
                 $storedUrls = $this->storeProofFiles($files);
                 if (!empty($storedUrls)) {
                     $itemData['proof_image']  = json_encode($storedUrls);
-                    $itemData['proof_status'] = 'pending';
+                    $itemData['proof_status'] = 'approved';
+
+                    $spotId = $item->tourist_spot_id ?? $item->destination_id ?? ($item->destination ? $item->destination->id : null);
+                    if ($spotId && class_exists('App\Models\TouristSpotImage')) {
+                        foreach ($storedUrls as $pUrl) {
+                            try {
+                                \App\Models\TouristSpotImage::firstOrCreate([
+                                    'spot_id'   => $spotId,
+                                    'photo_url' => $pUrl,
+                                ], [
+                                    'is_primary' => false,
+                                    'sort_order' => 99,
+                                ]);
+                            } catch (\Throwable $imgErr) { }
+                        }
+                    }
                 }
             }
 

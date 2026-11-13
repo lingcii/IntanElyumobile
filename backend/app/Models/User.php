@@ -39,6 +39,7 @@ class User extends Authenticatable
         'two_factor_enabled',
         'two_factor_code',
         'two_factor_expires_at',
+        'must_change_password',
         'created_at',
         'updated_at',
     ];
@@ -61,6 +62,7 @@ class User extends Authenticatable
         'points'                => 'integer',
         'age'                   => 'integer',
         'two_factor_enabled'    => 'boolean',
+        'must_change_password'  => 'boolean',
         'two_factor_expires_at' => 'datetime',
         'email_verified_at'     => 'datetime',
         'last_activity'         => 'datetime',

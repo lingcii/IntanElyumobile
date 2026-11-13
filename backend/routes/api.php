@@ -213,6 +213,7 @@ Route::prefix('auth')->group(function () {
     Route::post('/validate-reset-otp', [LoginController::class, 'validateResetOtp']);
     Route::post('/reset-password', [LoginController::class, 'resetPassword']);
     Route::post('/reset-password-otp', [LoginController::class, 'resetPasswordWithOtp']);
+    Route::post('/change-temporary-password', [LoginController::class, 'changeTemporaryPassword']);
     Route::post('/2fa/resend', [LoginController::class, 'resend2FACode']);
     Route::get('/test-email', [LoginController::class, 'testEmail']);
 

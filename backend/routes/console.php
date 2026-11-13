@@ -11,3 +11,8 @@ Artisan::command('inspire', function () {
 // --- Technique 6: Materialized Views ---
 // Refresh the leaderboard_cache table every 5 minutes
 Schedule::command('leaderboard:refresh')->everyFiveMinutes()->withoutOverlapping();
+
+// Automatically default untouched destination reviews to 5 stars after 2-3 days
+Schedule::call(function () {
+    \App\Http\Controllers\Tourist\ItineraryController::processUntouchedVisitReviews(2);
+})->name('reviews:auto-default-untouched')->hourly()->withoutOverlapping();

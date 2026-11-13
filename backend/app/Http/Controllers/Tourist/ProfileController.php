@@ -22,62 +22,74 @@ class ProfileController extends Controller
         $user = $request->user();
 
         // 1. Rank — Technique 2: Server-Side Caching + Technique 6: Materialized Views
-        $myRank = Cache::remember("rank:user:{$user->id}", 60, function () use ($user) {
-            try {
-                // Try materialized view first
-                $cached = DB::table('leaderboard_cache')->where('user_id', $user->id)->first();
-                if ($cached) {
-                    return (int) $cached->rank;
+        $userPoints = (int) ($user->points ?? $user->xp ?? 0);
+        $userPlaces = (int) ($user->completed_activities ?? 0);
+        $myRank = null;
+
+        // If the tourist has 0 points and 0 places/activities, they are unranked (null)
+        if ($userPoints > 0 || $userPlaces > 0) {
+            $myRank = Cache::remember("rank:user:{$user->id}", 60, function () use ($user) {
+                try {
+                    // Try materialized view first
+                    $cached = DB::table('leaderboard_cache')->where('user_id', $user->id)->first();
+                    if ($cached && (int) ($cached->total_points ?? 0) > 0) {
+                        return (int) $cached->rank;
+                    }
+                } catch (\Throwable $e) {
+                    // leaderboard_cache table may not exist yet
                 }
-            } catch (\Throwable $e) {
-                // leaderboard_cache table may not exist yet
-            }
 
-            try {
-                // Fallback: live CTE aligned with LeaderboardController ordering and status check
-                $rankData = DB::selectOne("
-                    WITH ranked AS (
-                        SELECT
-                            u.id AS user_id,
-                            ROW_NUMBER() OVER (
-                                ORDER BY
-                                    COALESCE(u.points, u.xp, 0) DESC,
-                                    COALESCE(u.completed_activities, 0) DESC,
-                                    u.id ASC
-                            ) AS `rank`
-                        FROM users u
-                        WHERE u.role = 'tourist' AND (u.status = 'active' OR u.status IS NULL)
-                    )
-                    SELECT `rank` FROM ranked WHERE user_id = ?
-                ", [$user->id]);
-                return $rankData ? (int) $rankData->rank : null;
-            } catch (\Throwable $e) {
-                return null;
-            }
-        });
+                try {
+                    // Fallback: live CTE aligned with LeaderboardController ordering and status check
+                    $rankData = DB::selectOne("
+                        WITH ranked AS (
+                            SELECT
+                                u.id AS user_id,
+                                ROW_NUMBER() OVER (
+                                    ORDER BY
+                                        COALESCE(u.points, u.xp, 0) DESC,
+                                        COALESCE(u.completed_activities, 0) DESC,
+                                        u.id ASC
+                                ) AS `rank`
+                            FROM users u
+                            WHERE u.role = 'tourist' 
+                              AND (u.status = 'active' OR u.status IS NULL)
+                              AND (COALESCE(u.points, 0) > 0 OR COALESCE(u.xp, 0) > 0 OR COALESCE(u.completed_activities, 0) > 0)
+                        )
+                        SELECT `rank` FROM ranked WHERE user_id = ?
+                    ", [$user->id]);
+                    return $rankData ? (int) $rankData->rank : null;
+                } catch (\Throwable $e) {
+                    return null;
+                }
+            });
+        }
 
-        // 2. Places Visited — Calculate true distinct tourist spots visited
-        $placesVisited = (int) DB::table('itinerary_items')
-            ->join('itineraries', 'itinerary_items.itinerary_id', '=', 'itineraries.id')
-            ->where('itineraries.user_id', $user->id)
-            ->where('itinerary_items.is_visited', true)
-            ->whereNotNull('itinerary_items.tourist_spot_id')
-            ->distinct('itinerary_items.tourist_spot_id')
-            ->count('itinerary_items.tourist_spot_id');
-
-        // Fallback to distinct completed itinerary spot count or completed_activities counter
-        if ($placesVisited === 0) {
-            $completedTripsSpotCount = (int) DB::table('itinerary_items')
+        // 2. Places Visited — Cumulative spots visited + itinerary items
+        $placesVisited = (int) ($user->completed_activities ?? 0);
+        try {
+            $itemPlaces = (int) DB::table('itinerary_items')
                 ->join('itineraries', 'itinerary_items.itinerary_id', '=', 'itineraries.id')
                 ->where('itineraries.user_id', $user->id)
-                ->where('itineraries.status', 'completed')
+                ->where('itinerary_items.is_visited', true)
                 ->whereNotNull('itinerary_items.tourist_spot_id')
                 ->distinct('itinerary_items.tourist_spot_id')
                 ->count('itinerary_items.tourist_spot_id');
+            $placesVisited = max($placesVisited, $itemPlaces);
+        } catch (\Throwable $e) {}
 
-            $placesVisited = max($completedTripsSpotCount, (int) ($user->completed_activities ?? 0));
-        } else {
-            $placesVisited = max($placesVisited, (int) ($user->completed_activities ?? 0));
+        // Fallback to distinct completed itinerary spot count if still 0
+        if ($placesVisited === 0) {
+            try {
+                $completedTripsSpotCount = (int) DB::table('itinerary_items')
+                    ->join('itineraries', 'itinerary_items.itinerary_id', '=', 'itineraries.id')
+                    ->where('itineraries.user_id', $user->id)
+                    ->where('itineraries.status', 'completed')
+                    ->whereNotNull('itinerary_items.tourist_spot_id')
+                    ->distinct('itinerary_items.tourist_spot_id')
+                    ->count('itinerary_items.tourist_spot_id');
+                $placesVisited = max($completedTripsSpotCount, (int) ($user->completed_activities ?? 0));
+            } catch (\Throwable $e) {}
         }
 
         // 3. Completed Trips (Trip History) — Filter out any with 0 visited destinations
@@ -683,6 +695,9 @@ class ProfileController extends Controller
         }
 
         $user->password = \Illuminate\Support\Facades\Hash::make($newPassword);
+        try {
+            $user->must_change_password = false;
+        } catch (\Throwable $e) {}
         $user->save();
 
         try {

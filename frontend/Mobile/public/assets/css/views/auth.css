@@ -1664,7 +1664,14 @@ select.auth-input option {
     cursor: pointer;
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
-    transition: background 0.2s ease;
+    transition: background 0.2s ease, opacity 0.2s ease, filter 0.2s ease;
+}
+
+.privacy-acceptance-box.is-disabled {
+    opacity: 0.45 !important;
+    filter: grayscale(0.8) !important;
+    cursor: not-allowed !important;
+    pointer-events: none !important;
 }
 
 .privacy-acceptance-box.is-checked {

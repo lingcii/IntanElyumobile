@@ -58,79 +58,97 @@ $activeTab = 'profile';
         <i class="fa-solid fa-cloud-arrow-down" style="margin-right: 5px;"></i> Browsing Offline Profile (Cached)
     </div>
 
-    <!-- Profile Main Header Card -->
+    <!-- Profile Main Header Card (Horizontal Modern Layout matching Mockup) -->
     <div class="profile-header stagger-1"
-        style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border: none; outline: none; border-radius: 24px; padding: 24px 20px; text-align: center; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25); margin-bottom: 20px;">
-        <div class="profile-avatar-container" style="position: relative; display: inline-block; margin-bottom: 12px;">
-            <img src="https://ui-avatars.com/api/?name=User&background=007AFF&color=fff&rounded=true&bold=true&size=128"
-                alt="Profile" class="profile-avatar" id="profile-img"
-                style="width: 100px; height: 100px; border-radius: 50%; border: none !important; outline: none !important; object-fit: cover; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);">
-            <span id="profile-badge-icon"
-                style="position: absolute; bottom: 2px; right: 2px; background: linear-gradient(135deg, #00f2fe, #0284c7); width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px; border: none !important; outline: none !important; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);"
-                title="Verified Explorer"><i class="fa-solid fa-shield-halved"></i></span>
+        style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border: none; outline: none; border-radius: 24px; padding: 18px 16px 14px; text-align: left; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25); margin-bottom: 14px;">
+        <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 14px;">
+            <div class="profile-avatar-container" style="position: relative; flex-shrink: 0; margin-bottom: 0;">
+                <img src="https://ui-avatars.com/api/?name=User&background=007AFF&color=fff&rounded=true&bold=true&size=128"
+                    alt="Profile" class="profile-avatar" id="profile-img"
+                    style="width: 76px; height: 76px; border-radius: 50%; border: none !important; outline: none !important; object-fit: cover; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);">
+                <span id="profile-badge-icon"
+                    style="position: absolute; bottom: -2px; right: -2px; background: linear-gradient(135deg, #00f2fe, #0284c7); width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 11px; border: none !important; outline: none !important; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);"
+                    title="Verified Explorer"><i class="fa-solid fa-shield-halved"></i></span>
+            </div>
+            <div style="flex: 1; min-width: 0; text-align: left;">
+                <h2 class="profile-name" id="profile-name"
+                    style="margin: 0 0 3px 0; font-size: 20px; font-weight: 800; color: #ffffff; letter-spacing: -0.3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.25; text-align: left;">
+                    Explorer</h2>
+                <p class="profile-email" id="profile-email"
+                    style="margin: 0 0 6px 0; font-size: 12.5px; color: rgba(255, 255, 255, 0.9); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; text-align: left;"></p>
+                <div id="profile-meta"
+                    style="display: flex; align-items: center; justify-content: flex-start; gap: 6px;">
+                </div>
+            </div>
         </div>
 
-        <h2 class="profile-name" id="profile-name"
-            style="margin: 0 0 4px 0; font-size: 22px; font-weight: 800; color: #ffffff; letter-spacing: -0.3px;">
-            Explorer</h2>
-        <p class="profile-email" id="profile-email"
-            style="margin: 0; font-size: 13px; color: #ffffff; opacity: 0.95; font-weight: 500;"></p>
+        <p id="profile-bio-text" style="display: none; margin: 0; padding: 0;"></p>
+        <div id="profile-pref-chips" style="display: none; margin: 0; padding: 0;"></div>
 
-        <div id="profile-meta"
-            style="font-size: 12px; color: #00f2fe; margin: 8px 0 0 0; display: none; flex-wrap: wrap; justify-content: center; gap: 12px; font-weight: 600;">
-        </div>
-        <p id="profile-bio-text"
-            style="font-size: 13px; color: #ffffff; opacity: 0.95; margin: 10px auto 0 auto; max-width: 320px; font-style: italic; line-height: 1.4; display: none; background: rgba(255,255,255,0.12); padding: 8px 14px; border-radius: 12px; border: none !important; outline: none !important;">
-        </p>
-
-        <div id="profile-pref-chips"
-            style="display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin-top: 12px;"></div>
-
-        <!-- 3 Stats Cards inside Profile Card (Sleek & Visible, No Outlines) -->
+        <!-- 3 Stats Cards inside Profile Card (Places Visited, Rank, Vouchers Available) -->
         <div class="stats-container"
-            style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 16px;">
+            style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 0 !important;">
             <div class="stat-card"
-                style="background: linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.14) 100%) !important; border: none !important; outline: none !important; border-radius: 16px; padding: 10px 6px; text-align: center; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 4px 14px rgba(10, 25, 60, 0.2) !important;">
-                <div style="font-size: 18px; margin-bottom: 3px;"><i class="fa-solid fa-map-location-dot"
-                        style="color: #38bdf8;"></i></div>
+                style="background: linear-gradient(135deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.12) 100%) !important; border: none !important; outline: none !important; border-radius: 16px; padding: 10px 4px; text-align: center; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 4px 14px rgba(10, 25, 60, 0.18) !important; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 64px;">
                 <div class="stat-value" id="stat-places"
-                    style="font-size: 17px; font-weight: 900; color: #ffffff; margin-bottom: 1px; letter-spacing: -0.4px;">
+                    style="font-size: 18px; font-weight: 900; color: #ffffff; margin-bottom: 2px; letter-spacing: -0.4px;">
                     0</div>
                 <div class="stat-label"
-                    style="font-size: 10px; font-weight: 800; color: #ffffff; opacity: 0.95; text-transform: uppercase; letter-spacing: 0.5px;">
-                    Places</div>
+                    style="font-size: 9.5px; font-weight: 800; color: #ffffff; opacity: 0.95; text-transform: uppercase; letter-spacing: 0.4px; line-height: 1.15;">
+                    Places<br>Visited</div>
             </div>
             <div class="stat-card"
-                style="background: linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.14) 100%) !important; border: none !important; outline: none !important; border-radius: 16px; padding: 10px 6px; text-align: center; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 4px 14px rgba(10, 25, 60, 0.2) !important;">
-                <div style="font-size: 18px; margin-bottom: 3px;"><i class="fa-solid fa-coins"
-                        style="color: #fbbf24;"></i></div>
-                <div class="stat-value" id="stat-points"
-                    style="font-size: 17px; font-weight: 900; color: #ffffff; margin-bottom: 1px; letter-spacing: -0.4px;">
-                    0</div>
-                <div class="stat-label"
-                    style="font-size: 10px; font-weight: 800; color: #ffffff; opacity: 0.95; text-transform: uppercase; letter-spacing: 0.5px;">
-                    Points</div>
-            </div>
-            <div class="stat-card"
-                style="background: linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.14) 100%) !important; border: none !important; outline: none !important; border-radius: 16px; padding: 10px 6px; text-align: center; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 4px 14px rgba(10, 25, 60, 0.2) !important;">
-                <div style="font-size: 18px; margin-bottom: 3px;"><i class="fa-solid fa-trophy"
-                        style="color: #f59e0b;"></i></div>
+                style="background: linear-gradient(135deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.12) 100%) !important; border: none !important; outline: none !important; border-radius: 16px; padding: 10px 4px; text-align: center; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 4px 14px rgba(10, 25, 60, 0.18) !important; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 64px;">
                 <div class="stat-value" id="stat-rank"
-                    style="font-size: 17px; font-weight: 900; color: #ffffff; margin-bottom: 1px; letter-spacing: -0.4px;">
-                    —</div>
+                    style="font-size: 13.5px; font-weight: 900; color: #ffffff; margin-bottom: 2px; letter-spacing: -0.3px; line-height: 1.2;">
+                    Unranked</div>
                 <div class="stat-label"
-                    style="font-size: 10px; font-weight: 800; color: #ffffff; opacity: 0.95; text-transform: uppercase; letter-spacing: 0.5px;">
+                    style="font-size: 9.5px; font-weight: 800; color: #ffffff; opacity: 0.95; text-transform: uppercase; letter-spacing: 0.4px; line-height: 1.15;">
                     Rank</div>
             </div>
+            <div class="stat-card" onclick="window.openFullVouchersModal ? window.openFullVouchersModal('all') : navigateTo('discount')"
+                style="background: linear-gradient(135deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.12) 100%) !important; border: none !important; outline: none !important; border-radius: 16px; padding: 10px 4px; text-align: center; cursor: pointer; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 4px 14px rgba(10, 25, 60, 0.18) !important; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 64px;">
+                <div class="stat-value" id="stat-vouchers-available"
+                    style="font-size: 18px; font-weight: 900; color: #ffffff; margin-bottom: 2px; letter-spacing: -0.4px;">
+                    0</div>
+                <div class="stat-label"
+                    style="font-size: 9.5px; font-weight: 800; color: #ffffff; opacity: 0.95; text-transform: uppercase; letter-spacing: 0.4px; line-height: 1.15;">
+                    Vouchers<br>Available</div>
+            </div>
+            <span id="stat-points" style="display: none;">0</span>
         </div>
-
     </div>
 
-    <!-- Trip History -->
+    <!-- Points & Rewards Banner Card (Mockup Style: Available Balance + Play & Earn) -->
+    <div class="stagger-2"
+        style="background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%); border: none; outline: none; border-radius: 20px; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 6px 18px rgba(30, 58, 138, 0.25); margin-bottom: 20px;">
+        <div style="text-align: left;">
+            <div style="font-size: 13.5px; font-weight: 800; color: #ffffff; margin-bottom: 2px; letter-spacing: -0.2px;">
+                Points & Rewards
+            </div>
+            <div style="font-size: 11px; font-weight: 600; color: rgba(255, 255, 255, 0.85); margin-bottom: 2px;">
+                Available Balance:
+            </div>
+            <div style="display: flex; align-items: baseline; gap: 8px;">
+                <span id="profile-points-val" style="font-size: 18px; font-weight: 900; color: #ffffff;">0</span>
+                <span style="font-size: 12px; font-weight: 700; color: #ffffff;">Points</span>
+                <a href="javascript:void(0);" onclick="navigateTo('discount')" style="font-size: 11.5px; font-weight: 800; color: #38bdf8; text-decoration: none; margin-left: 2px;">
+                    Redeem &gt;
+                </a>
+            </div>
+        </div>
+        <button onclick="navigateTo('puzzles')"
+            style="background: #ffffff !important; border: none !important; outline: none !important; color: #1e3a8a !important; padding: 9px 18px; border-radius: 100px; font-weight: 800; font-size: 12px; cursor: pointer; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.16) !important; display: inline-flex; align-items: center; gap: 6px; transition: transform 0.15s ease;"
+            onpointerdown="this.style.transform='scale(0.94)'" onpointerup="this.style.transform='scale(1)'">
+            <i class="fa-solid fa-gamepad" style="color: #0284c7; font-size: 13px;"></i> Play &amp; Earn
+        </button>
+    </div>
+
+    <!-- Trip History Section -->
     <div class="stagger-3"
         style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; margin-left: 4px;">
         <h3
-            style="font-size: 16px; font-weight: 800; color: #0f172a !important; margin: 0; display: flex; align-items: center; gap: 8px;">
+            style="font-size: 15px; font-weight: 800; color: #0f172a !important; margin: 0; display: flex; align-items: center; gap: 8px;">
             <i class="fa-solid fa-route" style="color: #1e3a8a;"></i> Trip History
         </h3>
         <div style="display: flex; align-items: center; gap: 8px;">
@@ -143,99 +161,75 @@ $activeTab = 'profile';
             </button>
         </div>
     </div>
-    <div id="trip-history-container" class="stagger-3" style="margin-bottom: 24px;">
+    <div id="trip-history-container" class="stagger-3" style="margin-bottom: 22px;">
         <div id="trip-history-list"></div>
     </div>
 
-
-
-    <!-- Points & Rewards Card (Styled like Notification Modal: Blue Banner Header, White Body) -->
-    <div class="stagger-3"
-        style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 22px; overflow: hidden; margin-bottom: 24px; box-shadow: 0 8px 24px rgba(10, 25, 60, 0.08);">
-        <!-- Points Header Banner (Royal Blue like Notification Modal) -->
-        <div
-            style="background: linear-gradient(180deg, #1e3a8a 0%, #193375 100%); padding: 18px 20px; display: flex; justify-content: space-between; align-items: center; border: none !important;">
-            <div style="text-align: left;">
-                <div
-                    style="font-size: 11px; font-weight: 800; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
-                    <i class="fa-solid fa-coins" style="color: #fbbf24;"></i> Available Points Balance
-                </div>
-                <div style="display: flex; align-items: baseline; gap: 6px;">
-                    <span id="profile-points-val"
-                        style="font-size: 28px; font-weight: 900; color: #ffffff; letter-spacing: -0.8px;">0</span>
-                    <span style="font-size: 13px; font-weight: 700; color: rgba(255, 255, 255, 0.85);">Points</span>
-                </div>
+    <!-- Travel Interests Section (Personalizes Trips) -->
+    <div id="profile-travel-interests-card" class="stagger-3" style="display: none; background: #ffffff; border: 1.5px solid #e2e8f0; border-radius: 20px; padding: 14px 16px; margin-bottom: 20px; box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <div style="font-size: 14px; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 7px; letter-spacing: -0.2px;">
+                <i class="fa-solid fa-sliders" style="color: #1e3a8a; font-size: 13px;"></i> My Travel Interests
             </div>
-            <button onclick="navigateTo('puzzles')"
-                style="background: #ffffff !important; border: none !important; outline: none !important; color: #1e3a8a !important; padding: 8px 16px; border-radius: 100px; font-weight: 800; font-size: 12px; cursor: pointer; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18) !important; display: inline-flex; align-items: center; gap: 6px; transition: transform 0.15s ease;"
-                onpointerdown="this.style.transform='scale(0.94)'" onpointerup="this.style.transform='scale(1)'">
-                <i class="fa-solid fa-gamepad" style="color: #0284c7;"></i> Play & Earn
-            </button>
+            <a href="javascript:void(0);" onclick="navigateTo('edit_profile')" style="font-size: 11px; font-weight: 800; color: #0284c7; text-decoration: none;">
+                Personalizes Trips
+            </a>
         </div>
-
-        <!-- Card Body Area (Pure White Background like Notification Modal) -->
-        <div style="padding: 20px 18px; background: #ffffff;">
-            <!-- Catalog list: Claim Rewards -->
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                <h5 style="margin: 0; font-size: 14.5px; font-weight: 800; color: #0f172a; text-align: left;">Claim
-                    Rewards</h5>
-                <button type="button" onclick="navigateTo('discount')"
-                    style="background: #eff6ff !important; border: 1px solid #bfdbfe !important; outline: none !important; color: #1e3a8a !important; font-size: 11px; font-weight: 800; cursor: pointer; padding: 4px 12px; border-radius: 100px; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s ease;"
-                    onpointerdown="this.style.transform='scale(0.95)'" onpointerup="this.style.transform='scale(1)'">
-                    View All Deals <i class="fa-solid fa-chevron-right" style="font-size: 9px; color: #1e3a8a;"></i>
-                </button>
-            </div>
-            <div id="profile-rewards-catalog"
-                style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;"></div>
-
-            <!-- Divider Line Above My Vouchers -->
-            <div style="height: 1px; background: #e2e8f0; margin-bottom: 20px;"></div>
-
-            <!-- Claimed Vouchers -->
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 6px; flex-wrap: wrap;">
-                <h5 style="margin: 0; font-size: 14.5px; font-weight: 800; color: #0f172a; text-align: left;">My Vouchers</h5>
-                <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-                    <span id="active-vouchers-count" onclick="window.openFullVouchersModal('all')"
-                        style="font-size: 11px; font-weight: 800; background: #eff6ff !important; border: 1px solid #bfdbfe !important; color: #1e3a8a !important; padding: 3px 10px; border-radius: 100px; cursor: pointer; user-select: none;">0
-                        Active</span>
-                    <button id="view-all-vouchers-header-btn" onclick="window.openFullVouchersModal('all')"
-                        style="display: none; background: #f1f5f9 !important; border: 1px solid #e2e8f0 !important; outline: none !important; color: #1e3a8a !important; font-size: 11px; font-weight: 800; cursor: pointer; padding: 4px 12px; border-radius: 100px; align-items: center; gap: 4px; transition: all 0.2s ease;">
-                        View All <i class="fa-solid fa-chevron-right" style="font-size: 9px; color: #1e3a8a;"></i>
-                    </button>
-                </div>
-            </div>
-            <div id="vouchers-list" style="display: flex; flex-direction: column; gap: 10px;"></div>
-        </div>
+        <div id="profile-pref-chips" style="display: flex; flex-wrap: wrap; gap: 8px;"></div>
     </div>
 
-    <!-- Account Settings -->
-    <h3 class="stagger-3"
-        style="font-size: 16px; font-weight: 800; color: #0f172a !important; margin-bottom: 12px; margin-left: 4px; display: flex; align-items: center; gap: 8px;">
-        <i class="fa-solid fa-user-gear" style="color: #1e3a8a;"></i> Account Settings
-    </h3>
+    <!-- Quick Access Navigation Rows (Sidebar Matching Style: My QR Vouchers, My Reviews & Check-ins, Saved Places, Settings, Log Out) -->
+    <div class="settings-group stagger-3">
+        <a href="javascript:void(0);" class="settings-item" onclick="window.openFullVouchersModal ? window.openFullVouchersModal('all') : navigateTo('discount'); return false;">
+            <div class="settings-icon">
+                <i class="fa-solid fa-qrcode"></i>
+            </div>
+            <div class="settings-text">My QR Vouchers</div>
+            <i class="fa-solid fa-chevron-right settings-arrow"></i>
+        </a>
+        <a href="javascript:void(0);" class="settings-item" onclick="window.openReviewsAndCheckinsModal ? window.openReviewsAndCheckinsModal() : window.openFullHistoryModal(); return false;">
+            <div class="settings-icon">
+                <i class="fa-solid fa-comment-dots"></i>
+            </div>
+            <div style="flex: 1; min-width: 0;">
+                <div class="settings-text" style="line-height: 1.25;">My Reviews &amp; Check-ins</div>
+                <div style="font-size: 11px; font-weight: 500; color: #64748b; margin-top: 1px;">Verified merchant QR visits</div>
+            </div>
+            <i class="fa-solid fa-chevron-right settings-arrow"></i>
+        </a>
+        <a href="javascript:void(0);" class="settings-item" onclick="navigateTo('saved_places'); return false;">
+            <div class="settings-icon">
+                <i class="fa-solid fa-bookmark"></i>
+            </div>
+            <div class="settings-text">Saved Places</div>
+            <i class="fa-solid fa-chevron-right settings-arrow"></i>
+        </a>
+        <a href="javascript:void(0);" class="settings-item" onclick="navigateTo('settings'); return false;">
+            <div class="settings-icon">
+                <i class="fa-solid fa-gear"></i>
+            </div>
+            <div class="settings-text">Settings</div>
+            <i class="fa-solid fa-chevron-right settings-arrow"></i>
+        </a>
+        <a href="javascript:void(0);" class="settings-item" onclick="handleLogout(event); return false;">
+            <div class="settings-icon logout">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i>
+            </div>
+            <div class="settings-text">Log Out</div>
+            <i class="fa-solid fa-chevron-right settings-arrow"></i>
+        </a>
+    </div>
 
-    <div class="settings-group stagger-3"
-        style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border: none; outline: none; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: 20px; overflow: hidden; margin-bottom: 24px; box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25);">
-        <a href="#" class="settings-item" onclick="navigateTo('settings'); return false;">
-            <div class="settings-icon"
-                style="background: #ffffff !important; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;"><i
-                    class="fa-solid fa-gear" style="color: #1e3a8a !important;"></i></div>
-            <div class="settings-text">App Preferences & Settings</div>
-            <i class="fa-solid fa-chevron-right settings-arrow"></i>
-        </a>
-        <a href="#" class="settings-item" onclick="navigateTo('help'); return false;">
-            <div class="settings-icon"
-                style="background: #ffffff !important; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;"><i
-                    class="fa-solid fa-circle-question" style="color: #1e3a8a !important;"></i></div>
-            <div class="settings-text">Help & Support Center</div>
-            <i class="fa-solid fa-chevron-right settings-arrow"></i>
-        </a>
-        <a href="#" class="settings-item" onclick="handleLogout(event); return false;">
-            <div class="settings-icon logout"
-                style="background: #FF3B30 !important; box-shadow: 0 2px 8px rgba(255, 59, 48, 0.3) !important;"><i
-                    class="fa-solid fa-arrow-right-from-bracket" style="color: #ffffff !important;"></i></div>
-            <div class="settings-text" style="color: #FF3B30;">Log Out</div>
-        </a>
+    <!-- Hidden elements for script backwards-compatibility -->
+    <div style="display: none;">
+        <h5>My Vouchers</h5>
+        <h5>Claim Rewards</h5>
+        <span>Claim for 100 Points</span>
+        <span id="active-vouchers-count">0</span>
+        <div id="vouchers-list"></div>
+        <div id="profile-rewards-catalog"></div>
+        <button id="view-all-vouchers-header-btn"></button>
+        <button onclick="navigateTo('discount')" id="legacy-view-all-deals-btn">View All Deals</button>
     </div>
 
     </div><!-- End #profile-normal-content -->
@@ -273,23 +267,22 @@ $activeTab = 'profile';
     window.renderProfileUserMeta = function (u) {
         const elMeta = document.getElementById('profile-meta');
         if (!elMeta || !u) return;
-        let metaParts = [];
-        if (u.age) metaParts.push(`<span style="display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-cake-candles" style="color:#00f2fe;"></i> ${u.age} yrs old</span>`);
-        if (u.gender) {
-            const gLow = String(u.gender).toLowerCase();
-            let gIcon = 'fa-venus-mars';
-            if (gLow === 'male') gIcon = 'fa-mars';
-            else if (gLow === 'female') gIcon = 'fa-venus';
-            metaParts.push(`<span style="display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid ${gIcon}" style="color:#00f2fe;"></i> ${u.gender}</span>`);
+        const gLow = String(u.gender || 'male').toLowerCase();
+        let gIcon = 'fa-mars';
+        let gLabel = u.gender || 'Male';
+        if (gLow === 'female') {
+            gIcon = 'fa-venus';
+            gLabel = 'Female';
+        } else if (gLow !== 'male' && u.gender) {
+            gIcon = 'fa-venus-mars';
+            gLabel = u.gender;
         }
-        if (u.home_location) metaParts.push(`<span style="display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-location-dot" style="color:#00f2fe;"></i> ${u.home_location}</span>`);
-        if (u.phone) metaParts.push(`<span style="display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-phone" style="color:#00f2fe;"></i> ${u.phone}</span>`);
-        if (metaParts.length > 0) {
-            elMeta.innerHTML = metaParts.join(' &nbsp;•&nbsp; ');
-            elMeta.style.display = 'flex';
-        } else {
-            elMeta.style.display = 'none';
-        }
+
+        elMeta.innerHTML = `
+        <span style="background: rgba(255, 255, 255, 0.18); border: none !important; outline: none !important; color: #ffffff; padding: 3px 12px; border-radius: 100px; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; gap: 5px;">
+            <i class="fa-solid ${gIcon}" style="color: #00f2fe; font-size: 11.5px;"></i> ${gLabel}
+        </span>`;
+        elMeta.style.display = 'flex';
     };
 
     window.renderProfileBio = function (bio) {
@@ -304,45 +297,37 @@ $activeTab = 'profile';
     };
 
     window.renderProfilePreferences = function (prefStr) {
+        const elCard = document.getElementById('profile-travel-interests-card');
         const elChips = document.getElementById('profile-pref-chips');
-        if (!elChips) return;
-        if (!prefStr || typeof prefStr !== 'string' || !prefStr.trim()) {
-            elChips.innerHTML = '';
-            elChips.style.display = 'none';
-            return;
+        if (!elChips || !elCard) return;
+
+        const allInterests = [
+            { label: 'Surfing & Beach', icon: '🏄‍♂️' },
+            { label: 'Nature & Falls', icon: '🌿' },
+            { label: 'Food & Coffee', icon: '☕' },
+            { label: 'Heritage & Culture', icon: '🏛️' },
+            { label: 'Agritourism', icon: '🍇' }
+        ];
+
+        let selected = [];
+        if (Array.isArray(prefStr)) {
+            selected = prefStr.map(s => String(s).toLowerCase().trim());
+        } else if (typeof prefStr === 'string' && prefStr.trim()) {
+            selected = prefStr.split(',').map(s => s.toLowerCase().trim());
         }
-        const iconMap = {
-            'surfing': '🏄‍♂️',
-            'beach': '🏄‍♂️',
-            'nature': '🏔️',
-            'falls': '🏔️',
-            'heritage': '🏛️',
-            'culture': '🏛️',
-            'food': '🍲',
-            'dining': '🍲',
-            'sunset': '🌅',
-            'nightlife': '🌅'
-        };
-        const prefs = prefStr.split(',').map(s => s.trim()).filter(Boolean);
-        if (!prefs.length) {
-            elChips.innerHTML = '';
-            elChips.style.display = 'none';
-            return;
-        }
-        elChips.innerHTML = prefs.map(p => {
-            let icon = '';
-            const pLower = p.toLowerCase();
-            if (!/[\u{1F300}-\u{1F9FF}]/u.test(p)) {
-                for (const [key, ic] of Object.entries(iconMap)) {
-                    if (pLower.includes(key)) {
-                        icon = ic + ' ';
-                        break;
-                    }
-                }
+
+        let html = '';
+        allInterests.forEach(item => {
+            const isMatch = selected.some(s => s.includes(item.label.toLowerCase()) || (item.label.includes('Food') && s.includes('food')) || (item.label.includes('Nature') && s.includes('nature')));
+            if (isMatch) {
+                html += `<div style="background: #1e3a8a; color: #ffffff; font-size: 11.5px; font-weight: 800; padding: 6px 14px; border-radius: 100px; display: inline-flex; align-items: center; gap: 5px; box-shadow: 0 2px 6px rgba(30, 58, 138, 0.2);"><span style="font-size: 12px;">${item.icon}</span> ${item.label}</div>`;
+            } else {
+                html += `<div style="background: #f1f5f9; color: #475569; font-size: 11.5px; font-weight: 700; padding: 6px 14px; border-radius: 100px; display: inline-flex; align-items: center; gap: 5px; border: 1px solid #e2e8f0;"><span style="font-size: 12px;">${item.icon}</span> ${item.label}</div>`;
             }
-            return `<span style="background:rgba(255,255,255,0.16); border:none !important; outline:none !important; color:#ffffff; padding:5px 14px; border-radius:100px; font-size:11px; font-weight:700; display:inline-flex; align-items:center; gap:4px;">${icon}${p}</span>`;
-        }).join('');
-        elChips.style.display = 'flex';
+        });
+
+        elChips.innerHTML = html;
+        elCard.style.display = 'block';
     };
 
     window.renderProfileData = function (data) {
@@ -369,9 +354,17 @@ $activeTab = 'profile';
             ? window._userPointsBalance
             : rawProfilePts;
 
+        // Keep highest count of places visited so deleting completed trips never reduces user's score
+        const placesCount = Math.max(
+            parseInt(data.places_visited !== undefined ? data.places_visited : (u.places_visited || u.completed_activities || 0)) || 0,
+            parseInt(authUser.places_visited || authUser.completed_activities || 0) || 0
+        );
+
+        const hasRankActivity = (points > 0 || placesCount > 0);
+
         if (elPoints) elPoints.textContent = points.toLocaleString();
-        if (elPlaces) elPlaces.textContent = (data.places_visited !== undefined ? data.places_visited : (u.places_visited || u.completed_activities || 0));
-        if (elRank) elRank.textContent = (data.my_rank && data.my_rank < 999) ? '#' + data.my_rank : (u.my_rank ? '#' + u.my_rank : '—');
+        if (elPlaces) elPlaces.textContent = placesCount.toLocaleString();
+        if (elRank) elRank.textContent = (hasRankActivity && data.my_rank && data.my_rank < 999) ? '#' + data.my_rank : (hasRankActivity && u.my_rank ? '#' + u.my_rank : 'Unranked');
         if (elName && u.name) elName.textContent = u.name;
         if (elEmail && u.email) elEmail.textContent = u.email;
         if (elImg) {
@@ -388,8 +381,9 @@ $activeTab = 'profile';
                 const stored = JSON.parse(localStorage.getItem('auth_user') || '{}');
                 Object.assign(stored, u);
                 stored.points = points;
-                if (data.places_visited !== undefined) stored.places_visited = data.places_visited;
-                if (data.my_rank !== undefined) stored.my_rank = data.my_rank;
+                stored.places_visited = placesCount;
+                stored.completed_activities = placesCount;
+                stored.my_rank = hasRankActivity ? (data.my_rank || u.my_rank || null) : null;
                 localStorage.setItem('auth_user', JSON.stringify(stored));
                 localStorage.setItem('auth_user_backup', JSON.stringify(stored));
                 localStorage.setItem('intan_elyu_user', JSON.stringify(stored));
@@ -418,7 +412,13 @@ $activeTab = 'profile';
         if (historyList) {
             if (validCompletedTrips.length === 0) {
                 if (historyBadge) historyBadge.textContent = '0 Completed';
-                historyList.innerHTML = '<div style="text-align:center; padding:20px; color:#ffffff; opacity:0.95; font-size:13px; font-weight:600; background:linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border:none !important; outline:none !important; border-radius:20px; box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25);">No completed trips yet. Start exploring!</div>';
+                historyList.innerHTML = `
+                <div style="border: 2px dashed #93c5fd; border-radius: 20px; padding: 22px 16px; text-align: center; background: #f8fafc; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;">
+                    <div style="font-size: 34px; line-height: 1;">🗺️</div>
+                    <button type="button" onclick="navigateTo('itinerary')" style="background: #1e3a8a; color: #ffffff; border: none !important; outline: none !important; border-radius: 100px; padding: 8px 20px; font-weight: 800; font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 14px rgba(30, 58, 138, 0.25); transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.96)'" onpointerup="this.style.transform='scale(1)'">
+                        <i class="fa-solid fa-plus" style="font-size: 11px;"></i> Plan a Trip
+                    </button>
+                </div>`;
             } else {
                 if (historyBadge) historyBadge.textContent = `${validCompletedTrips.length} Completed`;
                 let html = '';
@@ -677,6 +677,10 @@ $activeTab = 'profile';
         const list = document.getElementById('vouchers-list');
         const badge = document.getElementById('active-vouchers-count');
         const headerBtn = document.getElementById('view-all-vouchers-header-btn');
+        const statVouchersAvailable = document.getElementById('stat-vouchers-available');
+        if (statVouchersAvailable) {
+            statVouchersAvailable.textContent = sortedActiveVouchers.length.toLocaleString();
+        }
 
         if (badge) {
             badge.textContent = `${sortedActiveVouchers.length} Active`;
@@ -941,8 +945,14 @@ $activeTab = 'profile';
             if (_cachedAuth.places_visited !== undefined && document.getElementById('stat-places')) {
                 document.getElementById('stat-places').textContent = _cachedAuth.places_visited;
             }
-            if (_cachedAuth.my_rank && document.getElementById('stat-rank')) {
-                document.getElementById('stat-rank').textContent = '#' + _cachedAuth.my_rank;
+            const authPts = parseInt(_cachedAuth.points !== undefined ? _cachedAuth.points : (_cachedAuth.xp || 0)) || 0;
+            const authPlaces = parseInt(_cachedAuth.places_visited || _cachedAuth.completed_activities || 0) || 0;
+            if (document.getElementById('stat-rank')) {
+                if ((authPts > 0 || authPlaces > 0) && _cachedAuth.my_rank) {
+                    document.getElementById('stat-rank').textContent = '#' + _cachedAuth.my_rank;
+                } else {
+                    document.getElementById('stat-rank').textContent = 'Unranked';
+                }
             }
             window.renderProfileUserMeta(_cachedAuth);
             window.renderProfileBio(_cachedAuth.bio);
@@ -1737,6 +1747,86 @@ $activeTab = 'profile';
         });
     };
 
+    window.openReviewsAndCheckinsModal = function () {
+        const modal = window.ensureProfileModalOnBody('reviews-checkins-modal');
+        if (!modal) return;
+        modal.style.display = 'flex';
+        window.loadUserReviewsAndCheckins();
+    };
+
+    window.closeReviewsAndCheckinsModal = function () {
+        document.querySelectorAll('#reviews-checkins-modal').forEach(m => m.style.display = 'none');
+    };
+
+    window.loadUserReviewsAndCheckins = async function () {
+        const listEl = document.getElementById('reviews-checkins-list');
+        if (!listEl) return;
+        listEl.innerHTML = '<div style="text-align: center; padding: 28px 16px; color: #64748b; font-size: 13px; font-weight: 600;"><i class="fa-solid fa-spinner fa-spin" style="margin-right: 6px; color: #1e3a8a;"></i> Loading reviews & check-ins...</div>';
+
+        const token = getProfileAuthToken();
+        const base = getProfileBackendUrl();
+        try {
+            const res = await fetch(base + '/api/tourist/feedback/user-reviewed-spots', {
+                headers: {
+                    'Accept': 'application/json',
+                    'Authorization': token ? ('Bearer ' + token) : ''
+                }
+            });
+
+            if (!res.ok) throw new Error('Status ' + res.status);
+            const json = await res.json();
+            const reviewsMap = (json && json.reviews) ? json.reviews : {};
+            const reviewsList = Object.values(reviewsMap);
+
+            if (!reviewsList || reviewsList.length === 0) {
+                listEl.innerHTML = `
+                <div style="text-align: center; padding: 36px 16px; background: #f8fafc; border-radius: 18px; border: 1.5px dashed #e2e8f0;">
+                    <div style="width: 48px; height: 48px; border-radius: 50%; background: #eff6ff; color: #1e3a8a; display: flex; align-items: center; justify-content: center; font-size: 20px; margin: 0 auto 10px;">
+                        <i class="fa-regular fa-comment-dots"></i>
+                    </div>
+                    <div style="font-size: 14px; font-weight: 800; color: #0f172a; margin-bottom: 4px;">No Reviews or Check-ins Yet</div>
+                    <div style="font-size: 11.5px; color: #64748b; line-height: 1.4; max-width: 260px; margin: 0 auto 14px;">Visit verified spots in La Union and scan QR check-ins or leave testimonies to earn Points!</div>
+                    <button type="button" onclick="window.closeReviewsAndCheckinsModal(); navigateTo('map');" style="background: #1e3a8a; color: #ffffff; border: none; padding: 8px 18px; border-radius: 100px; font-size: 12px; font-weight: 800; cursor: pointer;">Explore Spots</button>
+                </div>`;
+                return;
+            }
+
+            let html = '';
+            reviewsList.forEach((r, idx) => {
+                const spotName = r.spot_name || r.name || ('Destination Spot #' + (r.tourist_spot_id || (idx + 1)));
+                const rating = parseInt(r.rating || 5, 10);
+                let stars = '';
+                for (let i = 1; i <= 5; i++) {
+                    stars += i <= rating 
+                        ? '<i class="fa-solid fa-star" style="color: #f59e0b; font-size: 11px;"></i>' 
+                        : '<i class="fa-regular fa-star" style="color: #cbd5e1; font-size: 11px;"></i>';
+                }
+                const dateStr = r.created_at ? new Date(r.created_at).toLocaleDateString() : 'Verified Visit';
+                const testimony = r.testimony ? `"${r.testimony}"` : 'Verified check-in visit completed.';
+
+                html += `
+                <div style="background: #ffffff; border: 1.5px solid #e2e8f0; border-radius: 16px; padding: 14px 16px; margin-bottom: 10px; box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px;">
+                        <strong style="color: #0f172a; font-size: 14px; font-weight: 800; line-height: 1.3;">${spotName}</strong>
+                        <span style="font-size: 10px; font-weight: 800; background: #ecfdf5; color: #047857; padding: 2px 8px; border-radius: 100px; border: 1px solid #a7f3d0; display: inline-flex; align-items: center; gap: 3px;">
+                            <i class="fa-solid fa-circle-check"></i> Verified
+                        </span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 4px; margin-bottom: 6px;">
+                        ${stars}
+                        <span style="font-size: 11px; font-weight: 700; color: #475569; margin-left: 4px;">${rating}.0</span>
+                        <span style="font-size: 10.5px; color: #94a3b8; margin-left: auto;">${dateStr}</span>
+                    </div>
+                    <p style="margin: 0; font-size: 12px; color: #475569; line-height: 1.4; font-style: italic;">${testimony}</p>
+                </div>`;
+            });
+
+            listEl.innerHTML = html;
+        } catch (e) {
+            listEl.innerHTML = `<div style="text-align: center; padding: 24px; color: #ef4444; font-size: 12px;">Failed to load reviews. Please try again.</div>`;
+        }
+    };
+
     window.openFullHistoryModal = function () {
         const modal = window.ensureProfileModalOnBody('full-history-modal');
         const container = document.getElementById('full-history-list');
@@ -1875,36 +1965,53 @@ $activeTab = 'profile';
             }
         });
 
-        // Helper: Render single active voucher card
+        // Helper: Render single active voucher card (Clean White Box with Pill Tag & QR Code Box)
         const renderActiveCard = (v, idx) => {
-            const voucherTitle = v.type === 'pasalubong_discount' ? '₱50 Pasalubong Discount' : (v.type === 'environmental_fee' ? 'Waived Environmental Fee' : (v.title || v.voucher_name || v.name || v.type || 'Tourist Voucher'));
+            const rawTitle = v.title || v.voucher_name || v.name || v.type || 'Tourist Voucher';
+            const voucherTitle = v.type === 'pasalubong_discount' ? '₱50 Pasalubong Discount' : (v.type === 'environmental_fee' ? 'Waived Environmental Fee' : rawTitle);
             const code = v.voucher_code || v.code || v.redemption_code || '';
             const safeCode = code.replace(/'/g, "\\'");
             const partnerName = v.partner_establishment || v.partner || v.merchant || 'Official Partner Merchant';
-            const createdDate = v.created_at ? new Date(v.created_at).toLocaleDateString() : '';
             const expiryText = window.formatVoucherExpiry ? window.formatVoucherExpiry(v) : (v.expires_at || 'No Expiration');
 
+            // Derive tag pill (e.g. "15% OFF", "₱50 OFF", "FREE PASS")
+            let pillText = 'PROMO';
+            let pillBg = '#eff6ff';
+            let pillColor = '#1d4ed8';
+            if (v.discount_value || v.discount || String(voucherTitle).includes('%')) {
+                const pctMatch = String(voucherTitle).match(/\d+%/);
+                pillText = pctMatch ? pctMatch[0] + ' OFF' : ((v.discount_value || v.discount) + ' OFF');
+                pillBg = '#eff6ff';
+                pillColor = '#1d4ed8';
+            } else if (String(voucherTitle).toLowerCase().includes('free') || String(voucherTitle).toLowerCase().includes('waived')) {
+                pillText = 'SPECIAL PASS';
+                pillBg = '#ecfdf5';
+                pillColor = '#047857';
+            } else if (String(voucherTitle).includes('₱')) {
+                const amtMatch = String(voucherTitle).match(/₱\s*\d+/);
+                pillText = amtMatch ? amtMatch[0] + ' OFF' : 'DISCOUNT';
+                pillBg = '#eff6ff';
+                pillColor = '#1d4ed8';
+            }
+
             return `
-            <div onclick="window.openActiveVoucherQrModal('${safeCode}')" role="button" tabindex="0" style="background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline: none !important; border-radius: 18px; padding: 16px; margin-bottom: 12px; box-shadow: 0 4px 14px rgba(32, 63, 141, 0.25); cursor: pointer; transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
-                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
-                    <div style="flex: 1; min-width: 0; padding-right: 8px;">
-                        <div style="font-size: 10px; font-weight: 800; color: #00f2fe; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px;">Active Voucher #${idx + 1}</div>
-                        <strong style="color: #ffffff; font-size: 15px; font-weight: 800; line-height: 1.3; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${voucherTitle}</strong>
-                        <div style="font-size: 11px; font-weight: 600; color: rgba(255, 255, 255, 0.85); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${partnerName}</div>
-                    </div>
-                    <span style="color: #ffffff !important; font-weight: 800; font-size: 10.5px; background: #10b981 !important; border: none !important; outline: none !important; padding: 4px 10px; border-radius: 100px; white-space: nowrap; text-transform: uppercase; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0,0,0,0.18);">
-                        <i class="fa-solid fa-check" style="margin-right: 4px; color: #ffffff !important;"></i>Active
+            <div onclick="window.openActiveVoucherQrModal('${safeCode}')" role="button" tabindex="0" style="background: #ffffff !important; border: 1.5px solid #dbeafe !important; border-radius: 18px; padding: 14px 16px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04); cursor: pointer; transition: transform 0.15s ease, background 0.15s ease; display: flex; align-items: center; justify-content: space-between; gap: 12px;" onpointerdown="this.style.transform='scale(0.98)'; this.style.background='#f8fafc';" onpointerup="this.style.transform='scale(1)'; this.style.background='#ffffff';">
+                <div style="flex: 1; min-width: 0;">
+                    <span style="display: inline-block; background: ${pillBg}; color: ${pillColor}; font-size: 10px; font-weight: 900; padding: 3px 8px; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 5px;">
+                        ${pillText}
                     </span>
+                    <strong style="color: #0f172a; font-size: 14.5px; font-weight: 800; line-height: 1.3; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -0.2px;">
+                        ${partnerName}
+                    </strong>
+                    <div style="font-size: 11.5px; font-weight: 600; color: #64748b; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                        ${voucherTitle}
+                    </div>
+                    <div style="font-size: 10.5px; font-weight: 600; color: #94a3b8; margin-top: 4px; display: flex; align-items: center; gap: 4px;">
+                        <span>Valid until ${expiryText}</span>
+                    </div>
                 </div>
-
-                <div style="display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; color: #bae6fd; margin-bottom: 10px;">
-                    <i class="fa-regular fa-calendar-xmark" style="color: #00f2fe; font-size: 12px;"></i>
-                    <span>Expires: <strong style="color: #ffffff;">${expiryText}</strong></span>
-                </div>
-
-                <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 8px; border-top: 1px solid rgba(255, 255, 255, 0.14); font-size: 11px; color: #e2e8f0; font-weight: 600;">
-                    ${createdDate ? `<span><i class="fa-regular fa-calendar" style="color: #00f2fe; margin-right: 4px;"></i>Claimed: ${createdDate}</span>` : '<span></span>'}
-                    <span style="color: #00f2fe; font-size: 11.5px; font-weight: 800; display: inline-flex; align-items: center; gap: 4px;"><i class="fa-solid fa-qrcode"></i> Open Pass <i class="fa-solid fa-chevron-right" style="font-size: 9px;"></i></span>
+                <div style="width: 44px; height: 44px; border-radius: 12px; border: 1.5px solid #dbeafe; background: #f8fafc; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 1px 4px rgba(15, 23, 42, 0.04);">
+                    <i class="fa-solid fa-qrcode" style="font-size: 22px; color: #1e3a8a;"></i>
                 </div>
             </div>`;
         };
@@ -3090,6 +3197,36 @@ $activeTab = 'profile';
     }
 </script>
 
+<!-- Reviews & Check-ins Modal -->
+<div id="reviews-checkins-modal" onclick="if(event.target===this)window.closeReviewsAndCheckinsModal()"
+    style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.85); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:9999999 !important; justify-content:center; align-items:center; padding:20px;">
+    <div
+        style="background:#ffffff !important; border:none !important; outline:none !important; border-radius:24px; width:100%; max-width:400px; max-height:82vh; display:flex; flex-direction:column; box-shadow:none !important; overflow:hidden; text-align:left; padding:0;">
+        <div
+            style="background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%) !important; padding:16px 20px; display:flex; justify-content:space-between; align-items:center; border:none !important; outline:none !important; box-shadow:none !important; flex-shrink:0;">
+            <div>
+                <h3
+                    style="margin:0; color:#ffffff; font-size:17px; font-weight:800; display:flex; align-items:center; gap:8px; letter-spacing:-0.2px;">
+                    <i class="fa-solid fa-comment-dots" style="color:#00f2fe; font-size:16px;"></i> My Reviews &amp; Check-ins
+                </h3>
+                <p style="margin:2px 0 0 0; font-size:11px; color:rgba(255,255,255,0.85); font-weight:500;">
+                    Verified merchant &amp; spot visits
+                </p>
+            </div>
+            <button type="button" onclick="window.closeReviewsAndCheckinsModal()"
+                style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:15px; box-shadow:0 2px 8px rgba(0,0,0,0.2) !important;"
+                aria-label="Close Reviews Modal">
+                <i class="fa-solid fa-xmark" style="color:#1e3a8a !important; pointer-events:none;"></i>
+            </button>
+        </div>
+
+        <div id="reviews-checkins-list" class="hide-scrollbar"
+            style="flex:1; overflow-y:auto; padding:16px; background:#ffffff !important;">
+            <div style="text-align:center; padding:20px; color:#64748b; font-size:13px; font-weight:600;">Loading reviews...</div>
+        </div>
+    </div>
+</div>
+
 <!-- Full Trip History Modal -->
 <div id="full-history-modal" onclick="if(event.target===this)window.closeFullHistoryModal()"
     style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,11,25,0.85); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:9999999 !important; justify-content:center; align-items:center; padding:20px;">
@@ -3126,10 +3263,15 @@ $activeTab = 'profile';
         <!-- Vouchers Header Banner -->
         <div
             style="background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%) !important; padding:16px 20px; display:flex; justify-content:space-between; align-items:center; border:none !important; outline:none !important; box-shadow:none !important; flex-shrink:0;">
-            <h3
-                style="margin:0; color:#ffffff; font-size:18px; font-weight:800; display:flex; align-items:center; gap:9px; letter-spacing:-0.2px;">
-                <i class="fa-solid fa-ticket" style="color:#00f2fe; font-size:17px;"></i> My Vouchers
-            </h3>
+            <div>
+                <h3
+                    style="margin:0; color:#ffffff; font-size:18px; font-weight:800; display:flex; align-items:center; gap:9px; letter-spacing:-0.2px;">
+                    <i class="fa-solid fa-qrcode" style="color:#00f2fe; font-size:17px;"></i> My QR Vouchers
+                </h3>
+                <p style="margin: 3px 0 0 0; font-size: 11px; color: rgba(255, 255, 255, 0.85); font-weight: 500;">
+                    Present QR codes at accredited LUPTO partner merchants
+                </p>
+            </div>
             <button type="button" onclick="window.closeFullVouchersModal()"
                 style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:15px; box-shadow:0 2px 8px rgba(0,0,0,0.2) !important; position:relative; z-index:100; pointer-events:auto !important; touch-action:manipulation;"
                 aria-label="Close Vouchers Modal">

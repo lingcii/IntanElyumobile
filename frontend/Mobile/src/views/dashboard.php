@@ -789,8 +789,8 @@ if (is_dir($imgDir)) {
         gap: 12px !important;
         padding-top: 8px !important;
         padding-bottom: 14px !important;
-        padding-left: calc(50% - 72.5px) !important;
-        padding-right: calc(50% - 72.5px) !important;
+        padding-left: 16px !important;
+        padding-right: 16px !important;
     }
     .fav-card-overlay {
         padding: 8px 10px !important;
@@ -1056,6 +1056,12 @@ if (is_dir($imgDir)) {
         (function() {
             try {
                 var t = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+                var u = null;
+                try { u = JSON.parse(localStorage.getItem('auth_user') || 'null'); } catch(e){}
+                if (u && (u.must_change_password === true || u.must_change_password === 1 || u.must_change_password === '1' || u.must_change_password === 'true')) {
+                    window.location.replace('auth.php');
+                    return;
+                }
                 var isReal = Boolean(t && t !== 'guest_token' && t !== 'offline_guest_token' && t.indexOf('guest_') !== 0 && t.indexOf('offline_') !== 0);
                 if (isReal) {
                     try {
@@ -1102,15 +1108,28 @@ if (is_dir($imgDir)) {
     })();
     </script>
 
+    <!-- Live Search Container (At the Top) -->
+    <div class="dash-search-container stagger-1" style="position: relative; z-index: 100; margin-top: 14px; margin-bottom: 14px;">
+        <div class="dash-search-box">
+            <i class="fa-solid fa-magnifying-glass dash-search-icon"></i>
+            <input type="text" id="dash-search-input" class="dash-search-input" placeholder="Search tourist sites, beaches, places..." autocomplete="off" oninput="window.handleDashSearch(this.value)" onfocus="window.handleDashSearch(this.value)">
+            <button type="button" id="dash-search-clear" class="dash-search-clear" onclick="window.clearDashSearch()" style="display:none;" aria-label="Clear Search">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        <!-- Floating Instant Search Results Dropdown -->
+        <div id="dash-search-results" class="dash-search-dropdown" style="display:none; position:absolute; top:calc(100% + 8px); left:0; right:0; background:#ffffff; border-radius:18px; border:1.5px solid #e2e8f0; box-shadow:0 12px 30px rgba(15,23,42,0.14); max-height:320px; overflow-y:auto; z-index:1000; padding:6px; -webkit-overflow-scrolling:touch;"></div>
+    </div>
+
     <!-- Coastal Hero Banner: Discover La Union -->
-    <div class="dash-hero-banner stagger-1" style="position: relative; border-radius: 28px; background: linear-gradient(135deg, #0e2a56 0%, #15386f 50%, #1e4080 100%) !important; padding: 22px 18px 18px 18px; overflow: hidden; margin-bottom: 14px; box-shadow: 0 8px 24px rgba(14, 42, 86, 0.25); display: flex; justify-content: space-between;">
-        <div class="dash-hero-content">
+    <div class="dash-hero-banner stagger-1" style="position: relative; border-radius: 28px; background: linear-gradient(135deg, #0e2a56 0%, #15386f 50%, #1e4080 100%) !important; padding: 22px 18px 18px 18px; overflow: hidden; margin-bottom: 14px; box-shadow: 0 8px 24px rgba(14, 42, 86, 0.25); display: flex; flex-direction: column; gap: 14px;">
+        <div class="dash-hero-content" style="width: 100%;">
             <span class="dash-hero-eyebrow">Discover</span>
             <h1 class="dash-hero-title">La Union</h1>
             
             
             <!-- Compact Glass User Profile Strip -->
-            <div class="dash-user-strip" onclick="navigateTo('profile')" title="View Profile">
+            <div class="dash-user-strip" onclick="navigateTo('profile')" title="View Profile" style="margin-bottom: 0 !important;">
                 <div class="dash-user-avatar-wrap">
                     <img id="dash-avatar" src="https://ui-avatars.com/api/?name=Tourist&background=007AFF&color=fff&rounded=true&bold=true&size=128" alt="Avatar">
                 </div>
@@ -1126,66 +1145,27 @@ if (is_dir($imgDir)) {
                     <span id="dash-status-badge" style="display:none !important;"></span>
                 </div>
             </div>
-            
-            <!-- 3 Stats: Places, Points, Rank (aligned with Discover text) -->
-            <div class="dash-mini-stats" id="dash-stats-row">
-                <div class="dash-mini-stat" onclick="event.stopPropagation(); navigateTo('itinerary');" title="Places Visited">
-                    <span class="dash-mini-val" id="dash-stat-places">—</span>
-                    <span class="dash-mini-lbl">Places</span>
-                </div>
-                <div class="dash-mini-stat" onclick="event.stopPropagation(); navigateTo('leaderboard');" title="Reward Points">
-                    <span class="dash-mini-val" id="dash-stat-points">—</span>
-                    <span class="dash-mini-lbl">Points</span>
-                </div>
-                <div class="dash-mini-stat" onclick="event.stopPropagation(); navigateTo('leaderboard');" title="Current Leaderboard Rank">
-                    <span class="dash-mini-val" id="dash-stat-rank">—</span>
-                    <span class="dash-mini-lbl">Rank</span>
-                </div>
+        </div>
+        
+        <!-- 3 Stats: Places, Points, Rank (Stretched Across Bottom) -->
+        <div class="dash-mini-stats" id="dash-stats-row" style="display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; margin: 0;">
+            <div class="dash-mini-stat" onclick="event.stopPropagation(); navigateTo('itinerary');" title="Places Visited" style="flex: 1; min-width: 0; padding: 8px 10px;">
+                <span class="dash-mini-val" id="dash-stat-places" style="font-size: 15px;">—</span>
+                <span class="dash-mini-lbl" style="font-size: 9.5px;">Places</span>
+            </div>
+            <div class="dash-mini-stat" onclick="event.stopPropagation(); navigateTo('leaderboard');" title="Reward Points" style="flex: 1; min-width: 0; padding: 8px 10px;">
+                <span class="dash-mini-val" id="dash-stat-points" style="font-size: 15px;">—</span>
+                <span class="dash-mini-lbl" style="font-size: 9.5px;">Points</span>
+            </div>
+            <div class="dash-mini-stat" onclick="event.stopPropagation(); navigateTo('leaderboard');" title="Current Leaderboard Rank" style="flex: 1; min-width: 0; padding: 8px 10px;">
+                <span class="dash-mini-val" id="dash-stat-rank" style="font-size: 15px;">—</span>
+                <span class="dash-mini-lbl" style="font-size: 9.5px;">Rank</span>
             </div>
         </div>
         
-        <!-- Coastal Lighthouse Artwork on Right -->
-        <div class="dash-hero-art" aria-hidden="true" style="position: absolute; right: -4px; bottom: -6px; width: 140px; height: 160px; pointer-events: none; z-index: 1;">
-            <svg class="dash-hero-svg" viewBox="0 0 160 180" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <!-- Distant Mountain silhouette -->
-                <path d="M-10 130 L40 65 L90 120 L130 50 L180 140 L180 180 L-10 180 Z" fill="rgba(255, 255, 255, 0.08)" />
-                <path d="M20 140 L70 90 L110 135 L145 80 L185 145 L185 180 L20 180 Z" fill="rgba(255, 255, 255, 0.12)" />
-                <!-- Seagulls -->
-                <path d="M30 45 Q 38 38 46 45 Q 54 38 62 45" stroke="rgba(255,255,255,0.7)" stroke-width="1.8" stroke-linecap="round" fill="none" />
-                <path d="M70 30 Q 76 24 82 30 Q 88 24 94 30" stroke="rgba(255,255,255,0.55)" stroke-width="1.5" stroke-linecap="round" fill="none" />
-                <!-- Rocky Shoreline -->
-                <path d="M60 180 C 80 150 110 165 130 148 C 145 136 160 145 170 180 Z" fill="#172554" />
-                <path d="M90 180 C 105 160 125 168 140 155 C 150 146 160 152 170 180 Z" fill="#1e293b" />
-                <!-- White Lighthouse -->
-                <polygon points="122,154 134,154 131,88 125,88" fill="#f8fafc" />
-                <polygon points="123,136 133,136 132,122 124,122" fill="#0284c7" />
-                <rect x="123" y="80" width="10" height="8" rx="1.5" fill="#f8fafc" />
-                <polygon points="121,80 135,80 128,70" fill="#0284c7" />
-                <circle cx="128" cy="69" r="2" fill="#fbbf24" />
-                <circle cx="128" cy="84" r="2.5" fill="#fef08a" />
-                <!-- Subtle Light Beam -->
-                <polygon points="128,84 0,35 0,85" fill="url(#heroLightBeam)" opacity="0.22" />
-                <defs>
-                    <linearGradient id="heroLightBeam" x1="128" y1="84" x2="0" y2="60" gradientUnits="userSpaceOnUse">
-                        <stop stop-color="#fef08a" stop-opacity="0.8"/>
-                        <stop offset="1" stop-color="#38bdf8" stop-opacity="0"/>
-                    </linearGradient>
-                </defs>
-            </svg>
+        <!-- Coastal Lighthouse Artwork on Right (Hidden) -->
+        <div class="dash-hero-art" aria-hidden="true" style="display: none !important;">
         </div>
-    </div>
-
-    <!-- Live Search Container -->
-    <div class="dash-search-container stagger-1" style="position: relative; z-index: 100;">
-        <div class="dash-search-box">
-            <i class="fa-solid fa-magnifying-glass dash-search-icon"></i>
-            <input type="text" id="dash-search-input" class="dash-search-input" placeholder="Search tourist sites, beaches, places..." autocomplete="off" oninput="window.handleDashSearch(this.value)" onfocus="window.handleDashSearch(this.value)">
-            <button type="button" id="dash-search-clear" class="dash-search-clear" onclick="window.clearDashSearch()" style="display:none;" aria-label="Clear Search">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-        </div>
-        <!-- Floating Instant Search Results Dropdown -->
-        <div id="dash-search-results" class="dash-search-dropdown" style="display:none; position:absolute; top:calc(100% + 8px); left:0; right:0; background:#ffffff; border-radius:18px; border:1.5px solid #e2e8f0; box-shadow:0 12px 30px rgba(15,23,42,0.14); max-height:320px; overflow-y:auto; z-index:1000; padding:6px; -webkit-overflow-scrolling:touch;"></div>
     </div>
 
     <!-- Weather Widget (Royal Blue Mockup Theme) -->
@@ -1195,7 +1175,11 @@ if (is_dir($imgDir)) {
                 <i class="fa-solid fa-location-dot"></i>
                 <span id="weather-loc">Detecting GPS location...</span>
             </div>
-            <div style="display:flex; align-items:center; gap:6px;">
+            <div class="weather-forecast-pill" title="View 5-Day Forecast">
+                <span>5-Day Forecast</span>
+                <i class="fa-solid fa-chevron-right" style="font-size: 8.5px;"></i>
+            </div>
+            <div style="display:none; align-items:center; gap:6px;">
                 <span id="weather-today-date" class="weather-date-pill"></span>
                 <span id="weather-gps-badge" class="weather-gps-badge" onclick="event.stopPropagation(); window.locateMeForWeather();" title="Real-Time GPS Weather (Tap to Refresh)">
                     <i class="fa-solid fa-location-crosshairs"></i>
@@ -1225,8 +1209,8 @@ if (is_dir($imgDir)) {
         <div class="weather-best-time-bar" id="weather-best-time-strip">
             <span>Best Time to Visit: <strong id="weather-best-time">8AM – 10AM (~28°C)</strong></span>
         </div>
-        <div class="weather-bottom-row">
-            <div class="weather-stats-group">
+        <div class="weather-bottom-row" style="display: none !important;">
+            <div class="weather-stats-group" style="display: none !important;">
                 <div class="weather-stat-pill stat-humidity" title="Humidity">
                     <i class="fa-solid fa-droplet"></i>
                     <span id="weather-humidity">68%</span>
@@ -1239,10 +1223,6 @@ if (is_dir($imgDir)) {
                     <i class="fa-solid fa-sun"></i>
                     <span>UV <strong id="weather-uv">8</strong></span>
                 </div>
-            </div>
-            <div class="weather-forecast-pill" title="View 5-Day Forecast">
-                <span>5-Day Forecast</span>
-                <i class="fa-solid fa-chevron-right" style="font-size: 8.5px;"></i>
             </div>
         </div>
     </div>
@@ -1353,27 +1333,27 @@ if (is_dir($imgDir)) {
         </div>
     </div>
 
-    <!-- Gamification Panel -->
+    <!-- Gamification Panel (Below Weather) -->
     <div class="gamezone-banner stagger-2" onclick="navigateTo('puzzles')"
-        style="background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline: none !important; border-radius: 24px; box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important; margin-top: 16px; cursor: pointer; display: flex !important; flex-direction: row !important; align-items: center !important; justify-content: space-between !important; padding: 16px 20px; gap: 14px;">
-        <div style="display: flex; align-items: center; gap: 14px; flex: 1; min-width: 0;">
-            <div style="font-size: 32px; filter: none; flex-shrink: 0;">🧩</div>
+        style="background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline: none !important; border-radius: 20px; box-shadow: 0 4px 14px rgba(32, 63, 141, 0.22) !important; margin-top: 6px; margin-bottom: 8px; cursor: pointer; display: flex !important; flex-direction: row !important; align-items: center !important; justify-content: space-between !important; padding: 13px 16px; gap: 12px;">
+        <div style="display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0;">
+            <div style="font-size: 28px; filter: none; flex-shrink: 0;">🧩</div>
             <div style="flex: 1; min-width: 0;">
-                <h4 style="margin: 0 0 4px 0; font-size: 16px; font-weight: 800; color: #fff; letter-spacing: -0.2px;">
+                <h4 style="margin: 0 0 2px 0; font-size: 15.5px; font-weight: 800; color: #fff; letter-spacing: -0.2px;">
                     GameZone</h4>
-                <p style="margin: 0; font-size: 12px; color: rgba(255, 255, 255, 0.95); font-weight: 600; line-height: 1.3;">Play fun
+                <p style="margin: 0; font-size: 11.5px; color: rgba(255, 255, 255, 0.95); font-weight: 600; line-height: 1.3;">Play fun
                     mini-games to earn discount vouchers! 🎁</p>
             </div>
         </div>
         <div
-            style="width: 38px; height: 38px; min-width: 38px; border-radius: 50%; background: #ffffff !important; display: flex; align-items: center; justify-content: center; color: #1e3a8a !important; font-size: 14px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18) !important; flex-shrink: 0; margin-left: auto;">
+            style="width: 34px; height: 34px; min-width: 34px; border-radius: 50%; background: #ffffff !important; display: flex; align-items: center; justify-content: center; color: #1e3a8a !important; font-size: 13px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18) !important; flex-shrink: 0; margin-left: auto;">
             <i class="fa-solid fa-play" style="color: #1e3a8a !important; margin-left: 2px;"></i>
         </div>
     </div>
 
-        <!-- Explore Categories Section -->
-    <div class="dash-section stagger-2" style="margin-top: 22px;">
-        <div class="section-title">
+    <!-- Explore Categories Section (Below GameZone) -->
+    <div class="dash-section stagger-2" style="margin-top: 6px;">
+        <div class="section-title" style="margin-top: 4px; margin-bottom: 10px;">
             <h3>Explore Categories</h3>
         </div>
         <div class="categories-container" id="dash-categories-list">
@@ -2461,6 +2441,42 @@ window.applyTouristSitesFilterModal = function() {
         if (!container) return;
 
         let isTicking = false;
+        let isProgrammaticScroll = false;
+        let scrollEndTimer = null;
+
+        // Reset flag if trending cards were rebuilt or clones missing
+        if (!container.querySelector('[data-carousel-clone]')) {
+            container._focusCarouselInited = false;
+        }
+        const realCardsInit = Array.from(container.querySelectorAll('.fav-card:not([data-carousel-clone])'));
+        if (realCardsInit.length >= 3 && !container.querySelector('[data-carousel-clone]')) {
+            realCardsInit.forEach((card, i) => { card.dataset.realIndex = String(i); });
+            const n = realCardsInit.length;
+
+            // Prepend clone of last card (index n - 1) before Card 0
+            const lastClone = realCardsInit[n - 1].cloneNode(true);
+            lastClone.dataset.carouselClone = 'true';
+            lastClone.dataset.realIndex = String(n - 1);
+            container.insertBefore(lastClone, realCardsInit[0]);
+
+            // Append clone of first card (index 0) after last card
+            const firstClone = realCardsInit[0].cloneNode(true);
+            firstClone.dataset.carouselClone = 'true';
+            firstClone.dataset.realIndex = '0';
+            container.appendChild(firstClone);
+        }
+
+        function centerCardInstant(card) {
+            if (!card) return;
+            isProgrammaticScroll = true;
+            const prevBehavior = container.style.scrollBehavior;
+            container.style.scrollBehavior = 'auto';
+            container.scrollLeft = card.offsetLeft - (container.clientWidth - card.offsetWidth) / 2;
+            container.style.scrollBehavior = prevBehavior;
+            requestAnimationFrame(() => {
+                isProgrammaticScroll = false;
+            });
+        }
 
         function updateCardScales() {
             const cards = container.querySelectorAll('.fav-card');
@@ -2499,22 +2515,24 @@ window.applyTouristSitesFilterModal = function() {
             // Dynamically synchronize carousel dots with the centered card, or hide if empty or 1 card only
             if (containerId === 'trending-container') {
                 const dotsWrap = document.getElementById('trending-dots');
+                const realCards = container.querySelectorAll('.fav-card:not([data-carousel-clone])');
                 if (dotsWrap) {
-                    if (cards.length <= 1 || container.classList.contains('is-empty') || container.querySelector('.dash-empty-state')) {
+                    if (realCards.length <= 1 || container.classList.contains('is-empty') || container.querySelector('.dash-empty-state')) {
                         dotsWrap.style.display = 'none';
                     } else {
                         dotsWrap.style.display = 'flex';
-                        const numDots = Math.min(cards.length, 10);
+                        const numDots = Math.min(realCards.length, 10);
                         if (dotsWrap.querySelectorAll('.dash-dot').length !== numDots) {
                             dotsWrap.innerHTML = Array.from({ length: numDots }, (_, i) => `<span class="dash-dot ${i === 0 ? 'active' : ''}"></span>`).join('');
                         }
                         if (closestCard) {
                             const dots = dotsWrap.querySelectorAll('.dash-dot');
                             if (dots.length > 0) {
-                                const cardList = Array.from(cards);
-                                const activeIdx = cardList.indexOf(closestCard);
-                                if (activeIdx >= 0) {
-                                    const dotIdx = activeIdx % dots.length;
+                                const realIdx = closestCard.dataset.realIndex !== undefined
+                                    ? Number(closestCard.dataset.realIndex)
+                                    : Array.from(realCards).indexOf(closestCard);
+                                if (realIdx >= 0) {
+                                    const dotIdx = realIdx % dots.length;
                                     dots.forEach((d, i) => d.classList.toggle('active', i === dotIdx));
                                 }
                             }
@@ -2529,12 +2547,11 @@ window.applyTouristSitesFilterModal = function() {
         if (!container._focusCarouselInited) {
             container._focusCarouselInited = true;
 
-            // Click capture: clicking a shrinked card smoothly scrolls it to center
+            // Clicking any non-centered card slides it smoothly into focus
             container.addEventListener('click', (e) => {
                 if (e.target.closest('.fav-heart') || e.target.closest('.fav-card-overlay i')) {
-                    return; // Allow clicks on buttons to proceed without carousel interception!
+                    return; // Allow button clicks
                 }
-
                 const card = e.target.closest('.fav-card');
                 if (!card) return;
 
@@ -2544,10 +2561,10 @@ window.applyTouristSitesFilterModal = function() {
                 const cardCenter = cardRect.left + cardRect.width / 2;
                 const offsetFromCenter = Math.abs(cardCenter - containerCenter);
 
-                if (offsetFromCenter > 35) {
+                // If card is not the active centered card, slide it into the center instead of navigating
+                if (offsetFromCenter > 25) {
                     e.preventDefault();
                     e.stopPropagation();
-
                     const scrollDelta = cardCenter - containerCenter;
                     container.scrollBy({ left: scrollDelta, behavior: 'smooth' });
                 }
@@ -2558,13 +2575,62 @@ window.applyTouristSitesFilterModal = function() {
                     requestAnimationFrame(updateCardScales);
                     isTicking = true;
                 }
+
+                if (isProgrammaticScroll) return;
+
+                clearTimeout(scrollEndTimer);
+                scrollEndTimer = setTimeout(() => {
+                    const realCards = container.querySelectorAll('.fav-card:not([data-carousel-clone])');
+                    if (realCards.length < 3) return;
+
+                    const active = container.querySelector('.fav-card.active-card');
+                    if (!active) return;
+
+                    if (active.dataset.carouselClone === 'true') {
+                        const targetIdx = Number(active.dataset.realIndex);
+                        const targetCard = realCards[targetIdx];
+                        if (targetCard) {
+                            const allCards = container.querySelectorAll('.fav-card');
+                            allCards.forEach(c => { c.style.transition = 'none'; });
+                            centerCardInstant(targetCard);
+                            updateCardScales();
+                            requestAnimationFrame(() => {
+                                allCards.forEach(c => { c.style.transition = ''; });
+                            });
+                        }
+                    }
+                }, 90);
             }, { passive: true });
-            requestAnimationFrame(() => {
+
+            const realCards = container.querySelectorAll('.fav-card:not([data-carousel-clone])');
+            if (realCards.length >= 3) {
+                centerCardInstant(realCards[0]);
+            }
+            updateCardScales();
+            setTimeout(() => {
+                if (realCards.length >= 3) {
+                    centerCardInstant(realCards[0]);
+                }
                 updateCardScales();
-                setTimeout(updateCardScales, 150);
-            });
+            }, 100);
+            setTimeout(() => {
+                if (realCards.length >= 3) {
+                    centerCardInstant(realCards[0]);
+                }
+                updateCardScales();
+            }, 300);
         } else {
-            requestAnimationFrame(updateCardScales);
+            const realCards = container.querySelectorAll('.fav-card:not([data-carousel-clone])');
+            if (realCards.length >= 3) {
+                centerCardInstant(realCards[0]);
+            }
+            updateCardScales();
+            setTimeout(() => {
+                if (realCards.length >= 3) {
+                    centerCardInstant(realCards[0]);
+                }
+                updateCardScales();
+            }, 50);
         }
 
         // Tap dots to smoothly scroll the active card to center
@@ -2577,7 +2643,7 @@ window.applyTouristSitesFilterModal = function() {
                     if (!dot) return;
                     const dots = Array.from(dotsWrap.querySelectorAll('.dash-dot'));
                     const dotIdx = dots.indexOf(dot);
-                    const currentCards = container.querySelectorAll('.fav-card');
+                    const currentCards = container.querySelectorAll('.fav-card:not([data-carousel-clone])');
                     if (dotIdx >= 0 && currentCards[dotIdx]) {
                         const targetCard = currentCards[dotIdx];
                         const containerRect = container.getBoundingClientRect();
@@ -3075,9 +3141,6 @@ window.applyTouristSitesFilterModal = function() {
                         <div class="weather-rec-reason" title="${reason.replace(/"/g, '&quot;')}">${reason}</div>
                         <div class="weather-rec-actions">
                             ${ratingHtml}
-                            <button type="button" class="weather-rec-itin-btn" style="${inDraft ? 'background:#10b981 !important;' : ''}" onclick="event.stopPropagation(); window.quickAddWeatherSpotToItinerary('${encodedDest}', this)">
-                                <i class="fa-solid ${inDraft ? 'fa-check' : 'fa-plus'}"></i> ${inDraft ? 'Added' : 'Add'}
-                            </button>
                         </div>
                     </div>
                 </div>
@@ -3394,8 +3457,18 @@ window.applyTouristSitesFilterModal = function() {
         });
 
         // Switch the top hero card to this selected upcoming day
+        let formattedDate = '';
+        if (dayItem.date) {
+            try {
+                const parts = String(dayItem.date).split('-');
+                if (parts.length === 3) {
+                    const dObj = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+                    formattedDate = dObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                }
+            } catch (e) {}
+        }
         if (modalTemp) modalTemp.textContent = `${dayItem.temp_max}°C`;
-        if (modalCondition) modalCondition.textContent = `${dayItem.day} · ${dayItem.condition}`;
+        if (modalCondition) modalCondition.textContent = `${dayItem.day}${formattedDate ? ` (${formattedDate})` : ''} · ${dayItem.condition}`;
         if (modalFeels) modalFeels.textContent = `High ${dayItem.temp_max}°C · Low ${dayItem.temp_min}°C · ${dayItem.rain_prob}% rain chance`;
         if (modalIcon) modalIcon.innerHTML = window.renderWeatherIconHtml(dayItem.icon, dayItem.fa_icon);
     };
@@ -3422,7 +3495,18 @@ window.applyTouristSitesFilterModal = function() {
         if (modalIcon) modalIcon.innerHTML = window.renderWeatherIconHtml(data.icon, data.fa_icon);
 
         if (forecastContainer && data.forecast && data.forecast.length > 0) {
-            forecastContainer.innerHTML = data.forecast.map((item, idx) => `
+            forecastContainer.innerHTML = data.forecast.map((item, idx) => {
+                let formattedDate = '';
+                if (item.date) {
+                    try {
+                        const parts = String(item.date).split('-');
+                        if (parts.length === 3) {
+                            const dObj = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+                            formattedDate = dObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                        }
+                    } catch (e) {}
+                }
+                return `
                 <div class="forecast-day-row" onclick="window.selectWeatherForecastDay(${idx})"
                     style="background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 16px; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: all 0.2s ease;"
                     onpointerdown="this.style.transform='scale(0.98)';"
@@ -3430,11 +3514,15 @@ window.applyTouristSitesFilterModal = function() {
                     <div style="display: flex; align-items: center; gap: 14px;">
                         <span style="font-size: 26px; width: 34px; text-align: center; display: inline-block;">${window.renderWeatherIconHtml(item.icon, item.fa_icon)}</span>
                         <div>
-                            <div style="font-size: 14px; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 6px;">
-                                <span>${item.day}</span>
-                                <span onclick="event.stopPropagation(); window.openForecastDayPicksModal(${idx})" style="font-size: 9.5px; font-weight: 800; color: #0284c7; background: #e0f2fe; padding: 2px 7px; border-radius: 100px; cursor: pointer;">View Picks &rsaquo;</span>
+                            <div style="font-size: 14px; font-weight: 800; color: #0f172a;">
+                                <span>${item.day}${formattedDate ? ` <span style="font-size: 12.5px; font-weight: 700; color: #64748b;">- ${formattedDate}</span>` : ''}</span>
                             </div>
-                            <div style="font-size: 11.5px; color: #64748b; font-weight: 600;">${item.condition}</div>
+                            <div style="font-size: 11.5px; color: #64748b; font-weight: 600; margin-top: 1px;">${item.condition}</div>
+                            <div style="margin-top: 5px;">
+                                <span onclick="event.stopPropagation(); window.openForecastDayPicksModal(${idx})" style="font-size: 9.5px; font-weight: 800; color: #0284c7; background: #e0f2fe; padding: 2.5px 8px; border-radius: 100px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; border: 1px solid #bae6fd; transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.94)'" onpointerup="this.style.transform='scale(1)'">
+                                    <i class="fa-solid fa-compass" style="font-size: 9px;"></i> Suggest Sites &rsaquo;
+                                </span>
+                            </div>
                         </div>
                     </div>
                     <div style="text-align: right;">
@@ -3442,7 +3530,8 @@ window.applyTouristSitesFilterModal = function() {
                         <div style="font-size: 11px; color: #0284c7; font-weight: 700; margin-top: 2px;"><i class="fa-solid fa-droplet" style="font-size: 9px; color: #0284c7;"></i> ${item.rain_prob}% rain</div>
                     </div>
                 </div>
-            `).join('');
+            `;
+            }).join('');
         }
     };
 
@@ -3819,10 +3908,13 @@ window.applyTouristSitesFilterModal = function() {
             const rankEl = document.getElementById('dash-stat-rank');
             if (rankEl) {
                 const initRank = user.my_rank || user.rank || (window._cachedMyRank !== undefined ? window._cachedMyRank : null);
-                if (initRank && initRank < 999) {
+                if ((initPts > 0 || initPlaces > 0) && initRank && initRank < 999) {
                     rankEl.textContent = '#' + initRank;
-                } else if (initRank) {
+                } else if ((initPts > 0 || initPlaces > 0) && initRank) {
                     rankEl.textContent = '#' + initRank;
+                } else {
+                    rankEl.textContent = 'Unranked';
+                    rankEl.style.fontSize = '12px';
                 }
             }
         }
@@ -4373,17 +4465,29 @@ window.applyTouristSitesFilterModal = function() {
 
                 const rVal = (data && (data.myRank || data.my_rank || (data.stats && (data.stats.rank || data.stats.myRank))));
                 const rankEl = document.getElementById('dash-stat-rank');
+                const hasEarnedRank = (points > 0 || visitedCount > 0);
                 if (rankEl) {
-                    if (rVal && rVal < 999) {
+                    if (hasEarnedRank && rVal && rVal < 999) {
                         rankEl.textContent = '#' + rVal;
+                        rankEl.style.fontSize = '';
                         try {
                             localStorage.setItem('my_rank', rVal);
                             const authU = JSON.parse(localStorage.getItem('auth_user') || '{}');
                             authU.my_rank = rVal;
                             localStorage.setItem('auth_user', JSON.stringify(authU));
                         } catch (e) { }
-                    } else if (rVal) {
+                    } else if (hasEarnedRank && rVal) {
                         rankEl.textContent = '#' + rVal;
+                        rankEl.style.fontSize = '';
+                    } else {
+                        rankEl.textContent = 'Unranked';
+                        rankEl.style.fontSize = '12px';
+                        try {
+                            localStorage.removeItem('my_rank');
+                            const authU = JSON.parse(localStorage.getItem('auth_user') || '{}');
+                            delete authU.my_rank;
+                            localStorage.setItem('auth_user', JSON.stringify(authU));
+                        } catch (e) { }
                     }
                 }
             }
@@ -5185,6 +5289,10 @@ window.applyTouristSitesFilterModal = function() {
         });
         window.addEventListener('viewLoaded', function (e) {
             if (e && e.detail && e.detail.view === 'dashboard') {
+                if (typeof window.initLoopingFocusCarousel === 'function') {
+                    window.initLoopingFocusCarousel('trending-container');
+                    window.initLoopingFocusCarousel('saved-places-container');
+                }
                 if (typeof window.dashboardInit === 'function') {
                     window.dashboardInit(Boolean(window.dashboardNeedsRefresh));
                 }

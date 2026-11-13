@@ -108,6 +108,11 @@ class FeedbackController extends Controller
             $user = $defaultUser;
         }
 
+        // Process untouched reviews older than 2-3 days
+        if (class_exists(\App\Http\Controllers\Tourist\ItineraryController::class)) {
+            \App\Http\Controllers\Tourist\ItineraryController::processUntouchedVisitReviews(2);
+        }
+
         if (!$user) {
             return response()->json([
                 'status'  => 'success',

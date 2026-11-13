@@ -478,7 +478,7 @@
             var targetView = window._initialOfflineView || 'dashboard';
             document.body.setAttribute('data-view', targetView);
 
-            var noNavViews = ['auth', 'splash', 'trip_map', 'saved_trips', 'saved_places', 'discount', 'puzzles', 'settings'];
+            var noNavViews = ['auth', 'splash', 'trip_map', 'saved_places', 'discount', 'puzzles', 'settings'];
             var bottomNav = document.getElementById('bottom-navigation');
             if (bottomNav) {
                 if (noNavViews.includes(targetView)) {

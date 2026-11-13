@@ -78,7 +78,7 @@
   --nav-clearance: calc(var(--safe-area-bottom) + var(--nav-bar-height) + 16px);
   --page-top-padding: calc(var(--safe-area-top) + 52px);
   --page-bottom-padding: var(--nav-clearance);
-  --page-inline-padding: clamp(12px, 3.8vw, 18px);
+  --page-inline-padding: clamp(16px, 4.5vw, 22px);
 }
 
 /* Fallback for legacy CSS engines that do not support OKLCH color-mix */
@@ -216,8 +216,8 @@ body {
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
-  padding-left: var(--page-inline-padding, clamp(12px, 3.8vw, 18px)) !important;
-  padding-right: var(--page-inline-padding, clamp(12px, 3.8vw, 18px)) !important;
+  padding-left: var(--page-inline-padding, clamp(16px, 4.5vw, 22px)) !important;
+  padding-right: var(--page-inline-padding, clamp(16px, 4.5vw, 22px)) !important;
   padding-top: var(--page-top-padding, calc(max(env(safe-area-inset-top, 0px), 36px) + 52px)) !important;
   padding-bottom: var(--page-bottom-padding, calc(max(18px, env(safe-area-inset-bottom, 18px)) + 82px)) !important;
   overflow-x: hidden;

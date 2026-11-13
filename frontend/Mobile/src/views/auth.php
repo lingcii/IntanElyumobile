@@ -161,45 +161,13 @@
                     </div>
                     <div id="reg-email-hint" class="input-field-hint" style="display: none;"></div>
 
-                    <div class="input-group">
-                        <i class="fa-solid fa-lock"></i>
-                        <input type="password" id="reg-password" class="auth-input" placeholder="Create Password"
-                            autocomplete="new-password" enterkeyhint="done" data-auth-focus-order="4" required oninput="validateRegisterFormInline()"
-                            onfocus="onPasswordFocus()" onblur="onPasswordBlur()">
-                        <i id="reg-password-status-icon" class="fa-solid field-status-icon password-offset"></i>
-                        <i class="fa-regular fa-eye password-toggle"
-                            onclick="togglePasswordVisibility('reg-password', this)"></i>
-                    </div>
-                    <div id="pwd-strength-container" class="pwd-strength-wrapper"
-                        style="display: none;" data-score="0">
-                        <div class="pwd-strength-card">
-                            <div class="pwd-strength-header">
-                                <div class="pwd-strength-badge status-weak" id="pwd-strength-badge" style="display: none;">
-                                    <i class="fa-solid fa-shield-halved" id="pwd-strength-icon"></i>
-                                    <span id="pwd-strength-label">Strength: Weak</span>
-                                </div>
-                                <span id="pwd-strength-score" class="pwd-score-pill">0/4</span>
-                            </div>
-                            <div class="pwd-strength-segments">
-                                <div class="pwd-segment seg-1"></div>
-                                <div class="pwd-segment seg-2"></div>
-                                <div class="pwd-segment seg-3"></div>
-                                <div class="pwd-segment seg-4"></div>
-                            </div>
-                            <div class="pwd-checklist">
-                                <span id="chk-len8" class="pwd-chk-item"><i class="fa-solid fa-circle-dot"></i> 8+ characters</span>
-                                <span id="chk-num" class="pwd-chk-item"><i class="fa-solid fa-circle-dot"></i> A number</span>
-                                <span id="chk-cap" class="pwd-chk-item"><i class="fa-solid fa-circle-dot"></i> A capital letter</span>
-                                <span id="chk-sym" class="pwd-chk-item"><i class="fa-solid fa-circle-dot"></i> A symbol</span>
-                            </div>
-                        </div>
-                    </div>
+                    <input type="hidden" id="reg-password" value="autogen-temp">
 
-                    <div class="terms-agreement-row" style="position: relative; z-index: 10; pointer-events: auto !important;">
-                        <input type="checkbox" id="reg-privacy-checkbox" class="custom-terms-checkbox" style="pointer-events: auto !important; cursor: pointer;">
-                        <div class="terms-agreement-text" style="pointer-events: auto !important;">
-                            <label for="reg-privacy-checkbox" id="reg-privacy-label" class="terms-agreement-label" style="pointer-events: auto !important; cursor: pointer;">I agree to the</label>
-                            <button type="button" id="link-terms-privacy" onclick="openPrivacyPolicyModal(event)"
+                    <div class="terms-agreement-row" onclick="window.handleRegistrationTermsClick(event)" style="position: relative; z-index: 10; pointer-events: auto !important; cursor: pointer;">
+                        <input type="checkbox" id="reg-privacy-checkbox" class="custom-terms-checkbox" style="pointer-events: none !important; cursor: pointer;">
+                        <div class="terms-agreement-text" style="pointer-events: none !important;">
+                            <label for="reg-privacy-checkbox" id="reg-privacy-label" class="terms-agreement-label" style="pointer-events: none !important; cursor: pointer;">I agree to the</label>
+                            <button type="button" id="link-terms-privacy"
                                 class="terms-policy-btn" style="position: relative; z-index: 12; pointer-events: auto !important; cursor: pointer; touch-action: manipulation;">Terms &amp; Privacy Policy</button><span
                                 class="terms-period">.</span>
                         </div>
@@ -472,6 +440,109 @@
     </div>
 </div>
 
+<!-- Temporary Password Emailed Modal (Reset Password Before Logging In) -->
+<div id="reg-temp-pwd-modal" class="auth-result-overlay" style="display:none;" role="dialog" aria-modal="true">
+    <div class="auth-result-card auth-result-card--success" style="padding: 26px 20px; max-width: 360px; text-align: center;">
+        <div class="auth-result-icon" style="background: rgba(37, 99, 235, 0.12); color: #2563eb; margin: 0 auto 14px auto; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 26px;">
+            <i class="fa-solid fa-key"></i>
+        </div>
+        <h2 style="font-size: 20px; font-weight: 800; color: #0f172a; margin: 0 0 8px 0;">Reset Password Required</h2>
+        <p style="font-size: 13.5px; color: #475569; line-height: 1.5; margin: 0 0 16px 0;">
+            A temporary password was sent to <br><strong id="reg-temp-pwd-email" style="color: #1e40af; word-break: break-all;"></strong>.
+        </p>
+        <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 12px; padding: 12px 14px; font-size: 12.5px; color: #1e40af; margin-bottom: 20px; text-align: left; line-height: 1.45;">
+            <i class="fa-solid fa-circle-exclamation" style="margin-right: 5px; color: #2563eb;"></i> <strong>Important:</strong> You need to reset your password before logging in. Use your temporary password to log in and set your permanent password.
+        </div>
+        <button type="button" class="auth-result-action" onclick="closeRegTempPwdModal()" style="background: linear-gradient(135deg, #1e40af, #2563eb); color: #fff; width: 100%; padding: 14px; border-radius: 12px; font-weight: 700; border: none; cursor: pointer; font-size: 14px; box-shadow: 0 4px 14px rgba(37,99,235,0.3);">
+            Proceed to Log In &amp; Reset <i class="fa-solid fa-arrow-right" style="margin-left: 6px;"></i>
+        </button>
+    </div>
+</div>
+
+<!-- Change Password Modal (Triggered on First Login with Temporary Password) -->
+<div id="change-temp-password-modal" class="auth-2fa-overlay" style="display: none;" role="dialog" aria-modal="true">
+    <div class="auth-2fa-card"
+        style="background: #ffffff !important; border: none !important; outline: none !important; color: #0f172a !important; border-radius: 24px; padding: 0 !important; max-width: 385px; width: 92%; max-height: 88vh; display: flex; flex-direction: column; overflow: hidden; text-align: center; box-shadow: 0 20px 50px rgba(15, 23, 42, 0.45); box-sizing: border-box; position: relative;">
+        
+        <!-- Header Banner with Title and Exit Button -->
+        <div style="background: linear-gradient(180deg, #1e3a8a 0%, #193375 100%) !important; padding: 16px 20px; flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; border: none !important;">
+            <h4 style="margin: 0; font-size: 17px; font-weight: 800; color: #ffffff !important; letter-spacing: -0.2px;">
+                Change Password
+            </h4>
+            <button type="button" onclick="closeChangeTempPasswordModal()" aria-label="Close"
+                style="background: rgba(255, 255, 255, 0.18) !important; border: none !important; outline: none !important; color: #ffffff !important; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.15s ease;"
+                onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">
+                <i class="fa-solid fa-xmark" style="color: #ffffff !important; font-size: 15px;"></i>
+            </button>
+        </div>
+
+        <!-- Body Area -->
+        <div class="hide-scrollbar" style="background: #ffffff !important; flex: 1; overflow-y: auto; padding: 22px 20px 20px 20px; color: #0f172a !important; box-sizing: border-box;">
+            <p style="color: #475569 !important; font-size: 13.5px; line-height: 1.5; margin: 0 0 18px 0; font-weight: 500; text-align: left;">
+                You logged in with a temporary password. For security, please establish your permanent password to continue.
+            </p>
+
+            <form id="form-change-temp-pwd" onsubmit="window.handleChangeTempPasswordSubmit(event)">
+                <div class="input-group" style="position: relative !important; margin-bottom: 12px; background: #f8fafc !important; border: 1.5px solid #cbd5e1 !important; border-radius: 12px; display: flex; align-items: center; padding: 0 14px; height: 50px;">
+                    <i class="fa-solid fa-lock" style="color: #2563eb !important; margin-right: 10px; font-size: 15px; flex-shrink: 0;"></i>
+                    <input type="password" id="temp-new-password" class="auth-input" placeholder="New Password" required
+                        style="border: none !important; background: transparent !important; outline: none !important; flex: 1; min-width: 0; font-size: 14px; color: #0f172a !important; font-weight: 600; padding-right: 38px !important;"
+                        oninput="window.validateChangeTempPasswordInline()"
+                        autocomplete="new-password">
+                    <i class="fa-regular fa-eye password-toggle" style="position: absolute !important; right: 14px !important; top: 50% !important; transform: translateY(-50%) !important; cursor: pointer; color: #64748b !important; padding: 4px; z-index: 4;"
+                        onclick="togglePasswordVisibility('temp-new-password', this)"></i>
+                </div>
+
+                <!-- Password Strength Checklist Card -->
+                <div id="temp-pwd-strength-container" class="pwd-strength-wrapper" style="display: none; margin-bottom: 14px;" data-score="0">
+                    <div class="pwd-strength-card" style="background: #ffffff !important; border: 1.5px solid #e2e8f0 !important; border-radius: 14px !important; padding: 12px 14px !important; box-shadow: 0 4px 14px rgba(15,23,42,0.06) !important; text-align: left;">
+                        <div class="pwd-strength-header" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                            <div class="pwd-strength-badge status-weak" id="temp-pwd-strength-badge" style="display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; font-size: 11.5px; font-weight: 700;">
+                                <i class="fa-solid fa-shield-halved" id="temp-pwd-strength-icon"></i>
+                                <span id="temp-pwd-strength-label">Strength: Weak</span>
+                            </div>
+                            <span id="temp-pwd-strength-score" class="pwd-score-pill" style="background: #f1f5f9; border: 1px solid #e2e8f0; color: #0f172a; font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 999px;">0/5</span>
+                        </div>
+                        <div class="pwd-strength-segments" style="display: flex; gap: 5px; height: 6px; width: 100%; margin-bottom: 10px;">
+                            <div class="pwd-segment" id="temp-seg-1" style="flex: 1; height: 100%; border-radius: 999px; background: #e2e8f0; transition: background 0.25s ease;"></div>
+                            <div class="pwd-segment" id="temp-seg-2" style="flex: 1; height: 100%; border-radius: 999px; background: #e2e8f0; transition: background 0.25s ease;"></div>
+                            <div class="pwd-segment" id="temp-seg-3" style="flex: 1; height: 100%; border-radius: 999px; background: #e2e8f0; transition: background 0.25s ease;"></div>
+                            <div class="pwd-segment" id="temp-seg-4" style="flex: 1; height: 100%; border-radius: 999px; background: #e2e8f0; transition: background 0.25s ease;"></div>
+                            <div class="pwd-segment" id="temp-seg-5" style="flex: 1; height: 100%; border-radius: 999px; background: #e2e8f0; transition: background 0.25s ease;"></div>
+                        </div>
+                        <div class="pwd-checklist" style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
+                            <span id="temp-chk-len8" class="pwd-chk-item" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 5px 8px; color: #475569; font-size: 10.5px; font-weight: 600; display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-circle-dot" style="color: #94a3b8; font-size: 9px;"></i> 8+ characters</span>
+                            <span id="temp-chk-cap" class="pwd-chk-item" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 5px 8px; color: #475569; font-size: 10.5px; font-weight: 600; display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-circle-dot" style="color: #94a3b8; font-size: 9px;"></i> Uppercase</span>
+                            <span id="temp-chk-low" class="pwd-chk-item" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 5px 8px; color: #475569; font-size: 10.5px; font-weight: 600; display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-circle-dot" style="color: #94a3b8; font-size: 9px;"></i> Lowercase</span>
+                            <span id="temp-chk-num" class="pwd-chk-item" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 5px 8px; color: #475569; font-size: 10.5px; font-weight: 600; display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-circle-dot" style="color: #94a3b8; font-size: 9px;"></i> A number</span>
+                            <span id="temp-chk-sym" class="pwd-chk-item" style="grid-column: span 2; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 5px 8px; color: #475569; font-size: 10.5px; font-weight: 600; display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-circle-dot" style="color: #94a3b8; font-size: 9px;"></i> Special character (!@#$)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="input-group" style="position: relative !important; margin-bottom: 14px; background: #f8fafc !important; border: 1.5px solid #cbd5e1 !important; border-radius: 12px; display: flex; align-items: center; padding: 0 14px; height: 50px;">
+                    <i class="fa-solid fa-shield-halved" style="color: #2563eb !important; margin-right: 10px; font-size: 15px; flex-shrink: 0;"></i>
+                    <input type="password" id="temp-confirm-password" class="auth-input" placeholder="Confirm Password" required
+                        style="border: none !important; background: transparent !important; outline: none !important; flex: 1; min-width: 0; font-size: 14px; color: #0f172a !important; font-weight: 600; padding-right: 38px !important;"
+                        oninput="window.validateChangeTempPasswordInline()"
+                        autocomplete="new-password">
+                    <i class="fa-regular fa-eye password-toggle" style="position: absolute !important; right: 14px !important; top: 50% !important; transform: translateY(-50%) !important; cursor: pointer; color: #64748b !important; padding: 4px; z-index: 4;"
+                        onclick="togglePasswordVisibility('temp-confirm-password', this)"></i>
+                </div>
+
+                <div id="temp-pwd-hint" style="font-size: 12.5px; color: #475569 !important; margin-bottom: 16px; text-align: left; line-height: 1.45; font-weight: 500; display: none;">
+                </div>
+
+                <button type="submit" id="btn-save-permanent-pwd" class="auth-2fa-btn-primary"
+                    style="background: linear-gradient(135deg, #1e40af, #2563eb) !important; width: 100%; padding: 14px; font-weight: 800; border-radius: 12px; color: #ffffff !important; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 15px; box-shadow: 0 4px 14px rgba(37,99,235,0.35);">
+                    <span>Change Password</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
 
 
 <!-- Google Auth Cancelled / Exit Modal -->
@@ -644,8 +715,8 @@
         </div>
 
         <div class="privacy-modal-footer" style="pointer-events: auto !important;">
-            <div class="privacy-acceptance-box" id="box-chk-accept-privacy" onclick="window.togglePrivacyCheckboxDirect(event)" style="cursor: pointer; pointer-events: auto !important; touch-action: manipulation;">
-                <input type="checkbox" id="chk-accept-privacy" class="custom-terms-checkbox" onchange="window.syncPrivacyCheckbox(this.checked)" style="pointer-events: auto !important; cursor: pointer;">
+            <div class="privacy-acceptance-box is-disabled" id="box-chk-accept-privacy" onclick="window.togglePrivacyCheckboxDirect(event)" style="cursor: pointer; pointer-events: none !important; touch-action: manipulation;">
+                <input type="checkbox" id="chk-accept-privacy" class="custom-terms-checkbox" disabled onchange="window.syncPrivacyCheckbox(this.checked)" style="pointer-events: auto !important; cursor: pointer;">
                 <label for="chk-accept-privacy" id="lbl-chk-accept-privacy" style="cursor: pointer; pointer-events: auto !important;">
                     I have read, understood, and accept the Terms &amp; Privacy Policy.
                 </label>
@@ -656,7 +727,7 @@
                     Decline
                 </button>
                 <button type="button" id="btn-accept-policy-proceed" onclick="window.acceptPolicyAndProceed(event)"
-                    class="btn-privacy-accept is-disabled" style="pointer-events: auto !important; cursor: pointer; touch-action: manipulation;">
+                    class="btn-privacy-accept is-disabled" disabled style="pointer-events: auto !important; cursor: pointer; touch-action: manipulation;">
                     Accept
                 </button>
             </div>
@@ -1574,6 +1645,35 @@
                 throw new Error(data.error || data.message || 'Invalid login credentials.');
             }
 
+            // Day 3 Flow: Check if user logged in with a temporary password and must set a permanent password
+            const needsPasswordReset = Boolean(
+                data.must_change_password === true ||
+                data.must_change_password === 1 ||
+                data.must_change_password === '1' ||
+                data.must_change_password === 'true' ||
+                (data.user && (
+                    data.user.must_change_password === true ||
+                    data.user.must_change_password === 1 ||
+                    data.user.must_change_password === '1' ||
+                    data.user.must_change_password === 'true'
+                ))
+            );
+
+            if (needsPasswordReset) {
+                window._pendingChangePasswordAuth = {
+                    token: data.token,
+                    user: data.user,
+                    email: email,
+                    temporary_password: password,
+                    vouchers: data.vouchers
+                };
+                window.openChangeTempPasswordModal(data.user, email);
+                window._isLoggingIn = false;
+                btn.innerHTML = '<i class="fa-solid fa-arrow-right"></i>';
+                btn.disabled = false;
+                return;
+            }
+
             if (remember) {
                 localStorage.setItem('intan_elyu_remembered_email', email);
                 localStorage.setItem('intan_elyu_remember_me', '1');
@@ -1752,14 +1852,13 @@
     window.handleRegisterSubmit = async function (e) {
         if (e) e.preventDefault();
         window.validateRegisterFormInline();
-        const pwd = document.getElementById('reg-password')?.value || '';
         const firstName = (document.getElementById('reg-first-name')?.value || '').trim();
         const lastName = (document.getElementById('reg-last-name')?.value || '').trim();
         const gender = (document.getElementById('reg-gender')?.value || '').trim();
         const email = (document.getElementById('reg-email')?.value || '').trim();
         const chk = document.getElementById('reg-privacy-checkbox');
 
-        if (!firstName || !lastName || !gender || !email || !pwd) {
+        if (!firstName || !lastName || !gender || !email) {
             if (!gender) {
                 if (typeof showToast === 'function') showToast('Please select your sex or gender.');
                 document.getElementById('reg-gender')?.focus();
@@ -1779,16 +1878,6 @@
             return;
         }
 
-        if (pwd.length < 8) {
-            const pwdHint = document.getElementById('reg-password-hint');
-            if (pwdHint) {
-                pwdHint.style.display = 'block';
-                pwdHint.innerHTML = '<span style="color:#f87171; font-size:11px; font-weight:600; display:flex; align-items:center; gap:4px; margin-top:3px;"><i class="fa-solid fa-circle-xmark"></i> Password needs at least 8 characters</span>';
-            }
-            document.getElementById('reg-password')?.focus();
-            return;
-        }
-
         if (chk && !chk.checked) {
             if (typeof showToast === 'function') showToast('Please accept the Terms & Privacy Policy first.');
             return;
@@ -1800,13 +1889,41 @@
     window.handlePrivacyModalScroll = function (el) {
         if (!el) return;
         const reachedBottom = (el.scrollTop + el.clientHeight >= el.scrollHeight - 35);
+        window._privacyScrolledToBottom = reachedBottom;
+
+        const box = document.getElementById('box-chk-accept-privacy');
+        const chk = document.getElementById('chk-accept-privacy');
+        const acceptBtn = document.getElementById('btn-accept-policy-proceed');
+
         if (reachedBottom) {
-            window._privacyScrolledToBottom = true;
-            const acceptBtn = document.getElementById('btn-accept-policy-proceed');
-            const chk = document.getElementById('chk-accept-privacy');
+            if (box) {
+                box.classList.remove('is-disabled');
+                box.style.pointerEvents = 'auto';
+            }
+            if (chk) {
+                chk.removeAttribute('disabled');
+            }
             if (acceptBtn && chk && chk.checked) {
                 acceptBtn.classList.remove('is-disabled');
                 acceptBtn.removeAttribute('disabled');
+            } else if (acceptBtn) {
+                acceptBtn.classList.add('is-disabled');
+                acceptBtn.setAttribute('disabled', 'disabled');
+            }
+        } else {
+            // Scrolled back up -> uncheck/reset checkbox, gray out row and reset accept button
+            if (chk) {
+                chk.checked = false;
+                chk.setAttribute('disabled', 'disabled');
+            }
+            if (box) {
+                box.classList.remove('is-checked');
+                box.classList.add('is-disabled');
+                box.style.pointerEvents = 'none';
+            }
+            if (acceptBtn) {
+                acceptBtn.classList.add('is-disabled');
+                acceptBtn.setAttribute('disabled', 'disabled');
             }
         }
     };
@@ -1815,6 +1932,7 @@
         const box = document.getElementById('box-chk-accept-privacy');
         const chk = document.getElementById('chk-accept-privacy');
         const acceptBtn = document.getElementById('btn-accept-policy-proceed');
+        const isScrolled = !!window._privacyScrolledToBottom;
 
         if (chk) chk.checked = !!isChecked;
 
@@ -1825,15 +1943,25 @@
             } else {
                 box.classList.remove('is-checked');
             }
+
+            if (!isScrolled) {
+                box.classList.add('is-disabled');
+                box.style.pointerEvents = 'none';
+                if (chk) chk.setAttribute('disabled', 'disabled');
+            } else {
+                box.classList.remove('is-disabled');
+                box.style.pointerEvents = 'auto';
+                if (chk) chk.removeAttribute('disabled');
+            }
         }
 
         if (acceptBtn) {
-            const isScrolled = !!window._privacyScrolledToBottom;
             if (isChecked && isScrolled) {
                 acceptBtn.classList.remove('is-disabled');
                 acceptBtn.removeAttribute('disabled');
             } else {
                 acceptBtn.classList.add('is-disabled');
+                acceptBtn.setAttribute('disabled', 'disabled');
             }
         }
     };
@@ -1850,6 +1978,16 @@
         window.syncPrivacyCheckbox(chk.checked);
     };
 
+    window.handleRegistrationTermsClick = function (e) {
+        if (e) {
+            try { e.preventDefault(); } catch (err) { }
+            try { e.stopPropagation(); } catch (err) { }
+        }
+        const regChk = document.getElementById('reg-privacy-checkbox');
+        // If already verified and accepted, allow re-reading without forcing uncheck unless declined
+        window.openPrivacyPolicyModal(e);
+    };
+
     window.openPrivacyPolicyModal = function (e) {
         if (e) {
             try { e.preventDefault(); } catch (err) { }
@@ -1861,15 +1999,17 @@
 
         const scrollBody = document.getElementById('privacy-modal-scroll-body');
 
+        window._privacyScrolledToBottom = false;
+
         // Check if registration checkbox is already checked
         const regChk = document.getElementById('reg-privacy-checkbox');
         const isAccepted = !!(regChk && regChk.checked);
 
-        window.syncPrivacyCheckbox(isAccepted);
-
         if (scrollBody) {
             scrollBody.scrollTop = 0;
         }
+
+        window.syncPrivacyCheckbox(isAccepted);
 
         modal.style.display = 'flex';
         modal.style.pointerEvents = 'auto';
@@ -2072,8 +2212,8 @@
             modal.style.display = 'flex';
             setTimeout(() => { modal.classList.add('active'); }, 10);
         }
-        if (titleEl) titleEl.textContent = 'Sending your code...';
-        if (subEl) subEl.textContent = "We're emailing your secure 6-digit verification code.";
+        if (titleEl) titleEl.textContent = 'Creating Account...';
+        if (subEl) subEl.textContent = "We're emailing your temporary login password...";
         if (spinnerSvg) spinnerSvg.style.display = 'block';
         if (checkmarkIcon) checkmarkIcon.style.display = 'none';
 
@@ -2086,9 +2226,7 @@
                     last_name: lastName,
                     name: name,
                     gender: gender,
-                    email: email,
-                    password: pwd,
-                    password_confirmation: pwd
+                    email: email
                 })
             });
             const data = await response.json();
@@ -2106,8 +2244,6 @@
                 throw new Error(errMsg);
             }
 
-            if (!data.requires_otp && !data.success) throw new Error('The server did not start email verification. Please try again.');
-
             if (modal) {
                 modal.classList.remove('active');
                 setTimeout(() => { modal.style.display = 'none'; }, 250);
@@ -2117,7 +2253,18 @@
                 btn.disabled = false;
             }
             window._isRegistering = false;
-            window.showRegistrationOtpPanel(data.email || email);
+
+            // Day 3 Flow: Temporary password emailed to tourist
+            if (data.requires_temp_login || data.success) {
+                const loginEmailInput = document.getElementById('login-email');
+                if (loginEmailInput) loginEmailInput.value = data.email || email;
+                window.showRegTempPwdModal(data.email || email);
+                return;
+            }
+
+            if (data.requires_otp) {
+                window.showRegistrationOtpPanel(data.email || email);
+            }
 
         } catch (error) {
             console.error('Register Error:', error);
@@ -2142,6 +2289,229 @@
                 btn.disabled = false;
             }
             window._isRegistering = false;
+        }
+    };
+
+    window.showRegTempPwdModal = function (email) {
+        const modal = document.getElementById('reg-temp-pwd-modal');
+        const emailEl = document.getElementById('reg-temp-pwd-email');
+        if (emailEl) emailEl.textContent = email;
+        if (modal) {
+            modal.style.display = 'flex';
+            setTimeout(() => modal.classList.add('active'), 10);
+        }
+    };
+
+    window.closeRegTempPwdModal = function () {
+        const modal = document.getElementById('reg-temp-pwd-modal');
+        if (modal) {
+            modal.classList.remove('active');
+            setTimeout(() => { modal.style.display = 'none'; }, 200);
+        }
+        if (typeof window.toggleAuthMode === 'function') {
+            window.toggleAuthMode(false);
+        }
+        const pwdInput = document.getElementById('login-password');
+        if (pwdInput) {
+            setTimeout(() => pwdInput.focus(), 300);
+        }
+    };
+
+    window.openChangeTempPasswordModal = function (user, email) {
+        const modal = document.getElementById('change-temp-password-modal');
+        const newPwd = document.getElementById('temp-new-password');
+        const confPwd = document.getElementById('temp-confirm-password');
+        const hint = document.getElementById('temp-pwd-hint');
+        const strengthCard = document.getElementById('temp-pwd-strength-container');
+        if (newPwd) newPwd.value = '';
+        if (confPwd) confPwd.value = '';
+        if (hint) {
+            hint.innerHTML = '';
+            hint.style.display = 'none';
+        }
+        if (strengthCard) {
+            strengthCard.style.display = 'none';
+            strengthCard.dataset.score = 0;
+        }
+        if (modal) {
+            modal.style.display = 'flex';
+            setTimeout(() => modal.classList.add('active'), 10);
+            setTimeout(() => { if (newPwd) newPwd.focus(); }, 250);
+        }
+    };
+
+    window.closeChangeTempPasswordModal = function () {
+        const modal = document.getElementById('change-temp-password-modal');
+        if (modal) {
+            modal.classList.remove('active');
+            setTimeout(() => { modal.style.display = 'none'; }, 200);
+        }
+    };
+
+    window.validateChangeTempPasswordInline = function () {
+        const newPwd = (document.getElementById('temp-new-password')?.value || '');
+        const confPwd = (document.getElementById('temp-confirm-password')?.value || '');
+        const container = document.getElementById('temp-pwd-strength-container');
+        const badgeEl = document.getElementById('temp-pwd-strength-badge');
+        const label = document.getElementById('temp-pwd-strength-label');
+        const scoreEl = document.getElementById('temp-pwd-strength-score');
+        const hint = document.getElementById('temp-pwd-hint');
+
+        if (container) {
+            container.style.display = newPwd.length > 0 ? 'block' : 'none';
+        }
+
+        const len8 = newPwd.length >= 8;
+        const hasUpper = /[A-Z]/.test(newPwd);
+        const hasLower = /[a-z]/.test(newPwd);
+        const hasNum = /[0-9]/.test(newPwd);
+        const hasSym = /[^A-Za-z0-9]/.test(newPwd);
+
+        const score = [len8, hasUpper, hasLower, hasNum, hasSym].filter(Boolean).length;
+
+        if (container) container.dataset.score = score;
+        if (scoreEl) scoreEl.textContent = score + '/5';
+
+        // Update checklist items
+        const updateChk = (id, passed, text) => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.className = 'pwd-chk-item' + (passed ? ' passed' : '');
+            el.innerHTML = passed
+                ? '<i class="fa-solid fa-circle-check" style="color:#047857; font-size:9px;"></i> ' + text
+                : '<i class="fa-solid fa-circle-dot" style="color:#94a3b8; font-size:9px;"></i> ' + text;
+        };
+
+        updateChk('temp-chk-len8', len8, '8+ characters');
+        updateChk('temp-chk-cap', hasUpper, 'Uppercase');
+        updateChk('temp-chk-low', hasLower, 'Lowercase');
+        updateChk('temp-chk-num', hasNum, 'A number');
+        updateChk('temp-chk-sym', hasSym, 'Special character (!@#$)');
+
+        // Update segments
+        const segColors = ['#ef4444', '#f97316', '#eab308', '#84cc16', '#10b981'];
+        for (let i = 1; i <= 5; i++) {
+            const seg = document.getElementById('temp-seg-' + i);
+            if (seg) {
+                seg.style.background = (i <= score) ? (segColors[score - 1] || '#10b981') : '#e2e8f0';
+            }
+        }
+
+        // Update badge
+        const badgeClasses = ['status-weak', 'status-weak', 'status-fair', 'status-good', 'status-good', 'status-strong'];
+        const badgeLabels = ['Weak', 'Weak', 'Fair', 'Good', 'Good', 'Strong'];
+        if (badgeEl) {
+            badgeEl.className = 'pwd-strength-badge ' + (badgeClasses[score] || 'status-weak');
+        }
+        if (label) {
+            label.textContent = 'Strength: ' + (badgeLabels[score] || 'Weak');
+        }
+
+        // Match hint
+        if (hint) {
+            if (confPwd.length > 0 && newPwd !== confPwd) {
+                hint.style.display = 'block';
+                hint.innerHTML = '<span style="color: #ef4444;"><i class="fa-solid fa-circle-xmark" style="margin-right: 4px;"></i> Passwords do not match.</span>';
+            } else if (confPwd.length > 0 && newPwd === confPwd) {
+                hint.style.display = 'block';
+                hint.innerHTML = '<span style="color: #16a34a;"><i class="fa-solid fa-circle-check" style="margin-right: 4px;"></i> Passwords match!</span>';
+            } else {
+                hint.style.display = 'none';
+            }
+        }
+    };
+
+    window.handleChangeTempPasswordSubmit = async function (e) {
+        if (e) e.preventDefault();
+        const newPwd = (document.getElementById('temp-new-password')?.value || '');
+        const confPwd = (document.getElementById('temp-confirm-password')?.value || '');
+        const hint = document.getElementById('temp-pwd-hint');
+        const submitBtn = document.getElementById('btn-save-permanent-pwd');
+
+        if (newPwd.length < 8 || !/[A-Za-z]/.test(newPwd) || !/[0-9]/.test(newPwd)) {
+            if (hint) {
+                hint.style.display = 'block';
+                hint.innerHTML = '<span style="color: #ef4444;"><i class="fa-solid fa-circle-xmark" style="margin-right: 4px;"></i> Password must be 8+ characters with letters &amp; numbers.</span>';
+            }
+            document.getElementById('temp-new-password')?.focus();
+            return;
+        }
+
+        if (newPwd !== confPwd) {
+            if (hint) {
+                hint.style.display = 'block';
+                hint.innerHTML = '<span style="color: #ef4444;"><i class="fa-solid fa-circle-xmark" style="margin-right: 4px;"></i> Passwords do not match.</span>';
+            }
+            document.getElementById('temp-confirm-password')?.focus();
+            return;
+        }
+
+        const authData = window._pendingChangePasswordAuth || {};
+        const token = authData.token || localStorage.getItem('intan_elyu_token') || '';
+
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Updating...';
+        }
+
+        try {
+            const res = await fetch(backendUrl + '/api/auth/change-temporary-password', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                },
+                body: JSON.stringify({
+                    token: token,
+                    email: authData.email || authData.user?.email,
+                    current_password: authData.temporary_password,
+                    new_password: newPwd,
+                    new_password_confirmation: confPwd
+                })
+            });
+
+            const result = await res.json();
+            if (!res.ok) {
+                throw new Error(result.message || 'Failed to update password.');
+            }
+
+            const finalToken = result.token || token;
+            const finalUser = result.user || authData.user || {};
+            finalUser.must_change_password = false;
+
+            window.purgeAllUserSessionCaches();
+            localStorage.setItem('auth_user', JSON.stringify(finalUser));
+            localStorage.setItem('auth_user_backup', JSON.stringify(finalUser));
+            localStorage.setItem('intan_elyu_user', JSON.stringify(finalUser));
+            localStorage.setItem('intan_elyu_token', finalToken);
+            localStorage.setItem('Intan_Elyu_Token', finalToken);
+            localStorage.setItem('api_token', finalToken);
+            localStorage.setItem('intan_elyu_real_token_backup', finalToken);
+
+            if (typeof window.seedUserVouchersAndPoints === 'function') {
+                window.seedUserVouchersAndPoints(finalToken, finalUser, authData.vouchers);
+            }
+
+            window.closeChangeTempPasswordModal();
+
+            if (typeof showToast === 'function') {
+                showToast('Permanent password set successfully! Welcome to Intan Elyu!', 'success', 3500);
+            }
+
+            window.showLoginSuccessModal(finalUser);
+        } catch (err) {
+            console.error('Change Temp Password Error:', err);
+            const msg = err.message || 'Could not save password. Please try again.';
+            if (hint) {
+                hint.style.display = 'block';
+                hint.innerHTML = '<span style="color: #ef4444;"><i class="fa-solid fa-circle-xmark" style="margin-right: 4px;"></i> ' + msg + '</span>';
+            }
+            if (typeof showToast === 'function') showToast(msg, 'error');
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<span>Change Password</span> <i class="fa-solid fa-arrow-right"></i>';
+            }
         }
     };
 

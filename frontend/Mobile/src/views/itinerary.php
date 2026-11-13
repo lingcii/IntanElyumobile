@@ -26,7 +26,7 @@ try {
                 'longitude' => (float) $sp->longitude,
                 'price' => (float) ($sp->entrance_fee ?? 0),
                 'environmental_fee' => (float) ($sp->environmental_fee ?? 0),
-                'rating' => (float) ($sp->rating ?? 4.8),
+                'rating' => (float) ($sp->rating ?? ($sp->reviews_avg_rating ?? 0)),
                 'description' => $sp->description ?? '',
                 'opening_time' => $sp->opening_time ?? '',
                 'closing_time' => $sp->closing_time ?? '',
@@ -379,7 +379,7 @@ try {
         <div class="scope-card" style="background:#ffffff; border-radius:20px; padding:18px; border:1px solid #e2e8f0; box-shadow:0 4px 16px rgba(15,23,42,0.04); display:flex; flex-direction:column;">
             
             <div style="margin-bottom:16px;">
-                <h3 style="margin:0; font-size:15.5px; font-weight:800; color:#0f172a;">Trip Plan & Parameters</h3>
+                <h3 style="margin:0; font-size:15.5px; font-weight:800; color:#0f172a;">Trip Plan</h3>
                 <p style="margin:1px 0 0; font-size:11px; color:#64748b;">Set your adventure name, dates, base hub, and party.</p>
             </div>
 
@@ -500,12 +500,12 @@ try {
                             </div>
                             <span style="font-size:13px; font-weight:700; color:#1e293b;">Male</span>
                         </div>
-                        <div style="display:flex; align-items:center; gap:8px;">
+                        <div style="display:flex; align-items:center; background:#f1f5f9; border:1px solid #e2e8f0; border-radius:10px; padding:3px 4px; gap:4px;">
                             <button type="button" id="btn-dec-males" onclick="window.adjustCompanionCount('males', -1)"
-                                style="width:32px; height:32px; border-radius:50%; background:#334155; border:none; color:#ffffff; font-size:15px; font-weight:800; cursor:pointer;">−</button>
-                            <span id="companion-males-count" style="font-size:15px; font-weight:800; color:#0f172a; min-width:24px; text-align:center;">0</span>
+                                style="width:30px; height:28px; border-radius:7px; background:#2563eb; border:none; color:#ffffff; font-size:14px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 4px rgba(37,99,235,0.25); transition:all 0.15s ease;">−</button>
+                            <span id="companion-males-count" style="font-size:14px; font-weight:800; color:#0f172a; min-width:24px; text-align:center;">0</span>
                             <button type="button" id="btn-inc-males" onclick="window.adjustCompanionCount('males', 1)"
-                                style="width:32px; height:32px; border-radius:50%; background:#0284c7; border:none; color:#ffffff; font-size:15px; font-weight:800; cursor:pointer;">+</button>
+                                style="width:30px; height:28px; border-radius:7px; background:#2563eb; border:none; color:#ffffff; font-size:14px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 4px rgba(37,99,235,0.25); transition:all 0.15s ease;">+</button>
                         </div>
                     </div>
                     <!-- Female -->
@@ -516,12 +516,12 @@ try {
                             </div>
                             <span style="font-size:13px; font-weight:700; color:#1e293b;">Female</span>
                         </div>
-                        <div style="display:flex; align-items:center; gap:8px;">
+                        <div style="display:flex; align-items:center; background:#f1f5f9; border:1px solid #e2e8f0; border-radius:10px; padding:3px 4px; gap:4px;">
                             <button type="button" id="btn-dec-females" onclick="window.adjustCompanionCount('females', -1)"
-                                style="width:32px; height:32px; border-radius:50%; background:#334155; border:none; color:#ffffff; font-size:15px; font-weight:800; cursor:pointer;">−</button>
-                            <span id="companion-females-count" style="font-size:15px; font-weight:800; color:#0f172a; min-width:24px; text-align:center;">0</span>
+                                style="width:30px; height:28px; border-radius:7px; background:#2563eb; border:none; color:#ffffff; font-size:14px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 4px rgba(37,99,235,0.25); transition:all 0.15s ease;">−</button>
+                            <span id="companion-females-count" style="font-size:14px; font-weight:800; color:#0f172a; min-width:24px; text-align:center;">0</span>
                             <button type="button" id="btn-inc-females" onclick="window.adjustCompanionCount('females', 1)"
-                                style="width:32px; height:32px; border-radius:50%; background:#db2777; border:none; color:#ffffff; font-size:15px; font-weight:800; cursor:pointer;">+</button>
+                                style="width:30px; height:28px; border-radius:7px; background:#2563eb; border:none; color:#ffffff; font-size:14px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 4px rgba(37,99,235,0.25); transition:all 0.15s ease;">+</button>
                         </div>
                     </div>
 
@@ -529,7 +529,7 @@ try {
                     <div id="companion-ages-section" style="display:none; margin-top:8px; border-top:1px solid #e2e8f0; padding-top:10px;">
                         <div style="font-size:12px; color:#334155; font-weight:800; margin-bottom:8px; display:flex; align-items:center; justify-content:space-between;">
                             <span>Companion Ages</span>
-                            <span id="companion-detected-summary" style="font-size:10.5px; font-weight:800; color:#0284c7; background:#e0f2fe; padding:2px 8px; border-radius:10px;">0 travelers</span>
+                            <span id="companion-detected-summary" style="display:none !important; font-size:10.5px; font-weight:800; color:#0284c7; background:#e0f2fe; padding:2px 8px; border-radius:10px;">0 travelers</span>
                         </div>
                         <div id="companion-age-list" style="display:flex; flex-direction:column; gap:8px;">
                             <!-- Dynamically generated rows per companion -->
@@ -660,29 +660,16 @@ try {
     <div id="itin-step-3" class="itinerary-step-panel">
         <div class="transpo-card" style="background:#ffffff; border-radius:20px; padding:18px; border:1px solid #e2e8f0; box-shadow:0 4px 16px rgba(15,23,42,0.04); display:flex; flex-direction:column;">
             
-            <div style="margin-bottom:14px;">
-                <h3 style="margin:0; font-size:15.5px; font-weight:800; color:#0f172a;">Transportation & Cost Forecast</h3>
-                <p style="margin:1px 0 0; font-size:11px; color:#64748b;">Select vehicle mode and review your trip forecast.</p>
+            <div style="margin-bottom:12px;">
+                <h3 style="margin:0; font-size:15.5px; font-weight:800; color:#0f172a;">Transportation</h3>
             </div>
 
-            <!-- Trip Overview Pill -->
-            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:16px; padding:12px 14px; margin-bottom:14px; display:flex; flex-direction:column; gap:8px;">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span style="font-size:11px; color:#64748b; font-weight:700;">Trip Name:</span>
-                    <span id="page-review-name" style="font-size:13px; font-weight:800; color:#0f172a; max-width:60%; text-align:right; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">My La Union Trip</span>
-                </div>
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span style="font-size:11px; color:#64748b; font-weight:700;">Date:</span>
-                    <span id="page-review-date" style="font-size:12px; font-weight:700; color:#0f172a;">Flexible / Anytime</span>
-                </div>
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span style="font-size:11px; color:#64748b; font-weight:700;">Party Size:</span>
-                    <span id="page-review-party" style="font-size:12px; font-weight:800; color:#0284c7;">1 Traveler (Solo)</span>
-                </div>
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span style="font-size:11px; color:#64748b; font-weight:700;">Base Area:</span>
-                    <span id="page-review-muni" style="font-size:12px; font-weight:800; color:#1e3a8a;">San Juan</span>
-                </div>
+            <!-- Trip Overview Pill (Hidden) -->
+            <div style="display:none !important;" aria-hidden="true">
+                <span id="page-review-name">My La Union Trip</span>
+                <span id="page-review-date">Flexible / Anytime</span>
+                <span id="page-review-party">1 Traveler (Solo)</span>
+                <span id="page-review-muni">San Juan</span>
             </div>
 
             <!-- Vehicle Selection Cards (Multi-Select) -->
@@ -781,7 +768,7 @@ try {
                 </div>
 
                 <!-- Option 7: Own Vehicle -->
-                <div class="wizard-trans-card" data-mode="car" onclick="window.selectWizardVehicle('car')">
+                <div class="wizard-trans-card" data-mode="own_car" onclick="window.selectWizardVehicle('own_car')">
                     <div style="display:flex; align-items:center; gap:10px;">
                         <div style="width:34px; height:34px; border-radius:10px; background:#0284c7; color:#ffffff; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0;">
                             <i class="fa-solid fa-car"></i>
@@ -810,12 +797,12 @@ try {
 
 
             <!-- Total Summary of the Trip (Cost Breakdown Card) -->
-            <div id="save-trip-total-summary-card" style="margin-top:16px; margin-bottom:14px; display:flex; flex-direction:column; gap:10px;">
+            <div id="save-trip-total-summary-card" style="margin-top:10px; margin-bottom:10px; display:flex; flex-direction:column; gap:8px;">
                 <div style="font-size:12.5px; font-weight:700; color:#1e293b;">
                     Total Summary of the Trip
                 </div>
                 <!-- Dynamically populated summary items -->
-                <div id="save-modal-summary-items" style="display:flex; flex-direction:column; gap:10px;"></div>
+                <div id="save-modal-summary-items" style="display:flex; flex-direction:column; gap:8px;"></div>
             </div>
 
             <!-- Hidden Inputs & Legacy Stubs -->
@@ -892,9 +879,9 @@ try {
             </button>
 
             <!-- Star Rating Badge -->
-            <div style="position:absolute; top:12px; left:12px; background:rgba(15,23,42,0.75); backdrop-filter:blur(8px); border-radius:100px; padding:4px 10px; color:#facc15; font-size:11.5px; font-weight:800; display:flex; align-items:center; gap:4px;">
+            <div id="spot-detail-rating-badge" style="display:none; position:absolute; top:12px; left:12px; background:rgba(15,23,42,0.75); backdrop-filter:blur(8px); border-radius:100px; padding:4px 10px; color:#facc15; font-size:11.5px; font-weight:800; align-items:center; gap:4px;">
                 <i class="fa-solid fa-star" style="font-size:10px;"></i>
-                <span id="spot-detail-rating" style="color:#ffffff;">4.8</span>
+                <span id="spot-detail-rating" style="color:#ffffff;"></span>
             </div>
 
             <!-- Category Badge -->
@@ -1417,7 +1404,7 @@ try {
     
     <!-- Header Bar matching the App Mobile Header Style -->
     <div class="mobile-header"
-        style="position:absolute !important; top:0 !important; left:0 !important; transform:none !important; width:100% !important; max-width:100% !important; background:#1e3a8a !important; padding:10px clamp(12px, 3.8vw, 18px) !important; padding-top:max(env(safe-area-inset-top, 0px), 36px) !important; display:flex !important; justify-content:space-between !important; align-items:center !important; z-index:10000 !important; box-sizing:border-box !important; border:none !important; outline:none !important; box-shadow:none !important;">
+        style="position:absolute !important; top:0 !important; left:0 !important; transform:none !important; width:100% !important; max-width:100% !important; background:#1e3a8a !important; padding:10px clamp(16px, 4.5vw, 22px) !important; padding-top:max(env(safe-area-inset-top, 0px), 36px) !important; display:flex !important; justify-content:space-between !important; align-items:center !important; z-index:10000 !important; box-sizing:border-box !important; border:none !important; outline:none !important; box-shadow:none !important;">
         <button type="button" class="header-icon" onclick="window.closeItineraryFullscreenMap()" title="Back" aria-label="Back"
             style="width:38px; height:38px; border-radius:12px; background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(0,0,0,0.15) !important;"
             onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">
@@ -3564,8 +3551,8 @@ try {
             const grandTotalCost = grandTotal + totalSiteFeesAllSpots;
 
             const overallCostCardHtml = `
-                <div style="background:#ffffff !important; border-radius:16px; padding:14px 16px; border:1.5px solid #e2e8f0 !important; box-shadow:0 3px 10px rgba(0, 0, 0, 0.04) !important; display:flex; flex-direction:column; gap:10px;">
-                    <div style="display:flex; flex-direction:column; gap:6px; margin-bottom:18px;">
+                <div style="background:#ffffff !important; border-radius:16px; padding:12px 14px; border:1.5px solid #e2e8f0 !important; box-shadow:0 3px 10px rgba(0, 0, 0, 0.04) !important; display:flex; flex-direction:column; gap:8px;">
+                    <div style="display:flex; flex-direction:column; gap:6px; margin-bottom:8px;">
                         <!-- Transit Total Row -->
                         <div style="display:flex; justify-content:space-between; align-items:center; font-size:12.5px;">
                             <span style="color:#475569; font-weight:600; display:inline-flex; align-items:center; gap:7px;">
@@ -3598,7 +3585,7 @@ try {
                     </div>
 
                     <!-- Estimated Total Cost Row (Positioned below Environmental Fees) -->
-                    <div style="display:flex; align-items:center; justify-content:space-between; padding-top:10px; border-top:1.5px solid #f1f5f9; margin-top:2px;">
+                    <div style="display:flex; align-items:center; justify-content:space-between; padding-top:8px; border-top:1.5px solid #f1f5f9; margin-top:0;">
                         <div>
                             <span style="font-size:12.5px; font-weight:800; color:#0f172a; letter-spacing:-0.1px; display:block;">
                                 Estimated Total Cost
@@ -5778,7 +5765,6 @@ try {
                 html += `
                     <div class="companion-age-row" style="display:flex; align-items:center; justify-content:space-between; background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:8px 10px; gap:6px; box-sizing:border-box;">
                         <div style="display:flex; align-items:center; gap:5px; flex-shrink:0;">
-                            <span style="font-size:12px; font-weight:800; color:#0f172a;">#${idx + 1}</span>
                             <span style="font-size:11.5px; color:#334155; font-weight:700;">${genderLabel}</span>
                         </div>
                         <div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
@@ -5790,7 +5776,7 @@ try {
                                     onblur="window.validateCompanionAgeBlur(${idx}, this)"
                                     onfocus="this.select(); setTimeout(() => { try { this.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch(e){} }, 180);"
                                     style="width:48px; height:32px; border:1.5px solid #cbd5e1; border-radius:8px; text-align:center; font-size:13px; font-weight:800; color:#0f172a; padding:0 3px; outline:none; background:#ffffff; box-sizing:border-box; transition:border-color 0.2s;" />
-                                <span style="font-size:10px; color:#64748b; font-weight:700;">yo</span>
+                                <span style="font-size:10px; color:#64748b; font-weight:700;">y.o.</span>
                             </div>
                             <span id="comp-badge-${idx}" style="font-size:10.5px; font-weight:800; padding:3px 7px; border-radius:7px; background:${badgeBg}; color:${badgeColor}; min-width:38px; text-align:center;">
                                 ${badgeText}
@@ -5949,13 +5935,18 @@ try {
             const summaryText = document.getElementById('companion-summary-text');
             if (summaryText) {
                 if (!isGroup || totalGenderCompanions === 0) {
-                    summaryText.textContent = '1 Traveler (You)';
+                    summaryText.textContent = isGroup ? '1 Traveler (Group)' : '1 Traveler (Solo)';
                 } else {
                     let details = ['You'];
                     if (males > 0) details.push(`${males}M`);
                     if (females > 0) details.push(`${females}F`);
                     summaryText.textContent = `${totalPax} Travelers (${details.join(' + ')})`;
                 }
+            }
+
+            const pageReviewParty = document.getElementById('page-review-party');
+            if (pageReviewParty && summaryText) {
+                pageReviewParty.textContent = summaryText.textContent;
             }
 
             // Update limit pill / indicator
@@ -6130,7 +6121,7 @@ try {
                             longitude: parseFloat(found.longitude || found.lng || 0),
                             price: parseFloat(found.entrance_fee || found.price || 0),
                             environmental_fee: parseFloat(found.environmental_fee || 0),
-                            rating: parseFloat(found.rating || 4.8),
+                            rating: (found.rating && parseFloat(found.rating) > 0) ? parseFloat(found.rating) : (found.reviews_avg_rating ? parseFloat(found.reviews_avg_rating) : 0),
                             description: found.description || '',
                             opening_time: found.opening_time || '',
                             closing_time: found.closing_time || '',
@@ -6269,7 +6260,7 @@ try {
                             latitude: parseFloat(s.latitude || s.lat || 0),
                             longitude: parseFloat(s.longitude || s.lng || 0),
                             price: parseFloat(s.entrance_fee || s.price || 0),
-                            rating: parseFloat(s.rating || 4.8)
+                            rating: (s.rating && parseFloat(s.rating) > 0) ? parseFloat(s.rating) : (s.reviews_avg_rating ? parseFloat(s.reviews_avg_rating) : 0)
                         }));
                     }
                 } catch (e) { }
@@ -6340,7 +6331,7 @@ try {
                 const thumbUrl = (typeof window.getSpotR2Thumbnail === 'function')
                     ? window.getSpotR2Thumbnail(spot)
                     : (spot.photo_url || 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/tourist_spots/spot_6a686f4d0f48b.jpg');
-                const rating = (spot.rating && spot.rating > 0) ? Number(spot.rating).toFixed(1) : '4.8';
+                const ratingVal = (spot.rating && spot.rating > 0) ? Number(spot.rating).toFixed(1) : ((spot.reviews_avg_rating && spot.reviews_avg_rating > 0) ? Number(spot.reviews_avg_rating).toFixed(1) : null);
                 const muniName = spot.municipality || 'La Union';
                 const isBaseMatch = hasBaseMuni && String(muniName).toLowerCase().includes(baseMuniRaw);
 
@@ -6355,9 +6346,11 @@ try {
                             <img src="${thumbUrl}" alt="${spot.name}" loading="lazy"
                                 onerror="this.onerror=null; this.src='https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/tourist_spots/spot_6a686f4d0f48b.jpg';"
                                 style="width:100%; height:100%; object-fit:cover; display:block;">
+                            ${ratingVal ? `
                             <div style="position:absolute; top:5px; right:5px; background:rgba(15,23,42,0.78); backdrop-filter:blur(4px); border-radius:6px; padding:2px 5px; color:#facc15; font-size:10px; font-weight:800; display:flex; align-items:center; gap:2px;">
-                                <i class="fa-solid fa-star" style="font-size:9px;"></i> ${rating}
+                                <i class="fa-solid fa-star" style="font-size:9px;"></i> ${ratingVal}
                             </div>
+                            ` : ''}
                             ${isBaseMatch ? `
                                 <div style="position:absolute; bottom:5px; left:5px; background:#0284c7; color:#ffffff; font-size:9px; font-weight:800; padding:2px 6px; border-radius:6px; box-shadow:0 1px 4px rgba(0,0,0,0.2);">
                                     Base Hub
@@ -6419,7 +6412,14 @@ try {
             if (titleEl) titleEl.textContent = spot.name || 'Attraction';
             if (locEl) locEl.textContent = spot.location || (spot.municipality ? spot.municipality + ', La Union' : 'La Union');
             if (catEl) catEl.textContent = spot.category || 'Attractions';
-            if (ratingEl) ratingEl.textContent = (spot.rating && spot.rating > 0) ? Number(spot.rating).toFixed(1) : '4.8';
+            const ratingBadgeEl = document.getElementById('spot-detail-rating-badge');
+            const rawRating = (spot.rating && Number(spot.rating) > 0) ? Number(spot.rating) : ((spot.reviews_avg_rating && Number(spot.reviews_avg_rating) > 0) ? Number(spot.reviews_avg_rating) : 0);
+            if (rawRating > 0) {
+                if (ratingEl) ratingEl.textContent = rawRating.toFixed(1);
+                if (ratingBadgeEl) ratingBadgeEl.style.display = 'inline-flex';
+            } else {
+                if (ratingBadgeEl) ratingBadgeEl.style.display = 'none';
+            }
             if (descEl) {
                 descEl.textContent = spot.description && spot.description.trim().length > 0
                     ? spot.description
@@ -6673,7 +6673,8 @@ try {
 
         // Vehicle selection in Step 3 (Multi-Select)
         window.selectWizardVehicle = function (mode) {
-            const validModes = ['tricycle', 'tpuj', 'mpuj', 'public_bus', 'private_bus', 'van', 'car', 'motorcycle'];
+            const validModes = ['tricycle', 'tpuj', 'mpuj', 'public_bus', 'private_bus', 'van', 'own_car', 'car', 'motorcycle'];
+            if (mode === 'car') mode = 'own_car';
             if (!validModes.includes(mode)) mode = 'tricycle';
 
             let currentModes = [];
@@ -6696,13 +6697,17 @@ try {
                 }
             }
 
-            currentModes = (Array.isArray(currentModes) ? currentModes : []).filter(m => validModes.includes(m));
+            currentModes = (Array.isArray(currentModes) ? currentModes : [])
+                .map(m => (m === 'car' ? 'own_car' : m))
+                .filter(m => validModes.includes(m));
 
             // Toggle mode
-            if (currentModes.includes(mode)) {
-                currentModes = currentModes.filter(m => m !== mode);
+            const targetMode = (mode === 'car') ? 'own_car' : mode;
+            const hasMode = currentModes.some(m => m === targetMode || (targetMode === 'own_car' && m === 'car'));
+            if (hasMode) {
+                currentModes = currentModes.filter(m => m !== targetMode && m !== 'car' && m !== 'own_car');
             } else {
-                currentModes.push(mode);
+                currentModes.push(targetMode);
             }
 
             const compositeMode = currentModes.length > 0 ? currentModes.join(' + ') : 'no_vehicle';
@@ -6725,7 +6730,7 @@ try {
         };
 
         window.syncWizardStep2UI = function () {
-            const validModes = ['tricycle', 'tpuj', 'mpuj', 'public_bus', 'private_bus', 'van', 'car', 'motorcycle'];
+            const validModes = ['tricycle', 'tpuj', 'mpuj', 'public_bus', 'private_bus', 'van', 'own_car', 'car', 'motorcycle'];
             let activeModes = [];
             const rawStored = localStorage.getItem('intan_elyu_draft_trip_transport') || '';
             const isExplicitlyNoVehicle = !rawStored || /no[_ ]vehicle/i.test(rawStored);
@@ -6746,7 +6751,9 @@ try {
                 }
             }
 
-            activeModes = (Array.isArray(activeModes) ? activeModes : []).filter(m => validModes.includes(m));
+            activeModes = (Array.isArray(activeModes) ? activeModes : [])
+                .map(m => (m === 'car' ? 'own_car' : m))
+                .filter(m => validModes.includes(m));
 
             const unselectBtn = document.getElementById('wizard-unselect-all-btn');
             if (unselectBtn) {
@@ -6755,10 +6762,11 @@ try {
 
             const cards = document.querySelectorAll('.wizard-trans-card');
             cards.forEach(card => {
-                const m = card.getAttribute('data-mode');
+                const rawM = card.getAttribute('data-mode');
+                const m = (rawM === 'car') ? 'own_car' : rawM;
                 const radio = card.querySelector('.wizard-check-radio');
                 const checkIcon = radio ? radio.querySelector('i') : null;
-                const isSelected = activeModes.includes(m);
+                const isSelected = activeModes.includes(m) || (m === 'own_car' && activeModes.includes('car')) || (m === 'car' && activeModes.includes('own_car'));
                 if (isSelected) {
                     card.classList.add('active');
                     if (radio) {
@@ -6800,14 +6808,19 @@ try {
         };
 
         window.syncWizardStep3UI = function () {
-            const nameEl = document.getElementById('wizard-review-name');
-            const dateEl = document.getElementById('wizard-review-date');
-            const partyEl = document.getElementById('wizard-review-party');
+            const nameEl = document.getElementById('wizard-review-name') || document.getElementById('page-review-name');
+            const dateEl = document.getElementById('wizard-review-date') || document.getElementById('page-review-date');
+            const partyEl = document.getElementById('wizard-review-party') || document.getElementById('page-review-party');
+            const muniEl = document.getElementById('page-review-muni');
             const transEl = document.getElementById('wizard-review-transport');
 
             const titleVal = document.getElementById('trip-title')?.value || 'My La Union Trip';
             const dateDisplay = document.getElementById('custom-date-display')?.textContent || 'Flexible / Anytime';
-            const partySummary = document.getElementById('companion-summary-text')?.textContent || '1 Traveler (You)';
+            const partySummary = document.getElementById('companion-summary-text')?.textContent || '1 Traveler (Solo)';
+            const muniSelect = document.getElementById('trip-municipality');
+            const muniVal = (muniSelect && muniSelect.options[muniSelect.selectedIndex])
+                ? (muniSelect.options[muniSelect.selectedIndex].text.split('(')[0].trim() || muniSelect.value)
+                : (muniSelect?.value || 'San Juan');
             const transMode = document.getElementById('trip-transport')?.value || 'tricycle';
 
             const transLabels = {
@@ -6831,6 +6844,7 @@ try {
             if (nameEl) nameEl.textContent = titleVal;
             if (dateEl) dateEl.textContent = (dateDisplay === 'Select trip date') ? 'Flexible / Anytime' : dateDisplay;
             if (partyEl) partyEl.textContent = partySummary;
+            if (muniEl) muniEl.textContent = muniVal;
             if (transEl) transEl.textContent = prettyTrans;
 
             if (typeof window.calculateModalBudget === 'function') {

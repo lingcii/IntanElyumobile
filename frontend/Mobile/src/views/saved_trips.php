@@ -70,8 +70,8 @@ $backRoute = 'itinerary';
         flex-direction: column;
         padding-top: var(--page-top-padding, calc(max(env(safe-area-inset-top, 0px), 36px) + 52px)) !important;
         padding-bottom: var(--page-bottom-padding, calc(max(18px, env(safe-area-inset-bottom, 18px)) + 82px)) !important;
-        padding-left: var(--page-inline-padding, clamp(12px, 3.8vw, 18px)) !important;
-        padding-right: var(--page-inline-padding, clamp(12px, 3.8vw, 18px)) !important;
+        padding-left: var(--page-inline-padding, clamp(16px, 4.5vw, 22px)) !important;
+        padding-right: var(--page-inline-padding, clamp(16px, 4.5vw, 22px)) !important;
         background: #ffffff !important;
         background-color: #ffffff !important;
         color: #0f172a !important;
@@ -545,9 +545,9 @@ $backRoute = 'itinerary';
                 return;
             }
 
-            // Enable scrollview if multiple cards exist or content overflows
+            // Always enable scrollview whenever cards exist or content overflows
             requestAnimationFrame(() => {
-                const isOverflowing = cards.length > 1 || list.scrollHeight > (container.clientHeight - 30);
+                const isOverflowing = cards.length > 0 || list.scrollHeight > (container.clientHeight - 30);
                 if (isOverflowing) {
                     container.classList.add('is-scrollable');
                 } else {
@@ -1093,20 +1093,20 @@ $backRoute = 'itinerary';
             }
 
             if (!mode || String(mode).toLowerCase().includes('no_vehicle') || String(mode).toLowerCase().includes('no vehicle') || String(mode).toLowerCase() === 'none') {
-                return `<span style="background: rgba(255,255,255,0.22); border: none !important; outline: none !important; color: #ffffff; padding: 3px 10px; border-radius: 100px; font-weight: 700; font-size: 12px; display: inline-flex; align-items: center; gap: 5px;"><i class="fa-solid fa-ban" style="font-size:11px; color:#f87171;"></i>No Vehicle Selected</span>`;
+                return `<span style="background: #fef2f2; border: 1px solid #fecaca !important; outline: none !important; color: #ef4444; padding: 3px 10px; border-radius: 100px; font-weight: 700; font-size: 12px; display: inline-flex; align-items: center; gap: 5px;"><i class="fa-solid fa-ban" style="font-size:11px; color:#ef4444;"></i>No Vehicle Selected</span>`;
             }
 
             const parts = parseVehicleModes(mode).filter(p => p !== 'no_vehicle' && !p.includes('no_vehicle'));
             if (parts.length === 0) {
-                return `<span style="background: rgba(255,255,255,0.22); border: none !important; outline: none !important; color: #ffffff; padding: 3px 10px; border-radius: 100px; font-weight: 700; font-size: 12px; display: inline-flex; align-items: center; gap: 5px;"><i class="fa-solid fa-ban" style="font-size:11px; color:#f87171;"></i>No Vehicle Selected</span>`;
+                return `<span style="background: #fef2f2; border: 1px solid #fecaca !important; outline: none !important; color: #ef4444; padding: 3px 10px; border-radius: 100px; font-weight: 700; font-size: 12px; display: inline-flex; align-items: center; gap: 5px;"><i class="fa-solid fa-ban" style="font-size:11px; color:#ef4444;"></i>No Vehicle Selected</span>`;
             }
 
             if (parts.length > 1) {
-                return `<span style="background: rgba(255,255,255,0.22); border: none !important; outline: none !important; color: #ffffff; padding: 3px 10px; border-radius: 100px; font-weight: 700; font-size: 12px; display: inline-flex; align-items: center; gap: 5px;"><i class="fa-solid fa-route" style="font-size:11px; color:#38bdf8;"></i>${parts.length} Vehicles</span>`;
+                return `<span style="background: #f0f9ff; border: 1px solid #bae6fd !important; outline: none !important; color: #0369a1; padding: 3px 10px; border-radius: 100px; font-weight: 700; font-size: 12px; display: inline-flex; align-items: center; gap: 5px;"><i class="fa-solid fa-route" style="font-size:11px; color:#0284c7;"></i>${parts.length} Vehicles</span>`;
             }
 
             const info = getVehicleInfo(parts[0]);
-            return `<span style="background: rgba(255,255,255,0.22); border: none !important; outline: none !important; color: #ffffff; padding: 3px 10px; border-radius: 100px; font-weight: 700; font-size: 12px; display: inline-flex; align-items: center; gap: 5px;"><i class="fa-solid ${info.icon}" style="font-size:11px; color:${info.color};"></i>${info.name}</span>`;
+            return `<span style="background: #f0f9ff; border: 1px solid #bae6fd !important; outline: none !important; color: #0369a1; padding: 3px 10px; border-radius: 100px; font-weight: 700; font-size: 12px; display: inline-flex; align-items: center; gap: 5px;"><i class="fa-solid ${info.icon}" style="font-size:11px; color:#0284c7;"></i>${info.name}</span>`;
         }
 
         if (window._savedTripsTab !== 'history') window._savedTripsTab = 'saved';
@@ -1145,12 +1145,12 @@ $backRoute = 'itinerary';
         function hasProgressedPastStop(item) {
             if (!item) return false;
             const hasCheckin = Boolean(item.is_location_verified || item.visited_at);
-            return hasCheckin && hasConfirmedProofSubmission(item) && String(item.proof_status || '').toLowerCase() !== 'rejected';
+            return hasCheckin && String(item.proof_status || '').toLowerCase() !== 'rejected';
         }
 
         function shouldHideStartTripForTrip(trip) {
             const items = trip && Array.isArray(trip.items) ? trip.items.filter(Boolean) : [];
-            return items.length > 0 && items.every(hasConfirmedProofSubmission);
+            return items.length > 0 && items.every(i => Boolean(i && (i.is_location_verified || i.visited_at)));
         }
 
         function isTripLockedFromEditing(trip) {
@@ -1657,9 +1657,9 @@ $backRoute = 'itinerary';
                         const females = parseInt(trip.companion_females || 0, 10);
                         let paxBadge = '';
                         if (tripType === 'group' || totalPax > 1) {
-                            paxBadge = `<span style="background:rgba(56,189,248,0.22); border:1px solid rgba(56,189,248,0.38); color:#ffffff; padding:3px 10px; border-radius:100px; font-weight:800; font-size:11.5px; display:inline-flex; align-items:center; gap:5px;" title="Party of ${totalPax} (${males} Males, ${females} Females)"><i class="fa-solid fa-users" style="color:#38bdf8;"></i> ${totalPax} Pax ${males > 0 || females > 0 ? `(${males}M, ${females}F)` : ''}</span>`;
+                            paxBadge = `<span style="background: #e0f2fe; border: 1px solid #bae6fd; color: #0284c7; padding: 3px 10px; border-radius: 100px; font-weight: 800; font-size: 11.5px; display: inline-flex; align-items: center; gap: 5px;" title="Party of ${totalPax} (${males} Males, ${females} Females)"><i class="fa-solid fa-users" style="color: #0284c7;"></i> ${totalPax} Pax ${males > 0 || females > 0 ? `(${males}M, ${females}F)` : ''}</span>`;
                         } else {
-                            paxBadge = `<span style="background:rgba(255,255,255,0.18); color:#ffffff; padding:3px 9px; border-radius:100px; font-weight:700; font-size:11.5px; display:inline-flex; align-items:center; gap:4px;" title="Solo Traveler"><i class="fa-solid fa-user" style="font-size:10px; color:#38bdf8;"></i> Solo</span>`;
+                            paxBadge = `<span style="background: #f1f5f9; border: 1px solid #e2e8f0; color: #475569; padding: 3px 9px; border-radius: 100px; font-weight: 700; font-size: 11.5px; display: inline-flex; align-items: center; gap: 4px;" title="Solo Traveler"><i class="fa-solid fa-user" style="font-size: 10px; color: #0284c7;"></i> Solo</span>`;
                         }
 
                         const isLockedFromEditing = isTripLockedFromEditing(trip);
@@ -1671,25 +1671,25 @@ $backRoute = 'itinerary';
                             <i class="fa-solid fa-trash-can"></i> Delete
                         </div>
                         
-                        <!-- Rich Glassmorphic Front Card Content (Overlays z-index 2) -->
-                        <div class="trip-swipe-content" style="position:relative; z-index:2; background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border: none !important; outline: none !important; border-radius: 24px; padding: 22px; transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-radius 0.25s ease; box-shadow: 0 10px 28px rgba(10, 25, 60, 0.28);">
+                        <!-- Rich White Card Content (Overlays z-index 2) -->
+                        <div class="trip-swipe-content" style="position:relative; z-index:2; background:#ffffff !important; border:1px solid #e2e8f0 !important; outline:none !important; border-radius:24px; padding:22px; transition:transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-radius 0.25s ease; box-shadow:0 4px 20px rgba(15, 23, 42, 0.08);">
                             <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 6px;">
-                                <h3 style="margin: 0; font-size: 20px; font-weight: 800; color: #ffffff; letter-spacing: -0.3px; flex: 1; min-width: 0; word-break: break-word;">${trip.title}</h3>
+                                <h3 style="margin: 0; font-size: 20px; font-weight: 800; color: #0f172a; letter-spacing: -0.3px; flex: 1; min-width: 0; word-break: break-word;">${trip.title}</h3>
                                 <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
                                     ${!isLockedFromEditing ? `
-                                    <button type="button" class="btn-edit-saved-trip" onclick="event.stopPropagation(); window.editSavedTrip('${trip.id}')" ontouchstart="event.stopPropagation();" onpointerdown="event.stopPropagation();" onmousedown="event.stopPropagation();" onmouseover="this.style.background='rgba(255,255,255,0.28)'" onmouseout="this.style.background='rgba(255,255,255,0.18)'" style="background: rgba(255,255,255,0.18); border: none !important; outline: none !important; border-radius: 12px; padding: 6px 14px; color: #ffffff; font-size: 12px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s ease; box-shadow: none !important; position: relative; z-index: 10; pointer-events: auto; touch-action: manipulation;">
+                                    <button type="button" class="btn-edit-saved-trip" onclick="event.stopPropagation(); window.editSavedTrip('${trip.id}')" ontouchstart="event.stopPropagation();" onpointerdown="event.stopPropagation();" onmousedown="event.stopPropagation();" onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'" style="background: #f1f5f9; border: 1px solid #e2e8f0 !important; outline: none !important; border-radius: 12px; padding: 6px 14px; color: #1e3a8a; font-size: 12px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s ease; box-shadow: none !important; position: relative; z-index: 10; pointer-events: auto; touch-action: manipulation;">
                                         <i class="fa-solid fa-pen-to-square"></i> Edit
                                     </button>
                                     ` : ''}
                                 </div>
                             </div>
-                            <div style="font-size: 12.5px; color: #ffffff; opacity: 0.95; margin: 0 0 16px 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                                <span style="display:inline-flex; align-items:center; gap:5px; font-weight:700;"><i class="fa-regular fa-calendar" style="color: #ffffff;"></i>${trip.trip_date ? new Date(trip.trip_date).toLocaleDateString() : 'No date set'}</span> 
+                            <div style="font-size: 12.5px; color: #64748b; margin: 0 0 16px 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                <span style="display:inline-flex; align-items:center; gap:5px; font-weight:700; color:#475569;"><i class="fa-regular fa-calendar" style="color: #64748b;"></i>${trip.trip_date ? new Date(trip.trip_date).toLocaleDateString() : 'No date set'}</span> 
                                 ${paxBadge}
-                                ${trip.is_offline_queued ? `<span style="background: rgba(245, 158, 11, 0.28); border: 1px solid rgba(245, 158, 11, 0.5); color: #fef08a; padding: 3px 10px; border-radius: 100px; font-weight: 800; font-size: 11px; display: inline-flex; align-items: center; gap: 4px;"><i class="fa-solid fa-cloud-arrow-up"></i> Queued (Offline)</span>` : ''}
-                                ${trip.budget ? `<span style="background: rgba(255,255,255,0.22); border: none !important; outline: none !important; color: #ffffff; padding: 3px 10px; border-radius: 100px; font-weight: 700; font-size: 12px; display: inline-flex; align-items: center; gap: 4px;"><i class="fa-solid fa-coins" style="font-size:10px; color:#fbbf24;"></i>Budget: ₱${parseFloat(trip.budget).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}${budgetIndicator}</span>` : ''}
+                                ${trip.is_offline_queued ? `<span style="background: #fef3c7; border: 1px solid #fde68a; color: #b45309; padding: 3px 10px; border-radius: 100px; font-weight: 800; font-size: 11px; display: inline-flex; align-items: center; gap: 4px;"><i class="fa-solid fa-cloud-arrow-up"></i> Queued (Offline)</span>` : ''}
+                                ${trip.budget ? `<span style="background: #fef3c7; border: 1px solid #fde68a; color: #92400e; padding: 3px 10px; border-radius: 100px; font-weight: 700; font-size: 12px; display: inline-flex; align-items: center; gap: 4px;"><i class="fa-solid fa-coins" style="font-size:10px; color:#d97706;"></i>Budget: ₱${parseFloat(trip.budget).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}${budgetIndicator}</span>` : ''}
                             </div>
-                            <div class="timeline-collapsible expanded" id="timeline-${trip.id}">
+                            <div class="timeline-collapsible" id="timeline-${trip.id}">
                                 <div class="timeline-inner">
                                     <div class="timeline">`;
                         let unvisitedCount = 0;
@@ -1744,7 +1744,7 @@ $backRoute = 'itinerary';
                                 const isLocVerified = Boolean(item.visited_at || item.is_location_verified);
                                 const proofStatus = item.proof_status || (hasProof ? (item.is_visited ? 'approved' : 'pending') : null);
                                 const isPhotoApproved = (proofStatus === 'approved');
-                                const isApproved = Boolean(item.is_visited && isPhotoApproved && isLocVerified);
+                                const isApproved = Boolean(isLocVerified || item.is_visited || isPhotoApproved);
                                 const isRejected = (proofStatus === 'rejected');
                                 const isPendingProof = !isApproved && !isRejected && !isCheckinQueued && hasProof && (proofStatus === 'pending');
                                 const isNextStop = (!isApproved && !isPendingProof && !isCheckinQueued && index === firstUnvisitedIdx);
@@ -1816,8 +1816,8 @@ $backRoute = 'itinerary';
                                         if (isNoVehLeg) {
                                             html += `
                                             <div style="display:flex; align-items:center; gap:8px; margin:${index === 0 ? '0 0 10px 18px' : '4px 0 10px 18px'};">
-                                                <span style="padding:3px 10px; border-radius:100px; font-size:10.5px; font-weight:700; background:rgba(255,255,255,0.16); color:#fca5a5; display:inline-flex; align-items:center; gap:5px; border:none !important; outline:none !important;">
-                                                    <i class="fa-solid fa-ban" style="color:#f87171; font-size:10px;"></i>
+                                                <span style="padding:3px 10px; border-radius:100px; font-size:10.5px; font-weight:700; background:#fef2f2; color:#ef4444; border:1px solid #fecaca !important; outline:none !important; display:inline-flex; align-items:center; gap:5px;">
+                                                    <i class="fa-solid fa-ban" style="color:#ef4444; font-size:10px;"></i>
                                                     <span>No Vehicle Selected</span>
                                                 </span>
                                             </div>`;
@@ -1840,10 +1840,10 @@ $backRoute = 'itinerary';
 
                                             html += `
                                             <div style="display:flex; align-items:center; gap:8px; margin:${index === 0 ? '0 0 10px 18px' : '4px 0 10px 18px'};">
-                                                <span style="padding:3px 10px; border-radius:100px; font-size:10.5px; font-weight:700; background:rgba(255,255,255,0.16); color:#e0f2fe; display:inline-flex; align-items:center; gap:5px; border:none !important; outline:none !important;">
-                                                    <i class="fa-solid ${vIcon}" style="color:#00f2fe; font-size:10px;"></i>
+                                                <span style="padding:3px 10px; border-radius:100px; font-size:10.5px; font-weight:700; background:#f0f9ff; color:#0369a1; border:1px solid #bae6fd !important; outline:none !important; display:inline-flex; align-items:center; gap:5px;">
+                                                    <i class="fa-solid ${vIcon}" style="color:#0284c7; font-size:10px;"></i>
                                                     <span>${vName}</span>
-                                                    ${costStr ? `<span style="color:#38bdf8; font-weight:800;">${costStr}</span>` : ''}
+                                                    ${costStr ? `<span style="color:#0284c7; font-weight:800;">${costStr}</span>` : ''}
                                                 </span>
                                             </div>`;
                                         }
@@ -1853,33 +1853,33 @@ $backRoute = 'itinerary';
                                 html += `
                                 <div class="timeline-item ${isApproved ? 'completed' : (isPendingProof ? 'pending' : (isNextStop ? 'is-next-stop' : 'is-locked-stop'))}" data-stop-unlocked="${isStopUnlocked}" style="margin-bottom: 12px; ${!isStopUnlocked ? 'opacity:.68;' : ''}">
                                     <div class="timeline-dot"></div>
-                                    <div class="timeline-content" ${!isStopUnlocked ? 'inert' : ''} style="padding:14px; background: rgba(255,255,255,0.12); border: none !important; outline: none !important; border-radius: 16px; display:flex; flex-direction:column; gap:10px;">
+                                    <div class="timeline-content" ${!isStopUnlocked ? 'inert' : ''} style="padding:14px; background: #f8fafc; border: 1px solid #e2e8f0 !important; outline: none !important; border-radius: 16px; display:flex; flex-direction:column; gap:10px; box-shadow: 0 1px 4px rgba(15, 23, 42, 0.04);">
                                         <div style="display:flex; gap:12px; align-items:flex-start;">
-                                            <div class="saved-trip-spot-thumb" style="width:56px; height:56px; border-radius:14px; overflow:hidden; flex-shrink:0; background:rgba(0,0,0,0.25); position:relative; box-shadow:0 3px 10px rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.18);">
+                                            <div class="saved-trip-spot-thumb" style="width:56px; height:56px; border-radius:14px; overflow:hidden; flex-shrink:0; background:#e2e8f0; position:relative; box-shadow:0 2px 6px rgba(15,23,42,0.08); border:1px solid #cbd5e1;">
                                                 <img src="${spotImgUrl}" alt="${destEscaped}" loading="lazy" style="width:100%; height:100%; object-fit:cover; display:block;" onerror="this.onerror=null; this.src='assets/img/no_image.svg';">
                                             </div>
                                             <div style="flex:1; min-width:0;">
                                                 <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-                                                    <h4 style="margin:0; font-size:15px; font-weight:800; color:#ffffff; line-height:1.25;">${destName}</h4>
-                                                    ${isNextStop ? `<span style="padding: 2px 8px; border-radius: 100px; font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: linear-gradient(135deg, #00f2fe, #0284c7); border: none !important; outline: none !important;"><i class="fa-solid fa-location-dot" style="font-size:8px;"></i> Next Stop</span>` : ''}
+                                                    <h4 style="margin:0; font-size:15px; font-weight:800; color:#0f172a; line-height:1.25;">${destName}</h4>
+                                                    ${isNextStop ? `<span style="padding: 2px 8px; border-radius: 100px; font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: linear-gradient(135deg, #0284c7, #0369a1); border: none !important; outline: none !important;"><i class="fa-solid fa-location-dot" style="font-size:8px;"></i> Next Stop</span>` : ''}
                                                     ${(dest && dest.classification_status) ? `<span style="padding: 2px 7px; border-radius: 100px; font-size: 8.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#0284c7' : (dest.classification_status === 'EMERGE' ? '#ef4444' : '#10b981')}; border: none !important; outline: none !important;">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</span>` : ''}
                                                 </div>
                                                 ${dest && (dest.municipality || dest.location) ? `
-                                                    <div style="font-size:11.5px; color:rgba(255,255,255,0.8); display:flex; align-items:center; gap:4px; margin-top:3px;">
-                                                        <i class="fa-solid fa-location-dot" style="color:#00f2fe; font-size:10px; flex-shrink:0;"></i>
+                                                    <div style="font-size:11.5px; color:#64748b; display:flex; align-items:center; gap:4px; margin-top:3px;">
+                                                        <i class="fa-solid fa-location-dot" style="color:#0284c7; font-size:10px; flex-shrink:0;"></i>
                                                         <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${dest.municipality ? dest.municipality + ', La Union' : dest.location}</span>
                                                     </div>` : ''}
                                             </div>
                                         </div>
-                                        ${(dest && (dest.accessible_by_private_vehicle === 0 || dest.accessible_by_private_vehicle === false)) ? `<div style="background:rgba(239, 68, 68, 0.15); border:none !important; outline:none !important; border-radius:10px; padding:8px 12px; display:flex; gap:8px; align-items:flex-start; margin-top:4px;"><i class="fa-solid fa-triangle-exclamation" style="color:#ef4444; font-size:13px; margin-top:2px;"></i><div><h5 style="margin:0 0 2px 0; font-size:11px; font-weight:800; color:#ef4444; text-transform:uppercase;">Inaccessible by Private Car</h5><p style="margin:0; font-size:10px; color:#ffffff; opacity:0.9; line-height:1.3;">Prepare to hike or use specialized local transport.</p></div></div>` : ''}
+                                        ${(dest && (dest.accessible_by_private_vehicle === 0 || dest.accessible_by_private_vehicle === false)) ? `<div style="background:#fef2f2; border:1px solid #fecaca !important; outline:none !important; border-radius:10px; padding:8px 12px; display:flex; gap:8px; align-items:flex-start; margin-top:4px;"><i class="fa-solid fa-triangle-exclamation" style="color:#ef4444; font-size:13px; margin-top:2px;"></i><div><h5 style="margin:0 0 2px 0; font-size:11px; font-weight:800; color:#ef4444; text-transform:uppercase;">Inaccessible by Private Car</h5><p style="margin:0; font-size:10px; color:#64748b; opacity:0.9; line-height:1.3;">Prepare to hike or use specialized local transport.</p></div></div>` : ''}
 
                                         ${isApproved ?
                                         `<div style="display:flex; flex-direction:column; gap:8px; margin-top:4px;">
                                             <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
-                                                <span style="color:#34c759; font-size:12px; font-weight:800; display:inline-flex; align-items:center; gap:5px; background:rgba(52,199,89,0.18); padding:4px 10px; border-radius:100px;">
+                                                <span style="color:#059669; font-size:12px; font-weight:800; display:inline-flex; align-items:center; gap:5px; background:#ecfdf5; border:1px solid #a7f3d0; padding:4px 10px; border-radius:100px;">
                                                     <i class="fa-solid fa-circle-check"></i> Visit Verified
                                                 </span>
-                                                <button type="button" data-spot-id="${item.tourist_spot_id || (dest ? dest.id : '')}" data-itinerary-item-id="${item.id}" data-spot-classification="${sClass}" onclick="event.stopPropagation(); window.openSavedTripReview('${trip.id}', '${item.tourist_spot_id || (dest ? dest.id : '')}', this, '${item.id}')" style="background:rgba(255,255,255,0.16); border:none !important; outline:none !important; color:#ffffff; font-size:11px; font-weight:800; padding:6px 14px; border-radius:100px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; box-shadow:none; flex-shrink:0;">
+                                                <button type="button" data-spot-id="${item.tourist_spot_id || (dest ? dest.id : '')}" data-itinerary-item-id="${item.id}" data-spot-classification="${sClass}" onclick="event.stopPropagation(); window.openSavedTripReview('${trip.id}', '${item.tourist_spot_id || (dest ? dest.id : '')}', this, '${item.id}')" style="background:#f1f5f9; border:1px solid #e2e8f0 !important; outline:none !important; color:#1e3a8a; font-size:11px; font-weight:800; padding:6px 14px; border-radius:100px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; box-shadow:none; flex-shrink:0;">
                                                     ${(window.userReviewedItemIds && window.userReviewedItemIds.has(Number(item.id))) ? '<i class="fa-solid fa-check" style="font-size:10px; margin-right:4px;"></i> Reviewed' : '<i class="fa-solid fa-pen" style="font-size:10px;"></i> Review'}
                                                 </button>
                                             </div>
@@ -1892,9 +1892,9 @@ $backRoute = 'itinerary';
                                                         <span style="color:#ef4444; font-size:12px; font-weight:800; display:inline-flex; align-items:center; gap:5px;">
                                                             <i class="fa-solid fa-circle-xmark"></i> Photo Proof Rejected
                                                         </span>
-                                                        <span style="font-size:10px; color:#fca5a5; display:block; margin-top:2px;">${item.rejection_reason || 'Please upload a clearer photo taken at this destination during active trip.'}</span>
+                                                        <span style="font-size:10px; color:#dc2626; display:block; margin-top:2px;">${item.rejection_reason || 'Please upload a clearer photo taken at this destination during active trip.'}</span>
                                                     </div>
-                                                    <span style="font-size:10.5px; color:#fca5a5; font-weight:700;"><i class="fa-solid fa-camera" style="margin-right:3px;"></i> Start trip to re-take proof</span>
+                                                    <span style="font-size:10.5px; color:#ef4444; font-weight:700;"><i class="fa-solid fa-camera" style="margin-right:3px;"></i> Start trip to re-take proof</span>
                                                 </div>
                                                 ${photosStripHtml}
                                             </div>` :
@@ -1902,20 +1902,20 @@ $backRoute = 'itinerary';
                                                 `<div style="display:flex; align-items:center; gap:10px; margin-top:4px; flex-wrap:wrap;">
                                                     ${queuedThumbnailHtml}
                                                     <div style="flex:1; min-width:150px;">
-                                                        <span style="background:rgba(245,158,11,0.25); border:none !important; outline:none !important; color:#fbbf24; font-size:11px; font-weight:800; padding:3px 10px; border-radius:100px; display:inline-flex; align-items:center; gap:4px;">
+                                                        <span style="background:#fef3c7; border:1px solid #fde68a !important; outline:none !important; color:#b45309; font-size:11px; font-weight:800; padding:3px 10px; border-radius:100px; display:inline-flex; align-items:center; gap:4px;">
                                                             <i class="fa-solid fa-clock-rotate-left"></i> Queued for Sync (Offline)
                                                         </span>
-                                                        <span style="font-size:10px; color:#ffffff; opacity:0.85; display:block; margin-top:4px;"><i class="fa-solid fa-camera" style="color:#fbbf24; margin-right:4px;"></i>Saved on device &bull; Auto-syncs when online</span>
+                                                        <span style="font-size:10px; color:#64748b; opacity:0.95; display:block; margin-top:4px;"><i class="fa-solid fa-camera" style="color:#d97706; margin-right:4px;"></i>Saved on device &bull; Auto-syncs when online</span>
                                                     </div>
                                                 </div>` :
                                             (isPhotoApproved && !isLocVerified ?
                                                 `<div style="display:flex; flex-direction:column; gap:8px; margin-top:4px;">
                                                     <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
                                                         <div>
-                                                            <span style="background:rgba(52,199,89,0.18); border:none !important; outline:none !important; color:#34c759; font-size:11px; font-weight:800; padding:3px 10px; border-radius:100px; display:inline-flex; align-items:center; gap:5px;">
+                                                            <span style="background:#ecfdf5; border:1px solid #a7f3d0 !important; outline:none !important; color:#059669; font-size:11px; font-weight:800; padding:3px 10px; border-radius:100px; display:inline-flex; align-items:center; gap:5px;">
                                                                 <i class="fa-solid fa-circle-check"></i> Photo Approved
                                                             </span>
-                                                            <span style="font-size:10px; color:#ffffff; opacity:0.8; display:block; margin-top:4px;">Start trip to complete on-site check-in.</span>
+                                                            <span style="font-size:10px; color:#64748b; opacity:0.95; display:block; margin-top:4px;">Start trip to complete on-site check-in.</span>
                                                         </div>
                                                     </div>
                                                     ${photosStripHtml}
@@ -1923,11 +1923,11 @@ $backRoute = 'itinerary';
                                             (isLocVerified && isPendingProof ?
                                                 `<div style="display:flex; flex-direction:column; gap:8px; margin-top:4px;">
                                                     <div>
-                                                        <span style="background:rgba(255,149,0,0.22); border:none !important; outline:none !important; color:#ff9f0a; font-size:11.5px; font-weight:800; padding:3px 10px; border-radius:100px; display:inline-flex; align-items:center; gap:5px;">
+                                                        <span style="background:#fffbeb; border:1px solid #fde68a !important; outline:none !important; color:#b45309; font-size:11.5px; font-weight:800; padding:3px 10px; border-radius:100px; display:inline-flex; align-items:center; gap:5px;">
                                                             <i class="fa-solid fa-hourglass-half"></i> Pending Approval
                                                         </span>
-                                                        <span style="font-size:10px; color:#ffffff; opacity:0.8; display:block; margin-top:4px;">
-                                                            <i class="fa-solid fa-circle-check" style="color:#34c759; margin-right:3px;"></i> Location Verified &bull; Photos submitted
+                                                        <span style="font-size:10px; color:#64748b; opacity:0.95; display:block; margin-top:4px;">
+                                                            <i class="fa-solid fa-circle-check" style="color:#059669; margin-right:3px;"></i> Location Verified &bull; Photos submitted
                                                         </span>
                                                     </div>
                                                     ${photosStripHtml}
@@ -1936,7 +1936,7 @@ $backRoute = 'itinerary';
                                                 `<div style="display:flex; flex-direction:column; gap:8px; margin-top:4px;">
                                                     <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
                                                         <div>
-                                                            <span style="background:rgba(245,158,11,0.22); border:none !important; outline:none !important; color:#fbbf24; font-size:11px; font-weight:800; padding:3px 10px; border-radius:100px; display:inline-flex; align-items:center; gap:5px;">
+                                                            <span style="background:#fffbeb; border:1px solid #fde68a !important; outline:none !important; color:#b45309; font-size:11px; font-weight:800; padding:3px 10px; border-radius:100px; display:inline-flex; align-items:center; gap:5px;">
                                                                 <i class="fa-solid fa-camera"></i> Photo Ready &bull; Start Trip to Check In
                                                             </span>
                                                         </div>
@@ -1946,29 +1946,29 @@ $backRoute = 'itinerary';
                                             (isLocVerified && !hasProof ?
                                                 `<div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:4px; flex-wrap:wrap;">
                                                     <div>
-                                                        <span style="background:rgba(52,199,89,0.18); border:none !important; outline:none !important; color:#34c759; font-size:11px; font-weight:800; padding:3px 10px; border-radius:100px; display:inline-flex; align-items:center; gap:5px;">
-                                                            <i class="fa-solid fa-circle-check"></i> Location Verified
+                                                        <span style="background:#ecfdf5; border:1px solid #a7f3d0 !important; outline:none !important; color:#059669; font-size:11px; font-weight:800; padding:3px 10px; border-radius:100px; display:inline-flex; align-items:center; gap:5px;">
+                                                            <i class="fa-solid fa-circle-check"></i> Checked In
                                                         </span>
-                                                        <span style="font-size:10px; color:#ffffff; opacity:0.8; display:block; margin-top:4px;">Photo proof can be uploaded during active trip</span>
+                                                        <span style="font-size:10px; color:#64748b; opacity:0.95; display:block; margin-top:4px;">Visit recorded &bull; Upload Photo optional</span>
                                                     </div>
                                                 </div>` :
                                                 `<div style="display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:6px;">
-                                                    <span style="background:rgba(255,255,255,0.12); color:rgba(255,255,255,0.78); font-size:10.5px; font-weight:700; padding:3px 9px; border-radius:100px; display:inline-flex; align-items:center; gap:4px;">
+                                                    <span style="background:#f1f5f9; border:1px solid #e2e8f0; color:#64748b; font-size:10.5px; font-weight:700; padding:3px 9px; border-radius:100px; display:inline-flex; align-items:center; gap:4px;">
                                                         <i class="fa-regular fa-circle"></i> Not Visited
                                                     </span>
-                                                    <span style="font-size:10.5px; color:rgba(255,255,255,0.7); font-weight:600;">
-                                                        <i class="fa-solid fa-route" style="color:#38bdf8; margin-right:3px;"></i> Start Trip to Check In
+                                                    <span style="font-size:10.5px; color:#64748b; font-weight:600;">
+                                                        <i class="fa-solid fa-route" style="color:#0284c7; margin-right:3px;"></i> Start Trip to Check In
                                                     </span>
                                                 </div>`))))))
                                         }
-                                        ${(isLocVerified && (!hasProof || isRejected)) ? `<div class="saved-trip-validation-actions" style="margin-top:6px;">
-                                            <span style="font-size:10.5px; color:#fca5a5; font-weight:600;"><i class="fa-solid fa-circle-info"></i> Resume trip on map to complete photo proof</span>
+                                        ${(isLocVerified && isRejected) ? `<div class="saved-trip-validation-actions" style="margin-top:6px;">
+                                            <span style="font-size:10.5px; color:#ef4444; font-weight:600;"><i class="fa-solid fa-circle-info"></i> Photo proof was rejected; re-upload optional</span>
                                         </div>` : ''}
                                     </div>
                                 </div>`;
                             });
                         } else {
-                            html += `<p style="font-size:13px; color:#ffffff; opacity:0.85; margin:10px 0;">No destinations in this trip.</p>`;
+                            html += `<p style="font-size:13px; color:#64748b; margin:10px 0;">No destinations in this trip.</p>`;
                         }
 
 
@@ -1976,32 +1976,38 @@ $backRoute = 'itinerary';
                         html += `</div></div></div>`; // Close timeline, timeline-inner, and timeline-collapsible
 
                         // Action buttons
-                        html += `<div style="display:flex; gap:8px; margin-top:16px; flex-wrap:wrap; align-items:center;">`;
+                        html += `<div style="display:flex; gap:10px; margin-top:16px; align-items:stretch; width:100%;">`;
 
-                        // Hide Start only when every stop in this exact itinerary has a server-confirmed proof workflow.
-                        // A queued upload is not submitted yet, and one finished stop must not block a multi-stop trip.
-                        const tripHasCheckin = Array.isArray(trip.items) && trip.items.some(item => item && (item.is_location_verified || item.visited_at));
-                        const shouldShowTripAction = isTripCompleted || unvisitedCount === 0 || (!tripHasCheckin && !shouldHideStartTripForTrip(trip));
-                        if (shouldShowTripAction) {
-                        html += `<div class="start-collapsible expanded" id="start-wrapper-${trip.id}" style="flex:1; min-width:120px;">`;
+                        // Action buttons: "View Details" and "Start Trip" / "Resume Trip" / "Complete" / "Completed"
+                        html += `
+                        <button type="button" class="btn-primary" id="btn-toggle-details-${trip.id}" onclick="event.stopPropagation(); window.toggleTripDetails('${trip.id}')"
+                            style="flex:1; min-width:0; background: #f1f5f9; border: 1px solid #e2e8f0 !important; outline: none !important; color: #1e3a8a; padding: 12px 10px; border-radius: 14px; font-weight: 800; font-size: 12.5px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.25s ease; box-shadow: none !important; touch-action: manipulation; white-space:nowrap;"
+                            onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'">
+                            <i class="fa-solid fa-chevron-down" id="chevron-${trip.id}" style="font-size:11px; color:#1e3a8a; transition:transform 0.3s ease;"></i>
+                            <span id="details-text-${trip.id}">View Details</span>
+                        </button>`;
+
+                        html += `<div class="start-collapsible expanded" id="start-wrapper-${trip.id}" style="flex:1; min-width:0;">`;
                         if (isTripCompleted) {
                             html += `
-                            <button class="btn-primary" style="width:100%; white-space:nowrap; background: rgba(16,185,129,0.25); border: none !important; outline: none !important; color: #ffffff; padding: 13px 14px; border-radius: 14px; font-weight: 800; font-size: 13px; cursor: default;" disabled>
-                                <i class="fa-solid fa-circle-check" style="margin-right:6px; color:#34c759;"></i> Completed
+                            <button class="btn-primary" style="width:100%; white-space:nowrap; background: #ecfdf5; border: 1px solid #a7f3d0 !important; outline: none !important; color: #059669; padding: 12px 10px; border-radius: 14px; font-weight: 800; font-size: 12.5px; cursor: default; display: inline-flex; align-items: center; justify-content: center; gap: 6px; box-shadow: none !important;" disabled>
+                                <i class="fa-solid fa-circle-check" style="color:#059669; font-size:12px;"></i> Completed
                             </button>`;
                         } else if (!trip.is_offline_queued && unvisitedCount === 0 && trip.items && trip.items.length > 0) {
                             html += `
-                            <button class="btn-primary" id="btn-complete-trip-${trip.id}" style="width:100%; white-space:nowrap; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none !important; outline: none !important; color: #fff; padding: 13px 14px; border-radius: 14px; font-weight: 800; font-size: 13px; box-shadow: none; cursor: pointer;" onclick="window.markTripCompleted('${trip.id}')">
-                                <i class="fa-solid fa-flag-checkered" style="margin-right:6px;"></i> Complete
+                            <button class="btn-primary" id="btn-complete-trip-${trip.id}" style="width:100%; white-space:nowrap; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none !important; outline: none !important; color: #fff; padding: 12px 10px; border-radius: 14px; font-weight: 800; font-size: 12.5px; box-shadow: none; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px;" onclick="window.markTripCompleted('${trip.id}')">
+                                <i class="fa-solid fa-flag-checkered" style="font-size:12px;"></i> Complete
                             </button>`;
                         } else {
+                            const tripHasCheckin = Array.isArray(trip.items) && trip.items.some(item => item && (item.is_location_verified || item.visited_at));
+                            const startBtnText = tripHasCheckin ? 'Resume Trip' : 'Start Trip';
+                            const startBtnIcon = tripHasCheckin ? 'fa-route' : 'fa-play';
                             html += `
-                            <button type="button" class="btn-primary" style="width:100%; white-space:nowrap; background: linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); border: none !important; outline: none !important; color: #fff; padding: 13px 14px; border-radius: 14px; font-weight: 800; font-size: 13px; box-shadow: none; cursor: pointer;" onclick="event.stopPropagation(); window.startTrip('${trip.id}', this)">
-                                <i class="fa-solid fa-play" style="margin-right:6px;"></i> Start Trip
+                            <button type="button" class="btn-primary" style="width:100%; white-space:nowrap; background: linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); border: none !important; outline: none !important; color: #fff; padding: 12px 10px; border-radius: 14px; font-weight: 800; font-size: 12.5px; box-shadow: none; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px;" onclick="event.stopPropagation(); window.startTrip('${trip.id}', this)">
+                                <i class="fa-solid ${startBtnIcon}" style="font-size:12px;"></i> <span>${startBtnText}</span>
                             </button>`;
                         }
                         html += `</div>`; // Close start-collapsible
-                        }
                         html += `</div>`; // Close action buttons flex
 
                         html += `</div></div>`; // Close trip-swipe-content and trip-swipe-container
@@ -2013,22 +2019,20 @@ $backRoute = 'itinerary';
 
                 const expandedTripIds = new Set();
                 list.querySelectorAll('.timeline-collapsible.expanded').forEach(el => {
-                    const tid = el.id ? el.id.replace('trip-details-', '') : '';
+                    const tid = el.id ? el.id.replace('timeline-', '') : '';
                     if (tid) expandedTripIds.add(tid);
                 });
 
                 list.innerHTML = html || emptyStateHtml;
                 expandedTripIds.forEach(tid => {
-                    const detail = document.getElementById('trip-details-' + tid);
-                    const chevron = document.getElementById('trip-chevron-' + tid);
+                    const detail = document.getElementById('timeline-' + tid);
+                    const chevron = document.getElementById('chevron-' + tid);
+                    const textEl = document.getElementById('details-text-' + tid);
                     if (detail) detail.classList.add('expanded');
-                    if (chevron) chevron.classList.add('rotated');
+                    if (chevron) chevron.style.transform = 'rotate(180deg)';
+                    if (textEl) textEl.textContent = 'Hide Details';
                 });
-                list.querySelectorAll('button[onclick*="executeLocationCheckIn"]:not(.saved-trip-checkin-btn)').forEach(button => {
-                    const row = button.parentElement;
-                    button.remove();
-                    if (row && row.children.length === 0 && !row.textContent.trim()) row.remove();
-                });
+                // Retain action buttons for active interactive stops
                 refreshSavedTripCheckinAvailability();
                 updateScrollviewState();
                 initSavedTripsSwipe();
@@ -2075,16 +2079,20 @@ $backRoute = 'itinerary';
         window.toggleTripDetails = function (tripId) {
             const timeline = document.getElementById('timeline-' + tripId);
             const chevron = document.getElementById('chevron-' + tripId);
+            const textEl = document.getElementById('details-text-' + tripId);
             const startWrapper = document.getElementById('start-wrapper-' + tripId);
 
-            if (timeline && chevron) {
-                if (!timeline.classList.contains('expanded')) {
+            if (timeline) {
+                const isExpanded = timeline.classList.contains('expanded');
+                if (!isExpanded) {
                     timeline.classList.add('expanded');
-                    chevron.style.transform = 'rotate(180deg)';
+                    if (chevron) chevron.style.transform = 'rotate(180deg)';
+                    if (textEl) textEl.textContent = 'Hide Details';
                     if (startWrapper) startWrapper.classList.add('expanded');
                 } else {
                     timeline.classList.remove('expanded');
-                    chevron.style.transform = 'rotate(0deg)';
+                    if (chevron) chevron.style.transform = 'rotate(0deg)';
+                    if (textEl) textEl.textContent = 'View Details';
                     if (startWrapper) startWrapper.classList.remove('expanded');
                 }
                 if (typeof window.updateSavedTripsScrollview === 'function') {
@@ -3064,27 +3072,9 @@ $backRoute = 'itinerary';
             const reviewItems = trip && Array.isArray(trip.items) ? trip.items.filter(item =>
                 item && (item.tourist_spot_id || item.destination_id || (item.destination && item.destination.id))
             ) : [];
-            if (!reviewItems.length) {
-                if (typeof showToast === 'function') showToast('This trip has no destinations available for review.', 'warning');
-                return;
-            }
-            const allReviewed = reviewItems.every(item =>
-                window.userReviewedItemIds && window.userReviewedItemIds.has(Number(item.id))
-            );
-            if (reviewItems.length === 1 && !allReviewed) {
-                const item = reviewItems[0];
-                const spotId = item.tourist_spot_id || item.destination_id || (item.destination && item.destination.id);
-                const classification = item.classification_status || (item.destination && item.destination.classification_status) || '';
-                window._completionReviewRequired = true;
-                window._completionReviewRequiredIds = [Number(item.id)];
-                const reviewButton = document.createElement('button');
-                reviewButton.dataset.spotId = String(spotId);
-                reviewButton.dataset.itineraryItemId = String(item.id);
-                reviewButton.dataset.spotClassification = String(classification);
-                window.startReviewFromCompletion(String(spotId), String(item.id), reviewButton);
-                return;
-            }
-            showTripCompletionReviewModal(reviewItems, true);
+            
+            // Show modal where user can review spots or skip with "Review Later"
+            showTripCompletionReviewModal(reviewItems, false);
         };
 
         window.closeCompleteTripModal = function () {
@@ -3288,9 +3278,12 @@ $backRoute = 'itinerary';
                 </div>
 
                 <!-- Footer (Royal Blue) -->
-                <div style="background:linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%) !important; padding:14px 20px; flex-shrink:0;">
-                    <button type="button" id="btn-trip-completion-close" onclick="window.finishTripAfterReviews()" style="width:100%; padding:12px; border-radius:100px; border:none; outline:none; background:rgba(255,255,255,0.2); color:#ffffff; font-size:13px; font-weight:800; cursor:pointer; transition:all 0.2s ease;">
-                        ${requireBeforeCompletion ? 'Review all destinations first' : 'Done'}
+                <div style="background:linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%) !important; padding:14px 20px; flex-shrink:0; display:flex; flex-direction:column; gap:8px;">
+                    <button type="button" id="btn-trip-completion-save" onclick="window.closeTripCompletionReviewModal(); window.executeConfirmCompleteTrip();" style="width:100%; padding:12px; border-radius:100px; border:none; outline:none; background:linear-gradient(135deg, #10b981, #059669); color:#ffffff; font-size:13.5px; font-weight:800; cursor:pointer; box-shadow:0 3px 10px rgba(16,185,129,0.3); transition:all 0.2s ease;">
+                        <i class="fa-solid fa-flag-checkered" style="margin-right:6px;"></i> Complete Trip
+                    </button>
+                    <button type="button" onclick="window.closeTripCompletionReviewModal(); window.executeConfirmCompleteTrip();" style="background:transparent; border:none; outline:none; color:rgba(255,255,255,0.85); font-size:12px; font-weight:700; cursor:pointer; padding:4px; text-decoration:underline;">
+                        I'll review destinations later
                     </button>
                 </div>
             </div>

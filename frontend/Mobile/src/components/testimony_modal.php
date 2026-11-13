@@ -18,19 +18,6 @@
 
             <!-- Middle (White) -->
             <div style="background:#ffffff !important; padding:16px 20px 10px 20px; overflow-y:auto; max-height:calc(78vh - 130px); scrollbar-width:none; -ms-overflow-style:none; flex:1;">
-                
-                <!-- Rewards Incentive Callout Banner -->
-                <div id="testimony-reward-banner" style="background:#eff6ff !important; border:1px solid #bfdbfe !important; outline:none !important; border-radius:12px; padding:10px 12px; margin-bottom:12px; display:flex; align-items:center; gap:10px; transition:all 0.3s ease;">
-                    <div id="testimony-reward-icon" style="width:32px; height:32px; border-radius:8px; background:#dbeafe; display:flex; align-items:center; justify-content:center; color:#2563eb; font-size:14px; flex-shrink:0;">
-                        <i class="fa-solid fa-gift"></i>
-                    </div>
-                    <div style="flex:1; min-width:0;">
-                        <span id="testimony-reward-title" style="display:block; font-size:12px; font-weight:800; color:#1e3a8a; line-height:1.25;">Review & Earn Rewards</span>
-                        <span id="testimony-reward-desc" style="font-size:11px; color:#475569; line-height:1.35; display:block; margin-top:1px;">Submit review to claim rewards</span>
-                    </div>
-                    <div id="testimony-reward-badges" style="display:none !important;"></div>
-                </div>
-
                 <!-- Star Rating selection -->
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
                     <label style="font-size:11px; font-weight:800; color:#334155; text-transform:uppercase; letter-spacing:0.4px;">Your Rating (1 to 5 Stars):</label>
@@ -202,11 +189,6 @@ window.openWriteTestimonyModal = function(spotId, btnEl, itineraryItemId = null)
     const isCompletionReview = window._isCompletionReviewFlow === true;
     const titleEl = document.getElementById('testimony-modal-title');
     const subEl = document.getElementById('testimony-modal-subtitle');
-    const bannerEl = document.getElementById('testimony-reward-banner');
-    const iconEl = document.getElementById('testimony-reward-icon');
-    const bannerTitleEl = document.getElementById('testimony-reward-title');
-    const bannerDescEl = document.getElementById('testimony-reward-desc');
-    const bannerBadgesEl = document.getElementById('testimony-reward-badges');
     const submitTextEl = document.getElementById('testimony-submit-text');
     const commentInput = document.getElementById('testimony-comment');
     const policyInput = document.getElementById('testimony-policy');
@@ -235,52 +217,23 @@ window.openWriteTestimonyModal = function(spotId, btnEl, itineraryItemId = null)
         // Repeated Review state: NO ADDITIONAL REWARDS
         if (titleEl) titleEl.textContent = 'Update Destination Review';
         if (subEl) subEl.textContent = 'Modify your site feedback and policy recommendations for this destination.';
-        if (bannerEl) {
-            bannerEl.style.background = '#f8fafc';
-            bannerEl.style.border = '1px solid #e2e8f0';
-            bannerEl.style.outline = 'none';
-        }
-        if (iconEl) {
-            iconEl.innerHTML = '<i class="fa-solid fa-circle-check" style="color:#10b981;"></i>';
-        }
-        if (bannerTitleEl) bannerTitleEl.innerHTML = '<span style="color:#10b981; font-weight:800;">Review Already Claimed</span>';
-        if (bannerDescEl) bannerDescEl.textContent = 'Rewards are one-time per spot. Updating will not grant additional Points.';
-        if (bannerBadgesEl) {
-            bannerBadgesEl.innerHTML = '';
-            bannerBadgesEl.style.display = 'none';
-        }
         if (submitTextEl) submitTextEl.textContent = 'Update Review';
 
         // Pre-fill existing data if available
         const prevData = window.userReviewedSpotData && window.userReviewedSpotData[targetSpotId];
         if (prevData) {
-            if (typeof window.setStarRating === 'function') window.setStarRating(prevData.rating || 0);
+            if (typeof window.setStarRating === 'function') window.setStarRating(prevData.rating || 5);
             if (typeof window.selectCleanliness === 'function') window.selectCleanliness(prevData.cleanliness_level || 'clean');
             if (typeof window.selectSafety === 'function') window.selectSafety(prevData.safety_level || 'safe');
             if (commentInput) commentInput.value = prevData.testimony || '';
             if (policyInput) policyInput.value = prevData.policy_recommendation || '';
         }
     } else {
-        // First Review state: EARN REWARDS based on classification (Existing 25, Emerging 45, Potential 35)
         if (titleEl) titleEl.textContent = 'Review Destination';
         if (subEl) subEl.textContent = `Share your site feedback for this ${classMeta.label.toLowerCase()} destination to help local tourism.`;
-        if (bannerEl) {
-            bannerEl.style.background = '#eff6ff';
-            bannerEl.style.border = '1px solid #bfdbfe';
-            bannerEl.style.outline = 'none';
-        }
-        if (iconEl) {
-            iconEl.innerHTML = `<i class="fa-solid ${classMeta.icon}" style="color:${classMeta.color};"></i>`;
-        }
-        if (bannerTitleEl) bannerTitleEl.innerHTML = `<span style="color:${classMeta.color}; font-weight:800;">${classMeta.label} Site</span> • Earn Rewards`;
-        if (bannerDescEl) bannerDescEl.textContent = `Submit review to claim +${classMeta.points} Points`;
-        if (bannerBadgesEl) {
-            bannerBadgesEl.innerHTML = '';
-            bannerBadgesEl.style.display = 'none';
-        }
         if (submitTextEl) submitTextEl.textContent = 'Submit Review';
 
-        if (typeof window.setStarRating === 'function') window.setStarRating(0);
+        if (typeof window.setStarRating === 'function') window.setStarRating(5);
         if (typeof window.selectCleanliness === 'function') window.selectCleanliness('clean');
         if (typeof window.selectSafety === 'function') window.selectSafety('safe');
         if (commentInput) commentInput.value = '';

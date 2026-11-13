@@ -28,7 +28,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px clamp(12px, 3.8vw, 18px);
+    padding: 10px clamp(16px, 4.5vw, 22px);
     z-index: 9000 !important;
     /* Ensure Android gets safe padding since safe-area-inset-top is sometimes 0 on Android WebViews */
     padding-top: max(env(safe-area-inset-top, 0px), 36px);

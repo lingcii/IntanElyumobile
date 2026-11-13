@@ -66,7 +66,7 @@ $activeTab = 'leaderboard';
     <!-- Rank List Section -->
     <div id="rank-list-section">
         <div class="stagger-2"
-            style="display: flex; justify-content: space-between; align-items: center; margin: 20px 4px 12px 4px;">
+            style="display: flex; justify-content: space-between; align-items: center; margin: 10px 4px 8px 4px;">
             <h3
                 style="font-size: 15px; font-weight: 800; color: #0f172a !important; margin: 0; display: flex; align-items: center; gap: 6px;">
                 <i class="fa-solid fa-list-ol" style="color: #1e3a8a;"></i> Explorer Leaderboard
@@ -295,7 +295,7 @@ $activeTab = 'leaderboard';
                 if (avatarEl) avatarEl.src = (cachedMeData && cachedMeData.avatar) ? cachedMeData.avatar : (authUser.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(myExplorerName)}&background=007AFF&color=fff&rounded=true&bold=true&size=128`);
                 if (rankCircle) {
                     rankCircle.style.display = 'flex';
-                    rankCircle.textContent = (cachedMyRank && cachedMyRank < 999) ? '#' + cachedMyRank : '★';
+                    rankCircle.textContent = (cachedMyRank && cachedMyRank < 999 && (myPts > 0 || (parseInt(authUser.places_visited || 0) > 0))) ? '#' + cachedMyRank : '—';
                 }
                 const myPts = parseInt(authUser.points || authUser.xp || 0);
                 const myActs = parseInt(authUser.completed_activities || authUser.places_visited || 0);
@@ -754,12 +754,13 @@ $activeTab = 'leaderboard';
         }
 
         const cleanRank = String(rank || '').replace(/^#/, '');
+        const isUnranked = !cleanRank || cleanRank === '—' || cleanRank === '-' || cleanRank.toLowerCase() === 'unranked' || (isSelf && (!displayPts && !activities));
         document.getElementById('modal-avatar').src = avatar;
         document.getElementById('modal-name').innerText = finalName;
         document.getElementById('modal-pts').innerText = displayPts.toLocaleString();
-        document.getElementById('modal-rank-badge').innerText = cleanRank || '★';
+        document.getElementById('modal-rank-badge').innerText = isUnranked ? '—' : cleanRank;
         const rankNumEl = document.getElementById('modal-rank-num');
-        if (rankNumEl) rankNumEl.innerText = cleanRank ? (cleanRank !== '—' ? '#' + cleanRank : '—') : '—';
+        if (rankNumEl) rankNumEl.innerText = isUnranked ? 'Unranked' : '#' + cleanRank;
         document.getElementById('modal-activities').innerText = activities ? Number(activities).toLocaleString() : '0';
 
         // When viewing self, fetch fresh live balance to guarantee accuracy
@@ -795,9 +796,9 @@ $activeTab = 'leaderboard';
         const rankPill = document.getElementById('modal-rank-pill');
         if (rankPill) {
             if (isSelf) {
-                rankPill.innerText = (cleanRank && cleanRank !== '—') ? `#${cleanRank} Ranked Explorer (You)` : `Your Explorer Profile`;
+                rankPill.innerText = isUnranked ? `Unranked Explorer` : `#${cleanRank} Ranked Explorer (You)`;
             } else {
-                rankPill.innerText = cleanRank ? `#${cleanRank} Ranked Explorer` : 'Ranked Explorer';
+                rankPill.innerText = isUnranked ? 'Unranked Explorer' : `#${cleanRank} Ranked Explorer`;
             }
         }
 

@@ -49,10 +49,12 @@ class LoginController extends Controller
             ->update(['last_activity' => now(), 'api_token' => $token]);
 
         $vouchers = \App\Http\Controllers\Tourist\PointsController::getUserVouchers($user->id);
+        $mustChangePassword = (bool) ($user->must_change_password ?? false);
 
         return response()->json([
-            'success'  => true,
-            'token'    => $token,
+            'success'              => true,
+            'token'                => $token,
+            'must_change_password' => $mustChangePassword,
             'user'     => [
                 'id'                   => $user->id,
                 'tourist_number'       => method_exists($user, 'getTouristNumber') ? $user->getTouristNumber() : $user->id,
@@ -62,6 +64,7 @@ class LoginController extends Controller
                 'role'                 => $user->role,
                 'municipality_id'      => $user->municipality_id,
                 'two_factor_enabled'   => (bool) $user->two_factor_enabled,
+                'must_change_password' => $mustChangePassword,
                 'points'               => (int) ($user->points ?? $user->xp ?? 0),
                 'xp'                   => (int) ($user->xp ?? 0),
                 'level'                => (int) ($user->level ?? 1),
@@ -630,6 +633,98 @@ class LoginController extends Controller
             'token'   => $authToken,
             'user'    => $user,
             'message' => 'Your password has been reset successfully! Proceeding into the app...'
+        ]);
+    }
+
+    /**
+     * POST /api/auth/change-temporary-password
+     * Allows a user with a temporary password to establish their permanent password.
+     */
+    public function changeTemporaryPassword(Request $request): JsonResponse
+    {
+        $request->validate([
+            'new_password' => 'required|string|min:8|confirmed',
+        ]);
+
+        $newPassword = $request->input('new_password');
+        if (!preg_match('/[A-Za-z]/', $newPassword) || !preg_match('/[0-9]/', $newPassword)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'New password must be at least 8 characters and contain both letters and numbers.'
+            ], 422);
+        }
+
+        // Identify user via Bearer token, api_token input, or email + current_password
+        $user = null;
+        $token = $request->bearerToken() ?: $request->input('token') ?: $request->header('X-API-TOKEN');
+
+        if ($token) {
+            $user = User::where('api_token', $token)->first();
+        }
+
+        if (!$user && $request->filled('email')) {
+            $candidate = User::where('email', $request->input('email'))->first();
+            if ($candidate) {
+                if ($request->filled('current_password') && Hash::check($request->input('current_password'), $candidate->password)) {
+                    $user = $candidate;
+                } elseif ($candidate->must_change_password && $token && $candidate->api_token === $token) {
+                    $user = $candidate;
+                }
+            }
+        }
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized or expired session. Please log in with your temporary password again.'
+            ], 401);
+        }
+
+        $user->password = Hash::make($newPassword);
+        try {
+            $user->must_change_password = false;
+        } catch (\Throwable $e) {}
+        
+        $newToken = \Illuminate\Support\Str::random(60);
+        $user->api_token = $newToken;
+        $user->last_activity = now();
+        $user->save();
+
+        try {
+            \App\Models\Notification::createSafely(
+                $user->id,
+                'security',
+                'Permanent Password Set',
+                'Your permanent password has been established successfully. Welcome to Intan Elyu!',
+                ['module' => 'security']
+            );
+        } catch (\Throwable $e) {}
+
+        return response()->json([
+            'success'              => true,
+            'message'              => 'Permanent password established successfully! Welcome to Intan Elyu.',
+            'token'                => $newToken,
+            'must_change_password' => false,
+            'user'                 => [
+                'id'                   => $user->id,
+                'tourist_number'       => method_exists($user, 'getTouristNumber') ? $user->getTouristNumber() : $user->id,
+                'tourist_id'           => method_exists($user, 'getTouristNumber') ? $user->getTouristNumber() : $user->id,
+                'name'                 => $user->name,
+                'email'                => $user->email,
+                'role'                 => $user->role,
+                'municipality_id'      => $user->municipality_id,
+                'two_factor_enabled'   => (bool) $user->two_factor_enabled,
+                'must_change_password' => false,
+                'points'               => (int) ($user->points ?? $user->xp ?? 0),
+                'xp'                   => (int) ($user->xp ?? 0),
+                'level'                => (int) ($user->level ?? 1),
+                'completed_activities' => (int) ($user->completed_activities ?? 0),
+                'places_visited'       => (int) ($user->completed_activities ?? 0),
+                'avatar'               => $user->avatar,
+                'gender'               => $user->gender,
+                'travel_preferences'   => $user->travel_preferences,
+                'is_new_user'          => false,
+            ]
         ]);
     }
 }

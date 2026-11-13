@@ -200,6 +200,9 @@ class ItineraryController extends Controller
     {
         $user = $request->user();
 
+        // Auto-fulfill untouched destination reviews older than 2 days (48 hours)
+        static::processUntouchedVisitReviews(2);
+
         $rawItineraries = Itinerary::where('user_id', $user->id)
             ->with([
                 'items.destination:id,name,photo_url,latitude,longitude,entrance_fee,adult_fee,kids_fee,pwd_fee,senior_citizen_fee,environmental_fee,classification_status,accessible_by_private_vehicle,municipality_id,boundary_geojson',
@@ -600,14 +603,11 @@ class ItineraryController extends Controller
             ]);
         }
 
-        // Completion requires on-site check-in and submitted proof for every stop.
-        // Approval may still be pending; rejected proof must be resubmitted.
+        // Completion requires on-site check-in (visited_at or is_visited). Photo proof is optional.
         $unvisitedCount = $itinerary->items()
             ->where(function ($query) {
                 $query->whereNull('visited_at')
-                    ->orWhereNull('proof_image')
-                    ->orWhere('proof_image', '')
-                    ->orWhere('proof_status', 'rejected');
+                      ->where('is_visited', false);
             })
             ->count();
 
@@ -618,18 +618,8 @@ class ItineraryController extends Controller
             ], 422);
         }
 
+        // Reviews are optional upon trip completion — tourists can complete the trip now and submit reviews later
         $itemsToVisit = $itinerary->items()->get();
-        $reviewedItemIds = SiteFeedback::where('user_id', $user->id)
-            ->whereIn('itinerary_item_id', $itemsToVisit->pluck('id'))
-            ->pluck('itinerary_item_id');
-        $missingReviewCount = $itemsToVisit->whereNotIn('id', $reviewedItemIds)->count();
-
-        if ($missingReviewCount > 0) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Please review every destination in this trip before completing it.',
-            ], 422);
-        }
 
         $completedNow = DB::transaction(function () use ($itinerary, $itemsToVisit) {
             $updated = Itinerary::whereKey($itinerary->id)
@@ -662,6 +652,9 @@ class ItineraryController extends Controller
         Cache::forget('map:public:spots');
         Cache::forget('trending:top:5');
         Cache::forget('trending:top:10');
+
+        // Auto-fulfill unreviewed stops with a default 5-star rating if left untouched
+        $this->autoDefaultUntouchedReviews($user->id, $itemsToVisit);
 
         // Check if this itinerary is a quest trip and record completion + badge
         try {
@@ -1094,5 +1087,132 @@ class ItineraryController extends Controller
             'status' => 'success',
             'estimation' => $result
         ]);
+    }
+
+    /**
+     * Automatically defaults untouched reviews for trip destinations to 5 stars.
+     * Ensures all ratings reflect properly across provincial rankings and destination cards.
+     */
+    protected function autoDefaultUntouchedReviews(int $userId, $items): void
+    {
+        try {
+            foreach ($items as $item) {
+                $spotId = (int) ($item->tourist_spot_id ?? 0);
+                if (!$spotId) {
+                    continue;
+                }
+
+                // Check if feedback already exists for this itinerary item or user+spot
+                $existingFeedback = SiteFeedback::where('user_id', $userId)
+                    ->where(function ($query) use ($item, $spotId) {
+                        $query->where('itinerary_item_id', $item->id)
+                              ->orWhere('tourist_spot_id', $spotId);
+                    })
+                    ->first();
+
+                if (!$existingFeedback) {
+                    SiteFeedback::create([
+                        'user_id'               => $userId,
+                        'tourist_spot_id'       => $spotId,
+                        'itinerary_item_id'     => $item->id,
+                        'rating'                => 5,
+                        'testimony'             => 'Great destination! Visited as part of itinerary trip.',
+                        'policy_recommendation' => null,
+                        'cleanliness_level'     => 'clean',
+                        'safety_level'          => 'safe',
+                    ]);
+
+                    // Recalculate average rating for the tourist spot
+                    $spot = TouristSpot::find($spotId);
+                    if ($spot) {
+                        $avg = SiteFeedback::where('tourist_spot_id', $spotId)
+                            ->whereNotNull('rating')
+                            ->avg('rating');
+                        $spot->rating = $avg ? round((float) $avg, 1) : 5.0;
+                        $spot->save();
+                    }
+                }
+            }
+        } catch (\Throwable $e) {
+            Log::warning('Auto-default untouched reviews failed: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Auto-process untouched visits older than 2-3 days into default 5-star reviews.
+     */
+    public static function processUntouchedVisitReviews(int $daysThreshold = 2): int
+    {
+        $processedCount = 0;
+        try {
+            $cutoff = now()->subDays($daysThreshold);
+
+            // Find completed or checked-in itinerary items past the threshold without reviews
+            $items = ItineraryItem::where(function ($q) {
+                    $q->where('is_visited', true)
+                      ->orWhereNotNull('visited_at');
+                })
+                ->where(function ($q) use ($cutoff) {
+                    $q->where('visited_at', '<=', $cutoff)
+                      ->orWhere(function ($q2) use ($cutoff) {
+                          $q2->whereNull('visited_at')
+                             ->where('updated_at', '<=', $cutoff);
+                      });
+                })
+                ->whereNotNull('tourist_spot_id')
+                ->with('itinerary:id,user_id')
+                ->get();
+
+            $spotsToUpdate = [];
+
+            foreach ($items as $item) {
+                $userId = $item->itinerary?->user_id;
+                if (!$userId) continue;
+
+                $spotId = (int) $item->tourist_spot_id;
+                $alreadyReviewed = SiteFeedback::where('user_id', $userId)
+                    ->where(function ($q) use ($item, $spotId) {
+                        $q->where('itinerary_item_id', $item->id)
+                          ->orWhere('tourist_spot_id', $spotId);
+                    })
+                    ->exists();
+
+                if (!$alreadyReviewed) {
+                    SiteFeedback::create([
+                        'user_id'               => $userId,
+                        'tourist_spot_id'       => $spotId,
+                        'itinerary_item_id'     => $item->id,
+                        'rating'                => 5,
+                        'testimony'             => 'Great destination! Visited as part of itinerary trip.',
+                        'policy_recommendation' => null,
+                        'cleanliness_level'     => 'clean',
+                        'safety_level'          => 'safe',
+                    ]);
+                    $spotsToUpdate[$spotId] = true;
+                    $processedCount++;
+                }
+            }
+
+            foreach (array_keys($spotsToUpdate) as $spotId) {
+                $spot = TouristSpot::find($spotId);
+                if ($spot) {
+                    $avg = SiteFeedback::where('tourist_spot_id', $spotId)
+                        ->whereNotNull('rating')
+                        ->avg('rating');
+                    $spot->rating = $avg ? round((float) $avg, 1) : 5.0;
+                    $spot->save();
+                }
+            }
+
+            if ($processedCount > 0) {
+                Cache::forget('map:public:spots');
+                Cache::forget('trending:top:5');
+                Cache::forget('trending:top:10');
+            }
+        } catch (\Throwable $e) {
+            Log::warning('Process untouched visit reviews failed: ' . $e->getMessage());
+        }
+
+        return $processedCount;
     }
 }

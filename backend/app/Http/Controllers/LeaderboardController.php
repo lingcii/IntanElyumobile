@@ -101,21 +101,25 @@ class LeaderboardController extends Controller
         // Filter out users with zero score for the requested metric
         $filterSql = match ($rawSort) {
             'most_activities', 'activities', 'activities_desc', 'completed_activities', 'visited', 'most_visited', 'places_visited', 'visited_desc' => 'AND COALESCE(u.completed_activities, 0) > 0',
-            default => 'AND (COALESCE(u.points, 0) > 0 OR COALESCE(u.xp, 0) > 0)',
+            default => 'AND (COALESCE(u.points, 0) > 0 OR COALESCE(u.xp, 0) > 0 OR COALESCE(u.completed_activities, 0) > 0)',
         };
 
         if ($user) {
-            try {
-                $myRankRow = DB::selectOne(
-                    $this->rankedCte($orderSql, $filterSql) . "SELECT * FROM ranked WHERE user_id = ?",
-                    [$user->id]
-                );
-                if ($myRankRow) {
-                    $myRank = (int) $myRankRow->rank;
-                    $meRows = $this->castRows([(array) $myRankRow]);
-                    $me = $meRows[0] ?? null;
+            $uPts = (int) ($user->points ?? $user->xp ?? 0);
+            $uActs = (int) ($user->completed_activities ?? 0);
+            if ($uPts > 0 || $uActs > 0) {
+                try {
+                    $myRankRow = DB::selectOne(
+                        $this->rankedCte($orderSql, $filterSql) . "SELECT * FROM ranked WHERE user_id = ?",
+                        [$user->id]
+                    );
+                    if ($myRankRow) {
+                        $myRank = (int) $myRankRow->rank;
+                        $meRows = $this->castRows([(array) $myRankRow]);
+                        $me = $meRows[0] ?? null;
+                    }
+                } catch (\Throwable $e) {
                 }
-            } catch (\Throwable $e) {
             }
         }
 
