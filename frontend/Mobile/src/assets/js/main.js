@@ -5778,6 +5778,17 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
     // Prevent overlapping navigations
     if (state.isNavigating) return;
 
+    // Require permanent password change before entering onboarding
+    if (typeof viewName === 'string' && viewName.split(/[?&]/)[0] === 'onboarding') {
+        try {
+            const u = JSON.parse(localStorage.getItem('auth_user') || 'null');
+            if (u && u.must_change_password && typeof window.promptTemporaryPasswordChange === 'function') {
+                window.promptTemporaryPasswordChange(() => navigateTo(viewName, addToHistory, fade));
+                return;
+            }
+        } catch (e) {}
+    }
+
     // Parse pure view name and any query parameters passed in viewName (e.g. 'trip_map&trip_id=123' or 'trip_map?trip_id=123')
     let targetView = viewName;
     const extraParams = new URLSearchParams();
@@ -7153,6 +7164,7 @@ window.navigateTo = navigateTo;
             });
     };
 
+    window.promptTemporaryPasswordChange = promptTemporaryPasswordChange;
     function promptTemporaryPasswordChange(onSuccess) {
         const existing = document.getElementById('temp-password-change-modal');
         if (existing) existing.remove();
