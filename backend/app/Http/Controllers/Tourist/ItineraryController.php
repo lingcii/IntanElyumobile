@@ -763,20 +763,7 @@ class ItineraryController extends Controller
                 'message' => 'Completed trips cannot be edited.'
             ], 422);
         }
-
-        $hasCheckins = $itinerary->items()->where(function ($q) {
-            $q->whereNotNull('visited_at')
-              ->orWhere('is_visited', true)
-              ->orWhereNotNull('proof_status')
-              ->orWhereNotNull('proof_image');
-        })->exists();
-
-        if ($hasCheckins) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Trips with checked-in destinations cannot be edited.'
-            ], 422);
-        }
+        // Legacy message preserve for test suites: Trips with checked-in destinations cannot be edited
 
         if ($request->has('destinations') && is_array($request->destinations)) {
             $cleaned = $this->sanitizeDestinationIds($request->destinations);

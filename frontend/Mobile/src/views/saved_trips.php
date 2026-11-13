@@ -1158,15 +1158,6 @@ $backRoute = 'itinerary';
             if (trip.status === 'completed' || (typeof window !== 'undefined' && typeof window.isTripCompletedLocally === 'function' && window.isTripCompletedLocally(trip))) {
                 return true;
             }
-            if (Array.isArray(trip.items)) {
-                const hasCheckin = trip.items.some(item => {
-                    if (!item) return false;
-                    const spotIdVal = item.tourist_spot_id || item.destination_id || (item.destination ? item.destination.id : null);
-                    const isQueued = Boolean(typeof window !== 'undefined' && window.OfflineCheckinManager && window.OfflineCheckinManager.getQueuedItem(item.id, spotIdVal, trip.id || trip.local_id));
-                    return isQueued || Boolean(item.is_location_verified || item.visited_at || item.is_visited || item.proof_status || item.proof_image || (item.proof_images && item.proof_images.length > 0));
-                });
-                if (hasCheckin) return true;
-            }
             return false;
         }
         if (typeof window !== 'undefined') {
@@ -3523,9 +3514,8 @@ $backRoute = 'itinerary';
             }
 
             if (isTripLockedFromEditing(trip)) {
-                const isCompleted = (trip.status === 'completed' || (typeof window.isTripCompletedLocally === 'function' && window.isTripCompletedLocally(trip)));
                 if (typeof showToast === 'function') {
-                    showToast(isCompleted ? "Completed trips cannot be edited." : "Trips with checked-in destinations cannot be edited.", "warning");
+                    showToast("Completed trips cannot be edited.", "warning");
                 }
                 return;
             }
@@ -3735,7 +3725,7 @@ $backRoute = 'itinerary';
             if (!trip) return;
             if (isTripLockedFromEditing(trip)) {
                 if (typeof showToast === 'function') {
-                    showToast("Trips with checked-in destinations cannot be edited.", "warning");
+                    showToast("Completed trips cannot be edited.", "warning");
                 }
                 return;
             }

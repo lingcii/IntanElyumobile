@@ -1218,7 +1218,8 @@
             }
             const isGuest = user && (user.is_guest || user.is_offline_guest);
             const onboardDone = localStorage.getItem('intan_elyu_onboarding_done_' + (user?.id || 'user'));
-            const shouldOnboard = !isGuest && !onboardDone && user?.is_new_user === true;
+            const forcedOnboard = sessionStorage.getItem('show_onboarding') === 'true' || sessionStorage.getItem('onboarding_active') === 'true';
+            const shouldOnboard = !isGuest && (!onboardDone && (user?.is_new_user === true || forcedOnboard));
             const targetView = shouldOnboard ? 'onboarding' : 'dashboard';
 
             if (typeof navigateTo === 'function') {
@@ -2479,6 +2480,14 @@
             const finalToken = result.token || token;
             const finalUser = result.user || authData.user || {};
             finalUser.must_change_password = false;
+            finalUser.is_new_user = true;
+
+            // Flag that onboarding / complete profile must be shown immediately after password change
+            sessionStorage.setItem('show_onboarding', 'true');
+            sessionStorage.setItem('onboarding_active', 'true');
+            if (finalUser.id) {
+                localStorage.removeItem('intan_elyu_onboarding_done_' + finalUser.id);
+            }
 
             window.purgeAllUserSessionCaches();
             localStorage.setItem('auth_user', JSON.stringify(finalUser));
