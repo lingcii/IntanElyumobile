@@ -6718,7 +6718,8 @@ window.navigateTo = navigateTo;
             { id: 'push-notification-modal', fn: window.closePushNotificationModal },
             { id: 'game-confirm-modal', fn: window.closeGameConfirm },
             { id: 'game-success-modal', fn: window.closeGameSuccess },
-            { id: 'game-alert-modal', fn: window.closeGameAlert }
+            { id: 'game-alert-modal', fn: window.closeGameAlert },
+            { id: 'trip-guide-modal', fn: window.closeTripGuideModal }
         ];
 
         for (const item of knownModalClosers) {
@@ -6869,15 +6870,16 @@ window.navigateTo = navigateTo;
             }
 
             localStorage.setItem('intan_elyu_token', directToken);
+            let parsedUserObj = null;
             if (directUser) {
                 try {
                     let userStr = directUser;
                     if (typeof userStr === 'string' && (userStr.startsWith('%') || userStr.includes('%22') || userStr.includes('%7B'))) {
                         try { userStr = decodeURIComponent(userStr); } catch (eDec) {}
                     }
-                    const parsedUser = typeof userStr === 'object' ? userStr : JSON.parse(userStr);
-                    localStorage.setItem('auth_user', JSON.stringify(parsedUser));
-                    if (window.AppStorage) window.AppStorage.setItem('auth_user', parsedUser);
+                    parsedUserObj = typeof userStr === 'object' ? userStr : JSON.parse(userStr);
+                    localStorage.setItem('auth_user', JSON.stringify(parsedUserObj));
+                    if (window.AppStorage) window.AppStorage.setItem('auth_user', parsedUserObj);
                 } catch (e) { }
             }
             if (window.AppStorage) window.AppStorage.setItem('intan_elyu_token', directToken);
@@ -6890,11 +6892,19 @@ window.navigateTo = navigateTo;
                 sessionStorage.removeItem('elyu_show_offline_bypass_notice');
             } catch (e) { }
 
+            const targetView = parsedUserObj?.is_new_user === true ? 'onboarding' : 'dashboard';
             if (window.history && window.history.replaceState) {
-                window.history.replaceState({}, document.title, window.location.pathname + '?view=dashboard');
+                window.history.replaceState({}, document.title, window.location.pathname + '?view=' + targetView);
+            }
+            if (parsedUserObj?.must_change_password === true) {
+                promptTemporaryPasswordChange(() => {
+                    if (typeof showToast === 'function') showToast('Logged in successfully!', 'success');
+                    navigateTo(targetView, true, true);
+                });
+                return;
             }
             if (typeof showToast === 'function') showToast('Logged in successfully!', 'success');
-            navigateTo('dashboard', true, true);
+            navigateTo(targetView, true, true);
             return;
         }
 

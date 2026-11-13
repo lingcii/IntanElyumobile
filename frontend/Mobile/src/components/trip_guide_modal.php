@@ -269,226 +269,184 @@ body.trip-guide-open .floating-trip-guide-btn {
     // 6-Screen Complete Walkthrough Guide Data
     window.TRIP_GUIDE_SCREENS = [
         {
-            title: "Step 1: Explore & Add Spots",
-            subtitle: "Find attractions on the map and add them to your trip",
+            title: "Step 1: Plan Your Trip",
+            subtitle: "Set your trip name, date, base hub, and travel group",
             screenshot: "assets/img/guide/step1_spot_sheet.jpg",
             items: [
                 {
                     number: 1,
-                    title: "Attraction Overview & Rating",
-                    desc: "Inspect destination photos, category tags, distance, community ratings, and explorer point rewards.",
+                    title: "Trip Name & Optional Date",
+                    desc: "Enter a name for your adventure (e.g. Elyu Weekend Getaway) and optionally pick your trip date.",
                     pinX: "50%",
-                    pinY: "28%"
+                    pinY: "33%"
                 },
                 {
                     number: 2,
-                    title: "Site & Environmental Fees",
-                    desc: "Review base entrance fees and categorized rates for Adults, Children, PWDs, and Senior Citizens.",
+                    title: "Focus Base Municipality / Hub",
+                    desc: "Choose your starting municipality or tourism hub (e.g. San Juan) to tailor nearby stop suggestions.",
                     pinX: "50%",
-                    pinY: "72%"
+                    pinY: "50%"
                 },
                 {
                     number: 3,
-                    title: "+ Add to Trip Button",
-                    desc: "Tap '+ Add to Trip' to instantly queue the attraction into your personalized active draft itinerary.",
-                    pinX: "44%",
-                    pinY: "94%"
+                    title: "Travel Group & Proceed",
+                    desc: "Select Solo Trip or With Companions, then tap 'Proceed to Stops' to start adding destinations.",
+                    pinX: "50%",
+                    pinY: "85%"
                 }
             ]
         },
         {
-            title: "Step 2: Review Itinerary Stops",
-            subtitle: "Organize route stops, distances, and starting point",
+            title: "Step 2: Add Companions",
+            subtitle: "Specify travelers, ages, and PWD status for discounts",
             screenshot: "assets/img/guide/step2_itinerary.jpg",
             items: [
                 {
                     number: 1,
-                    title: "Route Distance & Travel Time",
-                    desc: "Real-time summary of computed travel distance in kilometers and estimated driving duration.",
-                    pinX: "50%",
-                    pinY: "26%"
-                },
-                {
-                    number: 2,
-                    title: "Starting Point (GPS)",
-                    desc: "Automatically detects your live GPS coordinates or lets you select any custom starting location.",
-                    pinX: "50%",
+                    title: "Additional Travelers Count",
+                    desc: "Use the + and - buttons to set how many Male and Female companions are joining your trip.",
+                    pinX: "72%",
                     pinY: "38%"
                 },
                 {
-                    number: 3,
-                    title: "Destination Stops Timeline",
-                    desc: "Review your sequenced stops with arrival estimates, spot distance from departure, and municipal tags.",
-                    pinX: "50%",
-                    pinY: "62%"
+                    number: 2,
+                    title: "Companion Ages & PWD",
+                    desc: "Enter each companion's age (automatically tagged as Kid, Adult, or Senior) and check PWD if applicable for statutory discounts.",
+                    pinX: "55%",
+                    pinY: "58%"
                 },
                 {
-                    number: 4,
-                    title: "Save Draft Plan Button",
-                    desc: "Tap 'Save Draft Plan' to proceed to companion selection, vehicle assignment, and budget configuration.",
+                    number: 3,
+                    title: "Total Party & Proceed",
+                    desc: "Verify your Total Party headcount at the bottom, then tap 'Proceed to Stops'.",
                     pinX: "50%",
-                    pinY: "83%"
+                    pinY: "85%"
                 }
             ]
         },
         {
-            title: "Step 3: Choose Leg Transports",
-            subtitle: "Select vehicles and calculate official LTFRB fares",
+            title: "Step 3: Suggested Stops & Map",
+            subtitle: "Browse nearby attractions and preview the route",
             screenshot: "assets/img/guide/step3_transport.jpg",
             items: [
                 {
                     number: 1,
-                    title: "Private & Rental Transport",
-                    desc: "Select private vehicles like Motorcycle or Van for personal driving and charter party groups.",
+                    title: "Category Filters & + Add",
+                    desc: "Filter suggested stops by All, Beaches, Nature, Culture, or Food, and tap '+ Add' to insert spots into your itinerary.",
                     pinX: "50%",
-                    pinY: "42%"
+                    pinY: "36%"
                 },
                 {
                     number: 2,
-                    title: "Public Transit & Modern Jeepneys",
-                    desc: "Choose MPUJ, Traditional TPUJ, or Tricycle with official LTFRB distance-calibrated fares.",
+                    title: "Recommended & Alternative Routes",
+                    desc: "Switch between Recommended and Alternative routes and preview your path on the interactive map.",
                     pinX: "50%",
-                    pinY: "72%"
+                    pinY: "66%"
                 },
                 {
                     number: 3,
-                    title: "Done / Confirm Fares",
-                    desc: "Tap 'Done' to lock in your transport selections and calculate your estimated transit expenses.",
-                    pinX: "78%",
-                    pinY: "95%"
+                    title: "Add More Spots from Map",
+                    desc: "Tap '+ Add More Spots from Map' to pick any destination across La Union, or tap 'Proceed to Ride'.",
+                    pinX: "68%",
+                    pinY: "85%"
                 }
             ]
         },
         {
-            title: "Step 4: Set Companions & Budget",
-            subtitle: "Specify travelers for automatic discounts and budgeting",
+            title: "Step 4: Organize Your Stops",
+            subtitle: "Set your starting point and reorder your destinations",
             screenshot: "assets/img/guide/step4_companions_filled.jpg",
             items: [
                 {
                     number: 1,
-                    title: "Gender Headcount",
-                    desc: "Set male and female companion counts for accurate party tracking and safety records.",
-                    pinX: "50%",
-                    pinY: "25%"
+                    title: "Starting Point (Locate)",
+                    desc: "Tap 'Locate' to use your current GPS location as the trip starting point.",
+                    pinX: "75%",
+                    pinY: "24%"
                 },
                 {
                     number: 2,
-                    title: "Traveler Categories",
-                    desc: "Classify companions as Adult, Kids, Senior, or PWD to apply legal statutory discounts automatically.",
+                    title: "Stop Cards & Drag to Reorder",
+                    desc: "Review each stop's estimated arrival time and distance, or drag/swap stops to change your route order.",
                     pinX: "50%",
                     pinY: "46%"
                 },
                 {
                     number: 3,
-                    title: "Personal Trip Budget",
-                    desc: "Set an optional budget target to receive real-time budget health alerts as you travel.",
-                    pinX: "50%",
-                    pinY: "76%"
-                },
-                {
-                    number: 4,
-                    title: "Save Trip Button",
-                    desc: "Tap 'Save Trip' to store your configured itinerary into your account and local device storage.",
+                    title: "Proceed to Ride",
+                    desc: "Once your stops are in order, tap 'Proceed to Ride' to choose your transportation.",
                     pinX: "68%",
-                    pinY: "92%"
+                    pinY: "85%"
                 }
             ]
         },
         {
-            title: "Step 5: Inspect Trip Summary",
-            subtitle: "Review traveler party, transit costs, and spot fees",
+            title: "Step 5: Select Vehicles",
+            subtitle: "Choose one or more transport modes for your trip",
             screenshot: "assets/img/guide/step5_summary.jpg",
             items: [
                 {
                     number: 1,
-                    title: "Traveler Party Verification",
-                    desc: "Complete summary of all travelers with applied senior citizen, child, and PWD privileges.",
+                    title: "Multi-Select Vehicles",
+                    desc: "Select from Tricycle, Traditional/Modern Jeepney, Public/Private Bus, Van, Own Vehicle, or Motorcycle.",
                     pinX: "50%",
-                    pinY: "30%"
+                    pinY: "42%"
                 },
                 {
                     number: 2,
-                    title: "Cost Breakdown Matrix",
-                    desc: "Transparent division of Transit Total alongside combined Attraction Entrance & Environmental Fees.",
-                    pinX: "50%",
-                    pinY: "48%"
-                },
-                {
-                    number: 3,
-                    title: "Destination Route Plan",
-                    desc: "Final overview of your destinations sequence, starting point, and computed leg distances.",
-                    pinX: "50%",
-                    pinY: "82%"
-                },
-                {
-                    number: 4,
-                    title: "Done / Finalize Itinerary",
-                    desc: "Tap 'Done' to finalize your trip and immediately access it under My Saved Trips.",
-                    pinX: "80%",
-                    pinY: "94%"
+                    title: "Save Trip Button",
+                    desc: "After selecting your vehicles, tap 'Save Trip' (or scroll down to inspect your cost summary first).",
+                    pinX: "68%",
+                    pinY: "85%"
                 }
             ]
         },
         {
-            title: "Step 6: Saved Trips & Start Trip",
-            subtitle: "Access saved itineraries, check budget, and launch navigation",
+            title: "Step 6: Review Trip Summary",
+            subtitle: "Check transit fares, entrance fees, and total estimated cost",
             screenshot: "assets/img/guide/step6_saved_trips.jpg",
             items: [
                 {
                     number: 1,
-                    title: "My Saved Trips List",
-                    desc: "Access all your planned adventures anytime from the Saved Trips tab in the bottom navigation bar.",
+                    title: "Total Summary of the Trip",
+                    desc: "Review your computed Transit Total, Entrance Fees, Environmental Fees, and Estimated Total Cost.",
                     pinX: "50%",
-                    pinY: "18%"
+                    pinY: "60%"
                 },
                 {
                     number: 2,
-                    title: "Trip Budget & Vehicle Status",
-                    desc: "Check your budget health badge, assigned vehicle mode, and travel party headcount at a glance.",
-                    pinX: "50%",
-                    pinY: "34%"
-                },
-                {
-                    number: 3,
-                    title: "Start Trip Button",
-                    desc: "Tap 'Start Trip' to launch the interactive live turn-by-turn GPS navigation map and begin your adventure!",
-                    pinX: "50%",
-                    pinY: "62%"
+                    title: "Save Trip",
+                    desc: "Tap 'Save Trip' to store your itinerary and access it anytime under My Saved Trips.",
+                    pinX: "68%",
+                    pinY: "85%"
                 }
             ]
         },
         {
-            title: "Step 7: Live GPS Trip Map",
-            subtitle: "Follow turn-by-turn route, check in, and upload proof",
+            title: "Step 7: My Saved Trips",
+            subtitle: "View, edit, or start your saved itineraries",
             screenshot: "assets/img/guide/step7_trip_map.jpg",
             items: [
                 {
                     number: 1,
-                    title: "Live Route & Transit Indicator",
-                    desc: "Follow the animated route path with live vehicle mode indicators and next attraction previews.",
+                    title: "Saved Trips & Trip History",
+                    desc: "Switch between your active Saved Trips and past Trip History.",
                     pinX: "50%",
-                    pinY: "48%"
+                    pinY: "15%"
                 },
                 {
                     number: 2,
-                    title: "Destination Arrival Card",
-                    desc: "View current destination info, municipal location, and assigned transit fare for this leg.",
-                    pinX: "50%",
-                    pinY: "83%"
+                    title: "Edit & Stop Status",
+                    desc: "Tap 'Edit' to modify your itinerary, or check each stop's visit status and transit fare.",
+                    pinX: "80%",
+                    pinY: "22%"
                 },
                 {
                     number: 3,
-                    title: "GPS Check-In Button",
-                    desc: "When inside the destination radius, tap 'Check In' to instantly verify your visit on the blockchain/system.",
-                    pinX: "53%",
-                    pinY: "91%"
-                },
-                {
-                    number: 4,
-                    title: "Photo Proof Upload",
-                    desc: "No GPS signal? Tap 'Proof' to snap a photo at the spot. It securely queues and syncs once you are back online!",
-                    pinX: "75%",
-                    pinY: "91%"
+                    title: "Start Trip",
+                    desc: "Tap 'Start Trip' to begin your journey and unlock GPS check-ins at each stop.",
+                    pinX: "72%",
+                    pinY: "76%"
                 }
             ]
         }
