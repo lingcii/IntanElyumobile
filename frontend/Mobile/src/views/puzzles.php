@@ -490,6 +490,14 @@ include __DIR__ . '/../components/header.php';
 
 <script>
     (function () {
+        // Remove any lingering body-ported modals from a previous visit to GameZone
+        document.querySelectorAll('body > #game-success-modal, body > #game-alert-modal, body > #game-confirm-modal, body > #target-goal-preview-modal').forEach(el => {
+            try { el.remove(); } catch (e) {}
+        });
+
+        window._inFlightPointsClaims = Number(window._inFlightPointsClaims || 0);
+        let _latestBalanceReqSeq = 0;
+
         // User profile and Guest mode restriction check
         let _authUser = {};
         try {
@@ -522,6 +530,52 @@ include __DIR__ . '/../components/header.php';
                 localStorage.getItem('intan_elyu_guest') === 'true' || 
                 localStorage.getItem('intan_elyu_offline_guest') === 'true'
             ));
+
+        function resolveBestCachedPoints() {
+            if (typeof window._userPointsBalance === 'number' && !isNaN(window._userPointsBalance) && window._userPointsBalance >= 0) {
+                return window._userPointsBalance;
+            }
+            const curId = Number(_authUser.id || _authUser.user_id || 0);
+            const tok = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('api_token') || '';
+            const tokPrefix = tok ? tok.substring(0, 10) : '';
+            const candidates = [];
+
+            const pushTimestamped = (raw) => {
+                if (!raw) return;
+                try {
+                    const parsed = JSON.parse(raw);
+                    if (!parsed || typeof parsed !== 'object') return;
+                    const ts = Number(parsed.timestamp || 0);
+                    const data = (parsed.data && typeof parsed.data === 'object') ? parsed.data : parsed;
+                    const dataUid = Number((data.user && data.user.id) || data.user_id || 0);
+                    if (curId > 0 && dataUid > 0 && curId !== dataUid) return;
+                    const rawPts = data.stats && data.stats.points !== undefined
+                        ? data.stats.points
+                        : (data.points !== undefined ? data.points : (data.user && data.user.points !== undefined ? data.user.points : undefined));
+                    if (rawPts !== undefined && rawPts !== null && !isNaN(Number(rawPts))) {
+                        candidates.push({ pts: Math.max(0, Number(rawPts)), ts: isNaN(ts) ? 0 : ts });
+                    }
+                } catch (e) {}
+            };
+
+            if (tokPrefix) {
+                pushTimestamped(localStorage.getItem('points_balance_' + tokPrefix));
+                pushTimestamped(localStorage.getItem('profile_data_' + tokPrefix));
+                pushTimestamped(localStorage.getItem('dashboard_data_v4_' + tokPrefix));
+                pushTimestamped(localStorage.getItem('dashboard_data_' + tokPrefix));
+            }
+            pushTimestamped(localStorage.getItem('dashboard_cached_payload'));
+
+            if (candidates.length > 0) {
+                candidates.sort((a, b) => b.ts - a.ts);
+                return candidates[0].pts;
+            }
+
+            const fallbackRaw = _authUser.points !== undefined
+                ? Number(_authUser.points)
+                : (_authUser.total_points !== undefined ? Number(_authUser.total_points) : Number(_authUser.xp ?? 0));
+            return (!isNaN(fallbackRaw) && fallbackRaw >= 0) ? fallbackRaw : 0;
+        }
 
         // Guests may browse GameZone, but any attempt to play a mode opens the login-required modal.
         function showGuestGameLoginModal() {
@@ -560,13 +614,14 @@ include __DIR__ . '/../components/header.php';
             // Let the guest know up-front that playing requires an account
             setTimeout(showGuestGameLoginModal, 350);
         } else {
-            // Immediately populate points for authenticated users from cached user data
-            const immediatePts = _authUser.points !== undefined 
-                ? Number(_authUser.points) 
-                : (_authUser.total_points !== undefined ? Number(_authUser.total_points) : Number(_authUser.xp ?? 0));
+            // Immediately populate points for authenticated users from freshest in-memory/localStorage state
+            const immediatePts = resolveBestCachedPoints();
             const ptsEl = document.getElementById('game-points-val');
             if (ptsEl && !isNaN(immediatePts)) {
                 ptsEl.textContent = Number(immediatePts).toLocaleString();
+            }
+            if (typeof window._userPointsBalance !== 'number' || isNaN(window._userPointsBalance)) {
+                window._userPointsBalance = immediatePts;
             }
         }
 
@@ -578,50 +633,62 @@ include __DIR__ . '/../components/header.php';
                 return;
             }
             try {
-                if (typeof window._userPointsBalance === 'number' && !isNaN(window._userPointsBalance)) {
-                    const ptsEl = document.getElementById('game-points-val');
-                    if (ptsEl) ptsEl.textContent = Number(window._userPointsBalance).toLocaleString();
-                } else {
-                    const _cachedAuth = JSON.parse(localStorage.getItem('auth_user') || localStorage.getItem('intan_elyu_user') || '{}');
-                    const fallbackPts = _cachedAuth.points !== undefined 
-                        ? Number(_cachedAuth.points) 
-                        : (_cachedAuth.total_points !== undefined ? Number(_cachedAuth.total_points) : Number(_cachedAuth.xp ?? 0));
-                    const ptsEl = document.getElementById('game-points-val');
-                    if (ptsEl && fallbackPts !== undefined && !isNaN(fallbackPts)) {
-                        ptsEl.textContent = Number(fallbackPts).toLocaleString();
-                    }
+                const cachedPts = resolveBestCachedPoints();
+                const ptsEl = document.getElementById('game-points-val');
+                if (ptsEl && !isNaN(cachedPts)) {
+                    ptsEl.textContent = Number(cachedPts).toLocaleString();
                 }
             } catch (e) { }
 
             try {
                 const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('api_token');
-                const _baseUrl = (window.backendUrl || 'https://api.intan-elyu.online').replace(/\/+$/, '');
-                const r = await fetch(_baseUrl + '/api/tourist/points/balance', {
-                    headers: { 'Authorization': 'Bearer ' + token }
+                if (!token) return;
+                const _baseUrl = (typeof window.getBackendUrl === 'function'
+                    ? window.getBackendUrl()
+                    : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
+                const claimsAtStart = Number(window._inFlightPointsClaims || 0);
+                const reqSeq = ++_latestBalanceReqSeq;
+                const r = await fetch(_baseUrl + '/api/tourist/points/balance?light=1&_t=' + Date.now(), {
+                    cache: 'no-store',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Cache-Control': 'no-cache',
+                        'ngrok-skip-browser-warning': 'true',
+                        'Authorization': 'Bearer ' + token
+                    }
                 });
                 const d = await r.json();
+                if (reqSeq !== _latestBalanceReqSeq) return;
                 if (d.status === 'success') {
-                    const ptsEl = document.getElementById('game-points-val');
                     const userPoints = Number(d.points !== undefined ? d.points : (d.xp ?? 0));
-                    if (ptsEl) ptsEl.textContent = Number(userPoints).toLocaleString();
-                    window._userPointsBalance = userPoints;
+                    const hasActiveClaimRace = (Number(window._inFlightPointsClaims || 0) > 0 || claimsAtStart > 0) &&
+                        typeof window._userPointsBalance === 'number' &&
+                        window._userPointsBalance > userPoints;
 
-                    // Update auth_user and intan_elyu_user in localStorage so other pages have the latest points
-                    try {
-                        const authUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
-                        authUser.points = userPoints;
-                        localStorage.setItem('auth_user', JSON.stringify(authUser));
-                    } catch (e) { }
-                    try {
-                        const intanUser = JSON.parse(localStorage.getItem('intan_elyu_user') || '{}');
-                        intanUser.points = userPoints;
-                        localStorage.setItem('intan_elyu_user', JSON.stringify(intanUser));
-                    } catch (e) { }
+                    if (!hasActiveClaimRace) {
+                        const ptsEl = document.getElementById('game-points-val');
+                        if (ptsEl) ptsEl.textContent = Number(userPoints).toLocaleString();
+                        window._userPointsBalance = userPoints;
 
-                    if (typeof window.syncUserPointsEverywhere === 'function') {
-                        window.syncUserPointsEverywhere(userPoints);
-                    } else if (window.updateProfilePointsDisplay) {
-                        window.updateProfilePointsDisplay(userPoints);
+                        // Update auth_user and intan_elyu_user in localStorage so other pages have the latest points
+                        try {
+                            const authUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
+                            authUser.points = userPoints;
+                            if (d.xp !== undefined) authUser.xp = Math.max(Number(d.xp) || 0, userPoints);
+                            localStorage.setItem('auth_user', JSON.stringify(authUser));
+                        } catch (e) { }
+                        try {
+                            const intanUser = JSON.parse(localStorage.getItem('intan_elyu_user') || '{}');
+                            intanUser.points = userPoints;
+                            if (d.xp !== undefined) intanUser.xp = Math.max(Number(d.xp) || 0, userPoints);
+                            localStorage.setItem('intan_elyu_user', JSON.stringify(intanUser));
+                        } catch (e) { }
+
+                        if (typeof window.syncUserPointsEverywhere === 'function') {
+                            window.syncUserPointsEverywhere(userPoints, null, { xp: d.xp });
+                        } else if (window.updateProfilePointsDisplay) {
+                            window.updateProfilePointsDisplay(userPoints);
+                        }
                     }
 
                     // Reconcile today's completed games with server state
@@ -1970,11 +2037,9 @@ include __DIR__ . '/../components/header.php';
                 // Optimistically calculate total points immediately for instant UI feedback
                 let optimisticTotal = expectedPts;
                 try {
-                    const authUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
-                    const curPts = typeof window._userPointsBalance === 'number'
-                        ? window._userPointsBalance
-                        : Number(authUser.points !== undefined ? authUser.points : (authUser.xp ?? 0));
+                    const curPts = resolveBestCachedPoints();
                     optimisticTotal = curPts + expectedPts;
+                    const authUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
                     authUser.points = optimisticTotal;
                     localStorage.setItem('auth_user', JSON.stringify(authUser));
                     window._userPointsBalance = optimisticTotal;
@@ -1992,7 +2057,8 @@ include __DIR__ . '/../components/header.php';
                     awardedPts: expectedPts,
                     newTotalPoints: optimisticTotal,
                     message: `Congratulations! You earned ${expectedPts} Points!`,
-                    comeBackTomorrow: true
+                    comeBackTomorrow: true,
+                    skipRefresh: true
                 });
 
                 // Ambient offline game queueing if solving while on a walk outside
@@ -2009,7 +2075,9 @@ include __DIR__ . '/../components/header.php';
                 }
 
                 const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('api_token');
-                const _baseUrl = (window.backendUrl || 'https://api.intan-elyu.online').replace(/\/+$/, '');
+                const _baseUrl = (typeof window.getBackendUrl === 'function'
+                    ? window.getBackendUrl()
+                    : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
 
                 let endpoint = '/api/tourist/points/minigame';
                 let bodyObj = { game_type: gameType };
@@ -2022,31 +2090,40 @@ include __DIR__ . '/../components/header.php';
                     bodyObj = {};
                 }
 
+                // Guard against concurrent balance GETs overwriting optimistic points while POST is in flight
+                window._inFlightPointsClaims = Number(window._inFlightPointsClaims || 0) + 1;
+                let claimSucceeded = false;
+
                 // Fire sync to server in background
                 fetch(_baseUrl + endpoint, {
                     method: 'POST',
+                    cache: 'no-store',
                     headers: {
+                        'Accept': 'application/json',
                         'Content-Type': 'application/json',
+                        'ngrok-skip-browser-warning': 'true',
                         'Authorization': 'Bearer ' + token
                     },
                     body: JSON.stringify(bodyObj)
                 }).then(async (r) => {
                     const d = await r.json();
                     if (r.ok && d.status === 'success') {
+                        claimSucceeded = true;
                         const awardedPts = Number(d.points_awarded ?? d.xp_awarded ?? expectedPts);
                         const newTotalPoints = Number(d.points ?? d.xp ?? 0);
+                        let resolvedPts = newTotalPoints;
 
                         try {
-                            const authUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
-                            const curPts = typeof window._userPointsBalance === 'number'
-                                ? window._userPointsBalance
-                                : Number(authUser.points !== undefined ? authUser.points : (authUser.xp ?? 0));
+                            const curPts = resolveBestCachedPoints();
                             const finalPts = newTotalPoints > 0 ? newTotalPoints : (curPts + awardedPts);
+                            resolvedPts = finalPts;
+                            const authUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
                             authUser.points = finalPts;
+                            if (d.xp !== undefined) authUser.xp = Math.max(Number(d.xp) || 0, finalPts);
                             localStorage.setItem('auth_user', JSON.stringify(authUser));
                             window._userPointsBalance = finalPts;
                             if (typeof window.syncUserPointsEverywhere === 'function') {
-                                window.syncUserPointsEverywhere(finalPts);
+                                window.syncUserPointsEverywhere(finalPts, null, { xp: d.xp });
                             }
                             window.leaderboardNeedsRefresh = true;
                             Object.keys(localStorage).forEach(k => {
@@ -2055,10 +2132,9 @@ include __DIR__ . '/../components/header.php';
                         } catch (e) { }
 
                         const totalPtsEl = document.getElementById('success-total-points-val');
-                        if (totalPtsEl && newTotalPoints > 0) {
-                            totalPtsEl.textContent = Number(newTotalPoints).toLocaleString() + ' PTS';
+                        if (totalPtsEl && resolvedPts > 0) {
+                            totalPtsEl.textContent = Number(resolvedPts).toLocaleString() + ' PTS';
                         }
-                        loadGamePoints();
                     } else if (r.status === 429) {
                         updateAllGamesFinishedUI();
                     }
@@ -2072,6 +2148,11 @@ include __DIR__ . '/../components/header.php';
                             localStorage.setItem(queueKey, JSON.stringify(queue));
                         }
                     } catch (e) { }
+                }).finally(() => {
+                    window._inFlightPointsClaims = Math.max(0, Number(window._inFlightPointsClaims || 0) - 1);
+                    if (claimSucceeded) {
+                        loadGamePoints();
+                    }
                 });
             } catch (e) {
                 console.error("Points claim error, saving offline:", e);
@@ -2089,7 +2170,8 @@ include __DIR__ . '/../components/header.php';
                         title: "Awesome Job!",
                         awardedPts: 25,
                         message: "Game completed! Your points will sync automatically when back online. Come back tomorrow!",
-                        comeBackTomorrow: true
+                        comeBackTomorrow: true,
+                        skipRefresh: true
                     });
                     return;
                 } catch (queueErr) { }
@@ -2156,10 +2238,7 @@ include __DIR__ . '/../components/header.php';
                     totalPtsEl.textContent = Number(newTotalPoints).toLocaleString() + ' PTS';
                 } else {
                     try {
-                        const auth = JSON.parse(localStorage.getItem('auth_user') || '{}');
-                        const curPts = typeof window._userPointsBalance === 'number'
-                            ? window._userPointsBalance
-                            : Number(auth.points !== undefined ? auth.points : (auth.xp ?? 0));
+                        const curPts = resolveBestCachedPoints();
                         totalPtsEl.textContent = Number(curPts).toLocaleString() + ' PTS';
                     } catch (e) {
                         totalPtsEl.textContent = '-- PTS';
@@ -2170,7 +2249,9 @@ include __DIR__ . '/../components/header.php';
             modal.style.display = 'flex';
             document.body.classList.add('modal-blurred');
             document.documentElement.classList.add('modal-blurred');
-            loadGamePoints();
+            if (!(opts && typeof opts === 'object' && opts.skipRefresh) && !(Number(window._inFlightPointsClaims || 0) > 0)) {
+                loadGamePoints();
+            }
         }
 
         function closeGameSuccess() {
@@ -2331,10 +2412,13 @@ include __DIR__ . '/../components/header.php';
         async function syncOfflineGameClaims() {
             if (_isGuest) return;
             if (!navigator.onLine) return;
+            let didIncrement = false;
             try {
                 const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('api_token');
                 if (!token) return;
-                const _baseUrl = (window.backendUrl || 'https://api.intan-elyu.online').replace(/\/+$/, '');
+                const _baseUrl = (typeof window.getBackendUrl === 'function'
+                    ? window.getBackendUrl()
+                    : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
 
                 const claimKeys = Object.keys(localStorage).filter(k => k.startsWith('intan_elyu_offline_game_claims'));
                 let allItems = [];
@@ -2356,6 +2440,9 @@ include __DIR__ . '/../components/header.php';
                     }
                 }
 
+                window._inFlightPointsClaims = Number(window._inFlightPointsClaims || 0) + 1;
+                didIncrement = true;
+
                 for (let i = 0; i < uniqueClaims.length; i++) {
                     const item = uniqueClaims[i];
                     let endpoint = '/api/tourist/points/minigame';
@@ -2370,18 +2457,29 @@ include __DIR__ . '/../components/header.php';
 
                     await fetch(_baseUrl + endpoint, {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                        cache: 'no-store',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json',
+                            'ngrok-skip-browser-warning': 'true',
+                            'Authorization': 'Bearer ' + token
+                        },
                         body: JSON.stringify(bodyObj)
                     });
                 }
                 claimKeys.forEach(k => localStorage.removeItem(k));
-                loadGamePoints();
             } catch (e) { }
+            finally {
+                if (didIncrement) {
+                    window._inFlightPointsClaims = Math.max(0, Number(window._inFlightPointsClaims || 0) - 1);
+                    loadGamePoints();
+                }
+            }
         }
 
-        window.addEventListener('online', function () {
+        window.addEventListener('online', async function () {
+            await syncOfflineGameClaims();
             loadGamePoints();
-            syncOfflineGameClaims();
         });
         syncOfflineGameClaims();
 

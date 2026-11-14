@@ -19,6 +19,52 @@ class PointsController extends Controller
     public function getBalance(Request $request): JsonResponse
     {
         $user = $request->user();
+        $todayCompleted = [
+            'puzzle' => false,
+            'memory_match' => false,
+            'word_scramble' => false,
+            'trivia' => false,
+        ];
+
+        $markTodayCompleted = function (?string $details) use (&$todayCompleted): void {
+            $d = strtolower($details ?? '');
+            if (str_contains($d, 'puzzle')) $todayCompleted['puzzle'] = true;
+            if (str_contains($d, 'memory')) $todayCompleted['memory_match'] = true;
+            if (str_contains($d, 'scramble')) $todayCompleted['word_scramble'] = true;
+            if (str_contains($d, 'trivia')) $todayCompleted['trivia'] = true;
+        };
+
+        if ($request->boolean('light')) {
+            $userPoints = method_exists($user, 'syncPointsBalance')
+                ? $user->syncPointsBalance()
+                : (int) ($user->points ?? $user->xp ?? 0);
+            $userXp = max((int) ($user->xp ?? 0), $userPoints);
+            $level = (int) floor(max(0, $userXp) / 1000) + 1;
+
+            try {
+                if (\Illuminate\Support\Facades\Schema::hasTable('activity_logs')) {
+                    $todayLogs = \App\Models\ActivityLog::where('user_id', $user->id)
+                        ->where('action', 'Points Awarded')
+                        ->whereBetween('created_at', [now()->startOfDay(), now()->endOfDay()])
+                        ->get(['details']);
+
+                    foreach ($todayLogs as $log) {
+                        $markTodayCompleted($log->details);
+                    }
+                }
+            } catch (\Throwable $e) {}
+
+            return response()->json([
+                'status' => 'success',
+                'xp' => $userXp,
+                'points' => $userPoints,
+                'level' => $level,
+                'earned_total' => $userXp,
+                'today_completed' => $todayCompleted,
+                'history' => [],
+                'vouchers' => [],
+            ])->header('Cache-Control', 'no-store, no-cache, must-revalidate');
+        }
 
         $vouchers = self::getUserVouchers($user->id);
         $activeOrUsedVouchers = $vouchers->filter(function ($v) {
@@ -47,42 +93,43 @@ class PointsController extends Controller
         }
 
         $history = collect();
-        $todayCompleted = [
-            'puzzle' => false,
-            'memory_match' => false,
-            'word_scramble' => false,
-            'trivia' => false,
-        ];
         try {
             if (\Illuminate\Support\Facades\Schema::hasTable('activity_logs')) {
-                $history = \App\Models\ActivityLog::where('user_id', $user->id)
+                $rawLogs = \App\Models\ActivityLog::where('user_id', $user->id)
                     ->whereIn('action', ['Points Awarded', 'Points Redeemed', 'Voucher Redeemed'])
                     ->latest()
                     ->limit(50)
-                    ->get()
-                    ->map(function ($log) {
-                        return [
-                            'id'          => $log->id,
-                            'points'      => (int) (preg_match('/([+-]?\d+)\s*(?:Points?|XP)/i', $log->details, $m) ? $m[1] : 0),
-                            'xp'          => (int) (preg_match('/([+-]?\d+)\s*(?:Points?|XP)/i', $log->details, $m) ? $m[1] : 0),
-                            'source'      => $log->action,
-                            'description' => $log->details,
-                            'created_at'  => $log->created_at ? $log->created_at->toIso8601String() : now()->toIso8601String(),
-                            'date'        => $log->created_at ? $log->created_at->format('M d, Y h:i A') : now()->format('M d, Y h:i A'),
-                        ];
-                    });
-
-                $todayLogs = \App\Models\ActivityLog::where('user_id', $user->id)
-                    ->where('action', 'Points Awarded')
-                    ->whereBetween('created_at', [now()->startOfDay(), now()->endOfDay()])
                     ->get();
 
-                foreach ($todayLogs as $log) {
-                    $details = strtolower($log->details ?? '');
-                    if (str_contains($details, 'puzzle')) $todayCompleted['puzzle'] = true;
-                    if (str_contains($details, 'memory')) $todayCompleted['memory_match'] = true;
-                    if (str_contains($details, 'scramble')) $todayCompleted['word_scramble'] = true;
-                    if (str_contains($details, 'trivia')) $todayCompleted['trivia'] = true;
+                $todayStart = now()->startOfDay();
+                $todayEnd = now()->endOfDay();
+
+                $history = $rawLogs->map(function ($log) use ($todayStart, $todayEnd, $markTodayCompleted) {
+                    if ($log->action === 'Points Awarded' && $log->created_at && $log->created_at->between($todayStart, $todayEnd)) {
+                        $markTodayCompleted($log->details);
+                    }
+                    return [
+                        'id'          => $log->id,
+                        'points'      => (int) (preg_match('/([+-]?\d+)\s*(?:Points?|XP)/i', $log->details, $m) ? $m[1] : 0),
+                        'xp'          => (int) (preg_match('/([+-]?\d+)\s*(?:Points?|XP)/i', $log->details, $m) ? $m[1] : 0),
+                        'source'      => $log->action,
+                        'description' => $log->details,
+                        'created_at'  => $log->created_at ? $log->created_at->toIso8601String() : now()->toIso8601String(),
+                        'date'        => $log->created_at ? $log->created_at->format('M d, Y h:i A') : now()->format('M d, Y h:i A'),
+                    ];
+                });
+
+                // Only run a separate today query if the 50-row cap was hit inside today's window
+                $oldestLog = $rawLogs->last();
+                if ($rawLogs->count() >= 50 && $oldestLog && $oldestLog->created_at && $oldestLog->created_at->gte($todayStart)) {
+                    $todayLogs = \App\Models\ActivityLog::where('user_id', $user->id)
+                        ->where('action', 'Points Awarded')
+                        ->whereBetween('created_at', [$todayStart, $todayEnd])
+                        ->get(['details']);
+
+                    foreach ($todayLogs as $log) {
+                        $markTodayCompleted($log->details);
+                    }
                 }
             }
         } catch (\Throwable $e) {
@@ -101,7 +148,30 @@ class PointsController extends Controller
             'history' => $history,
             'today_completed' => $todayCompleted,
             'vouchers' => $vouchers
-        ]);
+        ])->header('Cache-Control', 'no-store, no-cache, must-revalidate');
+    }
+
+    /**
+     * Reconcile user points/XP and return a consistent award payload.
+     */
+    private function buildPointsAwardResponse($user, int $xp, string $gameType, string $message): JsonResponse
+    {
+        $user->refresh();
+        $currentPoints = method_exists($user, 'syncPointsBalance')
+            ? $user->syncPointsBalance()
+            : (int) ($user->points ?? 0);
+        $currentXp = max((int) ($user->xp ?? 0), $currentPoints);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => $message,
+            'xp_awarded' => $xp,
+            'points_awarded' => $xp,
+            'points' => $currentPoints,
+            'xp' => $currentXp,
+            'game_type' => $gameType,
+            'completed_today' => true
+        ])->header('Cache-Control', 'no-store, no-cache, must-revalidate');
     }
 
     /**
@@ -149,20 +219,12 @@ class PointsController extends Controller
             'Successfully solved a sliding block puzzle'
         );
 
-        $user->refresh();
-        $currentPoints = (int) ($user->points ?? 0);
-        $currentXp = max((int) ($user->xp ?? 0), $currentPoints);
-
-        return response()->json([
-            'status' => 'success',
-            'message' => "Congratulations! You earned {$xp} Points! You completed today's puzzle. Come back tomorrow!",
-            'xp_awarded' => $xp,
-            'points_awarded' => $xp,
-            'points' => $currentPoints,
-            'xp' => $currentXp,
-            'game_type' => 'puzzle',
-            'completed_today' => true
-        ]);
+        return $this->buildPointsAwardResponse(
+            $user,
+            $xp,
+            'puzzle',
+            "Congratulations! You earned {$xp} Points! You completed today's puzzle. Come back tomorrow!"
+        );
     }
 
     /**
@@ -210,20 +272,12 @@ class PointsController extends Controller
             'Answered La Union trivia questions correctly'
         );
 
-        $user->refresh();
-        $currentPoints = (int) ($user->points ?? 0);
-        $currentXp = max((int) ($user->xp ?? 0), $currentPoints);
-
-        return response()->json([
-            'status' => 'success',
-            'message' => "Congratulations! You earned {$xp} Points! You completed today's trivia. Come back tomorrow!",
-            'xp_awarded' => $xp,
-            'points_awarded' => $xp,
-            'points' => $currentPoints,
-            'xp' => $currentXp,
-            'game_type' => 'trivia',
-            'completed_today' => true
-        ]);
+        return $this->buildPointsAwardResponse(
+            $user,
+            $xp,
+            'trivia',
+            "Congratulations! You earned {$xp} Points! You completed today's trivia. Come back tomorrow!"
+        );
     }
 
     /**
@@ -286,20 +340,12 @@ class PointsController extends Controller
             $config['desc']
         );
 
-        $user->refresh();
-        $currentPoints = (int) ($user->points ?? 0);
-        $currentXp = max((int) ($user->xp ?? 0), $currentPoints);
-
-        return response()->json([
-            'status' => 'success',
-            'message' => "Congratulations! You earned {$xp} Points! You completed today's game. Come back tomorrow!",
-            'xp_awarded' => $xp,
-            'points_awarded' => $xp,
-            'points' => $currentPoints,
-            'xp' => $currentXp,
-            'game_type' => $gameType,
-            'completed_today' => true
-        ]);
+        return $this->buildPointsAwardResponse(
+            $user,
+            $xp,
+            $gameType,
+            "Congratulations! You earned {$xp} Points! You completed today's game. Come back tomorrow!"
+        );
     }
 
     /**

@@ -2364,6 +2364,25 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                     if (response.ok && (data.success || data.is_location_verified)) {
                         window.applyLocationCheckinLocally(itemId);
                         lockCheckedInButton();
+                        if ((data.total_points !== undefined && data.total_points !== null) || Number(data.points_earned || 0) > 0) {
+                            try {
+                                const authU = JSON.parse(localStorage.getItem('auth_user') || '{}');
+                                const basePts = typeof window._userPointsBalance === 'number'
+                                    ? window._userPointsBalance
+                                    : (parseInt(authU.points !== undefined ? authU.points : (authU.xp ?? 0), 10) || 0);
+                                const nextPts = (data.total_points !== undefined && data.total_points !== null)
+                                    ? parseInt(data.total_points, 10)
+                                    : (basePts + (parseInt(data.points_earned, 10) || 0));
+                                if (typeof window.syncUserPointsEverywhere === 'function') {
+                                    window.syncUserPointsEverywhere(nextPts, null, { xp: data.xp });
+                                } else {
+                                    authU.points = nextPts;
+                                    if (data.xp !== undefined) authU.xp = data.xp;
+                                    localStorage.setItem('auth_user', JSON.stringify(authU));
+                                    window._userPointsBalance = nextPts;
+                                }
+                            } catch (e) { }
+                        }
                         if (typeof showToast === 'function') {
                             showToast(data.message || `📍 Location verified at ${spotName}! Photo proof is required to verify your visit.`, 'success');
                         }

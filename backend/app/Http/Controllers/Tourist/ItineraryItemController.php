@@ -258,12 +258,20 @@ class ItineraryItemController extends Controller
                 Log::warning("Could not update user GPS ping: " . $e->getMessage());
             }
 
+            $freshUser = $user ? $user->fresh() : null;
+            $totalPoints = $freshUser
+                ? (method_exists($freshUser, 'syncPointsBalance') ? $freshUser->syncPointsBalance() : (int) ($freshUser->points ?? 0))
+                : 0;
+            $totalXp = $freshUser ? (int) ($freshUser->xp ?? $totalPoints) : 0;
+
             return response()->json([
                 'success'              => true,
                 'is_location_verified' => true,
                 'visited_at'           => $effectiveTime->toIso8601String(),
                 'distance'             => round($distanceMeters) . 'm',
                 'points_earned'        => $pointsAwarded ? $rewardPoints : 0,
+                'total_points'         => $totalPoints,
+                'xp'                   => $totalXp,
                 'message'              => "Checked in at {$spot->name}! 📍 +{$rewardPoints} Points & XP earned! Uploading photo is optional.",
             ]);
         } catch (\Illuminate\Validation\ValidationException $ve) {

@@ -83,6 +83,9 @@ window.syncUserPointsEverywhere = function (newPoints, newVoucherItem, extraStat
     document.querySelectorAll('#profile-points-val, #stat-points, #stat-xp, #full-deals-user-points, #dash-stat-points, #game-points-val, #user-points-display, .header-points-badge, .user-points-badge, .points-count, [data-user-points], #user-points-val, #modal-pts').forEach(el => {
         el.textContent = pts.toLocaleString();
     });
+    document.querySelectorAll('#success-total-points-val').forEach(el => {
+        el.textContent = `${pts.toLocaleString()} PTS`;
+    });
     document.querySelectorAll('#discount-user-pts').forEach(el => {
         el.textContent = `${pts.toLocaleString()} Points`;
     });
@@ -5708,6 +5711,21 @@ window.executeConfirmDeleteTrip = async function () {
     }
 };
 
+if (typeof window.closeEditTripDetailsModal !== 'function') {
+    window.closeEditTripDetailsModal = function () {
+        document.querySelectorAll('#edit-trip-details-modal').forEach(modal => {
+            modal.style.display = 'none';
+            modal.style.pointerEvents = 'none';
+        });
+        document.body.classList.remove('modal-open', 'sheet-open');
+        document.documentElement.classList.remove('modal-open', 'sheet-open');
+        document.querySelectorAll('#btn-save-quick-edit').forEach(saveBtn => {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = 'Save Changes';
+        });
+    };
+}
+
 window.editSavedTrip = function (tripId) {
     let trip = (window._cachedSavedTrips || []).find(t => String(t.id) === String(tripId));
     if (!trip) {
@@ -6634,7 +6652,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                 }
 
                 // ── Teardown previous view resources to prevent mobile lag & leaks ──
-                ['full-history-modal', 'full-vouchers-modal', 'full-deals-modal', 'active-voucher-qr-modal', 'trip-details-modal', 'reward-details-modal', 'delete-trip-modal', 'elyu-proof-viewer-modal', 'global-oauth-overlay', 'offline-auth-modal', 'login-success-modal', 'auth-cancel-modal', 'privacy-policy-modal', 'testimony-modal', 'trip-completion-review-modal', 'trip-completed-success-modal', 'save-trip-modal', 'confirm-modal', 'leg-transport-modal', 'transit-summary-opensheet', 'travel-mode-starter-modal'].forEach(id => {
+                ['full-history-modal', 'full-vouchers-modal', 'full-deals-modal', 'active-voucher-qr-modal', 'trip-details-modal', 'reward-details-modal', 'delete-trip-modal', 'edit-trip-details-modal', 'complete-trip-modal', 'proof-upload-modal', 'trip-guide-modal', 'elyu-proof-viewer-modal', 'global-oauth-overlay', 'offline-auth-modal', 'login-success-modal', 'auth-cancel-modal', 'privacy-policy-modal', 'testimony-modal', 'trip-completion-review-modal', 'trip-completed-success-modal', 'save-trip-modal', 'confirm-modal', 'leg-transport-modal', 'transit-summary-opensheet', 'travel-mode-starter-modal', 'game-success-modal', 'game-alert-modal', 'game-confirm-modal', 'target-goal-preview-modal'].forEach(id => {
                     document.querySelectorAll('#' + id).forEach(m => {
                         if (m.parentElement === document.body) {
                             try { m.remove(); } catch (e) { }
@@ -6978,6 +6996,8 @@ window.navigateTo = navigateTo;
             { id: 'checkin-image-picker-modal', fn: window.closeCheckinImagePickerModal },
             { id: 'complete-trip-modal', fn: window.closeCompleteTripModal },
             { id: 'delete-trip-modal', fn: window.closeDeleteTripModal },
+            { id: 'edit-trip-details-modal', fn: window.closeEditTripDetailsModal },
+            { id: 'proof-upload-modal', fn: window.closeProofUploadModal },
             { id: 'trip-completion-review-modal', fn: window.closeTripCompletionReviewModal },
             { id: 'user-profile-modal', fn: window.closeUserProfile },
             { id: 'full-deals-modal', fn: window.closeFullDealsModal },

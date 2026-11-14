@@ -267,4 +267,13 @@ assert.equal(polyContext.window.isPointInSpotPolygon(16.6355, 120.3115, boarding
 assert.equal(polyContext.window.isPointInSpotPolygon(16.6500, 120.3500, boardingPolygon), false,
     'mobile GPS far outside polygon border must return false');
 
+assert.match(trips, /'edit-trip-details-modal'[\s\S]*querySelectorAll\(':scope > #' \+ id\)/,
+    'saved_trips must clean up lingering body-ported edit modals on view init');
+assert.match(trips, /window\.editSavedTrip\s*=[\s\S]*querySelectorAll\('#edit-trip-details-modal'\)[\s\S]*if \(m !== modal\)[\s\S]*m\.remove\(\)/,
+    'editSavedTrip must deduplicate #edit-trip-details-modal before porting to document.body');
+assert.match(trips, /window\.closeEditTripDetailsModal\s*=[\s\S]*querySelectorAll\('#edit-trip-details-modal'\)\.forEach/,
+    'closeEditTripDetailsModal must hide all #edit-trip-details-modal instances in the DOM');
+assert.match(main, /'delete-trip-modal',\s*'edit-trip-details-modal'/,
+    'navigateTo teardown must remove ported #edit-trip-details-modal elements across view changes');
+
 console.log('saved trip and review UX tests passed');

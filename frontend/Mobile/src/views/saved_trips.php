@@ -390,6 +390,14 @@ $backRoute = 'itinerary';
     (function () {
         var backendUrl = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
 
+        // Clean up any lingering modals previously ported to document.body from past view loads
+        ['edit-trip-details-modal', 'delete-trip-modal', 'complete-trip-modal', 'proof-upload-modal'].forEach(id => {
+            const bodyModals = document.body.querySelectorAll(':scope > #' + id);
+            bodyModals.forEach(m => {
+                try { m.remove(); } catch (e) { }
+            });
+        });
+
         // Ensure proof image resolution and fallback helpers exist
         if (typeof window.resolveProofImageUrl !== 'function') {
             window.resolveProofImageUrl = function (rawUrl) {
@@ -2260,8 +2268,9 @@ $backRoute = 'itinerary';
 
         window.closeProofUploadModal = function () {
             document.body.classList.remove('modal-blurred');
-            const modal = document.getElementById('proof-upload-modal');
-            if (modal) modal.style.display = 'none';
+            document.querySelectorAll('#proof-upload-modal').forEach(modal => {
+                modal.style.display = 'none';
+            });
             window.selectedProofPhotos = [];
             window._currentProofItemId = null;
             window._currentProofSpotName = null;
@@ -2973,6 +2982,25 @@ $backRoute = 'itinerary';
                     if (response.ok && (data.success || data.is_location_verified)) {
                         window.applyLocationCheckinLocally(itemId);
                         lockCheckedInButton();
+                        if ((data.total_points !== undefined && data.total_points !== null) || Number(data.points_earned || 0) > 0) {
+                            try {
+                                const authU = JSON.parse(localStorage.getItem('auth_user') || '{}');
+                                const basePts = typeof window._userPointsBalance === 'number'
+                                    ? window._userPointsBalance
+                                    : (parseInt(authU.points !== undefined ? authU.points : (authU.xp ?? 0), 10) || 0);
+                                const nextPts = (data.total_points !== undefined && data.total_points !== null)
+                                    ? parseInt(data.total_points, 10)
+                                    : (basePts + (parseInt(data.points_earned, 10) || 0));
+                                if (typeof window.syncUserPointsEverywhere === 'function') {
+                                    window.syncUserPointsEverywhere(nextPts, null, { xp: data.xp });
+                                } else {
+                                    authU.points = nextPts;
+                                    if (data.xp !== undefined) authU.xp = data.xp;
+                                    localStorage.setItem('auth_user', JSON.stringify(authU));
+                                    window._userPointsBalance = nextPts;
+                                }
+                            } catch (e) { }
+                        }
                         if (typeof showToast === 'function') {
                             showToast(data.message || `📍 Location verified at ${spotName}! Photo proof is required to earn points.`, 'success');
                         }
@@ -3080,10 +3108,9 @@ $backRoute = 'itinerary';
         };
 
         window.closeCompleteTripModal = function () {
-            const modal = document.getElementById('complete-trip-modal');
-            if (modal) {
+            document.querySelectorAll('#complete-trip-modal').forEach(modal => {
                 modal.style.display = 'none';
-            }
+            });
         };
 
         window.executeConfirmCompleteTrip = async function () {
@@ -3432,10 +3459,16 @@ $backRoute = 'itinerary';
         };
 
         window.closeEditTripDetailsModal = function () {
-            const modal = document.getElementById('edit-trip-details-modal');
-            if (modal) modal.style.display = 'none';
-            document.body.classList.remove('modal-open');
-            document.body.classList.remove('sheet-open');
+            document.querySelectorAll('#edit-trip-details-modal').forEach(modal => {
+                modal.style.display = 'none';
+                modal.style.pointerEvents = 'none';
+            });
+            document.body.classList.remove('modal-open', 'sheet-open');
+            document.documentElement.classList.remove('modal-open', 'sheet-open');
+            document.querySelectorAll('#btn-save-quick-edit').forEach(saveBtn => {
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = 'Save Changes';
+            });
         };
 
         window.setQuickEditTripType = function (type) {
@@ -3540,14 +3573,20 @@ $backRoute = 'itinerary';
 
             window._currentEditingTrip = trip;
 
-            let modal = document.getElementById('edit-trip-details-modal');
+            const allEditModals = Array.from(document.querySelectorAll('#edit-trip-details-modal'));
+            let modal = document.querySelector('#main-content #edit-trip-details-modal') || allEditModals[allEditModals.length - 1] || document.getElementById('edit-trip-details-modal');
+            allEditModals.forEach(m => {
+                if (m !== modal) {
+                    try { m.remove(); } catch (e) { }
+                }
+            });
             if (modal && modal.parentElement !== document.body) {
                 document.body.appendChild(modal);
             }
 
-            const idInput = document.getElementById('quick-edit-trip-id');
-            const titleInput = document.getElementById('quick-edit-trip-title');
-            const dateInput = document.getElementById('quick-edit-trip-date');
+            const idInput = (modal && modal.querySelector('#quick-edit-trip-id')) || document.getElementById('quick-edit-trip-id');
+            const titleInput = (modal && modal.querySelector('#quick-edit-trip-title')) || document.getElementById('quick-edit-trip-title');
+            const dateInput = (modal && modal.querySelector('#quick-edit-trip-date')) || document.getElementById('quick-edit-trip-date');
 
             if (idInput) idInput.value = trip.id;
             if (titleInput) titleInput.value = trip.title || '';
@@ -3883,11 +3922,17 @@ $backRoute = 'itinerary';
             window._pendingDeleteTripContainer = container || (id ? document.querySelector(`.trip-swipe-container[data-trip-id="${id}"]`) : null);
             window._pendingDeleteTripTitle = title || container?.dataset?.tripTitle || '';
 
-            let modal = document.getElementById('delete-trip-modal');
+            const allDeleteModals = Array.from(document.querySelectorAll('#delete-trip-modal'));
+            let modal = document.querySelector('#main-content #delete-trip-modal') || allDeleteModals[allDeleteModals.length - 1] || document.getElementById('delete-trip-modal');
+            allDeleteModals.forEach(m => {
+                if (m !== modal) {
+                    try { m.remove(); } catch (e) { }
+                }
+            });
             if (modal && modal.parentElement !== document.body) {
                 document.body.appendChild(modal);
             }
-            const textEl = document.getElementById('delete-trip-title-text');
+            const textEl = (modal && modal.querySelector('#delete-trip-title-text')) || document.getElementById('delete-trip-title-text');
             if (textEl) {
                 const displayTitle = window._pendingDeleteTripTitle || 'this trip';
                 textEl.textContent = `Are you sure you want to delete "${displayTitle}"? All saved itinerary items will be removed.`;
@@ -3898,8 +3943,9 @@ $backRoute = 'itinerary';
         };
 
         window.closeDeleteTripModal = function () {
-            const modal = document.getElementById('delete-trip-modal');
-            if (modal) modal.style.display = 'none';
+            document.querySelectorAll('#delete-trip-modal').forEach(modal => {
+                modal.style.display = 'none';
+            });
 
             const container = window._pendingDeleteTripContainer || (window._pendingDeleteTripId ? document.querySelector(`.trip-swipe-container[data-trip-id="${window._pendingDeleteTripId}"]`) : null);
             if (container) {
