@@ -127,36 +127,19 @@ class DashboardController extends Controller
             $recommended = collect();
         }
 
-        // Stats — Calculate true distinct places visited, never dropping below user's cumulative completed_activities
-        $placesVisited = (int) ($user->completed_activities ?? 0);
-        try {
-            $itemPlaces = (int) DB::table('itinerary_items')
-                ->join('itineraries', 'itinerary_items.itinerary_id', '=', 'itineraries.id')
-                ->where('itineraries.user_id', $user->id)
-                ->where('itinerary_items.is_visited', true)
-                ->whereNotNull('itinerary_items.tourist_spot_id')
-                ->distinct('itinerary_items.tourist_spot_id')
-                ->count('itinerary_items.tourist_spot_id');
-            $placesVisited = max($placesVisited, $itemPlaces);
-        } catch (\Throwable $e) {}
-
-        // Fallback to distinct completed itinerary spot count if still 0
-        if ($placesVisited === 0) {
-            try {
-                $completedTripsSpotCount = (int) DB::table('itinerary_items')
-                    ->join('itineraries', 'itinerary_items.itinerary_id', '=', 'itineraries.id')
-                    ->where('itineraries.user_id', $user->id)
-                    ->where('itineraries.status', 'completed')
-                    ->whereNotNull('itinerary_items.tourist_spot_id')
-                    ->distinct('itinerary_items.tourist_spot_id')
-                    ->count('itinerary_items.tourist_spot_id');
-                $placesVisited = max($completedTripsSpotCount, (int) ($user->completed_activities ?? 0));
-            } catch (\Throwable $e) {}
-        }
+        // Stats — Calculate and reconcile true distinct places visited and spendable points
+        $placesVisited = method_exists($user, 'syncPlacesVisitedCount')
+            ? $user->syncPlacesVisitedCount()
+            : (int) ($user->completed_activities ?? 0);
+        $points = method_exists($user, 'syncPointsBalance')
+            ? $user->syncPointsBalance()
+            : (int) ($user->points ?? $user->xp ?? 0);
+        $xp = (int) ($user->xp ?? $points);
+        $level = (int) floor(max(0, $xp) / 1000) + 1;
 
         // Rank — Technique 2: Server-Side Caching + Technique 6: Materialized Views
-        $userPoints = (int) ($user->points ?? $user->xp ?? 0);
-        $userPlaces = (int) ($user->completed_activities ?? 0);
+        $userPoints = $points;
+        $userPlaces = $placesVisited;
         $myRank = null;
 
         // If the tourist has 0 points and 0 places/activities, they are unranked (null)
@@ -178,7 +161,7 @@ class DashboardController extends Controller
                                     ORDER BY
                                         COALESCE(u.points, u.xp, 0) DESC,
                                         COALESCE(u.completed_activities, 0) DESC,
-                                        u.created_at ASC
+                                        u.id ASC
                                 ) AS `rank`
                             FROM users u
                             WHERE u.role = 'tourist' 
@@ -193,9 +176,6 @@ class DashboardController extends Controller
                 }
             });
         }
-
-        // Points balance directly from users table
-        $points = (int) ($user->points ?? 0);
 
         $unreadNotifications = 0;
         try {
@@ -217,14 +197,18 @@ class DashboardController extends Controller
                 'tourist_id'     => $touristNumber,
                 'name'           => $user->name,
                 'email'          => $user->email,
-                'xp'             => $xp,
-                'level'          => $level,
-                'points'         => $points,
-                'avatar'         => $user->avatar,
+                'xp'                   => $xp,
+                'level'                => $level,
+                'points'               => $points,
+                'places_visited'       => $placesVisited,
+                'completed_activities' => $placesVisited,
+                'avatar'               => $user->avatar,
                 'age'            => $user->age ?? null,
                 'gender'         => $user->gender ?? null,
             ],
             'stats' => [
+                'points'               => $points,
+                'xp'                   => $xp,
                 'placesVisited'        => $placesVisited,
                 'rank'                 => $myRank,
                 'unread_notifications' => $unreadNotifications,

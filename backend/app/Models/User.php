@@ -23,6 +23,7 @@ class User extends Authenticatable
         'api_token',
         'xp',
         'points',
+        'completed_activities',
         'level',
         'avatar',
         'google_id',
@@ -214,5 +215,128 @@ class User extends Authenticatable
     public function getDateCreatedAttribute(): ?string
     {
         return $this->created_at ? $this->created_at->format('M d, Y h:i A') : null;
+    }
+
+    /**
+     * Reconcile and persist the exact distinct places visited count for this user.
+     */
+    public function syncPlacesVisitedCount(): int
+    {
+        $distinctSpots = [];
+        try {
+            $itemSpotIds = \Illuminate\Support\Facades\DB::table('itinerary_items')
+                ->join('itineraries', 'itinerary_items.itinerary_id', '=', 'itineraries.id')
+                ->where('itineraries.user_id', $this->id)
+                ->whereNotNull('itinerary_items.tourist_spot_id')
+                ->where(function ($q) {
+                    $q->where('itinerary_items.is_visited', true)
+                      ->orWhereNotNull('itinerary_items.visited_at')
+                      ->orWhere('itineraries.status', 'completed');
+                })
+                ->pluck('itinerary_items.tourist_spot_id')
+                ->all();
+            foreach ($itemSpotIds as $sid) {
+                if ((int) $sid > 0) {
+                    $distinctSpots[(int) $sid] = true;
+                }
+            }
+        } catch (\Throwable $e) {}
+
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('user_points')) {
+                $pointSpotIds = \Illuminate\Support\Facades\DB::table('user_points')
+                    ->where('user_id', $this->id)
+                    ->whereIn('source', ['check_in', 'ar_checkin'])
+                    ->whereNotNull('spot_id')
+                    ->pluck('spot_id')
+                    ->all();
+                foreach ($pointSpotIds as $sid) {
+                    if ((int) $sid > 0) {
+                        $distinctSpots[(int) $sid] = true;
+                    }
+                }
+            }
+        } catch (\Throwable $e) {}
+
+        $trueCount = count($distinctSpots);
+
+        // Preserve non-zero count only if user had no itinerary items left (e.g. deleted all completed trips)
+        if ($trueCount === 0 && (int) ($this->completed_activities ?? 0) > 0) {
+            try {
+                $hasAnyItineraries = \Illuminate\Support\Facades\DB::table('itineraries')
+                    ->where('user_id', $this->id)
+                    ->exists();
+                if ($hasAnyItineraries) {
+                    $trueCount = 0;
+                } else {
+                    $trueCount = (int) $this->completed_activities;
+                }
+            } catch (\Throwable $e) {
+                $trueCount = (int) $this->completed_activities;
+            }
+        }
+
+        if ((int) ($this->completed_activities ?? 0) !== $trueCount) {
+            try {
+                \Illuminate\Support\Facades\DB::table('users')
+                    ->where('id', $this->id)
+                    ->update(['completed_activities' => $trueCount]);
+                $this->completed_activities = $trueCount;
+                \Illuminate\Support\Facades\Cache::forget("rank:user:{$this->id}");
+            } catch (\Throwable $e) {}
+        }
+
+        return $trueCount;
+    }
+
+    /**
+     * Reconcile spendable points and total XP against redeemed vouchers so all endpoints return identical values.
+     */
+    public function syncPointsBalance(): int
+    {
+        $rawPoints = (int) ($this->points ?? 0);
+        $rawXp = (int) ($this->xp ?? 0);
+        $userXp = max($rawXp, $rawPoints);
+        $redeemedTotal = 0;
+
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('point_redemptions')) {
+                $redeemedTotal = (int) \Illuminate\Support\Facades\DB::table('point_redemptions')
+                    ->where('user_id', $this->id)
+                    ->where(function ($q) {
+                        $q->whereNull('status')
+                          ->orWhereRaw("LOWER(status) != 'cancelled'");
+                    })
+                    ->sum('points_cost');
+            }
+        } catch (\Throwable $e) {}
+
+        if ($redeemedTotal > 0 && $rawPoints === $userXp && $userXp > 0) {
+            $userPoints = max(0, $userXp - $redeemedTotal);
+        } elseif ($redeemedTotal === 0 && $rawPoints === 0 && $rawXp > 0) {
+            $userPoints = $rawXp;
+        } else {
+            $userPoints = max(0, $rawPoints);
+        }
+
+        $newLevel = (int) floor(max(0, $userXp) / 1000) + 1;
+
+        if ($rawPoints !== $userPoints || $rawXp !== $userXp || (int) ($this->level ?? 1) !== $newLevel) {
+            try {
+                \Illuminate\Support\Facades\DB::table('users')
+                    ->where('id', $this->id)
+                    ->update([
+                        'points' => $userPoints,
+                        'xp'     => $userXp,
+                        'level'  => $newLevel,
+                    ]);
+                $this->points = $userPoints;
+                $this->xp = $userXp;
+                $this->level = $newLevel;
+                \Illuminate\Support\Facades\Cache::forget("rank:user:{$this->id}");
+            } catch (\Throwable $e) {}
+        }
+
+        return $userPoints;
     }
 }

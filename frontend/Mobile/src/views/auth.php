@@ -105,7 +105,7 @@
                             Continue With</span>
                         <hr style="flex:1; border:none; border-top:1.5px dashed rgba(255,255,255,0.25);">
                     </div>
-                    <button type="button" class="btn-google" onclick="window.triggerGoogleLogin(event)"
+                    <button type="button" class="btn-google" onclick="window.triggerGoogleLogin(event, false)"
                         style="width:100%; padding:10.5px; border-radius:100px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.04); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); color:white; font-size:13.5px; font-weight:700; display:flex; align-items:center; justify-content:center; gap:10px; cursor:pointer; transition:background 0.2s, transform 0.1s;">
                         <svg viewBox="0 0 24 24" width="18" height="18" style="flex-shrink:0;">
                             <path fill="#4285F4"
@@ -186,7 +186,7 @@
                             Continue With</span>
                         <hr style="flex:1; border:none; border-top:1.5px dashed rgba(255,255,255,0.15);">
                     </div>
-                    <button type="button" class="btn-google" onclick="window.triggerGoogleLogin(event)"
+                    <button type="button" class="btn-google" onclick="window.triggerGoogleLogin(event, true)"
                         style="width:100%; padding:10.5px; border-radius:100px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.04); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); color:white; font-size:13.5px; font-weight:700; display:flex; align-items:center; justify-content:center; gap:10px; cursor:pointer; transition:background 0.2s, transform 0.1s;">
                         <svg viewBox="0 0 24 24" width="18" height="18" style="flex-shrink:0;">
                             <path fill="#4285F4"
@@ -3326,7 +3326,7 @@
         }
     };
 
-    window.triggerGoogleLogin = function (event) {
+    window.triggerGoogleLogin = function (event, isSignUp = false) {
         if (event && event.preventDefault) event.preventDefault();
 
         if (typeof window.showGoogleOAuthModal === 'function') {
@@ -3393,9 +3393,14 @@
 
         try {
             sessionStorage.setItem('intan_elyu_google_oauth_pending', 'true');
+            if (isSignUp) {
+                sessionStorage.setItem('intan_elyu_google_signup_mode', 'true');
+            } else {
+                sessionStorage.removeItem('intan_elyu_google_signup_mode');
+            }
         } catch (e) { }
 
-        const stateObj = { timestamp: Date.now(), returnView: 'auth', fromApp: isNative };
+        const stateObj = { timestamp: Date.now(), returnView: 'auth', fromApp: isNative, isSignUp: Boolean(isSignUp) };
         const stateStr = encodeURIComponent(JSON.stringify(stateObj));
         const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${encodeURIComponent(clientId)}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=email%20profile%20openid&prompt=select_account&state=${stateStr}`;
 
@@ -3442,6 +3447,67 @@
 
             if (!fetchRes.ok) {
                 throw new Error(data.message || data.error || 'Google login failed');
+            }
+
+            const isSignUpIntent = sessionStorage.getItem('intan_elyu_google_signup_mode') === 'true' ||
+                                  (response && response.isSignUp === true);
+            sessionStorage.removeItem('intan_elyu_google_signup_mode');
+
+            // If user clicked "Sign up with Google" but the account already exists
+            if (isSignUpIntent && data.is_existing_user === true) {
+                if (typeof onDone === 'function') onDone();
+                else {
+                    googleBtns.forEach(btn => {
+                        btn.innerHTML = '<span>Sign in with Google</span>';
+                        btn.disabled = false;
+                    });
+                }
+                const existingMsg = 'User has already been created. Please log in with your email or use Sign in with Google.';
+                if (typeof showToast === 'function') showToast(existingMsg, 'info', 5000);
+                if (typeof window.toggleAuthMode === 'function') window.toggleAuthMode(false);
+                const loginEmailInput = document.getElementById('login-email');
+                if (loginEmailInput && data.user && data.user.email) loginEmailInput.value = data.user.email;
+                return;
+            }
+
+            // Check if newly created account requires setting permanent password via temporary password
+            const needsPasswordReset = Boolean(
+                data.requires_temp_login === true ||
+                data.must_change_password === true ||
+                data.must_change_password === 1 ||
+                data.must_change_password === '1' ||
+                data.must_change_password === 'true' ||
+                (data.user && (
+                    data.user.must_change_password === true ||
+                    data.user.must_change_password === 1 ||
+                    data.user.must_change_password === '1' ||
+                    data.user.must_change_password === 'true'
+                ))
+            );
+
+            if (needsPasswordReset) {
+                const targetEmail = data.email || (data.user && data.user.email) || payloadData.email || '';
+                window._pendingChangePasswordAuth = {
+                    token: data.token,
+                    user: data.user,
+                    email: targetEmail,
+                    temporary_password: data.temporary_password || '',
+                    vouchers: data.vouchers
+                };
+
+                if (typeof onDone === 'function') onDone();
+                else {
+                    googleBtns.forEach(btn => {
+                        btn.innerHTML = '<span>Sign in with Google</span>';
+                        btn.disabled = false;
+                    });
+                }
+
+                const loginEmailInput = document.getElementById('login-email');
+                if (loginEmailInput && targetEmail) loginEmailInput.value = targetEmail;
+
+                window.showRegTempPwdModal(targetEmail);
+                return;
             }
 
             window.purgeAllUserSessionCaches();

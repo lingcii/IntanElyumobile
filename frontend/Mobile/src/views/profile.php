@@ -349,16 +349,20 @@ $activeTab = 'profile';
         const elEmail = document.getElementById('profile-email');
         const elImg = document.getElementById('profile-img');
 
-        const rawProfilePts = parseInt(u.points !== undefined ? u.points : (u.xp || 0)) || 0;
+        const rawProfilePts = parseInt(data.points !== undefined ? data.points : (u.points !== undefined ? u.points : (u.xp || 0))) || 0;
         const points = (typeof window._userPointsBalance === 'number' && u.xp !== undefined && rawProfilePts === Number(u.xp) && window._userPointsBalance < rawProfilePts)
             ? window._userPointsBalance
             : rawProfilePts;
 
-        // Keep highest count of places visited so deleting completed trips never reduces user's score
-        const placesCount = Math.max(
-            parseInt(data.places_visited !== undefined ? data.places_visited : (u.places_visited || u.completed_activities || 0)) || 0,
-            parseInt(authUser.places_visited || authUser.completed_activities || 0) || 0
-        );
+        // Trust server's places_visited count when provided, falling back to local cache only when offline
+        const serverPlaces = (data.places_visited !== undefined && data.places_visited !== null)
+            ? parseInt(data.places_visited, 10)
+            : ((u && (u.places_visited !== undefined || u.completed_activities !== undefined))
+                ? parseInt(u.places_visited ?? u.completed_activities ?? 0, 10)
+                : null);
+        const placesCount = (serverPlaces !== null && !isNaN(serverPlaces))
+            ? serverPlaces
+            : (parseInt(authUser.places_visited || authUser.completed_activities || 0, 10) || 0);
 
         const hasRankActivity = (points > 0 || placesCount > 0);
 
@@ -387,6 +391,13 @@ $activeTab = 'profile';
                 localStorage.setItem('auth_user', JSON.stringify(stored));
                 localStorage.setItem('auth_user_backup', JSON.stringify(stored));
                 localStorage.setItem('intan_elyu_user', JSON.stringify(stored));
+                if (typeof window.syncUserPointsEverywhere === 'function') {
+                    window.syncUserPointsEverywhere(points, null, {
+                        xp: u.xp,
+                        places_visited: placesCount,
+                        my_rank: stored.my_rank
+                    });
+                }
             } catch (e) { }
         }
 
@@ -396,14 +407,22 @@ $activeTab = 'profile';
         window.renderProfileBio(u.bio);
         window.renderProfilePreferences(u.travel_preferences);
 
-        // Trip History
+        // Trip History (deduplicated so identical completed trips never double-render)
         const rawCompletedTrips = data.completed_trips || [];
+        const seenCompletedSigs = new Set();
         const validCompletedTrips = rawCompletedTrips.filter(trip => {
+            if (!trip) return false;
             const items = Array.isArray(trip.items) ? trip.items : [];
             const visitedCount = items.filter(i => i.is_visited === true || i.is_visited === 1 || i.is_visited === '1').length;
             const totalCount = items.length || parseInt(trip.destinations_visited) || 0;
             const effectiveCount = visitedCount > 0 ? visitedCount : totalCount;
-            return effectiveCount > 0;
+            if (effectiveCount <= 0) return false;
+            const spotSig = items.map(i => i && (i.tourist_spot_id || i.destination_id || (i.destination && i.destination.id) || '')).filter(Boolean).join(',');
+            const sig = `${String(trip.title || '').trim().toLowerCase()}|${String(trip.trip_date || '').slice(0, 10)}|${spotSig}`;
+            if (seenCompletedSigs.has(sig) || seenCompletedSigs.has(`id:${trip.id}`)) return false;
+            seenCompletedSigs.add(sig);
+            if (trip.id != null) seenCompletedSigs.add(`id:${trip.id}`);
+            return true;
         });
         window._cachedCompletedTrips = validCompletedTrips;
 
@@ -454,7 +473,7 @@ $activeTab = 'profile';
         }
     };
 
-    window.syncUserPointsEverywhere = function (newPoints, newVoucherItem) {
+    window.syncUserPointsEverywhere = window.syncUserPointsEverywhere || function (newPoints, newVoucherItem) {
         const pts = Math.max(0, parseInt(newPoints, 10) || 0);
         window._userPointsBalance = pts;
 

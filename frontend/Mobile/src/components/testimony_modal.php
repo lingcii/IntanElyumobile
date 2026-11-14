@@ -482,8 +482,7 @@ window.submitTestimony = async function(event) {
                         }
                         if (data && data.completed_activities !== undefined) {
                             parsedUser.completed_activities = parseInt(data.completed_activities, 10);
-                        } else {
-                            parsedUser.completed_activities = (parseInt(parsedUser.completed_activities, 10) || 0) + 1;
+                            parsedUser.places_visited = parseInt(data.completed_activities, 10);
                         }
                         newTotal = parsedUser.points;
                         localStorage.setItem('auth_user', JSON.stringify(parsedUser));
@@ -493,24 +492,27 @@ window.submitTestimony = async function(event) {
                     console.warn('Failed to update local auth_user points:', e);
                 }
 
-                // Update all user points displays and badges in DOM immediately
-                document.querySelectorAll('#user-points-display, .header-points-badge, .user-points-badge, .points-count, [data-user-points], #user-points-val').forEach(el => {
-                    if (newTotal !== null) {
-                        el.textContent = Number(newTotal).toLocaleString();
-                    }
-                });
+                // Sync points and visited stats across all views and localStorage caches immediately
+                if (newTotal !== null && typeof window.syncUserPointsEverywhere === 'function') {
+                    const rawU = localStorage.getItem('auth_user');
+                    const pU = rawU ? JSON.parse(rawU) : {};
+                    window.syncUserPointsEverywhere(newTotal, null, {
+                        xp: pU.xp,
+                        places_visited: pU.places_visited
+                    });
+                } else {
+                    document.querySelectorAll('#user-points-display, .header-points-badge, .user-points-badge, .points-count, [data-user-points], #user-points-val').forEach(el => {
+                        if (newTotal !== null) {
+                            el.textContent = Number(newTotal).toLocaleString();
+                        }
+                    });
+                }
 
                 if (window.confetti) {
                     window.confetti({ particleCount: 85, spread: 70, origin: { y: 0.6 } });
                 }
                 if (typeof showToast === 'function') {
                     showToast(data.message || `Review submitted! You earned +${earnedPts} Points!`);
-                }
-                // Invalidate cached user profile & dashboard so rewards counters immediately update
-                const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
-                if (token) {
-                    localStorage.removeItem('user_profile_' + token.substring(0, 10));
-                    localStorage.removeItem('dashboard_data_' + token.substring(0, 10));
                 }
                 window.dispatchEvent(new CustomEvent('user-points-updated', { detail: { points: earnedPts, total_points: newTotal } }));
                 if (typeof window.fetchUserProfile === 'function') {

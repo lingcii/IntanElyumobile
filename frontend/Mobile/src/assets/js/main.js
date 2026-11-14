@@ -63,6 +63,194 @@ window.shouldPreserveAuthSession = function () {
         || recentlyDisconnected;
 };
 
+/**
+ * Centrally synchronize user points, XP, places visited, and rank across all DOM elements and localStorage caches.
+ * Prevents stale localStorage caches (dashboard_cached_payload, dashboard_data_v4_*, profile_data_*, leaderboard_data_*)
+ * from overwriting freshly earned or redeemed points when navigating between views.
+ */
+window.syncUserPointsEverywhere = function (newPoints, newVoucherItem, extraStats) {
+    const pts = Math.max(0, parseInt(newPoints, 10) || 0);
+    window._userPointsBalance = pts;
+    const extra = (extraStats && typeof extraStats === 'object') ? extraStats : {};
+    const hasPlaces = extra.places_visited !== undefined && extra.places_visited !== null && !isNaN(parseInt(extra.places_visited, 10));
+    const placesVal = hasPlaces ? Math.max(0, parseInt(extra.places_visited, 10)) : null;
+    const hasXp = extra.xp !== undefined && extra.xp !== null && !isNaN(parseInt(extra.xp, 10));
+    const xpVal = hasXp ? Math.max(0, parseInt(extra.xp, 10)) : null;
+    const hasRank = extra.my_rank !== undefined;
+    const rankVal = hasRank ? extra.my_rank : undefined;
+
+    // 1. Update all points & places visited DOM elements immediately
+    document.querySelectorAll('#profile-points-val, #stat-points, #stat-xp, #full-deals-user-points, #dash-stat-points, #game-points-val, #user-points-display, .header-points-badge, .user-points-badge, .points-count, [data-user-points], #user-points-val, #modal-pts').forEach(el => {
+        el.textContent = pts.toLocaleString();
+    });
+    document.querySelectorAll('#discount-user-pts').forEach(el => {
+        el.textContent = `${pts.toLocaleString()} Points`;
+    });
+    if (placesVal !== null) {
+        document.querySelectorAll('#dash-stat-places, #profile-places-val').forEach(el => {
+            el.textContent = placesVal.toLocaleString();
+        });
+    }
+
+    // 2. Update auth_user, auth_user_backup, and intan_elyu_user in localStorage
+    try {
+        ['auth_user', 'auth_user_backup', 'intan_elyu_user'].forEach(key => {
+            const raw = localStorage.getItem(key);
+            if (raw) {
+                const obj = JSON.parse(raw);
+                if (obj && typeof obj === 'object') {
+                    obj.points = pts;
+                    if (xpVal !== null) obj.xp = Math.max(xpVal, pts);
+                    else if (typeof obj.xp === 'number' && obj.xp < pts) obj.xp = pts;
+                    if (placesVal !== null) {
+                        obj.places_visited = placesVal;
+                        obj.completed_activities = placesVal;
+                    }
+                    if (rankVal !== undefined) obj.my_rank = rankVal;
+                    localStorage.setItem(key, JSON.stringify(obj));
+                }
+            }
+        });
+    } catch (e) {}
+
+    // 3. Patch in-memory & localStorage dashboard caches so navigating back to Dashboard never reverts points/visits
+    const patchDashObj = (dash) => {
+        if (!dash || typeof dash !== 'object') return false;
+        const target = (dash.data && typeof dash.data === 'object') ? dash.data : dash;
+        if (target.user && typeof target.user === 'object') {
+            target.user.points = pts;
+            if (xpVal !== null) target.user.xp = Math.max(xpVal, pts);
+            else if (typeof target.user.xp === 'number' && target.user.xp < pts) target.user.xp = pts;
+            if (placesVal !== null) {
+                target.user.places_visited = placesVal;
+                target.user.completed_activities = placesVal;
+            }
+        }
+        if (target.stats && typeof target.stats === 'object') {
+            target.stats.points = pts;
+            if (placesVal !== null) target.stats.placesVisited = placesVal;
+            if (rankVal !== undefined) target.stats.rank = rankVal;
+        }
+        if (rankVal !== undefined) {
+            target.myRank = rankVal;
+            target.my_rank = rankVal;
+        }
+        return true;
+    };
+
+    try {
+        if (window._lastDashboardPayload) {
+            patchDashObj(window._lastDashboardPayload);
+        }
+        const rawDashCached = localStorage.getItem('dashboard_cached_payload');
+        if (rawDashCached) {
+            const parsedDash = JSON.parse(rawDashCached);
+            if (patchDashObj(parsedDash)) {
+                localStorage.setItem('dashboard_cached_payload', JSON.stringify(parsedDash));
+            }
+        }
+    } catch (e) {}
+
+    // 4. Patch profile_data_*, points_balance_*, dashboard_data_v4_*, and leaderboard_data_* caches in localStorage
+    try {
+        const tok = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('api_token') || '';
+        const tokPrefix = tok ? tok.substring(0, 10) : '';
+
+        if (tokPrefix) {
+            const ptsCacheKey = 'points_balance_' + tokPrefix;
+            let cachedPtsObj = {};
+            try { cachedPtsObj = JSON.parse(localStorage.getItem(ptsCacheKey) || '{}') || {}; } catch (e) { cachedPtsObj = {}; }
+            const targetData = (cachedPtsObj.data && typeof cachedPtsObj.data === 'object') ? cachedPtsObj.data : cachedPtsObj;
+            cachedPtsObj.points = pts;
+            targetData.points = pts;
+            if (xpVal !== null) {
+                cachedPtsObj.xp = Math.max(xpVal, pts);
+                targetData.xp = Math.max(xpVal, pts);
+            }
+            if (newVoucherItem) {
+                if (!Array.isArray(targetData.vouchers)) targetData.vouchers = [];
+                const nCode = String(newVoucherItem.voucher_code || newVoucherItem.code || '').toUpperCase().trim();
+                if (!targetData.vouchers.some(v => String(v && (v.voucher_code || v.code) || '').toUpperCase().trim() === nCode)) {
+                    targetData.vouchers.unshift(newVoucherItem);
+                }
+                if (cachedPtsObj !== targetData && Array.isArray(cachedPtsObj.vouchers)) {
+                    if (!cachedPtsObj.vouchers.some(v => String(v && (v.voucher_code || v.code) || '').toUpperCase().trim() === nCode)) {
+                        cachedPtsObj.vouchers.unshift(newVoucherItem);
+                    }
+                }
+            }
+            localStorage.setItem(ptsCacheKey, JSON.stringify(cachedPtsObj));
+        }
+
+        Object.keys(localStorage).forEach(k => {
+            if (k.startsWith('dashboard_data_')) {
+                try {
+                    const dObj = JSON.parse(localStorage.getItem(k));
+                    if (patchDashObj(dObj)) {
+                        localStorage.setItem(k, JSON.stringify(dObj));
+                    }
+                } catch (e) {}
+            } else if (k.startsWith('profile_data_')) {
+                try {
+                    const pObj = JSON.parse(localStorage.getItem(k));
+                    if (pObj && typeof pObj === 'object') {
+                        const pTarget = (pObj.data && typeof pObj.data === 'object') ? pObj.data : pObj;
+                        pTarget.points = pts;
+                        if (placesVal !== null) pTarget.places_visited = placesVal;
+                        if (rankVal !== undefined) pTarget.my_rank = rankVal;
+                        if (pTarget.user && typeof pTarget.user === 'object') {
+                            pTarget.user.points = pts;
+                            if (xpVal !== null) pTarget.user.xp = Math.max(xpVal, pts);
+                            if (placesVal !== null) {
+                                pTarget.user.places_visited = placesVal;
+                                pTarget.user.completed_activities = placesVal;
+                            }
+                        }
+                        localStorage.setItem(k, JSON.stringify(pObj));
+                    }
+                } catch (e) {}
+            } else if (k.startsWith('leaderboard_data_') || k.startsWith('dashboard_rank_')) {
+                try {
+                    const lObj = JSON.parse(localStorage.getItem(k));
+                    const lTarget = (lObj && lObj.data && typeof lObj.data === 'object') ? lObj.data : lObj;
+                    if (lTarget && typeof lTarget === 'object') {
+                        if (lTarget.me && typeof lTarget.me === 'object') {
+                            lTarget.me.points = pts;
+                            lTarget.me.total_points = pts;
+                            lTarget.me.claimable_points = pts;
+                            if (placesVal !== null) {
+                                lTarget.me.places_visited = placesVal;
+                                lTarget.me.completed_activities = placesVal;
+                            }
+                        }
+                        const myId = Number((JSON.parse(localStorage.getItem('auth_user') || '{}')).id || 0);
+                        ['users', 'leaders', 'leaderboard', 'data', 'tourists'].forEach(arrKey => {
+                            if (Array.isArray(lTarget[arrKey]) && myId > 0) {
+                                lTarget[arrKey].forEach(row => {
+                                    if (row && Number(row.id || row.user_id || 0) === myId) {
+                                        row.points = pts;
+                                        row.total_points = pts;
+                                        row.claimable_points = pts;
+                                        if (placesVal !== null) {
+                                            row.places_visited = placesVal;
+                                            row.completed_activities = placesVal;
+                                        }
+                                    }
+                                });
+                            }
+                        });
+                        localStorage.setItem(k, JSON.stringify(lObj));
+                    }
+                } catch (e) {}
+            }
+        });
+    } catch (e) {}
+
+    window.dashboardNeedsRefresh = true;
+    window.profileNeedsRefresh = true;
+    window.leaderboardNeedsRefresh = true;
+};
+
     /**
      * Stale-While-Revalidate Caching fetch helper
      * Placed early in main.js so all views and async scripts have immediate access.
@@ -990,7 +1178,7 @@ window.getCompletedTripIds = function () {
     }
 };
 
-window.markTripAsCompletedLocally = function (tripId, earnedPoints = 0, newTotalPoints = null) {
+window.markTripAsCompletedLocally = function (tripId, earnedPoints = 0, newTotalPoints = null, serverCompletedActivities = null) {
     if (!tripId) return;
     try {
         const completed = window.getCompletedTripIds();
@@ -999,7 +1187,7 @@ window.markTripAsCompletedLocally = function (tripId, earnedPoints = 0, newTotal
         if (completed.length > 250) completed.shift();
         localStorage.setItem('intan_elyu_completed_trip_ids', JSON.stringify(completed));
 
-        // 1. Update auth_user points and completed_activities in localStorage
+        // 1. Update auth_user points and completed_activities in localStorage without inflating visited places
         try {
             const uStr = localStorage.getItem('auth_user');
             if (uStr) {
@@ -1012,54 +1200,87 @@ window.markTripAsCompletedLocally = function (tripId, earnedPoints = 0, newTotal
                     uObj.points = (parseInt(uObj.points, 10) || 0) + ptsNum;
                     uObj.xp = (parseInt(uObj.xp, 10) || 0) + ptsNum;
                 }
-                uObj.completed_activities = (parseInt(uObj.completed_activities, 10) || 0) + 1;
+                if (serverCompletedActivities !== null && serverCompletedActivities !== undefined && !isNaN(parseInt(serverCompletedActivities, 10))) {
+                    const syncedPlaces = parseInt(serverCompletedActivities, 10);
+                    uObj.completed_activities = syncedPlaces;
+                    uObj.places_visited = syncedPlaces;
+                }
                 localStorage.setItem('auth_user', JSON.stringify(uObj));
                 localStorage.setItem('auth_user_backup', JSON.stringify(uObj));
+                localStorage.setItem('intan_elyu_user', JSON.stringify(uObj));
             }
         } catch (e) { }
 
-        // 2. Mark completed in intan_elyu_saved_trips
+        const isCompletedTripMatch = (t, refTrip) => {
+            if (!t) return false;
+            if (String(t.id) === sId || String(t.local_id) === sId || String(t.trip_id) === sId || String(t.update_id) === sId) return true;
+            if (refTrip && refTrip.title && t.title && t.title.trim().toLowerCase() === refTrip.title.trim().toLowerCase()) {
+                const refDate = String(refTrip.trip_date || '').slice(0, 10);
+                const tDate = String(t.trip_date || '').slice(0, 10);
+                if (!refDate || !tDate || refDate === tDate) return true;
+            }
+            return false;
+        };
+
+        let refCompletedTrip = null;
+        if (Array.isArray(window._cachedSavedTrips)) {
+            refCompletedTrip = window._cachedSavedTrips.find(t => t && (String(t.id) === sId || String(t.local_id) === sId)) || null;
+        }
+
+        const dedupeAndMarkCompleted = (arr) => {
+            if (!Array.isArray(arr)) return [];
+            const seenComp = new Set();
+            return arr.map(t => {
+                if (isCompletedTripMatch(t, refCompletedTrip)) {
+                    if (!refCompletedTrip) refCompletedTrip = t;
+                    return { ...t, status: 'completed', is_offline_queued: false };
+                }
+                return t;
+            }).filter(t => {
+                if (!t) return false;
+                if (t.status === 'completed' && isCompletedTripMatch(t, refCompletedTrip)) {
+                    const key = (refCompletedTrip && refCompletedTrip.title) ? refCompletedTrip.title.trim().toLowerCase() : sId;
+                    if (seenComp.has(key)) return false;
+                    seenComp.add(key);
+                }
+                return true;
+            });
+        };
+
+        // 2. Mark completed & deduplicate in intan_elyu_saved_trips
         try {
             let localSaved = JSON.parse(localStorage.getItem('intan_elyu_saved_trips') || '[]');
             if (Array.isArray(localSaved)) {
-                localSaved = localSaved.map(t => {
-                    if (t && (String(t.id) === sId || String(t.local_id) === sId)) {
-                        return { ...t, status: 'completed' };
-                    }
-                    return t;
-                });
-                localStorage.setItem('intan_elyu_saved_trips', JSON.stringify(localSaved));
+                localStorage.setItem('intan_elyu_saved_trips', JSON.stringify(dedupeAndMarkCompleted(localSaved)));
             }
         } catch (e) { }
 
-        // 3. Mark completed in intan_elyu_offline_saved_trips_backup
+        // 3. Mark completed & deduplicate in intan_elyu_offline_saved_trips_backup
         try {
             let backup = JSON.parse(localStorage.getItem('intan_elyu_offline_saved_trips_backup') || '[]');
             const backupList = Array.isArray(backup) ? backup : (backup.itineraries || backup.data || []);
             if (Array.isArray(backupList)) {
-                const updatedBackup = backupList.map(t => {
-                    if (t && (String(t.id) === sId || String(t.local_id) === sId)) {
-                        return { ...t, status: 'completed' };
-                    }
-                    return t;
-                });
-                localStorage.setItem('intan_elyu_offline_saved_trips_backup', JSON.stringify(updatedBackup));
+                localStorage.setItem('intan_elyu_offline_saved_trips_backup', JSON.stringify(dedupeAndMarkCompleted(backupList)));
             }
         } catch (e) { }
 
         // 4. Update in-memory window._cachedSavedTrips
         if (Array.isArray(window._cachedSavedTrips)) {
-            window._cachedSavedTrips = window._cachedSavedTrips.map(t => {
-                if (t && (String(t.id) === sId || String(t.local_id) === sId)) {
-                    return { ...t, status: 'completed' };
-                }
-                return t;
-            });
+            window._cachedSavedTrips = dedupeAndMarkCompleted(window._cachedSavedTrips);
         }
 
-        // 5. Remove from OfflineTripManager queue if queued
-        if (window.OfflineTripManager && typeof window.OfflineTripManager.removeQueuedTrip === 'function') {
-            try { window.OfflineTripManager.removeQueuedTrip(sId); } catch(e) {}
+        // 5. Remove from OfflineTripManager queue if queued (including any matching title/local_id copy)
+        if (window.OfflineTripManager) {
+            try {
+                if (typeof window.OfflineTripManager.removeQueuedTrip === 'function') {
+                    window.OfflineTripManager.removeQueuedTrip(sId);
+                }
+                if (refCompletedTrip && refCompletedTrip.title && typeof window.OfflineTripManager.getQueuedTrips === 'function') {
+                    const refTitle = refCompletedTrip.title.trim().toLowerCase();
+                    const qList = window.OfflineTripManager.getQueuedTrips().filter(q => !(q && q.title && q.title.trim().toLowerCase() === refTitle));
+                    localStorage.setItem(window.OfflineTripManager.STORAGE_KEY, JSON.stringify(qList));
+                }
+            } catch(e) {}
         }
 
         // 6. Purge token caches
@@ -1070,17 +1291,24 @@ window.markTripAsCompletedLocally = function (tripId, earnedPoints = 0, newTotal
             localStorage.removeItem('dashboard_trips_' + tokenKey);
         }
 
-        // 7. Update UI points ticker if present
+        // 7. Update UI points ticker & caches if present
         try {
             const uStr = localStorage.getItem('auth_user');
             if (uStr) {
                 const uObj = JSON.parse(uStr);
-                const ptTickers = document.querySelectorAll('#user-points-display, .header-points-badge, .user-points-badge, .points-count, [data-user-points]');
-                ptTickers.forEach(el => {
-                    if (el && uObj.points !== undefined) {
-                        el.textContent = Number(uObj.points).toLocaleString();
-                    }
-                });
+                if (uObj && typeof uObj === 'object' && typeof window.syncUserPointsEverywhere === 'function') {
+                    window.syncUserPointsEverywhere(uObj.points, null, {
+                        xp: uObj.xp,
+                        places_visited: uObj.places_visited
+                    });
+                } else {
+                    const ptTickers = document.querySelectorAll('#user-points-display, .header-points-badge, .user-points-badge, .points-count, [data-user-points]');
+                    ptTickers.forEach(el => {
+                        if (el && uObj.points !== undefined) {
+                            el.textContent = Number(uObj.points).toLocaleString();
+                        }
+                    });
+                }
             }
         } catch(e) {}
 
@@ -1945,7 +2173,7 @@ window.OfflineCompletedTripsManager = {
                     try {
                         const data = await res.json();
                         if (typeof window.markTripAsCompletedLocally === 'function') {
-                            window.markTripAsCompletedLocally(item.tripId, data?.points_awarded || 0, data?.total_points);
+                            window.markTripAsCompletedLocally(item.tripId, data?.points_awarded || 0, data?.total_points, data?.completed_activities);
                         }
                     } catch(e) {
                         if (typeof window.markTripAsCompletedLocally === 'function') {
@@ -3394,8 +3622,9 @@ window.renderSavedTrips = function (itineraries) {
             return tripObj;
         });
 
-        const combinedTrips = [...queuedNewTrips, ...serverTrips].filter(t => !window.isTripDeleted(t));
+        const combinedTrips = [...serverTrips, ...queuedNewTrips].filter(t => !window.isTripDeleted(t));
         const seenTripIds = new Set();
+        const seenTripSignatures = new Set();
         const dedupedTrips = combinedTrips.filter(t => {
             if (!t) return false;
             const tId = String(t.id || t.local_id || t.trip_id || '');
@@ -3403,6 +3632,15 @@ window.renderSavedTrips = function (itineraries) {
                 if (seenTripIds.has(tId)) return false;
                 seenTripIds.add(tId);
                 if (tId.startsWith('offline_edit_')) seenTripIds.add(tId.replace('offline_edit_', ''));
+            }
+            const tTitle = String(t.title || '').trim().toLowerCase();
+            const tDate = String(t.trip_date || '').trim();
+            const itemsArr = Array.isArray(t.items) ? t.items : [];
+            const spotSig = itemsArr.map(it => String(it?.tourist_spot_id || it?.id || it?.name || '')).filter(Boolean).join(',');
+            if (tTitle) {
+                const sig = `${tTitle}|${tDate}|${spotSig}`;
+                if (seenTripSignatures.has(sig)) return false;
+                seenTripSignatures.add(sig);
             }
             return true;
         });
@@ -4872,10 +5110,15 @@ window.closeCompleteTripModal = function () {
 };
 
 window.executeConfirmCompleteTrip = async function () {
+    if (window._isCompletingTripInFlight) return;
     const id = window._pendingCompleteTripId;
     if (!id) return;
+    window._isCompletingTripInFlight = true;
+    window._pendingCompleteTripId = null;
 
     window.closeCompleteTripModal();
+    const reviewModal = document.getElementById('trip-completion-review-modal');
+    if (reviewModal) reviewModal.style.display = 'none';
     const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
 
     if (typeof window.markTripAsCompletedLocally === 'function') {
@@ -4934,11 +5177,13 @@ window.executeConfirmCompleteTrip = async function () {
             localStorage.removeItem('saved_trips_' + tokenKey);
             localStorage.removeItem('dashboard_trips_' + tokenKey);
             localStorage.removeItem('dashboard_saved_trips_' + tokenKey);
+            localStorage.removeItem('profile_data_' + tokenKey);
         }
         if (typeof window.fetchSavedTrips === 'function') window.fetchSavedTrips(true);
         if (typeof window.showTripCompletionReviewModal === 'function') {
             window.showTripCompletionReviewModal(localVisitedItems);
         }
+        window._isCompletingTripInFlight = false;
         return;
     }
 
@@ -4956,6 +5201,9 @@ window.executeConfirmCompleteTrip = async function () {
 
         const data = await response.json();
         if (response.ok) {
+            if (typeof window.markTripAsCompletedLocally === 'function') {
+                window.markTripAsCompletedLocally(id, Number(data?.points_awarded || 0), data?.new_total_points ?? null, data?.completed_activities ?? null);
+            }
             if (typeof showToast === 'function') showToast(data.message || "Trip completed! Please review your destinations to earn points.");
             if (window.confetti) {
                 window.confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
@@ -4966,6 +5214,7 @@ window.executeConfirmCompleteTrip = async function () {
                 localStorage.removeItem('saved_trips_' + tokenKey);
                 localStorage.removeItem('dashboard_trips_' + tokenKey);
                 localStorage.removeItem('dashboard_saved_trips_' + tokenKey);
+                localStorage.removeItem('profile_data_' + tokenKey);
             }
             if (typeof window.fetchSavedTrips === 'function') window.fetchSavedTrips(true);
 
@@ -4994,6 +5243,7 @@ window.executeConfirmCompleteTrip = async function () {
                 localStorage.removeItem('saved_trips_' + tokenKey);
                 localStorage.removeItem('dashboard_trips_' + tokenKey);
                 localStorage.removeItem('dashboard_saved_trips_' + tokenKey);
+                localStorage.removeItem('profile_data_' + tokenKey);
             }
             if (typeof window.fetchSavedTrips === 'function') window.fetchSavedTrips(true);
             if (typeof window.showTripCompletionReviewModal === 'function') {
@@ -5002,6 +5252,8 @@ window.executeConfirmCompleteTrip = async function () {
         } else {
             if (typeof showToast === 'function') showToast("Could not complete trip. Please check your connection.");
         }
+    } finally {
+        window._isCompletingTripInFlight = false;
     }
 };
 
@@ -5778,12 +6030,23 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
     // Prevent overlapping navigations
     if (state.isNavigating) return;
 
-    // Require permanent password change before entering onboarding
+    // Require permanent password change via Login before entering onboarding
     if (typeof viewName === 'string' && viewName.split(/[?&]/)[0] === 'onboarding') {
         try {
             const u = JSON.parse(localStorage.getItem('auth_user') || 'null');
-            if (u && u.must_change_password && typeof window.promptTemporaryPasswordChange === 'function') {
-                window.promptTemporaryPasswordChange(() => navigateTo(viewName, addToHistory, fade));
+            if (u && (u.must_change_password === true || u.must_change_password === 1 || u.must_change_password === '1' || u.must_change_password === 'true')) {
+                const email = u.email || '';
+                localStorage.removeItem('auth_user');
+                localStorage.removeItem('intan_elyu_token');
+                if (email) {
+                    try { sessionStorage.setItem('login_prefill_email', email); } catch (e) {}
+                }
+                navigateTo('auth', true, false).then(() => {
+                    if (typeof window.toggleAuthMode === 'function') window.toggleAuthMode(false);
+                    const loginEmailInput = document.getElementById('login-email');
+                    if (loginEmailInput && email) loginEmailInput.value = email;
+                    if (typeof window.showRegTempPwdModal === 'function') window.showRegTempPwdModal(email);
+                });
                 return;
             }
         } catch (e) {}
@@ -6880,7 +7143,6 @@ window.navigateTo = navigateTo;
                 try { splashMain.remove(); } catch (e) { }
             }
 
-            localStorage.setItem('intan_elyu_token', directToken);
             let parsedUserObj = null;
             if (directUser) {
                 try {
@@ -6889,35 +7151,97 @@ window.navigateTo = navigateTo;
                         try { userStr = decodeURIComponent(userStr); } catch (eDec) {}
                     }
                     parsedUserObj = typeof userStr === 'object' ? userStr : JSON.parse(userStr);
-                    localStorage.setItem('auth_user', JSON.stringify(parsedUserObj));
-                    if (window.AppStorage) window.AppStorage.setItem('auth_user', parsedUserObj);
                 } catch (e) { }
             }
-            if (window.AppStorage) window.AppStorage.setItem('intan_elyu_token', directToken);
 
-            // Clear offline flags on real authenticated login
+            // Clear offline flags
             localStorage.removeItem('intan_elyu_offline_mode');
             localStorage.removeItem('intan_elyu_offline_guest');
+            const isSignUpIntent = searchParams.get('is_signup') === '1' || sessionStorage.getItem('intan_elyu_google_signup_mode') === 'true';
+            const isExistingUser = searchParams.get('is_existing') === '1' || (parsedUserObj && parsedUserObj.is_new_user === false);
             try {
                 sessionStorage.removeItem('intan_elyu_google_oauth_pending');
+                sessionStorage.removeItem('intan_elyu_google_signup_mode');
                 sessionStorage.removeItem('elyu_show_offline_bypass_notice');
             } catch (e) { }
+
+            const needsPasswordReset = Boolean(
+                searchParams.get('requires_temp_login') === '1' ||
+                (parsedUserObj && (
+                    parsedUserObj.must_change_password === true ||
+                    parsedUserObj.must_change_password === 1 ||
+                    parsedUserObj.must_change_password === '1' ||
+                    parsedUserObj.must_change_password === 'true'
+                ))
+            );
+            const targetEmail = searchParams.get('email') || (parsedUserObj && parsedUserObj.email) || '';
+
+            if (isSignUpIntent && isExistingUser && !needsPasswordReset) {
+                window._isProcessingGoogleOAuth = false;
+                window._googleOAuthActiveProcessing = false;
+                if (targetEmail) {
+                    try { sessionStorage.setItem('login_prefill_email', targetEmail); } catch (e) {}
+                }
+                if (window.history && window.history.replaceState) {
+                    window.history.replaceState({}, document.title, window.location.pathname + '?view=auth');
+                }
+                Promise.resolve(state.currentView !== 'auth' ? navigateTo('auth', true, false) : null).then(() => {
+                    if (typeof window.toggleAuthMode === 'function') window.toggleAuthMode(false);
+                    const loginEmailInput = document.getElementById('login-email');
+                    if (loginEmailInput && targetEmail) loginEmailInput.value = targetEmail;
+                    if (typeof showToast === 'function') {
+                        showToast('User has already been created. Please log in with your email or use Sign in with Google.', 'info', 5000);
+                    }
+                });
+                return;
+            }
+
+            if (needsPasswordReset) {
+                window._isProcessingGoogleOAuth = false;
+                window._googleOAuthActiveProcessing = false;
+                localStorage.removeItem('auth_user');
+                localStorage.removeItem('auth_user_backup');
+                localStorage.removeItem('intan_elyu_user');
+                localStorage.removeItem('intan_elyu_token');
+                localStorage.removeItem('Intan_Elyu_Token');
+                localStorage.removeItem('api_token');
+                window._pendingChangePasswordAuth = {
+                    token: directToken,
+                    user: parsedUserObj,
+                    email: targetEmail
+                };
+                if (targetEmail) {
+                    try { sessionStorage.setItem('login_prefill_email', targetEmail); } catch (e) {}
+                }
+                if (window.history && window.history.replaceState) {
+                    window.history.replaceState({}, document.title, window.location.pathname + '?view=auth');
+                }
+                const showTempModalOnAuth = () => {
+                    Promise.resolve((state.currentView !== 'auth' || !document.getElementById('reg-temp-pwd-modal')) ? navigateTo('auth', true, false) : null).then(() => {
+                        if (typeof window.toggleAuthMode === 'function') window.toggleAuthMode(false);
+                        const loginEmailInput = document.getElementById('login-email');
+                        if (loginEmailInput && targetEmail) loginEmailInput.value = targetEmail;
+                        if (typeof window.showRegTempPwdModal === 'function') window.showRegTempPwdModal(targetEmail);
+                    });
+                };
+                if (document.body) {
+                    showTempModalOnAuth();
+                } else {
+                    document.addEventListener('DOMContentLoaded', showTempModalOnAuth, { once: true });
+                }
+                return;
+            }
+
+            localStorage.setItem('intan_elyu_token', directToken);
+            if (parsedUserObj) {
+                localStorage.setItem('auth_user', JSON.stringify(parsedUserObj));
+                if (window.AppStorage) window.AppStorage.setItem('auth_user', parsedUserObj);
+            }
+            if (window.AppStorage) window.AppStorage.setItem('intan_elyu_token', directToken);
 
             const targetView = parsedUserObj?.is_new_user === true ? 'onboarding' : 'dashboard';
             if (window.history && window.history.replaceState) {
                 window.history.replaceState({}, document.title, window.location.pathname + '?view=' + targetView);
-            }
-            if (parsedUserObj && parsedUserObj.must_change_password) {
-                const openModal = () => promptTemporaryPasswordChange(() => {
-                    if (typeof showToast === 'function') showToast('Logged in successfully!', 'success');
-                    navigateTo(targetView, true, true);
-                });
-                if (document.body) {
-                    openModal();
-                } else {
-                    document.addEventListener('DOMContentLoaded', openModal, { once: true });
-                }
-                return;
             }
             if (typeof showToast === 'function') showToast('Logged in successfully!', 'success');
             navigateTo(targetView, true, true);
@@ -7054,39 +7378,6 @@ window.navigateTo = navigateTo;
                 }
                 if (!res.ok) throw new Error(data.error || data.message || 'Google authentication failed.');
 
-                localStorage.setItem('auth_user', JSON.stringify(data.user));
-                localStorage.setItem('intan_elyu_token', data.token);
-                if (window.AppStorage) {
-                    window.AppStorage.setItem('auth_user', data.user);
-                    window.AppStorage.setItem('intan_elyu_token', data.token);
-                }
-
-                // Clear offline flags on real authenticated login
-                localStorage.removeItem('intan_elyu_offline_mode');
-                localStorage.removeItem('intan_elyu_offline_guest');
-                try {
-                    sessionStorage.removeItem('intan_elyu_google_oauth_pending');
-                    sessionStorage.removeItem('elyu_show_offline_bypass_notice');
-                } catch (e) { }
-
-                const postAuthView = data.user?.is_new_user === true ? 'onboarding' : 'dashboard';
-                if (window.history && window.history.replaceState) {
-                    window.history.replaceState({}, document.title, window.location.pathname + '?view=' + postAuthView);
-                }
-
-                const currentOverlay = document.getElementById('global-oauth-overlay');
-                if (currentOverlay) {
-                    currentOverlay.innerHTML = `
-                    <div class="oauth-modal-content" style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; border: none !important; outline: none !important; box-shadow: 0 15px 35px rgba(10, 25, 60, 0.4), 0 0 25px rgba(63, 125, 183, 0.25) !important;">
-                        <div class="oauth-success-circle">
-                            <i class="fa-solid fa-check" style="font-size:28px; color:#1e3a8a;"></i>
-                        </div>
-                        <h3 class="oauth-modal-title">Welcome${data.user?.name ? ', ' + data.user.name : ''}!</h3>
-                        <p class="oauth-modal-subtitle">Redirecting to dashboard...</p>
-                    </div>
-                `;
-                }
-
                 const stateRaw = params.get('state');
                 let stateObj = null;
                 try {
@@ -7094,6 +7385,31 @@ window.navigateTo = navigateTo;
                 } catch (e) {
                     try { stateObj = JSON.parse(stateRaw); } catch (e2) {}
                 }
+
+                const isSignUpIntent = Boolean((stateObj && stateObj.isSignUp) || sessionStorage.getItem('intan_elyu_google_signup_mode') === 'true');
+                const needsPasswordReset = Boolean(
+                    data.requires_temp_login === true ||
+                    data.must_change_password === true ||
+                    data.must_change_password === 1 ||
+                    data.must_change_password === '1' ||
+                    data.must_change_password === 'true' ||
+                    (data.user && (
+                        data.user.must_change_password === true ||
+                        data.user.must_change_password === 1 ||
+                        data.user.must_change_password === '1' ||
+                        data.user.must_change_password === 'true'
+                    ))
+                );
+                const targetEmail = data.email || (data.user && data.user.email) || '';
+
+                // Clear offline flags on real authenticated login
+                localStorage.removeItem('intan_elyu_offline_mode');
+                localStorage.removeItem('intan_elyu_offline_guest');
+                try {
+                    sessionStorage.removeItem('intan_elyu_google_oauth_pending');
+                    sessionStorage.removeItem('intan_elyu_google_signup_mode');
+                    sessionStorage.removeItem('elyu_show_offline_bypass_notice');
+                } catch (e) { }
 
                 const isNativePlatform = Boolean(
                     (window.Capacitor && typeof window.Capacitor.isNativePlatform === 'function' && window.Capacitor.isNativePlatform()) ||
@@ -7106,7 +7422,7 @@ window.navigateTo = navigateTo;
                 );
 
                 if (shouldHandoffToApp) {
-                    const deepLink = `intanelyu://auth?app=true&token=${encodeURIComponent(data.token)}&user=${encodeURIComponent(JSON.stringify(data.user))}`;
+                    const deepLink = `intanelyu://auth?app=true&token=${encodeURIComponent(data.token || '')}&user=${encodeURIComponent(JSON.stringify(data.user || {}))}&requires_temp_login=${needsPasswordReset ? '1' : '0'}&is_signup=${isSignUpIntent ? '1' : '0'}&is_existing=${data.is_existing_user ? '1' : '0'}&email=${encodeURIComponent(targetEmail)}`;
                     
                     const currentOverlay = document.getElementById('global-oauth-overlay');
                     if (currentOverlay) {
@@ -7130,6 +7446,90 @@ window.navigateTo = navigateTo;
                     return;
                 }
 
+                // Web / Native WebView handling:
+                // 1. User clicked "Sign up with Google" for an account that already exists
+                if (isSignUpIntent && data.is_existing_user === true && !needsPasswordReset) {
+                    const ov = document.getElementById('global-oauth-overlay');
+                    if (ov) ov.remove();
+                    window._isProcessingGoogleOAuth = false;
+                    window._googleOAuthActiveProcessing = false;
+                    if (targetEmail) {
+                        try { sessionStorage.setItem('login_prefill_email', targetEmail); } catch (e) {}
+                    }
+                    if (window.history && window.history.replaceState) {
+                        window.history.replaceState({}, document.title, window.location.pathname + '?view=auth');
+                    }
+                    Promise.resolve(state.currentView !== 'auth' ? navigateTo('auth', true, false) : null).then(() => {
+                        if (typeof window.toggleAuthMode === 'function') window.toggleAuthMode(false);
+                        const loginEmailInput = document.getElementById('login-email');
+                        if (loginEmailInput && targetEmail) loginEmailInput.value = targetEmail;
+                        if (typeof showToast === 'function') {
+                            showToast('User has already been created. Please log in with your email or use Sign in with Google.', 'info', 5000);
+                        }
+                    });
+                    return;
+                }
+
+                // 2. New Google user (or user with must_change_password) -> force back to Login tab & show Reset Password Required modal
+                if (needsPasswordReset) {
+                    const ov = document.getElementById('global-oauth-overlay');
+                    if (ov) ov.remove();
+                    window._isProcessingGoogleOAuth = false;
+                    window._googleOAuthActiveProcessing = false;
+                    localStorage.removeItem('auth_user');
+                    localStorage.removeItem('auth_user_backup');
+                    localStorage.removeItem('intan_elyu_user');
+                    localStorage.removeItem('intan_elyu_token');
+                    localStorage.removeItem('Intan_Elyu_Token');
+                    localStorage.removeItem('api_token');
+                    window._pendingChangePasswordAuth = {
+                        token: data.token,
+                        user: data.user,
+                        email: targetEmail,
+                        temporary_password: data.temporary_password || '',
+                        vouchers: data.vouchers
+                    };
+                    if (targetEmail) {
+                        try { sessionStorage.setItem('login_prefill_email', targetEmail); } catch (e) {}
+                    }
+                    if (window.history && window.history.replaceState) {
+                        window.history.replaceState({}, document.title, window.location.pathname + '?view=auth');
+                    }
+                    Promise.resolve((state.currentView !== 'auth' || !document.getElementById('reg-temp-pwd-modal')) ? navigateTo('auth', true, false) : null).then(() => {
+                        if (typeof window.toggleAuthMode === 'function') window.toggleAuthMode(false);
+                        const loginEmailInput = document.getElementById('login-email');
+                        if (loginEmailInput && targetEmail) loginEmailInput.value = targetEmail;
+                        if (typeof window.showRegTempPwdModal === 'function') window.showRegTempPwdModal(targetEmail);
+                    });
+                    return;
+                }
+
+                // 3. Existing user who already has a permanent password -> log in normally
+                localStorage.setItem('auth_user', JSON.stringify(data.user));
+                localStorage.setItem('intan_elyu_token', data.token);
+                if (window.AppStorage) {
+                    window.AppStorage.setItem('auth_user', data.user);
+                    window.AppStorage.setItem('intan_elyu_token', data.token);
+                }
+
+                const postAuthView = data.user?.is_new_user === true ? 'onboarding' : 'dashboard';
+                if (window.history && window.history.replaceState) {
+                    window.history.replaceState({}, document.title, window.location.pathname + '?view=' + postAuthView);
+                }
+
+                const currentOverlay = document.getElementById('global-oauth-overlay');
+                if (currentOverlay) {
+                    currentOverlay.innerHTML = `
+                    <div class="oauth-modal-content" style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%) !important; border: none !important; outline: none !important; box-shadow: 0 15px 35px rgba(10, 25, 60, 0.4), 0 0 25px rgba(63, 125, 183, 0.25) !important;">
+                        <div class="oauth-success-circle">
+                            <i class="fa-solid fa-check" style="font-size:28px; color:#1e3a8a;"></i>
+                        </div>
+                        <h3 class="oauth-modal-title">Welcome${data.user?.name ? ', ' + data.user.name : ''}!</h3>
+                        <p class="oauth-modal-subtitle">Redirecting to dashboard...</p>
+                    </div>
+                `;
+                }
+
                 setTimeout(() => {
                     const ov = document.getElementById('global-oauth-overlay');
                     if (ov) {
@@ -7138,15 +7538,6 @@ window.navigateTo = navigateTo;
                         setTimeout(() => ov.remove(), 300);
                     }
                     window._isProcessingGoogleOAuth = false;
-                    if (data.must_change_password || data.user?.must_change_password) {
-                        promptTemporaryPasswordChange(() => {
-                            if (typeof showToast === 'function') {
-                                showToast(`Welcome, ${data.user?.name || 'Explorer'}!`, 'success');
-                            }
-                            navigateTo(postAuthView, true, true);
-                        });
-                        return;
-                    }
                     if (typeof showToast === 'function') {
                         showToast(`Welcome back, ${data.user?.name || 'Explorer'}!`, 'success');
                     }
@@ -7163,104 +7554,6 @@ window.navigateTo = navigateTo;
                 navigateTo('auth', true, false);
             });
     };
-
-    window.promptTemporaryPasswordChange = promptTemporaryPasswordChange;
-    function promptTemporaryPasswordChange(onSuccess) {
-        const existing = document.getElementById('temp-password-change-modal');
-        if (existing) existing.remove();
-
-        const modal = document.createElement('div');
-        modal.id = 'temp-password-change-modal';
-        modal.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(15,23,42,0.78);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:20px;';
-        modal.innerHTML = `
-            <div style="background:#ffffff;border-radius:20px;max-width:380px;width:100%;padding:24px;box-shadow:0 20px 50px rgba(0,0,0,0.3);color:#0f172a;font-family:inherit;">
-                <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
-                    <div style="width:38px;height:38px;border-radius:12px;background:#eff6ff;color:#1e3a8a;display:flex;align-items:center;justify-content:center;font-size:18px;">
-                        <i class="fa-solid fa-key"></i>
-                    </div>
-                    <div>
-                        <h3 style="margin:0;font-size:17px;font-weight:800;color:#1e3a8a;">Set Permanent Password</h3>
-                        <p style="margin:2px 0 0;font-size:12px;color:#64748b;">Required before completing your profile</p>
-                    </div>
-                </div>
-                <p style="font-size:13px;color:#475569;margin:0 0 14px;line-height:1.45;">
-                    A temporary password was sent to your email. Please set your own permanent password (at least 8 characters with letters and numbers).
-                </p>
-                <form id="temp-password-change-form" style="display:flex;flex-direction:column;gap:10px;">
-                    <input type="password" id="temp-new-password" placeholder="New password" required autocomplete="new-password"
-                        style="width:100%;box-sizing:border-box;padding:11px 13px;border:1.5px solid #cbd5e1;border-radius:12px;font-size:14px;outline:none;">
-                    <input type="password" id="temp-confirm-password" placeholder="Confirm new password" required autocomplete="new-password"
-                        style="width:100%;box-sizing:border-box;padding:11px 13px;border:1.5px solid #cbd5e1;border-radius:12px;font-size:14px;outline:none;">
-                    <div id="temp-password-error" style="display:none;color:#dc2626;font-size:12px;font-weight:600;"></div>
-                    <button type="submit" id="temp-password-submit"
-                        style="margin-top:4px;padding:12px;border:none;border-radius:12px;background:linear-gradient(135deg,#1e3a8a,#3f7db7);color:#ffffff;font-weight:700;font-size:14px;cursor:pointer;">
-                        Save Password &amp; Continue
-                    </button>
-                </form>
-            </div>
-        `;
-        document.body.appendChild(modal);
-
-        const form = document.getElementById('temp-password-change-form');
-        const errEl = document.getElementById('temp-password-error');
-        const btn = document.getElementById('temp-password-submit');
-
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            errEl.style.display = 'none';
-            const pw = document.getElementById('temp-new-password').value;
-            const confirmPw = document.getElementById('temp-confirm-password').value;
-
-            if (pw.length < 8 || !/[A-Za-z]/.test(pw) || !/[0-9]/.test(pw)) {
-                errEl.textContent = 'Password must be at least 8 characters and include both letters and numbers.';
-                errEl.style.display = 'block';
-                return;
-            }
-            if (pw !== confirmPw) {
-                errEl.textContent = 'Passwords do not match.';
-                errEl.style.display = 'block';
-                return;
-            }
-
-            btn.disabled = true;
-            btn.textContent = 'Saving...';
-            try {
-                const backend = (typeof window.getBackendUrl === 'function') ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online');
-                const token = localStorage.getItem('intan_elyu_token');
-                const res = await fetch(backend + '/api/change-temporary-password', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        'Authorization': 'Bearer ' + token
-                    },
-                    body: JSON.stringify({ new_password: pw, new_password_confirmation: confirmPw })
-                });
-                const resData = await res.json();
-                if (!res.ok || resData.success === false) {
-                    throw new Error(resData.message || 'Failed to update password.');
-                }
-                if (resData.token) {
-                    localStorage.setItem('intan_elyu_token', resData.token);
-                    if (window.AppStorage) window.AppStorage.setItem('intan_elyu_token', resData.token);
-                }
-                try {
-                    const storedUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
-                    storedUser.must_change_password = false;
-                    localStorage.setItem('auth_user', JSON.stringify(storedUser));
-                    if (window.AppStorage) window.AppStorage.setItem('auth_user', storedUser);
-                } catch (err) {}
-
-                modal.remove();
-                if (typeof onSuccess === 'function') onSuccess();
-            } catch (err) {
-                errEl.textContent = err.message || 'Failed to update password.';
-                errEl.style.display = 'block';
-                btn.disabled = false;
-                btn.textContent = 'Save Password & Continue';
-            }
-        });
-    }
 
     // Check for Google OAuth token immediately on script execution
     window.initGoogleOAuthHandler();
@@ -9100,29 +9393,6 @@ window.navigateTo = navigateTo;
                 }
             }
         } catch (e) {}
-    };
-
-    window.syncUserPointsEverywhere = window.syncUserPointsEverywhere || function (newPoints) {
-        const pts = Math.max(0, parseInt(newPoints, 10) || 0);
-        window._userPointsBalance = pts;
-        document.querySelectorAll('#profile-points-val, #stat-points, #stat-xp, #full-deals-user-points, #dash-stat-points, #game-points-val').forEach(el => {
-            el.textContent = pts.toLocaleString();
-        });
-        document.querySelectorAll('#discount-user-pts').forEach(el => {
-            el.textContent = `${pts.toLocaleString()} Points`;
-        });
-        try {
-            ['auth_user', 'auth_user_backup', 'intan_elyu_user'].forEach(key => {
-                const raw = localStorage.getItem(key);
-                if (raw) {
-                    const obj = JSON.parse(raw);
-                    if (obj && typeof obj === 'object') {
-                        obj.points = pts;
-                        localStorage.setItem(key, JSON.stringify(obj));
-                    }
-                }
-            });
-        } catch (_) {}
     };
 
     // ── Badges Removed: Safe No-Op Handlers & Residual DOM Purge ────────────────

@@ -269,7 +269,9 @@ class FeedbackController extends Controller
         if ($user && $isFirstReview) {
             try {
                 $user->increment('xp', $rewardPoints);
-                $user->increment('completed_activities');
+                if (method_exists($user, 'syncPlacesVisitedCount')) {
+                    $user->syncPlacesVisitedCount();
+                }
                 \App\Models\UserPoint::awardPointsSafely(
                     $user->id,
                     $rewardPoints,

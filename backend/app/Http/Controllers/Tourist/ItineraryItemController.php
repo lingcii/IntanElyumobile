@@ -224,7 +224,11 @@ class ItineraryItemController extends Controller
                         $spot->id
                     );
 
-                    $user->increment('completed_activities');
+                    if (method_exists($user, 'syncPlacesVisitedCount')) {
+                        $user->syncPlacesVisitedCount();
+                    } else {
+                        $user->increment('completed_activities');
+                    }
                     $pointsAwarded = true;
 
                     \Illuminate\Support\Facades\Cache::forget("rank:user:{$user->id}");
@@ -555,6 +559,10 @@ class ItineraryItemController extends Controller
 
             $item->update($itemData);
             $item->refresh();
+
+            if ($user && method_exists($user, 'syncPlacesVisitedCount')) {
+                $user->syncPlacesVisitedCount();
+            }
 
             try {
                 $shouldUpdatePing = !$user->last_gps_ping_at || ($effectiveTime->gte(Carbon::parse($user->last_gps_ping_at)));

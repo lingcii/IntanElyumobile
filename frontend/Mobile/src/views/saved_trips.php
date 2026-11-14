@@ -1512,9 +1512,10 @@ $backRoute = 'itinerary';
                     return tripObj;
                 });
 
-                const combinedTrips = [...queuedNewTrips, ...serverTrips].filter(t => !window.isTripDeleted(t));
-                // Deduplicate by unique trip id so duplicate store entries never double-render
+                const combinedTrips = [...serverTrips, ...queuedNewTrips].filter(t => !window.isTripDeleted(t));
+                // Deduplicate by unique trip id AND by normalized title+date+spots signature so duplicate store/offline entries never double-render
                 const seenTripIds = new Set();
+                const seenTripSignatures = new Set();
                 const dedupedTrips = combinedTrips.filter(t => {
                     if (!t) return false;
                     const tId = String(t.id || t.local_id || t.trip_id || '');
@@ -1523,8 +1524,18 @@ $backRoute = 'itinerary';
                         seenTripIds.add(tId);
                         if (tId.startsWith('offline_edit_')) seenTripIds.add(tId.replace('offline_edit_', ''));
                     }
+                    const itemsArr = Array.isArray(t.items) ? t.items : [];
+                    const spotSig = itemsArr.map(i => i && (i.tourist_spot_id || i.destination_id || (i.destination && i.destination.id) || '')).filter(Boolean).join(',');
+                    const titleNorm = String(t.title || '').trim().toLowerCase();
+                    const dateNorm = String(t.trip_date || '').slice(0, 10);
+                    if (titleNorm) {
+                        const sig = `${titleNorm}|${dateNorm}|${spotSig}`;
+                        if (seenTripSignatures.has(sig)) return false;
+                        seenTripSignatures.add(sig);
+                    }
                     return true;
                 });
+                window.renderSavedTrips = renderSavedTrips;
                 window._cachedSavedTrips = dedupedTrips;
                 const list = document.getElementById('saved-trips-list');
 
@@ -3076,10 +3087,13 @@ $backRoute = 'itinerary';
         };
 
         window.executeConfirmCompleteTrip = async function () {
+            if (window._isCompletingTripInFlight) return;
             const id = window._pendingCompleteTripId;
             if (!id) return;
             window._pendingCompleteTripId = null;
+            window._isCompletingTripInFlight = true;
 
+            try {
             window.closeCompleteTripModal();
             window._completionReviewRequired = false;
             window._completionReviewRequiredIds = [];
@@ -3127,7 +3141,7 @@ $backRoute = 'itinerary';
                     localStorage.removeItem('dashboard_trips_' + tokenKey);
                     localStorage.removeItem('dashboard_saved_trips_' + tokenKey);
                 }
-                window.fetchSavedTrips(false);
+                window.fetchSavedTrips(true);
                 window.showTripCompletedSuccessModal();
                 return;
             }
@@ -3146,7 +3160,7 @@ $backRoute = 'itinerary';
 
                 const data = await response.json();
                 if (response.ok) {
-                    if (typeof window.markTripAsCompletedLocally === 'function') window.markTripAsCompletedLocally(id, data?.points_awarded || 0, data?.total_points);
+                    if (typeof window.markTripAsCompletedLocally === 'function') window.markTripAsCompletedLocally(id, data?.points_awarded || 0, data?.total_points, data?.completed_activities);
                     window.switchSavedTripsTab('history');
                     if (typeof showToast === 'function') showToast(data.message || "Trip completed successfully!");
                     if (window.confetti) {
@@ -3158,8 +3172,9 @@ $backRoute = 'itinerary';
                         localStorage.removeItem('saved_trips_' + tokenKey);
                         localStorage.removeItem('dashboard_trips_' + tokenKey);
                         localStorage.removeItem('dashboard_saved_trips_' + tokenKey);
+                        localStorage.removeItem('profile_data_' + tokenKey);
                     }
-                    window.fetchSavedTrips(false);
+                    window.fetchSavedTrips(true);
 
                     window.showTripCompletedSuccessModal();
                 } else {
@@ -3183,11 +3198,14 @@ $backRoute = 'itinerary';
                         localStorage.removeItem('dashboard_trips_' + tokenKey);
                         localStorage.removeItem('dashboard_saved_trips_' + tokenKey);
                     }
-                    window.fetchSavedTrips(false);
+                    window.fetchSavedTrips(true);
                     window.showTripCompletedSuccessModal();
                     return;
                 }
                 if (typeof showToast === 'function') showToast("Network error.");
+            }
+            } finally {
+                window._isCompletingTripInFlight = false;
             }
         };
 

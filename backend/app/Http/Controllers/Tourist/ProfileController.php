@@ -22,8 +22,13 @@ class ProfileController extends Controller
         $user = $request->user();
 
         // 1. Rank — Technique 2: Server-Side Caching + Technique 6: Materialized Views
-        $userPoints = (int) ($user->points ?? $user->xp ?? 0);
-        $userPlaces = (int) ($user->completed_activities ?? 0);
+        $placesVisited = method_exists($user, 'syncPlacesVisitedCount')
+            ? $user->syncPlacesVisitedCount()
+            : (int) ($user->completed_activities ?? 0);
+        $userPoints = method_exists($user, 'syncPointsBalance')
+            ? $user->syncPointsBalance()
+            : (int) ($user->points ?? $user->xp ?? 0);
+        $userPlaces = $placesVisited;
         $myRank = null;
 
         // If the tourist has 0 points and 0 places/activities, they are unranked (null)
@@ -65,48 +70,33 @@ class ProfileController extends Controller
             });
         }
 
-        // 2. Places Visited — Cumulative spots visited + itinerary items
-        $placesVisited = (int) ($user->completed_activities ?? 0);
-        try {
-            $itemPlaces = (int) DB::table('itinerary_items')
-                ->join('itineraries', 'itinerary_items.itinerary_id', '=', 'itineraries.id')
-                ->where('itineraries.user_id', $user->id)
-                ->where('itinerary_items.is_visited', true)
-                ->whereNotNull('itinerary_items.tourist_spot_id')
-                ->distinct('itinerary_items.tourist_spot_id')
-                ->count('itinerary_items.tourist_spot_id');
-            $placesVisited = max($placesVisited, $itemPlaces);
-        } catch (\Throwable $e) {}
+        // 2. Places Visited — Already reconciled via syncPlacesVisitedCount() above
 
-        // Fallback to distinct completed itinerary spot count if still 0
-        if ($placesVisited === 0) {
-            try {
-                $completedTripsSpotCount = (int) DB::table('itinerary_items')
-                    ->join('itineraries', 'itinerary_items.itinerary_id', '=', 'itineraries.id')
-                    ->where('itineraries.user_id', $user->id)
-                    ->where('itineraries.status', 'completed')
-                    ->whereNotNull('itinerary_items.tourist_spot_id')
-                    ->distinct('itinerary_items.tourist_spot_id')
-                    ->count('itinerary_items.tourist_spot_id');
-                $placesVisited = max($completedTripsSpotCount, (int) ($user->completed_activities ?? 0));
-            } catch (\Throwable $e) {}
-        }
-
-        // 3. Completed Trips (Trip History) — Filter out any with 0 visited destinations
-        $completedTrips = Cache::remember("profile:trips:v2:{$user->id}", 60, function () use ($user) {
+        // 3. Completed Trips (Trip History) — Filter out any with 0 visited destinations and deduplicate identical completed trips
+        $completedTrips = Cache::remember("profile:trips:v3:{$user->id}", 60, function () use ($user) {
+            $seenTripSignatures = [];
             return Itinerary::where('user_id', $user->id)
                 ->where('status', 'completed')
                 ->whereHas('items')
                 ->with(['items.destination:id,name,photo_url,latitude,longitude,entrance_fee,adult_fee,kids_fee,pwd_fee,senior_citizen_fee,environmental_fee'])
                 ->orderByDesc('updated_at')
                 ->get()
-                ->filter(function ($trip) {
+                ->filter(function ($trip) use (&$seenTripSignatures) {
                     $totalItems = $trip->items->count();
                     $visitedItems = $trip->items->filter(function ($item) {
                         return (bool) $item->is_visited;
                     })->count();
                     $effectiveVisited = $visitedItems > 0 ? $visitedItems : $totalItems;
-                    return $effectiveVisited > 0;
+                    if ($effectiveVisited <= 0) {
+                        return false;
+                    }
+                    $spotIds = $trip->items->pluck('tourist_spot_id')->filter()->values()->implode(',');
+                    $sig = strtolower(trim((string) $trip->title)) . '|' . ($trip->trip_date ? $trip->trip_date->format('Y-m-d') : '') . '|' . $spotIds;
+                    if (isset($seenTripSignatures[$sig])) {
+                        return false;
+                    }
+                    $seenTripSignatures[$sig] = true;
+                    return true;
                 })
                 ->values()
                 ->map(function ($trip) {
@@ -170,17 +160,7 @@ class ProfileController extends Controller
             $completedQuestIds = [];
         }
 
-        $visitedCount = max($placesVisited, (int) ($user->completed_activities ?? 0));
-        try {
-            if (Schema::hasTable('itinerary_items') && Schema::hasTable('itineraries')) {
-                $rawItinVisited = (int) \App\Models\ItineraryItem::whereHas('itinerary', function($q) use ($user) {
-                    $q->where('user_id', $user->id);
-                })->where('is_visited', true)->count();
-                $visitedCount = max($visitedCount, $rawItinVisited);
-            }
-        } catch (\Throwable $e) {
-            // Keep $placesVisited fallback
-        }
+        $visitedCount = $placesVisited;
 
         $completedTripsCount = is_array($completedTrips) ? count($completedTrips) : 0;
 
@@ -289,11 +269,14 @@ class ProfileController extends Controller
                 'travel_preferences' => $hasPrefs ? $user->travel_preferences : null,
                 'is_leaderboard_private' => $hasPrivacy ? (bool) $user->is_leaderboard_private : false,
                 'two_factor_enabled' => (bool) $is2FAEnabled,
-                'xp' => (int) ($user->xp ?? 0),
-                'points' => (int) ($user->points ?? $user->xp ?? 0),
-                'level' => (int) floor(max(0, (int) ($user->xp ?? 0)) / 1000) + 1,
+                'xp' => (int) ($user->xp ?? $userPoints),
+                'points' => $userPoints,
+                'places_visited' => $placesVisited,
+                'completed_activities' => $placesVisited,
+                'level' => (int) floor(max(0, (int) ($user->xp ?? $userPoints)) / 1000) + 1,
                 'avatar' => $user->avatar
             ],
+            'points' => $userPoints,
             'places_visited' => $placesVisited,
             'my_rank' => $myRank,
             'completed_trips' => $completedTrips,

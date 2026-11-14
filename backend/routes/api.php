@@ -1054,7 +1054,11 @@ foreach (['lupto', 'pitco', 'picto', 'municipal'] as $rolePrefix) {
             if ($tourist) {
                 try {
                     $tourist->increment('xp', $rewardPoints);
-                    $tourist->increment('completed_activities');
+                    if (method_exists($tourist, 'syncPlacesVisitedCount')) {
+                        $tourist->syncPlacesVisitedCount();
+                    } else {
+                        $tourist->increment('completed_activities');
+                    }
                     \App\Models\UserPoint::awardPointsSafely(
                         $tourist->id,
                         $rewardPoints,
@@ -1232,7 +1236,9 @@ Route::prefix('tourist')->middleware('tourist.auth')->group(function () use ($va
         if ($user && !$alreadyReviewed) {
             try {
                 $user->increment('xp', $rewardPoints);
-                $user->increment('completed_activities');
+                if (method_exists($user, 'syncPlacesVisitedCount')) {
+                    $user->syncPlacesVisitedCount();
+                }
                 \App\Models\UserPoint::awardPointsSafely(
                     $user->id,
                     $rewardPoints,

@@ -37,6 +37,8 @@ class UserPoint extends Model
                 if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'points')) {
                     User::where('id', $userId)->increment('points', $points);
                 }
+                \Illuminate\Support\Facades\Cache::forget("rank:user:{$userId}");
+                \Illuminate\Support\Facades\Cache::forget("profile:trips:v3:{$userId}");
             } catch (\Throwable $e) {}
 
             // Record in activity_logs

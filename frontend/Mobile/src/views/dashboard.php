@@ -4443,23 +4443,30 @@ window.applyTouristSitesFilterModal = function() {
 
                 // Stats
                 let visitedCount = 0;
-                if (data.stats && (data.stats.placesVisited !== undefined && data.stats.placesVisited !== null)) {
-                    visitedCount = parseInt(data.stats.placesVisited, 10);
+                const hasServerPlaces = Boolean(data.stats && data.stats.placesVisited !== undefined && data.stats.placesVisited !== null);
+                if (hasServerPlaces) {
+                    visitedCount = parseInt(data.stats.placesVisited, 10) || 0;
+                    if (u && typeof u === 'object') {
+                        u.places_visited = visitedCount;
+                        u.completed_activities = visitedCount;
+                    }
+                } else if (u && (u.places_visited !== undefined || u.completed_activities !== undefined)) {
+                    visitedCount = parseInt(u.places_visited ?? u.completed_activities ?? 0, 10) || 0;
                 }
-                if (visitedCount === 0 && u) {
-                    visitedCount = parseInt(u.places_visited || u.completed_activities || 0, 10);
-                }
-                if (visitedCount === 0) {
+                if (!hasServerPlaces && visitedCount === 0) {
                     try {
                         const localTrips = JSON.parse(localStorage.getItem('intan_elyu_saved_trips') || localStorage.getItem('intan_elyu_offline_saved_trips_backup') || '[]');
                         const completed = localTrips.filter(t => t.status === 'completed' || t.is_completed);
                         let spotSet = new Set();
-                        completed.forEach(t => (t.items || t.spots || []).forEach(s => { if (s.id || s.tourist_spot_id) spotSet.add(s.id || s.tourist_spot_id); }));
+                        completed.forEach(t => (t.items || t.spots || []).forEach(s => { if (s.tourist_spot_id || (s.destination && s.destination.id)) spotSet.add(s.tourist_spot_id || s.destination.id); }));
                         if (spotSet.size > 0) visitedCount = spotSet.size;
-                        else if (completed.length > 0) visitedCount = completed.length;
                     } catch(e) {}
                 }
-                const points = parseInt((u && (u.points !== undefined ? u.points : u.xp)) || (data && data.stats && (data.stats.points !== undefined ? data.stats.points : data.stats.xp)) || 0, 10);
+                const rawDashPoints = parseInt((data && data.stats && data.stats.points !== undefined ? data.stats.points : (u && (u.points !== undefined ? u.points : u.xp))) || 0, 10);
+                const points = (typeof window._userPointsBalance === 'number' && window._userPointsBalance > rawDashPoints)
+                    ? window._userPointsBalance
+                    : rawDashPoints;
+                if (u && typeof u === 'object') u.points = points;
                 if (document.getElementById('dash-stat-places')) document.getElementById('dash-stat-places').textContent = visitedCount.toLocaleString();
                 if (document.getElementById('dash-stat-points')) document.getElementById('dash-stat-points').textContent = points.toLocaleString();
 
@@ -5136,8 +5143,19 @@ window.applyTouristSitesFilterModal = function() {
                     }
                     return await res.json();
                 },
-                (data) => {
+                (data, isFromCache) => {
                     if (data) {
+                        if (!isFromCache && data.user) {
+                            const livePts = parseInt((data.stats && data.stats.points !== undefined) ? data.stats.points : (data.user.points ?? data.user.xp ?? 0), 10) || 0;
+                            window._userPointsBalance = livePts;
+                            if (typeof window.syncUserPointsEverywhere === 'function') {
+                                window.syncUserPointsEverywhere(livePts, null, {
+                                    xp: data.user.xp,
+                                    places_visited: data.stats ? data.stats.placesVisited : data.user.places_visited,
+                                    my_rank: data.stats ? data.stats.rank : data.myRank
+                                });
+                            }
+                        }
                         try {
                             window._lastDashboardPayload = data;
                             localStorage.setItem('dashboard_cached_payload', JSON.stringify(data));

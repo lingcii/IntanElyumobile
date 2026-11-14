@@ -372,21 +372,26 @@ class ItineraryController extends Controller
             }
         }
 
-        // Prevent accidental rapid double-clicks within 2 seconds with the EXACT same destinations
+        // Prevent accidental duplicate trip saves with the same title and destinations
         $recentDuplicate = Itinerary::where('user_id', $user->id)
-            ->where('title', trim($request->title))
-            ->where('created_at', '>=', now()->subSeconds(2))
+            ->where('status', '!=', 'completed')
+            ->whereRaw('LOWER(TRIM(title)) = ?', [strtolower(trim((string) $request->title))])
+            ->with('items')
+            ->latest('id')
             ->first();
 
         if ($recentDuplicate) {
-            $spotIds = $recentDuplicate->items->pluck('tourist_spot_id')->filter()->unique()->values()->all();
-            sort($spotIds);
-            $reqSpotIds = is_array($request->destinations) ? array_values(array_unique(array_filter($request->destinations))) : [];
-            sort($reqSpotIds);
-            if ($spotIds === $reqSpotIds) {
+            $spotIds = $recentDuplicate->items->pluck('tourist_spot_id')->filter()->map(fn($v) => (int) $v)->values()->all();
+            $reqSpotIds = is_array($request->destinations) ? array_values(array_map('intval', array_filter($request->destinations))) : [];
+            $sameDate = (string) ($recentDuplicate->trip_date?->format('Y-m-d') ?? '') === (string) ($request->trip_date ? substr((string) $request->trip_date, 0, 10) : '');
+            if ($spotIds === $reqSpotIds && $sameDate) {
                 if ($idempotencyCacheKey) {
                     Cache::put($idempotencyCacheKey, $recentDuplicate->id, now()->addDay());
                 }
+                $recentDuplicate->load([
+                    'items.destination:id,name,photo_url,latitude,longitude,entrance_fee,adult_fee,kids_fee,pwd_fee,senior_citizen_fee,environmental_fee,classification_status,accessible_by_private_vehicle,municipality_id,boundary_geojson',
+                    'items.destination.municipality:id,name'
+                ]);
                 [$spotPublicVehicles, $spotPrivateVehicles, $spotAllVehicles] = $this->getSpotVehiclesMap($spotIds);
                 return response()->json([
                     'message' => 'Itinerary already saved.',
@@ -619,6 +624,7 @@ class ItineraryController extends Controller
         }
 
         // Reviews are optional upon trip completion — tourists can complete the trip now and submit reviews later
+        // (formerly checked Feedback::whereIn('itinerary_item_id', $itemIds) before DB::transaction)
         $itemsToVisit = $itinerary->items()->get();
 
         $completedNow = DB::transaction(function () use ($itinerary, $itemsToVisit) {
@@ -638,6 +644,23 @@ class ItineraryController extends Controller
                         $paxIncrement = max(1, (int) ($item->total_pax ?? $itinerary->total_pax ?? 1));
                         $spot->increment('visits', $paxIncrement);
                     }
+                }
+            }
+
+            // Also prune any unvisited duplicate pending copies of this same itinerary so completing never leaves a phantom duplicate
+            $completedSpotIds = $itemsToVisit->pluck('tourist_spot_id')->filter()->map(fn($v) => (int) $v)->values()->all();
+            $duplicateCandidates = Itinerary::where('user_id', $itinerary->user_id)
+                ->where('id', '!=', $itinerary->id)
+                ->whereRaw('LOWER(TRIM(title)) = ?', [strtolower(trim((string) $itinerary->title))])
+                ->with('items')
+                ->get();
+            foreach ($duplicateCandidates as $cand) {
+                $candSpotIds = $cand->items->pluck('tourist_spot_id')->filter()->map(fn($v) => (int) $v)->values()->all();
+                $candDate = (string) ($cand->trip_date?->format('Y-m-d') ?? '');
+                $thisDate = (string) ($itinerary->trip_date?->format('Y-m-d') ?? '');
+                if ($candSpotIds === $completedSpotIds && $candDate === $thisDate) {
+                    $cand->items()->delete();
+                    $cand->delete();
                 }
             }
 
@@ -697,9 +720,11 @@ class ItineraryController extends Controller
             }
         } catch (\Throwable $e) {}
 
-        // Increment milestone activities count and XP for itinerary completion
+        // Sync distinct places visited count and award XP for itinerary completion
         try {
-            $user->increment('completed_activities');
+            if (method_exists($user, 'syncPlacesVisitedCount')) {
+                $user->syncPlacesVisitedCount();
+            }
             $user->increment('xp', 50);
             $user->refresh();
         } catch (\Throwable $e) {}

@@ -1978,6 +1978,9 @@ include __DIR__ . '/../components/header.php';
                     authUser.points = optimisticTotal;
                     localStorage.setItem('auth_user', JSON.stringify(authUser));
                     window._userPointsBalance = optimisticTotal;
+                    if (typeof window.syncUserPointsEverywhere === 'function') {
+                        window.syncUserPointsEverywhere(optimisticTotal);
+                    }
                 } catch (e) { }
 
                 // Animate points counter in header
