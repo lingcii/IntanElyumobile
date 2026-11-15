@@ -7070,17 +7070,20 @@ window.navigateTo = navigateTo;
             }
         }
 
-        // 1. Check for direct token handoff (?token=...&user=...) from mobile browser to APK
+        // 1. Check for direct token or OTP handoff (?token=...&user=... or ?requires_otp=1&email=...) from mobile browser to APK
         const searchParams = new URLSearchParams(rawSearch.startsWith('?') ? rawSearch.substring(1) : rawSearch);
         const directToken = searchParams.get('token');
         const directUser = searchParams.get('user');
+        const requiresOtpHandoff = searchParams.get('requires_otp') === '1';
+        const handoffEmail = searchParams.get('email') || '';
 
-        if (directToken) {
-            // Prevent duplicate parallel or repeated executions with the same token
-            if (window._handledDirectToken === directToken || window._googleOAuthActiveProcessing) {
+        if (directToken || (requiresOtpHandoff && handoffEmail)) {
+            const handoffKey = directToken || `otp:${handoffEmail}`;
+            // Prevent duplicate parallel or repeated executions with the same handoff payload
+            if (window._handledDirectToken === handoffKey || window._googleOAuthActiveProcessing) {
                 return;
             }
-            window._handledDirectToken = directToken;
+            window._handledDirectToken = handoffKey;
             window._googleOAuthActiveProcessing = true;
             window._isProcessingGoogleOAuth = true;
 
@@ -7128,6 +7131,30 @@ window.navigateTo = navigateTo;
                 ))
             );
             const targetEmail = searchParams.get('email') || (parsedUserObj && parsedUserObj.email) || '';
+
+            if (requiresOtpHandoff && handoffEmail && !directToken) {
+                window._isProcessingGoogleOAuth = false;
+                window._googleOAuthActiveProcessing = false;
+                if (window.history && window.history.replaceState) {
+                    window.history.replaceState({}, document.title, window.location.pathname + '?view=auth');
+                }
+                const showOtpOnAuth = () => {
+                    Promise.resolve((state.currentView !== 'auth' || !document.getElementById('panel-otp')) ? navigateTo('auth', true, false) : null).then(() => {
+                        if (typeof window.showRegistrationOtpPanel === 'function') {
+                            window.showRegistrationOtpPanel(handoffEmail);
+                        }
+                        if (typeof showToast === 'function') {
+                            showToast('Verification code sent! Enter the 6-digit code from your email to continue.', 'info', 4500);
+                        }
+                    });
+                };
+                if (document.body) {
+                    showOtpOnAuth();
+                } else {
+                    document.addEventListener('DOMContentLoaded', showOtpOnAuth, { once: true });
+                }
+                return;
+            }
 
             if (isSignUpIntent && isExistingUser && !needsPasswordReset) {
                 window._isProcessingGoogleOAuth = false;
@@ -7375,7 +7402,9 @@ window.navigateTo = navigateTo;
                 );
 
                 if (shouldHandoffToApp) {
-                    const deepLink = `intanelyu://auth?app=true&token=${encodeURIComponent(data.token || '')}&user=${encodeURIComponent(JSON.stringify(data.user || {}))}&requires_temp_login=${needsPasswordReset ? '1' : '0'}&is_signup=${isSignUpIntent ? '1' : '0'}&is_existing=${data.is_existing_user ? '1' : '0'}&email=${encodeURIComponent(targetEmail)}`;
+                    const deepLink = `intanelyu://auth?app=true&token=${encodeURIComponent(data.token || '')}&user=${encodeURIComponent(JSON.stringify(data.user || {}))}&requires_otp=${data.requires_otp ? '1' : '0'}&requires_temp_login=${needsPasswordReset ? '1' : '0'}&is_signup=${isSignUpIntent ? '1' : '0'}&is_existing=${data.is_existing_user ? '1' : '0'}&email=${encodeURIComponent(targetEmail)}`;
+                    const handoffTitle = data.requires_otp ? 'Verify Your Email' : `Welcome, ${data.user?.name || 'Explorer'}!`;
+                    const handoffSubtitle = data.requires_otp ? 'Verification code sent — returning to the Intan Elyu app...' : 'Returning to the Intan Elyu app...';
                     
                     const currentOverlay = document.getElementById('global-oauth-overlay');
                     if (currentOverlay) {
@@ -7384,8 +7413,8 @@ window.navigateTo = navigateTo;
                             <div class="oauth-success-circle">
                                 <i class="fa-solid fa-check" style="font-size:28px; color:#1e3a8a;"></i>
                             </div>
-                            <h3 class="oauth-modal-title">Welcome, ${data.user?.name || 'Explorer'}!</h3>
-                            <p class="oauth-modal-subtitle">Returning to the Intan Elyu app...</p>
+                            <h3 class="oauth-modal-title">${handoffTitle}</h3>
+                            <p class="oauth-modal-subtitle">${handoffSubtitle}</p>
                             <a href="${deepLink}" class="dash-empty-btn" style="margin-top: 14px; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: #ffffff !important; color: #1e3a8a !important; font-weight: 800; border-radius: 100px; padding: 12px 24px; box-shadow: 0 4px 14px rgba(0,0,0,0.2);">
                                 <i class="fa-solid fa-arrow-up-right-from-square"></i> Open App
                             </a>
@@ -7400,6 +7429,26 @@ window.navigateTo = navigateTo;
                 }
 
                 // Web / Native WebView handling:
+                // 0. New Google user -> require 6-digit email OTP verification before account creation / password setup
+                if (data.requires_otp === true && targetEmail) {
+                    const ov = document.getElementById('global-oauth-overlay');
+                    if (ov) ov.remove();
+                    window._isProcessingGoogleOAuth = false;
+                    window._googleOAuthActiveProcessing = false;
+                    if (window.history && window.history.replaceState) {
+                        window.history.replaceState({}, document.title, window.location.pathname + '?view=auth');
+                    }
+                    Promise.resolve((state.currentView !== 'auth' || !document.getElementById('panel-otp')) ? navigateTo('auth', true, false) : null).then(() => {
+                        if (typeof window.showRegistrationOtpPanel === 'function') {
+                            window.showRegistrationOtpPanel(targetEmail);
+                        }
+                        if (typeof showToast === 'function') {
+                            showToast(data.message || 'Verification code sent! Enter the 6-digit code from your email to continue.', 'info', 4500);
+                        }
+                    });
+                    return;
+                }
+
                 // 1. User clicked "Sign up with Google" for an account that already exists
                 if (isSignUpIntent && data.is_existing_user === true && !needsPasswordReset) {
                     const ov = document.getElementById('global-oauth-overlay');

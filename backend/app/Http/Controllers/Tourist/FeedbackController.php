@@ -29,7 +29,9 @@ class FeedbackController extends Controller
             return response()->json($cached);
         }
 
-        $query = SiteFeedback::with('user:id,name,avatar')->latest();
+        $query = SiteFeedback::with('user:id,name,avatar')
+            ->orderByDesc('updated_at')
+            ->orderByDesc('id');
 
         if ($spotId) {
             $query->where('tourist_spot_id', $spotId);
@@ -131,8 +133,9 @@ class FeedbackController extends Controller
             $feedbacks = SiteFeedback::where('user_id', $user->id)
                 ->whereNotNull('tourist_spot_id')
                 ->with('touristSpot:id,name')
-                ->latest()
-                ->get(['tourist_spot_id', 'itinerary_item_id', 'rating', 'testimony', 'policy_recommendation', 'cleanliness_level', 'safety_level', 'created_at']);
+                ->orderByDesc('updated_at')
+                ->orderByDesc('id')
+                ->get(['tourist_spot_id', 'itinerary_item_id', 'rating', 'testimony', 'policy_recommendation', 'cleanliness_level', 'safety_level', 'created_at', 'updated_at']);
 
             $reviewedIds = $feedbacks->pluck('tourist_spot_id')->map(fn($id) => (int) $id)->unique()->values()->toArray();
             $reviewedItemIds = $feedbacks->pluck('itinerary_item_id')->filter()->map(fn($id) => (int) $id)->unique()->values()->toArray();
@@ -246,6 +249,13 @@ class FeedbackController extends Controller
                     $reviewsMap[$spotIdKey] = $arr;
                     $combinedMap[$spotIdKey] = $arr;
                 } else {
+                    if ($hasReviewText && trim((string) ($combinedMap[$spotIdKey]['testimony'] ?? '')) === '') {
+                        $combinedMap[$spotIdKey]['rating'] = $fb->rating;
+                        $combinedMap[$spotIdKey]['testimony'] = $fb->testimony;
+                        $combinedMap[$spotIdKey]['policy_recommendation'] = $fb->policy_recommendation;
+                        $combinedMap[$spotIdKey]['created_at'] = $fb->updated_at ?: $fb->created_at;
+                        $reviewsMap[$spotIdKey] = $combinedMap[$spotIdKey];
+                    }
                     if ($isReviewed) $combinedMap[$spotIdKey]['is_reviewed'] = true;
                     if ($isCheckedIn) $combinedMap[$spotIdKey]['is_checked_in'] = true;
                 }

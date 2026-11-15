@@ -120,7 +120,7 @@
                         <span>Sign in with Google</span>
                     </button>
                     <button type="button" id="btn-offline-mode" class="btn-offline-guest" onclick="window.enterOfflineMode(event)"
-                        style="background: #ffffff !important; color: #0f172a !important; border: 1.5px solid #cbd5e1 !important; box-shadow: 0 4px 14px rgba(0,0,0,0.08) !important;">
+                        style="background: #ffffff !important; color: #0f172a !important; border: 1.5px solid #cbd5e1 !important; box-shadow: none !important;">
                         <i class="fa-regular fa-user" style="color: #1452d6; font-size: 16px;"></i>
                         <span style="color: #0f172a; font-weight: 700;">Continue as Guest</span>
                     </button>
@@ -201,7 +201,7 @@
                         <span>Sign up with Google</span>
                     </button>
                     <button type="button" class="btn-offline-guest" onclick="window.enterOfflineMode(event)"
-                        style="background: #ffffff !important; color: #0f172a !important; border: 1.5px solid #cbd5e1 !important; box-shadow: 0 4px 14px rgba(0,0,0,0.08) !important;">
+                        style="background: #ffffff !important; color: #0f172a !important; border: 1.5px solid #cbd5e1 !important; box-shadow: none !important;">
                         <i class="fa-regular fa-user" style="color: #1452d6; font-size: 16px;"></i>
                         <span style="color: #0f172a; font-weight: 700;">Continue as Guest</span>
                     </button>
@@ -3540,6 +3540,25 @@
                 if (typeof window.toggleAuthMode === 'function') window.toggleAuthMode(false);
                 const loginEmailInput = document.getElementById('login-email');
                 if (loginEmailInput && data.user && data.user.email) loginEmailInput.value = data.user.email;
+                return;
+            }
+
+            // New Google user -> verify 6-digit email OTP before creating account or prompting for permanent password
+            if (data.requires_otp === true) {
+                const targetEmail = data.email || payloadData.email || '';
+                if (typeof onDone === 'function') onDone();
+                else {
+                    googleBtns.forEach(btn => {
+                        btn.innerHTML = '<span>Sign in with Google</span>';
+                        btn.disabled = false;
+                    });
+                }
+                if (targetEmail && typeof window.showRegistrationOtpPanel === 'function') {
+                    window.showRegistrationOtpPanel(targetEmail);
+                }
+                if (typeof showToast === 'function') {
+                    showToast(data.message || 'Verification code sent! Enter the 6-digit code from your email to continue.', 'info', 4500);
+                }
                 return;
             }
 

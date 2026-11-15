@@ -221,8 +221,12 @@ class RegisterController extends Controller
             'email'                => $pending['email'],
             'password'             => $pending['password'],
             'gender'               => $pending['gender'] ?? null,
+            'google_id'            => $pending['google_id'] ?? null,
+            'avatar'               => $pending['avatar'] ?? null,
             'role'                 => 'tourist',
             'status'               => 'active',
+            'xp'                   => 0,
+            'level'                => 1,
             'api_token'            => $token,
             'must_change_password' => $mustChangePassword,
             'created_at'           => $now,
@@ -281,7 +285,7 @@ class RegisterController extends Controller
                 'level'                => 1,
                 'completed_activities' => 0,
                 'places_visited'       => 0,
-                'avatar'               => null,
+                'avatar'               => $user->avatar,
                 'travel_preferences'   => $user->travel_preferences,
                 'must_change_password' => $mustChangePassword,
                 'is_new_user'          => true,
@@ -292,7 +296,7 @@ class RegisterController extends Controller
         ], 201);
     }
 
-    private function sendRegistrationOtpEmail(string $email, string $name, string $otp): void
+    public static function sendRegistrationOtpEmail(string $email, string $name, string $otp): void
     {
         $startedAt = microtime(true);
         $mailable = new EmailVerificationOtpMail($name, $otp);

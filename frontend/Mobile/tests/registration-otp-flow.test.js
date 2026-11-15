@@ -29,7 +29,7 @@ assert.match(controller, /ResendMailService::send/,
     'registration must prefer the fast HTTPS email transport when configured');
 assert.match(registerMethod, /Cache::add\(\$cooldownKey[\s\S]*addSeconds\(45\)/,
     'registration OTP resend must enforce a 45-second cooldown');
-assert.match(verifyMethod, /User::create\([\s\S]*'gender'\s*=>\s*\$pending\['gender'\]/,
+assert.match(verifyMethod, /\$userData\s*=\s*\[[\s\S]*'gender'\s*=>\s*\$pending\['gender'\][\s\S]*User::create\(\$userData\)/,
     'verification must create the tourist with the pending registration data');
 assert.match(verifyMethod, /app\(\)->terminating\([\s\S]*TouristWelcomeMail/,
     'welcome email delivery must not delay the verification response');
@@ -53,9 +53,25 @@ assert.match(loginController, /\$isNewUser = !\$user;[\s\S]*'travel_preferences'
     'Google authentication must identify new accounts and return profile-completion state');
 assert.match(loginController, /'travel_preferences'\s*=>\s*\$user->travel_preferences,[\s\S]*'is_new_user'\s*=>\s*false/,
     'normal login must explicitly identify existing accounts');
-assert.match(auth, /const shouldOnboard = [^;]*user\?\.is_new_user === true;/,
+assert.match(auth, /const shouldOnboard = [^;]*user\?\.is_new_user === true[^;]*;/,
     'existing email and Google users must bypass Complete Profile');
 assert.match(main, /const postAuthView = data\.user\?\.is_new_user === true \? 'onboarding' : 'dashboard';/,
     'the direct Google callback must show Complete Profile only for a newly created account');
+
+const loginGoogleMethod = loginController.slice(
+    loginController.indexOf('public function googleLogin'),
+    loginController.indexOf('public function sendResetLinkEmail')
+);
+
+assert.match(loginGoogleMethod, /'requires_otp'\s*=>\s*true/,
+    'new Google Sign-Up accounts must require 6-digit OTP verification before creation');
+assert.doesNotMatch(loginGoogleMethod, /User::create/,
+    'Google Sign-Up must defer User::create until verifyOtp confirms the email code');
+assert.match(verifyMethod, /'google_id'\s*=>\s*\$pending\['google_id'\]\s*\?\?\s*null/,
+    'verifyOtp must persist google_id from pending Google registration');
+assert.match(auth, /if\s*\(data\.requires_otp\s*===\s*true\)[\s\S]*showRegistrationOtpPanel\(targetEmail\)/,
+    'Google Sign-Up response handler must open the OTP panel before password setup');
+assert.match(main, /if\s*\(data\.requires_otp\s*===\s*true\s*&&\s*targetEmail\)[\s\S]*showRegistrationOtpPanel\(targetEmail\)/,
+    'Google OAuth callback must open the OTP panel when OTP verification is required');
 
 console.log('registration OTP flow tests passed');

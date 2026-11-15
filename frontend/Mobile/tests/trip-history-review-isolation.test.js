@@ -83,5 +83,7 @@ assert.match(feedbackController, /'item_reviews'\s*=>\s*\(object\)\s*\$itemRevie
     'FeedbackController::userReviewedSpots must return item_reviews keyed by itinerary_item_id');
 assert.match(feedbackController, /\['user_id' => \$userId, 'tourist_spot_id' => \$spotId, 'itinerary_item_id' => null\]/,
     'FeedbackController::store must not overwrite trip-item reviews when submitting a non-trip spot review');
+assert.match(testimonyPhp, /k\.startsWith\('reviews_checkins_'\)[\s\S]*intan_elyu_testimonies_spot_/,
+    'testimony_modal.php must clear both reviews_checkins_v2_ and spot testimonies caches on review submit');
 
 console.log('trip history review isolation tests passed');

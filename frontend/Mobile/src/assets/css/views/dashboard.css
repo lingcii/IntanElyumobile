@@ -135,7 +135,7 @@ body[data-view="dashboard"] .mobile-header .header-icon i {
 
     cursor: pointer;
 
-    box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important;
+    box-shadow: none !important;
 
     transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 
@@ -155,7 +155,7 @@ body[data-view="dashboard"] .mobile-header .header-icon i {
 
     outline: none !important;
 
-    box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important;
+    box-shadow: none !important;
 }
 
 .profile-info-row {
@@ -247,7 +247,7 @@ body[data-view="dashboard"] .mobile-header .header-icon i {
 
     outline: none !important;
 
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2) !important;
+    box-shadow: none !important;
 }
 
 .profile-title i {
@@ -275,7 +275,7 @@ body[data-view="dashboard"] .mobile-header .header-icon i {
 
     outline: none !important;
 
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2) !important;
+    box-shadow: none !important;
 
     display: inline-flex;
 
@@ -399,7 +399,7 @@ body[data-view="dashboard"] .mobile-header .header-icon i {
 
     transition: transform 0.25s ease, opacity 0.25s ease;
 
-    box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important;
+    box-shadow: none !important;
 }
 
 .profile-header .stat-card {
@@ -409,7 +409,7 @@ body[data-view="dashboard"] .mobile-header .header-icon i {
 
     outline: none !important;
 
-    box-shadow: 0 4px 14px rgba(10, 25, 60, 0.2) !important;
+    box-shadow: none !important;
 
     backdrop-filter: blur(12px);
 
@@ -507,7 +507,7 @@ body[data-view="dashboard"] .mobile-header .header-icon i {
 
     flex-direction: column !important;
 
-    box-shadow: 0 8px 24px rgba(23, 53, 112, 0.28) !important;
+    box-shadow: none !important;
 
     transition: transform 0.25s ease, opacity 0.25s ease;
 
@@ -637,7 +637,7 @@ body[data-view="dashboard"] .mobile-header .header-icon i {
 
     outline: none !important;
 
-    box-shadow: 0 3px 8px rgba(32, 63, 141, 0.25) !important;
+    box-shadow: none !important;
 
     transition: all 0.2s ease;
 }
@@ -751,7 +751,7 @@ body[data-view="dashboard"] .mobile-header .header-icon i {
 
     border: none !important;
 
-    box-shadow: 0 4px 14px rgba(10, 25, 60, 0.14) !important;
+    box-shadow: none !important;
 
     flex-shrink: 0;
 
@@ -771,7 +771,7 @@ body[data-view="dashboard"] .mobile-header .header-icon i {
 
     z-index: 10;
 
-    box-shadow: 0 6px 20px rgba(10, 25, 60, 0.2) !important;
+    box-shadow: none !important;
 
     border: none !important;
 }
@@ -919,7 +919,7 @@ body[data-view="dashboard"] .mobile-header .header-icon i {
 
     border-radius: 16px !important;
 
-    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05) !important;
+    box-shadow: none !important;
 
     border: 1.5px solid #f1f5f9 !important;
 
@@ -945,7 +945,7 @@ body[data-view="dashboard"] .mobile-header .header-icon i {
 
     cursor: pointer !important;
 
-    transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s !important;
+    transition: transform 0.15s, border-color 0.15s !important;
 
     flex-shrink: 0 !important;
 
@@ -967,7 +967,7 @@ body[data-view="dashboard"] .mobile-header .header-icon i {
 
     border: none !important;
 
-    box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35) !important;
+    box-shadow: none !important;
 
     animation: filterFadeIn 0.25s ease-out;
 }
@@ -1069,7 +1069,7 @@ body[data-view="dashboard"] .mobile-header .header-icon i {
 
     border-radius: 16px;
 
-    box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important;
+    box-shadow: none !important;
 
     animation: dashEmptyFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 
@@ -1113,7 +1113,7 @@ body[data-view="dashboard"] .mobile-header .header-icon i {
 
     color: #203f8d !important;
 
-    box-shadow: 0 4px 14px rgba(10, 25, 60, 0.18) !important;
+    box-shadow: none !important;
 
     margin-bottom: 2px;
 
@@ -1124,7 +1124,7 @@ body[data-view="dashboard"] .mobile-header .header-icon i {
     background: #1e3a8a !important;
     color: #ffffff !important;
     border-color: #1e3a8a !important;
-    box-shadow: 0 2px 8px rgba(30, 58, 138, 0.25);
+    box-shadow: none !important;
 }
 
 .dash-empty-icon-wrap i {
@@ -1188,7 +1188,7 @@ body[data-view="dashboard"] .mobile-header .header-icon i {
 
     gap: 8px;
 
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15) !important;
+    box-shadow: none !important;
 
     transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
 
@@ -1246,7 +1246,7 @@ body[data-view="dashboard"] .mobile-header .header-icon i {
 
     margin: 0 !important;
 
-    box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important;
+    box-shadow: none !important;
 }
 
 .dash-loading-state i {
@@ -1270,7 +1270,7 @@ body[data-view="dashboard"] .mobile-header .header-icon i {
 
     overflow: hidden;
 
-    box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important;
+    box-shadow: none !important;
 
     transition: all 0.25s ease;
 }
@@ -1460,7 +1460,7 @@ body[data-view="dashboard"] .mobile-header .header-icon i {
 
     outline: none !important;
 
-    box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28) !important;
+    box-shadow: none !important;
 
     cursor: pointer;
 
@@ -1468,7 +1468,7 @@ body[data-view="dashboard"] .mobile-header .header-icon i {
 
     flex-direction: column;
 
-    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease;
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 
     user-select: none;
 
@@ -1530,7 +1530,7 @@ body[data-view="dashboard"] .mobile-header .header-icon i {
 
     color: #fff;
 
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+    box-shadow: none;
 }
 
 .all-spot-content {
@@ -1622,7 +1622,7 @@ body[data-view="dashboard"] .mobile-header .header-icon i {
 
     max-width: 75px;
 
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.14);
+    box-shadow: none;
 
     border: none !important;
 
@@ -1718,7 +1718,7 @@ body[data-view="dashboard"] .mobile-header .header-icon i {
 
     margin-bottom: 14px;
 
-    box-shadow: 0 8px 24px rgba(14, 42, 86, 0.25);
+    box-shadow: none !important;
 
     display: flex;
 
@@ -1968,7 +1968,7 @@ body[data-view="dashboard"] .mobile-header .header-icon i {
 
     padding: 11px 16px;
 
-    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
+    box-shadow: none !important;
 
     border: 1px solid #e2e8f0;
 
@@ -2038,7 +2038,7 @@ body[data-view="dashboard"] .mobile-header .header-icon i {
 
     padding: 18px 20px !important;
 
-    box-shadow: 0 8px 24px rgba(23, 53, 112, 0.28) !important;
+    box-shadow: none !important;
 
     border: none !important;
 
@@ -2230,7 +2230,7 @@ body[data-view="dashboard"] .mobile-header .header-icon i {
 
     border-radius: 20px !important;
 
-    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06) !important;
+    box-shadow: none !important;
 
     border: 1.5px solid #f1f5f9 !important;
 
@@ -2252,7 +2252,7 @@ body[data-view="dashboard"] .mobile-header .header-icon i {
 
     cursor: pointer;
 
-    transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+    transition: transform 0.15s, border-color 0.15s;
 
     flex-shrink: 0;
 }
@@ -2266,7 +2266,7 @@ body[data-view="dashboard"] .mobile-header .header-icon i {
 
     background: #f8fafc !important;
 
-    box-shadow: 0 4px 16px rgba(30, 58, 138, 0.12) !important;
+    box-shadow: none !important;
 }
 
 .category-card .category-icon-box {
@@ -2358,7 +2358,7 @@ body[data-view="dashboard"] .mobile-header .header-icon i {
 
     border-color: #1e3a8a !important;
 
-    box-shadow: 0 2px 8px rgba(30, 58, 138, 0.25);
+    box-shadow: none !important;
 }
 
 .dash-chip-btn {
@@ -2394,7 +2394,7 @@ body[data-view="dashboard"] .mobile-header .header-icon i {
 
     border-radius: 20px;
 
-    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06);
+    box-shadow: none !important;
 
     border: 1px solid #e2e8f0;
 
@@ -2408,7 +2408,7 @@ body[data-view="dashboard"] .mobile-header .header-icon i {
 
     cursor: pointer;
 
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    transition: transform 0.15s ease;
 
     position: relative;
 
@@ -2694,7 +2694,7 @@ body[data-view="dashboard"] .mobile-header .header-icon i {
 
     transition: transform 0.15s;
 
-    box-shadow: 0 2px 6px rgba(30, 58, 138, 0.25);
+    box-shadow: none !important;
 }
 
 .btn-spot-details:active {

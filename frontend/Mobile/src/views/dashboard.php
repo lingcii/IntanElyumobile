@@ -50,7 +50,7 @@ if (is_dir($imgDir)) {
         padding: 22px 18px 18px 18px !important;
         overflow: hidden !important;
         margin-bottom: 14px !important;
-        box-shadow: 0 8px 24px rgba(14, 42, 86, 0.25) !important;
+        box-shadow: none !important;
         display: flex !important;
         justify-content: space-between !important;
     }
@@ -154,7 +154,7 @@ if (is_dir($imgDir)) {
         text-align: center !important;
         min-width: 52px !important;
         cursor: pointer !important;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08) !important;
+        box-shadow: none !important;
         transition: transform 0.15s ease, background 0.15s ease !important;
     }
     .dash-mini-stat:active {
@@ -192,7 +192,7 @@ if (is_dir($imgDir)) {
         background: #173570 !important;
         border-radius: 20px !important;
         padding: 14px 16px !important;
-        box-shadow: 0 8px 24px rgba(23, 53, 112, 0.28) !important;
+        box-shadow: none !important;
         border: 1px solid rgba(255, 255, 255, 0.12) !important;
         outline: none !important;
         color: #ffffff !important;
@@ -204,7 +204,7 @@ if (is_dir($imgDir)) {
         flex-direction: column !important;
         width: 100% !important;
         box-sizing: border-box !important;
-        transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease !important;
+        transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
     }
     .weather-card:active {
         transform: scale(0.985) !important;
@@ -353,7 +353,7 @@ if (is_dir($imgDir)) {
         margin-left: auto !important;
         white-space: nowrap !important;
         backdrop-filter: blur(4px) !important;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1) !important;
+        box-shadow: none !important;
         transition: all 0.15s ease !important;
     }
     .weather-forecast-pill:active {
@@ -494,7 +494,7 @@ if (is_dir($imgDir)) {
         display: flex !important;
         gap: 9px !important;
         align-items: center !important;
-        box-shadow: 0 3px 10px rgba(15, 23, 42, 0.05) !important;
+        box-shadow: none !important;
         cursor: pointer !important;
         scroll-snap-align: start !important;
         box-sizing: border-box !important;
@@ -582,7 +582,7 @@ if (is_dir($imgDir)) {
     .category-card {
         background: #ffffff !important;
         border-radius: 16px !important;
-        box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05) !important;
+        box-shadow: none !important;
         border: 1.5px solid #f1f5f9 !important;
         padding: 8px 6px !important;
         min-width: 72px !important;
@@ -595,7 +595,7 @@ if (is_dir($imgDir)) {
         text-align: center !important;
         gap: 3px !important;
         cursor: pointer !important;
-        transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s !important;
+        transition: transform 0.15s, border-color 0.15s !important;
         flex-shrink: 0 !important;
         box-sizing: border-box !important;
     }
@@ -605,7 +605,7 @@ if (is_dir($imgDir)) {
     .category-card.active {
         border-color: #1e3a8a !important;
         background: #f8fafc !important;
-        box-shadow: 0 3px 12px rgba(30, 58, 138, 0.12) !important;
+        box-shadow: none !important;
     }
     .category-card .category-icon-box {
         font-size: 18px !important;
@@ -729,7 +729,7 @@ if (is_dir($imgDir)) {
         display: inline-flex !important;
         align-items: center !important;
         gap: 5px !important;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+        box-shadow: none !important;
         transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1) !important;
         box-sizing: border-box !important;
         outline: none !important;
@@ -741,7 +741,7 @@ if (is_dir($imgDir)) {
         background: #1e3a8a !important;
         color: #ffffff !important;
         border-color: #1e3a8a !important;
-        box-shadow: 0 2px 8px rgba(30, 58, 138, 0.28) !important;
+        box-shadow: none !important;
     }
     .dash-chip.active i {
         color: #ffffff !important;
@@ -760,7 +760,7 @@ if (is_dir($imgDir)) {
         justify-content: center !important;
         cursor: pointer !important;
         flex-shrink: 0 !important;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+        box-shadow: none !important;
         transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1) !important;
         box-sizing: border-box !important;
         padding: 0 !important;
@@ -773,7 +773,7 @@ if (is_dir($imgDir)) {
         background: #1e3a8a !important;
         color: #ffffff !important;
         border-color: #1e3a8a !important;
-        box-shadow: 0 2px 8px rgba(30, 58, 138, 0.28) !important;
+        box-shadow: none !important;
     }
     .dash-chip-btn.active i {
         color: #ffffff !important;
@@ -838,14 +838,14 @@ if (is_dir($imgDir)) {
     .all-spot-card-horizontal {
         background: #ffffff !important;
         border-radius: 18px !important;
-        box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06) !important;
+        box-shadow: none !important;
         border: 1px solid #e2e8f0 !important;
         padding: 10px !important;
         display: flex !important;
         gap: 10px !important;
         align-items: center !important;
         cursor: pointer !important;
-        transition: transform 0.15s ease, box-shadow 0.15s ease !important;
+        transition: transform 0.15s ease !important;
         position: relative !important;
         box-sizing: border-box !important;
         overflow: hidden !important;
@@ -992,7 +992,7 @@ if (is_dir($imgDir)) {
         gap: 4px !important;
         white-space: nowrap !important;
         flex-shrink: 0 !important;
-        box-shadow: 0 2px 6px rgba(30, 58, 138, 0.25) !important;
+        box-shadow: none !important;
     }
     .btn-spot-details:active {
         transform: scale(0.94) !important;
@@ -1118,11 +1118,11 @@ if (is_dir($imgDir)) {
             </button>
         </div>
         <!-- Floating Instant Search Results Dropdown -->
-        <div id="dash-search-results" class="dash-search-dropdown" style="display:none; position:absolute; top:calc(100% + 8px); left:0; right:0; background:#ffffff; border-radius:18px; border:1.5px solid #e2e8f0; box-shadow:0 12px 30px rgba(15,23,42,0.14); max-height:320px; overflow-y:auto; z-index:1000; padding:6px; -webkit-overflow-scrolling:touch;"></div>
+        <div id="dash-search-results" class="dash-search-dropdown" style="display:none; position:absolute; top:calc(100% + 8px); left:0; right:0; background:#ffffff; border-radius:18px; border:1.5px solid #e2e8f0; box-shadow:none; max-height:320px; overflow-y:auto; z-index:1000; padding:6px; -webkit-overflow-scrolling:touch;"></div>
     </div>
 
     <!-- Coastal Hero Banner: Discover La Union -->
-    <div class="dash-hero-banner stagger-1" style="position: relative; border-radius: 28px; background: linear-gradient(135deg, #0e2a56 0%, #15386f 50%, #1e4080 100%) !important; padding: 22px 18px 18px 18px; overflow: hidden; margin-bottom: 14px; box-shadow: 0 8px 24px rgba(14, 42, 86, 0.25); display: flex; flex-direction: column; gap: 14px;">
+    <div class="dash-hero-banner stagger-1" style="position: relative; border-radius: 28px; background: linear-gradient(135deg, #0e2a56 0%, #15386f 50%, #1e4080 100%) !important; padding: 22px 18px 18px 18px; overflow: hidden; margin-bottom: 14px; box-shadow: none !important; display: flex; flex-direction: column; gap: 14px;">
         <div class="dash-hero-content" style="width: 100%;">
             <span class="dash-hero-eyebrow">Discover</span>
             <h1 class="dash-hero-title">La Union</h1>
@@ -1335,7 +1335,7 @@ if (is_dir($imgDir)) {
 
     <!-- Gamification Panel (Below Weather) -->
     <div class="gamezone-banner stagger-2" onclick="navigateTo('puzzles')"
-        style="background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline: none !important; border-radius: 20px; box-shadow: 0 4px 14px rgba(32, 63, 141, 0.22) !important; margin-top: 6px; margin-bottom: 8px; cursor: pointer; display: flex !important; flex-direction: row !important; align-items: center !important; justify-content: space-between !important; padding: 13px 16px; gap: 12px;">
+        style="background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline: none !important; border-radius: 20px; box-shadow: none !important; margin-top: 6px; margin-bottom: 8px; cursor: pointer; display: flex !important; flex-direction: row !important; align-items: center !important; justify-content: space-between !important; padding: 13px 16px; gap: 12px;">
         <div style="display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0;">
             <div style="font-size: 28px; filter: none; flex-shrink: 0;">🧩</div>
             <div style="flex: 1; min-width: 0;">
@@ -1346,7 +1346,7 @@ if (is_dir($imgDir)) {
             </div>
         </div>
         <div
-            style="width: 34px; height: 34px; min-width: 34px; border-radius: 50%; background: #ffffff !important; display: flex; align-items: center; justify-content: center; color: #1e3a8a !important; font-size: 13px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18) !important; flex-shrink: 0; margin-left: auto;">
+            style="width: 34px; height: 34px; min-width: 34px; border-radius: 50%; background: #ffffff !important; display: flex; align-items: center; justify-content: center; color: #1e3a8a !important; font-size: 13px; box-shadow: none !important; flex-shrink: 0; margin-left: auto;">
             <i class="fa-solid fa-play" style="color: #1e3a8a !important; margin-left: 2px;"></i>
         </div>
     </div>
@@ -3301,7 +3301,7 @@ window.applyTouristSitesFilterModal = function() {
 
             return `
                 <div ${index >= initialRecommendationCount ? 'data-weather-extra="true"' : ''} onclick="window.closeForecastDayPicksModal(); window.closeWeatherModal(); window.viewDestinationOnMap('${encodedDest}')"
-                    style="background:#ffffff; border:1.5px solid #e2e8f0; border-radius:16px; padding:10px; display:${index >= initialRecommendationCount ? 'none' : 'flex'}; align-items:center; gap:11px; cursor:pointer; box-shadow:0 2px 8px rgba(15,23,42,0.04);">
+                    style="background:#ffffff; border:1.5px solid #e2e8f0; border-radius:16px; padding:10px; display:${index >= initialRecommendationCount ? 'none' : 'flex'}; align-items:center; gap:11px; cursor:pointer; box-shadow:none;">
                     <img src="${img}" alt="${safeName}" loading="lazy" decoding="async"
                         style="width:62px; height:62px; border-radius:12px; object-fit:cover; flex-shrink:0; background:#f1f5f9;"
                         onerror="if (window.handleImgError) window.handleImgError(this, '${(spot.name || '').replace(/'/g, "\\'")}', '${(muni || '').replace(/'/g, "\\'")}'); else this.src='assets/img/no_image.svg';">
@@ -4528,7 +4528,7 @@ window.applyTouristSitesFilterModal = function() {
                         savedContainer.style.marginRight = '';
                         savedPlacesList.forEach(dest => {
                             const img = window.getDestImage(dest, 600);
-                            const badgeHtml = dest.classification_status ? `<div style="position: absolute; top: 8px; left: 8px; z-index: 10; padding: 2px 6px; border-radius: 8px; font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#0284c7' : (dest.classification_status === 'EMERGE' ? '#ef4444' : '#10b981')}; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</div>` : '';
+                            const badgeHtml = dest.classification_status ? `<div style="position: absolute; top: 8px; left: 8px; z-index: 10; padding: 2px 6px; border-radius: 8px; font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#0284c7' : (dest.classification_status === 'EMERGE' ? '#ef4444' : '#10b981')}; box-shadow: none;">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</div>` : '';
                             const encodedDest = encodeURIComponent(JSON.stringify(dest)).replace(/'/g, '%27');
                             savedContainer.innerHTML += `
                             <div class="fav-card" data-category="${(dest.category || '').replace(/"/g, '&quot;')}" data-name="${(dest.name || '').replace(/"/g, '&quot;')}" data-municipality="${(dest.municipality || dest.location || '').replace(/"/g, '&quot;')}" onclick="window.viewDestinationOnMap('${encodedDest}')">
@@ -4857,7 +4857,7 @@ window.applyTouristSitesFilterModal = function() {
 
                         nearSpots.forEach(dest => {
                             const img = window.getDestImage(dest, 600);
-                            const badgeHtml = dest.classification_status ? `<div style="position: absolute; top: 8px; left: 8px; z-index: 10; padding: 2px 6px; border-radius: 8px; font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#0284c7' : (dest.classification_status === 'EMERGE' ? '#ef4444' : '#10b981')}; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</div>` : '';
+                            const badgeHtml = dest.classification_status ? `<div style="position: absolute; top: 8px; left: 8px; z-index: 10; padding: 2px 6px; border-radius: 8px; font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: ${dest.classification_status === 'EXIST' ? '#0284c7' : (dest.classification_status === 'EMERGE' ? '#ef4444' : '#10b981')}; box-shadow: none;">${dest.classification_status === 'EXIST' ? 'EXISTING' : (dest.classification_status === 'EMERGE' ? 'EMERGING' : 'POTENTIAL')}</div>` : '';
 
                             let distText = '';
                             if (dest.distance < 0.05) {

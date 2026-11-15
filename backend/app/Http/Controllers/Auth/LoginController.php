@@ -228,62 +228,47 @@ class LoginController extends Controller
                 $user->save();
             }
         } else {
-            // Generate an easy-to-type, secure temporary password (e.g. Elyu4921XK)
+            // Defer account creation until the user verifies their 6-digit email OTP, matching manual registration.
+            $emailKey = strtolower(trim($email));
             $tempPassword = 'Elyu' . random_int(1000, 9999) . strtoupper(\Illuminate\Support\Str::random(3));
+            $otp = (string) random_int(100000, 999999);
+            $cacheKey = "pending_reg_{$emailKey}";
 
-            $userData = [
+            \Illuminate\Support\Facades\Cache::put($cacheKey, [
                 'name'                 => $name,
-                'email'                => $email,
+                'email'                => $emailKey,
                 'password'             => Hash::make($tempPassword),
-                'role'                 => 'tourist',
-                'status'               => 'active',
-                'xp'                   => 0,
-                'level'                => 1,
-                'avatar'               => $avatar,
-                'google_id'            => $google_id,
+                'temp_password'        => $tempPassword,
                 'must_change_password' => true,
-                'created_at'           => now(),
-                'updated_at'           => now(),
-            ];
+                'google_id'            => $google_id,
+                'avatar'               => $avatar,
+                'otp'                  => $otp,
+            ], now()->addMinutes(10));
 
             try {
-                $user = User::create($userData);
-            } catch (\Throwable $dbEx) {
-                unset($userData['must_change_password']);
-                $user = User::create($userData);
-            }
-
-            // Send temporary password email via Resend HTTPS API / SMTP
-            try {
-                $mailable = new \App\Mail\TemporaryPasswordMail($user->name, $user->email, $tempPassword);
-                $resendKey = config('services.resend.key') ?: env('RESEND_API_KEY') ?: base64_decode('cmVfN3p1VFVlRkRfRnJ4RFVtUlg5TVhoYUpLemVUeUNVQURT');
-                if (!empty($resendKey)) {
-                    \App\Services\ResendMailService::send(
-                        $user->email,
-                        '🔑 Your Temporary Login Password - Intan Elyu',
-                        $mailable->render()
-                    );
-                } else {
-                    \Illuminate\Support\Facades\Mail::to($user->email)->send($mailable);
-                }
+                RegisterController::sendRegistrationOtpEmail($emailKey, $name, $otp);
             } catch (\Throwable $e) {
-                \Illuminate\Support\Facades\Log::warning('TemporaryPasswordMail notice for Google user #' . $user->id . ': ' . $e->getMessage());
+                \Illuminate\Support\Facades\Cache::forget($cacheKey);
+                \Illuminate\Support\Facades\Log::error('Google Sign-Up OTP email dispatch failed', [
+                    'email' => $emailKey,
+                    'error' => $e->getMessage(),
+                ]);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'We could not send your verification code email right now. Please try again.',
+                ], 500);
             }
 
-            // Create Welcome in-app notification in notifications table
-            try {
-                $firstName = trim(explode(' ', $user->name ?? 'Explorer')[0]);
-                \App\Models\Notification::createSafely(
-                    $user->id,
-                    'welcome',
-                    'Welcome to Intan Elyu',
-                    "Welcome to Intan Elyu, {$firstName}! A temporary password was emailed to you. Please set your permanent password upon your first login.",
-                    [
-                        'module'     => 'welcome',
-                        'action_url' => 'dashboard'
-                    ]
-                );
-            } catch (\Throwable $e) {}
+            \Illuminate\Support\Facades\Cache::put("pending_reg_resend_cooldown_{$emailKey}", true, now()->addSeconds(45));
+
+            return response()->json([
+                'success'          => true,
+                'requires_otp'     => true,
+                'is_new_user'      => true,
+                'is_existing_user' => false,
+                'email'            => $emailKey,
+                'message'          => 'Verification code sent! Enter the 6-digit code from your email to continue.',
+            ], 202);
         }
 
         if ($user->status !== 'active') {

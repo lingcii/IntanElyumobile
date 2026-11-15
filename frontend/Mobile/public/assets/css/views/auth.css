@@ -991,9 +991,9 @@ select.auth-input option {
     justify-content: center;
     margin: 8px auto 0 auto;
     cursor: pointer;
-    box-shadow: 0 8px 25px rgba(29, 78, 216, 0.4), inset 0 -3px 8px rgba(0, 0, 0, 0.15), inset 0 3px 8px rgba(255, 255, 255, 0.4);
+    box-shadow: none;
     animation: liquidMorph 6s ease-in-out infinite alternate, popUpSmooth 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards 0.35s;
-    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
     outline: none;
     z-index: 2;
 }
@@ -1001,17 +1001,17 @@ select.auth-input option {
 .btn-circle-submit::before {
     content: '';
     position: absolute;
-    inset: -6px;
+    inset: 0;
     border-radius: inherit;
-    background: radial-gradient(circle, rgba(56, 189, 248, 0.4) 0%, rgba(37, 99, 235, 0.12) 70%, transparent 100%);
-    animation: liquidMorph 6s ease-in-out infinite alternate-reverse, liquidPulse 3s ease-in-out infinite;
+    background: none;
+    animation: none;
     z-index: -1;
     pointer-events: none;
 }
 
 .btn-circle-submit:hover {
     transform: translateY(-2px) scale(1.08);
-    box-shadow: 0 12px 32px rgba(29, 78, 216, 0.55), inset 0 3px 10px rgba(255, 255, 255, 0.5);
+    box-shadow: none;
 }
 
 .btn-circle-submit:active {
@@ -1086,13 +1086,13 @@ select.auth-input option {
     background: #ffffff !important;
     border: 1.5px solid rgba(15, 23, 42, 0.1) !important;
     color: #0f172a !important;
-    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08) !important;
+    box-shadow: none !important;
 }
 
 .btn-google:hover {
     background: #f8fafc !important;
     transform: translateY(-1px);
-    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.12) !important;
+    box-shadow: none !important;
 }
 
 /* Forgot Password specific */
@@ -1179,7 +1179,7 @@ select.auth-input option {
 
 .custom-terms-checkbox:hover {
     border-color: #2563eb !important;
-    box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.15);
+    box-shadow: none;
 }
 
 .custom-terms-checkbox:checked,
@@ -1191,7 +1191,7 @@ select.auth-input option {
     background-position: center !important;
     background-size: 11px 11px !important;
     border-color: #1d4ed8 !important;
-    box-shadow: 0 2px 6px rgba(29, 78, 216, 0.35);
+    box-shadow: none;
 }
 
 .custom-terms-checkbox::after,
@@ -1724,7 +1724,7 @@ select.auth-input option {
     background-position: center !important;
     background-size: 11px 11px !important;
     border-color: #ffffff !important;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+    box-shadow: none !important;
 }
 
 .privacy-acceptance-box .custom-terms-checkbox::after,
@@ -2383,7 +2383,7 @@ body.keyboard-open .auth-top h1 {
     justify-content: center;
     overflow: hidden;
     animation: popUpSmooth .55s cubic-bezier(.2,.8,.2,1) forwards .2s !important;
-    box-shadow: 0 10px 24px rgba(29, 78, 216, .28), inset 0 1px 0 rgba(255,255,255,.28) !important;
+    box-shadow: none !important;
     transform: none;
 }
 
@@ -2412,7 +2412,7 @@ body.keyboard-open .auth-top h1 {
     align-items: center;
     justify-content: center;
     background: rgba(17, 51, 145, .42);
-    box-shadow: inset 0 1px 2px rgba(255,255,255,.25);
+    box-shadow: none;
     font-size: 18px;
 }
 
@@ -2452,7 +2452,7 @@ body.keyboard-open .auth-top h1 {
     background: #ffffff !important;
     border: 1px solid rgba(203, 216, 233, .8) !important;
     color: #102255 !important;
-    box-shadow: 0 6px 18px rgba(23, 56, 107, .08) !important;
+    box-shadow: none !important;
 }
 
 .btn-offline-guest span {

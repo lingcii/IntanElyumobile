@@ -123,7 +123,7 @@ window.fetchUserReviewedSpots = async function() {
     const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
     if (!token) return;
 
-    const _backendBase = (window.backendUrl || 'https://api.intan-elyu.online').replace(/\/+$/, '');
+    const _backendBase = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
     const ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
     const timer = ctrl ? setTimeout(() => ctrl.abort(), 6000) : null;
     try {
@@ -408,7 +408,7 @@ window.submitTestimony = async function(event) {
         if (typeof showToast === 'function') showToast("Please log in to submit a review.");
         return;
     }
-    const _backendBase = (window.backendUrl || 'https://api.intan-elyu.online').replace(/\/+$/, '');
+    const _backendBase = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
 
     const submitBtn = document.querySelector('#testimony-modal button[type="submit"]') || document.querySelector('#write-testimony-modal form button[type="submit"]') || document.querySelector('#write-testimony-modal button.submit-btn');
     const originalText = submitBtn ? submitBtn.innerHTML : '';
@@ -490,12 +490,23 @@ window.submitTestimony = async function(event) {
                 };
             }
             window._cachedUserReviews = null;
+            window._reviewsCheckinsInflight = null;
             try {
                 for (let i = localStorage.length - 1; i >= 0; i--) {
                     const k = localStorage.key(i);
-                    if (k && k.startsWith('reviews_checkins_v1_')) localStorage.removeItem(k);
+                    if (
+                        k && (
+                            k.startsWith('reviews_checkins_') ||
+                            (spotId ? k === ('intan_elyu_testimonies_spot_' + spotId) : k.startsWith('intan_elyu_testimonies_spot_'))
+                        )
+                    ) {
+                        localStorage.removeItem(k);
+                    }
                 }
             } catch (e) {}
+            if (typeof window.loadUserReviewsAndCheckins === 'function') {
+                window.loadUserReviewsAndCheckins(true);
+            }
 
             if (isRewardAwarded) {
                 const earnedPts = (data && data.earned_points !== undefined) ? parseInt(data.earned_points, 10) : 25;

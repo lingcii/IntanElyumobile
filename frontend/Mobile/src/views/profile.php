@@ -26,7 +26,7 @@ $activeTab = 'profile';
 
     <!-- Offline Mode Locked Barrier (Displayed if accessed while in Offline / Guest Mode) -->
     <div id="profile-offline-lock-barrier" style="display: none; text-align: center; padding: 32px 18px 40px; margin-top: 10px;">
-        <div style="width: 78px; height: 78px; border-radius: 26px; background: linear-gradient(135deg, rgba(30,58,138,0.12) 0%, rgba(0,242,254,0.2) 100%); display: flex; align-items: center; justify-content: center; margin: 0 auto 18px; box-shadow: 0 8px 24px rgba(30,58,138,0.12);">
+        <div style="width: 78px; height: 78px; border-radius: 26px; background: linear-gradient(135deg, rgba(30,58,138,0.12) 0%, rgba(0,242,254,0.2) 100%); display: flex; align-items: center; justify-content: center; margin: 0 auto 18px; box-shadow: none;">
             <i class="fa-solid fa-user-lock" style="font-size: 34px; color: #1e3a8a;"></i>
         </div>
         <div id="profile-barrier-pill" style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 100px; font-size: 11px; font-weight: 800; background: rgba(2, 132, 199, 0.1); color: #0284c7; border: 1px solid rgba(2, 132, 199, 0.25); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">
@@ -38,10 +38,10 @@ $activeTab = 'profile';
         </p>
 
         <div style="display: flex; flex-direction: column; gap: 10px; max-width: 290px; margin: 0 auto;">
-            <button type="button" id="profile-barrier-auth-btn" onclick="navigateTo('auth')" style="width: 100%; padding: 13px; border-radius: 16px; border: none; background: linear-gradient(135deg, #1e3a8a 0%, #0284c7 100%); color: #ffffff; font-size: 13.5px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 6px 18px rgba(30,58,138,0.25);">
+            <button type="button" id="profile-barrier-auth-btn" onclick="navigateTo('auth')" style="width: 100%; padding: 13px; border-radius: 16px; border: none; background: linear-gradient(135deg, #1e3a8a 0%, #0284c7 100%); color: #ffffff; font-size: 13.5px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: none;">
                 <i class="fa-solid fa-right-to-bracket" style="color: #00f2fe;"></i> Sign In / Create Account
             </button>
-            <button type="button" onclick="navigateTo('map')" style="width: 100%; padding: 13px; border-radius: 16px; border: 1.5px solid #e2e8f0; background: #ffffff; color: #1e3a8a; font-size: 13.5px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
+            <button type="button" onclick="navigateTo('map')" style="width: 100%; padding: 13px; border-radius: 16px; border: 1.5px solid #bae6fd; background: #e0f2fe; color: #0369a1; font-size: 13.5px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: none;">
                 <i class="fa-solid fa-map-location-dot" style="color: #0284c7;"></i> Explore Interactive Map
             </button>
             <button type="button" onclick="navigateTo('leaderboard')" style="width: 100%; padding: 11px; border-radius: 16px; border: none; background: #f1f5f9; color: #475569; font-size: 12.5px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
@@ -2082,6 +2082,7 @@ $activeTab = 'profile';
                 const timer = ctrl ? setTimeout(() => ctrl.abort(), 6000) : null;
                 try {
                     const res = await fetch(base + '/api/tourist/feedback/user-reviewed-spots', {
+                        cache: 'no-store',
                         signal: ctrl ? ctrl.signal : undefined,
                         headers: {
                             'Accept': 'application/json',

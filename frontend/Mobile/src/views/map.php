@@ -5824,6 +5824,7 @@ if (is_dir($imgDir)) {
                 let res = null;
                 try {
                     res = await fetch(_backendBase + '/api/public/feedback?tourist_spot_id=' + encodeURIComponent(spotId), {
+                        cache: 'no-store',
                         signal: requestController ? requestController.signal : undefined,
                         headers
                     });
