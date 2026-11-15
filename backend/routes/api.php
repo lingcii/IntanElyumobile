@@ -76,6 +76,7 @@ $serveFileHandler = function ($file) {
         'tourist_spots/' . basename($cleanFile),
         'avatars/' . basename($cleanFile),
         'proof_images/' . basename($cleanFile),
+        'OrdinanceImages/' . basename($cleanFile),
         basename($cleanFile),
     ]));
 
@@ -127,10 +128,14 @@ $serveFileHandler = function ($file) {
         }
     }
 
-    // Direct Cloudflare R2 Public Bucket redirect fallback for spot/avatar/proof uploads
+    // Direct Cloudflare R2 Public Bucket redirect fallback for spot/avatar/proof/ordinance uploads
     $r2PublicBase = 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev';
-    if (preg_match('#spot_|avatar_|proof_#i', $cleanFile)) {
-        $folder = preg_match('#avatar_#i', $cleanFile) ? 'avatars' : (preg_match('#proof_#i', $cleanFile) ? 'proof_images' : 'tourist_spots');
+    if (preg_match('#spot_|avatar_|proof_|ordinance_|OrdinanceImages/#i', $cleanFile)) {
+        $folder = preg_match('#avatar_#i', $cleanFile)
+            ? 'avatars'
+            : (preg_match('#proof_#i', $cleanFile)
+                ? 'proof_images'
+                : (preg_match('#ordinance_|OrdinanceImages/#i', $cleanFile) ? 'OrdinanceImages' : 'tourist_spots'));
         return redirect($r2PublicBase . '/' . $folder . '/' . basename($cleanFile));
     }
 

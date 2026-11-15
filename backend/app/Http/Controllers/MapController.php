@@ -6,6 +6,7 @@ use App\Models\FareGuide;
 use App\Models\FareMatrix;
 use App\Models\Municipality;
 use App\Models\TouristSpot;
+use App\Models\TouristSpotOrdinanceImage;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -107,6 +108,20 @@ class MapController extends Controller
                 }
             } catch (\Throwable $e) {}
 
+            $spotOrdinanceMap = [];
+            try {
+                $r2PublicUrl = rtrim(env('CLOUDFLARE_R2_URL', 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev'), '/');
+                $ordinanceRows = \Illuminate\Support\Facades\DB::table('tourist_spot_ordinance_images')
+                    ->orderBy('id', 'asc')
+                    ->get(['id', 'tourist_spot_id', 'original_filename', 'stored_filename', 'cloudflare_path']);
+                foreach ($ordinanceRows as $ordRow) {
+                    $formatted = TouristSpotOrdinanceImage::formatRow($ordRow, $r2PublicUrl);
+                    if ($formatted) {
+                        $spotOrdinanceMap[$ordRow->tourist_spot_id][] = $formatted;
+                    }
+                }
+            } catch (\Throwable $e) {}
+
             return TouristSpot::activeForTourists()
                 ->with('municipality:id,name')
                 ->with('images')
@@ -117,7 +132,7 @@ class MapController extends Controller
                        'environmental_fee', 'fee_types', 'route_guide', 'tour_guide_notice',
                        'accessible_by_private_vehicle', 'photo_url', 'description', 'opening_time', 'closing_time',
                        'is_open_24_hours', 'is_maintenance', 'rating', 'visits', 'classification_status', 'status', 'boundary_geojson'])
-                ->map(function ($spot) use ($spotPublicVehicles, $spotPrivateVehicles, $spotAllVehicles, $spotServiceCenterMap, $spotVisitorPhotosMap) {
+                ->map(function ($spot) use ($spotPublicVehicles, $spotPrivateVehicles, $spotAllVehicles, $spotServiceCenterMap, $spotVisitorPhotosMap, $spotOrdinanceMap) {
                     /** @var TouristSpot $spot */
                     $isVisitorProofUrl = function (?string $url): bool {
                         return $url && str_contains($url, 'proof_images/');
@@ -212,6 +227,7 @@ class MapController extends Controller
                         'photo_url'                     => $imageUrl,
                         'images'                        => $imagesList,
                         'visitor_photos'                => $visitorPhotosList,
+                        'ordinance_images'              => $spotOrdinanceMap[$spot->id] ?? [],
                         'description'                   => $spot->description,
                         'opening_time'                  => $spot->opening_time,
                         'closing_time'                  => $spot->closing_time,

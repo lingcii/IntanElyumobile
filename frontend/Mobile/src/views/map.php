@@ -864,6 +864,26 @@ if (is_dir($imgDir)) {
                         style="font-size:10px; font-weight:800; padding:4px 10px; border-radius:100px; background:rgba(239,68,68,0.35); color:#ffffff; text-transform:uppercase; letter-spacing:0.5px;">Temporary</span>
                 </div>
 
+                <!-- Tourist Site Ordinance Card -->
+                <div id="sheet-ordinance-card" onclick="window.openOrdinanceViewerModal(0)" role="button" tabindex="0"
+                    style="display:none; align-items:center; justify-content:space-between; gap:10px; background:linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border:none !important; outline:none !important; border-radius:14px; padding:12px 14px; box-shadow:0 4px 14px rgba(32, 63, 141, 0.28) !important; cursor:pointer;">
+                    <div style="display:flex; align-items:center; gap:10px; min-width:0;">
+                        <div
+                            style="width:34px; height:34px; border-radius:10px; background:#ffffff !important; display:flex; align-items:center; justify-content:center; color:#1e3a8a !important; font-size:15px; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.18);">
+                            <i class="fa-solid fa-scale-balanced" style="color:#1e3a8a !important;"></i>
+                        </div>
+                        <div style="display:flex; flex-direction:column; min-width:0;">
+                            <span style="font-size:13px; font-weight:800; color:#ffffff; letter-spacing:0.2px;">Tourist Site Ordinance</span>
+                            <span id="sheet-ordinance-detail"
+                                style="font-size:10.5px; color:rgba(255,255,255,0.85); font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">View official site guidelines</span>
+                        </div>
+                    </div>
+                    <span
+                        style="font-size:11px; font-weight:800; padding:6px 12px; border-radius:999px; background:#ffffff !important; color:#1e3a8a !important; display:inline-flex; align-items:center; gap:5px; flex-shrink:0; box-shadow:0 2px 8px rgba(0,0,0,0.15);">
+                        <i class="fa-regular fa-file-lines" style="font-size:11px;"></i> View
+                    </span>
+                </div>
+
             </div>
 
             <!-- Available Vehicles / Transportation Card (Shown only if available vehicles exist) -->
@@ -4098,6 +4118,12 @@ if (is_dir($imgDir)) {
 
         window.openSheet = function (locationData, returnToMapRoute = false) {
             if (!locationData) return;
+            if (!Array.isArray(locationData.ordinance_images) && Array.isArray(window.allMapLocations) && locationData.id !== undefined) {
+                const matchedSpot = window.allMapLocations.find(s => String(s.id) === String(locationData.id));
+                if (matchedSpot && Array.isArray(matchedSpot.ordinance_images)) {
+                    locationData = Object.assign({}, locationData, { ordinance_images: matchedSpot.ordinance_images });
+                }
+            }
             window._returnToMapRouteAfterDetails = returnToMapRoute === true;
             if (window.closeNearbySitesSheet) {
                 window.closeNearbySitesSheet();
@@ -4419,6 +4445,29 @@ if (is_dir($imgDir)) {
                 }
             }
 
+            const ordinanceCard = document.getElementById('sheet-ordinance-card');
+            const ordinanceDetail = document.getElementById('sheet-ordinance-detail');
+            const ordinanceList = Array.isArray(locationData.ordinance_images)
+                ? locationData.ordinance_images.filter(item => item && (item.url || item.fallback_url || typeof item === 'string'))
+                : [];
+            window._currentSpotOrdinances = {
+                spotName: locationData.name || 'Tourist Site',
+                items: ordinanceList
+            };
+            if (ordinanceCard) {
+                if (ordinanceList.length > 0) {
+                    ordinanceCard.style.display = 'flex';
+                    hasAnyAttr = true;
+                    if (ordinanceDetail) {
+                        ordinanceDetail.textContent = ordinanceList.length === 1
+                            ? '1 document attached · Tap to view'
+                            : `${ordinanceList.length} documents attached · Tap to view`;
+                    }
+                } else {
+                    ordinanceCard.style.display = 'none';
+                }
+            }
+
             if (attrContainer) {
                 attrContainer.style.display = hasAnyAttr ? 'flex' : 'none';
             }
@@ -4678,8 +4727,7 @@ if (is_dir($imgDir)) {
                     } else {
                         feeOptionsContainer.style.display = 'flex';
                         feeOptionsContainer.innerHTML = `
-                            <div style="background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.22); border-radius:8px; padding:5px 10px; display:flex; align-items:center; justify-content:center; gap:6px;">
-                                <i class="fa-solid fa-circle-info" style="color:#00f2fe; font-size:11px;"></i>
+                            <div style="background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.22); border-radius:8px; padding:5px 10px; display:flex; align-items:center; justify-content:center; text-align:center;">
                                 <span style="font-size:10px; font-weight:700; color:#ffffff;">Free admission for Adults, Children, PWD & Senior Citizens</span>
                             </div>
                         `;
@@ -5734,8 +5782,8 @@ if (is_dir($imgDir)) {
                     <div style="width:40px; height:40px; border-radius:50%; background:#ffffff; display:inline-flex; align-items:center; justify-content:center; color:#1e3a8a; font-size:16px; margin-bottom:8px; box-shadow:0 2px 6px rgba(0,0,0,0.18);">
                         <i class="fa-solid ${isOffline ? 'fa-cloud-arrow-down' : 'fa-comment-dots'}" style="color:#1e3a8a;"></i>
                     </div>
-                    <div style="font-size:13.5px; font-weight:800; color:#ffffff; margin-bottom:12px;">${isOffline ? 'Offline Reviews Mode' : 'No Feedback Yet'}</div>
-                    <div style="display:inline-flex; align-items:center; gap:6px; font-size:10.5px; font-weight:700; color:#ffffff; background:rgba(255,255,255,0.18); padding:5px 12px; border-radius:20px;">
+                    <div style="font-size:13.5px; font-weight:800; color:#ffffff; margin-bottom:4px;">${isOffline ? 'Offline Reviews Mode' : 'No Feedback Yet'}</div>
+                    <div style="font-size:11px; font-weight:500; color:rgba(255,255,255,0.75);">
                         Review available in Trip Map & Visited Stops
                     </div>
                 </div>`;
@@ -6806,7 +6854,198 @@ if (is_dir($imgDir)) {
         const lb = document.getElementById('visitor-photo-lightbox');
         if (lb) lb.style.display = 'none';
     };
+
+    window._ordinanceViewerIndex = 0;
+    window._ordinanceViewerZoomed = false;
+
+    function resolveOrdinanceUrl(raw) {
+        if (!raw) return '';
+        const str = String(raw).trim();
+        if (str.startsWith('http://') || str.startsWith('https://') || str.startsWith('data:') || str.startsWith('blob:')) {
+            return str;
+        }
+        const backendBase = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
+        return str.startsWith('/') ? (backendBase + str) : (backendBase + '/' + str);
+    }
+
+    window.setOrdinanceViewerIndex = function (idx) {
+        const state = window._currentSpotOrdinances || { spotName: 'Tourist Site', items: [] };
+        const items = Array.isArray(state.items) ? state.items : [];
+        if (items.length === 0) return;
+
+        const safeIdx = ((idx % items.length) + items.length) % items.length;
+        window._ordinanceViewerIndex = safeIdx;
+        window._ordinanceViewerZoomed = false;
+
+        const current = typeof items[safeIdx] === 'string'
+            ? { url: items[safeIdx], fallback_url: items[safeIdx], title: `Page ${safeIdx + 1}` }
+            : items[safeIdx];
+
+        const imgEl = document.getElementById('ordinance-viewer-img');
+        const counterEl = document.getElementById('ordinance-viewer-counter');
+        const filenameEl = document.getElementById('ordinance-viewer-filename');
+        const zoomBtn = document.getElementById('ordinance-viewer-zoom-btn');
+        const thumbsEl = document.getElementById('ordinance-viewer-thumbs');
+        const prevBtn = document.getElementById('ordinance-prev-btn');
+        const nextBtn = document.getElementById('ordinance-next-btn');
+
+        const primarySrc = resolveOrdinanceUrl(current.url || current.fallback_url || '');
+        const fallbackSrc = resolveOrdinanceUrl(current.fallback_url || '');
+
+        if (imgEl) {
+            imgEl.dataset.fb = '';
+            imgEl.style.transform = 'scale(1)';
+            imgEl.style.cursor = 'zoom-in';
+            imgEl.onerror = function () {
+                if (!this.dataset.fb && fallbackSrc && this.src !== fallbackSrc) {
+                    this.dataset.fb = '1';
+                    this.src = fallbackSrc;
+                }
+            };
+            imgEl.src = primarySrc;
+        }
+        if (counterEl) {
+            counterEl.textContent = items.length > 1 ? `Page ${safeIdx + 1} of ${items.length}` : 'Official Ordinance Document';
+        }
+        if (filenameEl) {
+            filenameEl.textContent = current.original_filename || current.title || '';
+        }
+        if (zoomBtn) {
+            zoomBtn.innerHTML = '<i class="fa-solid fa-magnifying-glass-plus"></i>';
+        }
+        if (prevBtn && nextBtn) {
+            const showArrows = items.length > 1 ? 'flex' : 'none';
+            prevBtn.style.display = showArrows;
+            nextBtn.style.display = showArrows;
+        }
+        if (thumbsEl) {
+            if (items.length <= 1) {
+                thumbsEl.style.display = 'none';
+                thumbsEl.innerHTML = '';
+            } else {
+                thumbsEl.style.display = 'flex';
+                thumbsEl.innerHTML = '';
+                items.forEach((it, i) => {
+                    const thumbBtn = document.createElement('button');
+                    thumbBtn.type = 'button';
+                    thumbBtn.onclick = function (ev) {
+                        ev.stopPropagation();
+                        window.setOrdinanceViewerIndex(i);
+                    };
+                    thumbBtn.style.cssText = `width:52px; height:64px; border-radius:10px; overflow:hidden; flex-shrink:0; padding:0; cursor:pointer; background:#0f172a; border:2px solid ${i === safeIdx ? '#38bdf8' : 'rgba(255,255,255,0.2)'}; opacity:${i === safeIdx ? '1' : '0.65'}; transition:all 0.15s ease;`;
+                    const tImg = document.createElement('img');
+                    const obj = typeof it === 'string' ? { url: it, fallback_url: it } : it;
+                    const tUrl = resolveOrdinanceUrl(obj.url || obj.fallback_url || '');
+                    const tFb = resolveOrdinanceUrl(obj.fallback_url || '');
+                    tImg.src = tUrl;
+                    tImg.alt = `Ordinance ${i + 1}`;
+                    tImg.style.cssText = 'width:100%; height:100%; object-fit:cover; display:block;';
+                    tImg.onerror = function () {
+                        if (!this.dataset.fb && tFb && this.src !== tFb) {
+                            this.dataset.fb = '1';
+                            this.src = tFb;
+                        }
+                    };
+                    thumbBtn.appendChild(tImg);
+                    thumbsEl.appendChild(thumbBtn);
+                });
+            }
+        }
+    };
+
+    window.toggleOrdinanceViewerZoom = function (ev) {
+        if (ev) ev.stopPropagation();
+        const imgEl = document.getElementById('ordinance-viewer-img');
+        const zoomBtn = document.getElementById('ordinance-viewer-zoom-btn');
+        if (!imgEl) return;
+        window._ordinanceViewerZoomed = !window._ordinanceViewerZoomed;
+        imgEl.style.transform = window._ordinanceViewerZoomed ? 'scale(1.65)' : 'scale(1)';
+        imgEl.style.cursor = window._ordinanceViewerZoomed ? 'zoom-out' : 'zoom-in';
+        if (zoomBtn) {
+            zoomBtn.innerHTML = window._ordinanceViewerZoomed
+                ? '<i class="fa-solid fa-magnifying-glass-minus"></i>'
+                : '<i class="fa-solid fa-magnifying-glass-plus"></i>';
+        }
+    };
+
+    window.openOrdinanceViewerModal = function (startIndex = 0) {
+        const modal = document.getElementById('ordinance-viewer-modal');
+        const titleEl = document.getElementById('ordinance-viewer-title');
+        const state = window._currentSpotOrdinances || { spotName: 'Tourist Site', items: [] };
+        if (!modal || !Array.isArray(state.items) || state.items.length === 0) {
+            if (typeof showToast === 'function') showToast('No ordinance document available for this site.', 'info');
+            return;
+        }
+        if (modal.parentElement !== document.body) {
+            document.body.appendChild(modal);
+        }
+        if (titleEl) {
+            titleEl.textContent = `${state.spotName} · Ordinance`;
+        }
+        window.setOrdinanceViewerIndex(startIndex);
+        modal.style.display = 'flex';
+    };
+
+    window.closeOrdinanceViewerModal = function () {
+        const modal = document.getElementById('ordinance-viewer-modal');
+        if (modal) modal.style.display = 'none';
+        window._ordinanceViewerZoomed = false;
+    };
 </script>
+
+<!-- Tourist Site Ordinance Document Viewer Modal -->
+<div id="ordinance-viewer-modal" onclick="window.closeOrdinanceViewerModal()"
+    style="display:none; position:fixed; inset:0; z-index:9999999; background:rgba(6,11,25,0.94); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); flex-direction:column; padding:calc(14px + env(safe-area-inset-top, 0px)) 14px calc(14px + env(safe-area-inset-bottom, 0px)) 14px; box-sizing:border-box;">
+    <div onclick="event.stopPropagation()"
+        style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; flex-shrink:0;">
+        <div style="min-width:0; flex:1;">
+            <div id="ordinance-viewer-title"
+                style="font-size:15px; font-weight:800; color:#ffffff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                Tourist Site Ordinance
+            </div>
+            <div style="display:flex; align-items:center; gap:8px; margin-top:2px; font-size:11.5px; color:rgba(255,255,255,0.75);">
+                <span id="ordinance-viewer-counter" style="font-weight:700; color:#38bdf8;"></span>
+                <span id="ordinance-viewer-filename"
+                    style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"></span>
+            </div>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px; flex-shrink:0;">
+            <button type="button" id="ordinance-viewer-zoom-btn" onclick="window.toggleOrdinanceViewerZoom(event)"
+                aria-label="Toggle Zoom"
+                style="width:38px; height:38px; border-radius:50%; border:none; background:rgba(255,255,255,0.16); color:#ffffff; font-size:15px; display:flex; align-items:center; justify-content:center; cursor:pointer;">
+                <i class="fa-solid fa-magnifying-glass-plus"></i>
+            </button>
+            <button type="button" onclick="window.closeOrdinanceViewerModal()" aria-label="Close"
+                style="width:38px; height:38px; border-radius:50%; border:none; background:rgba(255,255,255,0.16); color:#ffffff; font-size:17px; display:flex; align-items:center; justify-content:center; cursor:pointer;">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+    </div>
+
+    <div onclick="event.stopPropagation()"
+        style="position:relative; flex:1; min-height:0; overflow:auto; display:flex; align-items:center; justify-content:center; border-radius:18px; background:rgba(15,23,42,0.55); border:1px solid rgba(255,255,255,0.1); padding:10px;">
+        <button type="button" id="ordinance-prev-btn"
+            onclick="event.stopPropagation(); window.setOrdinanceViewerIndex(window._ordinanceViewerIndex - 1)"
+            aria-label="Previous document"
+            style="display:none; position:fixed; left:18px; top:50%; transform:translateY(-50%); z-index:3; width:38px; height:38px; border-radius:50%; border:none; background:rgba(15,23,42,0.75); color:#ffffff; font-size:15px; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 4px 12px rgba(0,0,0,0.4);">
+            <i class="fa-solid fa-chevron-left"></i>
+        </button>
+
+        <img id="ordinance-viewer-img" src="" alt="Tourist Site Ordinance Document"
+            onclick="window.toggleOrdinanceViewerZoom(event)"
+            style="max-width:100%; max-height:100%; border-radius:10px; object-fit:contain; background:#ffffff; box-shadow:0 16px 48px rgba(0,0,0,0.6); transition:transform 0.2s ease; transform-origin:center center; cursor:zoom-in;">
+
+        <button type="button" id="ordinance-next-btn"
+            onclick="event.stopPropagation(); window.setOrdinanceViewerIndex(window._ordinanceViewerIndex + 1)"
+            aria-label="Next document"
+            style="display:none; position:fixed; right:18px; top:50%; transform:translateY(-50%); z-index:3; width:38px; height:38px; border-radius:50%; border:none; background:rgba(15,23,42,0.75); color:#ffffff; font-size:15px; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 4px 12px rgba(0,0,0,0.4);">
+            <i class="fa-solid fa-chevron-right"></i>
+        </button>
+    </div>
+
+    <div id="ordinance-viewer-thumbs" onclick="event.stopPropagation()"
+        style="display:none; gap:8px; overflow-x:auto; padding:10px 4px 2px; flex-shrink:0; justify-content:center;"></div>
+</div>
 
 <!-- Visitor Photo Lightbox Modal -->
 <div id="visitor-photo-lightbox" onclick="window.closeVisitorPhotoLightbox()"

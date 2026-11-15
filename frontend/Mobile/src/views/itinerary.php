@@ -441,7 +441,7 @@ try {
             <div id="custom-date-trigger" onclick="window.toggleCustomCalendar(event)"
                 style="position:relative; width:100%; padding:12px 14px; border-radius:14px; border:1.5px solid #cbd5e1 !important; outline:none !important; background:#ffffff; color:#0f172a; margin-bottom:14px; font-size:14px; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:space-between; transition:all 0.2s ease; user-select:none; box-sizing:border-box;">
                 <div>
-                    <span id="custom-date-display" style="color:#64748b; font-weight:600;">Select trip date</span>
+                    <span id="custom-date-display" style="color:#94a3b8; font-weight:600;">Select trip date</span>
                 </div>
                 <i class="fa-solid fa-chevron-down" id="custom-date-arrow"
                     style="font-size:11px; color:#64748b; transition:transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);"></i>
@@ -5684,7 +5684,7 @@ try {
             if (hiddenInput) hiddenInput.value = '';
             if (displayEl) {
                 displayEl.textContent = 'Select trip date';
-                displayEl.style.color = '#64748b';
+                displayEl.style.color = '#94a3b8';
                 displayEl.style.fontWeight = '600';
             }
             if (clearLink) clearLink.style.display = 'none';

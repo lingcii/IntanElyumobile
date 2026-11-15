@@ -1839,7 +1839,7 @@ body[data-view="map"] .btn-locate-me {
     outline: none !important;
     border-radius: 16px;
     padding: 14px;
-    margin-bottom: 10px;
+    margin-bottom: 0;
     box-shadow: none !important;
     display: flex;
     flex-direction: column;

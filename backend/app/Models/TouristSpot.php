@@ -91,6 +91,11 @@ class TouristSpot extends Model
         return $this->hasMany(TouristSpotImage::class, 'spot_id')->orderBy('sort_order')->orderBy('id');
     }
 
+    public function ordinanceImages()
+    {
+        return $this->hasMany(TouristSpotOrdinanceImage::class, 'tourist_spot_id')->orderBy('id');
+    }
+
     public function serviceCenters()
     {
         return $this->belongsToMany(ServiceCenter::class, 'tourist_spot_service_center', 'tourist_spot_id', 'service_center_id');
