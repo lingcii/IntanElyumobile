@@ -1,10 +1,10 @@
 <?php
 $pageTitle = 'Complete Profile';
 ?>
-<div class="onboarding-screen-wrapper" style="min-height: 100vh; background: #f8fafc; display: flex; flex-direction: column; justify-content: space-between; padding: 24px 20px max(24px, env(safe-area-inset-bottom, 24px)) 20px; box-sizing: border-box; max-width: 480px; margin: 0 auto; position: relative;">
+<div class="onboarding-screen-wrapper" style="height: 100vh; height: 100dvh; max-height: 100dvh; overflow: hidden; width: 100%; background: #f8fafc; display: flex; flex-direction: column; padding: 0; box-sizing: border-box; max-width: 480px; margin: 0 auto; position: relative;">
 
-    <!-- Top Progress Header -->
-    <div style="margin-top: 10px; margin-bottom: 24px;">
+    <!-- Top Progress Header (Pinned) -->
+    <div style="flex-shrink: 0; background: #f8fafc; padding: max(24px, env(safe-area-inset-top, 24px)) 20px 16px 20px; border-bottom: 1px solid #e2e8f0;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
             <span style="font-size: 11px; font-weight: 800; color: #2563eb; text-transform: uppercase; letter-spacing: 1px;" id="onboard-step-pill">Step 1 of 3</span>
             <button type="button" onclick="window.finishOnboarding(true)" style="background: none; border: none; font-size: 13px; font-weight: 700; color: #64748b; cursor: pointer; padding: 4px 8px;">Skip All</button>
@@ -14,8 +14,8 @@ $pageTitle = 'Complete Profile';
         </div>
     </div>
 
-    <!-- Main Content Step Panels -->
-    <div style="flex: 1; display: flex; flex-direction: column; justify-content: flex-start;">
+    <!-- Main Content Step Panels (Scrolls independently) -->
+    <div id="onboard-scroll-body" class="onboard-scroll-body" style="flex: 1 1 auto; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior-y: contain; padding: 20px; display: flex; flex-direction: column; justify-content: flex-start;">
         
         <!-- Header text (Dynamic) -->
         <div style="margin-bottom: 24px;">
@@ -140,16 +140,16 @@ $pageTitle = 'Complete Profile';
 
     </div>
 
-    <!-- Bottom Controls & Pagination Dots -->
-    <div style="margin-top: 30px; display: flex; align-items: center; justify-content: space-between; gap: 14px;">
+    <!-- Bottom Controls & Pagination Dots (Pinned) -->
+    <div style="flex-shrink: 0; background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 14px 20px max(22px, env(safe-area-inset-bottom, 22px)) 20px; display: flex; align-items: center; justify-content: space-between; gap: 10px;">
         <!-- Prev Button -->
         <button type="button" id="onboard-btn-prev" onclick="window.onboardPrevStep()" 
-            style="visibility: hidden; background: #ffffff; border: 1.5px solid #cbd5e1; color: #0f172a; font-weight: 700; font-size: 13.5px; padding: 12px 18px; border-radius: 14px; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.03);">
+            style="visibility: hidden; background: #ffffff; border: 1.5px solid #cbd5e1; color: #0f172a; font-weight: 700; font-size: 13.5px; padding: 12px 16px; border-radius: 14px; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: none; white-space: nowrap; flex-shrink: 0;">
             <i class="fa-solid fa-arrow-left"></i> <span>Back</span>
         </button>
 
         <!-- Dots in the Middle -->
-        <div style="display: flex; align-items: center; gap: 7px;" id="onboard-dots-container">
+        <div style="display: flex; align-items: center; gap: 7px; flex-shrink: 0;" id="onboard-dots-container">
             <span class="onboard-dot active" data-step="1"></span>
             <span class="onboard-dot" data-step="2"></span>
             <span class="onboard-dot" data-step="3"></span>
@@ -157,7 +157,7 @@ $pageTitle = 'Complete Profile';
 
         <!-- Next / Finish Button -->
         <button type="button" id="onboard-btn-next" onclick="window.onboardNextStep()"
-            style="background: linear-gradient(135deg, #1e3a8a, #2563eb); border: none; color: #ffffff; font-weight: 800; font-size: 14px; padding: 13px 22px; border-radius: 14px; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(37,99,235,0.3); transition: transform 0.1s ease;">
+            style="background: linear-gradient(135deg, #1e3a8a, #2563eb); border: none; color: #ffffff; font-weight: 800; font-size: 13.5px; padding: 13px 18px; border-radius: 14px; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: none; white-space: nowrap; flex-shrink: 0; transition: transform 0.1s ease;">
             <span id="onboard-next-label">Next</span> <i class="fa-solid fa-arrow-right" id="onboard-next-icon"></i>
         </button>
     </div>
@@ -165,6 +165,13 @@ $pageTitle = 'Complete Profile';
 </div>
 
 <style>
+.onboard-scroll-body {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+.onboard-scroll-body::-webkit-scrollbar {
+    display: none;
+}
 .onboard-card-select {
     background: #ffffff;
     border: 1.5px solid #e2e8f0;
@@ -290,6 +297,8 @@ $pageTitle = 'Complete Profile';
             const p = document.getElementById(`onboard-step-${i}`);
             if (p) p.style.display = (i === currentStep) ? 'block' : 'none';
         }
+        const scrollBody = document.getElementById('onboard-scroll-body');
+        if (scrollBody) scrollBody.scrollTop = 0;
 
         // Prev Button
         const prevBtn = document.getElementById('onboard-btn-prev');
