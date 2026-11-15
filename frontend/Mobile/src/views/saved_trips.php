@@ -155,7 +155,7 @@ $backRoute = 'itinerary';
         <div style="flex-shrink:0; background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%); padding:18px 20px; display:flex; justify-content:space-between; align-items:center; border-top-left-radius:26px; border-top-right-radius:26px; box-sizing:border-box;">
             <div style="text-align:left;">
                 <h3 id="proof-spot-title" style="margin:0; color:#ffffff; font-size:18px; font-weight:800; display:flex; align-items:center; gap:8px;">
-                    <i class="fa-solid fa-camera" style="color:#38bdf8; font-size:17px;"></i> Upload Photo Proof
+                    <i class="fa-solid fa-camera" style="color:#38bdf8; font-size:17px;"></i> Upload Photo
                 </h3>
                 <span id="proof-spot-subtitle" style="font-size:12px; color:rgba(255,255,255,0.85); font-weight:600; display:block; margin-top:3px;">Select up to 5 photos</span>
             </div>
@@ -919,12 +919,6 @@ $backRoute = 'itinerary';
                             }
 
                             if (newlyApprovedItems.length > 0) {
-                                newlyApprovedItems.forEach(itemApproved => {
-                                    const destName = (itemApproved.destination && itemApproved.destination.name) ? itemApproved.destination.name : 'Your destination';
-                                    if (typeof showToast === 'function') {
-                                        showToast(`🎉 Verified! Photo proof for ${destName} was approved by Admin!`, 'success', 5000);
-                                    }
-                                });
                                 if (typeof window.fetchUserProfile === 'function') {
                                     window.fetchUserProfile();
                                 }
@@ -1900,7 +1894,7 @@ $backRoute = 'itinerary';
                                                 <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
                                                     <div>
                                                         <span style="color:#ef4444; font-size:12px; font-weight:800; display:inline-flex; align-items:center; gap:5px;">
-                                                            <i class="fa-solid fa-circle-xmark"></i> Photo Proof Rejected
+                                                            <i class="fa-solid fa-circle-xmark"></i> Photo Rejected
                                                         </span>
                                                         <span style="font-size:10px; color:#dc2626; display:block; margin-top:2px;">${item.rejection_reason || 'Please upload a clearer photo taken at this destination during active trip.'}</span>
                                                     </div>
@@ -1972,7 +1966,7 @@ $backRoute = 'itinerary';
                                                 </div>`))))))
                                         }
                                         ${(isLocVerified && isRejected) ? `<div class="saved-trip-validation-actions" style="margin-top:6px;">
-                                            <span style="font-size:10.5px; color:#ef4444; font-weight:600;"><i class="fa-solid fa-circle-info"></i> Photo proof was rejected; re-upload optional</span>
+                                            <span style="font-size:10.5px; color:#ef4444; font-weight:600;"><i class="fa-solid fa-circle-info"></i> Photo was rejected; re-upload optional</span>
                                         </div>` : ''}
                                     </div>
                                 </div>`;
@@ -2173,7 +2167,7 @@ $backRoute = 'itinerary';
             const requestedTrip = (window._cachedSavedTrips || []).find(t => t && (t.id == tripId || t.local_id == tripId));
             const allStopsSubmitted = shouldHideStartTripForTrip(requestedTrip);
             if ((requestedTrip && (requestedTrip.status === 'completed' || (typeof window.isTripCompletedLocally === 'function' && window.isTripCompletedLocally(requestedTrip)))) || allStopsSubmitted) {
-                if (typeof showToast === 'function') showToast(requestedTrip && requestedTrip.status === 'completed' ? 'This trip is already completed.' : 'Proof submitted. Please wait for validation.', 'info');
+                if (typeof showToast === 'function') showToast(requestedTrip && requestedTrip.status === 'completed' ? 'This trip is already completed.' : 'Photo uploaded.', 'info');
                 renderSavedTrips(window._cachedSavedTrips || []);
                 return;
             }
@@ -2254,7 +2248,7 @@ $backRoute = 'itinerary';
 
             const titleEl = document.getElementById('proof-spot-title');
             if (titleEl) {
-                titleEl.innerHTML = `<i class="fa-solid fa-camera" style="color:#38bdf8; font-size:17px;"></i> ${spotName || 'Upload Photo Proof'}`;
+                titleEl.innerHTML = `<i class="fa-solid fa-camera" style="color:#38bdf8; font-size:17px;"></i> ${spotName || 'Upload Photo'}`;
             }
 
             const input = document.getElementById('proof-upload-input');
@@ -2656,7 +2650,7 @@ $backRoute = 'itinerary';
             if (!itemId) return;
 
             if (window.selectedProofPhotos.length === 0) {
-                if (typeof showToast === 'function') showToast('Please select or capture at least one photo proof.');
+                if (typeof showToast === 'function') showToast('Please select or capture at least one photo.');
                 return;
             }
 
@@ -2707,7 +2701,7 @@ $backRoute = 'itinerary';
                 }
                 window.closeProofUploadModal();
                 if (typeof showToast === 'function') {
-                    showToast('📍 Photo proof saved on device! Auto-syncs when online.', 'success');
+                    showToast('📍 Photo saved on device! Auto-syncs when online.', 'success');
                 }
                 if (window.confetti) {
                     try { window.confetti({ particleCount: 70, spread: 60, origin: { y: 0.7 } }); } catch (e) { }
@@ -2746,7 +2740,7 @@ $backRoute = 'itinerary';
                     if (queuedPreview) window.applyPhotoProofUpdateLocally(itemId, [queuedPreview], 'pending', true);
                     window.closeProofUploadModal();
                     if (typeof showToast === 'function') {
-                        showToast('📍 Saved Offline! Photo proof saved on device. Auto-syncs when online.', 'success');
+                        showToast('📍 Saved Offline! Photo saved on device. Auto-syncs when online.', 'success');
                     }
                     if (Array.isArray(window._cachedSavedTrips) && typeof renderSavedTrips === 'function') {
                         renderSavedTrips(window._cachedSavedTrips);
@@ -2788,7 +2782,7 @@ $backRoute = 'itinerary';
                     }
 
                     if (typeof showToast === 'function') {
-                        showToast(data.message || 'Photo proof submitted! Awaiting for approval.', 'success');
+                        showToast(data.message || 'Photo uploaded!', 'success');
                     }
                     if (window.confetti) {
                         try { window.confetti({ particleCount: 80, spread: 60, origin: { y: 0.7 } }); } catch (e) { }
@@ -3002,7 +2996,7 @@ $backRoute = 'itinerary';
                             } catch (e) { }
                         }
                         if (typeof showToast === 'function') {
-                            showToast(data.message || `📍 Location verified at ${spotName}! Photo proof is required to earn points.`, 'success');
+                            showToast(data.message || `📍 Location verified at ${spotName}!`, 'success');
                         }
                         if (window.confetti) {
                             try { window.confetti({ particleCount: 70, spread: 60, origin: { y: 0.7 } }); } catch (e) { }

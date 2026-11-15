@@ -315,6 +315,7 @@ if (is_dir($imgDir)) {
             }
 
             applyFilters();
+            if (typeof syncTrendingHeaderTitle === 'function') syncTrendingHeaderTitle();
         };
 
         window.setSortTrending = function (sortKey) {
@@ -322,6 +323,7 @@ if (is_dir($imgDir)) {
             const sortSelect = document.getElementById('trending-sort-select');
             if (sortSelect && sortSelect.value !== sortKey) sortSelect.value = sortKey;
             applyFilters();
+            if (typeof syncTrendingHeaderTitle === 'function') syncTrendingHeaderTitle();
         };
 
         async function fetchAllData(forceRefresh = false) {
@@ -342,7 +344,7 @@ if (is_dir($imgDir)) {
                 (spots, isCached) => {
                     if (spots) {
                         trendingSpots = (spots || []).filter(d => !d.status || !['pending', 'draft', 'rejected'].includes(d.status.toLowerCase()));
-                        if (!isCached) applyFilters();
+                        applyFilters();
                     }
                 },
                 Boolean(forceRefresh),
@@ -361,7 +363,7 @@ if (is_dir($imgDir)) {
                 (data, isCached) => {
                     if (data && data.destinations) {
                         allDestinations = (data.destinations || []).filter(d => !d.status || !['pending', 'draft', 'rejected'].includes(d.status.toLowerCase()));
-                        if (!isCached) applyFilters();
+                        applyFilters();
                     }
                 },
                 Boolean(forceRefresh),
@@ -605,6 +607,7 @@ if (is_dir($imgDir)) {
             const catSelect = document.getElementById('trending-cat-select');
             if (catSelect && catSelect.value !== currentCategory) catSelect.value = currentCategory;
             applyFilters();
+            if (typeof syncTrendingHeaderTitle === 'function') syncTrendingHeaderTitle();
         };
 
         window.clearTrendingSearch = function () {
@@ -614,6 +617,7 @@ if (is_dir($imgDir)) {
             if (clearBtn) clearBtn.style.display = 'none';
             currentSearch = '';
             applyFilters();
+            if (typeof syncTrendingHeaderTitle === 'function') syncTrendingHeaderTitle();
         };
 
         window.resetTrendingFilters = function () {
@@ -632,6 +636,7 @@ if (is_dir($imgDir)) {
             if (catSelect) catSelect.value = 'All';
 
             applyFilters();
+            if (typeof syncTrendingHeaderTitle === 'function') syncTrendingHeaderTitle();
         };
 
         // Live search event handling
@@ -721,6 +726,35 @@ if (is_dir($imgDir)) {
         });
         window.addEventListener('appOffline', updateTrendingOfflineStatus);
         setTimeout(updateTrendingOfflineStatus, 100);
+
+        let _lastHeaderTitleText = '';
+        let _headerSwapTimer = null;
+        function syncTrendingHeaderTitle() {
+            const titleEl = document.getElementById('mobile-header-title');
+            const segWrap = document.getElementById('trending-segmented-wrap');
+            if (!titleEl || !segWrap) return;
+            const rect = segWrap.getBoundingClientRect();
+            const isScrolledPast = rect.bottom <= 68;
+            const nextText = isScrolledPast
+                ? (currentMode === 'trending' ? 'Trending Sites' : 'All Tourist Sites')
+                : 'Tourist Sites';
+            if (_lastHeaderTitleText === nextText) return;
+            _lastHeaderTitleText = nextText;
+            titleEl.style.transition = 'opacity 0.18s ease, transform 0.18s ease';
+            titleEl.style.opacity = '0';
+            titleEl.style.transform = 'translateY(4px)';
+            clearTimeout(_headerSwapTimer);
+            _headerSwapTimer = setTimeout(() => {
+                titleEl.textContent = nextText;
+                titleEl.style.opacity = '1';
+                titleEl.style.transform = 'translateY(0)';
+            }, 120);
+        }
+        if (window._trendingScrollHeaderHandler) {
+            window.removeEventListener('scroll', window._trendingScrollHeaderHandler, true);
+        }
+        window._trendingScrollHeaderHandler = syncTrendingHeaderTitle;
+        window.addEventListener('scroll', window._trendingScrollHeaderHandler, { passive: true, capture: true });
 
         fetchAllData();
     })();

@@ -2213,8 +2213,8 @@
             modal.style.display = 'flex';
             setTimeout(() => { modal.classList.add('active'); }, 10);
         }
-        if (titleEl) titleEl.textContent = 'Creating Account...';
-        if (subEl) subEl.textContent = "We're emailing your temporary login password...";
+        if (titleEl) titleEl.textContent = 'Sending Verification Code...';
+        if (subEl) subEl.textContent = "We're sending a 6-digit verification code to your email...";
         if (spinnerSvg) spinnerSvg.style.display = 'block';
         if (checkmarkIcon) checkmarkIcon.style.display = 'none';
 
@@ -2255,16 +2255,17 @@
             }
             window._isRegistering = false;
 
+            if (data.requires_otp) {
+                window.showRegistrationOtpPanel(data.email || email);
+                return;
+            }
+
             // Day 3 Flow: Temporary password emailed to tourist
             if (data.requires_temp_login || data.success) {
                 const loginEmailInput = document.getElementById('login-email');
                 if (loginEmailInput) loginEmailInput.value = data.email || email;
                 window.showRegTempPwdModal(data.email || email);
                 return;
-            }
-
-            if (data.requires_otp) {
-                window.showRegistrationOtpPanel(data.email || email);
             }
 
         } catch (error) {
@@ -2643,8 +2644,19 @@
     };
 
     window.handleOtpBoxInput = function (el, index) {
-        el.value = el.value.replace(/[^0-9]/g, '');
-        const boxes = document.querySelectorAll('.otp-box');
+        const digits = el.value.replace(/[^0-9]/g, '');
+        const boxes = document.querySelectorAll('#form-otp .otp-box');
+        if (digits.length > 1) {
+            const start = digits.length >= boxes.length ? 0 : index;
+            for (let i = 0; i < digits.length && (start + i) < boxes.length; i++) {
+                boxes[start + i].value = digits[i];
+            }
+            const nextIdx = Math.min(start + digits.length - 1, boxes.length - 1);
+            boxes[nextIdx].focus();
+            checkAutoSubmitOtp();
+            return;
+        }
+        el.value = digits;
         if (el.value && index < boxes.length - 1) {
             boxes[index + 1].focus();
         }
@@ -2652,7 +2664,7 @@
     };
 
     window.handleOtpBoxKeydown = function (el, e, index) {
-        const boxes = document.querySelectorAll('.otp-box');
+        const boxes = document.querySelectorAll('#form-otp .otp-box');
         if (e.key === 'Backspace' && !el.value && index > 0) {
             boxes[index - 1].focus();
         }
@@ -2661,24 +2673,31 @@
     window.handleOtpPaste = function (e) {
         e.preventDefault();
         const pasted = (e.clipboardData || window.clipboardData).getData('text').replace(/[^0-9]/g, '');
-        const boxes = document.querySelectorAll('.otp-box');
+        const boxes = document.querySelectorAll('#form-otp .otp-box');
         for (let i = 0; i < boxes.length && i < pasted.length; i++) {
             boxes[i].value = pasted[i];
         }
         if (pasted.length >= 6) {
             boxes[5].focus();
             checkAutoSubmitOtp();
+        } else if (pasted.length > 0) {
+            boxes[Math.min(pasted.length, boxes.length - 1)].focus();
         }
     };
 
     function checkAutoSubmitOtp() {
-        const boxes = document.querySelectorAll('.otp-box');
+        const boxes = document.querySelectorAll('#form-otp .otp-box');
         let code = '';
         boxes.forEach(b => code += b.value);
         if (code.length === 6) {
+            const form = document.getElementById('form-otp');
             const btn = document.getElementById('btn-otp');
-            if (btn && !btn.disabled) {
-                document.getElementById('form-otp').requestSubmit();
+            if (form && btn && !btn.disabled) {
+                if (typeof form.requestSubmit === 'function') {
+                    form.requestSubmit();
+                } else {
+                    btn.click();
+                }
             }
         }
     }
@@ -2686,7 +2705,7 @@
     window.handleVerifyOtp = async function (e) {
         e.preventDefault();
         const email = document.getElementById('otp-target-email').textContent;
-        const boxes = document.querySelectorAll('.otp-box');
+        const boxes = document.querySelectorAll('#form-otp .otp-box');
         const otp = Array.from(boxes).map(b => b.value).join('');
 
         if (otp.length < 6) {
@@ -2768,6 +2787,33 @@
             const data = await response.json();
             if (!response.ok) {
                 throw new Error(data.message || 'Invalid verification code');
+            }
+
+            const needsPasswordSetup = Boolean(
+                data.must_change_password === true ||
+                data.must_change_password === 1 ||
+                data.must_change_password === '1' ||
+                data.must_change_password === 'true' ||
+                (data.user && (
+                    data.user.must_change_password === true ||
+                    data.user.must_change_password === 1 ||
+                    data.user.must_change_password === '1' ||
+                    data.user.must_change_password === 'true'
+                ))
+            );
+
+            if (needsPasswordSetup) {
+                window._pendingChangePasswordAuth = {
+                    token: data.token,
+                    user: data.user,
+                    email: (data.user && data.user.email) || email,
+                    temporary_password: data.temporary_password || '',
+                    vouchers: data.vouchers
+                };
+                btn.innerHTML = oldHtml;
+                btn.disabled = false;
+                window.openChangeTempPasswordModal(data.user, (data.user && data.user.email) || email);
+                return;
             }
 
             window.purgeAllUserSessionCaches();
@@ -3013,11 +3059,23 @@
     };
 
     window.handleFpOtpBoxInput = function (el, index) {
-        el.value = el.value.replace(/[^0-9]/g, '');
+        const digits = el.value.replace(/[^0-9]/g, '');
         const boxes = document.querySelectorAll('.fp-otp-box');
+        if (digits.length > 1) {
+            const start = digits.length >= boxes.length ? 0 : index;
+            for (let i = 0; i < digits.length && (start + i) < boxes.length; i++) {
+                boxes[start + i].value = digits[i];
+            }
+            const nextIdx = Math.min(start + digits.length - 1, boxes.length - 1);
+            boxes[nextIdx].focus();
+            checkAutoSubmitFpOtp();
+            return;
+        }
+        el.value = digits;
         if (el.value && index < boxes.length - 1) {
             boxes[index + 1].focus();
         }
+        checkAutoSubmitFpOtp();
     };
 
     window.handleFpOtpBoxKeydown = function (el, e, index) {
@@ -3036,8 +3094,23 @@
         }
         if (pasted.length >= 6) {
             boxes[5].focus();
+            checkAutoSubmitFpOtp();
+        } else if (pasted.length > 0) {
+            boxes[Math.min(pasted.length, boxes.length - 1)].focus();
         }
     };
+
+    function checkAutoSubmitFpOtp() {
+        const boxes = document.querySelectorAll('.fp-otp-box');
+        let code = '';
+        boxes.forEach(b => code += b.value);
+        if (code.length === 6) {
+            const btn = document.getElementById('fp-verify-btn');
+            if (btn && !btn.disabled) {
+                document.getElementById('form-fp-verify-code').requestSubmit();
+            }
+        }
+    }
 
     window.handleResendFpEmail = function (e) {
         if (e) e.preventDefault();
@@ -3506,7 +3579,7 @@
                 const loginEmailInput = document.getElementById('login-email');
                 if (loginEmailInput && targetEmail) loginEmailInput.value = targetEmail;
 
-                window.showRegTempPwdModal(targetEmail);
+                window.openChangeTempPasswordModal(data.user, targetEmail);
                 return;
             }
 

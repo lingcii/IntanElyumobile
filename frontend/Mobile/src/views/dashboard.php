@@ -1428,20 +1428,12 @@ if (is_dir($imgDir)) {
         </div>
     </div>
 
-    <!-- Tourist Sites -->
+    <!-- Tourist Sites Near Me -->
     <div class="dash-section stagger-2" id="all-spots-section" style="margin-top: 24px;">
         <div class="section-title">
-            <h3>Tourist Sites</h3>
+            <h3>Tourist Sites Near Me</h3>
             <a href="javascript:void(0);" onclick="window.navigateToTouristSitesPage()" style="white-space:nowrap !important; flex-shrink:0 !important;">See All</a>
         </div>
-        <!-- Horizontal Filter Chips Row (Mockup Screen 2) -->
-        <div class="dash-filter-chips">
-            <button type="button" class="dash-chip active" onclick="window.filterTouristSitesChip('all', this)">All</button>
-            <button type="button" class="dash-chip" onclick="window.filterTouristSitesChip('top', this)">Top Rated</button>
-            <button type="button" class="dash-chip" onclick="window.filterTouristSitesChip('near', this)"><i class="fa-solid fa-location-dot"></i> Near Me</button>
-            <button type="button" class="dash-chip-btn" id="btn-tourist-filter" onclick="window.openTouristSitesFilterModal()" title="Filter Tourist Sites"><i class="fa-solid fa-sliders"></i></button>
-        </div>
-
         <div id="all-spots-container">
             <div class="dash-loading-state">
                 <i class="fa-solid fa-spinner fa-spin"></i>
@@ -1449,23 +1441,6 @@ if (is_dir($imgDir)) {
             </div>
         </div>
 
-    </div>
-
-
-
-    <!-- My Saved Trips Preview -->
-    <div class="dash-section stagger-3">
-        <div class="section-title">
-            <h3>My Saved Trips</h3>
-            <a href="javascript:void(0);" onclick="navigateTo('saved_trips')">Open Saved Trips</a>
-        </div>
-
-        <div id="saved-trips-container">
-            <div class="dash-loading-state">
-                <i class="fa-solid fa-spinner fa-spin"></i>
-                <span>Loading Saved Trips...</span>
-            </div>
-        </div>
     </div>
 
     <!-- Favorites / Saved Places -->
@@ -2284,6 +2259,7 @@ window.applyTouristSitesFilterModal = function() {
     };
 
     window.toggleAllSpotsMore = window.navigateToTouristSitesPage;
+    if (!window._currentTouristSitesChip) window._currentTouristSitesChip = 'near';
 
     window.renderAllTouristSpots = function (spots, activeCat = 'All') {
         if (activeCat === 'All' && !window._applyingChipRender && window._currentTouristSitesChip && window._currentTouristSitesChip !== 'all') {
@@ -2341,8 +2317,6 @@ window.applyTouristSitesFilterModal = function() {
         html += '</div>';
 
         container.innerHTML = html;
-
-
     };
 
     window.fetchAllTouristSpots = async function () {

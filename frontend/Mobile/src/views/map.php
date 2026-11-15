@@ -292,7 +292,7 @@ if (is_dir($imgDir)) {
             <div
                 style="background: #f8fafc !important; padding: 10px 10px 12px 10px; display: flex; flex-direction: column; gap: 8px;">
                 <!-- 1. Existing -->
-                <div class="classification-item-chip" onclick="window.filterByClassification('EXIST')"
+                <div class="classification-item-chip" data-status="EXIST" onclick="window.filterByClassification('EXIST')"
                     style="cursor: pointer; padding: 10px 12px; border-radius: 14px; background: #ffffff !important; border: 1.5px solid #e2e8f0 !important; box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05) !important; outline: none !important; transition: transform 0.15s ease, box-shadow 0.15s ease;"
                     onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
                     <div
@@ -311,7 +311,7 @@ if (is_dir($imgDir)) {
                 </div>
 
                 <!-- 2. Potential -->
-                <div class="classification-item-chip" onclick="window.filterByClassification('POTENTIAL')"
+                <div class="classification-item-chip" data-status="POTENTIAL" onclick="window.filterByClassification('POTENTIAL')"
                     style="cursor: pointer; padding: 10px 12px; border-radius: 14px; background: #ffffff !important; border: 1.5px solid #e2e8f0 !important; box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05) !important; outline: none !important; transition: transform 0.15s ease, box-shadow 0.15s ease;"
                     onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
                     <div
@@ -330,7 +330,7 @@ if (is_dir($imgDir)) {
                 </div>
 
                 <!-- 3. Emerging -->
-                <div class="classification-item-chip" onclick="window.filterByClassification('EMERGE')"
+                <div class="classification-item-chip" data-status="EMERGE" onclick="window.filterByClassification('EMERGE')"
                     style="cursor: pointer; padding: 10px 12px; border-radius: 14px; background: #ffffff !important; border: 1.5px solid #e2e8f0 !important; box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05) !important; outline: none !important; transition: transform 0.15s ease, box-shadow 0.15s ease;"
                     onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
                     <div
@@ -349,8 +349,8 @@ if (is_dir($imgDir)) {
                 </div>
 
                 <!-- Show All Classifications Button -->
-                <div onclick="window.filterByClassification('ALL')"
-                    style="cursor: pointer; margin-top: 2px; text-align: center; font-size: 11.5px; font-weight: 800; color: #1e3a8a; padding: 9px 12px; border-radius: 12px; background: #ffffff; border: 1.5px solid #e2e8f0; display: flex; align-items: center; justify-content: center; gap: 6px; transition: background 0.15s ease;"
+                <div class="classification-item-chip active" data-status="ALL" onclick="window.filterByClassification('ALL')"
+                    style="cursor: pointer; margin-top: 2px; text-align: center; font-size: 11.5px; font-weight: 800; color: #1e3a8a; padding: 9px 12px; border-radius: 12px; background: #f0f9ff; border: 1.5px solid #0284c7; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.15s ease;"
                     onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
                     <i class="fa-solid fa-list-check" style="font-size: 11px; color: #1e3a8a;"></i>
                     Show All Classifications
@@ -458,14 +458,14 @@ if (is_dir($imgDir)) {
             </div>
             <div id="directions-vehicle-menu" class="directions-vehicle-menu" hidden>
                 <div class="directions-vehicle-group">
-                    <strong><i class="fa-solid fa-car-side"></i> Private vehicle</strong>
+                    <strong>Private vehicle</strong>
                     <button type="button" data-vehicle="car" onclick="window.selectDirectionsVehicle('car', this)"><i class="fa-solid fa-car"></i>Car</button>
                     <button type="button" data-vehicle="motorcycle" onclick="window.selectDirectionsVehicle('motorcycle', this)"><i class="fa-solid fa-motorcycle"></i>Motorcycle</button>
                     <button type="button" data-vehicle="van" onclick="window.selectDirectionsVehicle('van', this)"><i class="fa-solid fa-van-shuttle"></i>Van</button>
                     <button type="button" data-vehicle="tricycle" onclick="window.selectDirectionsVehicle('tricycle', this)"><i class="fa-solid fa-motorcycle"></i>Tricycle</button>
                 </div>
                 <div class="directions-vehicle-group">
-                    <strong><i class="fa-solid fa-bus-simple"></i> Public vehicle</strong>
+                    <strong>Public vehicle</strong>
                     <button type="button" data-vehicle="tricycle" onclick="window.selectDirectionsVehicle('tricycle', this)"><i class="fa-solid fa-motorcycle"></i>Tricycle</button>
                     <button type="button" data-vehicle="taxi" onclick="window.selectDirectionsVehicle('taxi', this)"><i class="fa-solid fa-taxi"></i>Taxi</button>
                     <button type="button" data-vehicle="pub_regular" onclick="window.selectDirectionsVehicle('pub_regular', this)"><i class="fa-solid fa-bus-simple"></i>PUB Regular</button>
@@ -901,30 +901,43 @@ if (is_dir($imgDir)) {
                     </div>
                 </div>
 
+                <div id="pwd-accessibility-notice" class="dest-warning-card" style="display:none; background:rgba(56,189,248,0.16); border:1px solid rgba(56,189,248,0.35);">
+                    <div class="dest-warning-icon-box"
+                        style="width:36px; height:36px; border-radius:10px; background:#ffffff !important; color:#0284c7 !important; display:flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.18);">
+                        <i class="fa-solid fa-wheelchair" style="color:#0284c7 !important;"></i>
+                    </div>
+                    <div>
+                        <h6 id="pwd-notice-title" style="color:#ffffff;">Accessibility Advisory</h6>
+                        <p id="pwd-notice-desc" style="color:rgba(255,255,255,0.9);">Not all areas of this destination may be wheelchair accessible. Check pathways and facilities before visiting.</p>
+                    </div>
+                </div>
+
                 <div id="sheet-desc-animator">
-                    <div class="dest-section-header">
-                        <div class="dest-section-icon"><i class="fa-solid fa-compass"></i></div>
-                        <h5 class="dest-section-title">About this destination</h5>
+                    <div class="dest-support-box">
+                        <div class="dest-section-header">
+                            <div class="dest-section-icon"><i class="fa-solid fa-compass"></i></div>
+                            <h5 class="dest-section-title">About this destination</h5>
+                        </div>
+
+                        <p id="sheet-desc-short" class="dest-desc-text" style="text-align:left;"></p>
+                        <p id="sheet-desc-full" class="dest-desc-text" style="display:none; text-align:left;"></p>
+                        <button id="btn-view-details" class="dest-toggle-btn" onclick="window.toggleFullDetails()"
+                            style="display:none; margin:8px 0 0;">
+                            <span id="details-btn-text">Read More</span>
+                            <i class="fa-solid fa-chevron-down" id="details-chevron"
+                                style="transition:transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);"></i>
+                        </button>
                     </div>
 
-                    <p id="sheet-desc-short" class="dest-desc-text" style="text-align:justify; text-justify:inter-word;"></p>
-                    <p id="sheet-desc-full" class="dest-desc-text" style="display:none; text-align:justify; text-justify:inter-word;"></p>
-                    <button id="btn-view-details" class="dest-toggle-btn" onclick="window.toggleFullDetails()"
-                        style="display:none; margin:8px 0 14px;">
-                        <span id="details-btn-text">Read More</span>
-                        <i class="fa-solid fa-chevron-down" id="details-chevron"
-                            style="transition:transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);"></i>
-                    </button>
-
                     <!-- Expanded Details (Directly Visible) -->
-                    <div id="expanded-details" class="dest-expanded-wrapper" style="display:flex;">
+                    <div id="expanded-details" class="dest-expanded-wrapper" style="display:flex; margin-top:10px; padding-top:0;">
 
                         <!-- Route Guide -->
-                        <div class="dest-guide-box" id="sheet-route-guide-box">
+                        <div class="dest-guide-box" id="sheet-route-guide-box" style="margin-bottom:0;">
                             <div class="dest-guide-title">
                                 <i class="fa-solid fa-signs-post"></i> Route Guide
                             </div>
-                            <p id="sheet-manual-guide" class="dest-guide-text" style="text-align:justify; text-justify:inter-word;"></p>
+                            <p id="sheet-manual-guide" class="dest-guide-text" style="text-align:left;"></p>
                         </div>
 
                         <!-- Nearby Amenities Box with Individual Distances -->
@@ -941,7 +954,6 @@ if (is_dir($imgDir)) {
                                             tourist site</div>
                                     </div>
                                 </div>
-                                <span id="sheet-amenities-count-badge" class="dest-amenities-count-badge">--</span>
                             </div>
 
                             <!-- List showing each amenity and its distance -->
@@ -971,14 +983,29 @@ if (is_dir($imgDir)) {
                             <div id="sheet-service-centers-container" style="display:none; margin-bottom:0;"></div>
                         </div>
 
+                        <!-- Visitor Photos (Google Maps-style horizontal gallery) -->
+                        <div id="sheet-visitor-photos-section" class="dest-support-box" style="display:none;">
+                            <div class="dest-support-header" style="display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:10px;">
+                                <span style="font-size:12.5px; font-weight:800; color:#ffffff; display:flex; align-items:center; gap:6px;">
+                                    <i class="fa-solid fa-camera" style="color:#00f2fe;"></i> Visitor Photos
+                                </span>
+                            </div>
+                            <div id="sheet-visitor-photos-track" style="display:flex; gap:10px; overflow-x:auto; scroll-snap-type:x proximity; padding-bottom:4px; scrollbar-width:none; -webkit-overflow-scrolling:touch;"></div>
+                        </div>
+
                         <!-- Testimonies Section -->
                         <div id="sheet-testimonies-section" class="dest-support-box"
-                            style="display:none; margin-top:14px;">
-                            <div class="dest-support-header">
+                            style="display:none;">
+                            <div class="dest-support-header" style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
                                 <span
                                     style="font-size:12.5px; font-weight:800; color:#ffffff; display:flex; align-items:center; gap:6px;">
                                     <i class="fa-solid fa-comments" style="color:#00f2fe;"></i> Tourist Feedback
                                 </span>
+                                <button type="button" id="btn-sheet-add-review" data-spot-id=""
+                                    onclick="window.openSheetReviewModal(this)"
+                                    style="border:none !important; outline:none !important; border-radius:999px; background:#ffffff !important; color:#1e3a8a !important; font-size:11px; font-weight:800; padding:6px 12px; display:inline-flex; align-items:center; gap:5px; cursor:pointer; box-shadow:0 2px 8px rgba(0,0,0,0.16); flex-shrink:0;">
+                                    <i class="fa-solid fa-pen-to-square" style="font-size:10px;"></i> Add a Review
+                                </button>
                             </div>
                             <div id="testimonies-summary-metrics" style="display:none; margin-bottom:10px;"></div>
                             <div id="testimonies-list-container" style="display:flex; flex-direction:column; gap:8px;">
@@ -2358,7 +2385,7 @@ if (is_dir($imgDir)) {
             container.innerHTML = html;
         }
 
-        window.activeClassificationFilter = null;
+        window.activeClassificationFilter = [];
 
         window.toggleClassificationMenu = function (forceState) {
             const popover = document.getElementById('classification-popover');
@@ -2410,40 +2437,58 @@ if (is_dir($imgDir)) {
         };
 
         window.filterByClassification = function (statusKey) {
-            window.activeClassificationFilter = (statusKey === 'ALL') ? null : statusKey;
+            let selected = Array.isArray(window.activeClassificationFilter)
+                ? [...window.activeClassificationFilter]
+                : (window.activeClassificationFilter ? [window.activeClassificationFilter] : []);
+
+            if (statusKey === 'ALL') {
+                selected = [];
+                window.toggleClassificationMenu(false);
+            } else {
+                const idx = selected.indexOf(statusKey);
+                if (idx >= 0) selected.splice(idx, 1);
+                else selected.push(statusKey);
+            }
+            window.activeClassificationFilter = selected;
+
+            document.querySelectorAll('.classification-item-chip[data-status]').forEach(chip => {
+                const chipStatus = chip.getAttribute('data-status');
+                const isSelected = (chipStatus === 'ALL') ? (selected.length === 0) : selected.includes(chipStatus);
+                chip.classList.toggle('active', isSelected);
+                chip.style.setProperty('background', isSelected ? '#f0f9ff' : '#ffffff', 'important');
+                chip.style.setProperty('border', isSelected ? '1.5px solid #0284c7' : '1.5px solid #e2e8f0', 'important');
+                chip.style.setProperty('box-shadow', isSelected ? '0 4px 12px rgba(2, 132, 199, 0.16)' : '0 2px 8px rgba(15, 23, 42, 0.05)', 'important');
+            });
+
+            document.querySelectorAll('.classification-item-chip[data-status]').forEach(chip => {
+                const chipStatus = chip.getAttribute('data-status');
+                const isSelected = (chipStatus === 'ALL') ? (selected.length === 0) : selected.includes(chipStatus);
+                chip.classList.toggle('active', isSelected);
+                chip.style.setProperty('background', isSelected ? '#f0f9ff' : '#ffffff', 'important');
+                chip.style.setProperty('border', isSelected ? '1.5px solid #0284c7' : '1.5px solid #e2e8f0', 'important');
+                chip.style.setProperty('box-shadow', isSelected ? '0 4px 12px rgba(2, 132, 199, 0.16)' : '0 2px 8px rgba(15, 23, 42, 0.05)', 'important');
+            });
 
             const dotExist = document.getElementById('dot-exist');
             const dotEmerge = document.getElementById('dot-emerge');
             const dotPot = document.getElementById('dot-potential');
 
             if (dotExist && dotEmerge && dotPot) {
-                dotExist.style.transform = 'scale(1)';
-                dotExist.style.opacity = '1';
-                dotEmerge.style.transform = 'scale(1)';
-                dotEmerge.style.opacity = '1';
-                dotPot.style.transform = 'scale(1)';
-                dotPot.style.opacity = '1';
-
-                if (statusKey === 'EXIST') {
-                    dotExist.style.transform = 'scale(1.4)';
-                    dotEmerge.style.opacity = '0.35';
-                    dotPot.style.opacity = '0.35';
-                } else if (statusKey === 'EMERGE') {
-                    dotEmerge.style.transform = 'scale(1.4)';
-                    dotExist.style.opacity = '0.35';
-                    dotPot.style.opacity = '0.35';
-                } else if (statusKey === 'POTENTIAL') {
-                    dotPot.style.transform = 'scale(1.4)';
-                    dotExist.style.opacity = '0.35';
-                    dotEmerge.style.opacity = '0.35';
-                }
+                const isAll = selected.length === 0;
+                const applyDot = (el, key) => {
+                    const active = !isAll && selected.includes(key);
+                    el.style.transform = active ? 'scale(1.4)' : 'scale(1)';
+                    el.style.opacity = (isAll || active) ? '1' : '0.35';
+                };
+                applyDot(dotExist, 'EXIST');
+                applyDot(dotEmerge, 'EMERGE');
+                applyDot(dotPot, 'POTENTIAL');
             }
 
-            window.toggleClassificationMenu(false);
-
-            // Re-run filterCategory with the active category
+            // Re-run filterCategory with the active category and fit map bounds to matching sites
+            window._forceFitClassificationBounds = true;
             const activeCatEl = document.querySelector('.category-pill.active');
-            window.filterCategory(window.currentActiveCategory || 'All', activeCatEl);
+            window.filterCategory(window.currentActiveCategory || 'All', activeCatEl, true);
         };
 
         document.addEventListener('click', (e) => {
@@ -2468,13 +2513,13 @@ if (is_dir($imgDir)) {
                 const matchesCat = matchesCategoryFilter(loc, category);
 
                 let matchesStatus = true;
-                if (window.activeClassificationFilter) {
+                const activeClassFilters = Array.isArray(window.activeClassificationFilter)
+                    ? window.activeClassificationFilter
+                    : (window.activeClassificationFilter ? [window.activeClassificationFilter] : []);
+                if (activeClassFilters.length > 0) {
                     const s = (loc.classification_status || 'EXIST').toUpperCase().trim();
-                    if (window.activeClassificationFilter === 'EMERGE') {
-                        matchesStatus = (s === 'EMERGE' || s === 'EMERGING');
-                    } else {
-                        matchesStatus = (s === window.activeClassificationFilter);
-                    }
+                    const normS = (s === 'EMERGING') ? 'EMERGE' : s;
+                    matchesStatus = activeClassFilters.includes(normS);
                 }
 
                 return matchesSearch && matchesCat && matchesStatus;
@@ -2482,22 +2527,22 @@ if (is_dir($imgDir)) {
 
             window.renderMarkers(filtered);
 
-            // Update badge on tourist sites list button
-            const nearbyBadge = document.getElementById('nearby-sites-badge');
-            if (nearbyBadge) {
-                if (filtered.length > 0 && category !== 'All') {
-                    nearbyBadge.style.display = 'flex';
-                    nearbyBadge.textContent = filtered.length;
-                } else if (category === 'All') {
-                    nearbyBadge.style.display = 'none';
-                }
+            // Sync nearby badge and open nearby sheet with active category/classification filters
+            if (typeof window.updateNearbyBadge === 'function') {
+                window.updateNearbyBadge();
+            }
+            const nearbySheet = document.getElementById('nearby-sites-sheet');
+            if (nearbySheet && nearbySheet.classList.contains('active') && typeof window.renderNearbyTouristSites === 'function') {
+                window.renderNearbyTouristSites();
             }
 
             const validFiltered = filtered.filter(loc => loc.lat && loc.lng && !isNaN(parseFloat(loc.lat)) && !isNaN(parseFloat(loc.lng)));
             
-            // Only adjust camera if explicitly requested, NOT searching, and NOT showing 'All'
+            // Only adjust camera if explicitly requested, NOT searching, and NOT showing 'All' (unless triggered by classification filter)
             const isSearching = document.body.classList.contains('map-search-active') || (searchInput && document.activeElement === searchInput);
-            if (shouldFitBounds && !isSearching && category !== 'All' && validFiltered.length > 0 && window.mapInstance) {
+            const shouldZoomForClass = Boolean(window._forceFitClassificationBounds);
+            window._forceFitClassificationBounds = false;
+            if (shouldFitBounds && !isSearching && (category !== 'All' || shouldZoomForClass) && validFiltered.length > 0 && window.mapInstance) {
                 if (validFiltered.length === 1) {
                     // Single destination: fly smoothly right to it with high zoom
                     window.mapInstance.flyTo({
@@ -3090,13 +3135,39 @@ if (is_dir($imgDir)) {
                 return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
             }
 
-            function updateNearbyBadge(lat, lng) {
+            function matchesActiveNearbyFilters(loc) {
+                if (window.currentActiveCategory && window.currentActiveCategory !== 'All') {
+                    if (!matchesCategoryFilter(loc, window.currentActiveCategory)) return false;
+                }
+                const activeClassFilters = Array.isArray(window.activeClassificationFilter)
+                    ? window.activeClassificationFilter
+                    : (window.activeClassificationFilter ? [window.activeClassificationFilter] : []);
+                if (activeClassFilters.length > 0) {
+                    const s = (loc.classification_status || 'EXIST').toUpperCase().trim();
+                    const normS = (s === 'EMERGING') ? 'EMERGE' : s;
+                    if (!activeClassFilters.includes(normS)) return false;
+                }
+                return true;
+            }
+
+            window.updateNearbyBadge = function (lat, lng) {
                 if (!window.allMapLocations || window.allMapLocations.length === 0) return;
+                let uLat = lat ?? window.currentGPSLat ?? window.userCurrentCoords?.lat;
+                let uLng = lng ?? window.currentGPSLng ?? window.userCurrentCoords?.lng;
+                if ((!uLat || !uLng) && window.mapInstance) {
+                    const c = window.mapInstance.getCenter();
+                    uLat = c.lat;
+                    uLng = c.lng;
+                }
+                if (!uLat || !uLng) { uLat = 16.6159; uLng = 120.3209; }
+
+                const radiusLimit = (typeof currentNearbyRadius === 'number' && !isNaN(currentNearbyRadius)) ? currentNearbyRadius : 2.0;
                 const nearbySpots = window.allMapLocations.filter(loc => {
+                    if (!matchesActiveNearbyFilters(loc)) return false;
                     const locLat = parseFloat(loc.lat || loc.latitude);
                     const locLng = parseFloat(loc.lng || loc.longitude);
                     if (isNaN(locLat) || isNaN(locLng)) return false;
-                    return getDistanceKm(lat, lng, locLat, locLng) <= 2.0;
+                    return getDistanceKm(uLat, uLng, locLat, locLng) <= radiusLimit;
                 });
                 const badge = document.getElementById('nearby-sites-badge');
                 if (badge) {
@@ -3107,7 +3178,7 @@ if (is_dir($imgDir)) {
                         badge.style.display = 'none';
                     }
                 }
-            }
+            };
 
             let currentNearbyRadius = 2; // default 2km
 
@@ -3266,10 +3337,7 @@ if (is_dir($imgDir)) {
 
                 calculatedSpots.sort((a, b) => a.distanceKm - b.distanceKm);
 
-                let activeCatSpots = calculatedSpots;
-                if (window.currentActiveCategory && window.currentActiveCategory !== 'All') {
-                    activeCatSpots = calculatedSpots.filter(s => matchesCategoryFilter(s, window.currentActiveCategory));
-                }
+                let activeCatSpots = calculatedSpots.filter(matchesActiveNearbyFilters);
 
                 let filtered = [];
                 if (currentNearbyRadius === 'all') {
@@ -4493,6 +4561,33 @@ if (is_dir($imgDir)) {
                 }
             }
 
+            const pwdNoticeEl = document.getElementById('pwd-accessibility-notice');
+            if (pwdNoticeEl) {
+                let hasPwdPref = false;
+                try {
+                    const au = JSON.parse(localStorage.getItem('auth_user') || '{}');
+                    const tp = String(au.travel_preferences || '').toLowerCase();
+                    hasPwdPref = tp.includes('pwd') || tp.includes('wheelchair');
+                } catch (e) { }
+
+                if (hasPwdPref) {
+                    const textBlob = `${locationData.name || ''} ${locationData.category || ''} ${locationData.description || ''}`.toLowerCase();
+                    const isSteepOrRough = locationData.accessible_by_private_vehicle === false || locationData.accessible_by_private_vehicle === 0 || /falls|hike|trek|mountain|trail|cave|watchtower|cliff/.test(textBlob);
+                    const titleEl = document.getElementById('pwd-notice-title');
+                    const descEl = document.getElementById('pwd-notice-desc');
+                    if (isSteepOrRough) {
+                        if (titleEl) titleEl.textContent = 'Limited Wheelchair / PWD Access';
+                        if (descEl) descEl.textContent = 'Based on your PWD / Wheelchair preference, this site may involve stairs, uneven trails, or steep terrain.';
+                    } else {
+                        if (titleEl) titleEl.textContent = 'Wheelchair / PWD Advisory';
+                        if (descEl) descEl.textContent = 'Based on your PWD / Wheelchair preference, please confirm on-site ramp and restroom access before visiting.';
+                    }
+                    pwdNoticeEl.style.display = 'flex';
+                } else {
+                    pwdNoticeEl.style.display = 'none';
+                }
+            }
+
             // 2. Fees & Pricing Breakdown (Adult, Child, PWD, Senior Citizen, Entrance Fee, Environmental Fee)
             const feeMainText = document.getElementById('sheet-fee-main-text');
             const feeTags = document.getElementById('sheet-fee-breakdown-tags');
@@ -4783,6 +4878,57 @@ if (is_dir($imgDir)) {
             if (feedbackSpotId) {
                 window.currentSelectedSpotId = feedbackSpotId;
                 window.currentSelectedLocationData = locationData;
+
+                // Render Google Maps-style Visitor Photos strip (separated from main hero banner)
+                const vPhotosSec = document.getElementById('sheet-visitor-photos-section');
+                const vPhotosTrack = document.getElementById('sheet-visitor-photos-track');
+                const vPhotosCount = document.getElementById('sheet-visitor-photos-count');
+                if (vPhotosSec && vPhotosTrack) {
+                    const rawVisitorPhotos = Array.isArray(locationData.visitor_photos) ? locationData.visitor_photos : [];
+                    vPhotosSec.style.display = 'block';
+                    if (rawVisitorPhotos.length > 0) {
+                        if (vPhotosCount) vPhotosCount.textContent = `${rawVisitorPhotos.length} photo${rawVisitorPhotos.length > 1 ? 's' : ''}`;
+                        vPhotosTrack.style.display = 'flex';
+                        vPhotosTrack.innerHTML = rawVisitorPhotos.map((rawUrl, idx) => {
+                            const resolved = (typeof window.resolveProofImageUrl === 'function')
+                                ? window.resolveProofImageUrl(rawUrl)
+                                : ((typeof window.getDestImage === 'function') ? window.getDestImage(rawUrl, 400) : rawUrl);
+                            const safeUrl = String(resolved || rawUrl).replace(/'/g, "\\'");
+                            const safeRaw = String(rawUrl).replace(/'/g, "\\'");
+                            const labelOverlay = idx === 0
+                                ? `<div style="position:absolute; inset:auto 0 0 0; padding:18px 8px 6px; background:linear-gradient(180deg, transparent 0%, rgba(15,23,42,0.78) 100%); color:#ffffff; font-size:11px; font-weight:800; pointer-events:none;">All</div>`
+                                : '';
+                            return `
+                                <div onclick="window.openVisitorPhotoLightbox('${safeUrl}')" style="position:relative; width:108px; height:108px; border-radius:14px; overflow:hidden; flex-shrink:0; scroll-snap-align:start; background:rgba(255,255,255,0.14); border:1px solid rgba(255,255,255,0.22); cursor:pointer; box-shadow:0 2px 8px rgba(15,23,42,0.18);">
+                                    <img src="${resolved}" alt="Visitor photo" style="width:100%; height:100%; object-fit:cover; display:block;" onerror="if(!this.dataset.fb && typeof window.getProofImageFallbackUrl==='function'){this.dataset.fb='1';this.src=window.getProofImageFallbackUrl('${safeRaw}');}else{this.parentElement.style.display='none';}">
+                                    ${labelOverlay}
+                                </div>`;
+                        }).join('');
+                    } else {
+                        if (vPhotosCount) vPhotosCount.textContent = '0 photos';
+                        vPhotosTrack.style.display = 'block';
+                        vPhotosTrack.innerHTML = `
+                            <div style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.16); border-radius:14px; padding:18px 14px; text-align:center;">
+                                <div style="width:38px; height:38px; border-radius:50%; background:#ffffff; display:inline-flex; align-items:center; justify-content:center; color:#1e3a8a; font-size:15px; margin-bottom:8px; box-shadow:0 2px 6px rgba(0,0,0,0.18);">
+                                    <i class="fa-solid fa-images" style="color:#1e3a8a;"></i>
+                                </div>
+                                <div style="font-size:12.5px; font-weight:800; color:#ffffff; margin-bottom:2px;">No visitor photos yet</div>
+                                <div style="font-size:11px; color:rgba(255,255,255,0.75); font-weight:500;">Photos uploaded by visitors will appear here.</div>
+                            </div>`;
+                    }
+                }
+
+                const addRevBtn = document.getElementById('btn-sheet-add-review');
+                if (addRevBtn) {
+                    const isGuestUser = !localStorage.getItem('intan_elyu_token') || (typeof window.isGuestMode === 'function' && window.isGuestMode());
+                    addRevBtn.style.display = isGuestUser ? 'none' : 'inline-flex';
+                    addRevBtn.setAttribute('data-spot-id', feedbackSpotId);
+                    addRevBtn.setAttribute('data-spot-classification', locationData.classification_status || 'existing');
+                }
+                if (typeof window.syncReviewedButtons === 'function') {
+                    window.syncReviewedButtons();
+                }
+
                 const testimoniesSec = document.getElementById('sheet-testimonies-section');
                 if (testimoniesSec) {
                     testimoniesSec.style.display = 'block';
@@ -6624,5 +6770,53 @@ if (is_dir($imgDir)) {
             }
         };
         document.addEventListener('visibilitychange', window._mapSpotsVisibilityHandler);
+        window.addEventListener('spot-reviewed', (e) => {
+            if (e && e.detail && e.detail.spotId && window.currentSelectedSpotId == e.detail.spotId) {
+                if (typeof fetchTestimonies === 'function') {
+                    fetchTestimonies(e.detail.spotId, window.currentSelectedLocationData);
+                }
+            }
+        });
     })();
+
+    window.openSheetReviewModal = function (btnEl) {
+        const token = localStorage.getItem('intan_elyu_token');
+        if (!token) {
+            if (typeof window.showGuestActionModal === 'function') {
+                window.showGuestActionModal('review');
+            } else if (typeof showToast === 'function') {
+                showToast('Please sign in to write a review.', 'info');
+            }
+            return;
+        }
+        if (typeof window.openWriteTestimonyModal === 'function') {
+            window.openWriteTestimonyModal(window.currentSelectedSpotId, btnEl);
+        }
+    };
+
+    window.openVisitorPhotoLightbox = function (imgUrl) {
+        const lb = document.getElementById('visitor-photo-lightbox');
+        const lbImg = document.getElementById('visitor-photo-lightbox-img');
+        if (!lb || !lbImg || !imgUrl) return;
+        lbImg.src = imgUrl;
+        lb.style.display = 'flex';
+    };
+
+    window.closeVisitorPhotoLightbox = function () {
+        const lb = document.getElementById('visitor-photo-lightbox');
+        if (lb) lb.style.display = 'none';
+    };
 </script>
+
+<!-- Visitor Photo Lightbox Modal -->
+<div id="visitor-photo-lightbox" onclick="window.closeVisitorPhotoLightbox()"
+    style="display:none; position:fixed; inset:0; z-index:9999999; background:rgba(6,11,25,0.92); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); align-items:center; justify-content:center; padding:20px;">
+    <button type="button" onclick="window.closeVisitorPhotoLightbox()" aria-label="Close"
+        style="position:absolute; top:calc(16px + env(safe-area-inset-top, 0px)); right:16px; width:40px; height:40px; border-radius:50%; border:none; background:rgba(255,255,255,0.18); color:#ffffff; font-size:18px; display:flex; align-items:center; justify-content:center; cursor:pointer;">
+        <i class="fa-solid fa-xmark"></i>
+    </button>
+    <img id="visitor-photo-lightbox-img" src="" alt="Visitor Photo Preview" onclick="event.stopPropagation()"
+        style="max-width:100%; max-height:85vh; border-radius:16px; object-fit:contain; box-shadow:0 20px 60px rgba(0,0,0,0.6);">
+</div>
+
+<?php include_once __DIR__ . '/../components/testimony_modal.php'; ?>

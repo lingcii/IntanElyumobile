@@ -78,7 +78,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
         <div style="flex-shrink:0; background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%); padding:18px 20px; display:flex; justify-content:space-between; align-items:center; border-top-left-radius:26px; border-top-right-radius:26px; box-sizing:border-box;">
             <div style="text-align:left;">
                 <h3 id="proof-spot-title" style="margin:0; color:#ffffff; font-size:18px; font-weight:800; display:flex; align-items:center; gap:8px;">
-                    <i class="fa-solid fa-camera" style="color:#38bdf8; font-size:17px;"></i> Upload Photo Proof
+                    <i class="fa-solid fa-camera" style="color:#38bdf8; font-size:17px;"></i> Upload Photo
                 </h3>
                 <span id="proof-spot-subtitle" style="font-size:12px; color:rgba(255,255,255,0.85); font-weight:600; display:block; margin-top:3px;">Select up to 5 photos</span>
             </div>
@@ -801,7 +801,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                         ${proofThumbnailStrip}
                         <div style="display:flex; flex-direction:column; gap:2px;">
                             <span style="background:#fee2e2; border:1px solid #fecaca; color:#b91c1c; font-weight:800; font-size:10px; padding:2px 6px; border-radius:100px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-circle-xmark"></i> Rejected</span>
-                            <button onclick="event.stopPropagation(); window.openProofUploadModal('${item.id}', '${destEscaped}')" style="background:linear-gradient(135deg, #ef4444, #dc2626); color:#ffffff; border:none; padding:4px 8px; border-radius:100px; font-weight:800; font-size:9.5px; cursor:pointer; white-space:nowrap; box-shadow:0 2px 6px rgba(239,68,68,0.25);"><i class="fa-solid fa-camera" style="margin-right:2px;"></i> Re-upload Proof</button>
+                            <button onclick="event.stopPropagation(); window.openProofUploadModal('${item.id}', '${destEscaped}')" style="background:linear-gradient(135deg, #ef4444, #dc2626); color:#ffffff; border:none; padding:4px 8px; border-radius:100px; font-weight:800; font-size:9.5px; cursor:pointer; white-space:nowrap; box-shadow:0 2px 6px rgba(239,68,68,0.25);"><i class="fa-solid fa-camera" style="margin-right:2px;"></i> Re-upload Photo</button>
                         </div>
                     </div>`;
                 } else if (isPendingApproval) {
@@ -809,7 +809,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                 } else if (isLocationVerified && !hasProof) {
                     actionBtnHtml = `<div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
                         <span style="background:#e0f2fe; border:1px solid #bae6fd; color:#0284c7; font-weight:800; font-size:10px; padding:4px 8px; border-radius:100px; white-space:nowrap;"><i class="fa-solid fa-location-dot"></i> Checked In</span>
-                        <button onclick="event.stopPropagation(); window.openProofUploadModal('${item.id}', '${destEscaped}')" style="background:linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color:#ffffff; border:none; padding:6px 12px; border-radius:100px; font-weight:800; font-size:10.5px; box-shadow:0 2px 8px rgba(2,132,199,0.3); cursor:pointer; white-space:nowrap;"><i class="fa-solid fa-camera" style="margin-right:3px;"></i> Upload Proof</button>
+                        <button onclick="event.stopPropagation(); window.openProofUploadModal('${item.id}', '${destEscaped}')" style="background:linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color:#ffffff; border:none; padding:6px 12px; border-radius:100px; font-weight:800; font-size:10.5px; box-shadow:0 2px 8px rgba(2,132,199,0.3); cursor:pointer; white-space:nowrap;"><i class="fa-solid fa-camera" style="margin-right:3px;"></i> Upload Photo</button>
                     </div>`;
                 } else if (isPhotoApproved && !isLocationVerified) {
                     actionBtnHtml = `<div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
@@ -1702,7 +1702,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
 
             const titleEl = document.getElementById('proof-spot-title');
             if (titleEl) {
-                titleEl.innerHTML = `<i class="fa-solid fa-camera" style="color:#38bdf8; font-size:17px;"></i> ${spotName || 'Upload Photo Proof'}`;
+                titleEl.innerHTML = `<i class="fa-solid fa-camera" style="color:#38bdf8; font-size:17px;"></i> ${spotName || 'Upload Photo'}`;
             }
 
             const input = document.getElementById('proof-upload-input');
@@ -2060,7 +2060,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
             if (!itemId) return;
 
             if (window.selectedProofPhotos.length === 0) {
-                if (typeof showToast === 'function') showToast('Please select or capture at least one photo proof.');
+                if (typeof showToast === 'function') showToast('Please select or capture at least one photo.');
                 return;
             }
 
@@ -2108,7 +2108,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                 }
                 window.closeProofUploadModal();
                 if (typeof showToast === 'function') {
-                    showToast('📍 Photo proof saved on device! Auto-syncs when online.', 'success');
+                    showToast('📍 Photo saved on device! Auto-syncs when online.', 'success');
                 }
                 if (window.confetti) {
                     try { window.confetti({ particleCount: 70, spread: 60, origin: { y: 0.7 } }); } catch (e) { }
@@ -2139,7 +2139,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                     });
                     window.closeProofUploadModal();
                     if (typeof showToast === 'function') {
-                        showToast('📍 Saved Offline! Photo proof saved on device. Auto-syncs when online.', 'success');
+                        showToast('📍 Saved Offline! Photo saved on device. Auto-syncs when online.', 'success');
                     }
                 } else {
                     if (typeof showToast === 'function') showToast(reason || 'Upload failed. Please try again.');
@@ -2174,7 +2174,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                     window.applyPhotoProofUpdateLocally(itemId, permanentUrls, data.proof_status || 'pending');
 
                     if (typeof showToast === 'function') {
-                        showToast(data.message || 'Photo proof submitted! Pending review before completion.', 'success');
+                        showToast(data.message || 'Photo uploaded!', 'success');
                     }
                     if (window.confetti) {
                         try { window.confetti({ particleCount: 80, spread: 60, origin: { y: 0.7 } }); } catch (e) { }
@@ -2384,7 +2384,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                             } catch (e) { }
                         }
                         if (typeof showToast === 'function') {
-                            showToast(data.message || `📍 Location verified at ${spotName}! Photo proof is required to verify your visit.`, 'success');
+                            showToast(data.message || `📍 Location verified at ${spotName}!`, 'success');
                         }
                         if (window.confetti) {
                             try { window.confetti({ particleCount: 70, spread: 60, origin: { y: 0.7 } }); } catch (e) { }

@@ -221,11 +221,11 @@
             const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
             const isGuest = !token || token === 'guest_token' || token === 'offline_guest_token' || token.startsWith('guest_') || token.startsWith('offline_');
             if (user) {
-                const fullName = (user.first_name || user.name || '').trim();
-                const firstName = fullName ? fullName.split(/\s+/)[0] : 'Explorer';
-                if (nameEl && firstName) nameEl.textContent = firstName;
-                if (avatarEl && firstName) {
-                    avatarEl.src = user.avatar ? (window.getFullImageUrl ? window.getFullImageUrl(user.avatar) : user.avatar) : `https://ui-avatars.com/api/?name=${encodeURIComponent(firstName)}&background=007AFF&color=fff&rounded=true&bold=true&size=128`;
+                const combinedParts = [user.first_name, user.last_name].filter(Boolean).join(' ').trim();
+                const fullName = combinedParts || (user.name || '').trim() || 'Explorer';
+                if (nameEl) nameEl.textContent = fullName;
+                if (avatarEl) {
+                    avatarEl.src = user.avatar ? (window.getFullImageUrl ? window.getFullImageUrl(user.avatar) : user.avatar) : `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=007AFF&color=fff&rounded=true&bold=true&size=128`;
                 }
             }
             const logoutBtn = document.getElementById('sidebar-logout-btn');

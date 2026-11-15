@@ -83,6 +83,30 @@ class MapController extends Controller
                 }
             } catch (\Throwable $e) {}
 
+            $spotVisitorPhotosMap = [];
+            try {
+                $proofRows = \Illuminate\Support\Facades\DB::table('itinerary_items')
+                    ->whereNotNull('tourist_spot_id')
+                    ->whereNotNull('proof_image')
+                    ->where('proof_image', '!=', '')
+                    ->orderBy('id', 'desc')
+                    ->get(['tourist_spot_id', 'proof_image']);
+                foreach ($proofRows as $pr) {
+                    $sid = $pr->tourist_spot_id;
+                    if (!isset($spotVisitorPhotosMap[$sid])) $spotVisitorPhotosMap[$sid] = [];
+                    if (count($spotVisitorPhotosMap[$sid]) >= 20) continue;
+                    $raw = trim((string) $pr->proof_image);
+                    $decoded = str_starts_with($raw, '[') ? json_decode($raw, true) : [$raw];
+                    if (is_array($decoded)) {
+                        foreach ($decoded as $u) {
+                            if (is_string($u) && $u !== '' && !in_array($u, $spotVisitorPhotosMap[$sid])) {
+                                $spotVisitorPhotosMap[$sid][] = $u;
+                            }
+                        }
+                    }
+                }
+            } catch (\Throwable $e) {}
+
             return TouristSpot::activeForTourists()
                 ->with('municipality:id,name')
                 ->with('images')
@@ -93,23 +117,32 @@ class MapController extends Controller
                        'environmental_fee', 'fee_types', 'route_guide', 'tour_guide_notice',
                        'accessible_by_private_vehicle', 'photo_url', 'description', 'opening_time', 'closing_time',
                        'is_open_24_hours', 'is_maintenance', 'rating', 'visits', 'classification_status', 'status', 'boundary_geojson'])
-                ->map(function ($spot) use ($spotPublicVehicles, $spotPrivateVehicles, $spotAllVehicles, $spotServiceCenterMap) {
+                ->map(function ($spot) use ($spotPublicVehicles, $spotPrivateVehicles, $spotAllVehicles, $spotServiceCenterMap, $spotVisitorPhotosMap) {
                     /** @var TouristSpot $spot */
-                    $imageUrl = $spot->photo_url;
-                    if (!$imageUrl && $spot->images && $spot->images->isNotEmpty()) {
-                        $imageUrl = $spot->images->first()->photo_url;
-                    }
+                    $isVisitorProofUrl = function (?string $url): bool {
+                        return $url && str_contains($url, 'proof_images/');
+                    };
+
                     $imagesList = [];
-                    if ($spot->photo_url) {
+                    $visitorPhotosList = $spotVisitorPhotosMap[$spot->id] ?? [];
+
+                    if ($spot->photo_url && !$isVisitorProofUrl($spot->photo_url)) {
                         $imagesList[] = $spot->photo_url;
                     }
                     if ($spot instanceof TouristSpot && $spot->relationLoaded('images') && $spot->images && $spot->images->isNotEmpty()) {
                         foreach ($spot->images as $imgObj) {
-                            if ($imgObj->photo_url && !in_array($imgObj->photo_url, $imagesList)) {
-                                $imagesList[] = $imgObj->photo_url;
+                            $pUrl = $imgObj->photo_url ?? null;
+                            if (!$pUrl) continue;
+                            if ($isVisitorProofUrl($pUrl)) {
+                                if (!in_array($pUrl, $visitorPhotosList)) {
+                                    $visitorPhotosList[] = $pUrl;
+                                }
+                            } elseif (!in_array($pUrl, $imagesList)) {
+                                $imagesList[] = $pUrl;
                             }
                         }
                     }
+                    $imageUrl = $imagesList[0] ?? null;
 
                     $hasExplicit = isset($spotAllVehicles[$spot->id]) && !empty($spotAllVehicles[$spot->id]);
                     $isDrivable = (bool) ($spot->accessible_by_private_vehicle ?? 1);
@@ -178,6 +211,7 @@ class MapController extends Controller
                         'service_centers'               => $spotServiceCenterMap[$spot->id] ?? [],
                         'photo_url'                     => $imageUrl,
                         'images'                        => $imagesList,
+                        'visitor_photos'                => $visitorPhotosList,
                         'description'                   => $spot->description,
                         'opening_time'                  => $spot->opening_time,
                         'closing_time'                  => $spot->closing_time,

@@ -29,7 +29,7 @@ class RegisterController extends Controller
 
     /**
      * POST /api/auth/register
-     * Day 3 Flow: Registers tourist, generates secure temporary password, and emails it.
+     * Stores pending registration in cache and sends a 6-digit email verification code.
      */
     public function register(Request $request): JsonResponse
     {
@@ -81,65 +81,44 @@ class RegisterController extends Controller
         }
 
         $emailKey = strtolower(trim($request->email));
+        $rawPassword = trim((string) ($request->password ?? ''));
+        $hasCustomPassword = $rawPassword !== '' && $rawPassword !== 'autogen-temp';
+        $tempPassword = $hasCustomPassword
+            ? $rawPassword
+            : ('Elyu' . random_int(1000, 9999) . strtoupper(Str::random(3)));
 
-        // Generate an easy-to-type, secure temporary password (e.g. Elyu4921XK)
-        $tempPassword = 'Elyu' . random_int(1000, 9999) . strtoupper(Str::random(3));
+        $otp = (string) random_int(100000, 999999);
+        $cacheKey = "pending_reg_{$emailKey}";
 
-        $token = Str::random(60);
-        $now = now();
-
-        $userData = [
+        Cache::put($cacheKey, [
             'name'                 => $trimmedName,
             'email'                => $emailKey,
             'password'             => Hash::make($tempPassword),
+            'temp_password'        => $hasCustomPassword ? null : $tempPassword,
+            'must_change_password' => !$hasCustomPassword,
             'gender'               => $request->gender,
-            'role'                 => 'tourist',
-            'status'               => 'active',
-            'api_token'            => $token,
-            'must_change_password' => true,
-            'created_at'           => $now,
-            'updated_at'           => $now,
-        ];
+            'otp'                  => $otp,
+        ], now()->addMinutes(10));
 
         try {
-            $user = User::create($userData);
-        } catch (\Throwable $dbEx) {
-            // In case must_change_password column is pending migration on some environments
-            unset($userData['must_change_password']);
-            $user = User::create($userData);
-        }
-
-        try {
-            $this->sendTemporaryPasswordEmail($emailKey, $trimmedName, $tempPassword);
+            $this->sendRegistrationOtpEmail($emailKey, $trimmedName, $otp);
         } catch (\Throwable $e) {
-            Log::error('Temporary password email dispatch failed', ['email' => $emailKey, 'error' => $e->getMessage()]);
+            Cache::forget($cacheKey);
+            Log::error('Registration OTP email dispatch failed', ['email' => $emailKey, 'error' => $e->getMessage()]);
             return response()->json([
                 'success' => false,
-                'message' => 'We could not send your temporary password email. Please verify your email and try again.'
+                'message' => 'We could not send your verification code email. Please check your email address and try again.'
             ], 500);
         }
 
-        // Create Welcome in-app notification in notifications table
-        try {
-            $greetingName = trim(explode(' ', $trimmedName)[0]);
-            \App\Models\Notification::createSafely(
-                $user->id,
-                'welcome',
-                'Welcome to Intan Elyu',
-                "Welcome to Intan Elyu, {$greetingName}! A temporary password was emailed to you. Please set your permanent password upon your first login.",
-                [
-                    'module'     => 'welcome',
-                    'action_url' => 'dashboard'
-                ]
-            );
-        } catch (\Throwable $e) {}
+        Cache::put("pending_reg_resend_cooldown_{$emailKey}", true, now()->addSeconds(45));
 
         return response()->json([
-            'success'             => true,
-            'requires_temp_login' => true,
-            'email'               => $emailKey,
-            'message'             => 'Registration successful! Your temporary password has been sent to your email. Please log in using your temporary password.',
-        ], 201);
+            'success'      => true,
+            'requires_otp' => true,
+            'email'        => $emailKey,
+            'message'      => 'Verification code sent to your email. Please enter the 6-digit code to continue.',
+        ], 202);
     }
 
     /**
@@ -236,17 +215,27 @@ class RegisterController extends Controller
         // Create active user account
         $token = Str::random(60);
         $now = now();
-        $user = User::create([
-            'name'       => $pending['name'],
-            'email'      => $pending['email'],
-            'password'   => $pending['password'],
-            'gender'     => $pending['gender'] ?? null,
-            'role'       => 'tourist',
-            'status'     => 'active',
-            'api_token'  => $token,
-            'created_at' => $now,
-            'updated_at' => $now,
-        ]);
+        $mustChangePassword = (bool) ($pending['must_change_password'] ?? false);
+        $userData = [
+            'name'                 => $pending['name'],
+            'email'                => $pending['email'],
+            'password'             => $pending['password'],
+            'gender'               => $pending['gender'] ?? null,
+            'role'                 => 'tourist',
+            'status'               => 'active',
+            'api_token'            => $token,
+            'must_change_password' => $mustChangePassword,
+            'created_at'           => $now,
+            'updated_at'           => $now,
+        ];
+
+        try {
+            $user = User::create($userData);
+        } catch (\Throwable $dbEx) {
+            unset($userData['must_change_password']);
+            $user = User::create($userData);
+            $mustChangePassword = false;
+        }
 
         \Illuminate\Support\Facades\Cache::forget("pending_reg_{$emailKey}");
 
@@ -275,27 +264,30 @@ class RegisterController extends Controller
         } catch (\Throwable $e) {}
 
         return response()->json([
-            'success' => true,
-            'message' => 'Email verified and account activated successfully!',
-            'token'   => $token,
+            'success'              => true,
+            'message'              => 'Email verified and account activated successfully!',
+            'token'                => $token,
+            'must_change_password' => $mustChangePassword,
+            'temporary_password'   => $mustChangePassword ? ($pending['temp_password'] ?? null) : null,
             'user'    => [
-                'id'             => $user->id,
-                'tourist_number' => method_exists($user, 'getTouristNumber') ? $user->getTouristNumber() : 1,
-                'tourist_id'     => method_exists($user, 'getTouristNumber') ? $user->getTouristNumber() : 1,
-                'name'           => $user->name,
-                'email'          => $user->email,
-                'role'           => $user->role,
-                'points'         => 0,
-                'xp'             => 0,
-                'level'          => 1,
+                'id'                   => $user->id,
+                'tourist_number'       => method_exists($user, 'getTouristNumber') ? $user->getTouristNumber() : 1,
+                'tourist_id'           => method_exists($user, 'getTouristNumber') ? $user->getTouristNumber() : 1,
+                'name'                 => $user->name,
+                'email'                => $user->email,
+                'role'                 => $user->role,
+                'points'               => 0,
+                'xp'                   => 0,
+                'level'                => 1,
                 'completed_activities' => 0,
-                'places_visited' => 0,
-                'avatar'         => null,
-                'travel_preferences' => $user->travel_preferences,
-                'is_new_user'    => true,
-                'created_at'     => $user->created_at ? $user->created_at->toIso8601String() : $now->toIso8601String(),
+                'places_visited'       => 0,
+                'avatar'               => null,
+                'travel_preferences'   => $user->travel_preferences,
+                'must_change_password' => $mustChangePassword,
+                'is_new_user'          => true,
+                'created_at'           => $user->created_at ? $user->created_at->toIso8601String() : $now->toIso8601String(),
                 'created_at_formatted' => $user->created_at ? $user->created_at->format('M d, Y h:i A') : $now->format('M d, Y h:i A'),
-                'date_created'   => $user->created_at ? $user->created_at->format('M d, Y h:i A') : $now->format('M d, Y h:i A'),
+                'date_created'         => $user->created_at ? $user->created_at->format('M d, Y h:i A') : $now->format('M d, Y h:i A'),
             ],
         ], 201);
     }

@@ -1076,7 +1076,7 @@ window.OfflineCheckinManager = {
             } catch (e) { }
 
             if (typeof showToast === 'function') {
-                showToast(`⚡ ${syncedCount} Offline Check-in(s) synced! Proof submitted.`);
+                showToast(`⚡ ${syncedCount} Offline Check-in(s) synced! Photo uploaded.`);
             }
             window.dispatchEvent(new CustomEvent('checkins-synced', { detail: { count: syncedCount } }));
         }
@@ -3454,12 +3454,6 @@ window.fetchSavedTrips = async function (forceRefresh = false) {
                     }
 
                     if (newlyApprovedItems.length > 0) {
-                        newlyApprovedItems.forEach(itemApproved => {
-                            const destName = (itemApproved.destination && itemApproved.destination.name) ? itemApproved.destination.name : 'Your destination';
-                            if (typeof showToast === 'function') {
-                                showToast(`🎉 Verified! Photo proof for ${destName} was approved by Admin!`, 'success', 5000);
-                            }
-                        });
                         if (typeof window.fetchUserProfile === 'function') {
                             window.fetchUserProfile();
                         }
@@ -3919,12 +3913,12 @@ window.renderSavedTrips = function (itineraries) {
                                             <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
                                                 <div>
                                                     <span style="color:#ef4444; font-size:12px; font-weight:800; display:inline-flex; align-items:center; gap:5px;">
-                                                        <i class="fa-solid fa-circle-xmark"></i> Photo Proof Rejected
+                                                        <i class="fa-solid fa-circle-xmark"></i> Photo Rejected
                                                     </span>
                                                     <span style="font-size:10px; color:#fca5a5; display:block; margin-top:2px;">${item.rejection_reason || 'Please upload a clearer photo taken at this destination.'}</span>
                                                 </div>
                                                 <button type="button" class="btn-primary" style="padding:7px 14px; font-size:11.5px; font-weight:800; border-radius:100px; background:linear-gradient(135deg, #ef4444, #dc2626); border:none !important; outline:none !important; color:#fff; cursor:pointer;" onclick="event.stopPropagation(); window.openProofUploadModal('${item.id}', '${destEscaped}')">
-                                                    <i class="fa-solid fa-camera" style="margin-right:4px;"></i> Re-upload Proof
+                                                    <i class="fa-solid fa-camera" style="margin-right:4px;"></i> Re-upload Photo
                                                 </button>
                                             </div>
                                             ${photosStripHtml}
@@ -3939,7 +3933,7 @@ window.renderSavedTrips = function (itineraries) {
                                                     <span style="font-size:10px; color:#ffffff; opacity:0.85; display:block; margin-top:4px;"><i class="fa-solid fa-camera" style="color:#fbbf24; margin-right:4px;"></i>Saved on device &bull; Auto-syncs when online</span>
                                                 </div>
                                                 <button type="button" class="saved-trip-proof-btn" onclick="event.stopPropagation(); window.openProofUploadModal('${item.id}', '${destEscaped}')">
-                                                    <i class="fa-solid fa-camera"></i> ${hasProof ? 'Update Proof' : 'Upload Proof'}
+                                                    <i class="fa-solid fa-camera"></i> ${hasProof ? 'Update Photo' : 'Upload Photo'}
                                                 </button>
                                             </div>` :
                                         (isPhotoApproved && !isLocVerified ?
@@ -3949,7 +3943,7 @@ window.renderSavedTrips = function (itineraries) {
                                                         <span style="background:rgba(52,199,89,0.18); border:none !important; outline:none !important; color:#34c759; font-size:11px; font-weight:800; padding:3px 10px; border-radius:100px; display:inline-flex; align-items:center; gap:5px;">
                                                             <i class="fa-solid fa-circle-check"></i> Photo Approved &bull; ⚠️ Check-in Required
                                                         </span>
-                                                        <span style="font-size:10px; color:#ffffff; opacity:0.8; display:block; margin-top:4px;">Photo proof verified! Please check in to complete this stop.</span>
+                                                        <span style="font-size:10px; color:#ffffff; opacity:0.8; display:block; margin-top:4px;">Photo uploaded! Please check in to complete this stop.</span>
                                                     </div>
                                                     <button type="button" class="btn-primary" style="padding:7px 14px; font-size:11.5px; font-weight:800; border-radius:100px; background:linear-gradient(135deg, #00f2fe, #0284c7); border:none !important; outline:none !important; color:#fff; cursor:pointer;" onclick="event.stopPropagation(); window.executeLocationCheckIn('${item.id}', '${destEscaped}', ${dest?.latitude || 'null'}, ${dest?.longitude || 'null'}, this)">
                                                         <i class="fa-solid fa-location-crosshairs" style="margin-right:4px;"></i> Check In
@@ -3988,12 +3982,12 @@ window.renderSavedTrips = function (itineraries) {
                                             `<div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:4px; flex-wrap:wrap;">
                                                 <div>
                                                     <span style="background:rgba(52,199,89,0.18); border:none !important; outline:none !important; color:#34c759; font-size:11px; font-weight:800; padding:3px 10px; border-radius:100px; display:inline-flex; align-items:center; gap:5px;">
-                                                        <i class="fa-solid fa-circle-check"></i> Checked In &bull; ⚠️ Photo Proof Required
+                                                        <i class="fa-solid fa-circle-check"></i> Checked In
                                                     </span>
                                                     <span style="font-size:10px; color:#ffffff; opacity:0.8; display:block; margin-top:4px;">Take or upload photos to complete check-in</span>
                                                 </div>
                                                 <button type="button" class="btn-primary" style="padding:7px 14px; font-size:11.5px; font-weight:800; border-radius:100px; background:linear-gradient(135deg, #00f2fe, #0284c7); border:none !important; outline:none !important; color:#fff; cursor:pointer;" onclick="event.stopPropagation(); window.openProofUploadModal('${item.id}', '${destEscaped}')">
-                                                    <i class="fa-solid fa-camera" style="margin-right:4px;"></i> Upload Proof
+                                                    <i class="fa-solid fa-camera" style="margin-right:4px;"></i> Upload Photo
                                                 </button>
                                             </div>` :
                                             `<div style="display:flex; align-items:center; gap:8px; margin-top:6px; flex-wrap:wrap;">
@@ -4001,7 +3995,7 @@ window.renderSavedTrips = function (itineraries) {
                                                     <i class="fa-solid fa-location-crosshairs"></i> Check In
                                                 </button>
                                                 <button type="button" class="btn-primary" style="padding:8px 14px; font-size:11.5px; font-weight:800; border-radius:100px; background:rgba(255,255,255,0.18); border:none !important; outline:none !important; color:#fff; cursor:pointer; display:inline-flex; align-items:center; gap:5px;" onclick="event.stopPropagation(); window.openProofUploadModal('${item.id}', '${destEscaped}')">
-                                                    <i class="fa-solid fa-camera"></i> Upload Proof
+                                                    <i class="fa-solid fa-camera"></i> Upload Photo
                                                 </button>
                                             </div>`))))))
                                 }
@@ -4159,7 +4153,7 @@ window.ensureProofUploadModal = function () {
                 <div style="flex-shrink:0; background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%); padding:18px 20px; display:flex; justify-content:space-between; align-items:center; border-top-left-radius:26px; border-top-right-radius:26px; box-sizing:border-box;">
                     <div style="text-align:left;">
                         <h3 id="proof-spot-title" style="margin:0; color:#ffffff; font-size:18px; font-weight:800; display:flex; align-items:center; gap:8px;">
-                            <i class="fa-solid fa-camera" style="color:#38bdf8; font-size:17px;"></i> Upload Photo Proof
+                            <i class="fa-solid fa-camera" style="color:#38bdf8; font-size:17px;"></i> Upload Photo
                         </h3>
                         <span id="proof-spot-subtitle" style="font-size:12px; color:rgba(255,255,255,0.85); font-weight:600; display:block; margin-top:3px;">Select up to 5 photos</span>
                     </div>
@@ -4240,7 +4234,7 @@ window.openProofUploadModal = function (itemId, spotName = '') {
         if (typeof window.promptGuestLogin === 'function') {
             window.promptGuestLogin('photo');
         } else if (typeof showToast === 'function') {
-            showToast('Please sign in to upload photo proofs.');
+            showToast('Please sign in to upload photos.');
         }
         return;
     }
@@ -4255,7 +4249,7 @@ window.openProofUploadModal = function (itemId, spotName = '') {
 
     const titleEl = document.getElementById('proof-spot-title');
     if (titleEl) {
-        titleEl.innerHTML = `<i class="fa-solid fa-camera" style="color:#38bdf8; font-size:17px;"></i> ${spotName || 'Upload Photo Proof'}`;
+        titleEl.innerHTML = `<i class="fa-solid fa-camera" style="color:#38bdf8; font-size:17px;"></i> ${spotName || 'Upload Photo'}`;
     }
 
     const input = document.getElementById('proof-upload-input');
@@ -4651,7 +4645,7 @@ window.submitProofPhotos = async function () {
     if (!itemId) return;
 
     if (window.selectedProofPhotos.length === 0) {
-        if (typeof showToast === 'function') showToast('Please select or capture at least one photo proof.');
+        if (typeof showToast === 'function') showToast('Please select or capture at least one photo.');
         return;
     }
 
@@ -4700,7 +4694,7 @@ window.submitProofPhotos = async function () {
         }
         window.closeProofUploadModal();
         if (typeof showToast === 'function') {
-            showToast('📍 Photo proof saved on device! Auto-syncs when online.', 'success');
+            showToast('📍 Photo saved on device! Auto-syncs when online.', 'success');
         }
         if (window.confetti) {
             try { window.confetti({ particleCount: 70, spread: 60, origin: { y: 0.7 } }); } catch (e) { }
@@ -4737,7 +4731,7 @@ window.submitProofPhotos = async function () {
             if (queuedPreview) window.applyPhotoProofUpdateLocally(itemId, [queuedPreview], 'pending', true);
             window.closeProofUploadModal();
             if (typeof showToast === 'function') {
-                showToast('📍 Saved Offline! Photo proof saved on device. Auto-syncs when online.', 'success');
+                showToast('📍 Saved Offline! Photo saved on device. Auto-syncs when online.', 'success');
             }
             if (Array.isArray(window._cachedSavedTrips) && typeof window.renderSavedTrips === 'function') {
                 window.renderSavedTrips(window._cachedSavedTrips);
@@ -4778,7 +4772,7 @@ window.submitProofPhotos = async function () {
             }
 
             if (typeof showToast === 'function') {
-                showToast(data.message || 'Photo proof submitted! Awaiting for approval.', 'success');
+                showToast(data.message || 'Photo uploaded!', 'success');
             }
             if (window.confetti) {
                 try { window.confetti({ particleCount: 80, spread: 60, origin: { y: 0.7 } }); } catch (e) { }
@@ -5013,7 +5007,7 @@ window.executeLocationCheckIn = function (itemId, spotName = '', spotLat = null,
             if (response.ok && (data.success || data.is_location_verified)) {
                 window.applyLocationCheckinLocally(itemId);
                 if (typeof showToast === 'function') {
-                    showToast(data.message || `📍 Location verified at ${spotName}! Photo proof is required to earn points.`, 'success');
+                    showToast(data.message || `📍 Location verified at ${spotName}!`, 'success');
                 }
                 if (window.confetti) {
                     try { window.confetti({ particleCount: 70, spread: 60, origin: { y: 0.7 } }); } catch (e) { }
@@ -6054,6 +6048,10 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
             const u = JSON.parse(localStorage.getItem('auth_user') || 'null');
             if (u && (u.must_change_password === true || u.must_change_password === 1 || u.must_change_password === '1' || u.must_change_password === 'true')) {
                 const email = u.email || '';
+                const existingToken = localStorage.getItem('intan_elyu_token') || '';
+                if (existingToken) {
+                    window._pendingChangePasswordAuth = { token: existingToken, user: u, email };
+                }
                 localStorage.removeItem('auth_user');
                 localStorage.removeItem('intan_elyu_token');
                 if (email) {
@@ -6063,7 +6061,11 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                     if (typeof window.toggleAuthMode === 'function') window.toggleAuthMode(false);
                     const loginEmailInput = document.getElementById('login-email');
                     if (loginEmailInput && email) loginEmailInput.value = email;
-                    if (typeof window.showRegTempPwdModal === 'function') window.showRegTempPwdModal(email);
+                    if (existingToken && typeof window.openChangeTempPasswordModal === 'function') {
+                        window.openChangeTempPasswordModal(u, email);
+                    } else if (typeof window.showRegTempPwdModal === 'function') {
+                        window.showRegTempPwdModal(email);
+                    }
                 });
                 return;
             }
@@ -6481,7 +6483,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                     <div style="flex-shrink:0; background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%); padding:18px 20px; display:flex; justify-content:space-between; align-items:center; border-top-left-radius:26px; border-top-right-radius:26px; box-sizing:border-box;">
                         <div style="text-align:left;">
                             <h3 id="proof-spot-title" style="margin:0; color:#ffffff; font-size:18px; font-weight:800; display:flex; align-items:center; gap:8px;">
-                                <i class="fa-solid fa-camera" style="color:#38bdf8; font-size:17px;"></i> Upload Photo Proof
+                                <i class="fa-solid fa-camera" style="color:#38bdf8; font-size:17px;"></i> Upload Photo
                             </h3>
                             <span id="proof-spot-subtitle" style="font-size:12px; color:rgba(255,255,255,0.85); font-weight:600; display:block; margin-top:3px;">Select up to 5 photos</span>
                         </div>
@@ -6742,7 +6744,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
 
                 // Toggle bottom nav visibility
                 const bottomNav = document.getElementById('bottom-navigation');
-                const noNavViews = ['splash', 'auth', 'onboarding', 'about', 'terms', 'edit_profile', 'help', 'trip_map', 'saved_places', 'trending', 'reset-password', 'puzzles', 'discount', 'settings', 'user_manual'];
+                const noNavViews = ['splash', 'auth', 'onboarding', 'about', 'terms', 'edit_profile', 'help', 'trip_map', 'saved_places', 'trending', 'categories', 'reset-password', 'puzzles', 'discount', 'settings', 'user_manual'];
                 if (bottomNav) {
                     bottomNav.classList.toggle('nav-hidden', noNavViews.includes(targetView));
                     bottomNav.classList.remove('keyboard-hidden');
@@ -7237,11 +7239,15 @@ window.navigateTo = navigateTo;
                     window.history.replaceState({}, document.title, window.location.pathname + '?view=auth');
                 }
                 const showTempModalOnAuth = () => {
-                    Promise.resolve((state.currentView !== 'auth' || !document.getElementById('reg-temp-pwd-modal')) ? navigateTo('auth', true, false) : null).then(() => {
+                    Promise.resolve((state.currentView !== 'auth' || !document.getElementById('change-temp-password-modal')) ? navigateTo('auth', true, false) : null).then(() => {
                         if (typeof window.toggleAuthMode === 'function') window.toggleAuthMode(false);
                         const loginEmailInput = document.getElementById('login-email');
                         if (loginEmailInput && targetEmail) loginEmailInput.value = targetEmail;
-                        if (typeof window.showRegTempPwdModal === 'function') window.showRegTempPwdModal(targetEmail);
+                        if (typeof window.openChangeTempPasswordModal === 'function') {
+                            window.openChangeTempPasswordModal(parsedUserObj, targetEmail);
+                        } else if (typeof window.showRegTempPwdModal === 'function') {
+                            window.showRegTempPwdModal(targetEmail);
+                        }
                     });
                 };
                 if (document.body) {
@@ -7996,7 +8002,7 @@ window.navigateTo = navigateTo;
         document.documentElement.classList.remove('modal-blurred', 'logout-open');
         const bottomNav = document.getElementById('bottom-navigation');
         const currentView = document.body.getAttribute('data-view') || '';
-        const noNavViews = ['splash', 'auth', 'onboarding', 'about', 'terms', 'edit_profile', 'help', 'trip_map', 'saved_places', 'trending', 'reset-password', 'puzzles', 'discount', 'settings', 'user_manual', 'download'];
+        const noNavViews = ['splash', 'auth', 'onboarding', 'about', 'terms', 'edit_profile', 'help', 'trip_map', 'saved_places', 'trending', 'categories', 'reset-password', 'puzzles', 'discount', 'settings', 'user_manual', 'download'];
         if (bottomNav && !noNavViews.includes(currentView) && !document.body.classList.contains('sheet-open')) {
             bottomNav.classList.remove('nav-hidden');
         }

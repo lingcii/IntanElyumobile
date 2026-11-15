@@ -284,14 +284,14 @@ $activeTab = 'leaderboard';
 
             if (isGuest) {
                 if (titleEl) titleEl.textContent = 'Guest';
-                if (tagEl) tagEl.textContent = 'GUEST';
+                if (tagEl) tagEl.style.display = 'none';
                 if (rankCircle) rankCircle.style.display = 'none';
-                if (subtext) subtext.textContent = 'Guest';
+                if (subtext) subtext.textContent = 'Sign in to track your rank';
                 if (avatarEl) avatarEl.src = 'https://ui-avatars.com/api/?name=Guest&background=007AFF&color=fff&rounded=true&bold=true&size=128';
             } else {
                 const myExplorerName = getMyFormattedName(authUser, cachedMeData);
                 if (titleEl) titleEl.textContent = myExplorerName;
-                if (tagEl) tagEl.textContent = 'YOU';
+                if (tagEl) { tagEl.textContent = 'YOU'; tagEl.style.display = ''; }
                 if (avatarEl) avatarEl.src = (cachedMeData && cachedMeData.avatar) ? cachedMeData.avatar : (authUser.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(myExplorerName)}&background=007AFF&color=fff&rounded=true&bold=true&size=128`);
                 if (rankCircle) {
                     rankCircle.style.display = 'flex';
@@ -470,13 +470,13 @@ $activeTab = 'leaderboard';
                 if (isGuest) {
                     if (avatarEl) avatarEl.src = 'https://ui-avatars.com/api/?name=Guest&background=007AFF&color=fff&rounded=true&bold=true&size=128';
                     if (titleEl) titleEl.textContent = 'Guest';
-                    if (tagEl) tagEl.textContent = 'GUEST';
+                    if (tagEl) tagEl.style.display = 'none';
                     if (rankCircle) rankCircle.style.display = 'none';
-                    if (subtext) subtext.textContent = 'Guest';
+                    if (subtext) subtext.textContent = 'Sign in to track your rank';
                 } else {
                     if (avatarEl) avatarEl.src = myAvatar;
                     if (titleEl) titleEl.textContent = myDisplayName;
-                    if (tagEl) tagEl.textContent = 'YOU';
+                    if (tagEl) { tagEl.textContent = 'YOU'; tagEl.style.display = ''; }
                     if (rankCircle) {
                         rankCircle.style.display = 'flex';
                         if (cachedMyRank && cachedMyRank < 999) {

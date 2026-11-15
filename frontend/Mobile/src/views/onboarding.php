@@ -95,6 +95,16 @@ $pageTitle = 'Complete Profile';
                     <div style="font-weight: 700; font-size: 13px; color: #0f172a;">Sunset & Nightlife</div>
                     <div style="font-size: 11px; color: #64748b;">Golden hour, Bars</div>
                 </div>
+                <div class="onboard-card-select" onclick="window.toggleOnboardMulti(this, 'Agritourism')">
+                    <div style="font-size: 24px; margin-bottom: 4px;">🍇</div>
+                    <div style="font-weight: 700; font-size: 13px; color: #0f172a;">Agritourism & Farms</div>
+                    <div style="font-size: 11px; color: #64748b;">Vineyards, Pottery</div>
+                </div>
+                <div class="onboard-card-select" onclick="window.toggleOnboardMulti(this, 'Wellness & Resorts')">
+                    <div style="font-size: 24px; margin-bottom: 4px;">🧘</div>
+                    <div style="font-weight: 700; font-size: 13px; color: #0f172a;">Wellness & Resorts</div>
+                    <div style="font-size: 11px; color: #64748b;">Relax, Staycation</div>
+                </div>
             </div>
         </div>
 
@@ -112,6 +122,19 @@ $pageTitle = 'Complete Profile';
                 <div class="onboard-chip-pill" onclick="window.toggleOnboardChip(this, 'Eco-Tours')">🌱 Eco-Tours</div>
                 <div class="onboard-chip-pill" onclick="window.toggleOnboardChip(this, 'Local Souvenirs')">🛍️ Local Crafts</div>
                 <div class="onboard-chip-pill" onclick="window.toggleOnboardChip(this, 'Swimming')">🏊 Swimming</div>
+                <div class="onboard-chip-pill" onclick="window.toggleOnboardChip(this, 'Pottery Making')">🏺 Pottery Making</div>
+                <div class="onboard-chip-pill" onclick="window.toggleOnboardChip(this, 'Grape Picking')">🍇 Grape Picking</div>
+                <div class="onboard-chip-pill" onclick="window.toggleOnboardChip(this, 'Wellness & Yoga')">🧘 Wellness & Yoga</div>
+                <div class="onboard-chip-pill" onclick="window.toggleOnboardChip(this, 'Cycling')">🚲 Cycling & Biking</div>
+                <div class="onboard-chip-pill" onclick="window.toggleOnboardChip(this, 'Arts & Galleries')">🎨 Arts & Galleries</div>
+                <div class="onboard-chip-pill" onclick="window.toggleOnboardChip(this, 'Road Trips')">🚗 Road Trips</div>
+            </div>
+            <div style="margin-top: 16px; padding: 13px 14px; background: linear-gradient(135deg, #eff6ff 0%, #f8fafc 100%); border: 1.5px solid #bfdbfe; border-radius: 16px; box-shadow: 0 2px 8px rgba(37, 99, 235, 0.06);">
+                <p style="font-size: 12px; color: #1e3a8a; margin: 0 0 8px 0; font-weight: 800; display: flex; align-items: center; gap: 6px;">
+                    <i class="fa-solid fa-wheelchair" style="color: #2563eb;"></i> Accessibility Preference <span style="font-weight: 600; color: #64748b; font-size: 11px;">(Optional)</span>
+                </p>
+                <div class="onboard-chip-pill" style="display: inline-flex; align-items: center; gap: 6px;" onclick="window.toggleOnboardChip(this, 'PWD / Wheelchair Accessible')">♿ PWD / Wheelchair-Friendly</div>
+                <p style="font-size: 11px; color: #475569; margin: 8px 0 0 0; line-height: 1.45;">Not all destinations are wheelchair accessible. Selecting this helps us show accessibility advisories on site details.</p>
             </div>
         </div>
 

@@ -168,6 +168,13 @@ try {
             border-color: #0284c7 !important;
             box-shadow: 0 4px 14px rgba(2, 132, 199, 0.16);
         }
+        .wizard-trans-card > div:first-child {
+            min-width: 0;
+            flex: 1;
+        }
+        .wizard-check-radio {
+            flex-shrink: 0;
+        }
         .wizard-trans-card.active .wizard-check-radio {
             border-color: #0284c7;
             background: #0284c7;
@@ -192,7 +199,7 @@ try {
         /* Suggested Stops Slider & Category Pills */
         .itin-cat-pill {
             background: #f1f5f9;
-            border: 1px solid #e2e8f0;
+            border: 1.5px solid #cbd5e1 !important;
             color: #475569;
             padding: 5px 12px;
             border-radius: 100px;
@@ -311,6 +318,37 @@ try {
             scroll-margin-bottom: 90px !important;
         }
 
+        #trip-title:user-valid,
+        #step2-spot-search:user-valid {
+            border-color: #cbd5e1 !important;
+            border-bottom-color: #cbd5e1 !important;
+        }
+        #step2-spot-search:user-valid {
+            border-color: #e2e8f0 !important;
+            border-bottom-color: #e2e8f0 !important;
+        }
+        #trip-title:focus,
+        #step2-spot-search:focus,
+        #trip-title:user-valid:focus,
+        #step2-spot-search:user-valid:focus {
+            border-color: #0284c7 !important;
+            border-bottom-color: #0284c7 !important;
+            box-shadow: none !important;
+        }
+        #trip-title::placeholder,
+        #step2-spot-search::placeholder {
+            color: #94a3b8 !important;
+            -webkit-text-fill-color: #94a3b8 !important;
+            opacity: 1 !important;
+            font-weight: 500;
+        }
+        #trip-municipality option {
+            color: #0f172a;
+        }
+        #trip-municipality option[value=""] {
+            color: #94a3b8;
+        }
+
     </style>
 
     <!-- 3-Step Wizard Progress Stepper Header Bar (Fixed) -->
@@ -337,17 +375,19 @@ try {
             </div>
         </div>
 
-        <!-- Header Actions: Saved Trips & Guide (?) -->
-        <div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
-            <button type="button" onclick="navigateTo('saved_trips')" title="Saved Trips" aria-label="Saved Trips"
-                style="background:#f1f5f9; border:none; outline:none; color:#1e3a8a; width:30px; height:30px; border-radius:50%; font-size:12px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.15s ease;">
-                <i class="fa-solid fa-bookmark"></i>
-            </button>
-            <button type="button" onclick="window.openTripGuideModal()" title="Trip Guide: How to create and complete a trip" aria-label="Trip Guide"
-                style="background:#f1f5f9; border:none; outline:none; color:#1e3a8a; width:30px; height:30px; border-radius:50%; font-size:12px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.15s ease;">
-                <i class="fa-solid fa-question"></i>
-            </button>
-        </div>
+        <!-- Saved Trips Button inside 3-Step Header Bar -->
+        <button type="button" onclick="navigateTo('saved_trips')" title="Saved Trips" aria-label="Saved Trips"
+            style="background:#f1f5f9 !important; border:1.5px solid #cbd5e1 !important; outline:none !important; color:#1e3a8a !important; width:38px; height:38px; border-radius:50%; font-size:15px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; box-shadow:0 2px 6px rgba(15,23,42,0.08) !important; transition:transform 0.15s ease;">
+            <i class="fa-solid fa-bookmark"></i>
+        </button>
+    </div>
+
+    <!-- Floating Guide (?) Button -->
+    <div style="position:fixed; top:calc(max(env(safe-area-inset-top, 0px), 36px) + 108px); right:max(14px, calc(50% - 226px)); z-index:9985; display:flex; align-items:center;">
+        <button type="button" onclick="window.openTripGuideModal()" title="Trip Guide: How to create and complete a trip" aria-label="Trip Guide"
+            style="background:#ffffff !important; border:2px solid #cbd5e1 !important; outline:none !important; color:#1e3a8a !important; width:40px; height:40px; border-radius:50%; font-size:15px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 6px 18px rgba(15,23,42,0.16) !important; transition:transform 0.15s ease;">
+            <i class="fa-solid fa-question"></i>
+        </button>
     </div>
 
     <!-- Floating '?' Guide Button -->
@@ -387,8 +427,8 @@ try {
             <label style="font-size:12.5px; color:#1e293b !important; margin-bottom:6px; display:block; font-weight:700;">
                 Trip Name <span style="color:#ef4444;">*</span>
             </label>
-            <input type="text" id="trip-title" placeholder="e.g. Elyu Weekend Getaway"
-                style="width:100%; padding:12px 14px; border-radius:14px; border:1.5px solid #cbd5e1 !important; outline:none !important; background:#ffffff !important; color:#0f172a !important; -webkit-text-fill-color:#0f172a !important; margin-bottom:14px; font-family:inherit; font-size:14px; font-weight:600; box-sizing:border-box; transition:border-color 0.2s;"
+            <input type="text" id="trip-title" class="browser-default" placeholder="Enter your trip name here"
+                style="width:100%; padding:12px 14px; border-radius:14px; border:1.5px solid #cbd5e1 !important; outline:none !important; box-shadow:none !important; background:#ffffff !important; color:#0f172a !important; margin-bottom:14px; font-family:inherit; font-size:14px; font-weight:600; box-sizing:border-box; transition:border-color 0.2s;"
                 onfocus="this.style.borderColor='#0284c7'" onblur="this.style.borderColor='#cbd5e1'">
 
             <!-- Trip Date Picker -->
@@ -447,9 +487,11 @@ try {
             </label>
             <div style="position:relative; margin-bottom:14px;">
                 <select id="trip-municipality"
-                    style="width:100%; padding:12px 14px; border-radius:14px; border:1.5px solid #cbd5e1 !important; outline:none !important; background:#ffffff; color:#0f172a; font-family:inherit; font-size:13.5px; font-weight:600; box-sizing:border-box; appearance:none; -webkit-appearance:none; cursor:pointer;">
+                    onchange="this.style.color = this.value ? '#0f172a' : '#94a3b8';"
+                    style="width:100%; padding:12px 14px; border-radius:14px; border:1.5px solid #cbd5e1 !important; outline:none !important; background:#ffffff; color:#94a3b8; font-family:inherit; font-size:13.5px; font-weight:600; box-sizing:border-box; appearance:none; -webkit-appearance:none; cursor:pointer;">
+                    <option value="" selected>Select Focus Base</option>
                     <option value="All La Union">All La Union (Provincial-wide)</option>
-                    <option value="San Juan" selected>San Juan (Surfing Capital & Coastal)</option>
+                    <option value="San Juan">San Juan (Surfing Capital & Coastal)</option>
                     <option value="San Fernando City">San Fernando City (Capital & Commercial Hub)</option>
                     <option value="Luna">Luna (Pebble Beach & Heritage)</option>
                     <option value="Bauang">Bauang (Grape Farms & Calm Beaches)</option>
@@ -573,6 +615,15 @@ try {
                 </button>
             </div>
 
+            <!-- Search Stops Input -->
+            <div style="position:relative; margin-bottom:8px;">
+                <i class="fa-solid fa-magnifying-glass" style="position:absolute; left:12px; top:50%; transform:translateY(-50%); font-size:12px; color:#94a3b8; pointer-events:none;"></i>
+                <input type="text" id="step2-spot-search" class="browser-default" placeholder="Search spots or municipality..."
+                    oninput="window.renderStep2SpotsSlider()"
+                    onfocus="this.style.borderColor='#0284c7'" onblur="this.style.borderColor='#e2e8f0'"
+                    style="width:100%; padding:8px 12px 8px 32px; border-radius:12px; border:1.5px solid #e2e8f0 !important; outline:none !important; box-shadow:none !important; background:#f8fafc !important; color:#0f172a !important; font-family:inherit; font-size:12.5px; font-weight:600; box-sizing:border-box; transition:border-color 0.2s;">
+            </div>
+
             <!-- Category Filter Pills -->
             <div id="itin-slider-categories" class="hide-scrollbar" style="display:flex; gap:6px; overflow-x:auto; padding-bottom:6px; margin-bottom:8px; scrollbar-width:none; -webkit-overflow-scrolling:touch;">
                 <button type="button" class="itin-cat-pill active" onclick="window.filterStep2Slider('all', this)">All</button>
@@ -592,7 +643,7 @@ try {
             <!-- Visualization Container -->
             <div id="draft-map-wrapper" style="display:none; margin-top:0; margin-bottom:14px;">
                 <!-- Route Type Container with Smooth Sliding Pill -->
-                <div class="route-toggle-container" id="route-toggle-container">
+                <div class="route-toggle-container" id="route-toggle-container" style="border:1.5px solid #cbd5e1 !important;">
                     <div class="route-toggle-slider" id="route-toggle-slider"></div>
                     <button class="btn-route-type active" id="btn-route-rec"
                         onclick="setRouteType('recommended', this)">Recommended</button>
@@ -689,9 +740,10 @@ try {
                     </span>
                 </div>
             </div>
+            <div id="wizard-vehicle-conflict-banner" style="display:none; background:#fefce8; border:1.5px solid #fde047; color:#a16207; border-radius:12px; padding:8px 11px; margin-bottom:10px; font-size:11.5px; font-weight:700; line-height:1.35;"></div>
             <div style="display:flex; flex-direction:column; gap:6px; margin-bottom:18px;">
                 <!-- Option 1: Tricycle -->
-                <div class="wizard-trans-card active" data-mode="tricycle" onclick="window.selectWizardVehicle('tricycle')">
+                <div class="wizard-trans-card" data-mode="tricycle" onclick="window.selectWizardVehicle('tricycle')">
                     <div style="display:flex; align-items:center; gap:10px;">
                         <div style="width:34px; height:34px; border-radius:10px; background:#0284c7; color:#ffffff; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0;">
                             <i class="fa-solid fa-motorcycle"></i>
@@ -1422,16 +1474,27 @@ try {
         </button>
     </div>
 
+    <!-- Recommended / Alternative Route Toggle inside Fullscreen Preview -->
+    <div style="position:absolute; top:calc(max(env(safe-area-inset-top, 0px), 36px) + 64px); left:50%; transform:translateX(-50%); z-index:9999; pointer-events:auto;">
+        <div class="route-toggle-container" id="fs-route-toggle-container" style="margin:0; border:1.5px solid #cbd5e1 !important; box-shadow:0 4px 14px rgba(10, 25, 60, 0.14);">
+            <div class="route-toggle-slider" id="fs-route-toggle-slider"></div>
+            <button type="button" class="btn-route-type active" id="fs-btn-route-rec"
+                onclick="setRouteType('recommended', this)">Recommended</button>
+            <button type="button" class="btn-route-type" id="fs-btn-route-alt"
+                onclick="setRouteType('alternative', this)">Alternative</button>
+        </div>
+    </div>
+
     <!-- Map Legend on Bottom Left (Above Cards Dock) - Minimizable -->
     <div id="itinerary-fs-legend"
         style="position:absolute; bottom:calc(max(env(safe-area-inset-bottom, 0px), 12px) + 94px); left:12px; z-index:9999; background:rgba(255, 255, 255, 0.94); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); border-radius:14px; box-shadow:0 4px 14px rgba(10, 25, 60, 0.12); border:1px solid rgba(226, 232, 240, 0.85); display:flex; flex-direction:column; pointer-events:auto; min-width:115px; overflow:hidden; transition:all 0.25s cubic-bezier(0.16, 1, 0.3, 1);">
         <div onclick="window.toggleItineraryFsLegend()"
             style="display:flex; align-items:center; justify-content:space-between; padding:7px 10px; cursor:pointer; user-select:none; gap:8px;">
             <span style="font-size:9.5px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; color:#64748b;">Legend</span>
-            <i id="itinerary-fs-legend-chevron" class="fa-solid fa-chevron-down" style="font-size:9px; color:#64748b; transition:transform 0.25s ease;"></i>
+            <i id="itinerary-fs-legend-chevron" class="fa-solid fa-chevron-down" style="font-size:9px; color:#64748b; transform:rotate(180deg); transition:transform 0.25s ease;"></i>
         </div>
-        <div id="itinerary-fs-legend-body"
-            style="display:flex; flex-direction:column; gap:6px; padding:0 10px 8px 10px; max-height:120px; opacity:1; overflow:hidden; transition:max-height 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease, padding 0.25s ease;">
+        <div id="itinerary-fs-legend-body" data-collapsed="true"
+            style="display:flex; flex-direction:column; gap:6px; padding:0 10px 0 10px; max-height:0px; opacity:0; overflow:hidden; transition:max-height 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease, padding 0.25s ease;">
             <div style="display:flex; align-items:center; gap:8px; font-size:10.5px; font-weight:700; color:#1e3a8a; min-height:18px;">
                 <span style="width:18px; display:inline-flex; align-items:center; justify-content:center; flex-shrink:0;">
                     <span style="width:10px; height:10px; border-radius:50%; background:#0284c7; border:2px solid #ffffff; box-shadow:0 0 0 1.5px #0284c7; flex-shrink:0;"></span>
@@ -1456,12 +1519,12 @@ try {
     <!-- Floating Action Controls on Bottom Right -->
     <div style="position:absolute; right:12px; bottom:calc(max(env(safe-area-inset-bottom, 0px), 12px) + 94px); z-index:10000; display:flex; flex-direction:column; gap:6px; align-items:center;">
         <button type="button" id="btn-fs-recenter" onclick="window.fitItineraryFullscreenMapBounds()" title="Recenter Route" aria-label="Recenter Route"
-            style="width:42px; height:42px; border-radius:12px; background:#0284c7 !important; border:none !important; outline:none !important; color:#ffffff !important; font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:none !important; transition:transform 0.15s ease;"
+            style="width:42px; height:42px; border-radius:12px; background:linear-gradient(135deg, rgba(30, 58, 138, 0.92) 0%, rgba(63, 125, 183, 0.9) 100%) !important; backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); border:none !important; outline:none !important; color:#ffffff !important; font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 12px rgba(10,25,60,0.28) !important; transition:transform 0.15s ease;"
             onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">
             <i class="fa-solid fa-route" style="color:#ffffff !important;"></i>
         </button>
         <button type="button" id="btn-fs-locate-me" onclick="window.locateItineraryFullscreenMap()" title="My Location" aria-label="Locate Me"
-            style="width:42px; height:42px; border-radius:12px; background:#0284c7 !important; border:none !important; outline:none !important; color:#ffffff !important; font-size:17px; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:none !important; transition:transform 0.15s ease;"
+            style="width:42px; height:42px; border-radius:12px; background:linear-gradient(135deg, rgba(30, 58, 138, 0.92) 0%, rgba(63, 125, 183, 0.9) 100%) !important; backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); border:none !important; outline:none !important; color:#ffffff !important; font-size:17px; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 12px rgba(10,25,60,0.28) !important; transition:transform 0.15s ease;"
             onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">
             <i class="fa-solid fa-crosshairs" style="color:#ffffff !important;"></i>
         </button>
@@ -2049,7 +2112,7 @@ try {
                 return Math.round(subSum * 100) / 100;
             }
             const norm = (subParts.length === 1) ? subParts[0] : window.normalizeVehicleKey(mode);
-            if (['own_car', 'motorcycle', 'walking', 'walk', 'no_vehicle', 'van', 'uve', 'mini_bus'].includes(norm)) {
+            if (['own_car', 'motorcycle', 'walking', 'walk', 'no_vehicle', 'van', 'uve', 'mini_bus', 'private_bus'].includes(norm)) {
                 return 0;
             }
             const cleanA = (muniA || '').replace(/^(municipality of|city of)\s+/i, '').replace(/,\s*la\s*union$/i, '').trim();
@@ -4646,7 +4709,9 @@ try {
             const container = document.getElementById('itinerary-fs-cards-carousel');
             const panel = document.getElementById('itinerary-fs-bottom-panel');
             if (!container) return;
-            const draft = JSON.parse(localStorage.getItem('intan_elyu_draft_itinerary') || '[]');
+            const draft = (typeof window.getEffectiveDraft === 'function')
+                ? window.getEffectiveDraft()
+                : JSON.parse(localStorage.getItem('intan_elyu_draft_itinerary') || '[]');
             if (!draft || draft.length === 0) {
                 container.innerHTML = '';
                 if (panel) panel.style.display = 'none';
@@ -4660,15 +4725,22 @@ try {
                 const safeName = cleanName.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
                 const pLat = parseFloat(place.lat || place.latitude || 0);
                 const pLng = parseFloat(place.lng || place.longitude || 0);
+                const legInfo = (typeof window.getLegTransportInfo === 'function') ? window.getLegTransportInfo(index) : null;
+                const distLabel = (legInfo && legInfo.distance_km != null && !isNaN(parseFloat(legInfo.distance_km)))
+                    ? `${parseFloat(legInfo.distance_km).toFixed(1)} km`
+                    : '';
                 html += `
                 <div class="itinerary-fs-card" id="fs-card-${index}" onclick="window.zoomToItineraryFsStop(${index}, ${pLat}, ${pLng})"
                     style="flex:0 0 auto; scroll-snap-align:center; background:#ffffff !important; border:1.5px solid #e2e8f0 !important; border-radius:14px; padding:7px 13px; display:flex; align-items:center; gap:8px; box-shadow:0 2px 8px rgba(10, 25, 60, 0.08) !important; cursor:pointer; transition:all 0.2s ease; max-width:220px; min-width:110px;">
                     <div style="width:22px; height:22px; border-radius:50%; background:linear-gradient(135deg, #00f2fe, #0284c7); color:#ffffff; display:flex; align-items:center; justify-content:center; font-size:10.5px; font-weight:900; flex-shrink:0;">
                         ${index + 1}
                     </div>
-                    <span style="font-size:12px; font-weight:800; color:#0f172a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                        ${safeName}
-                    </span>
+                    <div style="min-width:0; display:flex; flex-direction:column;">
+                        <span style="font-size:12px; font-weight:800; color:#0f172a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                            ${safeName}
+                        </span>
+                        ${distLabel ? `<span style="font-size:10px; font-weight:700; color:#64748b; line-height:1.2;">${distLabel}</span>` : ''}
+                    </div>
                 </div>`;
             });
             container.innerHTML = html;
@@ -4812,6 +4884,14 @@ try {
 
             renderItineraryFsCards();
 
+            const fsToggle = document.getElementById('fs-route-toggle-container');
+            const isAltMode = window.currentRouteType === 'alternative';
+            if (fsToggle) fsToggle.classList.toggle('alt-active', isAltMode);
+            const fsRec = document.getElementById('fs-btn-route-rec');
+            const fsAlt = document.getElementById('fs-btn-route-alt');
+            if (fsRec) fsRec.classList.toggle('active', !isAltMode);
+            if (fsAlt) fsAlt.classList.toggle('active', isAltMode);
+
             const mapDiv = document.getElementById('itinerary-fullscreen-map');
             if (!itineraryFsMap && typeof L !== 'undefined' && mapDiv) {
                 itineraryFsMap = L.map(mapDiv, {
@@ -4852,6 +4932,13 @@ try {
             if (bNav) {
                 bNav.classList.remove('nav-hidden');
                 bNav.style.removeProperty('display');
+            }
+
+            if (typeof draftMap !== 'undefined' && draftMap && typeof draftMap.invalidateSize === 'function') {
+                setTimeout(() => {
+                    draftMap.invalidateSize();
+                    if (typeof window.fitDraftBounds === 'function') window.fitDraftBounds();
+                }, 80);
             }
         };
 
@@ -6300,7 +6387,13 @@ try {
                 return true;
             };
 
-            let filtered = spotsPool.filter(s => catMatches(s, activeCat));
+            const searchQuery = (document.getElementById('step2-spot-search')?.value || '').toLowerCase().trim();
+            let filtered = spotsPool.filter(s => {
+                if (!catMatches(s, activeCat)) return false;
+                if (!searchQuery) return true;
+                const hay = `${s.name || ''} ${s.municipality || ''} ${s.category || ''}`.toLowerCase();
+                return hay.includes(searchQuery);
+            });
 
             // Sort: Prioritize matching base municipality hub
             filtered.sort((a, b) => {
@@ -6324,6 +6417,14 @@ try {
                 draft = JSON.parse(localStorage.getItem('intan_elyu_draft_itinerary')) || [];
             } catch (e) { }
             const draftIds = new Set(draft.map(s => String(s.id)));
+
+            if (filtered.length === 0) {
+                track.innerHTML = `<div style="width:100%; padding:18px 12px; text-align:center; color:#64748b; font-size:12px; font-weight:600; background:#f8fafc; border:1px dashed #cbd5e1; border-radius:12px;">
+                    <i class="fa-solid fa-magnifying-glass" style="display:block; font-size:16px; color:#94a3b8; margin-bottom:6px;"></i>
+                    No tourist sites found${searchQuery ? ' for "' + searchQuery.replace(/</g, '&lt;') + '"' : ''}.
+                </div>`;
+                return;
+            }
 
             let html = '';
             filtered.forEach(spot => {
@@ -6571,11 +6672,6 @@ try {
                     }
                 }, 200);
             } else if (step === 3) {
-                // Ensure default vehicle exists
-                const curTrans = document.getElementById('trip-transport')?.value || '';
-                if (!curTrans || curTrans === 'no_vehicle' || /no[_ ]vehicle/i.test(curTrans)) {
-                    window.selectWizardVehicle('tricycle');
-                }
                 window.syncWizardStep2UI();
                 window.syncWizardStep3UI();
             }
@@ -6675,7 +6771,7 @@ try {
         window.selectWizardVehicle = function (mode) {
             const validModes = ['tricycle', 'tpuj', 'mpuj', 'public_bus', 'private_bus', 'van', 'own_car', 'car', 'motorcycle'];
             if (mode === 'car') mode = 'own_car';
-            if (!validModes.includes(mode)) mode = 'tricycle';
+            if (!validModes.includes(mode)) return;
 
             let currentModes = [];
             const rawStored = localStorage.getItem('intan_elyu_draft_trip_transport') || '';
@@ -6705,7 +6801,7 @@ try {
             const targetMode = (mode === 'car') ? 'own_car' : mode;
             const hasMode = currentModes.some(m => m === targetMode || (targetMode === 'own_car' && m === 'car'));
             if (hasMode) {
-                currentModes = currentModes.filter(m => m !== targetMode && m !== 'car' && m !== 'own_car');
+                currentModes = currentModes.filter(m => targetMode === 'own_car' ? (m !== 'car' && m !== 'own_car') : m !== targetMode);
             } else {
                 currentModes.push(targetMode);
             }
@@ -6818,10 +6914,10 @@ try {
             const dateDisplay = document.getElementById('custom-date-display')?.textContent || 'Flexible / Anytime';
             const partySummary = document.getElementById('companion-summary-text')?.textContent || '1 Traveler (Solo)';
             const muniSelect = document.getElementById('trip-municipality');
-            const muniVal = (muniSelect && muniSelect.options[muniSelect.selectedIndex])
+            const muniVal = (muniSelect && muniSelect.value && muniSelect.options[muniSelect.selectedIndex])
                 ? (muniSelect.options[muniSelect.selectedIndex].text.split('(')[0].trim() || muniSelect.value)
-                : (muniSelect?.value || 'San Juan');
-            const transMode = document.getElementById('trip-transport')?.value || 'tricycle';
+                : 'All La Union';
+            const transMode = document.getElementById('trip-transport')?.value || 'no_vehicle';
 
             const transLabels = {
                 'tricycle': 'Tricycle',
@@ -6853,6 +6949,64 @@ try {
             if (typeof window.renderSaveModalSummaryContent === 'function') {
                 window.renderSaveModalSummaryContent();
             }
+
+            // Highlight vehicles that cannot reach one or more chosen stops & show conflict banner
+            try {
+                const draftStops = (typeof window.getEffectiveDraft === 'function')
+                    ? window.getEffectiveDraft()
+                    : JSON.parse(localStorage.getItem('intan_elyu_draft_itinerary') || '[]');
+                const spots = Array.isArray(draftStops) ? draftStops : [];
+
+                document.querySelectorAll('.wizard-trans-card[data-mode]').forEach(card => {
+                    const cardMode = card.getAttribute('data-mode');
+                    const blocked = (typeof window.isVehicleAllowedForSpot === 'function')
+                        ? spots.filter(sp => !window.isVehicleAllowedForSpot(cardMode, sp).allowed)
+                        : [];
+
+                    let noteEl = card.querySelector('.wizard-vehicle-unavail-note');
+                    if (blocked.length > 0) {
+                        const firstSpot = blocked[0].name || 'selected stop';
+                        const extra = blocked.length > 1 ? ` +${blocked.length - 1} more` : '';
+                        if (!noteEl) {
+                            noteEl = document.createElement('div');
+                            noteEl.className = 'wizard-vehicle-unavail-note';
+                            noteEl.style.cssText = 'font-size:10.5px; font-weight:700; color:#d97706; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;';
+                            const titleWrap = card.children[0] && card.children[0].children[1];
+                            if (titleWrap && titleWrap.parentNode) {
+                                const textCol = document.createElement('div');
+                                textCol.style.cssText = 'min-width:0; flex:1;';
+                                textCol.appendChild(titleWrap.cloneNode(true));
+                                textCol.appendChild(noteEl);
+                                card.children[0].replaceChild(textCol, titleWrap);
+                            }
+                        }
+                        if (noteEl) {
+                            noteEl.textContent = blocked.length === 1 ? `Can't reach ${firstSpot}` : `Skips ${blocked.length} stops`;
+                            noteEl.style.display = 'block';
+                        }
+                        card.style.opacity = card.classList.contains('active') ? '1' : '0.68';
+                    } else {
+                        if (noteEl) noteEl.style.display = 'none';
+                        card.style.opacity = '1';
+                    }
+                });
+
+                const conflictBanner = document.getElementById('wizard-vehicle-conflict-banner');
+                if (conflictBanner) {
+                    const hasMode = transMode && !/no[_ ]vehicle/i.test(transMode);
+                    const incompatible = (hasMode && typeof window.isVehicleAllowedForSpot === 'function')
+                        ? spots.filter(sp => !window.isVehicleAllowedForSpot(transMode, sp).allowed)
+                        : [];
+                    if (incompatible.length > 0) {
+                        const names = incompatible.map(s => s.name || 'a stop').slice(0, 2).join(', ');
+                        const more = incompatible.length > 2 ? ` +${incompatible.length - 2} more` : '';
+                        conflictBanner.innerHTML = `<i class="fa-solid fa-triangle-exclamation" style="margin-right:5px;"></i>Can't reach <strong>${names}${more}</strong> — add Tricycle/Motorcycle or edit Stops.`;
+                        conflictBanner.style.display = 'block';
+                    } else {
+                        conflictBanner.style.display = 'none';
+                    }
+                }
+            } catch (e) { }
         };
 
         // Initialize state for fresh or edit trip
@@ -6868,7 +7022,7 @@ try {
             if (editingId) {
                 const savedTitle = sessionStorage.getItem('editing_trip_title') || '';
                 const savedDate = sessionStorage.getItem('editing_trip_date') || '';
-                const savedTransport = sessionStorage.getItem('editing_trip_transport') || 'tricycle';
+                const savedTransport = sessionStorage.getItem('editing_trip_transport') || 'no_vehicle';
                 const savedTripType = sessionStorage.getItem('editing_trip_type') || 'solo';
 
                 const titleInput = document.getElementById('trip-title');
@@ -7826,6 +7980,12 @@ try {
                             window.renderItinerary(true);
                         }
 
+                        const fsModal = document.getElementById('itinerary-fullscreen-map-modal');
+                        if (fsModal && fsModal.style.display !== 'none') {
+                            if (typeof renderItineraryFsCards === 'function') renderItineraryFsCards();
+                            if (typeof syncFullscreenMapLayers === 'function') syncFullscreenMapLayers();
+                        }
+
                         const updateRouteScale = () => {
                             if (!draftMap) return;
                             const z = draftMap.getZoom();
@@ -7856,23 +8016,17 @@ try {
                 window._renderTimeout = null;
             }
             window.currentRouteType = (type === 'alternate' || type === 'alternative') ? 'alternative' : 'recommended';
+            const isAlt = window.currentRouteType === 'alternative';
             document.querySelectorAll('.btn-route-type').forEach(el => el.classList.remove('active'));
-            let activeBtn = btn;
-            if (btn) {
-                btn.classList.add('active');
-            } else {
-                activeBtn = document.getElementById(window.currentRouteType === 'alternative' ? 'btn-route-alt' : 'btn-route-rec');
-                if (activeBtn) activeBtn.classList.add('active');
-            }
+            [isAlt ? 'btn-route-alt' : 'btn-route-rec', isAlt ? 'fs-btn-route-alt' : 'fs-btn-route-rec'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.classList.add('active');
+            });
 
-            const container = document.getElementById('route-toggle-container');
-            if (container) {
-                if (window.currentRouteType === 'alternative') {
-                    container.classList.add('alt-active');
-                } else {
-                    container.classList.remove('alt-active');
-                }
-            }
+            ['route-toggle-container', 'fs-route-toggle-container'].forEach(id => {
+                const c = document.getElementById(id);
+                if (c) c.classList.toggle('alt-active', isAlt);
+            });
 
             window.animateTimelineSwap(() => {
                 const draft = window.getEffectiveDraft();
@@ -7888,6 +8042,12 @@ try {
 
                 if (_savedCenter !== null && _savedZoom !== null && typeof draftMap !== 'undefined' && draftMap) {
                     draftMap.setView(_savedCenter, _savedZoom, { animate: false });
+                }
+
+                const fsModal = document.getElementById('itinerary-fullscreen-map-modal');
+                if (fsModal && fsModal.style.display !== 'none') {
+                    renderItineraryFsCards();
+                    syncFullscreenMapLayers();
                 }
             });
 

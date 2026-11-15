@@ -322,7 +322,7 @@ class ItineraryItemController extends Controller
 
             if (empty($files)) {
                 return response()->json([
-                    'message' => 'Please select at least one photo proof to upload.',
+                    'message' => 'Please select at least one photo to upload.',
                     'errors'  => ['images' => ['No photos were uploaded.']]
                 ], 422);
             }
@@ -357,36 +357,18 @@ class ItineraryItemController extends Controller
                 'rejection_reason' => null,
             ]);
 
-            // Also attach photos into the tourist spot's gallery so they appear in tourist site details
-            $spotId = $item->tourist_spot_id ?? $item->destination_id ?? ($item->destination ? $item->destination->id : null);
-            if ($spotId && class_exists('App\Models\TouristSpotImage')) {
-                foreach ($storedUrls as $pUrl) {
-                    try {
-                        \App\Models\TouristSpotImage::firstOrCreate([
-                            'spot_id'   => $spotId,
-                            'photo_url' => $pUrl,
-                        ], [
-                            'is_primary' => false,
-                            'sort_order' => 99,
-                        ]);
-                    } catch (\Throwable $imgErr) {
-                        Log::warning("Could not sync uploaded photo to tourist spot gallery: " . $imgErr->getMessage());
-                    }
-                }
-            }
-
             return response()->json([
                 'success'      => true,
                 'proof_status' => 'approved',
                 'is_visited'   => true,
                 'proof_image'  => $storedUrls[0],
                 'proof_images' => $storedUrls,
-                'message'      => 'Photos uploaded and added to the tourist site gallery!',
+                'message'      => 'Photos uploaded!',
             ]);
         } catch (\Throwable $ex) {
             Log::error("Proof upload error on item {$id}: " . $ex->getMessage());
             return response()->json([
-                'message' => 'Failed to upload photo proof: ' . $ex->getMessage(),
+                'message' => 'Failed to upload photo: ' . $ex->getMessage(),
             ], 500);
         }
     }
@@ -529,21 +511,6 @@ class ItineraryItemController extends Controller
                 if (!empty($storedUrls)) {
                     $itemData['proof_image']  = json_encode($storedUrls);
                     $itemData['proof_status'] = 'approved';
-
-                    $spotId = $item->tourist_spot_id ?? $item->destination_id ?? ($item->destination ? $item->destination->id : null);
-                    if ($spotId && class_exists('App\Models\TouristSpotImage')) {
-                        foreach ($storedUrls as $pUrl) {
-                            try {
-                                \App\Models\TouristSpotImage::firstOrCreate([
-                                    'spot_id'   => $spotId,
-                                    'photo_url' => $pUrl,
-                                ], [
-                                    'is_primary' => false,
-                                    'sort_order' => 99,
-                                ]);
-                            } catch (\Throwable $imgErr) { }
-                        }
-                    }
                 }
             }
 
@@ -590,7 +557,7 @@ class ItineraryItemController extends Controller
                 'status'               => $itemData['proof_status'] ?? 'verified',
                 'is_location_verified' => true,
                 'visited_at'           => $effectiveTime->toIso8601String(),
-                'message'              => !empty($itemData['proof_image']) ? "Photo proof submitted! Pending verification before completion." : "GPS Check-in verified! Photo proof required to earn points.",
+                'message'              => !empty($itemData['proof_image']) ? "Photo uploaded!" : "GPS Check-in verified!",
                 'proof_image'          => $item->proof_image,
                 'proof_images'         => $item->proof_images,
                 'distance'             => round($distanceMeters) . 'm',

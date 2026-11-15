@@ -306,7 +306,8 @@ $activeTab = 'profile';
             { label: 'Nature & Falls', icon: '🌿' },
             { label: 'Food & Coffee', icon: '☕' },
             { label: 'Heritage & Culture', icon: '🏛️' },
-            { label: 'Agritourism', icon: '🍇' }
+            { label: 'Agritourism', icon: '🍇' },
+            { label: 'PWD / Wheelchair Accessible', icon: '♿' }
         ];
 
         let selected = [];
@@ -318,7 +319,7 @@ $activeTab = 'profile';
 
         let html = '';
         allInterests.forEach(item => {
-            const isMatch = selected.some(s => s.includes(item.label.toLowerCase()) || (item.label.includes('Food') && s.includes('food')) || (item.label.includes('Nature') && s.includes('nature')));
+            const isMatch = selected.some(s => s.includes(item.label.toLowerCase()) || (item.label.includes('Food') && s.includes('food')) || (item.label.includes('Nature') && s.includes('nature')) || (item.label.includes('PWD') && (s.includes('pwd') || s.includes('wheelchair'))));
             if (isMatch) {
                 html += `<div style="background: #1e3a8a; color: #ffffff; font-size: 11.5px; font-weight: 800; padding: 6px 14px; border-radius: 100px; display: inline-flex; align-items: center; gap: 5px; box-shadow: 0 2px 6px rgba(30, 58, 138, 0.2);"><span style="font-size: 12px;">${item.icon}</span> ${item.label}</div>`;
             } else {
