@@ -787,7 +787,7 @@ try {
                         <div style="width:34px; height:34px; border-radius:10px; background:#0284c7; color:#ffffff; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0;">
                             <i class="fa-solid fa-bus"></i>
                         </div>
-                        <div style="font-size:13px; font-weight:800; color:#0f172a;">Public Bus</div>
+                        <div style="font-size:13px; font-weight:800; color:#0f172a;">Regular Bus</div>
                     </div>
                     <div class="wizard-check-radio" style="width:20px; height:20px; border-radius:6px; border:2px solid #cbd5e1; display:flex; align-items:center; justify-content:center; transition:all 0.2s;">
                         <i class="fa-solid fa-check" style="font-size:10px; color:#ffffff; display:none;"></i>
@@ -800,7 +800,7 @@ try {
                         <div style="width:34px; height:34px; border-radius:10px; background:#0284c7; color:#ffffff; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0;">
                             <i class="fa-solid fa-bus-simple"></i>
                         </div>
-                        <div style="font-size:13px; font-weight:800; color:#0f172a;">Private Bus</div>
+                        <div style="font-size:13px; font-weight:800; color:#0f172a;">Aircon Bus</div>
                     </div>
                     <div class="wizard-check-radio" style="width:20px; height:20px; border-radius:6px; border:2px solid #cbd5e1; display:flex; align-items:center; justify-content:center; transition:all 0.2s;">
                         <i class="fa-solid fa-check" style="font-size:10px; color:#ffffff; display:none;"></i>
@@ -1833,7 +1833,7 @@ try {
             const normType = rawType.replace(/[- ]/g, '_');
 
             if (['own_car', 'taxi', 'motorcycle', 'car'].includes(normType)) return null;
-            if (['van', 'uve', 'mini_bus', 'private_bus'].includes(normType)) return 0;
+            if (['van', 'uve', 'mini_bus'].includes(normType)) return 0;
 
             let fareEntry = null;
 
@@ -1988,10 +1988,10 @@ try {
                 'tpuj': 'Traditional Jeepney',
                 'jeepney': 'Traditional Jeepney',
                 'tricycle': 'Tricycle',
-                'public_bus': 'Public Bus',
-                'private_bus': 'Private Bus',
-                'public_bus': 'Public Bus',
-                'private_bus': 'Private Bus',
+                'public_bus': 'Regular Bus',
+                'private_bus': 'Aircon Bus',
+                'public_bus': 'Regular Bus',
+                'private_bus': 'Aircon Bus',
                 'pub_regular': 'Regular Bus',
                 'pub_aircon': 'Aircon Bus',
                 'uve': 'UV Express',
@@ -2112,7 +2112,7 @@ try {
                 return Math.round(subSum * 100) / 100;
             }
             const norm = (subParts.length === 1) ? subParts[0] : window.normalizeVehicleKey(mode);
-            if (['own_car', 'motorcycle', 'walking', 'walk', 'no_vehicle', 'van', 'uve', 'mini_bus', 'private_bus'].includes(norm)) {
+            if (['own_car', 'motorcycle', 'walking', 'walk', 'no_vehicle', 'van', 'uve', 'mini_bus'].includes(norm)) {
                 return 0;
             }
             const cleanA = (muniA || '').replace(/^(municipality of|city of)\s+/i, '').replace(/,\s*la\s*union$/i, '').trim();
@@ -2293,7 +2293,7 @@ try {
                     mode: 'public_bus',
                     transport_mode: 'public_bus',
                     transport_modes: ['public_bus'],
-                    name: 'Public Bus',
+                    name: 'Regular Bus',
                     icon: 'fa-bus',
                     cost: cost,
                     warning: isNonDrivable ? 'Drop off along highway; transfer or hike to site.' : null,
@@ -2301,15 +2301,16 @@ try {
                 };
             }
 
-            // 3.6. If global is Private Bus
+            // 3.6. If global is Private Bus (uses PUB Aircon fare)
             if (normGlobal === 'private_bus') {
+                const cost = window.calculateSingleLegCost('pub_aircon', d, muniA, muniB);
                 return {
                     mode: 'private_bus',
                     transport_mode: 'private_bus',
                     transport_modes: ['private_bus'],
-                    name: 'Private Bus',
+                    name: 'Aircon Bus',
                     icon: 'fa-bus-simple',
-                    cost: 0,
+                    cost: cost,
                     warning: isNonDrivable ? 'Large vehicle; park at designated bus terminal or highway drop-off.' : null,
                     is_non_drivable: isNonDrivable
                 };

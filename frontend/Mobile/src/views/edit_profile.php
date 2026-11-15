@@ -148,34 +148,12 @@ $backRoute = 'settings';
                     placeholder="Share a brief motto or your passion for exploring La Union..."></textarea>
             </div>
 
-            <!-- Travel Preferences -->
-            <div class="edit-section-title">
-                Travel Preferences
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">
-                    Preferred Spot Categories
-                </label>
-                <div class="chips-container" id="preferences-chips">
-                    <div class="chip-item" onclick="toggleChip(this)" data-value="Surfing & Beach">🏄‍♂️ Surfing & Beach
-                    </div>
-                    <div class="chip-item" onclick="toggleChip(this)" data-value="Nature & Falls">🏔️ Nature & Falls
-                    </div>
-                    <div class="chip-item" onclick="toggleChip(this)" data-value="Heritage & Culture">🏛️ Heritage &
-                        Culture</div>
-                    <div class="chip-item" onclick="toggleChip(this)" data-value="Food & Dining">🍲 Food & Dining</div>
-                    <div class="chip-item" onclick="toggleChip(this)" data-value="Sunset & Nightlife">🌅 Sunset &
-                        Nightlife</div>
-                </div>
-            </div>
-
             </div>
         </div>
 
         <!-- Intact Bottom Footer for Actions (Outside Card) -->
         <div class="edit-profile-footer">
-            <button class="btn-cancel-profile" type="button" onclick="navigateTo('settings')">
+            <button class="btn-cancel-profile" type="button" onclick="typeof window.navigateBack === 'function' ? window.navigateBack('settings') : navigateTo('settings')">
                 Cancel
             </button>
             <button class="btn-save-profile" type="submit" id="btn-save" form="edit-profile-form">
@@ -431,46 +409,6 @@ $backRoute = 'settings';
         if (genderInput && user.gender) genderInput.value = user.gender;
         if (bioInput && user.bio) bioInput.value = user.bio;
 
-        function syncPreferencesFromData(u) {
-            const chips = document.querySelectorAll('#preferences-chips .chip-item');
-            if (!chips.length) return;
-
-            let rawPrefs = null;
-            if (u && typeof u.travel_preferences !== 'undefined' && u.travel_preferences !== null) {
-                rawPrefs = u.travel_preferences;
-            } else {
-                try {
-                    const stored = JSON.parse(localStorage.getItem('auth_user') || '{}');
-                    if (typeof stored.travel_preferences !== 'undefined' && stored.travel_preferences !== null) {
-                        rawPrefs = stored.travel_preferences;
-                    }
-                } catch (e) { }
-            }
-
-            // Only highlight chips that are explicitly saved in the user's preferences list
-            const prefList = (rawPrefs && typeof rawPrefs === 'string' && rawPrefs.trim())
-                ? rawPrefs.split(',').map(s => s.replace(/[\u{1F300}-\u{1F9FF}]/gu, '').trim().toLowerCase()).filter(Boolean)
-                : [];
-
-            chips.forEach(chip => {
-                const val = (chip.getAttribute('data-value') || '').replace(/[\u{1F300}-\u{1F9FF}]/gu, '').trim().toLowerCase();
-                const isMatch = prefList.length > 0 && prefList.includes(val);
-                if (isMatch) {
-                    chip.classList.add('active');
-                } else {
-                    chip.classList.remove('active');
-                }
-            });
-        }
-
-        // Run initial sync from current user
-        syncPreferencesFromData(user);
-
-        // Toggle chip helper
-        window.toggleChip = function (el) {
-            if (el) el.classList.toggle('active');
-        };
-
         // Immediately fetch fresh profile from API to ensure 100% accuracy from DB
         (async function fetchLatestUserData() {
             const token = localStorage.getItem('intan_elyu_token');
@@ -493,7 +431,6 @@ $backRoute = 'settings';
                         if (ageInput && u.age !== undefined && u.age !== null) ageInput.value = String(u.age).slice(0, 2);
                         if (genderInput && u.gender) genderInput.value = u.gender;
                         if (bioInput && u.bio) bioInput.value = u.bio;
-                        syncPreferencesFromData(u);
 
                         const stored = JSON.parse(localStorage.getItem('auth_user') || '{}');
                         Object.assign(stored, u);
@@ -878,11 +815,6 @@ $backRoute = 'settings';
                 }
             }
 
-            // Active preferences chips (only explicitly selected ones)
-            const activeChips = Array.from(document.querySelectorAll('#preferences-chips .chip-item.active'))
-                .map(chip => chip.getAttribute('data-value'));
-            const travelPreferences = activeChips.join(', ');
-
             const avatarFile = window.selectedAvatarBlob || (document.getElementById('avatar-input') ? document.getElementById('avatar-input').files[0] : null);
 
             // Fast offline profile update
@@ -895,7 +827,6 @@ $backRoute = 'settings';
                 stored.age = age;
                 stored.gender = gender;
                 stored.bio = bio;
-                stored.travel_preferences = travelPreferences;
 
                 const avatarPreviewImg = document.getElementById('avatar-img');
                 const avatarSrc = (avatarPreviewImg && avatarPreviewImg.src && avatarPreviewImg.style.display !== 'none') ? avatarPreviewImg.src : null;
@@ -906,7 +837,7 @@ $backRoute = 'settings';
 
                 if (window.OfflineProfileManager && typeof window.OfflineProfileManager.queueProfileUpdate === 'function') {
                     window.OfflineProfileManager.queueProfileUpdate({
-                        name, email, phone, home_location: homeLocation, age, gender, bio, travel_preferences: travelPreferences,
+                        name, email, phone, home_location: homeLocation, age, gender, bio,
                         avatarDataUrl: avatarSrc
                     });
                 }
@@ -915,7 +846,8 @@ $backRoute = 'settings';
                 window.dashboardNeedsRefresh = true;
                 window.dispatchEvent(new CustomEvent('userProfileUpdated', { detail: stored }));
                 if (typeof showToast === 'function') showToast('Profile saved on device! Will sync when online.', 'info', 5000);
-                if (typeof navigateTo === 'function') navigateTo('settings');
+                if (typeof window.navigateBack === 'function') window.navigateBack('settings');
+                else if (typeof navigateTo === 'function') navigateTo('settings');
                 return;
             }
 
@@ -934,7 +866,6 @@ $backRoute = 'settings';
             formData.append('age', age);
             formData.append('gender', gender);
             formData.append('bio', bio);
-            formData.append('travel_preferences', travelPreferences);
 
             if (avatarFile) formData.append('avatar', avatarFile);
 
@@ -965,7 +896,9 @@ $backRoute = 'settings';
                         stored.age = data.user.age;
                         stored.gender = data.user.gender;
                         stored.bio = data.user.bio;
-                        stored.travel_preferences = (data.user.travel_preferences !== undefined) ? data.user.travel_preferences : travelPreferences;
+                        if (data.user.travel_preferences !== undefined) {
+                            stored.travel_preferences = data.user.travel_preferences;
+                        }
 
                         if (data.user.avatar) {
                             stored.avatar = window.getFullImageUrl ? window.getFullImageUrl(data.user.avatar) : data.user.avatar;
@@ -978,7 +911,6 @@ $backRoute = 'settings';
                         stored.age = age;
                         stored.gender = gender;
                         stored.bio = bio;
-                        stored.travel_preferences = travelPreferences;
                     }
                     localStorage.setItem('auth_user', JSON.stringify(stored));
 
@@ -997,7 +929,8 @@ $backRoute = 'settings';
                     // Notify active components of real-time profile update
                     window.dispatchEvent(new CustomEvent('userProfileUpdated', { detail: data.user || stored }));
                     if (typeof showToast === 'function') showToast('Profile updated successfully!');
-                    if (typeof navigateTo === 'function') navigateTo('settings');
+                    if (typeof window.navigateBack === 'function') window.navigateBack('settings');
+                    else if (typeof navigateTo === 'function') navigateTo('settings');
                 } else {
                     let errMsg = data.message || ('Failed to update profile (HTTP ' + res.status + ')');
                     if (data.errors) {
@@ -1018,7 +951,6 @@ $backRoute = 'settings';
                     stored.age = age;
                     stored.gender = gender;
                     stored.bio = bio;
-                    stored.travel_preferences = travelPreferences;
                     const avatarPreviewImg = document.getElementById('avatar-img');
                     const avatarSrc = (avatarPreviewImg && avatarPreviewImg.src && avatarPreviewImg.style.display !== 'none') ? avatarPreviewImg.src : null;
                     if (avatarSrc && (avatarSrc.startsWith('data:') || avatarSrc.startsWith('blob:'))) {
@@ -1028,7 +960,7 @@ $backRoute = 'settings';
 
                     if (window.OfflineProfileManager && typeof window.OfflineProfileManager.queueProfileUpdate === 'function') {
                         window.OfflineProfileManager.queueProfileUpdate({
-                            name, email, phone, home_location: homeLocation, age, gender, bio, travel_preferences: travelPreferences,
+                            name, email, phone, home_location: homeLocation, age, gender, bio,
                             avatarDataUrl: avatarSrc
                         });
                     }
@@ -1037,7 +969,8 @@ $backRoute = 'settings';
                     window.dashboardNeedsRefresh = true;
                     window.dispatchEvent(new CustomEvent('userProfileUpdated', { detail: stored }));
                     if (typeof showToast === 'function') showToast('Profile saved on device! Will sync when online.', 'info', 5000);
-                    if (typeof navigateTo === 'function') navigateTo('settings');
+                    if (typeof window.navigateBack === 'function') window.navigateBack('settings');
+                    else if (typeof navigateTo === 'function') navigateTo('settings');
                     return;
                 }
                 if (typeof showToast === 'function') showToast(err.message || 'Error updating profile');

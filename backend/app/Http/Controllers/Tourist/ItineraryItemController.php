@@ -233,6 +233,8 @@ class ItineraryItemController extends Controller
 
                     \Illuminate\Support\Facades\Cache::forget("rank:user:{$user->id}");
                     \Illuminate\Support\Facades\Cache::forget("profile:trips:{$user->id}");
+                    \Illuminate\Support\Facades\Cache::forget("feedback:user:{$user->id}");
+                    \Illuminate\Support\Facades\Cache::forget("feedback:user:v2:{$user->id}");
 
                     \App\Models\Notification::createSafely(
                         $user->id,

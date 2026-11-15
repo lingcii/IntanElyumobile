@@ -76,7 +76,7 @@ $backRoute = 'settings';
             </div>
             <div class="grid-card-item">
                 <h4>AR Check-In</h4>
-                <p>Scan your location & photo proof to earn points per spot (25 for Existing, 35 for Potential, 45 for Emerging).</p>
+                <p>Scan your location & upload a visit photo to earn points per spot (25 for Existing, 35 for Potential, 45 for Emerging).</p>
             </div>
             <div class="grid-card-item">
                 <h4>GameZone</h4>
@@ -261,12 +261,12 @@ $backRoute = 'settings';
         </div>
     </div>
 
-    <!-- STEP 6: PHOTO PROOF CHECK-IN -->
+    <!-- STEP 6: PHOTO CHECK-IN -->
     <div class="manual-section" id="section-checkin">
         <div class="manual-section-header">
             <div class="manual-section-icon red"><i class="fa-solid fa-camera"></i></div>
             <div>
-                <h2 class="manual-section-title">Step 6 &mdash; Photo Proof Check-In</h2>
+                <h2 class="manual-section-title">Step 6 &mdash; Photo Check-In</h2>
                 <p class="manual-section-sub">Location verification and review approval</p>
             </div>
         </div>
@@ -281,7 +281,7 @@ $backRoute = 'settings';
         <div class="step-card">
             <div class="step-num">2</div>
             <div class="step-content">
-                <div class="step-title">Attach Photo Proof &amp; Verify GPS</div>
+                <div class="step-title">Attach Photo &amp; Verify GPS</div>
                 <div class="step-desc">Capture a photo or selfie at the spot, then tap <strong>Verify Location &amp;
                         Submit</strong>. Check-in is an explicit verification process rather than automatic detection.
                 </div>
@@ -514,19 +514,6 @@ $backRoute = 'settings';
 </div>
 
 <script>
-    (function () {
-        var backBtn = document.querySelector('.header-icon .fa-arrow-left');
-        if (backBtn) {
-            backBtn.closest('.header-icon').onclick = function () {
-                if (typeof navigateTo === 'function') {
-                    navigateTo('settings');
-                } else {
-                    history.back();
-                }
-            };
-        }
-    })();
-
     window.selectManualChip = function (keyword, btn) {
         if (btn) {
             document.querySelectorAll('.manual-chip').forEach(c => c.classList.remove('active'));

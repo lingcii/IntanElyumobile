@@ -4008,58 +4008,58 @@ window.applyTouristSitesFilterModal = function() {
                             const queuedItem = window.OfflineCheckinManager ? window.OfflineCheckinManager.getQueuedItem(item.id) : null;
                             const isQueued = Boolean(queuedItem);
 
-                            let proofImgHtml = '';
-                            let proofImages = [];
+                            let photoImgHtml = '';
+                            let uploadedPhotos = [];
                             if (Array.isArray(item.proof_images) && item.proof_images.length > 0) {
-                                proofImages = item.proof_images;
+                                uploadedPhotos = item.proof_images;
                             } else if (item.proof_image) {
                                 try {
                                     const parsed = JSON.parse(item.proof_image);
-                                    if (Array.isArray(parsed)) proofImages = parsed;
-                                    else proofImages = [item.proof_image];
+                                    if (Array.isArray(parsed)) uploadedPhotos = parsed;
+                                    else uploadedPhotos = [item.proof_image];
                                 } catch (e) {
-                                    proofImages = [item.proof_image];
+                                    uploadedPhotos = [item.proof_image];
                                 }
                             }
                             const spotThumb = (typeof window.getDestImage === 'function') 
                                 ? window.getDestImage(item.destination, 120) 
                                 : ((item.destination && (item.destination.image || item.destination.photo_url)) || 'assets/img/no_image.svg');
 
-                            if (proofImages.length > 0) {
-                                let pUrl = (typeof window.resolveProofImageUrl === 'function') ? window.resolveProofImageUrl(proofImages[0]) : proofImages[0];
-                                let fallbackUrl = (typeof window.getProofImageFallbackUrl === 'function') ? window.getProofImageFallbackUrl(proofImages[0]) : 'assets/img/no_image.svg';
+                            if (uploadedPhotos.length > 0) {
+                                let pUrl = (typeof window.resolveTripPhotoUrl === 'function') ? window.resolveTripPhotoUrl(uploadedPhotos[0]) : uploadedPhotos[0];
+                                let fallbackUrl = (typeof window.getTripPhotoFallbackUrl === 'function') ? window.getTripPhotoFallbackUrl(uploadedPhotos[0]) : 'assets/img/no_image.svg';
                                 const destEscaped = destName.replace(/'/g, "\\'");
-                                const resolvedAll = proofImages.map(u => (typeof window.resolveProofImageUrl === 'function' ? window.resolveProofImageUrl(u) : u));
+                                const resolvedAll = uploadedPhotos.map(u => (typeof window.resolveTripPhotoUrl === 'function' ? window.resolveTripPhotoUrl(u) : u));
                                 const jsonUrlsAttr = JSON.stringify(resolvedAll).replace(/"/g, '&quot;');
-                                proofImgHtml = `<div style="position:relative; flex-shrink:0;">
-                                    <img src="${pUrl}" onerror="if(this.dataset.triedFallback!=='1'){this.dataset.triedFallback='1';this.src='${fallbackUrl}';}else{this.onerror=null;this.src='assets/img/no_image.svg';}" onclick="event.stopPropagation(); if(typeof window.viewProofPhotoModal==='function') window.viewProofPhotoModal(${jsonUrlsAttr}, '${destEscaped}', '${item.is_visited ? 'Verified Visit Proof' : 'Pending Verification'}');" alt="Proof" title="Tap to view proof photo" style="width:28px; height:28px; border-radius:8px; object-fit:cover; border:1px solid ${item.is_visited ? 'rgba(52,199,89,0.5)' : (item.proof_status === 'rejected' ? 'rgba(239,68,68,0.5)' : 'rgba(255,149,0,0.5)')}; flex-shrink:0; cursor:pointer;">
-                                    ${proofImages.length > 1 ? `<span style="position:absolute; bottom:0; right:0; background:rgba(0,0,0,0.75); color:#fff; font-size:6.5px; font-weight:800; padding:0 2px; border-radius:2px;">+${proofImages.length - 1}</span>` : ''}
+                                photoImgHtml = `<div style="position:relative; flex-shrink:0;">
+                                    <img src="${pUrl}" onerror="if(this.dataset.triedFallback!=='1'){this.dataset.triedFallback='1';this.src='${fallbackUrl}';}else{this.onerror=null;this.src='assets/img/no_image.svg';}" onclick="event.stopPropagation(); if(typeof window.viewTripPhotoModal==='function') window.viewTripPhotoModal(${jsonUrlsAttr}, '${destEscaped}', '${item.is_visited ? 'Verified Visit Photo' : 'Pending Verification'}');" alt="Photo" title="Tap to view photo" style="width:28px; height:28px; border-radius:8px; object-fit:cover; border:1px solid ${item.is_visited ? 'rgba(52,199,89,0.5)' : (item.proof_status === 'rejected' ? 'rgba(239,68,68,0.5)' : 'rgba(255,149,0,0.5)')}; flex-shrink:0; cursor:pointer;">
+                                    ${uploadedPhotos.length > 1 ? `<span style="position:absolute; bottom:0; right:0; background:rgba(0,0,0,0.75); color:#fff; font-size:6.5px; font-weight:800; padding:0 2px; border-radius:2px;">+${uploadedPhotos.length - 1}</span>` : ''}
                                 </div>`;
                             } else if (isQueued && queuedItem && queuedItem.previewUrl) {
                                 const destEscaped = destName.replace(/'/g, "\\'");
-                                proofImgHtml = `<img src="${queuedItem.previewUrl}" onerror="this.onerror=null; this.src='assets/img/no_image.svg';" onclick="event.stopPropagation(); if(typeof window.viewProofPhotoModal==='function') window.viewProofPhotoModal('${queuedItem.previewUrl}', '${destEscaped}', 'Offline Proof (Queued on Device)');" alt="Proof" title="Tap to view offline proof photo" style="width:28px; height:28px; border-radius:8px; object-fit:cover; border:1.5px solid #f59e0b; flex-shrink:0; cursor:pointer;">`;
+                                photoImgHtml = `<img src="${queuedItem.previewUrl}" onerror="this.onerror=null; this.src='assets/img/no_image.svg';" onclick="event.stopPropagation(); if(typeof window.viewTripPhotoModal==='function') window.viewTripPhotoModal('${queuedItem.previewUrl}', '${destEscaped}', 'Offline Photo (Queued on Device)');" alt="Photo" title="Tap to view offline photo" style="width:28px; height:28px; border-radius:8px; object-fit:cover; border:1.5px solid #f59e0b; flex-shrink:0; cursor:pointer;">`;
                             }
 
-                            let proofBadge = '';
+                            let statusBadge = '';
                             const isLocVerified = Boolean(item.is_location_verified || item.visited_at);
-                            const hasProof = Boolean(proofImages.length > 0);
+                            const hasPhoto = Boolean(uploadedPhotos.length > 0);
                             const isPhotoApproved = (item.proof_status === 'approved');
                             const isApproved = Boolean(item.is_visited || isPhotoApproved || item.proof_status === 'approved' || (item.is_visited && isLocVerified));
 
                             if (isQueued) {
-                                proofBadge = `<span style="font-size:10px; font-weight:800; color:#fbbf24; background:rgba(245,158,11,0.18); border:1px solid rgba(245,158,11,0.35); padding:2px 8px; border-radius:100px; margin-left:auto; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-cloud-arrow-up"></i> Queued</span>`;
+                                statusBadge = `<span style="font-size:10px; font-weight:800; color:#fbbf24; background:rgba(245,158,11,0.18); border:1px solid rgba(245,158,11,0.35); padding:2px 8px; border-radius:100px; margin-left:auto; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-cloud-arrow-up"></i> Queued</span>`;
                             } else if (isApproved) {
-                                proofBadge = `<span style="font-size:10px; font-weight:800; color:#34c759; background:rgba(52,199,89,0.15); border:1px solid rgba(52,199,89,0.3); padding:2px 8px; border-radius:100px; margin-left:auto; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-circle-check"></i> Verified</span>`;
+                                statusBadge = `<span style="font-size:10px; font-weight:800; color:#34c759; background:rgba(52,199,89,0.15); border:1px solid rgba(52,199,89,0.3); padding:2px 8px; border-radius:100px; margin-left:auto; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-circle-check"></i> Verified</span>`;
                             } else if (isPhotoApproved && !isLocVerified) {
-                                proofBadge = `<span style="font-size:10px; font-weight:800; color:#38bdf8; background:rgba(56,189,248,0.15); border:1px solid rgba(56,189,248,0.3); padding:2px 8px; border-radius:100px; margin-left:auto; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-camera"></i> Photo Approved</span>`;
+                                statusBadge = `<span style="font-size:10px; font-weight:800; color:#38bdf8; background:rgba(56,189,248,0.15); border:1px solid rgba(56,189,248,0.3); padding:2px 8px; border-radius:100px; margin-left:auto; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-camera"></i> Photo Approved</span>`;
                             } else if (item.proof_status === 'rejected') {
-                                proofBadge = `<span style="font-size:10px; font-weight:800; color:#ef4444; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.3); padding:2px 8px; border-radius:100px; margin-left:auto; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-circle-xmark"></i> Rejected</span>`;
-                            } else if (isLocVerified && hasProof) {
-                                proofBadge = `<span style="font-size:10px; font-weight:800; color:#FF9500; background:rgba(255,149,0,0.15); border:1px solid rgba(255,149,0,0.3); padding:2px 8px; border-radius:100px; margin-left:auto; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-clock"></i> Pending</span>`;
-                            } else if (isLocVerified && !hasProof) {
-                                proofBadge = `<span style="font-size:10px; font-weight:800; color:#38bdf8; background:rgba(56,189,248,0.15); border:1px solid rgba(56,189,248,0.3); padding:2px 8px; border-radius:100px; margin-left:auto; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-location-dot"></i> Checked In</span>`;
-                            } else if (!isLocVerified && hasProof) {
-                                proofBadge = `<span style="font-size:10px; font-weight:800; color:#a78bfa; background:rgba(167,139,250,0.15); border:1px solid rgba(167,139,250,0.3); padding:2px 8px; border-radius:100px; margin-left:auto; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-camera"></i> Photo Ready</span>`;
+                                statusBadge = `<span style="font-size:10px; font-weight:800; color:#ef4444; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.3); padding:2px 8px; border-radius:100px; margin-left:auto; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-circle-xmark"></i> Rejected</span>`;
+                            } else if (isLocVerified && hasPhoto) {
+                                statusBadge = `<span style="font-size:10px; font-weight:800; color:#FF9500; background:rgba(255,149,0,0.15); border:1px solid rgba(255,149,0,0.3); padding:2px 8px; border-radius:100px; margin-left:auto; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-clock"></i> Pending</span>`;
+                            } else if (isLocVerified && !hasPhoto) {
+                                statusBadge = `<span style="font-size:10px; font-weight:800; color:#38bdf8; background:rgba(56,189,248,0.15); border:1px solid rgba(56,189,248,0.3); padding:2px 8px; border-radius:100px; margin-left:auto; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-location-dot"></i> Checked In</span>`;
+                            } else if (!isLocVerified && hasPhoto) {
+                                statusBadge = `<span style="font-size:10px; font-weight:800; color:#a78bfa; background:rgba(167,139,250,0.15); border:1px solid rgba(167,139,250,0.3); padding:2px 8px; border-radius:100px; margin-left:auto; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-camera"></i> Photo Ready</span>`;
                             }
 
                             destinationsHtml += `
@@ -4067,8 +4067,8 @@ window.applyTouristSitesFilterModal = function() {
                                 <div style="width:22px; height:22px; border-radius:50%; background:linear-gradient(135deg, #38bdf8, #2563eb); color:#ffffff; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:900; flex-shrink:0; box-shadow:none;">${index + 1}</div>
                                 <img src="${spotThumb}" alt="${destName}" style="width:28px; height:28px; border-radius:8px; object-fit:cover; border:1px solid rgba(255,255,255,0.2); flex-shrink:0;" onerror="this.onerror=null; this.src='assets/img/no_image.svg';">
                                 <div style="flex:1; font-size:13px; color:#0f172a; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${destName}</div>
-                                ${proofImgHtml}
-                                ${proofBadge}
+                                ${photoImgHtml}
+                                ${statusBadge}
                             </div>
                         `;
                         });
@@ -5872,200 +5872,4 @@ window.applyTouristSitesFilterModal = function() {
             window.dispatchEvent(new CustomEvent('tripDeleted', { detail: { id: id } }));
         }
     };
-
-    // =========================================================================
-    // ONBOARDING MODAL CONTROLLER (Complete Profile)
-    // =========================================================================
-    window.initDashboardOnboarding = function () {
-        const showOb = sessionStorage.getItem('show_onboarding') || sessionStorage.getItem('onboarding_active');
-        if (!showOb) return;
-
-        try {
-            const user = JSON.parse(localStorage.getItem('auth_user'));
-            const avatarImg = document.getElementById('onboard-avatar-preview');
-            if (user && avatarImg) {
-                if (user.avatar) {
-                    avatarImg.src = user.avatar;
-                } else if (user.name) {
-                    avatarImg.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=38bdf8&color=fff`;
-                }
-            }
-        } catch (e) { }
-
-        const profileModal = document.getElementById('onboard-profile-modal');
-        if (profileModal) profileModal.style.display = 'flex';
-    };
-
-    window.previewOnboardAvatar = function (event) {
-        const file = event.target?.files?.[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function (e) {
-                const img = document.getElementById('onboard-avatar-preview');
-                if (img) img.src = e.target.result;
-            };
-            reader.readAsDataURL(file);
-        }
-    };
-
-    window.onboardSaveProfile = async function () {
-        const btn = document.getElementById('btn-onboard-save');
-        if (btn) {
-            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Saving...';
-            btn.disabled = true;
-        }
-
-        const phone = document.getElementById('onboard-phone')?.value || '';
-        const home = document.getElementById('onboard-home')?.value || '';
-        const bio = document.getElementById('onboard-bio')?.value || '';
-
-        const activeChips = Array.from(document.querySelectorAll('#onboard-pref-chips .pref-chip.active')).map(c => c.textContent.trim());
-        const prefs = activeChips.join(', ');
-
-        const avatarInput = document.getElementById('onboard-avatar-input');
-        const token = localStorage.getItem('intan_elyu_token');
-
-        const formData = new FormData();
-        formData.append('phone', phone);
-        formData.append('home_location', home);
-        formData.append('bio', bio);
-        formData.append('travel_preferences', prefs);
-
-        if (avatarInput && avatarInput.files && avatarInput.files[0]) {
-            formData.append('avatar', avatarInput.files[0]);
-        }
-
-        if (token) {
-            try {
-                const res = await fetch(getDashBackendUrl() + '/api/tourist/profile', {
-                    method: 'POST',
-                    headers: { 'Accept': 'application/json', 'Authorization': 'Bearer ' + token },
-                    body: formData
-                });
-                const data = await res.json();
-                if (data.user) {
-                    localStorage.setItem('auth_user', JSON.stringify(data.user));
-                    const headerAvatar = document.querySelector('.user-avatar, #user-avatar, .header-avatar');
-                    if (headerAvatar && data.user.avatar) headerAvatar.src = data.user.avatar;
-                }
-            } catch (e) { }
-        }
-
-        sessionStorage.removeItem('show_onboarding');
-        sessionStorage.removeItem('onboarding_active');
-        sessionStorage.removeItem('onboarding_step');
-        sessionStorage.removeItem('pending_reg_email');
-        const profileModal = document.getElementById('onboard-profile-modal');
-        if (profileModal) profileModal.style.display = 'none';
-        if (typeof showToast === 'function') showToast('Profile updated! Welcome to Intan Elyu!');
-    };
-
-    window.onboardSkipProfile = function () {
-        sessionStorage.removeItem('show_onboarding');
-        sessionStorage.removeItem('onboarding_active');
-        sessionStorage.removeItem('onboarding_step');
-        sessionStorage.removeItem('pending_reg_email');
-        const profileModal = document.getElementById('onboard-profile-modal');
-        if (profileModal) profileModal.style.display = 'none';
-        if (typeof showToast === 'function') showToast('Welcome to your Dashboard!');
-    };
-
-    setTimeout(() => {
-        if (typeof window.initDashboardOnboarding === 'function') {
-            window.initDashboardOnboarding();
-        }
-    }, 200);
 </script>
-
-<!-- Complete Profile Modal -->
-<div id="onboard-profile-modal"
-    style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); backdrop-filter:blur(12px); z-index:999999; justify-content:center; align-items:center; padding:16px;">
-    <div
-        style="background:#0f172a; border:1px solid rgba(56,189,248,0.3); border-radius:24px; width:100%; max-width:480px; max-height:90vh; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 20px 50px rgba(0,0,0,0.8); animation:slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);">
-        <div
-            style="padding:20px 24px; background:linear-gradient(135deg, rgba(30,41,59,0.8), rgba(15,23,42,0.95)); border-bottom:1px solid rgba(255,255,255,0.08);">
-            <h3
-                style="margin:0 0 4px 0; font-size:17px; font-weight:800; color:#fff; display:flex; align-items:center; gap:8px;">
-                <i class="fa-solid fa-user-gear" style="color:#fbbf24;"></i> Complete Your Profile
-            </h3>
-            <p style="margin:0; font-size:12px; color:rgba(148,163,184,0.9);">Tell us a bit about yourself to
-                personalize recommendations.</p>
-        </div>
-        <div style="padding:20px; overflow-y:auto; flex:1; display:flex; flex-direction:column; gap:14px;">
-            <!-- Profile Avatar Picker -->
-            <div
-                style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; margin-bottom:4px;">
-                <div style="position:relative; width:84px; height:84px;">
-                    <img id="onboard-avatar-preview"
-                        src="https://ui-avatars.com/api/?name=User&background=38bdf8&color=fff"
-                        style="width:84px; height:84px; border-radius:50%; object-fit:cover; border:2.5px solid #38bdf8; box-shadow:0 6px 20px rgba(56,189,248,0.35);">
-                    <label for="onboard-avatar-input"
-                        style="position:absolute; bottom:2px; right:2px; width:28px; height:28px; background:#38bdf8; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#fff; font-size:12px; cursor:pointer; box-shadow:0 2px 8px rgba(0,0,0,0.5); border:2px solid #0f172a; transition:transform 0.2s;">
-                        <i class="fa-solid fa-camera"></i>
-                    </label>
-                    <input type="file" id="onboard-avatar-input" accept="image/*" style="display:none;"
-                        onchange="window.previewOnboardAvatar(event)">
-                </div>
-                <span style="font-size:11px; font-weight:700; color:#38bdf8; cursor:pointer;"
-                    onclick="document.getElementById('onboard-avatar-input').click()">
-                    Add Profile Picture
-                </span>
-            </div>
-
-            <div>
-                <label
-                    style="display:block; font-size:11px; font-weight:700; color:rgba(255,255,255,0.7); margin-bottom:6px;">Mobile
-                    Phone Number</label>
-                <input type="text" id="onboard-phone" placeholder="0912 345 6789"
-                    style="width:100%; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:10px 14px; color:#fff; font-size:13px; outline:none;">
-            </div>
-            <div>
-                <label
-                    style="display:block; font-size:11px; font-weight:700; color:rgba(255,255,255,0.7); margin-bottom:6px;">Home
-                    Town / City</label>
-                <input type="text" id="onboard-home" placeholder="e.g. Manila, La Union, Baguio"
-                    style="width:100%; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:10px 14px; color:#fff; font-size:13px; outline:none;">
-            </div>
-            <div>
-                <label
-                    style="display:block; font-size:11px; font-weight:700; color:rgba(255,255,255,0.7); margin-bottom:6px;">Short
-                    Bio</label>
-                <textarea id="onboard-bio" rows="2" placeholder="Share your travel interests..."
-                    style="width:100%; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:10px 14px; color:#fff; font-size:13px; outline:none; resize:none;"></textarea>
-            </div>
-            <div>
-                <label
-                    style="display:block; font-size:11px; font-weight:700; color:rgba(255,255,255,0.7); margin-bottom:8px;">Travel
-                    Preferences</label>
-                <div style="display:flex; flex-wrap:wrap; gap:8px;" id="onboard-pref-chips">
-                    <span onclick="this.classList.toggle('active')" class="pref-chip"
-                        style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); color:#fff; padding:6px 12px; border-radius:100px; font-size:11px; font-weight:600; cursor:pointer;">🏄
-                        Surfing</span>
-                    <span onclick="this.classList.toggle('active')" class="pref-chip"
-                        style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); color:#fff; padding:6px 12px; border-radius:100px; font-size:11px; font-weight:600; cursor:pointer;">🏖️
-                        Beach</span>
-                    <span onclick="this.classList.toggle('active')" class="pref-chip"
-                        style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); color:#fff; padding:6px 12px; border-radius:100px; font-size:11px; font-weight:600; cursor:pointer;">⛰️
-                        Hiking</span>
-                    <span onclick="this.classList.toggle('active')" class="pref-chip"
-                        style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); color:#fff; padding:6px 12px; border-radius:100px; font-size:11px; font-weight:600; cursor:pointer;">🍜
-                        Food & Dining</span>
-                    <span onclick="this.classList.toggle('active')" class="pref-chip"
-                        style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); color:#fff; padding:6px 12px; border-radius:100px; font-size:11px; font-weight:600; cursor:pointer;">🏛️
-                        Heritage</span>
-                </div>
-            </div>
-        </div>
-        <div
-            style="padding:16px 20px; background:rgba(15,23,42,0.98); border-top:1px solid rgba(255,255,255,0.08); display:flex; gap:10px;">
-            <button onclick="window.onboardSkipProfile()"
-                style="flex:1; background:transparent; border:1px solid rgba(255,255,255,0.15); color:rgba(255,255,255,0.7); padding:12px; border-radius:12px; font-weight:700; font-size:12px; cursor:pointer;">
-                Skip for now
-            </button>
-            <button id="btn-onboard-save" onclick="window.onboardSaveProfile()"
-                style="flex:2; background:linear-gradient(135deg, #38bdf8, #2563eb); border:none; color:white; padding:12px; border-radius:12px; font-weight:800; font-size:13px; cursor:pointer; box-shadow:0 4px 14px rgba(56,189,248,0.3); display:flex; align-items:center; justify-content:center; gap:8px;">
-                Save & Continue <i class="fa-solid fa-arrow-right"></i>
-            </button>
-        </div>
-    </div>
-</div>

@@ -736,39 +736,27 @@ if (is_dir($imgDir)) {
                 </div>
             </div>
 
-            <!-- Site Fee Summary Banner -->
-            <div id="sheet-fees-card" class="dest-fees-card"
-                style="display:flex; flex-direction:column; background:linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border:none !important; outline:none !important; border-radius:16px; padding:12px 14px; margin-bottom:10px; box-shadow:0 4px 14px rgba(32, 63, 141, 0.28) !important;">
-                <div style="display:flex; align-items:center; justify-content:space-between; width:100%;">
-                    <div style="display:flex; align-items:center; gap:10px;">
-                        <div class="dest-fee-icon-box"
-                            style="width:36px; height:36px; border-radius:10px; background:#ffffff !important; color:#1e3a8a !important; display:flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.18);">
-                            <i class="fa-solid fa-ticket" style="color:#1e3a8a !important;"></i>
-                        </div>
-                        <div style="display:flex; flex-direction:column;">
-                            <span
-                                style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.8); text-transform:uppercase; letter-spacing:0.5px;">Site
-                                Fees</span>
-                            <span id="sheet-fee-main-text" style="font-size:13px; font-weight:800; color:#ffffff;">Free
-                                Admission</span>
-                        </div>
-                    </div>
-                    <div id="sheet-fee-breakdown-tags"
-                        style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
-                        <!-- Injected via JS: e.g. Entrance: ₱50 | Environmental: ₱20 -->
-                    </div>
-                </div>
-
-                <!-- Fee Options Breakdown Grid (Adult, Child, PWD, Senior Citizen, Envi Fee) -->
-                <div id="sheet-fee-options-container"
-                    style="margin-top:8px; padding-top:8px; border-top:1px solid rgba(255,255,255,0.18); display:flex; flex-direction:column; gap:4px; width:100%;">
-                    <!-- Dynamically populated in JavaScript with Adult, Child, PWD, Senior Citizen, Envi Fee -->
-                </div>
-            </div>
-
             <!-- Site Attributes & Operating Status (Tour Guide Needed, Open 24 Hours, Under Maintenance) -->
             <div id="sheet-attributes-container"
                 style="display:none; flex-direction:column; gap:8px; margin-bottom:12px;">
+
+                <!-- Open 24 Hours Card -->
+                <div id="sheet-24h-card"
+                    style="display:none; align-items:center; justify-content:space-between; background:linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border:none !important; outline:none !important; border-radius:14px; padding:12px 14px; box-shadow:0 4px 14px rgba(32, 63, 141, 0.28) !important;">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <div
+                            style="width:34px; height:34px; border-radius:10px; background:#ffffff !important; display:flex; align-items:center; justify-content:center; color:#1e3a8a !important; font-size:16px; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.18);">
+                            <i class="fa-regular fa-clock" style="color:#1e3a8a !important;"></i>
+                        </div>
+                        <div style="display:flex; flex-direction:column;">
+                            <span style="font-size:13px; font-weight:800; color:#ffffff; letter-spacing:0.2px;">Open 24
+                                Hours</span>
+                            <span style="font-size:10.5px; color:rgba(255,255,255,0.85); font-weight:600;">Always
+                                accessible</span>
+                        </div>
+                    </div>
+                    <span style="font-size:11px; font-weight:700; color:#ffffff;">Available all day</span>
+                </div>
 
                 <!-- Tour Guide Needed Card -->
                 <div id="sheet-tour-guide-card"
@@ -806,24 +794,6 @@ if (is_dir($imgDir)) {
                     </div>
                     <span id="sheet-hours-badge"
                         style="font-size:10px; font-weight:800; padding:4px 10px; border-radius:100px; background:rgba(16,185,129,0.25); color:#34d399; text-transform:uppercase; letter-spacing:0.5px;">Open Now</span>
-                </div>
-
-                <!-- Open 24 Hours Card -->
-                <div id="sheet-24h-card"
-                    style="display:none; align-items:center; justify-content:space-between; background:linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border:none !important; outline:none !important; border-radius:14px; padding:12px 14px; box-shadow:0 4px 14px rgba(32, 63, 141, 0.28) !important;">
-                    <div style="display:flex; align-items:center; gap:10px;">
-                        <div
-                            style="width:34px; height:34px; border-radius:10px; background:#ffffff !important; display:flex; align-items:center; justify-content:center; color:#1e3a8a !important; font-size:16px; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.18);">
-                            <i class="fa-regular fa-clock" style="color:#1e3a8a !important;"></i>
-                        </div>
-                        <div style="display:flex; flex-direction:column;">
-                            <span style="font-size:13px; font-weight:800; color:#ffffff; letter-spacing:0.2px;">Open 24
-                                Hours</span>
-                            <span style="font-size:10.5px; color:rgba(255,255,255,0.85); font-weight:600;">Always
-                                accessible</span>
-                        </div>
-                    </div>
-                    <span style="font-size:11px; font-weight:700; color:#ffffff;">Available all day</span>
                 </div>
 
                 <!-- Maximum Capacity Card -->
@@ -884,6 +854,36 @@ if (is_dir($imgDir)) {
                     </span>
                 </div>
 
+            </div>
+
+            <!-- Site Fee Summary Banner -->
+            <div id="sheet-fees-card" class="dest-fees-card"
+                style="display:flex; flex-direction:column; background:linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border:none !important; outline:none !important; border-radius:16px; padding:12px 14px; margin-bottom:10px; box-shadow:0 4px 14px rgba(32, 63, 141, 0.28) !important;">
+                <div style="display:flex; align-items:center; justify-content:space-between; width:100%;">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <div class="dest-fee-icon-box"
+                            style="width:36px; height:36px; border-radius:10px; background:#ffffff !important; color:#1e3a8a !important; display:flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.18);">
+                            <i class="fa-solid fa-ticket" style="color:#1e3a8a !important;"></i>
+                        </div>
+                        <div style="display:flex; flex-direction:column;">
+                            <span
+                                style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.8); text-transform:uppercase; letter-spacing:0.5px;">Site
+                                Fees</span>
+                            <span id="sheet-fee-main-text" style="font-size:13px; font-weight:800; color:#ffffff;">Free
+                                Admission</span>
+                        </div>
+                    </div>
+                    <div id="sheet-fee-breakdown-tags"
+                        style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
+                        <!-- Injected via JS: e.g. Entrance: ₱50 | Environmental: ₱20 -->
+                    </div>
+                </div>
+
+                <!-- Fee Options Breakdown Grid (Adult, Child, PWD, Senior Citizen, Envi Fee) -->
+                <div id="sheet-fee-options-container"
+                    style="margin-top:8px; padding-top:8px; border-top:1px solid rgba(255,255,255,0.18); display:flex; flex-direction:column; gap:4px; width:100%;">
+                    <!-- Dynamically populated in JavaScript with Adult, Child, PWD, Senior Citizen, Envi Fee -->
+                </div>
             </div>
 
             <!-- Available Vehicles / Transportation Card (Shown only if available vehicles exist) -->
@@ -4938,8 +4938,8 @@ if (is_dir($imgDir)) {
                         if (vPhotosCount) vPhotosCount.textContent = `${rawVisitorPhotos.length} photo${rawVisitorPhotos.length > 1 ? 's' : ''}`;
                         vPhotosTrack.style.display = 'flex';
                         vPhotosTrack.innerHTML = rawVisitorPhotos.map((rawUrl, idx) => {
-                            const resolved = (typeof window.resolveProofImageUrl === 'function')
-                                ? window.resolveProofImageUrl(rawUrl)
+                            const resolved = (typeof window.resolveTripPhotoUrl === 'function')
+                                ? window.resolveTripPhotoUrl(rawUrl)
                                 : ((typeof window.getDestImage === 'function') ? window.getDestImage(rawUrl, 400) : rawUrl);
                             const safeUrl = String(resolved || rawUrl).replace(/'/g, "\\'");
                             const safeRaw = String(rawUrl).replace(/'/g, "\\'");
@@ -4948,7 +4948,7 @@ if (is_dir($imgDir)) {
                                 : '';
                             return `
                                 <div onclick="window.openVisitorPhotoLightbox('${safeUrl}')" style="position:relative; width:108px; height:108px; border-radius:14px; overflow:hidden; flex-shrink:0; scroll-snap-align:start; background:rgba(255,255,255,0.14); border:1px solid rgba(255,255,255,0.22); cursor:pointer; box-shadow:0 2px 8px rgba(15,23,42,0.18);">
-                                    <img src="${resolved}" alt="Visitor photo" style="width:100%; height:100%; object-fit:cover; display:block;" onerror="if(!this.dataset.fb && typeof window.getProofImageFallbackUrl==='function'){this.dataset.fb='1';this.src=window.getProofImageFallbackUrl('${safeRaw}');}else{this.parentElement.style.display='none';}">
+                                    <img src="${resolved}" alt="Visitor photo" style="width:100%; height:100%; object-fit:cover; display:block;" onerror="if(!this.dataset.fb && typeof window.getTripPhotoFallbackUrl==='function'){this.dataset.fb='1';this.src=window.getTripPhotoFallbackUrl('${safeRaw}');}else{this.parentElement.style.display='none';}">
                                     ${labelOverlay}
                                 </div>`;
                         }).join('');
@@ -5163,7 +5163,7 @@ if (is_dir($imgDir)) {
                 const isPrivateVeh = !isPub || (est && est.isPrivate);
                 const fareDisplay = est ? `₱${est.fare.toFixed(2)}` : 'Rate on inquiry';
                 const boundaryText = (isPrivateVeh ? 'Direct road access' : (est?.boundaryLabel || 'Boundary step calculated')).replace(/•\s*No fare required/gi, '').trim();
-                const baseText = (!isPrivateVeh && est && est.baseFare > 0) ? `Base: ₱${est.baseFare.toFixed(2)}` : '';
+                const baseText = '';
 
                 return `
                 <div style="background:linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border-radius:14px; padding:12px 14px; border:none !important; outline:none !important; box-shadow:0 4px 12px rgba(32, 63, 141, 0.28) !important; color:#ffffff !important; transition:transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">

@@ -7,7 +7,25 @@ $activeTab = 'leaderboard';
 <?php include __DIR__ . '/../components/header.php'; ?>
 
 
-<div class="leaderboard-container has-header has-bottom-nav animate-fade-in">
+<!-- Fixed Date Filter Bar Docked Below Header (matching Itinerary) -->
+<div class="leaderboard-header-bar" style="position:fixed; top:calc(max(env(safe-area-inset-top, 0px), 36px) + 48px); left:50%; transform:translateX(-50%); width:100%; max-width:480px; z-index:9990; background:#ffffff; padding:8px 12px; box-sizing:border-box; border-bottom:1px solid #e2e8f0; border-radius:0 0 16px 16px; box-shadow:0 3px 12px rgba(15,23,42,0.05);">
+    <div id="leaderboard-date-filters" style="display: flex; align-items: center; gap: 6px; background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 12px; padding: 3px;">
+        <button type="button" class="lb-date-btn active" data-period="all" onclick="window.setLeaderboardDateFilter('all')"
+            style="flex: 1; border: none; border-radius: 9px; padding: 7px 8px; font-size: 11.5px; font-weight: 800; cursor: pointer; background: #1e3a8a; color: #ffffff; transition: all 0.15s ease;">
+            All Time
+        </button>
+        <button type="button" class="lb-date-btn" data-period="week" onclick="window.setLeaderboardDateFilter('week')"
+            style="flex: 1; border: none; border-radius: 9px; padding: 7px 8px; font-size: 11.5px; font-weight: 700; cursor: pointer; background: transparent; color: #475569; transition: all 0.15s ease;">
+            This Week
+        </button>
+        <button type="button" class="lb-date-btn" data-period="month" onclick="window.setLeaderboardDateFilter('month')"
+            style="flex: 1; border: none; border-radius: 9px; padding: 7px 8px; font-size: 11.5px; font-weight: 700; cursor: pointer; background: transparent; color: #475569; transition: all 0.15s ease;">
+            This Month
+        </button>
+    </div>
+</div>
+
+<div class="leaderboard-container has-header has-bottom-nav animate-fade-in" style="padding-top: calc(max(env(safe-area-inset-top, 0px), 36px) + 116px) !important;">
 
     <!-- Offline status badge -->
     <div id="leaderboard-offline-badge" style="display: none; background: #fffbeb; border: 1px solid #fde68a; color: #b45309; padding: 7px 12px; border-radius: 12px; font-size: 11px; font-weight: 700; margin-bottom: 12px; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.04);">
@@ -15,11 +33,11 @@ $activeTab = 'leaderboard';
     </div>
 
     <!-- Title & Season Header -->
-    <div class="leaderboard-title stagger-0" style="position: relative;">
-        <h2>
+    <div class="leaderboard-title stagger-0" style="position: relative; margin-bottom: 14px;">
+        <h2 style="margin: 0 0 2px 0;">
             <i class="fa-solid fa-trophy" style="color: #fbbf24;"></i> La Union Top Explorers
         </h2>
-        <p>Earn Points across Elyu</p>
+        <p style="margin: 0;">Earn Points across Elyu</p>
     </div>
 
     <!-- Your Current Standing Banner -->
@@ -66,7 +84,7 @@ $activeTab = 'leaderboard';
     <!-- Rank List Section -->
     <div id="rank-list-section">
         <div class="stagger-2"
-            style="display: flex; justify-content: space-between; align-items: center; margin: 10px 4px 8px 4px;">
+            style="display: flex; justify-content: space-between; align-items: center; margin: 22px 4px 10px 4px;">
             <h3
                 style="font-size: 15px; font-weight: 800; color: #0f172a !important; margin: 0; display: flex; align-items: center; gap: 6px;">
                 <i class="fa-solid fa-list-ol" style="color: #1e3a8a;"></i> Explorer Leaderboard
@@ -248,6 +266,19 @@ $activeTab = 'leaderboard';
     }
     window.setLeaderboardSort = setLeaderboardSort;
 
+    var currentDateFilter = 'all';
+    window.setLeaderboardDateFilter = function (period) {
+        currentDateFilter = (period === 'week' || period === 'month') ? period : 'all';
+        document.querySelectorAll('#leaderboard-date-filters .lb-date-btn').forEach(btn => {
+            const isActive = btn.getAttribute('data-period') === currentDateFilter;
+            btn.classList.toggle('active', isActive);
+            btn.style.background = isActive ? '#1e3a8a' : 'transparent';
+            btn.style.color = isActive ? '#ffffff' : '#475569';
+            btn.style.fontWeight = isActive ? '800' : '700';
+        });
+        renderLeaderboardUI();
+    };
+
     function renderLeaderboardLoading() {
         const podiumContainer = document.getElementById('podium-container');
         const rankListContainer = document.getElementById('rank-list-container');
@@ -335,6 +366,17 @@ $activeTab = 'leaderboard';
 
             // Display all ranked explorers without omitting newcomers
             let leaders = Array.isArray(rawLeadersList) ? [...rawLeadersList] : [];
+
+            if (currentDateFilter === 'week' || currentDateFilter === 'month') {
+                const days = currentDateFilter === 'week' ? 7 : 30;
+                const cutoffMs = Date.now() - days * 24 * 60 * 60 * 1000;
+                leaders = leaders.filter(u => {
+                    const rawDate = u.last_activity_date || u.points_since || u.created_at;
+                    if (!rawDate) return false;
+                    const ts = new Date(rawDate).getTime();
+                    return !isNaN(ts) && ts >= cutoffMs;
+                });
+            }
 
             // Sort items based on current sort mode
             if (currentSortMode === 'visited') {
@@ -542,7 +584,7 @@ $activeTab = 'leaderboard';
                 (myRealId > 0 && leaders.some(u => Number(u.id || u.user_id) === myRealId)) ||
                 (myRealEmail && myRealEmail.includes('@') && leaders.some(u => String(u.email || '').trim().toLowerCase() === myRealEmail))
             );
-            if (cachedMeData && !isMeAlreadyInList && hasEarnedRank) {
+            if (cachedMeData && !isMeAlreadyInList && hasEarnedRank && (currentSortMode !== 'visited' || myActivities > 0)) {
                 const displayRank = (cachedMyRank && cachedMyRank < 999) ? cachedMyRank : (leaders.length > 0 ? (leaders.length + '+') : 11);
                 rankListHTML += generateRankItem(cachedMeData, displayRank, true, true, -1);
             }

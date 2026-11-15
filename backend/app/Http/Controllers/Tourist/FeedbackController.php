@@ -108,35 +108,178 @@ class FeedbackController extends Controller
             $user = $defaultUser;
         }
 
-        // Process untouched reviews older than 2-3 days
-        if (class_exists(\App\Http\Controllers\Tourist\ItineraryController::class)) {
-            \App\Http\Controllers\Tourist\ItineraryController::processUntouchedVisitReviews(2);
-        }
-
         if (!$user) {
             return response()->json([
                 'status'  => 'success',
                 'success' => true,
                 'data'    => [],
-                'reviews' => (object)[]
+                'reviewed_item_ids' => [],
+                'reviews' => (object)[],
+                'item_reviews' => (object)[]
             ]);
         }
 
-        $feedbacks = SiteFeedback::where('user_id', $user->id)
-            ->whereNotNull('tourist_spot_id')
-            ->get(['tourist_spot_id', 'itinerary_item_id', 'rating', 'testimony', 'policy_recommendation', 'cleanliness_level', 'safety_level', 'created_at']);
+        // Auto-process untouched reviews scoped to this user at most once per 5 min
+        if (
+            Cache::add("untouched_reviews_sync:{$user->id}", 1, 300)
+            && class_exists(\App\Http\Controllers\Tourist\ItineraryController::class)
+        ) {
+            \App\Http\Controllers\Tourist\ItineraryController::processUntouchedVisitReviews(2, $user->id);
+        }
 
-        $reviewedIds = $feedbacks->pluck('tourist_spot_id')->map(fn($id) => (int) $id)->unique()->values()->toArray();
-        $reviewsMap = $feedbacks->keyBy('tourist_spot_id');
-        $reviewedItemIds = $feedbacks->pluck('itinerary_item_id')->filter()->map(fn($id) => (int) $id)->unique()->values()->toArray();
+        $payload = Cache::remember("feedback:user:v2:{$user->id}", 300, function () use ($user) {
+            $feedbacks = SiteFeedback::where('user_id', $user->id)
+                ->whereNotNull('tourist_spot_id')
+                ->with('touristSpot:id,name')
+                ->latest()
+                ->get(['tourist_spot_id', 'itinerary_item_id', 'rating', 'testimony', 'policy_recommendation', 'cleanliness_level', 'safety_level', 'created_at']);
 
-        return response()->json([
-            'status'  => 'success',
-            'success' => true,
-            'data'    => $reviewedIds,
-            'reviewed_item_ids' => $reviewedItemIds,
-            'reviews' => $reviewsMap
-        ]);
+            $reviewedIds = $feedbacks->pluck('tourist_spot_id')->map(fn($id) => (int) $id)->unique()->values()->toArray();
+            $reviewedItemIds = $feedbacks->pluck('itinerary_item_id')->filter()->map(fn($id) => (int) $id)->unique()->values()->toArray();
+
+            // Gather verified check-ins across itinerary items, user_points, and activity_logs
+            $checkedInSpots = [];
+            try {
+                $visitedItems = DB::table('itinerary_items')
+                    ->join('itineraries', 'itinerary_items.itinerary_id', '=', 'itineraries.id')
+                    ->leftJoin('tourist_spots', 'itinerary_items.tourist_spot_id', '=', 'tourist_spots.id')
+                    ->where('itineraries.user_id', $user->id)
+                    ->whereNotNull('itinerary_items.tourist_spot_id')
+                    ->where(function ($q) {
+                        $q->where('itinerary_items.is_visited', true)
+                          ->orWhereNotNull('itinerary_items.visited_at');
+                    })
+                    ->orderByDesc('itinerary_items.visited_at')
+                    ->get([
+                        'itinerary_items.tourist_spot_id',
+                        'itinerary_items.visited_at',
+                        'itinerary_items.updated_at',
+                        'tourist_spots.name as spot_name',
+                    ]);
+                foreach ($visitedItems as $vi) {
+                    $sid = (int) $vi->tourist_spot_id;
+                    if ($sid <= 0 || isset($checkedInSpots[$sid])) continue;
+                    $checkedInSpots[$sid] = [
+                        'tourist_spot_id' => $sid,
+                        'spot_name' => $vi->spot_name,
+                        'created_at' => $vi->visited_at ?: $vi->updated_at,
+                    ];
+                }
+            } catch (\Throwable $e) {}
+
+            try {
+                $pointCheckins = DB::table('user_points')
+                    ->leftJoin('tourist_spots', 'user_points.spot_id', '=', 'tourist_spots.id')
+                    ->where('user_points.user_id', $user->id)
+                    ->whereIn('user_points.source', ['check_in', 'ar_checkin'])
+                    ->whereNotNull('user_points.spot_id')
+                    ->orderByDesc('user_points.created_at')
+                    ->get([
+                        'user_points.spot_id',
+                        'user_points.created_at',
+                        'tourist_spots.name as spot_name',
+                    ]);
+                foreach ($pointCheckins as $pc) {
+                    $sid = (int) $pc->spot_id;
+                    if ($sid <= 0 || isset($checkedInSpots[$sid])) continue;
+                    $checkedInSpots[$sid] = [
+                        'tourist_spot_id' => $sid,
+                        'spot_name' => $pc->spot_name,
+                        'created_at' => $pc->created_at,
+                    ];
+                }
+            } catch (\Throwable $e) {}
+
+            $checkinLogDetails = [];
+            try {
+                $checkinLogDetails = DB::table('activity_logs')
+                    ->where('user_id', $user->id)
+                    ->where('action', 'Points Awarded')
+                    ->where(function ($q) {
+                        $q->where('details', 'like', '%Check-in at%')
+                          ->orWhere('details', 'like', '%Check In%');
+                    })
+                    ->orderByDesc('created_at')
+                    ->get(['details', 'created_at'])
+                    ->all();
+            } catch (\Throwable $e) {}
+
+            $reviewsMap = [];
+            $itemReviewsMap = [];
+            $combinedMap = [];
+            foreach ($feedbacks as $fb) {
+                $spotId = (int) $fb->tourist_spot_id;
+                $spotIdKey = (string) $spotId;
+                $spotName = $fb->touristSpot?->name;
+                $hasReviewText = trim((string) ($fb->testimony ?? '')) !== '' || trim((string) ($fb->policy_recommendation ?? '')) !== '';
+                $hasCheckinLog = false;
+                if ($spotName && !empty($checkinLogDetails)) {
+                    foreach ($checkinLogDetails as $log) {
+                        if (stripos((string) $log->details, "at {$spotName}") !== false) {
+                            $hasCheckinLog = true;
+                            break;
+                        }
+                    }
+                }
+
+                $isCheckedIn = isset($checkedInSpots[$spotId]) || $hasCheckinLog || !$hasReviewText;
+                $isReviewed = $hasReviewText || (!$isCheckedIn);
+
+                if ($fb->itinerary_item_id) {
+                    $itemIdKey = (string) ((int) $fb->itinerary_item_id);
+                    if (!isset($itemReviewsMap[$itemIdKey])) {
+                        $itemArr = $fb->toArray();
+                        $itemArr['spot_name'] = $spotName;
+                        $itemArr['is_reviewed'] = $isReviewed;
+                        $itemArr['is_checked_in'] = $isCheckedIn;
+                        unset($itemArr['tourist_spot']);
+                        $itemReviewsMap[$itemIdKey] = $itemArr;
+                    }
+                }
+
+                if (!isset($reviewsMap[$spotIdKey])) {
+                    $arr = $fb->toArray();
+                    $arr['spot_name'] = $spotName;
+                    $arr['is_reviewed'] = $isReviewed;
+                    $arr['is_checked_in'] = $isCheckedIn;
+                    unset($arr['tourist_spot']);
+                    $reviewsMap[$spotIdKey] = $arr;
+                    $combinedMap[$spotIdKey] = $arr;
+                } else {
+                    if ($isReviewed) $combinedMap[$spotIdKey]['is_reviewed'] = true;
+                    if ($isCheckedIn) $combinedMap[$spotIdKey]['is_checked_in'] = true;
+                }
+            }
+
+            foreach ($checkedInSpots as $sid => $ci) {
+                $spotIdKey = (string) $sid;
+                if (!isset($combinedMap[$spotIdKey])) {
+                    $combinedMap[$spotIdKey] = [
+                        'tourist_spot_id' => $sid,
+                        'spot_name' => $ci['spot_name'],
+                        'rating' => 5,
+                        'testimony' => null,
+                        'created_at' => $ci['created_at'],
+                        'is_reviewed' => false,
+                        'is_checked_in' => true,
+                    ];
+                } else {
+                    $combinedMap[$spotIdKey]['is_checked_in'] = true;
+                }
+            }
+
+            return [
+                'status'  => 'success',
+                'success' => true,
+                'data'    => $reviewedIds,
+                'reviewed_item_ids' => $reviewedItemIds,
+                'reviews' => (object) $reviewsMap,
+                'item_reviews' => (object) $itemReviewsMap,
+                'reviews_and_checkins' => array_values($combinedMap),
+            ];
+        });
+
+        return response()->json($payload);
     }
 
     /**
@@ -213,7 +356,7 @@ class FeedbackController extends Controller
             if ($userId) {
                 $feedbackKey = $itineraryItemId
                     ? ['user_id' => $userId, 'itinerary_item_id' => $itineraryItemId]
-                    : ['user_id' => $userId, 'tourist_spot_id' => $spotId];
+                    : ['user_id' => $userId, 'tourist_spot_id' => $spotId, 'itinerary_item_id' => null];
                 $feedback = SiteFeedback::updateOrCreate(
                     $feedbackKey,
                     array_merge($feedbackData, [
@@ -259,6 +402,10 @@ class FeedbackController extends Controller
         if ($spotId) {
             Cache::forget('feedback:spot:' . (int) $spotId);
         }
+        if ($userId) {
+            Cache::forget("feedback:user:{$userId}");
+            Cache::forget("feedback:user:v2:{$userId}");
+        }
 
         // Award gamification points based on spot classification ONLY IF THIS IS THE FIRST REVIEW FOR THIS DESTINATION
         $classificationStatus = $spot ? $spot->classification_status : null;
@@ -266,27 +413,7 @@ class FeedbackController extends Controller
         $canonicalClassification = \App\Models\Classification::normalizeStatus($classificationStatus);
 
         $rewardAwarded = false;
-        if ($user && $isFirstReview) {
-            try {
-                $user->increment('xp', $rewardPoints);
-                if (method_exists($user, 'syncPlacesVisitedCount')) {
-                    $user->syncPlacesVisitedCount();
-                }
-                \App\Models\UserPoint::awardPointsSafely(
-                    $user->id,
-                    $rewardPoints,
-                    'feedback',
-                    "Shared site testimony and policy feedback for " . ($spot ? $spot->name : 'Destination') . " ({$canonicalClassification})",
-                    $spotId ? (int) $spotId : null
-                );
-                $newXp = (int) ($user->fresh()->xp ?? 0);
-                $newLevel = (int) floor($newXp / 1000) + 1;
-                if ($user->level !== $newLevel) {
-                    $user->update(['level' => $newLevel]);
-                }
-                $rewardAwarded = true;
-            } catch (\Throwable $e) {}
-        }
+        // Points/XP are not awarded on review submission.
 
         return response()->json([
             'status'               => 'success',
@@ -298,9 +425,7 @@ class FeedbackController extends Controller
             'xp'                   => (int) ($user ? ($user->fresh()->xp ?? 0) : 0),
             'completed_activities' => (int) ($user ? ($user->fresh()->completed_activities ?? 0) : 0),
             'classification'       => $canonicalClassification,
-            'message'              => $rewardAwarded
-                ? "Thank you for your testimony and feedback! (+{$rewardPoints} Points & +{$rewardPoints} XP earned — {$canonicalClassification})"
-                : 'Review updated successfully! (Rewards have already been claimed for this destination)',
+            'message'              => 'Thank you for your testimony and feedback!',
             'data'                 => $feedback,
             'spot_rating'          => isset($spot) && $spot ? (float) $spot->rating : ($rating ? (float) $rating : 0.0)
         ]);

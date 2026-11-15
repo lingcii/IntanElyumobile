@@ -103,6 +103,7 @@
 window.userReviewedSpotIds = window.userReviewedSpotIds || new Set();
 window.userReviewedItemIds = window.userReviewedItemIds || new Set();
 window.userReviewedSpotData = window.userReviewedSpotData || {};
+window.userReviewedItemData = window.userReviewedItemData || {};
 
 // Classification to Reward Points & Theme configuration
 window.getRewardPointsForClassification = function(status) {
@@ -123,8 +124,11 @@ window.fetchUserReviewedSpots = async function() {
     if (!token) return;
 
     const _backendBase = (window.backendUrl || 'https://api.intan-elyu.online').replace(/\/+$/, '');
+    const ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    const timer = ctrl ? setTimeout(() => ctrl.abort(), 6000) : null;
     try {
         const res = await fetch(_backendBase + '/api/tourist/feedback/user-reviewed-spots', {
+            signal: ctrl ? ctrl.signal : undefined,
             headers: {
                 'Accept': 'application/json',
                 'Authorization': 'Bearer ' + token
@@ -141,12 +145,17 @@ window.fetchUserReviewedSpots = async function() {
             if (json && json.reviews) {
                 window.userReviewedSpotData = Object.assign({}, window.userReviewedSpotData, json.reviews);
             }
+            if (json && json.item_reviews) {
+                window.userReviewedItemData = Object.assign({}, window.userReviewedItemData, json.item_reviews);
+            }
             if (typeof window.syncReviewedButtons === 'function') {
                 window.syncReviewedButtons();
             }
         }
     } catch (e) {
         console.warn('Could not fetch user reviewed spots:', e);
+    } finally {
+        if (timer) clearTimeout(timer);
     }
 };
 
@@ -154,7 +163,7 @@ window.fetchUserReviewedSpots = async function() {
 window.syncReviewedButtons = function() {
     if (!window.userReviewedSpotIds) return;
     document.querySelectorAll('[data-spot-id]:not(.saved-trip-checkin-btn):not(.trip-map-checkin-btn)').forEach(btn => {
-        if (btn.classList.contains('saved-trip-checkin-btn') || btn.classList.contains('trip-map-checkin-btn') || btn.classList.contains('saved-trip-proof-btn')) return;
+        if (btn.classList.contains('saved-trip-checkin-btn') || btn.classList.contains('trip-map-checkin-btn') || btn.classList.contains('saved-trip-photo-btn')) return;
         const spotId = Number(btn.getAttribute('data-spot-id'));
         const itemId = Number(btn.getAttribute('data-itinerary-item-id'));
         const isReviewed = itemId
@@ -176,7 +185,11 @@ window.openWriteTestimonyModal = function(spotId, btnEl, itineraryItemId = null)
         window._lastReviewedBtn = btnEl;
     }
     const targetSpotId = spotId || window.currentSelectedSpotId;
-    window.currentReviewItineraryItemId = itineraryItemId ? Number(itineraryItemId) : null;
+    const btnItemId = btnEl && btnEl.getAttribute ? btnEl.getAttribute('data-itinerary-item-id') : null;
+    const resolvedItemId = (itineraryItemId !== null && itineraryItemId !== undefined && itineraryItemId !== '' && itineraryItemId !== 'null')
+        ? itineraryItemId
+        : btnItemId;
+    window.currentReviewItineraryItemId = (resolvedItemId && Number(resolvedItemId) > 0) ? Number(resolvedItemId) : null;
     if (targetSpotId) {
         window.currentSelectedSpotId = targetSpotId;
         const spotInput = document.getElementById('testimony-spot-id');
@@ -213,14 +226,22 @@ window.openWriteTestimonyModal = function(spotId, btnEl, itineraryItemId = null)
         ? window.getRewardPointsForClassification(spotClassification)
         : { label: 'Existing', points: 25, color: '#10b981', bg: 'rgba(16, 185, 129, 0.22)', border: 'rgba(16, 185, 129, 0.35)', icon: 'fa-circle-check' };
 
+    if (typeof window.setStarRating === 'function') window.setStarRating(5);
+    if (typeof window.selectCleanliness === 'function') window.selectCleanliness('clean');
+    if (typeof window.selectSafety === 'function') window.selectSafety('safe');
+    if (commentInput) commentInput.value = '';
+    if (policyInput) policyInput.value = '';
+
     if (isAlreadyReviewed) {
         // Repeated Review state: NO ADDITIONAL REWARDS
         if (titleEl) titleEl.textContent = 'Update Destination Review';
         if (subEl) subEl.textContent = 'Modify your site feedback and policy recommendations for this destination.';
         if (submitTextEl) submitTextEl.textContent = 'Update Review';
 
-        // Pre-fill existing data if available
-        const prevData = window.userReviewedSpotData && window.userReviewedSpotData[targetSpotId];
+        // Scope pre-fill to this trip stop when reviewing from a trip; never fall back to another trip's review
+        const prevData = window.currentReviewItineraryItemId
+            ? (window.userReviewedItemData && window.userReviewedItemData[window.currentReviewItineraryItemId])
+            : (window.userReviewedSpotData && window.userReviewedSpotData[targetSpotId]);
         if (prevData) {
             if (typeof window.setStarRating === 'function') window.setStarRating(prevData.rating || 5);
             if (typeof window.selectCleanliness === 'function') window.selectCleanliness(prevData.cleanliness_level || 'clean');
@@ -232,12 +253,6 @@ window.openWriteTestimonyModal = function(spotId, btnEl, itineraryItemId = null)
         if (titleEl) titleEl.textContent = 'Review Destination';
         if (subEl) subEl.textContent = `Share your site feedback for this ${classMeta.label.toLowerCase()} destination to help local tourism.`;
         if (submitTextEl) submitTextEl.textContent = 'Submit Review';
-
-        if (typeof window.setStarRating === 'function') window.setStarRating(5);
-        if (typeof window.selectCleanliness === 'function') window.selectCleanliness('clean');
-        if (typeof window.selectSafety === 'function') window.selectSafety('safe');
-        if (commentInput) commentInput.value = '';
-        if (policyInput) policyInput.value = '';
     }
 
     if (isCompletionReview) {
@@ -448,10 +463,25 @@ window.submitTestimony = async function(event) {
 
             const isRewardAwarded = data.reward_awarded === true;
 
-            // Track spot as reviewed in local state
+            // Track spot or trip stop as reviewed in local state
             if (spotId) {
                 window.userReviewedSpotIds.add(Number(spotId));
-                window.userReviewedSpotData[spotId] = {
+                if (!window.currentReviewItineraryItemId) {
+                    window.userReviewedSpotData[spotId] = {
+                        rating: rating,
+                        testimony: testimony,
+                        policy_recommendation: policy,
+                        cleanliness_level: cleanliness,
+                        safety_level: safety
+                    };
+                }
+            }
+            if (window.currentReviewItineraryItemId) {
+                window.userReviewedItemIds.add(Number(window.currentReviewItineraryItemId));
+                window.userReviewedItemData = window.userReviewedItemData || {};
+                window.userReviewedItemData[window.currentReviewItineraryItemId] = {
+                    itinerary_item_id: Number(window.currentReviewItineraryItemId),
+                    tourist_spot_id: spotId ? Number(spotId) : null,
                     rating: rating,
                     testimony: testimony,
                     policy_recommendation: policy,
@@ -459,9 +489,13 @@ window.submitTestimony = async function(event) {
                     safety_level: safety
                 };
             }
-            if (window.currentReviewItineraryItemId) {
-                window.userReviewedItemIds.add(Number(window.currentReviewItineraryItemId));
-            }
+            window._cachedUserReviews = null;
+            try {
+                for (let i = localStorage.length - 1; i >= 0; i--) {
+                    const k = localStorage.key(i);
+                    if (k && k.startsWith('reviews_checkins_v1_')) localStorage.removeItem(k);
+                }
+            } catch (e) {}
 
             if (isRewardAwarded) {
                 const earnedPts = (data && data.earned_points !== undefined) ? parseInt(data.earned_points, 10) : 25;
@@ -512,7 +546,7 @@ window.submitTestimony = async function(event) {
                     window.confetti({ particleCount: 85, spread: 70, origin: { y: 0.6 } });
                 }
                 if (typeof showToast === 'function') {
-                    showToast(data.message || `Review submitted! You earned +${earnedPts} Points!`);
+                    showToast(data.message || "Review submitted! Thank you for your feedback.");
                 }
                 window.dispatchEvent(new CustomEvent('user-points-updated', { detail: { points: earnedPts, total_points: newTotal } }));
                 if (typeof window.fetchUserProfile === 'function') {
@@ -521,7 +555,7 @@ window.submitTestimony = async function(event) {
             } else {
                 // Repeated review: no points, no confetti
                 if (typeof showToast === 'function') {
-                    showToast(data.message || "Review updated! (Rewards already claimed for this destination)");
+                    showToast(data.message || "Thank you for your feedback!");
                 }
             }
 

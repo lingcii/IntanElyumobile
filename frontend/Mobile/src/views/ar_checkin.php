@@ -14,7 +14,7 @@ $hideBottomNav = true; // Hide bottom nav for full immersive view
 
 <div class="ar-overlay">
     <div class="ar-header">
-        <button class="btn-close-ar" onclick="history.back()">
+        <button class="btn-close-ar" onclick="typeof window.navigateBack === 'function' ? window.navigateBack('dashboard') : history.back()">
             <i class="fa-solid fa-xmark"></i>
         </button>
         <div class="status-pill" id="ar-status">

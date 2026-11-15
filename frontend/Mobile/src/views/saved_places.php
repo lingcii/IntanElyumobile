@@ -104,6 +104,50 @@ if (is_dir($imgDir)) {
             return allSpots.filter(spot => savedIds.some(id => String(id) === String(spot.id)));
         }
 
+        function getKnownLocalSavedPlaces(token) {
+            const removedSet = window._removedSavedPlaceIds || new Set();
+            const filterValid = (arr) => arr.filter(p => p && (!p.status || String(p.status).toLowerCase() !== 'pending') && !removedSet.has(String(p.id)));
+
+            if (window._lastDashboardPayload && Array.isArray(window._lastDashboardPayload.savedPlaces)) {
+                return { found: true, spots: filterValid(window._lastDashboardPayload.savedPlaces) };
+            }
+
+            try {
+                let uid = '';
+                try {
+                    const au = JSON.parse(localStorage.getItem('auth_user') || '{}');
+                    uid = au.id ? String(au.id) : '';
+                } catch (e) {}
+                const tokPrefix = token ? token.substring(0, 10) : '';
+                const dashKeys = [];
+                if (uid) dashKeys.push('dashboard_data_v4_' + uid);
+                if (tokPrefix) dashKeys.push('dashboard_data_v4_' + tokPrefix);
+                dashKeys.push('dashboard_cached_payload');
+                for (let k of dashKeys) {
+                    const raw = localStorage.getItem(k);
+                    if (!raw) continue;
+                    const parsed = JSON.parse(raw);
+                    const payload = (parsed && parsed.data && Array.isArray(parsed.data.savedPlaces)) ? parsed.data : parsed;
+                    if (payload && Array.isArray(payload.savedPlaces)) {
+                        return { found: true, spots: filterValid(payload.savedPlaces) };
+                    }
+                }
+            } catch (e) {}
+
+            const localSpots = filterValid(getLocalSavedSpots());
+            try {
+                const rawIds = localStorage.getItem('intan_elyu_saved_place_ids');
+                if (rawIds !== null) {
+                    const parsedIds = JSON.parse(rawIds);
+                    if (Array.isArray(parsedIds) && (parsedIds.length === 0 || localSpots.length > 0)) {
+                        return { found: true, spots: localSpots };
+                    }
+                }
+            } catch (e) {}
+
+            return { found: localSpots.length > 0, spots: localSpots };
+        }
+
         async function fetchSavedPlaces(forceRefresh = false) {
             const now = Date.now();
             if (!forceRefresh && window._savedPlacesLastFetchCompletedAt && (now - window._savedPlacesLastFetchCompletedAt < 1500)) {
@@ -112,19 +156,16 @@ if (is_dir($imgDir)) {
 
             const token = localStorage.getItem('intan_elyu_token');
 
-            // 1. Instant pre-hydration from local storage bookmarks (only if no cards are on screen yet)
-            const localSaved = getLocalSavedSpots();
-            if (!window._lastSavedPlacesSig && localSaved.length > 0) {
+            // 1. Instant pre-hydration from cached bookmarks/dashboard (including confirmed empty [])
+            const localKnown = getKnownLocalSavedPlaces(token);
+            const localSaved = localKnown.spots;
+            if (!window._lastSavedPlacesSig && localKnown.found) {
                 renderSavedPlaces(localSaved);
             }
 
-            if (!token || token === 'guest_token' || token.startsWith('guest_') || token.startsWith('offline_') || localStorage.getItem('intan_elyu_guest') === 'true') {
-                // In offline guest mode, rely on local bookmarks
-                if (localSaved.length > 0) {
-                    renderSavedPlaces(localSaved);
-                } else {
-                    renderSavedPlaces([]);
-                }
+            const isOffline = (typeof navigator.onLine === 'boolean' && !navigator.onLine) || window.isAppOnline === false;
+            if (isOffline || !token || token === 'guest_token' || token.startsWith('guest_') || token.startsWith('offline_') || localStorage.getItem('intan_elyu_guest') === 'true') {
+                renderSavedPlaces(localSaved);
                 window._savedPlacesLastFetchCompletedAt = Date.now();
                 return;
             }
@@ -138,7 +179,7 @@ if (is_dir($imgDir)) {
                         if (typeof renderer === 'function') renderer(d);
                         return d;
                     } catch (e) {
-                        const fb = getLocalSavedSpots();
+                        const fb = getKnownLocalSavedPlaces(token).spots;
                         if (typeof renderer === 'function') renderer(fb);
                     }
                 };
@@ -147,16 +188,31 @@ if (is_dir($imgDir)) {
                 await fetchCache(
                     cacheKey,
                     async () => {
-                        const res = await fetch(backendUrl + '/api/tourist/dashboard', {
-                            headers: {
+                        const ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+                        const timer = ctrl ? setTimeout(() => ctrl.abort(), 6000) : null;
+                        try {
+                            const headers = {
                                 'Accept': 'application/json',
                                 'Authorization': 'Bearer ' + token
+                            };
+                            let res = await fetch(backendUrl + '/api/tourist/saved-places', {
+                                signal: ctrl ? ctrl.signal : undefined,
+                                headers
+                            });
+                            if (res.status === 404 || res.status === 405) {
+                                res = await fetch(backendUrl + '/api/tourist/dashboard', {
+                                    signal: ctrl ? ctrl.signal : undefined,
+                                    headers
+                                });
                             }
-                        });
-                        if (!res.ok) throw new Error("Failed to fetch saved places");
-                        const data = await res.json();
-                        const removedSet = window._removedSavedPlaceIds || new Set();
-                        return (data.savedPlaces || []).filter(p => p && !removedSet.has(String(p.id)));
+                            if (!res.ok) throw new Error("Failed to fetch saved places");
+                            const data = await res.json();
+                            const list = Array.isArray(data.data) ? data.data : (Array.isArray(data.savedPlaces) ? data.savedPlaces : []);
+                            const removedSet = window._removedSavedPlaceIds || new Set();
+                            return list.filter(p => p && !removedSet.has(String(p.id)));
+                        } finally {
+                            if (timer) clearTimeout(timer);
+                        }
                     },
                     (spots) => {
                         if (Array.isArray(spots)) {
@@ -167,12 +223,7 @@ if (is_dir($imgDir)) {
                             } catch (e) {}
                             renderSavedPlaces(validSpots);
                         } else {
-                            const fallback = getLocalSavedSpots();
-                            if (fallback.length > 0) {
-                                renderSavedPlaces(fallback);
-                            } else {
-                                renderSavedPlaces([]);
-                            }
+                            renderSavedPlaces(getKnownLocalSavedPlaces(token).spots);
                         }
                     },
                     forceRefresh,
@@ -180,8 +231,7 @@ if (is_dir($imgDir)) {
                 );
             } catch (err) {
                 console.warn('Network error fetching saved places, using local:', err);
-                const fallback = getLocalSavedSpots();
-                renderSavedPlaces(fallback);
+                renderSavedPlaces(getKnownLocalSavedPlaces(token).spots);
             } finally {
                 window._savedPlacesLastFetchCompletedAt = Date.now();
             }

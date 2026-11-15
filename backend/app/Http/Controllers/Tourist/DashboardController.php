@@ -225,6 +225,11 @@ class DashboardController extends Controller
 
     private function formatSpot($spot): array
     {
+        return self::formatSpotData($spot);
+    }
+
+    public static function formatSpotData($spot): array
+    {
         $imageUrl = $spot->photo_url;
         $imagesList = [];
         if ($spot->photo_url) {

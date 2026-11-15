@@ -1405,7 +1405,7 @@ window.promptGuestLogin = function (action = 'check-in') {
 
                     <h4 id="guest-auth-title" style="margin: 0 0 8px 0; font-size: 18px; font-weight: 800; color: #0f172a; letter-spacing: -0.4px;">Check-in & Photo Upload</h4>
                     <p id="guest-auth-desc" style="margin: 0 0 18px 0; font-size: 13px; color: #475569; line-height: 1.5; font-weight: 500;">
-                        You are currently in <strong>Guest Mode</strong>. While you can plan and customize trips freely, checking in and uploading photo proof requires a registered account.
+                        You are currently in <strong>Guest Mode</strong>. While you can plan and customize trips freely, checking in and uploading visit photos requires a registered account.
                     </p>
 
                     <!-- Feature Perks Card -->
@@ -1452,7 +1452,7 @@ window.promptGuestLogin = function (action = 'check-in') {
     }
     if (descEl) {
         descEl.innerHTML = isPhoto
-            ? 'Guests can plan and navigate trips freely! To <strong>upload photo proof</strong> and verify your visits, please log in or create an account.'
+            ? 'Guests can plan and navigate trips freely! To <strong>upload visit photos</strong> and verify your visits, please log in or create an account.'
             : 'Guests can plan and navigate trips freely! To <strong>check in at destinations</strong> and earn travel XP, please log in or create an account.';
     }
 
@@ -3165,8 +3165,8 @@ if (typeof window.savePersistentItemState !== 'function') {
     };
 }
 
-if (typeof window.resolveProofImageUrl !== 'function') {
-    window.resolveProofImageUrl = function (rawUrl) {
+if (typeof window.resolveTripPhotoUrl !== 'function') {
+    window.resolveTripPhotoUrl = function (rawUrl) {
         if (!rawUrl || typeof rawUrl !== 'string') return '';
         var url = rawUrl.trim();
         if (!url) return '';
@@ -3191,8 +3191,8 @@ if (typeof window.resolveProofImageUrl !== 'function') {
     };
 }
 
-if (typeof window.getProofImageFallbackUrl !== 'function') {
-    window.getProofImageFallbackUrl = function (rawUrl) {
+if (typeof window.getTripPhotoFallbackUrl !== 'function') {
+    window.getTripPhotoFallbackUrl = function (rawUrl) {
         if (!rawUrl || typeof rawUrl !== 'string') return 'assets/img/no_image.svg';
         var url = rawUrl.trim();
         if (url.startsWith('data:') || url.startsWith('blob:')) return url;
@@ -3769,16 +3769,16 @@ window.renderSavedTrips = function (itineraries) {
                             ? window.getDestImage(dest, 300)
                             : ((dest && (dest.image || dest.photo_url)) || 'assets/img/no_image.svg');
                         
-                        let proofImages = [];
+                        let uploadedPhotos = [];
                         if (Array.isArray(item.proof_images) && item.proof_images.length > 0) {
-                            proofImages = item.proof_images;
+                            uploadedPhotos = item.proof_images;
                         } else if (item.proof_image) {
                             try {
                                 const parsed = JSON.parse(item.proof_image);
-                                if (Array.isArray(parsed)) proofImages = parsed;
-                                else proofImages = [item.proof_image];
+                                if (Array.isArray(parsed)) uploadedPhotos = parsed;
+                                else uploadedPhotos = [item.proof_image];
                             } catch (e) {
-                                proofImages = [item.proof_image];
+                                uploadedPhotos = [item.proof_image];
                             }
                         }
 
@@ -3786,37 +3786,37 @@ window.renderSavedTrips = function (itineraries) {
                         const queuedItem = window.OfflineCheckinManager ? window.OfflineCheckinManager.getQueuedItem(item.id, spotIdVal, trip.id || trip.local_id) : null;
                         const isQueued = Boolean(queuedItem || item.is_offline_queued);
                         if (isQueued) hasQueuedCheckins = true;
-                        if (proofImages.length === 0 && isQueued && queuedItem && (queuedItem.previewUrl || queuedItem.image)) {
-                            proofImages = [queuedItem.previewUrl || queuedItem.image];
+                        if (uploadedPhotos.length === 0 && isQueued && queuedItem && (queuedItem.previewUrl || queuedItem.image)) {
+                            uploadedPhotos = [queuedItem.previewUrl || queuedItem.image];
                         }
 
-                        const hasProof = (proofImages.length > 0);
+                        const hasPhoto = (uploadedPhotos.length > 0);
                         const isLocVerified = Boolean(item.visited_at || item.is_location_verified);
-                        const proofStatus = item.proof_status || (hasProof ? (item.is_visited ? 'approved' : 'pending') : null);
-                        const isPhotoApproved = (proofStatus === 'approved');
+                        const photoStatus = item.proof_status || (hasPhoto ? (item.is_visited ? 'approved' : 'pending') : null);
+                        const isPhotoApproved = (photoStatus === 'approved');
                         const isApproved = Boolean(item.is_visited || isPhotoApproved || item.proof_status === 'approved' || (item.is_visited && isLocVerified));
-                        const isRejected = (proofStatus === 'rejected');
-                        const isPendingProof = !isApproved && !isRejected && !isQueued && hasProof && (proofStatus === 'pending');
-                        const isNextStop = (!isApproved && !isPendingProof && !isQueued && index === firstUnvisitedIdx);
+                        const isRejected = (photoStatus === 'rejected');
+                        const isPendingPhoto = !isApproved && !isRejected && !isQueued && hasPhoto && (photoStatus === 'pending');
+                        const isNextStop = (!isApproved && !isPendingPhoto && !isQueued && index === firstUnvisitedIdx);
                         if (!isApproved && !isQueued) unvisitedCount++;
 
                         let photosStripHtml = '';
-                        if (proofImages.length > 0) {
-                            const resolvedUrls = proofImages.map(u => (typeof window.resolveProofImageUrl === 'function' ? window.resolveProofImageUrl(u) : u));
+                        if (uploadedPhotos.length > 0) {
+                            const resolvedUrls = uploadedPhotos.map(u => (typeof window.resolveTripPhotoUrl === 'function' ? window.resolveTripPhotoUrl(u) : u));
                             const jsonUrlsAttr = JSON.stringify(resolvedUrls).replace(/"/g, '&quot;');
-                            const thumbs = proofImages.map((pUrl, pIdx) => {
-                                const displayUrl = (typeof window.resolveProofImageUrl === 'function') ? window.resolveProofImageUrl(pUrl) : pUrl;
-                                const fallbackUrl = (typeof window.getProofImageFallbackUrl === 'function') ? window.getProofImageFallbackUrl(pUrl) : 'assets/img/no_image.svg';
+                            const thumbs = uploadedPhotos.map((pUrl, pIdx) => {
+                                const displayUrl = (typeof window.resolveTripPhotoUrl === 'function') ? window.resolveTripPhotoUrl(pUrl) : pUrl;
+                                const fallbackUrl = (typeof window.getTripPhotoFallbackUrl === 'function') ? window.getTripPhotoFallbackUrl(pUrl) : 'assets/img/no_image.svg';
                                 return `
                                     <div style="position:relative; flex-shrink:0;">
                                         <img src="${displayUrl}" 
                                             onerror="if(this.dataset.triedFallback!=='1'){this.dataset.triedFallback='1';this.src='${fallbackUrl}';}else{this.onerror=null;this.src='assets/img/no_image.svg';}" 
-                                            onclick="event.stopPropagation(); if(typeof window.viewProofPhotoModal==='function') window.viewProofPhotoModal(${jsonUrlsAttr}, '${destEscaped}', 'Photo Proof (${pIdx + 1} of ${proofImages.length})', ${pIdx});" 
-                                            alt="Proof Photo ${pIdx + 1}" 
-                                            title="Tap to view proof photo" 
+                                            onclick="event.stopPropagation(); if(typeof window.viewTripPhotoModal==='function') window.viewTripPhotoModal(${jsonUrlsAttr}, '${destEscaped}', 'Photo (${pIdx + 1} of ${uploadedPhotos.length})', ${pIdx});" 
+                                            alt="Photo ${pIdx + 1}" 
+                                            title="Tap to view photo" 
                                             loading="lazy"
                                             style="width:52px; height:52px; border-radius:12px; object-fit:cover; border:1.5px solid rgba(255,255,255,0.25); box-shadow:0 4px 12px rgba(0,0,0,0.3); cursor:pointer; display:block;">
-                                        ${proofImages.length > 1 ? `<span style="position:absolute; bottom:2px; right:2px; background:rgba(0,0,0,0.7); color:#fff; font-size:8px; font-weight:800; padding:1px 4px; border-radius:4px;">${pIdx + 1}</span>` : ''}
+                                        ${uploadedPhotos.length > 1 ? `<span style="position:absolute; bottom:2px; right:2px; background:rgba(0,0,0,0.7); color:#fff; font-size:8px; font-weight:800; padding:1px 4px; border-radius:4px;">${pIdx + 1}</span>` : ''}
                                     </div>
                                 `;
                             }).join('');
@@ -3824,7 +3824,7 @@ window.renderSavedTrips = function (itineraries) {
                             photosStripHtml = `
                                 <div style="display:flex; align-items:center; gap:8px; overflow-x:auto; padding:4px 0; max-width:100%; -webkit-overflow-scrolling:touch;">
                                     ${thumbs}
-                                    ${proofImages.length > 1 ? `<span style="font-size:10px; color:#00f2fe; font-weight:700; white-space:nowrap; margin-left:2px;">${proofImages.length} photos</span>` : ''}
+                                    ${uploadedPhotos.length > 1 ? `<span style="font-size:10px; color:#00f2fe; font-weight:700; white-space:nowrap; margin-left:2px;">${uploadedPhotos.length} photos</span>` : ''}
                                 </div>
                             `;
                         }
@@ -3833,7 +3833,7 @@ window.renderSavedTrips = function (itineraries) {
                         if (isQueued && queuedItem) {
                             const qSrc = queuedItem.previewUrl || queuedItem.image || '';
                             if (qSrc) {
-                                queuedThumbnailHtml = `<img src="${qSrc}" onerror="this.onerror=null; this.src='assets/img/no_image.svg';" onclick="event.stopPropagation(); if(typeof window.viewProofPhotoModal==='function') window.viewProofPhotoModal('${qSrc}', '${destEscaped}', 'Offline Proof (Queued on Device)');" alt="Proof" title="Tap to view offline proof photo" style="width:52px; height:52px; border-radius:12px; object-fit:cover; border:2px solid #f59e0b !important; outline:none !important; box-shadow:0 4px 12px rgba(0,0,0,0.3); flex-shrink:0; cursor:pointer;">`;
+                                queuedThumbnailHtml = `<img src="${qSrc}" onerror="this.onerror=null; this.src='assets/img/no_image.svg';" onclick="event.stopPropagation(); if(typeof window.viewTripPhotoModal==='function') window.viewTripPhotoModal('${qSrc}', '${destEscaped}', 'Offline Photo (Queued on Device)');" alt="Photo" title="Tap to view offline photo" style="width:52px; height:52px; border-radius:12px; object-fit:cover; border:2px solid #f59e0b !important; outline:none !important; box-shadow:0 4px 12px rgba(0,0,0,0.3); flex-shrink:0; cursor:pointer;">`;
                             } else {
                                 queuedThumbnailHtml = `<div style="width:52px; height:52px; border-radius:12px; background:rgba(245,158,11,0.2); border:1.5px dashed #f59e0b; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#fbbf24; flex-shrink:0;"><i class="fa-solid fa-camera" style="font-size:16px;"></i><span style="font-size:8px; font-weight:800; margin-top:2px;">OFFLINE</span></div>`;
                             }
@@ -3882,7 +3882,7 @@ window.renderSavedTrips = function (itineraries) {
                         }
 
                         html += `
-                        <div class="timeline-item ${isApproved ? 'completed' : (isPendingProof ? 'pending' : (isNextStop ? 'is-next-stop' : ''))}" style="margin-bottom: 12px;">
+                        <div class="timeline-item ${isApproved ? 'completed' : (isPendingPhoto ? 'pending' : (isNextStop ? 'is-next-stop' : ''))}" style="margin-bottom: 12px;">
                             <div class="timeline-dot"></div>
                             <div class="timeline-content" style="padding:14px; background: rgba(255,255,255,0.12); border: none !important; outline: none !important; border-radius: 16px; display:flex; flex-direction:column; gap:10px;">
                                 <div style="display:flex; gap:12px; align-items:flex-start;">
@@ -3917,7 +3917,7 @@ window.renderSavedTrips = function (itineraries) {
                                                     </span>
                                                     <span style="font-size:10px; color:#fca5a5; display:block; margin-top:2px;">${item.rejection_reason || 'Please upload a clearer photo taken at this destination.'}</span>
                                                 </div>
-                                                <button type="button" class="btn-primary" style="padding:7px 14px; font-size:11.5px; font-weight:800; border-radius:100px; background:linear-gradient(135deg, #ef4444, #dc2626); border:none !important; outline:none !important; color:#fff; cursor:pointer;" onclick="event.stopPropagation(); window.openProofUploadModal('${item.id}', '${destEscaped}')">
+                                                <button type="button" class="btn-primary" style="padding:7px 14px; font-size:11.5px; font-weight:800; border-radius:100px; background:linear-gradient(135deg, #ef4444, #dc2626); border:none !important; outline:none !important; color:#fff; cursor:pointer;" onclick="event.stopPropagation(); window.openPhotoUploadModal('${item.id}', '${destEscaped}')">
                                                     <i class="fa-solid fa-camera" style="margin-right:4px;"></i> Re-upload Photo
                                                 </button>
                                             </div>
@@ -3932,8 +3932,8 @@ window.renderSavedTrips = function (itineraries) {
                                                     </span>
                                                     <span style="font-size:10px; color:#ffffff; opacity:0.85; display:block; margin-top:4px;"><i class="fa-solid fa-camera" style="color:#fbbf24; margin-right:4px;"></i>Saved on device &bull; Auto-syncs when online</span>
                                                 </div>
-                                                <button type="button" class="saved-trip-proof-btn" onclick="event.stopPropagation(); window.openProofUploadModal('${item.id}', '${destEscaped}')">
-                                                    <i class="fa-solid fa-camera"></i> ${hasProof ? 'Update Photo' : 'Upload Photo'}
+                                                <button type="button" class="saved-trip-photo-btn" onclick="event.stopPropagation(); window.openPhotoUploadModal('${item.id}', '${destEscaped}')">
+                                                    <i class="fa-solid fa-camera"></i> ${hasPhoto ? 'Update Photo' : 'Upload Photo'}
                                                 </button>
                                             </div>` :
                                         (isPhotoApproved && !isLocVerified ?
@@ -3951,7 +3951,7 @@ window.renderSavedTrips = function (itineraries) {
                                                 </div>
                                                 ${photosStripHtml}
                                             </div>` :
-                                        (isLocVerified && isPendingProof ?
+                                        (isLocVerified && isPendingPhoto ?
                                             `<div style="display:flex; flex-direction:column; gap:8px; margin-top:4px;">
                                                 <div>
                                                     <span style="background:rgba(255,149,0,0.22); border:none !important; outline:none !important; color:#ff9f0a; font-size:11.5px; font-weight:800; padding:3px 10px; border-radius:100px; display:inline-flex; align-items:center; gap:5px;">
@@ -3963,7 +3963,7 @@ window.renderSavedTrips = function (itineraries) {
                                                 </div>
                                                 ${photosStripHtml}
                                             </div>` :
-                                        (!isLocVerified && (isPendingProof || hasProof) ?
+                                        (!isLocVerified && (isPendingPhoto || hasPhoto) ?
                                             `<div style="display:flex; flex-direction:column; gap:8px; margin-top:4px;">
                                                 <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
                                                     <div>
@@ -3978,7 +3978,7 @@ window.renderSavedTrips = function (itineraries) {
                                                 </div>
                                                 ${photosStripHtml}
                                             </div>` :
-                                        (isLocVerified && !hasProof ?
+                                        (isLocVerified && !hasPhoto ?
                                             `<div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:4px; flex-wrap:wrap;">
                                                 <div>
                                                     <span style="background:rgba(52,199,89,0.18); border:none !important; outline:none !important; color:#34c759; font-size:11px; font-weight:800; padding:3px 10px; border-radius:100px; display:inline-flex; align-items:center; gap:5px;">
@@ -3986,7 +3986,7 @@ window.renderSavedTrips = function (itineraries) {
                                                     </span>
                                                     <span style="font-size:10px; color:#ffffff; opacity:0.8; display:block; margin-top:4px;">Take or upload photos to complete check-in</span>
                                                 </div>
-                                                <button type="button" class="btn-primary" style="padding:7px 14px; font-size:11.5px; font-weight:800; border-radius:100px; background:linear-gradient(135deg, #00f2fe, #0284c7); border:none !important; outline:none !important; color:#fff; cursor:pointer;" onclick="event.stopPropagation(); window.openProofUploadModal('${item.id}', '${destEscaped}')">
+                                                <button type="button" class="btn-primary" style="padding:7px 14px; font-size:11.5px; font-weight:800; border-radius:100px; background:linear-gradient(135deg, #00f2fe, #0284c7); border:none !important; outline:none !important; color:#fff; cursor:pointer;" onclick="event.stopPropagation(); window.openPhotoUploadModal('${item.id}', '${destEscaped}')">
                                                     <i class="fa-solid fa-camera" style="margin-right:4px;"></i> Upload Photo
                                                 </button>
                                             </div>` :
@@ -3994,7 +3994,7 @@ window.renderSavedTrips = function (itineraries) {
                                                 <button type="button" class="btn-primary" style="padding:8px 14px; font-size:11.5px; font-weight:800; border-radius:100px; background:linear-gradient(135deg, #00f2fe, #0284c7); border:none !important; outline:none !important; color:#fff; cursor:pointer; display:inline-flex; align-items:center; gap:5px;" onclick="event.stopPropagation(); window.executeLocationCheckIn('${item.id}', '${destEscaped}', ${dest?.latitude || 'null'}, ${dest?.longitude || 'null'}, this)">
                                                     <i class="fa-solid fa-location-crosshairs"></i> Check In
                                                 </button>
-                                                <button type="button" class="btn-primary" style="padding:8px 14px; font-size:11.5px; font-weight:800; border-radius:100px; background:rgba(255,255,255,0.18); border:none !important; outline:none !important; color:#fff; cursor:pointer; display:inline-flex; align-items:center; gap:5px;" onclick="event.stopPropagation(); window.openProofUploadModal('${item.id}', '${destEscaped}')">
+                                                <button type="button" class="btn-primary" style="padding:8px 14px; font-size:11.5px; font-weight:800; border-radius:100px; background:rgba(255,255,255,0.18); border:none !important; outline:none !important; color:#fff; cursor:pointer; display:inline-flex; align-items:center; gap:5px;" onclick="event.stopPropagation(); window.openPhotoUploadModal('${item.id}', '${destEscaped}')">
                                                     <i class="fa-solid fa-camera"></i> Upload Photo
                                                 </button>
                                             </div>`))))))
@@ -4136,28 +4136,28 @@ window.startTrip = function (tripId, btnElement) {
     }, 180);
 };
 
-// --- MULTI-PHOTO PROOF, INDEPENDENT LOCATION CHECK-IN & TRIP COMPLETION HANDLERS ---
-window.selectedProofPhotos = [];
-window._currentProofItemId = null;
-window._currentProofSpotName = null;
+// --- MULTI-PHOTO UPLOAD, INDEPENDENT LOCATION CHECK-IN & TRIP COMPLETION HANDLERS ---
+window.selectedTripPhotos = [];
+window._currentPhotoItemId = null;
+window._currentPhotoSpotName = null;
 
-window.ensureProofUploadModal = function () {
-    let modal = document.getElementById('proof-upload-modal');
+window.ensurePhotoUploadModal = function () {
+    let modal = document.getElementById('photo-upload-modal');
     if (!modal) {
         modal = document.createElement('div');
-        modal.id = 'proof-upload-modal';
-        modal.setAttribute('onclick', 'if(event.target===this) window.closeProofUploadModal();');
+        modal.id = 'photo-upload-modal';
+        modal.setAttribute('onclick', 'if(event.target===this) window.closePhotoUploadModal();');
         modal.style.cssText = 'display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(10,25,60,0.72); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); z-index:99999; justify-content:center; align-items:center; padding:16px; box-sizing:border-box;';
         modal.innerHTML = `
             <div style="background:#ffffff; border:none; outline:none; border-radius:26px; width:100%; max-width:420px; box-shadow:0 20px 50px rgba(0,0,0,0.35); text-align:center; max-height:90vh; overflow:hidden; display:flex; flex-direction:column; box-sizing:border-box;">
                 <div style="flex-shrink:0; background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%); padding:18px 20px; display:flex; justify-content:space-between; align-items:center; border-top-left-radius:26px; border-top-right-radius:26px; box-sizing:border-box;">
                     <div style="text-align:left;">
-                        <h3 id="proof-spot-title" style="margin:0; color:#ffffff; font-size:18px; font-weight:800; display:flex; align-items:center; gap:8px;">
+                        <h3 id="photo-spot-title" style="margin:0; color:#ffffff; font-size:18px; font-weight:800; display:flex; align-items:center; gap:8px;">
                             <i class="fa-solid fa-camera" style="color:#38bdf8; font-size:17px;"></i> Upload Photo
                         </h3>
-                        <span id="proof-spot-subtitle" style="font-size:12px; color:rgba(255,255,255,0.85); font-weight:600; display:block; margin-top:3px;">Select up to 5 photos</span>
+                        <span id="photo-spot-subtitle" style="font-size:12px; color:rgba(255,255,255,0.85); font-weight:600; display:block; margin-top:3px;">Select up to 5 photos</span>
                     </div>
-                    <button type="button" onclick="window.closeProofUploadModal()"
+                    <button type="button" onclick="window.closePhotoUploadModal()"
                         style="background:rgba(255,255,255,0.18); border:none; outline:none; color:#ffffff; width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; transition:all 0.15s ease;">
                         <i class="fa-solid fa-xmark" style="font-size:15px;"></i>
                     </button>
@@ -4166,14 +4166,14 @@ window.ensureProofUploadModal = function () {
                     <p style="font-size:13px; color:#475569; margin:0 0 16px 0; line-height:1.5; font-weight:500;">
                         Take or select selfies and photos at this destination to verify your visit.
                     </p>
-                    <input type="hidden" id="proof-upload-item-id">
-                    <input type="file" id="proof-upload-input" accept="image/*" multiple style="display:none;" onchange="window.handleProofPhotosSelected(this)">
+                    <input type="hidden" id="photo-upload-item-id">
+                    <input type="file" id="photo-upload-input" accept="image/*" multiple style="display:none;" onchange="window.handleSelectedTripPhotos(this)">
                     <div style="display:flex; gap:10px; margin-bottom:16px;">
-                        <button type="button" onclick="window.addProofPhotoFromSource('camera')"
+                        <button type="button" onclick="window.addTripPhotoFromSource('camera')"
                             style="flex:1; padding:12px 10px; background:linear-gradient(135deg, #0284c7 0%, #0369a1 100%); border:none; outline:none; border-radius:14px; color:#ffffff; font-weight:800; font-size:13px; display:flex; align-items:center; justify-content:center; gap:7px; cursor:pointer; box-shadow:0 3px 10px rgba(2, 132, 199, 0.28);">
                             <i class="fa-solid fa-camera" style="font-size:15px;"></i> Take Photo
                         </button>
-                        <button type="button" onclick="window.addProofPhotoFromSource('gallery')"
+                        <button type="button" onclick="window.addTripPhotoFromSource('gallery')"
                             style="flex:1; padding:12px 10px; background:#f1f5f9; border:1.5px solid #e2e8f0; outline:none; border-radius:14px; color:#1e3a8a; font-weight:800; font-size:13px; display:flex; align-items:center; justify-content:center; gap:7px; cursor:pointer;">
                             <i class="fa-solid fa-images" style="color:#0284c7; font-size:15px;"></i> Add from Gallery
                         </button>
@@ -4181,21 +4181,21 @@ window.ensureProofUploadModal = function () {
                     <div style="margin-bottom:8px;">
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
                             <label style="font-size:11.5px; font-weight:800; color:#334155; text-transform:uppercase; letter-spacing:0.5px;">Selected Photos</label>
-                            <span id="proof-count-badge" style="font-size:11.5px; font-weight:800; color:#0284c7; background:#e0f2fe; padding:3px 10px; border-radius:100px;">0 / 5 photos</span>
+                            <span id="photo-count-badge" style="font-size:11.5px; font-weight:800; color:#0284c7; background:#e0f2fe; padding:3px 10px; border-radius:100px;">0 / 5 photos</span>
                         </div>
-                        <div id="proof-empty-prompt" onclick="window.addProofPhotoFromSource('gallery')"
+                        <div id="photo-empty-prompt" onclick="window.addTripPhotoFromSource('gallery')"
                             style="border:2px dashed #94a3b8; border-radius:16px; padding:24px 16px; text-align:center; cursor:pointer; background:#f8fafc; transition:all 0.2s ease;">
                             <i class="fa-solid fa-cloud-arrow-up" style="font-size:28px; color:#0284c7; margin-bottom:6px; display:block;"></i>
                             <p style="margin:0; font-size:13px; font-weight:800; color:#1e293b;">Tap to select photos</p>
                             <p style="margin:4px 0 0 0; font-size:11.5px; color:#64748b; font-weight:500;">You can choose multiple photos</p>
                         </div>
-                        <div id="proof-thumbnails-grid" style="display:none; grid-template-columns:repeat(3, 1fr); gap:10px;"></div>
+                        <div id="photo-thumbnails-grid" style="display:none; grid-template-columns:repeat(3, 1fr); gap:10px;"></div>
                     </div>
                 </div>
                 <div style="flex-shrink:0; background:#f8fafc; border-top:1px solid #e2e8f0; padding:16px 20px; border-bottom-left-radius:26px; border-bottom-right-radius:26px; box-sizing:border-box;">
                     <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; align-items:center;">
-                        <button type="button" style="width:100%; padding:13px 16px; border-radius:14px; border:1.5px solid #cbd5e1; outline:none; background:#ffffff; color:#475569; font-size:14px; font-weight:800; cursor:pointer;" onclick="window.closeProofUploadModal()">Cancel</button>
-                        <button type="button" id="btn-submit-proof-photos" class="btn-primary" style="width:100%; padding:13px 16px; font-size:14px; font-weight:800; background:linear-gradient(135deg, #10b981 0%, #059669 100%); border:none; outline:none; color:#ffffff; border-radius:14px; cursor:pointer; box-shadow:0 4px 14px rgba(16, 185, 129, 0.35);" onclick="window.submitProofPhotos()">
+                        <button type="button" style="width:100%; padding:13px 16px; border-radius:14px; border:1.5px solid #cbd5e1; outline:none; background:#ffffff; color:#475569; font-size:14px; font-weight:800; cursor:pointer;" onclick="window.closePhotoUploadModal()">Cancel</button>
+                        <button type="button" id="btn-submit-trip-photos" class="btn-primary" style="width:100%; padding:13px 16px; font-size:14px; font-weight:800; background:linear-gradient(135deg, #10b981 0%, #059669 100%); border:none; outline:none; color:#ffffff; border-radius:14px; cursor:pointer; box-shadow:0 4px 14px rgba(16, 185, 129, 0.35);" onclick="window.submitTripPhotos()">
                             <i class="fa-solid fa-cloud-arrow-up" style="margin-right:6px;"></i> Submit
                         </button>
                     </div>
@@ -4229,7 +4229,7 @@ window.ensureCompleteTripModal = function () {
     return modal;
 };
 
-window.openProofUploadModal = function (itemId, spotName = '') {
+window.openPhotoUploadModal = function (itemId, spotName = '') {
     if (typeof window.isGuestUser === 'function' && window.isGuestUser()) {
         if (typeof window.promptGuestLogin === 'function') {
             window.promptGuestLogin('photo');
@@ -4239,37 +4239,37 @@ window.openProofUploadModal = function (itemId, spotName = '') {
         return;
     }
 
-    if (typeof window.ensureProofUploadModal === 'function') {
-        window.ensureProofUploadModal();
+    if (typeof window.ensurePhotoUploadModal === 'function') {
+        window.ensurePhotoUploadModal();
     }
     document.body.classList.add('modal-blurred');
-    window._currentProofItemId = itemId;
-    window._currentProofSpotName = spotName;
-    window.selectedProofPhotos = [];
+    window._currentPhotoItemId = itemId;
+    window._currentPhotoSpotName = spotName;
+    window.selectedTripPhotos = [];
 
-    const titleEl = document.getElementById('proof-spot-title');
+    const titleEl = document.getElementById('photo-spot-title');
     if (titleEl) {
         titleEl.innerHTML = `<i class="fa-solid fa-camera" style="color:#38bdf8; font-size:17px;"></i> ${spotName || 'Upload Photo'}`;
     }
 
-    const input = document.getElementById('proof-upload-input');
+    const input = document.getElementById('photo-upload-input');
     if (input) input.value = '';
 
-    window.renderProofThumbnailsGrid();
+    window.renderTripPhotoThumbnailsGrid();
 
-    const modal = document.getElementById('proof-upload-modal');
+    const modal = document.getElementById('photo-upload-modal');
     if (modal) modal.style.display = 'flex';
 };
 
-window.closeProofUploadModal = function () {
+window.closePhotoUploadModal = function () {
     document.body.classList.remove('modal-blurred');
-    const modal = document.getElementById('proof-upload-modal');
+    const modal = document.getElementById('photo-upload-modal');
     if (modal) modal.style.display = 'none';
-    window.selectedProofPhotos = [];
-    window._currentProofItemId = null;
-    window._currentProofSpotName = null;
+    window.selectedTripPhotos = [];
+    window._currentPhotoItemId = null;
+    window._currentPhotoSpotName = null;
 
-    const btn = document.getElementById('btn-submit-proof-photos');
+    const btn = document.getElementById('btn-submit-trip-photos');
     if (btn) {
         btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up" style="margin-right:6px;"></i> Submit';
         btn.disabled = false;
@@ -4277,8 +4277,8 @@ window.closeProofUploadModal = function () {
 };
 
 // Backwards compatibility aliases
-window.openCheckinModal = window.openProofUploadModal;
-window.closeCheckinModal = window.closeProofUploadModal;
+window.openCheckinModal = window.openPhotoUploadModal;
+window.closeCheckinModal = window.closePhotoUploadModal;
 
 window.compressImageFile = async function (fileOrBlob, maxDimension = 1280, quality = 0.8) {
     return new Promise((resolve) => {
@@ -4326,13 +4326,13 @@ window.compressImageFile = async function (fileOrBlob, maxDimension = 1280, qual
     });
 };
 
-window.renderProofThumbnailsGrid = function () {
-    const emptyPrompt = document.getElementById('proof-empty-prompt');
-    const grid = document.getElementById('proof-thumbnails-grid');
-    const countBadge = document.getElementById('proof-count-badge');
-    const submitBtn = document.getElementById('btn-submit-proof-photos');
+window.renderTripPhotoThumbnailsGrid = function () {
+    const emptyPrompt = document.getElementById('photo-empty-prompt');
+    const grid = document.getElementById('photo-thumbnails-grid');
+    const countBadge = document.getElementById('photo-count-badge');
+    const submitBtn = document.getElementById('btn-submit-trip-photos');
 
-    const total = window.selectedProofPhotos.length;
+    const total = window.selectedTripPhotos.length;
     if (countBadge) {
         countBadge.textContent = `${total} / 5 photos`;
     }
@@ -4355,14 +4355,14 @@ window.renderProofThumbnailsGrid = function () {
         grid.style.display = 'grid';
         let html = '';
 
-        window.selectedProofPhotos.forEach((item, index) => {
+        window.selectedTripPhotos.forEach((item, index) => {
             html += `
                 <div style="position:relative; aspect-ratio:1/1; border-radius:14px; overflow:hidden; background:#0f172a; box-shadow:0 3px 8px rgba(0,0,0,0.15); border:1.5px solid #e2e8f0;">
                     <img src="${item.dataUrl}" alt="Photo ${index + 1}" style="width:100%; height:100%; object-fit:cover; display:block;">
                     <span style="position:absolute; bottom:4px; left:4px; background:rgba(0,0,0,0.7); color:#fff; font-size:9px; font-weight:800; padding:2px 6px; border-radius:6px;">
                         ${index + 1}
                     </span>
-                    <button type="button" onclick="event.stopPropagation(); window.removeProofPhotoAtIndex(${index})" title="Remove Photo"
+                    <button type="button" onclick="event.stopPropagation(); window.removeTripPhotoAtIndex(${index})" title="Remove Photo"
                         style="position:absolute; top:4px; right:4px; width:26px; height:26px; border-radius:50%; background:rgba(239,68,68,0.95); color:#fff; border:none; outline:none; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.25);">
                         <i class="fa-solid fa-xmark" style="font-size:12px;"></i>
                     </button>
@@ -4372,7 +4372,7 @@ window.renderProofThumbnailsGrid = function () {
 
         if (total < 5) {
             html += `
-                <div onclick="window.addProofPhotoFromSource('gallery')"
+                <div onclick="window.addTripPhotoFromSource('gallery')"
                     style="aspect-ratio:1/1; border:2px dashed #94a3b8; border-radius:14px; display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer; background:#f8fafc; transition:all 0.2s ease;">
                     <i class="fa-solid fa-plus" style="font-size:20px; color:#0284c7; margin-bottom:4px;"></i>
                     <span style="font-size:11px; font-weight:700; color:#475569;">Add Photo</span>
@@ -4384,15 +4384,15 @@ window.renderProofThumbnailsGrid = function () {
     }
 };
 
-window.removeProofPhotoAtIndex = function (index) {
-    if (index >= 0 && index < window.selectedProofPhotos.length) {
-        window.selectedProofPhotos.splice(index, 1);
-        window.renderProofThumbnailsGrid();
+window.removeTripPhotoAtIndex = function (index) {
+    if (index >= 0 && index < window.selectedTripPhotos.length) {
+        window.selectedTripPhotos.splice(index, 1);
+        window.renderTripPhotoThumbnailsGrid();
     }
 };
 
-window.addProofPhotoFromSource = async function (source) {
-    if (window.selectedProofPhotos.length >= 5) {
+window.addTripPhotoFromSource = async function (source) {
+    if (window.selectedTripPhotos.length >= 5) {
         if (typeof showToast === 'function') showToast('Maximum 5 photos allowed.');
         return;
     }
@@ -4420,19 +4420,19 @@ window.addProofPhotoFromSource = async function (source) {
             if (image && image.dataUrl) {
                 const res = await fetch(image.dataUrl);
                 const blob = await res.blob();
-                const rawFile = new File([blob], 'proof_' + Date.now() + '.jpg', { type: blob.type || 'image/jpeg' });
+                const rawFile = new File([blob], 'photo_' + Date.now() + '.jpg', { type: blob.type || 'image/jpeg' });
                 const compressed = await window.compressImageFile(rawFile, 1280, 0.8);
-                window.selectedProofPhotos.push({
+                window.selectedTripPhotos.push({
                     file: compressed,
                     dataUrl: image.dataUrl
                 });
-                window.renderProofThumbnailsGrid();
+                window.renderTripPhotoThumbnailsGrid();
             }
         } catch (err) {
             console.warn('Capacitor Camera cancel or error:', err);
         }
     } else {
-        const input = document.getElementById('proof-upload-input');
+        const input = document.getElementById('photo-upload-input');
         if (!input) return;
 
         if (source === 'camera') {
@@ -4446,10 +4446,10 @@ window.addProofPhotoFromSource = async function (source) {
     }
 };
 
-window.handleProofPhotosSelected = async function (input) {
+window.handleSelectedTripPhotos = async function (input) {
     if (!input.files || input.files.length === 0) return;
 
-    const remainingSlots = 5 - window.selectedProofPhotos.length;
+    const remainingSlots = 5 - window.selectedTripPhotos.length;
     if (remainingSlots <= 0) {
         if (typeof showToast === 'function') showToast('Maximum 5 photos allowed.');
         return;
@@ -4465,7 +4465,7 @@ window.handleProofPhotosSelected = async function (input) {
                 r.onload = (e) => res(e.target.result);
                 r.readAsDataURL(compressed);
             });
-            window.selectedProofPhotos.push({
+            window.selectedTripPhotos.push({
                 file: compressed,
                 dataUrl: dataUrl
             });
@@ -4475,13 +4475,13 @@ window.handleProofPhotosSelected = async function (input) {
     }
 
     input.value = '';
-    window.renderProofThumbnailsGrid();
+    window.renderTripPhotoThumbnailsGrid();
 };
 
-window.applyPhotoProofUpdateLocally = function (itemId, proofUrls, proofStatus = 'pending', isQueued = false) {
+window.applyTripPhotoUpdateLocally = function (itemId, photoUrls, proofStatus = 'pending', isQueued = false) {
     if (!itemId) return;
     const targetIdStr = String(itemId);
-    const urls = Array.isArray(proofUrls) ? proofUrls : (proofUrls ? [proofUrls] : []);
+    const urls = Array.isArray(photoUrls) ? photoUrls : (photoUrls ? [photoUrls] : []);
     if (urls.length === 0) return;
 
     const parentTrip = (window._cachedSavedTrips || []).find(t => (t.items || []).some(i => String(i.id) === targetIdStr));
@@ -4634,30 +4634,30 @@ window.applyLocationCheckinLocally = function (itemId) {
     });
 };
 
-window.submitProofPhotos = async function () {
+window.submitTripPhotos = async function () {
     if (typeof window.isGuestUser === 'function' && window.isGuestUser()) {
-        window.closeProofUploadModal();
+        window.closePhotoUploadModal();
         if (typeof window.promptGuestLogin === 'function') window.promptGuestLogin('photo');
         return;
     }
 
-    const itemId = window._currentProofItemId;
+    const itemId = window._currentPhotoItemId;
     if (!itemId) return;
 
-    if (window.selectedProofPhotos.length === 0) {
+    if (window.selectedTripPhotos.length === 0) {
         if (typeof showToast === 'function') showToast('Please select or capture at least one photo.');
         return;
     }
 
-    const btn = document.getElementById('btn-submit-proof-photos');
+    const btn = document.getElementById('btn-submit-trip-photos');
     if (btn) {
         btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="margin-right:6px;"></i> Submitting...';
         btn.disabled = true;
     }
 
-    const previewUrls = window.selectedProofPhotos.map(p => p.dataUrl).filter(Boolean);
-    const firstFile = window.selectedProofPhotos[0].file;
-    const spotName = window._currentProofSpotName || 'Destination';
+    const previewUrls = window.selectedTripPhotos.map(p => p.dataUrl).filter(Boolean);
+    const firstFile = window.selectedTripPhotos[0].file;
+    const spotName = window._currentPhotoSpotName || 'Destination';
 
     const parentTrip = (window._cachedSavedTrips || []).find(t => (t.items || []).some(i => String(i.id) === String(itemId)));
     const targetItem = parentTrip ? (parentTrip.items || []).find(i => String(i.id) === String(itemId)) : null;
@@ -4690,9 +4690,9 @@ window.submitProofPhotos = async function () {
                 isPhotoUploadOnly: true
             });
             const queuedPreview = queuedEntry?.previewUrl || previewUrls[0] || null;
-            if (queuedPreview) window.applyPhotoProofUpdateLocally(itemId, [queuedPreview], 'pending', true);
+            if (queuedPreview) window.applyTripPhotoUpdateLocally(itemId, [queuedPreview], 'pending', true);
         }
-        window.closeProofUploadModal();
+        window.closePhotoUploadModal();
         if (typeof showToast === 'function') {
             showToast('📍 Photo saved on device! Auto-syncs when online.', 'success');
         }
@@ -4706,8 +4706,8 @@ window.submitProofPhotos = async function () {
     }
 
     const formData = new FormData();
-    window.selectedProofPhotos.forEach((item, idx) => {
-        formData.append('images[]', item.file, item.file.name || `proof_${Date.now()}_${idx}.jpg`);
+    window.selectedTripPhotos.forEach((item, idx) => {
+        formData.append('images[]', item.file, item.file.name || `photo_${Date.now()}_${idx}.jpg`);
     });
     formData.append('image', firstFile);
     formData.append('captured_at', window.getPhilippineTimestampISO());
@@ -4728,8 +4728,8 @@ window.submitProofPhotos = async function () {
                 isPhotoUploadOnly: true
             });
             const queuedPreview = queuedEntry?.previewUrl || previewUrls[0] || null;
-            if (queuedPreview) window.applyPhotoProofUpdateLocally(itemId, [queuedPreview], 'pending', true);
-            window.closeProofUploadModal();
+            if (queuedPreview) window.applyTripPhotoUpdateLocally(itemId, [queuedPreview], 'pending', true);
+            window.closePhotoUploadModal();
             if (typeof showToast === 'function') {
                 showToast('📍 Saved Offline! Photo saved on device. Auto-syncs when online.', 'success');
             }
@@ -4764,9 +4764,9 @@ window.submitProofPhotos = async function () {
         const data = await response.json();
 
         if (response.ok && data.success) {
-            window.closeProofUploadModal();
+            window.closePhotoUploadModal();
             const permanentUrls = data.proof_images || (data.proof_image ? [data.proof_image] : previewUrls);
-            window.applyPhotoProofUpdateLocally(itemId, permanentUrls, data.proof_status || 'pending');
+            window.applyTripPhotoUpdateLocally(itemId, permanentUrls, data.proof_status || 'pending');
             if (typeof window.fetchSavedTrips === 'function') {
                 window.fetchSavedTrips(true);
             }
@@ -4778,12 +4778,12 @@ window.submitProofPhotos = async function () {
                 try { window.confetti({ particleCount: 80, spread: 60, origin: { y: 0.7 } }); } catch (e) { }
             }
         } else {
-            console.warn('Server proof upload failed:', data);
+            console.warn('Server photo upload failed:', data);
             await fallbackOffline(data.message || 'Server upload failed; saved offline.');
         }
     } catch (err) {
         clearTimeout(timeoutId);
-        console.warn('Network timeout or error during proof upload, falling back offline:', err);
+        console.warn('Network timeout or error during photo upload, falling back offline:', err);
         await fallbackOffline('Network timeout during upload.');
     }
 };
@@ -5263,6 +5263,7 @@ window.showTripCompletionReviewModal = function (visitedItems) {
     }
 
     window.userReviewedSpotIds = window.userReviewedSpotIds || new Set();
+    window.userReviewedItemIds = window.userReviewedItemIds || new Set();
 
     let destListHtml = '';
     visitedItems.forEach((item, idx) => {
@@ -5270,9 +5271,12 @@ window.showTripCompletionReviewModal = function (visitedItems) {
         const spotId = item.tourist_spot_id || item.destination_id || (item.destination ? item.destination.id : item.id);
         if (!spotId) return;
 
+        const itemId = (item.id && Number(item.id) > 0) ? Number(item.id) : null;
         const destName = item.destination_name || (item.destination ? item.destination.name : (item.name || item.spot_name || 'Tourist Destination'));
         const sClass = item.classification_status || (item.destination ? item.destination.classification_status : (item.classification || 'EXIST'));
-        const isReviewed = window.userReviewedSpotIds && window.userReviewedSpotIds.has(Number(spotId));
+        const isReviewed = itemId
+            ? window.userReviewedItemIds.has(itemId)
+            : (window.userReviewedSpotIds && window.userReviewedSpotIds.has(Number(spotId)));
 
         destListHtml += `
         <div style="display:flex; align-items:center; gap:10px; padding:10px 12px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:14px; margin-bottom:8px;">
@@ -5287,8 +5291,9 @@ window.showTripCompletionReviewModal = function (visitedItems) {
             </div>
             <button type="button" 
                     data-spot-id="${spotId}" 
+                    ${itemId ? `data-itinerary-item-id="${itemId}"` : ''}
                     data-spot-classification="${sClass}"
-                    onclick="window.startReviewFromCompletion('${spotId}', this)" 
+                    onclick="window.startReviewFromCompletion('${spotId}', this, ${itemId ? `'${itemId}'` : 'null'})" 
                     style="padding:6px 14px; border-radius:100px; background:${isReviewed ? '#e2e8f0' : 'linear-gradient(135deg, #1e3a8a, #2563eb)'}; border:none; outline:none; color:${isReviewed ? '#64748b' : '#ffffff'}; font-size:11.5px; font-weight:800; cursor:pointer; white-space:nowrap; box-shadow:none; display:inline-flex; align-items:center; gap:4px; flex-shrink:0;">
                 ${isReviewed ? '<i class="fa-solid fa-check" style="font-size:10px; margin-right:4px;"></i> Reviewed' : '<i class="fa-solid fa-pen" style="font-size:10px;"></i> Review'}
             </button>
@@ -5358,7 +5363,7 @@ window.closeTripCompletionReviewModal = function () {
     }
 };
 
-window.startReviewFromCompletion = function (spotId, btnEl) {
+window.startReviewFromCompletion = function (spotId, btnEl, itineraryItemId = null) {
     if (btnEl) {
         btnEl.dataset.reviewing = "true";
         window._lastReviewedBtn = btnEl;
@@ -5368,7 +5373,8 @@ window.startReviewFromCompletion = function (spotId, btnEl) {
         compModal.style.zIndex = '99990';
     }
     if (typeof window.openWriteTestimonyModal === 'function') {
-        window.openWriteTestimonyModal(spotId, btnEl);
+        const resolvedItemId = itineraryItemId || (btnEl && btnEl.getAttribute ? btnEl.getAttribute('data-itinerary-item-id') : null);
+        window.openWriteTestimonyModal(spotId, btnEl, resolvedItemId || null);
     }
 };
 
@@ -6032,6 +6038,28 @@ function fetchViewPartial(targetView, extraParams) {
     return request;
 }
 
+const NAV_HISTORY_STORAGE_KEY = 'intan_elyu_nav_history';
+const NON_HISTORY_VIEWS = new Set(['splash', 'auth', 'onboarding', 'reset-password']);
+
+function getNavHistory() {
+    if (Array.isArray(window._navHistory)) return window._navHistory;
+    try {
+        const parsed = JSON.parse(sessionStorage.getItem(NAV_HISTORY_STORAGE_KEY) || '[]');
+        window._navHistory = Array.isArray(parsed) ? parsed.filter(v => typeof v === 'string' && !NON_HISTORY_VIEWS.has(v)) : [];
+    } catch (e) {
+        window._navHistory = [];
+    }
+    return window._navHistory;
+}
+
+function saveNavHistory(hist) {
+    window._navHistory = Array.isArray(hist) ? hist : [];
+    try {
+        if (window._navHistory.length === 0) sessionStorage.removeItem(NAV_HISTORY_STORAGE_KEY);
+        else sessionStorage.setItem(NAV_HISTORY_STORAGE_KEY, JSON.stringify(window._navHistory));
+    } catch (e) {}
+}
+
 /**
  * Enhanced Navigation function that loads views via AJAX
  * @param {string} viewName - Name of the view to load
@@ -6439,7 +6467,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
             </script>`;
         } else if (!html && targetView === 'saved_trips') {
             html = `<div class="mobile-header">
-                <div class="header-icon" onclick="typeof window.goBack==='function'?window.goBack():(typeof navigateTo==='function'?navigateTo('dashboard'):window.history.back())" title="Back">
+                <div class="header-icon" onclick="typeof window.navigateBack==='function'?window.navigateBack('itinerary'):(typeof navigateTo==='function'?navigateTo('dashboard'):window.history.back())" title="Back">
                     <i class="fa-solid fa-arrow-left"></i>
                 </div>
                 <h1 class="header-title">My Saved Trips</h1>
@@ -6468,18 +6496,18 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                     </div>
                 </div>
             </div>
-            <!-- Dedicated Multi-Photo Proof Upload Modal -->
-            <div id="proof-upload-modal" onclick="if(event.target===this) window.closeProofUploadModal();"
+            <!-- Dedicated Multi-Photo Upload Modal -->
+            <div id="photo-upload-modal" onclick="if(event.target===this) window.closePhotoUploadModal();"
                 style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(10,25,60,0.72); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); z-index:99999; justify-content:center; align-items:center; padding:16px; box-sizing:border-box;">
                 <div style="background:#ffffff; border:none; outline:none; border-radius:26px; width:100%; max-width:420px; box-shadow:0 20px 50px rgba(0,0,0,0.35); text-align:center; max-height:90vh; overflow:hidden; display:flex; flex-direction:column; box-sizing:border-box;">
                     <div style="flex-shrink:0; background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%); padding:18px 20px; display:flex; justify-content:space-between; align-items:center; border-top-left-radius:26px; border-top-right-radius:26px; box-sizing:border-box;">
                         <div style="text-align:left;">
-                            <h3 id="proof-spot-title" style="margin:0; color:#ffffff; font-size:18px; font-weight:800; display:flex; align-items:center; gap:8px;">
+                            <h3 id="photo-spot-title" style="margin:0; color:#ffffff; font-size:18px; font-weight:800; display:flex; align-items:center; gap:8px;">
                                 <i class="fa-solid fa-camera" style="color:#38bdf8; font-size:17px;"></i> Upload Photo
                             </h3>
-                            <span id="proof-spot-subtitle" style="font-size:12px; color:rgba(255,255,255,0.85); font-weight:600; display:block; margin-top:3px;">Select up to 5 photos</span>
+                            <span id="photo-spot-subtitle" style="font-size:12px; color:rgba(255,255,255,0.85); font-weight:600; display:block; margin-top:3px;">Select up to 5 photos</span>
                         </div>
-                        <button type="button" onclick="window.closeProofUploadModal()"
+                        <button type="button" onclick="window.closePhotoUploadModal()"
                             style="background:rgba(255,255,255,0.18); border:none; outline:none; color:#ffffff; width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; transition:all 0.15s ease;">
                             <i class="fa-solid fa-xmark" style="font-size:15px;"></i>
                         </button>
@@ -6488,14 +6516,14 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                         <p style="font-size:13px; color:#475569; margin:0 0 16px 0; line-height:1.5; font-weight:500;">
                             Take or select selfies and photos at this destination to verify your visit.
                         </p>
-                        <input type="hidden" id="proof-upload-item-id">
-                        <input type="file" id="proof-upload-input" accept="image/*" multiple style="display:none;" onchange="window.handleProofPhotosSelected(this)">
+                        <input type="hidden" id="photo-upload-item-id">
+                        <input type="file" id="photo-upload-input" accept="image/*" multiple style="display:none;" onchange="window.handleSelectedTripPhotos(this)">
                         <div style="display:flex; gap:10px; margin-bottom:16px;">
-                            <button type="button" onclick="window.addProofPhotoFromSource('camera')"
+                            <button type="button" onclick="window.addTripPhotoFromSource('camera')"
                                 style="flex:1; padding:12px 10px; background:linear-gradient(135deg, #0284c7 0%, #0369a1 100%); border:none; outline:none; border-radius:14px; color:#ffffff; font-weight:800; font-size:13px; display:flex; align-items:center; justify-content:center; gap:7px; cursor:pointer; box-shadow:0 3px 10px rgba(2, 132, 199, 0.28);">
                                 <i class="fa-solid fa-camera" style="font-size:15px;"></i> Take Photo
                             </button>
-                            <button type="button" onclick="window.addProofPhotoFromSource('gallery')"
+                            <button type="button" onclick="window.addTripPhotoFromSource('gallery')"
                                 style="flex:1; padding:12px 10px; background:#f1f5f9; border:1.5px solid #e2e8f0; outline:none; border-radius:14px; color:#1e3a8a; font-weight:800; font-size:13px; display:flex; align-items:center; justify-content:center; gap:7px; cursor:pointer;">
                                 <i class="fa-solid fa-images" style="color:#0284c7; font-size:15px;"></i> Add from Gallery
                             </button>
@@ -6503,21 +6531,21 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                         <div style="margin-bottom:8px;">
                             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
                                 <label style="font-size:11.5px; font-weight:800; color:#334155; text-transform:uppercase; letter-spacing:0.5px;">Selected Photos</label>
-                                <span id="proof-count-badge" style="font-size:11.5px; font-weight:800; color:#0284c7; background:#e0f2fe; padding:3px 10px; border-radius:100px;">0 / 5 photos</span>
+                                <span id="photo-count-badge" style="font-size:11.5px; font-weight:800; color:#0284c7; background:#e0f2fe; padding:3px 10px; border-radius:100px;">0 / 5 photos</span>
                             </div>
-                            <div id="proof-empty-prompt" onclick="window.addProofPhotoFromSource('gallery')"
+                            <div id="photo-empty-prompt" onclick="window.addTripPhotoFromSource('gallery')"
                                 style="border:2px dashed #94a3b8; border-radius:16px; padding:24px 16px; text-align:center; cursor:pointer; background:#f8fafc; transition:all 0.2s ease;">
                                 <i class="fa-solid fa-cloud-arrow-up" style="font-size:28px; color:#0284c7; margin-bottom:6px; display:block;"></i>
                                 <p style="margin:0; font-size:13px; font-weight:800; color:#1e293b;">Tap to select photos</p>
                                 <p style="margin:4px 0 0 0; font-size:11.5px; color:#64748b; font-weight:500;">You can choose multiple photos</p>
                             </div>
-                            <div id="proof-thumbnails-grid" style="display:none; grid-template-columns:repeat(3, 1fr); gap:10px;"></div>
+                            <div id="photo-thumbnails-grid" style="display:none; grid-template-columns:repeat(3, 1fr); gap:10px;"></div>
                         </div>
                     </div>
                     <div style="flex-shrink:0; background:#f8fafc; border-top:1px solid #e2e8f0; padding:16px 20px; border-bottom-left-radius:26px; border-bottom-right-radius:26px; box-sizing:border-box;">
                         <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; align-items:center;">
-                            <button type="button" style="width:100%; padding:13px 16px; border-radius:14px; border:1.5px solid #cbd5e1; outline:none; background:#ffffff; color:#475569; font-size:14px; font-weight:800; cursor:pointer;" onclick="window.closeProofUploadModal()">Cancel</button>
-                            <button type="button" id="btn-submit-proof-photos" class="btn-primary" style="width:100%; padding:13px 16px; font-size:14px; font-weight:800; background:linear-gradient(135deg, #10b981 0%, #059669 100%); border:none; outline:none; color:#ffffff; border-radius:14px; cursor:pointer; box-shadow:0 4px 14px rgba(16, 185, 129, 0.35);" onclick="window.submitProofPhotos()">
+                            <button type="button" style="width:100%; padding:13px 16px; border-radius:14px; border:1.5px solid #cbd5e1; outline:none; background:#ffffff; color:#475569; font-size:14px; font-weight:800; cursor:pointer;" onclick="window.closePhotoUploadModal()">Cancel</button>
+                            <button type="button" id="btn-submit-trip-photos" class="btn-primary" style="width:100%; padding:13px 16px; font-size:14px; font-weight:800; background:linear-gradient(135deg, #10b981 0%, #059669 100%); border:none; outline:none; color:#ffffff; border-radius:14px; cursor:pointer; box-shadow:0 4px 14px rgba(16, 185, 129, 0.35);" onclick="window.submitTripPhotos()">
                                 <i class="fa-solid fa-cloud-arrow-up" style="margin-right:6px;"></i> Submit
                             </button>
                         </div>
@@ -6646,7 +6674,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                 }
 
                 // ── Teardown previous view resources to prevent mobile lag & leaks ──
-                ['full-history-modal', 'full-vouchers-modal', 'full-deals-modal', 'active-voucher-qr-modal', 'trip-details-modal', 'reward-details-modal', 'delete-trip-modal', 'edit-trip-details-modal', 'complete-trip-modal', 'proof-upload-modal', 'trip-guide-modal', 'elyu-proof-viewer-modal', 'global-oauth-overlay', 'offline-auth-modal', 'login-success-modal', 'auth-cancel-modal', 'privacy-policy-modal', 'testimony-modal', 'trip-completion-review-modal', 'trip-completed-success-modal', 'save-trip-modal', 'confirm-modal', 'leg-transport-modal', 'transit-summary-opensheet', 'travel-mode-starter-modal', 'game-success-modal', 'game-alert-modal', 'game-confirm-modal', 'target-goal-preview-modal'].forEach(id => {
+                ['full-history-modal', 'full-vouchers-modal', 'full-deals-modal', 'active-voucher-qr-modal', 'trip-details-modal', 'reward-details-modal', 'personalize-trips-modal', 'delete-trip-modal', 'edit-trip-details-modal', 'complete-trip-modal', 'photo-upload-modal', 'trip-guide-modal', 'elyu-photo-viewer-modal', 'global-oauth-overlay', 'offline-auth-modal', 'login-success-modal', 'auth-cancel-modal', 'privacy-policy-modal', 'testimony-modal', 'trip-completion-review-modal', 'trip-completed-success-modal', 'save-trip-modal', 'confirm-modal', 'leg-transport-modal', 'transit-summary-opensheet', 'travel-mode-starter-modal', 'game-success-modal', 'game-alert-modal', 'game-confirm-modal', 'target-goal-preview-modal'].forEach(id => {
                     document.querySelectorAll('#' + id).forEach(m => {
                         if (m.parentElement === document.body) {
                             try { m.remove(); } catch (e) { }
@@ -6758,14 +6786,19 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                     url.searchParams.set(key, val);
                 });
 
-                if (addToHistory) {
-                    if (state.currentView && state.currentView !== targetView && state.currentView !== 'splash') {
-                        window._navHistory = window._navHistory || [];
-                        if (window._navHistory[window._navHistory.length - 1] !== state.currentView) {
-                            window._navHistory.push(state.currentView);
-                            if (window._navHistory.length > 30) {
-                                window._navHistory.shift();
+                if (NON_HISTORY_VIEWS.has(targetView)) {
+                    saveNavHistory([]);
+                } else if (addToHistory) {
+                    if (NON_HISTORY_VIEWS.has(state.currentView)) {
+                        saveNavHistory([]);
+                    } else if (state.currentView && state.currentView !== targetView) {
+                        const hist = getNavHistory();
+                        if (hist[hist.length - 1] !== state.currentView) {
+                            hist.push(state.currentView);
+                            if (hist.length > 30) {
+                                hist.shift();
                             }
+                            saveNavHistory(hist);
                         }
                     }
                     window.history.pushState({ view: targetView }, '', url);
@@ -6991,13 +7024,14 @@ window.navigateTo = navigateTo;
             { id: 'complete-trip-modal', fn: window.closeCompleteTripModal },
             { id: 'delete-trip-modal', fn: window.closeDeleteTripModal },
             { id: 'edit-trip-details-modal', fn: window.closeEditTripDetailsModal },
-            { id: 'proof-upload-modal', fn: window.closeProofUploadModal },
+            { id: 'photo-upload-modal', fn: window.closePhotoUploadModal },
             { id: 'trip-completion-review-modal', fn: window.closeTripCompletionReviewModal },
             { id: 'user-profile-modal', fn: window.closeUserProfile },
             { id: 'full-deals-modal', fn: window.closeFullDealsModal },
             { id: 'full-history-modal', fn: window.closeFullHistoryModal },
             { id: 'full-vouchers-modal', fn: window.closeFullVouchersModal },
             { id: 'reward-details-modal', fn: window.closeRewardDetailsModal },
+            { id: 'personalize-trips-modal', fn: window.closePersonalizeTripsModal },
             { id: 'active-voucher-qr-modal', fn: window.closeActiveVoucherQrModal },
             { id: 'trip-details-modal', fn: window.closeTripDetailsModal },
             { id: 'voucher-modal', fn: window.closeVoucherModal },
@@ -7042,23 +7076,24 @@ window.navigateTo = navigateTo;
             return true;
         }
 
-        // 5. Navigate back to previous view or explicit fallback
+        // 5. Navigate back to most recent page opened first, then fallback to explicit $backRoute / parent
         const currentView = (state && state.currentView) || new URLSearchParams(window.location.search).get('view') || 'dashboard';
 
-        // Explicit fallback provided by header back button (e.g. $backRoute)
-        if (explicitFallback && explicitFallback !== currentView) {
-            navigateTo(explicitFallback, false);
-            return true;
-        }
-
-        // Navigation history stack check
-        window._navHistory = window._navHistory || [];
-        while (window._navHistory.length > 0) {
-            const prevView = window._navHistory.pop();
-            if (prevView && prevView !== currentView && prevView !== 'splash') {
+        // Navigation history stack check (return to whichever recent page opened this view)
+        const navHist = getNavHistory();
+        while (navHist.length > 0) {
+            const prevView = navHist.pop();
+            saveNavHistory(navHist);
+            if (prevView && prevView !== currentView && !NON_HISTORY_VIEWS.has(prevView)) {
                 navigateTo(prevView, false);
                 return true;
             }
+        }
+
+        // Explicit fallback provided by header back button (e.g. $backRoute) when history stack is empty
+        if (explicitFallback && explicitFallback !== currentView) {
+            navigateTo(explicitFallback, false);
+            return true;
         }
 
         // View hierarchy parent fallback
@@ -9020,12 +9055,12 @@ window.navigateTo = navigateTo;
     };
 
     /**
-     * Resolves a proof image path or filename to a direct Cloudflare R2 bucket or API URL.
+     * Resolves an uploaded photo path or filename to a direct Cloudflare R2 bucket or API URL.
      * Prevents broken local relative links and ensures fast CDN delivery.
      * @param {string} rawUrl - Image URL or filename
      * @returns {string} Fully qualified image URL
      */
-    window.resolveProofImageUrl = function (rawUrl) {
+    window.resolveTripPhotoUrl = function (rawUrl) {
         if (!rawUrl || typeof rawUrl !== 'string') return '';
         var url = rawUrl.trim();
         if (!url) return '';
@@ -9071,11 +9106,11 @@ window.navigateTo = navigateTo;
     };
 
     /**
-     * Fallback URL for proof images when primary Cloudflare R2 fails.
+     * Fallback URL for uploaded photos when primary Cloudflare R2 fails.
      * @param {string} rawUrl
      * @returns {string}
      */
-    window.getProofImageFallbackUrl = function (rawUrl) {
+    window.getTripPhotoFallbackUrl = function (rawUrl) {
         if (!rawUrl || typeof rawUrl !== 'string') return 'assets/img/no_image.svg';
         var url = rawUrl.trim();
         if (url.startsWith('data:') || url.startsWith('blob:')) return url;
@@ -9093,9 +9128,9 @@ window.navigateTo = navigateTo;
     };
 
     /**
-     * Global Lightbox Proof Photo Viewer Modal (Supports single photo or multiple photos gallery)
+     * Global Lightbox Photo Viewer Modal (Supports single photo or multiple photos gallery)
      */
-    window.viewProofPhotoModal = function (urlOrUrls, title = 'Visit Proof', subtitle = '', initialIndex = 0) {
+    window.viewTripPhotoModal = function (urlOrUrls, title = 'Visit Photo', subtitle = '', initialIndex = 0) {
         if (!urlOrUrls) return;
         var urls = [];
         if (Array.isArray(urlOrUrls)) {
@@ -9111,17 +9146,17 @@ window.navigateTo = navigateTo;
         }
         if (!urls.length) return;
 
-        // Resolve all URLs using resolveProofImageUrl so they load reliably
+        // Resolve all URLs using resolveTripPhotoUrl so they load reliably
         urls = urls.map(function (u) {
-            return (typeof window.resolveProofImageUrl === 'function') ? window.resolveProofImageUrl(u) : u;
+            return (typeof window.resolveTripPhotoUrl === 'function') ? window.resolveTripPhotoUrl(u) : u;
         });
 
         var currentIndex = Math.max(0, Math.min(initialIndex || 0, urls.length - 1));
-        var existing = document.getElementById('elyu-proof-viewer-modal');
+        var existing = document.getElementById('elyu-photo-viewer-modal');
         if (existing) existing.remove();
 
         var modal = document.createElement('div');
-        modal.id = 'elyu-proof-viewer-modal';
+        modal.id = 'elyu-photo-viewer-modal';
         modal.style.cssText = 'display:flex; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.88); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:999999; flex-direction:column; align-items:center; justify-content:center; padding:16px; box-sizing:border-box;';
         modal.onclick = function (e) {
             if (e.target === modal || e.target.closest('.close-viewer-btn')) {
@@ -9137,10 +9172,10 @@ window.navigateTo = navigateTo;
             var navControls = '';
             if (total > 1) {
                 navControls = `
-                    <button type="button" class="proof-nav-btn prev" style="position:absolute; left:10px; top:50%; transform:translateY(-50%); width:38px; height:38px; border-radius:50%; background:rgba(15,23,42,0.8); color:#fff; border:1px solid rgba(255,255,255,0.25); display:flex; align-items:center; justify-content:center; cursor:pointer; z-index:10; backdrop-filter:blur(8px);">
+                    <button type="button" class="photo-nav-btn prev" style="position:absolute; left:10px; top:50%; transform:translateY(-50%); width:38px; height:38px; border-radius:50%; background:rgba(15,23,42,0.8); color:#fff; border:1px solid rgba(255,255,255,0.25); display:flex; align-items:center; justify-content:center; cursor:pointer; z-index:10; backdrop-filter:blur(8px);">
                         <i class="fa-solid fa-chevron-left" style="font-size:14px;"></i>
                     </button>
-                    <button type="button" class="proof-nav-btn next" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); width:38px; height:38px; border-radius:50%; background:rgba(15,23,42,0.8); color:#fff; border:1px solid rgba(255,255,255,0.25); display:flex; align-items:center; justify-content:center; cursor:pointer; z-index:10; backdrop-filter:blur(8px);">
+                    <button type="button" class="photo-nav-btn next" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); width:38px; height:38px; border-radius:50%; background:rgba(15,23,42,0.8); color:#fff; border:1px solid rgba(255,255,255,0.25); display:flex; align-items:center; justify-content:center; cursor:pointer; z-index:10; backdrop-filter:blur(8px);">
                         <i class="fa-solid fa-chevron-right" style="font-size:14px;"></i>
                     </button>
                 `;
@@ -9150,13 +9185,13 @@ window.navigateTo = navigateTo;
             if (total > 1) {
                 var thumbsHtml = urls.map(function (u, idx) {
                     var isSelected = (idx === currentIndex);
-                    var fallback = (typeof window.getProofImageFallbackUrl === 'function') ? window.getProofImageFallbackUrl(u) : 'assets/img/no_image.svg';
-                    return `<img src="${u}" data-idx="${idx}" onerror="if(this.dataset.triedFallback!=='1'){this.dataset.triedFallback='1';this.src='${fallback}';}else{this.onerror=null;this.src='assets/img/no_image.svg';}" class="proof-thumb-item" style="width:44px; height:44px; border-radius:10px; object-fit:cover; border:${isSelected ? '2px solid #00f2fe' : '1px solid rgba(255,255,255,0.2)'}; opacity:${isSelected ? '1' : '0.6'}; cursor:pointer; flex-shrink:0; transition:all 0.2s ease;">`;
+                    var fallback = (typeof window.getTripPhotoFallbackUrl === 'function') ? window.getTripPhotoFallbackUrl(u) : 'assets/img/no_image.svg';
+                    return `<img src="${u}" data-idx="${idx}" onerror="if(this.dataset.triedFallback!=='1'){this.dataset.triedFallback='1';this.src='${fallback}';}else{this.onerror=null;this.src='assets/img/no_image.svg';}" class="photo-thumb-item" style="width:44px; height:44px; border-radius:10px; object-fit:cover; border:${isSelected ? '2px solid #00f2fe' : '1px solid rgba(255,255,255,0.2)'}; opacity:${isSelected ? '1' : '0.6'}; cursor:pointer; flex-shrink:0; transition:all 0.2s ease;">`;
                 }).join('');
                 thumbStrip = `<div style="display:flex; gap:8px; overflow-x:auto; padding:6px 0; justify-content:center; max-width:100%; -webkit-overflow-scrolling:touch;">${thumbsHtml}</div>`;
             }
 
-            var currentFallback = (typeof window.getProofImageFallbackUrl === 'function') ? window.getProofImageFallbackUrl(currentUrl) : 'assets/img/no_image.svg';
+            var currentFallback = (typeof window.getTripPhotoFallbackUrl === 'function') ? window.getTripPhotoFallbackUrl(currentUrl) : 'assets/img/no_image.svg';
 
             modal.innerHTML = `
                 <div style="position:relative; width:100%; max-width:440px; background:linear-gradient(135deg, rgba(30, 58, 138, 0.98), rgba(15, 23, 42, 0.99)); border-radius:24px; padding:20px; box-shadow:0 20px 50px rgba(0,0,0,0.6); display:flex; flex-direction:column; gap:14px; border:1px solid rgba(255,255,255,0.15);" onclick="event.stopPropagation();">
@@ -9167,20 +9202,20 @@ window.navigateTo = navigateTo;
                             </h3>
                             ${subtitle ? `<span style="font-size:11px; color:#cbd5e1; font-weight:600; display:block; margin-top:2px;">${subtitle}</span>` : ''}
                         </div>
-                        <button type="button" class="close-viewer-btn" onclick="document.getElementById('elyu-proof-viewer-modal')?.remove();" style="width:34px; height:34px; border-radius:50%; background:rgba(255,255,255,0.18); border:none; outline:none; color:#ffffff; display:flex; align-items:center; justify-content:center; cursor:pointer;">
+                        <button type="button" class="close-viewer-btn" onclick="document.getElementById('elyu-photo-viewer-modal')?.remove();" style="width:34px; height:34px; border-radius:50%; background:rgba(255,255,255,0.18); border:none; outline:none; color:#ffffff; display:flex; align-items:center; justify-content:center; cursor:pointer;">
                             <i class="fa-solid fa-xmark"></i>
                         </button>
                     </div>
                     <div style="position:relative; width:100%; max-height:60vh; min-height:220px; border-radius:16px; overflow:hidden; background:#000; display:flex; align-items:center; justify-content:center;">
-                        <img src="${currentUrl}" onerror="if(this.dataset.triedFallback!=='1'){this.dataset.triedFallback='1';this.src='${currentFallback}';}else{this.onerror=null;this.src='assets/img/no_image.svg';}" alt="Visit Proof" style="width:100%; height:auto; max-height:60vh; object-fit:contain; display:block;">
+                        <img src="${currentUrl}" onerror="if(this.dataset.triedFallback!=='1'){this.dataset.triedFallback='1';this.src='${currentFallback}';}else{this.onerror=null;this.src='assets/img/no_image.svg';}" alt="Visit Photo" style="width:100%; height:auto; max-height:60vh; object-fit:contain; display:block;">
                         ${navControls}
                     </div>
                     ${thumbStrip}
                 </div>
             `;
 
-            var prevBtn = modal.querySelector('.proof-nav-btn.prev');
-            var nextBtn = modal.querySelector('.proof-nav-btn.next');
+            var prevBtn = modal.querySelector('.photo-nav-btn.prev');
+            var nextBtn = modal.querySelector('.photo-nav-btn.next');
             if (prevBtn) {
                 prevBtn.onclick = function (ev) {
                     ev.stopPropagation();
@@ -9196,7 +9231,7 @@ window.navigateTo = navigateTo;
                 };
             }
 
-            modal.querySelectorAll('.proof-thumb-item').forEach(function (thumb) {
+            modal.querySelectorAll('.photo-thumb-item').forEach(function (thumb) {
                 thumb.onclick = function (ev) {
                     ev.stopPropagation();
                     var targetIdx = parseInt(thumb.getAttribute('data-idx'), 10);

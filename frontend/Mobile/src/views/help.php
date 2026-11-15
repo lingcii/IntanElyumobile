@@ -5,15 +5,6 @@ $backRoute = 'dashboard';
 
 <?php include __DIR__ . '/../components/header.php'; ?>
 
-<script>
-    (function () {
-        var backBtn = document.querySelector('.header-icon .fa-arrow-left');
-        if (backBtn) {
-            backBtn.closest('.header-icon').onclick = function () { history.back(); };
-        }
-    })();
-</script>
-
 <div class="help-container has-header animate-slide-up">
 
     <div class="help-section">

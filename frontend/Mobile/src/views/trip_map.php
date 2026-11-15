@@ -68,21 +68,21 @@ include_once __DIR__ . '/../components/testimony_modal.php';
     </div>
 </div>
 
-<!-- Dedicated Multi-Photo Proof Upload Modal -->
-<div id="proof-upload-modal" onclick="if(event.target===this) window.closeProofUploadModal();"
+<!-- Dedicated Multi-Photo Upload Modal -->
+<div id="photo-upload-modal" onclick="if(event.target===this) window.closePhotoUploadModal();"
     style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(10,25,60,0.72); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); z-index:99999; justify-content:center; align-items:center; padding:16px; box-sizing:border-box;">
     <div
-        style="background:#ffffff; border:none; outline:none; border-radius:26px; width:100%; max-width:420px; box-shadow:0 20px 50px rgba(0,0,0,0.35); text-align:center; max-height:90vh; overflow:hidden; display:flex; flex-direction:column; box-sizing:border-box; animation:popInProofModal 0.24s cubic-bezier(0.16, 1, 0.3, 1) forwards;">
+        style="background:#ffffff; border:none; outline:none; border-radius:26px; width:100%; max-width:420px; box-shadow:0 20px 50px rgba(0,0,0,0.35); text-align:center; max-height:90vh; overflow:hidden; display:flex; flex-direction:column; box-sizing:border-box; animation:popInPhotoModal 0.24s cubic-bezier(0.16, 1, 0.3, 1) forwards;">
         
         <!-- Header Banner -->
         <div style="flex-shrink:0; background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%); padding:18px 20px; display:flex; justify-content:space-between; align-items:center; border-top-left-radius:26px; border-top-right-radius:26px; box-sizing:border-box;">
             <div style="text-align:left;">
-                <h3 id="proof-spot-title" style="margin:0; color:#ffffff; font-size:18px; font-weight:800; display:flex; align-items:center; gap:8px;">
+                <h3 id="photo-spot-title" style="margin:0; color:#ffffff; font-size:18px; font-weight:800; display:flex; align-items:center; gap:8px;">
                     <i class="fa-solid fa-camera" style="color:#38bdf8; font-size:17px;"></i> Upload Photo
                 </h3>
-                <span id="proof-spot-subtitle" style="font-size:12px; color:rgba(255,255,255,0.85); font-weight:600; display:block; margin-top:3px;">Select up to 5 photos</span>
+                <span id="photo-spot-subtitle" style="font-size:12px; color:rgba(255,255,255,0.85); font-weight:600; display:block; margin-top:3px;">Select up to 5 photos</span>
             </div>
-            <button type="button" onclick="window.closeProofUploadModal()"
+            <button type="button" onclick="window.closePhotoUploadModal()"
                 style="background:rgba(255,255,255,0.18); border:none; outline:none; color:#ffffff; width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; transition:all 0.15s ease;"
                 onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">
                 <i class="fa-solid fa-xmark" style="font-size:15px;"></i>
@@ -92,20 +92,20 @@ include_once __DIR__ . '/../components/testimony_modal.php';
         <!-- Middle Scrollable Area (White) -->
         <div style="background:#ffffff !important; padding:20px; flex:1; overflow-y:auto; text-align:left; box-sizing:border-box;">
             <p style="font-size:13px; color:#475569; margin:0 0 16px 0; line-height:1.5; font-weight:500;">
-                Take or select selfies and photos at this destination to verify your visit.
+                Take or select selfies and photos at this destination to document your visit.
             </p>
 
-            <input type="hidden" id="proof-upload-item-id">
-            <input type="file" id="proof-upload-input" accept="image/*" multiple style="display:none;" onchange="window.handleProofPhotosSelected(this)">
+            <input type="hidden" id="photo-upload-item-id">
+            <input type="file" id="photo-upload-input" accept="image/*" multiple style="display:none;" onchange="window.handleSelectedTripPhotos(this)">
 
             <!-- Add Photo Action Buttons -->
             <div style="display:flex; gap:10px; margin-bottom:16px;">
-                <button type="button" onclick="window.addProofPhotoFromSource('camera')"
+                <button type="button" onclick="window.addTripPhotoFromSource('camera')"
                     style="flex:1; padding:12px 10px; background:linear-gradient(135deg, #0284c7 0%, #0369a1 100%); border:none; outline:none; border-radius:14px; color:#ffffff; font-weight:800; font-size:13px; display:flex; align-items:center; justify-content:center; gap:7px; cursor:pointer; box-shadow:0 3px 10px rgba(2, 132, 199, 0.28); transition:all 0.15s ease;"
                     onpointerdown="this.style.transform='scale(0.97)'" onpointerup="this.style.transform='scale(1)'">
                     <i class="fa-solid fa-camera" style="font-size:15px;"></i> Take Photo
                 </button>
-                <button type="button" onclick="window.addProofPhotoFromSource('gallery')"
+                <button type="button" onclick="window.addTripPhotoFromSource('gallery')"
                     style="flex:1; padding:12px 10px; background:#f1f5f9; border:1.5px solid #e2e8f0; outline:none; border-radius:14px; color:#1e3a8a; font-weight:800; font-size:13px; display:flex; align-items:center; justify-content:center; gap:7px; cursor:pointer; transition:all 0.15s ease;"
                     onpointerdown="this.style.transform='scale(0.97)'" onpointerup="this.style.transform='scale(1)'">
                     <i class="fa-solid fa-images" style="color:#0284c7; font-size:15px;"></i> Add from Gallery
@@ -118,11 +118,11 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                     <label style="font-size:11.5px; font-weight:800; color:#334155; text-transform:uppercase; letter-spacing:0.5px;">
                         Selected Photos
                     </label>
-                    <span id="proof-count-badge" style="font-size:11.5px; font-weight:800; color:#0284c7; background:#e0f2fe; padding:3px 10px; border-radius:100px;">0 / 5 photos</span>
+                    <span id="photo-count-badge" style="font-size:11.5px; font-weight:800; color:#0284c7; background:#e0f2fe; padding:3px 10px; border-radius:100px;">0 / 5 photos</span>
                 </div>
 
                 <!-- Empty State Prompt -->
-                <div id="proof-empty-prompt" onclick="window.addProofPhotoFromSource('gallery')"
+                <div id="photo-empty-prompt" onclick="window.addTripPhotoFromSource('gallery')"
                     style="border:2px dashed #94a3b8; border-radius:16px; padding:24px 16px; text-align:center; cursor:pointer; background:#f8fafc; transition:all 0.2s ease;">
                     <i class="fa-solid fa-cloud-arrow-up" style="font-size:28px; color:#0284c7; margin-bottom:6px; display:block;"></i>
                     <p style="margin:0; font-size:13px; font-weight:800; color:#1e293b;">Tap to select photos</p>
@@ -130,7 +130,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                 </div>
 
                 <!-- Thumbnails Grid -->
-                <div id="proof-thumbnails-grid" style="display:none; grid-template-columns:repeat(3, 1fr); gap:10px;"></div>
+                <div id="photo-thumbnails-grid" style="display:none; grid-template-columns:repeat(3, 1fr); gap:10px;"></div>
             </div>
         </div>
 
@@ -140,11 +140,11 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                 <button type="button"
                     style="width:100%; padding:13px 16px; border-radius:14px; border:1.5px solid #cbd5e1; outline:none; background:#ffffff; color:#475569; font-size:14px; font-weight:800; cursor:pointer; transition:all 0.15s ease;"
                     onpointerdown="this.style.transform='scale(0.97)'" onpointerup="this.style.transform='scale(1)'"
-                    onclick="window.closeProofUploadModal()">Cancel</button>
-                <button type="button" id="btn-submit-proof-photos" class="btn-primary"
+                    onclick="window.closePhotoUploadModal()">Cancel</button>
+                <button type="button" id="btn-submit-trip-photos" class="btn-primary"
                     style="width:100%; padding:13px 16px; font-size:14px; font-weight:800; background:linear-gradient(135deg, #10b981 0%, #059669 100%); border:none; outline:none; color:#ffffff; border-radius:14px; cursor:pointer; box-shadow:0 4px 14px rgba(16, 185, 129, 0.35); transition:all 0.15s ease;"
                     onpointerdown="this.style.transform='scale(0.97)'" onpointerup="this.style.transform='scale(1)'"
-                    onclick="window.submitProofPhotos()">
+                    onclick="window.submitTripPhotos()">
                     <i class="fa-solid fa-cloud-arrow-up" style="margin-right:6px;"></i> Submit
                 </button>
             </div>
@@ -153,7 +153,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
 </div>
 
 <style>
-@keyframes popInProofModal {
+@keyframes popInPhotoModal {
     0% { opacity: 0; transform: scale(0.92); }
     100% { opacity: 1; transform: scale(1); }
 }
@@ -736,21 +736,21 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                 }
 
                 const destEscaped = (dest && dest.name) ? dest.name.replace(/'/g, "\\'") : 'Destination';
-                const resolvedAll = proofImages.map(u => (typeof window.resolveProofImageUrl === 'function' ? window.resolveProofImageUrl(u) : u));
+                const resolvedAll = proofImages.map(u => (typeof window.resolveTripPhotoUrl === 'function' ? window.resolveTripPhotoUrl(u) : u));
                 const jsonUrlsAttr = JSON.stringify(resolvedAll).replace(/"/g, '&quot;');
                 const sId = item.tourist_spot_id || item.destination_id || (dest ? dest.id : '');
 
                 const checkInButtonAttrs = `class="trip-map-checkin-btn" data-item-id="${item.id}" data-tourist-spot-id="${sId}" data-boundary="${encodeURIComponent(JSON.stringify(dest?.boundary_geojson || ''))}" data-dest-lat="${Number.isFinite(lat) ? lat : ''}" data-dest-lng="${Number.isFinite(lng) ? lng : ''}" disabled aria-disabled="true"`;
 
-                let proofThumbnailStrip = '';
+                let photoThumbnailStrip = '';
                 if (proofImages.length > 0) {
-                    proofThumbnailStrip = `<div style="display:inline-flex; align-items:center; gap:4px; flex-shrink:0;">
+                    photoThumbnailStrip = `<div style="display:inline-flex; align-items:center; gap:4px; flex-shrink:0;">
                         ${proofImages.slice(0, 3).map((imgUrl, pIdx) => {
-                            let pUrl = (typeof window.resolveProofImageUrl === 'function') ? window.resolveProofImageUrl(imgUrl) : imgUrl;
-                            let fallbackUrl = (typeof window.getProofImageFallbackUrl === 'function') ? window.getProofImageFallbackUrl(imgUrl) : 'assets/img/no_image.svg';
-                            return `<img src="${pUrl}" onerror="if(this.dataset.triedFallback!=='1'){this.dataset.triedFallback='1';this.src='${fallbackUrl}';}else{this.onerror=null;this.src='assets/img/no_image.svg';}" onclick="event.stopPropagation(); if(typeof window.viewProofPhotoModal==='function') window.viewProofPhotoModal(${jsonUrlsAttr}, '${destEscaped}', '${isVisited ? 'Verified Visit Proof' : 'Uploaded Proof'}');" alt="Proof" title="Tap to view proof photo" style="width:30px; height:30px; border-radius:8px; object-fit:cover; border:1.5px solid #e2e8f0; flex-shrink:0; cursor:pointer;">`;
+                            let pUrl = (typeof window.resolveTripPhotoUrl === 'function') ? window.resolveTripPhotoUrl(imgUrl) : imgUrl;
+                            let fallbackUrl = (typeof window.getTripPhotoFallbackUrl === 'function') ? window.getTripPhotoFallbackUrl(imgUrl) : 'assets/img/no_image.svg';
+                            return `<img src="${pUrl}" onerror="if(this.dataset.triedFallback!=='1'){this.dataset.triedFallback='1';this.src='${fallbackUrl}';}else{this.onerror=null;this.src='assets/img/no_image.svg';}" onclick="event.stopPropagation(); if(typeof window.viewTripPhotoModal==='function') window.viewTripPhotoModal(${jsonUrlsAttr}, '${destEscaped}', '${isVisited ? 'Verified Visit Photo' : 'Uploaded Photo'}');" alt="Photo" title="Tap to view photo" style="width:30px; height:30px; border-radius:8px; object-fit:cover; border:1.5px solid #e2e8f0; flex-shrink:0; cursor:pointer;">`;
                         }).join('')}
-                        ${proofImages.length > 3 ? `<span onclick="event.stopPropagation(); if(typeof window.viewProofPhotoModal==='function') window.viewProofPhotoModal(${jsonUrlsAttr}, '${destEscaped}', '${isVisited ? 'Verified Visit Proof' : 'Uploaded Proof'}');" style="background:#0f172a; color:#fff; font-size:8.5px; font-weight:800; padding:2px 5px; border-radius:6px; cursor:pointer;">+${proofImages.length - 3}</span>` : ''}
+                        ${proofImages.length > 3 ? `<span onclick="event.stopPropagation(); if(typeof window.viewTripPhotoModal==='function') window.viewTripPhotoModal(${jsonUrlsAttr}, '${destEscaped}', '${isVisited ? 'Verified Visit Photo' : 'Uploaded Photo'}');" style="background:#0f172a; color:#fff; font-size:8.5px; font-weight:800; padding:2px 5px; border-radius:6px; cursor:pointer;">+${proofImages.length - 3}</span>` : ''}
                     </div>`;
                 }
 
@@ -758,7 +758,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                 if (isQueued && queuedItem) {
                     const qSrc = queuedItem.previewUrl || queuedItem.image || '';
                     if (qSrc) {
-                        queuedThumbnail = `<img src="${qSrc}" onerror="this.onerror=null; this.src='assets/img/no_image.svg';" onclick="event.stopPropagation(); if(typeof window.viewProofPhotoModal==='function') window.viewProofPhotoModal('${qSrc}', '${destEscaped}', 'Offline Proof (Queued on Device)');" alt="Proof" title="Tap to view offline proof photo" style="width:30px; height:30px; border-radius:8px; object-fit:cover; border:1.5px solid #f59e0b !important; box-shadow:none !important; flex-shrink:0; cursor:pointer;">`;
+                        queuedThumbnail = `<img src="${qSrc}" onerror="this.onerror=null; this.src='assets/img/no_image.svg';" onclick="event.stopPropagation(); if(typeof window.viewTripPhotoModal==='function') window.viewTripPhotoModal('${qSrc}', '${destEscaped}', 'Offline Photo (Queued on Device)');" alt="Photo" title="Tap to view offline photo" style="width:30px; height:30px; border-radius:8px; object-fit:cover; border:1.5px solid #f59e0b !important; box-shadow:none !important; flex-shrink:0; cursor:pointer;">`;
                     } else {
                         queuedThumbnail = `<div style="width:30px; height:30px; border-radius:8px; background:rgba(245,158,11,0.12); border:1px dashed #f59e0b; display:flex; align-items:center; justify-content:center; color:#d97706; flex-shrink:0;"><i class="fa-solid fa-camera" style="font-size:11px;"></i></div>`;
                     }
@@ -783,7 +783,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                     const sClass = (dest && dest.classification_status) ? dest.classification_status : '';
                     const sMeta = (window.getRewardPointsForClassification) ? window.getRewardPointsForClassification(sClass) : { points: 25 };
                     actionBtnHtml = `<div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
-                        ${proofThumbnailStrip}
+                        ${photoThumbnailStrip}
                         <div style="display:flex; flex-direction:column; gap:4px;">
                             <div style="display:flex; align-items:center; gap:4px;">
                                 <span style="background:#dcfce7; border:1px solid #bbf7d0; color:#15803d; font-weight:800; font-size:10px; padding:2px 8px; border-radius:100px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-circle-check"></i> Visited</span>
@@ -791,40 +791,40 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                                     ${isReviewed ? '<i class="fa-solid fa-check"></i> Reviewed' : '<i class="fa-solid fa-pen"></i> Review'}
                                 </button>
                             </div>
-                            <button onclick="event.stopPropagation(); window.openProofUploadModal('${item.id}', '${destEscaped}')" style="background:linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color:#ffffff; border:none; padding:4px 9px; border-radius:100px; font-weight:800; font-size:10px; box-shadow:0 2px 6px rgba(2,132,199,0.25); cursor:pointer; white-space:nowrap; display:inline-flex; align-items:center; gap:4px;">
+                            <button onclick="event.stopPropagation(); window.openPhotoUploadModal('${item.id}', '${destEscaped}')" style="background:linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color:#ffffff; border:none; padding:4px 9px; border-radius:100px; font-weight:800; font-size:10px; box-shadow:0 2px 6px rgba(2,132,199,0.25); cursor:pointer; white-space:nowrap; display:inline-flex; align-items:center; gap:4px;">
                                 <i class="fa-solid fa-camera"></i> ${hasProof ? 'Add Photos' : 'Upload Photos'}
                             </button>
                         </div>
                     </div>`;
                 } else if (isRejected) {
                     actionBtnHtml = `<div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
-                        ${proofThumbnailStrip}
+                        ${photoThumbnailStrip}
                         <div style="display:flex; flex-direction:column; gap:2px;">
                             <span style="background:#fee2e2; border:1px solid #fecaca; color:#b91c1c; font-weight:800; font-size:10px; padding:2px 6px; border-radius:100px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-circle-xmark"></i> Rejected</span>
-                            <button onclick="event.stopPropagation(); window.openProofUploadModal('${item.id}', '${destEscaped}')" style="background:linear-gradient(135deg, #ef4444, #dc2626); color:#ffffff; border:none; padding:4px 8px; border-radius:100px; font-weight:800; font-size:9.5px; cursor:pointer; white-space:nowrap; box-shadow:0 2px 6px rgba(239,68,68,0.25);"><i class="fa-solid fa-camera" style="margin-right:2px;"></i> Re-upload Photo</button>
+                            <button onclick="event.stopPropagation(); window.openPhotoUploadModal('${item.id}', '${destEscaped}')" style="background:linear-gradient(135deg, #ef4444, #dc2626); color:#ffffff; border:none; padding:4px 8px; border-radius:100px; font-weight:800; font-size:9.5px; cursor:pointer; white-space:nowrap; box-shadow:0 2px 6px rgba(239,68,68,0.25);"><i class="fa-solid fa-camera" style="margin-right:2px;"></i> Re-upload Photo</button>
                         </div>
                     </div>`;
                 } else if (isPendingApproval) {
-                    actionBtnHtml = proofThumbnailStrip ? `<div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">${proofThumbnailStrip}</div>` : '';
+                    actionBtnHtml = photoThumbnailStrip ? `<div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">${photoThumbnailStrip}</div>` : '';
                 } else if (isLocationVerified && !hasProof) {
                     actionBtnHtml = `<div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
                         <span style="background:#e0f2fe; border:1px solid #bae6fd; color:#0284c7; font-weight:800; font-size:10px; padding:4px 8px; border-radius:100px; white-space:nowrap;"><i class="fa-solid fa-location-dot"></i> Checked In</span>
-                        <button onclick="event.stopPropagation(); window.openProofUploadModal('${item.id}', '${destEscaped}')" style="background:linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color:#ffffff; border:none; padding:6px 12px; border-radius:100px; font-weight:800; font-size:10.5px; box-shadow:0 2px 8px rgba(2,132,199,0.3); cursor:pointer; white-space:nowrap;"><i class="fa-solid fa-camera" style="margin-right:3px;"></i> Upload Photo</button>
+                        <button onclick="event.stopPropagation(); window.openPhotoUploadModal('${item.id}', '${destEscaped}')" style="background:linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color:#ffffff; border:none; padding:6px 12px; border-radius:100px; font-weight:800; font-size:10.5px; box-shadow:0 2px 8px rgba(2,132,199,0.3); cursor:pointer; white-space:nowrap;"><i class="fa-solid fa-camera" style="margin-right:3px;"></i> Upload Photo</button>
                     </div>`;
                 } else if (isPhotoApproved && !isLocationVerified) {
                     actionBtnHtml = `<div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
-                        ${proofThumbnailStrip}
+                        ${photoThumbnailStrip}
                         <button ${checkInButtonAttrs} onclick="event.stopPropagation(); window.executeLocationCheckIn('${item.id}', '${destEscaped}', ${lat}, ${lng}, this)" style="background:linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color:#ffffff; border:none; padding:6px 12px; border-radius:100px; font-weight:800; font-size:10.5px; box-shadow:0 2px 8px rgba(2,132,199,0.3); cursor:pointer; white-space:nowrap;"><i class="fa-solid fa-location-crosshairs" style="margin-right:3px;"></i> Check In</button>
                     </div>`;
                 } else if (!isLocationVerified && hasProof) {
                     actionBtnHtml = `<div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
-                        ${proofThumbnailStrip}
+                        ${photoThumbnailStrip}
                         <button ${checkInButtonAttrs} onclick="event.stopPropagation(); window.executeLocationCheckIn('${item.id}', '${destEscaped}', ${lat}, ${lng}, this)" style="background:linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color:#ffffff; border:none; padding:6px 12px; border-radius:100px; font-weight:800; font-size:10.5px; box-shadow:0 2px 8px rgba(2,132,199,0.3); cursor:pointer; white-space:nowrap;"><i class="fa-solid fa-location-crosshairs" style="margin-right:3px;"></i> Check In</button>
                     </div>`;
                 } else {
                     actionBtnHtml = `<div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
                         <button ${checkInButtonAttrs} onclick="event.stopPropagation(); window.executeLocationCheckIn('${item.id}', '${destEscaped}', ${lat}, ${lng}, this)" style="background:linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color:#ffffff; border:none; padding:6px 11px; border-radius:100px; font-weight:800; font-size:10.5px; box-shadow:0 2px 8px rgba(2,132,199,0.3); cursor:pointer; white-space:nowrap;"><i class="fa-solid fa-location-crosshairs" style="margin-right:3px;"></i> Check In</button>
-                        <button onclick="event.stopPropagation(); window.openProofUploadModal('${item.id}', '${destEscaped}')" style="background:#f1f5f9; color:#1e3a8a; border:1.5px solid #cbd5e1; padding:6px 11px; border-radius:100px; font-weight:800; font-size:10.5px; cursor:pointer; white-space:nowrap;"><i class="fa-solid fa-camera" style="margin-right:3px;"></i> Proof</button>
+                        <button onclick="event.stopPropagation(); window.openPhotoUploadModal('${item.id}', '${destEscaped}')" style="background:#f1f5f9; color:#1e3a8a; border:1.5px solid #cbd5e1; padding:6px 11px; border-radius:100px; font-weight:800; font-size:10.5px; cursor:pointer; white-space:nowrap;"><i class="fa-solid fa-camera" style="margin-right:3px;"></i> Upload Photo</button>
                     </div>`;
                 }
 
@@ -1684,45 +1684,45 @@ include_once __DIR__ . '/../components/testimony_modal.php';
             }
         }
 
-        // --- MULTI-PHOTO PROOF & INDEPENDENT LOCATION CHECK-IN HANDLERS ---
-        window.selectedProofPhotos = [];
-        window._currentProofItemId = null;
-        window._currentProofSpotName = null;
+        // --- MULTI-PHOTO UPLOAD & INDEPENDENT LOCATION CHECK-IN HANDLERS ---
+        window.selectedTripPhotos = [];
+        window._currentPhotoItemId = null;
+        window._currentPhotoSpotName = null;
 
-        window.openProofUploadModal = function (itemId, spotName = '') {
+        window.openPhotoUploadModal = function (itemId, spotName = '') {
             if (typeof window.isGuestUser === 'function' && window.isGuestUser()) {
                 window.promptGuestLogin('photo');
                 return;
             }
 
             document.body.classList.add('modal-blurred');
-            window._currentProofItemId = itemId;
-            window._currentProofSpotName = spotName;
-            window.selectedProofPhotos = [];
+            window._currentPhotoItemId = itemId;
+            window._currentPhotoSpotName = spotName;
+            window.selectedTripPhotos = [];
 
-            const titleEl = document.getElementById('proof-spot-title');
+            const titleEl = document.getElementById('photo-spot-title');
             if (titleEl) {
                 titleEl.innerHTML = `<i class="fa-solid fa-camera" style="color:#38bdf8; font-size:17px;"></i> ${spotName || 'Upload Photo'}`;
             }
 
-            const input = document.getElementById('proof-upload-input');
+            const input = document.getElementById('photo-upload-input');
             if (input) input.value = '';
 
-            window.renderProofThumbnailsGrid();
+            window.renderTripPhotoThumbnailsGrid();
 
-            const modal = document.getElementById('proof-upload-modal');
+            const modal = document.getElementById('photo-upload-modal');
             if (modal) modal.style.display = 'flex';
         };
 
-        window.closeProofUploadModal = function () {
+        window.closePhotoUploadModal = function () {
             document.body.classList.remove('modal-blurred');
-            const modal = document.getElementById('proof-upload-modal');
+            const modal = document.getElementById('photo-upload-modal');
             if (modal) modal.style.display = 'none';
-            window.selectedProofPhotos = [];
-            window._currentProofItemId = null;
-            window._currentProofSpotName = null;
+            window.selectedTripPhotos = [];
+            window._currentPhotoItemId = null;
+            window._currentPhotoSpotName = null;
 
-            const btn = document.getElementById('btn-submit-proof-photos');
+            const btn = document.getElementById('btn-submit-trip-photos');
             if (btn) {
                 btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up" style="margin-right:6px;"></i> Submit';
                 btn.disabled = false;
@@ -1731,9 +1731,9 @@ include_once __DIR__ . '/../components/testimony_modal.php';
 
         // Aliases for backwards compatibility
         window.triggerMapCheckinModal = function (id) {
-            window.openProofUploadModal(id || window.currentCheckinItemId);
+            window.openPhotoUploadModal(id || window.currentCheckinItemId);
         };
-        window.closeCheckinModal = window.closeProofUploadModal;
+        window.closeCheckinModal = window.closePhotoUploadModal;
 
         window.compressImageFile = async function (fileOrBlob, maxDimension = 1280, quality = 0.8) {
             return new Promise((resolve) => {
@@ -1768,7 +1768,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                                 resolve(fileOrBlob);
                                 return;
                             }
-                            const name = (fileOrBlob.name || 'proof_' + Date.now() + '.jpg').replace(/\.[^/.]+$/, "") + ".jpg";
+                            const name = (fileOrBlob.name || 'photo_' + Date.now() + '.jpg').replace(/\.[^/.]+$/, "") + ".jpg";
                             const compressedFile = new File([blob], name, { type: 'image/jpeg', lastModified: Date.now() });
                             resolve(compressedFile);
                         }, 'image/jpeg', quality);
@@ -1781,13 +1781,13 @@ include_once __DIR__ . '/../components/testimony_modal.php';
             });
         };
 
-        window.renderProofThumbnailsGrid = function () {
-            const emptyPrompt = document.getElementById('proof-empty-prompt');
-            const grid = document.getElementById('proof-thumbnails-grid');
-            const countBadge = document.getElementById('proof-count-badge');
-            const submitBtn = document.getElementById('btn-submit-proof-photos');
+        window.renderTripPhotoThumbnailsGrid = function () {
+            const emptyPrompt = document.getElementById('photo-empty-prompt');
+            const grid = document.getElementById('photo-thumbnails-grid');
+            const countBadge = document.getElementById('photo-count-badge');
+            const submitBtn = document.getElementById('btn-submit-trip-photos');
 
-            const total = window.selectedProofPhotos.length;
+            const total = window.selectedTripPhotos.length;
             if (countBadge) {
                 countBadge.textContent = `${total} / 5 photos`;
             }
@@ -1810,14 +1810,14 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                 grid.style.display = 'grid';
                 let html = '';
 
-                window.selectedProofPhotos.forEach((item, index) => {
+                window.selectedTripPhotos.forEach((item, index) => {
                     html += `
                         <div style="position:relative; aspect-ratio:1/1; border-radius:14px; overflow:hidden; background:#0f172a; box-shadow:0 3px 8px rgba(0,0,0,0.15); border:1.5px solid #e2e8f0;">
                             <img src="${item.dataUrl}" alt="Photo ${index + 1}" style="width:100%; height:100%; object-fit:cover; display:block;">
                             <span style="position:absolute; bottom:4px; left:4px; background:rgba(0,0,0,0.7); color:#fff; font-size:9px; font-weight:800; padding:2px 6px; border-radius:6px;">
                                 ${index + 1}
                             </span>
-                            <button type="button" onclick="event.stopPropagation(); window.removeProofPhotoAtIndex(${index})" title="Remove Photo"
+                            <button type="button" onclick="event.stopPropagation(); window.removeTripPhotoAtIndex(${index})" title="Remove Photo"
                                 style="position:absolute; top:4px; right:4px; width:26px; height:26px; border-radius:50%; background:rgba(239,68,68,0.95); color:#fff; border:none; outline:none; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.25);">
                                 <i class="fa-solid fa-xmark" style="font-size:12px;"></i>
                             </button>
@@ -1827,7 +1827,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
 
                 if (total < 5) {
                     html += `
-                        <div onclick="window.addProofPhotoFromSource('gallery')"
+                        <div onclick="window.addTripPhotoFromSource('gallery')"
                             style="aspect-ratio:1/1; border:2px dashed #94a3b8; border-radius:14px; display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer; background:#f8fafc; transition:all 0.2s ease;">
                             <i class="fa-solid fa-plus" style="font-size:20px; color:#0284c7; margin-bottom:4px;"></i>
                             <span style="font-size:11px; font-weight:700; color:#475569;">Add Photo</span>
@@ -1839,13 +1839,13 @@ include_once __DIR__ . '/../components/testimony_modal.php';
             }
         };
 
-        window.removeProofPhotoAtIndex = function (index) {
-            window.selectedProofPhotos.splice(index, 1);
-            window.renderProofThumbnailsGrid();
+        window.removeTripPhotoAtIndex = function (index) {
+            window.selectedTripPhotos.splice(index, 1);
+            window.renderTripPhotoThumbnailsGrid();
         };
 
-        window.addProofPhotoFromSource = async function (mode) {
-            const remainingSlots = 5 - window.selectedProofPhotos.length;
+        window.addTripPhotoFromSource = async function (mode) {
+            const remainingSlots = 5 - window.selectedTripPhotos.length;
             if (remainingSlots <= 0) {
                 if (typeof showToast === 'function') showToast('Maximum 5 photos reached.');
                 return;
@@ -1874,20 +1874,20 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                     if (image && image.dataUrl) {
                         const res = await fetch(image.dataUrl);
                         const blob = await res.blob();
-                        const rawFile = new File([blob], `proof_${Date.now()}.jpg`, { type: blob.type || 'image/jpeg' });
+                        const rawFile = new File([blob], `photo_${Date.now()}.jpg`, { type: blob.type || 'image/jpeg' });
                         const compressed = await window.compressImageFile(rawFile, 1280, 0.8);
 
-                        window.selectedProofPhotos.push({
+                        window.selectedTripPhotos.push({
                             file: compressed,
                             dataUrl: image.dataUrl
                         });
-                        window.renderProofThumbnailsGrid();
+                        window.renderTripPhotoThumbnailsGrid();
                     }
                 } catch (err) {
                     console.warn('Native camera cancelled or failed:', err);
                 }
             } else {
-                const input = document.getElementById('proof-upload-input');
+                const input = document.getElementById('photo-upload-input');
                 if (!input) return;
                 if (mode === 'camera') {
                     input.setAttribute('capture', 'environment');
@@ -1898,10 +1898,10 @@ include_once __DIR__ . '/../components/testimony_modal.php';
             }
         };
 
-        window.handleProofPhotosSelected = async function (input) {
+        window.handleSelectedTripPhotos = async function (input) {
             if (!input.files || input.files.length === 0) return;
 
-            const remainingSlots = 5 - window.selectedProofPhotos.length;
+            const remainingSlots = 5 - window.selectedTripPhotos.length;
             if (remainingSlots <= 0) {
                 if (typeof showToast === 'function') showToast('Maximum 5 photos allowed.');
                 return;
@@ -1917,7 +1917,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                         r.onload = (e) => res(e.target.result);
                         r.readAsDataURL(compressed);
                     });
-                    window.selectedProofPhotos.push({
+                    window.selectedTripPhotos.push({
                         file: compressed,
                         dataUrl: dataUrl
                     });
@@ -1927,7 +1927,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
             }
 
             input.value = '';
-            window.renderProofThumbnailsGrid();
+            window.renderTripPhotoThumbnailsGrid();
         };
 
         if (typeof window.savePersistentItemState !== 'function') {
@@ -1950,7 +1950,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
             };
         }
 
-        window.applyPhotoProofUpdateLocally = function (itemId, proofUrls, proofStatus = 'pending') {
+        window.applyTripPhotoUpdateLocally = function (itemId, photoUrls, proofStatus = 'pending') {
             if (!itemId) return;
             const targetIdStr = String(itemId);
             const urls = Array.isArray(proofUrls) ? proofUrls : (proofUrls ? [proofUrls] : []);
@@ -2049,33 +2049,33 @@ include_once __DIR__ . '/../components/testimony_modal.php';
             }
         };
 
-        window.submitProofPhotos = async function () {
+        window.submitTripPhotos = async function () {
             if (typeof window.isGuestUser === 'function' && window.isGuestUser()) {
-                window.closeProofUploadModal();
+                window.closePhotoUploadModal();
                 window.promptGuestLogin('photo');
                 return;
             }
 
-            const itemId = window._currentProofItemId;
+            const itemId = window._currentPhotoItemId;
             if (!itemId) return;
 
-            if (window.selectedProofPhotos.length === 0) {
+            if (window.selectedTripPhotos.length === 0) {
                 if (typeof showToast === 'function') showToast('Please select or capture at least one photo.');
                 return;
             }
 
-            const btn = document.getElementById('btn-submit-proof-photos');
+            const btn = document.getElementById('btn-submit-trip-photos');
             if (btn) {
                 btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="margin-right:6px;"></i> Submitting...';
                 btn.disabled = true;
             }
 
-            const previewUrls = window.selectedProofPhotos.map(p => p.dataUrl).filter(Boolean);
-            const firstFile = window.selectedProofPhotos[0].file;
-            const spotName = window._currentProofSpotName || 'Destination';
+            const previewUrls = window.selectedTripPhotos.map(p => p.dataUrl).filter(Boolean);
+            const firstFile = window.selectedTripPhotos[0].file;
+            const spotName = window._currentPhotoSpotName || 'Destination';
 
             // Optimistically update memory and DOM right now!
-            window.applyPhotoProofUpdateLocally(itemId, previewUrls, 'pending');
+            window.applyTripPhotoUpdateLocally(itemId, previewUrls, 'pending');
 
             const matchingItem = (window.currentTripItems || []).find(it => String(it.id) === String(itemId));
             const spotId = matchingItem ? (matchingItem.tourist_spot_id || matchingItem.destination_id || (matchingItem.destination ? matchingItem.destination.id : null)) : null;
@@ -2106,7 +2106,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                         capturedAt: (typeof window.getPhilippineTimestampISO === 'function' ? window.getPhilippineTimestampISO() : new Date().toISOString())
                     });
                 }
-                window.closeProofUploadModal();
+                window.closePhotoUploadModal();
                 if (typeof showToast === 'function') {
                     showToast('📍 Photo saved on device! Auto-syncs when online.', 'success');
                 }
@@ -2117,8 +2117,8 @@ include_once __DIR__ . '/../components/testimony_modal.php';
             }
 
             const formData = new FormData();
-            window.selectedProofPhotos.forEach((item, idx) => {
-                formData.append('images[]', item.file, item.file.name || `proof_${Date.now()}_${idx}.jpg`);
+            window.selectedTripPhotos.forEach((item, idx) => {
+                formData.append('images[]', item.file, item.file.name || `photo_${Date.now()}_${idx}.jpg`);
             });
             formData.append('image', firstFile);
             formData.append('captured_at', (typeof window.getPhilippineTimestampISO === 'function' ? window.getPhilippineTimestampISO() : new Date().toISOString()));
@@ -2137,7 +2137,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                         previewUrl: previewUrls[0] || null,
                         capturedAt: (typeof window.getPhilippineTimestampISO === 'function' ? window.getPhilippineTimestampISO() : new Date().toISOString())
                     });
-                    window.closeProofUploadModal();
+                    window.closePhotoUploadModal();
                     if (typeof showToast === 'function') {
                         showToast('📍 Saved Offline! Photo saved on device. Auto-syncs when online.', 'success');
                     }
@@ -2169,9 +2169,9 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                 const data = await response.json();
 
                 if (response.ok && data.success) {
-                    window.closeProofUploadModal();
+                    window.closePhotoUploadModal();
                     const permanentUrls = data.proof_images || (data.proof_image ? [data.proof_image] : previewUrls);
-                    window.applyPhotoProofUpdateLocally(itemId, permanentUrls, data.proof_status || 'pending');
+                    window.applyTripPhotoUpdateLocally(itemId, permanentUrls, data.proof_status || 'pending');
 
                     if (typeof showToast === 'function') {
                         showToast(data.message || 'Photo uploaded!', 'success');
@@ -2180,12 +2180,12 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                         try { window.confetti({ particleCount: 80, spread: 60, origin: { y: 0.7 } }); } catch (e) { }
                     }
                 } else {
-                    console.warn('Server proof upload error:', data);
+                    console.warn('Server photo upload error:', data);
                     await fallbackOffline(data.message || 'Server upload failed; saved offline.');
                 }
             } catch (err) {
                 clearTimeout(timeoutId);
-                console.warn('Network timeout or error during proof upload, falling back offline:', err);
+                console.warn('Network timeout or error during photo upload, falling back offline:', err);
                 await fallbackOffline('Network timeout during upload.');
             }
         };

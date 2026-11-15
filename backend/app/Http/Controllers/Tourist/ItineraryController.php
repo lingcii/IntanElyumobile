@@ -200,8 +200,10 @@ class ItineraryController extends Controller
     {
         $user = $request->user();
 
-        // Auto-fulfill untouched destination reviews older than 2 days (48 hours)
-        static::processUntouchedVisitReviews(2);
+        // Auto-fulfill untouched destination reviews older than 2 days (48 hours) at most once per 5 min per user
+        if (Cache::add("untouched_reviews_sync:{$user->id}", 1, 300)) {
+            static::processUntouchedVisitReviews(2, $user->id);
+        }
 
         $rawItineraries = Itinerary::where('user_id', $user->id)
             ->with([
@@ -1153,14 +1155,14 @@ class ItineraryController extends Controller
     /**
      * Auto-process untouched visits older than 2-3 days into default 5-star reviews.
      */
-    public static function processUntouchedVisitReviews(int $daysThreshold = 2): int
+    public static function processUntouchedVisitReviews(int $daysThreshold = 2, ?int $filterUserId = null): int
     {
         $processedCount = 0;
         try {
             $cutoff = now()->subDays($daysThreshold);
 
             // Find completed or checked-in itinerary items past the threshold without reviews
-            $items = ItineraryItem::where(function ($q) {
+            $query = ItineraryItem::where(function ($q) {
                     $q->where('is_visited', true)
                       ->orWhereNotNull('visited_at');
                 })
@@ -1171,9 +1173,33 @@ class ItineraryController extends Controller
                              ->where('updated_at', '<=', $cutoff);
                       });
                 })
-                ->whereNotNull('tourist_spot_id')
-                ->with('itinerary:id,user_id')
-                ->get();
+                ->whereNotNull('tourist_spot_id');
+
+            if ($filterUserId !== null) {
+                $query->whereHas('itinerary', fn($q) => $q->where('user_id', $filterUserId));
+            }
+
+            $items = $query->with('itinerary:id,user_id')->get();
+            if ($items->isEmpty()) {
+                return 0;
+            }
+
+            // Batch-load existing reviews per user in one query instead of checking N+1 inside the loop
+            $userIds = $items->map(fn($item) => $item->itinerary?->user_id)->filter()->unique()->values()->all();
+            $existingByUser = [];
+            if (!empty($userIds)) {
+                $existingFeedbacks = SiteFeedback::whereIn('user_id', $userIds)
+                    ->get(['user_id', 'itinerary_item_id', 'tourist_spot_id']);
+                foreach ($existingFeedbacks as $fb) {
+                    $uid = (int) $fb->user_id;
+                    if ($fb->itinerary_item_id) {
+                        $existingByUser[$uid]['items'][(int) $fb->itinerary_item_id] = true;
+                    }
+                    if ($fb->tourist_spot_id) {
+                        $existingByUser[$uid]['spots'][(int) $fb->tourist_spot_id] = true;
+                    }
+                }
+            }
 
             $spotsToUpdate = [];
 
@@ -1181,17 +1207,14 @@ class ItineraryController extends Controller
                 $userId = $item->itinerary?->user_id;
                 if (!$userId) continue;
 
+                $uid = (int) $userId;
                 $spotId = (int) $item->tourist_spot_id;
-                $alreadyReviewed = SiteFeedback::where('user_id', $userId)
-                    ->where(function ($q) use ($item, $spotId) {
-                        $q->where('itinerary_item_id', $item->id)
-                          ->orWhere('tourist_spot_id', $spotId);
-                    })
-                    ->exists();
+                $alreadyReviewed = !empty($existingByUser[$uid]['items'][$item->id])
+                    || !empty($existingByUser[$uid]['spots'][$spotId]);
 
                 if (!$alreadyReviewed) {
                     SiteFeedback::create([
-                        'user_id'               => $userId,
+                        'user_id'               => $uid,
                         'tourist_spot_id'       => $spotId,
                         'itinerary_item_id'     => $item->id,
                         'rating'                => 5,
@@ -1200,6 +1223,10 @@ class ItineraryController extends Controller
                         'cleanliness_level'     => 'clean',
                         'safety_level'          => 'safe',
                     ]);
+                    $existingByUser[$uid]['items'][$item->id] = true;
+                    $existingByUser[$uid]['spots'][$spotId] = true;
+                    Cache::forget("feedback:user:{$uid}");
+                    Cache::forget("feedback:user:v2:{$uid}");
                     $spotsToUpdate[$spotId] = true;
                     $processedCount++;
                 }

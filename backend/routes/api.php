@@ -1197,6 +1197,7 @@ Route::prefix('tourist')->middleware('tourist.auth')->group(function () use ($va
     Route::post('/2fa/confirm-disable', [TouristProfileController::class, 'confirmDisable2FA']);
     Route::get('/leaderboard', [LeaderboardController::class, 'index']);
 
+    Route::get('/saved-places', [FavoriteController::class, 'index']);
     Route::post('/destinations/{id}/favorite', [FavoriteController::class, 'toggle']);
     Route::post('/destinations/{id}/rate', function (Illuminate\Http\Request $request, int $id) {
         $request->validate(['rating' => 'required|integer|min:1|max:5']);
@@ -1238,28 +1239,7 @@ Route::prefix('tourist')->middleware('tourist.auth')->group(function () use ($va
         $canonical = \App\Models\Classification::normalizeStatus($spot->classification_status);
 
         $rewardAwarded = false;
-        if ($user && !$alreadyReviewed) {
-            try {
-                $user->increment('xp', $rewardPoints);
-                if (method_exists($user, 'syncPlacesVisitedCount')) {
-                    $user->syncPlacesVisitedCount();
-                }
-                \App\Models\UserPoint::awardPointsSafely(
-                    $user->id,
-                    $rewardPoints,
-                    'rating',
-                    "Rated {$spot->name} {$request->rating} stars ({$canonical})",
-                    $spot->id
-                );
-                $newXp = (int) ($user->fresh()->xp ?? 0);
-                $newLevel = (int) floor($newXp / 1000) + 1;
-                if ($user->level !== $newLevel) {
-                    $user->update(['level' => $newLevel]);
-                }
-                $rewardAwarded = true;
-            } catch (\Throwable $e) {
-            }
-        }
+        // Points/XP are not awarded on rating/review submission.
 
         return response()->json([
             'message' => $rewardAwarded ? "Rating submitted successfully! (+{$rewardPoints} Points earned — {$canonical})" : 'Rating updated successfully!',
@@ -1334,6 +1314,7 @@ Route::prefix('tourist')->middleware('tourist.auth')->group(function () use ($va
                 if ($user->level !== $newLevel) {
                     $user->update(['level' => $newLevel]);
                 }
+                \Illuminate\Support\Facades\Cache::forget("feedback:user:{$user->id}");
             } catch (\Throwable $e) {
             }
         }
@@ -1389,6 +1370,7 @@ Route::prefix('tourist')->middleware('tourist.auth')->group(function () use ($va
                 if ($user->level !== $newLevel) {
                     $user->update(['level' => $newLevel]);
                 }
+                \Illuminate\Support\Facades\Cache::forget("feedback:user:{$user->id}");
             } catch (\Throwable $e) {
             }
         }

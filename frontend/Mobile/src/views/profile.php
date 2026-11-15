@@ -60,7 +60,7 @@ $activeTab = 'profile';
 
     <!-- Profile Main Header Card (Horizontal Modern Layout matching Mockup) -->
     <div class="profile-header stagger-1"
-        style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border: none; outline: none; border-radius: 24px; padding: 18px 16px 14px; text-align: left; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25); margin-bottom: 14px;">
+        style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border: none; outline: none; border-radius: 24px; padding: 18px 16px 14px; text-align: left; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25); margin-top: 12px; margin-bottom: 14px;">
         <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 14px;">
             <div class="profile-avatar-container" style="position: relative; flex-shrink: 0; margin-bottom: 0;">
                 <img src="https://ui-avatars.com/api/?name=User&background=007AFF&color=fff&rounded=true&bold=true&size=128"
@@ -83,7 +83,6 @@ $activeTab = 'profile';
         </div>
 
         <p id="profile-bio-text" style="display: none; margin: 0; padding: 0;"></p>
-        <div id="profile-pref-chips" style="display: none; margin: 0; padding: 0;"></div>
 
         <!-- 3 Stats Cards inside Profile Card (Places Visited, Rank, Vouchers Available) -->
         <div class="stats-container"
@@ -166,12 +165,12 @@ $activeTab = 'profile';
     </div>
 
     <!-- Travel Interests Section (Personalizes Trips) -->
-    <div id="profile-travel-interests-card" class="stagger-3" style="display: none; background: #ffffff; border: 1.5px solid #e2e8f0; border-radius: 20px; padding: 14px 16px; margin-bottom: 20px; box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);">
+    <div id="profile-travel-interests-card" class="stagger-3" style="display: none; background: #ffffff; border: 1.5px solid #e2e8f0; border-radius: 20px; padding: 14px 16px; margin-top: 14px; margin-bottom: 20px; box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
             <div style="font-size: 14px; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 7px; letter-spacing: -0.2px;">
                 <i class="fa-solid fa-sliders" style="color: #1e3a8a; font-size: 13px;"></i> My Travel Interests
             </div>
-            <a href="javascript:void(0);" onclick="navigateTo('edit_profile')" style="font-size: 11px; font-weight: 800; color: #0284c7; text-decoration: none;">
+            <a href="javascript:void(0);" onclick="window.openPersonalizeTripsModal(); return false;" style="font-size: 11px; font-weight: 800; color: #0284c7; text-decoration: none;">
                 Personalizes Trips
             </a>
         </div>
@@ -248,11 +247,11 @@ $activeTab = 'profile';
 
     // ── Dedicated Helper Rendering Functions ──
     window.ensureProfileModalOnBody = function (modalId) {
-        const matches = document.querySelectorAll('#' + modalId);
+        const matches = Array.from(document.querySelectorAll('#' + modalId));
         if (matches.length > 1) {
-            matches.forEach((el, idx) => {
-                // If it is an old duplicate on document.body, remove it so only the latest is kept
-                if (el.parentElement === document.body && idx < matches.length - 1) {
+            const keep = matches.find(el => el.parentElement !== document.body) || matches[matches.length - 1];
+            matches.forEach(el => {
+                if (el !== keep) {
                     try { el.remove(); } catch(e) {}
                 }
             });
@@ -296,30 +295,41 @@ $activeTab = 'profile';
         }
     };
 
+    const PROFILE_TRAVEL_INTERESTS = [
+        { label: 'Surfing & Beach', icon: '🏄‍♂️', desc: 'Waves, resorts & coastal spots', keywords: ['surf', 'beach'] },
+        { label: 'Nature & Falls', icon: '🌿', desc: 'Waterfalls, trails & viewpoints', keywords: ['nature', 'mountain', 'hiking', 'trek'] },
+        { label: 'Food & Coffee', icon: '☕', desc: 'Cafes, local dining & seafood', keywords: ['food', 'coffee', 'dining'] },
+        { label: 'Heritage & Culture', icon: '🏛️', desc: 'Churches, museums & towns', keywords: ['heritage', 'culture', 'art'] },
+        { label: 'Agritourism', icon: '🍇', desc: 'Grape farms, pottery & eco-tours', keywords: ['agritourism', 'farm', 'pottery', 'grape'] },
+        { label: 'Sunset & Nightlife', icon: '🌅', desc: 'Golden hour hangouts & bars', keywords: ['sunset', 'nightlife'] },
+        { label: 'PWD / Wheelchair Accessible', icon: '♿', desc: 'Shows site accessibility advisories', keywords: ['pwd', 'wheelchair'] }
+    ];
+
+    function parseTravelPreferences(prefStr) {
+        if (Array.isArray(prefStr)) {
+            return prefStr.map(s => String(s).toLowerCase().trim()).filter(Boolean);
+        }
+        if (typeof prefStr === 'string' && prefStr.trim()) {
+            return prefStr.split(',').map(s => s.replace(/[\u{1F300}-\u{1F9FF}]/gu, '').toLowerCase().trim()).filter(Boolean);
+        }
+        return [];
+    }
+
+    function matchesProfileInterest(selected, item) {
+        const lbl = item.label.toLowerCase();
+        return selected.some(s => s.includes(lbl) || (item.keywords && item.keywords.some(k => s.includes(k))));
+    }
+
     window.renderProfilePreferences = function (prefStr) {
         const elCard = document.getElementById('profile-travel-interests-card');
         const elChips = document.getElementById('profile-pref-chips');
         if (!elChips || !elCard) return;
 
-        const allInterests = [
-            { label: 'Surfing & Beach', icon: '🏄‍♂️' },
-            { label: 'Nature & Falls', icon: '🌿' },
-            { label: 'Food & Coffee', icon: '☕' },
-            { label: 'Heritage & Culture', icon: '🏛️' },
-            { label: 'Agritourism', icon: '🍇' },
-            { label: 'PWD / Wheelchair Accessible', icon: '♿' }
-        ];
-
-        let selected = [];
-        if (Array.isArray(prefStr)) {
-            selected = prefStr.map(s => String(s).toLowerCase().trim());
-        } else if (typeof prefStr === 'string' && prefStr.trim()) {
-            selected = prefStr.split(',').map(s => s.toLowerCase().trim());
-        }
+        const selected = parseTravelPreferences(prefStr);
 
         let html = '';
-        allInterests.forEach(item => {
-            const isMatch = selected.some(s => s.includes(item.label.toLowerCase()) || (item.label.includes('Food') && s.includes('food')) || (item.label.includes('Nature') && s.includes('nature')) || (item.label.includes('PWD') && (s.includes('pwd') || s.includes('wheelchair'))));
+        PROFILE_TRAVEL_INTERESTS.forEach(item => {
+            const isMatch = matchesProfileInterest(selected, item);
             if (isMatch) {
                 html += `<div style="background: #1e3a8a; color: #ffffff; font-size: 11.5px; font-weight: 800; padding: 6px 14px; border-radius: 100px; display: inline-flex; align-items: center; gap: 5px; box-shadow: 0 2px 6px rgba(30, 58, 138, 0.2);"><span style="font-size: 12px;">${item.icon}</span> ${item.label}</div>`;
             } else {
@@ -329,6 +339,158 @@ $activeTab = 'profile';
 
         elChips.innerHTML = html;
         elCard.style.display = 'block';
+    };
+
+    window.openPersonalizeTripsModal = function () {
+        if (window.ensureProfileModalOnBody) window.ensureProfileModalOnBody('personalize-trips-modal');
+        const modal = document.getElementById('personalize-trips-modal');
+        const listEl = document.getElementById('personalize-trips-chips-list');
+        if (!modal || !listEl) return;
+
+        let rawPrefs = '';
+        try {
+            rawPrefs = JSON.parse(localStorage.getItem('auth_user') || '{}').travel_preferences || '';
+        } catch (e) { }
+        const selected = parseTravelPreferences(rawPrefs);
+
+        listEl.innerHTML = PROFILE_TRAVEL_INTERESTS.map(item => {
+            const active = matchesProfileInterest(selected, item);
+            return `
+            <button type="button" class="personalize-interest-opt ${active ? 'active' : ''}" data-value="${item.label}"
+                onclick="window.togglePersonalizeInterestChip(this)"
+                style="width:100%; text-align:left; display:flex; align-items:center; justify-content:space-between; gap:10px; padding:11px 14px; border-radius:14px; cursor:pointer; transition:all 0.15s ease; background:${active ? '#eff6ff' : '#f8fafc'}; border:1.5px solid ${active ? '#1e3a8a' : '#e2e8f0'};">
+                <div style="display:flex; align-items:center; gap:10px; min-width:0;">
+                    <span style="width:34px; height:34px; border-radius:10px; background:${active ? '#1e3a8a' : '#ffffff'}; border:1px solid ${active ? '#1e3a8a' : '#e2e8f0'}; display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0;">${item.icon}</span>
+                    <div style="min-width:0;">
+                        <div style="font-size:13px; font-weight:800; color:${active ? '#1e3a8a' : '#0f172a'};">${item.label}</div>
+                        <div style="font-size:11px; color:#64748b; font-weight:500;">${item.desc}</div>
+                    </div>
+                </div>
+                <span class="personalize-check-badge" style="width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:11px; background:${active ? '#1e3a8a' : '#ffffff'}; color:${active ? '#ffffff' : 'transparent'}; border:1.5px solid ${active ? '#1e3a8a' : '#cbd5e1'};">
+                    <i class="fa-solid fa-check"></i>
+                </span>
+            </button>`;
+        }).join('');
+
+        modal.style.display = 'flex';
+    };
+
+    window.togglePersonalizeInterestChip = function (btn) {
+        if (!btn) return;
+        const active = btn.classList.toggle('active');
+        btn.style.background = active ? '#eff6ff' : '#f8fafc';
+        btn.style.borderColor = active ? '#1e3a8a' : '#e2e8f0';
+        const iconWrap = btn.querySelector('span:first-child');
+        const titleEl = btn.querySelector('div > div:first-child');
+        const badge = btn.querySelector('.personalize-check-badge');
+        if (iconWrap) {
+            iconWrap.style.background = active ? '#1e3a8a' : '#ffffff';
+            iconWrap.style.borderColor = active ? '#1e3a8a' : '#e2e8f0';
+        }
+        if (titleEl) titleEl.style.color = active ? '#1e3a8a' : '#0f172a';
+        if (badge) {
+            badge.style.background = active ? '#1e3a8a' : '#ffffff';
+            badge.style.color = active ? '#ffffff' : 'transparent';
+            badge.style.borderColor = active ? '#1e3a8a' : '#cbd5e1';
+        }
+    };
+
+    window.closePersonalizeTripsModal = function () {
+        const modal = document.getElementById('personalize-trips-modal');
+        if (modal) modal.style.display = 'none';
+    };
+
+    window.savePersonalizeTripsModal = async function () {
+        const btn = document.getElementById('btn-save-personalize-trips');
+        const originalHtml = btn ? btn.innerHTML : '';
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Saving...';
+        }
+
+        const selectedVals = Array.from(document.querySelectorAll('#personalize-trips-chips-list .personalize-interest-opt.active'))
+            .map(el => el.getAttribute('data-value'))
+            .filter(Boolean);
+        const travelPreferences = selectedVals.join(', ');
+
+        function applyLocalPreferences(prefValue) {
+            let latestUser = null;
+            ['auth_user', 'auth_user_backup', 'intan_elyu_user'].forEach(key => {
+                try {
+                    const obj = JSON.parse(localStorage.getItem(key) || 'null');
+                    if (obj && typeof obj === 'object') {
+                        obj.travel_preferences = prefValue;
+                        localStorage.setItem(key, JSON.stringify(obj));
+                        if (key === 'auth_user') latestUser = obj;
+                    }
+                } catch (e) { }
+            });
+            for (let i = localStorage.length - 1; i >= 0; i--) {
+                const k = localStorage.key(i);
+                if (k && (k.startsWith('profile_data_') || k.startsWith('dashboard_data_'))) {
+                    localStorage.removeItem(k);
+                }
+            }
+            window.profileNeedsRefresh = true;
+            window.dashboardNeedsRefresh = true;
+            window.renderProfilePreferences(prefValue);
+            window.dispatchEvent(new CustomEvent('userProfileUpdated', { detail: latestUser || { travel_preferences: prefValue } }));
+        }
+
+        const token = getProfileAuthToken();
+        if (!token || !navigator.onLine || window.isAppOnline === false) {
+            applyLocalPreferences(travelPreferences);
+            if (window.OfflineProfileManager && typeof window.OfflineProfileManager.savePending === 'function') {
+                const pending = Object.assign({}, window.OfflineProfileManager.getPending() || {}, { travel_preferences: travelPreferences });
+                window.OfflineProfileManager.savePending(pending);
+            }
+            if (btn) { btn.disabled = false; btn.innerHTML = originalHtml; }
+            window.closePersonalizeTripsModal();
+            if (typeof showToast === 'function') showToast('Interests saved on device! Will sync when online.', 'info');
+            return;
+        }
+
+        try {
+            const formData = new FormData();
+            formData.append('travel_preferences', travelPreferences);
+
+            const res = await fetch(getProfileBackendUrl() + '/api/tourist/profile', {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                },
+                body: formData
+            });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) {
+                throw new Error(data.message || 'Failed to update travel interests.');
+            }
+            const savedPref = (data.user && data.user.travel_preferences !== undefined)
+                ? (data.user.travel_preferences || '')
+                : travelPreferences;
+            applyLocalPreferences(savedPref);
+            window.closePersonalizeTripsModal();
+            if (typeof showToast === 'function') showToast('Travel interests updated!');
+        } catch (err) {
+            const isNetErr = !navigator.onLine || window.isAppOnline === false || (err && err.message && /fetch|network/i.test(err.message));
+            if (isNetErr) {
+                applyLocalPreferences(travelPreferences);
+                if (window.OfflineProfileManager && typeof window.OfflineProfileManager.savePending === 'function') {
+                    const pending = Object.assign({}, window.OfflineProfileManager.getPending() || {}, { travel_preferences: travelPreferences });
+                    window.OfflineProfileManager.savePending(pending);
+                }
+                window.closePersonalizeTripsModal();
+                if (typeof showToast === 'function') showToast('Interests saved on device! Will sync when online.', 'info');
+            } else {
+                if (typeof showToast === 'function') showToast(err.message || 'Could not update interests.', 'error');
+            }
+        } finally {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+            }
+        }
     };
 
     window.renderProfileData = function (data) {
@@ -1088,6 +1250,9 @@ $activeTab = 'profile';
             if (!isOffline) {
                 fetchProfileData();
                 fetchPointsAndVouchers();
+                if (typeof window.loadUserReviewsAndCheckins === 'function') {
+                    window.loadUserReviewsAndCheckins(true);
+                }
             }
         }
     }
@@ -1767,83 +1932,208 @@ $activeTab = 'profile';
         });
     };
 
+    function getReviewsCacheKey(token) {
+        return token ? ('reviews_checkins_v2_' + token.substring(0, 10)) : null;
+    }
+
+    function getCachedUserReviews(token) {
+        const cacheKey = getReviewsCacheKey(token);
+        if (!cacheKey) return null;
+        let curUid = 0;
+        try {
+            const au = JSON.parse(localStorage.getItem('auth_user') || '{}');
+            curUid = Number(au.id || au.user_id || 0);
+        } catch (e) { }
+
+        if (window._cachedUserReviews && window._cachedUserReviews.key === cacheKey && (!curUid || !window._cachedUserReviews.uid || Number(window._cachedUserReviews.uid) === curUid)) {
+            return window._cachedUserReviews;
+        }
+        try {
+            const raw = localStorage.getItem(cacheKey);
+            if (!raw) return null;
+            const parsed = JSON.parse(raw);
+            if (!parsed || !Array.isArray(parsed.reviews)) return null;
+            if (curUid && parsed.uid && Number(parsed.uid) !== curUid) return null;
+            window._cachedUserReviews = Object.assign({ key: cacheKey }, parsed);
+            return window._cachedUserReviews;
+        } catch (e) {
+            return null;
+        }
+    }
+
+    function saveCachedUserReviews(token, reviewsList) {
+        const cacheKey = getReviewsCacheKey(token);
+        if (!cacheKey) return;
+        let curUid = 0;
+        try {
+            const au = JSON.parse(localStorage.getItem('auth_user') || '{}');
+            curUid = Number(au.id || au.user_id || 0);
+        } catch (e) { }
+        const entry = { key: cacheKey, uid: curUid, reviews: Array.isArray(reviewsList) ? reviewsList : [], ts: Date.now() };
+        window._cachedUserReviews = entry;
+        try {
+            localStorage.setItem(cacheKey, JSON.stringify({ uid: entry.uid, reviews: entry.reviews, ts: entry.ts }));
+        } catch (e) { }
+    }
+
+    function escReviewHtml(val) {
+        return String(val ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function renderReviewsAndCheckinsList(listEl, reviewsList) {
+        if (!listEl) return;
+        if (!reviewsList || reviewsList.length === 0) {
+            listEl.innerHTML = `
+            <div style="text-align: center; padding: 36px 16px; background: #f8fafc; border-radius: 18px; border: 1.5px dashed #e2e8f0;">
+                <div style="width: 48px; height: 48px; border-radius: 50%; background: #eff6ff; color: #1e3a8a; display: flex; align-items: center; justify-content: center; font-size: 20px; margin: 0 auto 10px;">
+                    <i class="fa-regular fa-comment-dots"></i>
+                </div>
+                <div style="font-size: 14px; font-weight: 800; color: #0f172a; margin-bottom: 4px;">No Reviews or Check-ins Yet</div>
+                <div style="font-size: 11.5px; color: #64748b; line-height: 1.4; max-width: 260px; margin: 0 auto 14px;">Visit verified spots in La Union and scan QR check-ins or leave testimonies to earn Points!</div>
+                <button type="button" onclick="window.closeReviewsAndCheckinsModal(); navigateTo('map');" style="background: #1e3a8a; color: #ffffff; border: none; padding: 8px 18px; border-radius: 100px; font-size: 12px; font-weight: 800; cursor: pointer;">Explore Spots</button>
+            </div>`;
+            return;
+        }
+
+        let html = '';
+        reviewsList.forEach((r, idx) => {
+            const spotName = escReviewHtml(r.spot_name || r.name || ('Destination Spot #' + (r.tourist_spot_id || (idx + 1))));
+            const rating = Math.min(5, Math.max(1, parseInt(r.rating || 5, 10) || 5));
+            let stars = '';
+            for (let i = 1; i <= 5; i++) {
+                stars += i <= rating
+                    ? '<i class="fa-solid fa-star" style="color: #f59e0b; font-size: 11px;"></i>'
+                    : '<i class="fa-regular fa-star" style="color: #cbd5e1; font-size: 11px;"></i>';
+            }
+            const dateStr = escReviewHtml(r.created_at ? new Date(r.created_at).toLocaleDateString() : 'Verified Visit');
+            const hasTestimony = Boolean(r.testimony && String(r.testimony).trim() !== '');
+            const isReviewed = (r.is_reviewed !== undefined) ? Boolean(r.is_reviewed) : hasTestimony;
+            const isCheckedIn = (r.is_checked_in !== undefined) ? Boolean(r.is_checked_in) : !hasTestimony;
+            const testimony = hasTestimony ? `"${escReviewHtml(r.testimony)}"` : 'Verified check-in visit completed.';
+            const buildStamp = (label, primary, subColor, shadowRgba, iconCls) => `
+                <div style="border:2.5px double ${primary}; color:${primary}; background:rgba(255,255,255,0.96); padding:3px 9px; border-radius:8px; font-weight:900; font-size:9.5px; letter-spacing:1.2px; text-transform:uppercase; transform:rotate(-4deg); box-shadow:0 3px 10px ${shadowRgba}; display:inline-flex; flex-direction:column; align-items:center; line-height:1.1; flex-shrink:0;">
+                    <span style="font-size:6.5px; letter-spacing:1px; font-weight:800; color:${subColor}; margin-bottom:1px; display:inline-flex; align-items:center; gap:2px;"><i class="${iconCls}"></i> VERIFIED</span>
+                    <span>${label}</span>
+                </div>`;
+            let stampHtml = '';
+            if (isReviewed) {
+                stampHtml += buildStamp('REVIEWED', '#2563eb', '#1d4ed8', 'rgba(37,99,235,0.20)', 'fa-solid fa-certificate');
+            }
+            if (isCheckedIn) {
+                stampHtml += buildStamp('CHECKED IN', '#059669', '#047857', 'rgba(5,150,105,0.20)', 'fa-solid fa-circle-check');
+            }
+
+            html += `
+            <div style="background: #ffffff; border: 1.5px solid #e2e8f0; border-radius: 16px; padding: 14px 16px; margin-bottom: 10px; box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);">
+                <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 8px;">
+                    <strong style="color: #0f172a; font-size: 14px; font-weight: 800; line-height: 1.3;">${spotName}</strong>
+                    <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: flex-end;">${stampHtml}</div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 4px; margin-bottom: 6px;">
+                    ${stars}
+                    <span style="font-size: 11px; font-weight: 700; color: #475569; margin-left: 4px;">${rating}.0</span>
+                    <span style="font-size: 10.5px; color: #94a3b8; margin-left: auto;">${dateStr}</span>
+                </div>
+                <p style="margin: 0; font-size: 12px; color: #475569; line-height: 1.4; font-style: italic;">${testimony}</p>
+            </div>`;
+        });
+        listEl.innerHTML = html;
+    }
+
     window.openReviewsAndCheckinsModal = function () {
         const modal = window.ensureProfileModalOnBody('reviews-checkins-modal');
         if (!modal) return;
         modal.style.display = 'flex';
-        window.loadUserReviewsAndCheckins();
+        window.loadUserReviewsAndCheckins(false);
     };
 
     window.closeReviewsAndCheckinsModal = function () {
         document.querySelectorAll('#reviews-checkins-modal').forEach(m => m.style.display = 'none');
     };
 
-    window.loadUserReviewsAndCheckins = async function () {
+    window.loadUserReviewsAndCheckins = async function (silent = false) {
         const listEl = document.getElementById('reviews-checkins-list');
-        if (!listEl) return;
-        listEl.innerHTML = '<div style="text-align: center; padding: 28px 16px; color: #64748b; font-size: 13px; font-weight: 600;"><i class="fa-solid fa-spinner fa-spin" style="margin-right: 6px; color: #1e3a8a;"></i> Loading reviews & check-ins...</div>';
-
         const token = getProfileAuthToken();
-        const base = getProfileBackendUrl();
-        try {
-            const res = await fetch(base + '/api/tourist/feedback/user-reviewed-spots', {
-                headers: {
-                    'Accept': 'application/json',
-                    'Authorization': token ? ('Bearer ' + token) : ''
-                }
-            });
+        const cached = getCachedUserReviews(token);
 
-            if (!res.ok) throw new Error('Status ' + res.status);
-            const json = await res.json();
-            const reviewsMap = (json && json.reviews) ? json.reviews : {};
-            const reviewsList = Object.values(reviewsMap);
-
-            if (!reviewsList || reviewsList.length === 0) {
-                listEl.innerHTML = `
-                <div style="text-align: center; padding: 36px 16px; background: #f8fafc; border-radius: 18px; border: 1.5px dashed #e2e8f0;">
-                    <div style="width: 48px; height: 48px; border-radius: 50%; background: #eff6ff; color: #1e3a8a; display: flex; align-items: center; justify-content: center; font-size: 20px; margin: 0 auto 10px;">
-                        <i class="fa-regular fa-comment-dots"></i>
-                    </div>
-                    <div style="font-size: 14px; font-weight: 800; color: #0f172a; margin-bottom: 4px;">No Reviews or Check-ins Yet</div>
-                    <div style="font-size: 11.5px; color: #64748b; line-height: 1.4; max-width: 260px; margin: 0 auto 14px;">Visit verified spots in La Union and scan QR check-ins or leave testimonies to earn Points!</div>
-                    <button type="button" onclick="window.closeReviewsAndCheckinsModal(); navigateTo('map');" style="background: #1e3a8a; color: #ffffff; border: none; padding: 8px 18px; border-radius: 100px; font-size: 12px; font-weight: 800; cursor: pointer;">Explore Spots</button>
-                </div>`;
-                return;
+        if (cached && !silent && listEl) {
+            renderReviewsAndCheckinsList(listEl, cached.reviews);
+            if ((Date.now() - (cached.ts || 0)) < 60000) {
+                return cached.reviews;
             }
+        }
 
-            let html = '';
-            reviewsList.forEach((r, idx) => {
-                const spotName = r.spot_name || r.name || ('Destination Spot #' + (r.tourist_spot_id || (idx + 1)));
-                const rating = parseInt(r.rating || 5, 10);
-                let stars = '';
-                for (let i = 1; i <= 5; i++) {
-                    stars += i <= rating 
-                        ? '<i class="fa-solid fa-star" style="color: #f59e0b; font-size: 11px;"></i>' 
-                        : '<i class="fa-regular fa-star" style="color: #cbd5e1; font-size: 11px;"></i>';
+        if (!token || !navigator.onLine || window.isAppOnline === false) {
+            if (!silent && listEl) {
+                renderReviewsAndCheckinsList(listEl, cached ? cached.reviews : []);
+            }
+            return cached ? cached.reviews : [];
+        }
+
+        if (!cached && !silent && listEl) {
+            listEl.innerHTML = '<div style="text-align: center; padding: 28px 16px; color: #64748b; font-size: 13px; font-weight: 600;"><i class="fa-solid fa-spinner fa-spin" style="margin-right: 6px; color: #1e3a8a;"></i> Loading reviews & check-ins...</div>';
+        }
+
+        const base = getProfileBackendUrl();
+        const cacheKey = getReviewsCacheKey(token);
+        if (!window._reviewsCheckinsInflight || window._reviewsCheckinsInflight.key !== cacheKey) {
+            const reqPromise = (async () => {
+                const ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+                const timer = ctrl ? setTimeout(() => ctrl.abort(), 6000) : null;
+                try {
+                    const res = await fetch(base + '/api/tourist/feedback/user-reviewed-spots', {
+                        signal: ctrl ? ctrl.signal : undefined,
+                        headers: {
+                            'Accept': 'application/json',
+                            'Authorization': 'Bearer ' + token
+                        }
+                    });
+                    if (!res.ok) throw new Error('Status ' + res.status);
+                    const json = await res.json();
+                    if (json && Array.isArray(json.data) && window.userReviewedSpotIds) {
+                        json.data.forEach(id => window.userReviewedSpotIds.add(Number(id)));
+                    }
+                    if (json && Array.isArray(json.reviewed_item_ids) && window.userReviewedItemIds) {
+                        json.reviewed_item_ids.forEach(id => window.userReviewedItemIds.add(Number(id)));
+                    }
+                    if (json && json.reviews) {
+                        window.userReviewedSpotData = Object.assign({}, window.userReviewedSpotData || {}, json.reviews);
+                    }
+                    if (json && json.item_reviews) {
+                        window.userReviewedItemData = Object.assign({}, window.userReviewedItemData || {}, json.item_reviews);
+                    }
+                    const reviewsList = Array.isArray(json && json.reviews_and_checkins)
+                        ? json.reviews_and_checkins
+                        : Object.values((json && json.reviews) ? json.reviews : {});
+                    saveCachedUserReviews(token, reviewsList);
+                    return reviewsList;
+                } finally {
+                    if (timer) clearTimeout(timer);
+                    if (window._reviewsCheckinsInflight && window._reviewsCheckinsInflight.key === cacheKey) {
+                        window._reviewsCheckinsInflight = null;
+                    }
                 }
-                const dateStr = r.created_at ? new Date(r.created_at).toLocaleDateString() : 'Verified Visit';
-                const testimony = r.testimony ? `"${r.testimony}"` : 'Verified check-in visit completed.';
+            })();
+            window._reviewsCheckinsInflight = { key: cacheKey, promise: reqPromise };
+        }
 
-                html += `
-                <div style="background: #ffffff; border: 1.5px solid #e2e8f0; border-radius: 16px; padding: 14px 16px; margin-bottom: 10px; box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);">
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px;">
-                        <strong style="color: #0f172a; font-size: 14px; font-weight: 800; line-height: 1.3;">${spotName}</strong>
-                        <span style="font-size: 10px; font-weight: 800; background: #ecfdf5; color: #047857; padding: 2px 8px; border-radius: 100px; border: 1px solid #a7f3d0; display: inline-flex; align-items: center; gap: 3px;">
-                            <i class="fa-solid fa-circle-check"></i> Verified
-                        </span>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 4px; margin-bottom: 6px;">
-                        ${stars}
-                        <span style="font-size: 11px; font-weight: 700; color: #475569; margin-left: 4px;">${rating}.0</span>
-                        <span style="font-size: 10.5px; color: #94a3b8; margin-left: auto;">${dateStr}</span>
-                    </div>
-                    <p style="margin: 0; font-size: 12px; color: #475569; line-height: 1.4; font-style: italic;">${testimony}</p>
-                </div>`;
-            });
-
-            listEl.innerHTML = html;
+        try {
+            const reviewsList = await window._reviewsCheckinsInflight.promise;
+            const liveListEl = document.getElementById('reviews-checkins-list');
+            if (!silent && liveListEl) {
+                renderReviewsAndCheckinsList(liveListEl, reviewsList);
+            }
+            return reviewsList;
         } catch (e) {
-            listEl.innerHTML = `<div style="text-align: center; padding: 24px; color: #ef4444; font-size: 12px;">Failed to load reviews. Please try again.</div>`;
+            const liveListEl = document.getElementById('reviews-checkins-list');
+            if (!silent && liveListEl && !cached) {
+                liveListEl.innerHTML = `
+                <div style="text-align: center; padding: 28px 16px;">
+                    <div style="color: #64748b; font-size: 12.5px; margin-bottom: 12px;">Could not load reviews right now.</div>
+                    <button type="button" onclick="window.loadUserReviewsAndCheckins(false)" style="background: #1e3a8a; color: #ffffff; border: none; padding: 8px 18px; border-radius: 100px; font-size: 12px; font-weight: 800; cursor: pointer;">Try Again</button>
+                </div>`;
+            }
+            return cached ? cached.reviews : [];
         }
     };
 
@@ -2052,7 +2342,7 @@ $activeTab = 'profile';
                         <strong style="color:#1e293b; font-size:15px; font-weight:800; line-height:1.3; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${voucherTitle}</strong>
                         <div style="font-size: 11px; font-weight: 600; color: #64748b; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${partnerName}</div>
                     </div>
-                    <span style="color:#ffffff !important; font-weight:800; font-size:10.5px; background:#dc2626 !important; border:none !important; padding:4px 10px; border-radius:100px; white-space:nowrap; text-transform:uppercase; flex-shrink: 0;">
+                    <span style="color:#ffffff !important; font-weight:800; font-size:10.5px; background:#059669 !important; border:none !important; padding:4px 10px; border-radius:100px; white-space:nowrap; text-transform:uppercase; flex-shrink: 0;">
                         <i class="fa-solid fa-check-double" style="margin-right:4px;"></i>Redeemed
                     </span>
                 </div>
@@ -2969,8 +3259,11 @@ $activeTab = 'profile';
                 const dest = item.destination;
                 const destName = dest ? dest.name : (item.destination_name || 'Destination ' + (idx + 1));
                 const fee = dest ? (dest.entrance_fee && parseFloat(dest.entrance_fee) > 0 ? '₱' + parseFloat(dest.entrance_fee).toFixed(2) : 'Free Entrance') : 'Visited';
-                const spotId = item.tourist_spot_id || (dest ? dest.id : item.id);
-                const isReviewed = spotId && window.userReviewedSpotIds && window.userReviewedSpotIds.has(Number(spotId));
+                const spotId = item.tourist_spot_id || (dest ? dest.id : '');
+                const itemId = (item.id && Number(item.id) > 0) ? Number(item.id) : null;
+                const isReviewed = itemId
+                    ? (window.userReviewedItemIds && window.userReviewedItemIds.has(itemId))
+                    : (spotId && window.userReviewedSpotIds && window.userReviewedSpotIds.has(Number(spotId)));
                 const sClass = (dest && dest.classification_status) ? dest.classification_status : '';
                 const sMeta = (typeof window.getRewardPointsForClassification === 'function') ? window.getRewardPointsForClassification(sClass) : { points: 25 };
 
@@ -2981,7 +3274,7 @@ $activeTab = 'profile';
                         <div style="font-size:13.5px; font-weight:800; color:#ffffff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${destName}</div>
                         <div style="font-size:11.5px; color:rgba(255,255,255,0.85); font-weight:600; margin-top:2px;">${fee}</div>
                     </div>
-                    ${spotId ? `<button type="button" data-spot-id="${spotId}" data-spot-classification="${sClass}" onclick="event.stopPropagation(); window.openWriteTestimonyModal('${spotId}', this)" style="background: ${isReviewed ? 'rgba(255,255,255,0.22)' : 'linear-gradient(135deg, #00f2fe 0%, #0284c7 100%)'}; border: none !important; outline: none !important; box-shadow: none !important; color: #ffffff; padding: 7px 14px; border-radius: 100px; font-weight: 800; font-size: 11.5px; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; flex-shrink: 0;">${isReviewed ? '<i class="fa-solid fa-check" style="font-size: 10px; margin-right: 4px;"></i> Reviewed' : '<i class="fa-solid fa-pen" style="font-size: 10px;"></i> Review'}</button>` : ''}
+                    ${spotId ? `<button type="button" data-spot-id="${spotId}"${itemId ? ` data-itinerary-item-id="${itemId}"` : ''} data-spot-classification="${sClass}" onclick="event.stopPropagation(); window.openWriteTestimonyModal('${spotId}', this, ${itemId ? `'${itemId}'` : 'null'})" style="background: ${isReviewed ? 'rgba(255,255,255,0.22)' : 'linear-gradient(135deg, #00f2fe 0%, #0284c7 100%)'}; border: none !important; outline: none !important; box-shadow: none !important; color: #ffffff; padding: 7px 14px; border-radius: 100px; font-weight: 800; font-size: 11.5px; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; flex-shrink: 0;">${isReviewed ? '<i class="fa-solid fa-check" style="font-size: 10px; margin-right: 4px;"></i> Reviewed' : '<i class="fa-solid fa-pen" style="font-size: 10px;"></i> Review'}</button>` : ''}
                 </div>`;
             });
         }
@@ -3042,9 +3335,9 @@ $activeTab = 'profile';
             if (u.avatar && document.getElementById('profile-img')) {
                 document.getElementById('profile-img').src = window.getFullImageUrl ? window.getFullImageUrl(u.avatar) : u.avatar;
             }
-            window.renderProfileUserMeta(u);
-            window.renderProfileBio(u.bio);
-            window.renderProfilePreferences(u.travel_preferences);
+            if ('gender' in u) window.renderProfileUserMeta(u);
+            if ('bio' in u) window.renderProfileBio(u.bio);
+            if ('travel_preferences' in u) window.renderProfilePreferences(u.travel_preferences);
         }
     });
 
@@ -3202,7 +3495,7 @@ $activeTab = 'profile';
 
     // Immediately port all modals to document.body so they stay above bottom-navigation and blur out the nav bar behind backdrop
     setTimeout(() => {
-        ['full-history-modal', 'full-vouchers-modal', 'full-deals-modal', 'active-voucher-qr-modal', 'active-voucher-cancel-confirm-modal', 'trip-details-modal', 'reward-details-modal', 'redeem-confirm-modal'].forEach(id => {
+        ['full-history-modal', 'full-vouchers-modal', 'full-deals-modal', 'active-voucher-qr-modal', 'active-voucher-cancel-confirm-modal', 'trip-details-modal', 'reward-details-modal', 'redeem-confirm-modal', 'personalize-trips-modal', 'reviews-checkins-modal'].forEach(id => {
             if (window.ensureProfileModalOnBody) window.ensureProfileModalOnBody(id);
         });
     }, 50);
@@ -3214,6 +3507,9 @@ $activeTab = 'profile';
         hydrateProfileFromCache();
         fetchProfileData();
         fetchPointsAndVouchers(true);
+        if (typeof window.loadUserReviewsAndCheckins === 'function') {
+            window.loadUserReviewsAndCheckins(true);
+        }
     }
 </script>
 
@@ -3455,8 +3751,8 @@ $activeTab = 'profile';
                 <div id="active-qr-stamp-overlay"
                     style="display:none; position:absolute; inset:0; align-items:center; justify-content:center; pointer-events:none; z-index:20;">
                     <div id="active-qr-stamp-badge"
-                        style="border:4px double #dc2626; color:#dc2626; background:rgba(255,255,255,0.95); padding:10px 26px; border-radius:14px; font-weight:900; font-size:22px; letter-spacing:3px; text-transform:uppercase; transform:rotate(-14deg); box-shadow:0 8px 26px rgba(220,38,38,0.28); display:flex; flex-direction:column; align-items:center; line-height:1.15;">
-                        <span style="font-size:10px; letter-spacing:2px; font-weight:800; color:#b91c1c; margin-bottom:3px;"><i class="fa-solid fa-certificate"></i> VERIFIED</span>
+                        style="border:4px double #059669; color:#059669; background:rgba(255,255,255,0.95); padding:10px 26px; border-radius:14px; font-weight:900; font-size:22px; letter-spacing:3px; text-transform:uppercase; transform:rotate(-14deg); box-shadow:0 8px 26px rgba(5,150,105,0.28); display:flex; flex-direction:column; align-items:center; line-height:1.15;">
+                        <span style="font-size:10px; letter-spacing:2px; font-weight:800; color:#047857; margin-bottom:3px;"><i class="fa-solid fa-certificate"></i> VERIFIED</span>
                         <span>REDEEMED</span>
                     </div>
                 </div>
@@ -3687,6 +3983,48 @@ $activeTab = 'profile';
                     Redeem
                 </button>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- Personalize Trips / Travel Interests Modal -->
+<div id="personalize-trips-modal" onclick="if(event.target===this) window.closePersonalizeTripsModal()"
+    style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(10,25,60,0.68); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:9999999 !important; justify-content:center; align-items:center; padding:18px; box-sizing:border-box;">
+    <div onclick="event.stopPropagation()"
+        style="background:#ffffff !important; border:none !important; outline:none !important; border-radius:24px; width:100%; max-width:400px; max-height:84vh; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 20px 50px rgba(10,25,60,0.45);">
+        <!-- Header -->
+        <div
+            style="background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%) !important; padding:15px 18px; flex-shrink:0; display:flex; justify-content:space-between; align-items:center; gap:10px;">
+            <div>
+                <div style="font-size:15.5px; font-weight:800; color:#ffffff; display:flex; align-items:center; gap:8px;">
+                    <i class="fa-solid fa-sliders" style="color:#00f2fe; font-size:14px;"></i> Personalize Your Trips
+                </div>
+                <div style="font-size:11px; color:rgba(255,255,255,0.8); margin-top:2px;">
+                    Choose interests to tailor spot recommendations &amp; advisories
+                </div>
+            </div>
+            <button type="button" onclick="window.closePersonalizeTripsModal()" aria-label="Close Personalize Trips Modal"
+                style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:14px; flex-shrink:0; box-shadow:0 2px 8px rgba(0,0,0,0.2) !important;">
+                <i class="fa-solid fa-xmark" style="color:#1e3a8a !important;"></i>
+            </button>
+        </div>
+
+        <!-- Body -->
+        <div id="personalize-trips-chips-list" class="hide-scrollbar"
+            style="flex:1; min-height:0; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:9px; background:#ffffff !important;">
+        </div>
+
+        <!-- Footer -->
+        <div
+            style="background:#f8fafc !important; border-top:1px solid #e2e8f0; padding:12px 16px; flex-shrink:0; display:grid; grid-template-columns:1fr 1.6fr; gap:10px;">
+            <button type="button" onclick="window.closePersonalizeTripsModal()"
+                style="padding:11px 14px; border-radius:14px; background:#ffffff !important; border:1.5px solid #e2e8f0 !important; color:#475569 !important; font-size:13px; font-weight:800; cursor:pointer;">
+                Cancel
+            </button>
+            <button type="button" id="btn-save-personalize-trips" onclick="window.savePersonalizeTripsModal()"
+                style="padding:11px 16px; border-radius:14px; background:linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%) !important; border:none !important; color:#ffffff !important; font-size:13px; font-weight:800; cursor:pointer; box-shadow:0 4px 12px rgba(37,99,235,0.28) !important; display:flex; align-items:center; justify-content:center; gap:6px;">
+                <i class="fa-solid fa-check"></i> Save Interests
+            </button>
         </div>
     </div>
 </div>

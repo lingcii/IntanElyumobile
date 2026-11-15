@@ -119,13 +119,13 @@ assert.doesNotMatch(trips, /targetIdStr\.includes\(itIdStr\)/,
     'local proof and check-in updates must use exact itinerary-item IDs');
 assert.doesNotMatch(main, /targetIdStr\.includes\(itIdStr\)/,
     'shared proof and check-in updates must not match partial IDs from another trip');
-const proofSubmitStart = trips.indexOf('window.submitProofPhotos = async function');
+const proofSubmitStart = trips.indexOf('window.submitTripPhotos = async function');
 const proofSuccessStart = trips.indexOf('if (response.ok && data.success)', proofSubmitStart);
 assert.ok(proofSubmitStart >= 0 && proofSuccessStart > proofSubmitStart,
     'proof submission workflow must be present');
-assert.match(trips.slice(proofSubmitStart, proofSuccessStart), /applyPhotoProofUpdateLocally\(itemId, \[queuedPreview\], 'pending', true\)/,
+assert.match(trips.slice(proofSubmitStart, proofSuccessStart), /applyTripPhotoUpdateLocally\(itemId, \[queuedPreview\], 'pending', true\)/,
     'offline proofs must render immediately as local queued previews without claiming backend submission');
-assert.match(trips.slice(proofSuccessStart), /applyPhotoProofUpdateLocally\(itemId, permanentUrls, data\.proof_status \|\| 'pending'\)[\s\S]*fetchSavedTrips\(true\)/,
+assert.match(trips.slice(proofSuccessStart), /applyTripPhotoUpdateLocally\(itemId, permanentUrls, data\.proof_status \|\| 'pending'\)[\s\S]*fetchSavedTrips\(true\)/,
     'successful backend proof submission must update immediately and refresh authoritative state');
 assert.match(trips, /const resolvedStatus = serverStatus \|\|/,
     'fresh backend proof status must take precedence over stale local state');
@@ -194,9 +194,9 @@ assert.equal(tripProgressContext.hasSubmittedStopProof({ is_location_verified: t
 assert.equal(tripProgressContext.hasSubmittedStopProof({ is_location_verified: true, proof_status: 'rejected', proof_image: 'proof.jpg' }), false,
     'Trip Map must not advance past rejected proof');
 
-assert.doesNotMatch(tripMap, /Check In<\/button>\s*<button[^>]*openProofUploadModal[^>]*>Proof<\/button>/,
+assert.doesNotMatch(tripMap, /Check In<\/button>\s*<button[^>]*openPhotoUploadModal[^>]*>Proof<\/button>/,
     'Trip Map must hide the proof button until checked in');
-assert.match(tripMap, /isLocationVerified\s*&&\s*!hasProof[\s\S]*openProofUploadModal[\s\S]*Upload Proof/,
+assert.match(tripMap, /isLocationVerified\s*&&\s*!hasProof[\s\S]*openPhotoUploadModal[\s\S]*Upload Photo/,
     'Trip Map must show the upload proof button only once location is checked in');
 assert.match(main, /transientNavClasses[\s\S]*classList\.remove\(\.\.\.transientNavClasses\)/,
     'navigation must clear stale modal and keyboard visibility state between screens');

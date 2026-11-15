@@ -557,15 +557,6 @@ $backRoute = 'dashboard';
 
 <script>
     (function () {
-        // Back navigation binding
-        var backBtn = document.querySelector('.header-icon .fa-arrow-left');
-        if (backBtn) {
-            backBtn.closest('.header-icon').onclick = function () {
-                if (typeof navigateTo === 'function') navigateTo('dashboard');
-                else history.back();
-            };
-        }
-
         const getSettingsToken = () => localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('api_token') || '';
         const getSettingsBackendUrl = () => (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
 
