@@ -108,18 +108,17 @@ class ItineraryController extends Controller
         sort($privList);
         sort($allList);
 
-        $isApproved = (bool) ($item->is_visited || $item->proof_status === 'approved');
-        $proofStatus = $isApproved ? 'approved' : ($item->proof_status ?? (!empty($item->proof_image) || !empty($item->proof_images) ? 'pending' : null));
+        $isVisited = (bool) ($item->is_visited || $item->visited_at !== null || $item->proof_status === 'approved');
+        $proofStatus = $isVisited ? 'approved' : null;
 
         return [
             'id'                   => $item->id,
             'order_index'          => (int) ($item->order_index ?? 0),
-            'is_visited'           => $isApproved,
-            'is_location_verified' => (bool) ($item->visited_at !== null || $isApproved),
+            'is_visited'           => $isVisited,
+            'is_location_verified' => (bool) ($item->visited_at !== null || $isVisited),
             'proof_image'          => $item->proof_image,
             'proof_images'         => $item->proof_images ?? [],
             'proof_status'         => $proofStatus,
-            'rejection_reason'     => $item->rejection_reason,
             'companion_males'      => (int) ($item->companion_males ?? 0),
             'companion_females'    => (int) ($item->companion_females ?? 0),
             'companion_adults'     => (int) ($item->companion_adults ?? 0),

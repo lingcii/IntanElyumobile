@@ -4032,7 +4032,7 @@ window.applyTouristSitesFilterModal = function() {
                                 const resolvedAll = uploadedPhotos.map(u => (typeof window.resolveTripPhotoUrl === 'function' ? window.resolveTripPhotoUrl(u) : u));
                                 const jsonUrlsAttr = JSON.stringify(resolvedAll).replace(/"/g, '&quot;');
                                 photoImgHtml = `<div style="position:relative; flex-shrink:0;">
-                                    <img src="${pUrl}" onerror="if(this.dataset.triedFallback!=='1'){this.dataset.triedFallback='1';this.src='${fallbackUrl}';}else{this.onerror=null;this.src='assets/img/no_image.svg';}" onclick="event.stopPropagation(); if(typeof window.viewTripPhotoModal==='function') window.viewTripPhotoModal(${jsonUrlsAttr}, '${destEscaped}', '${item.is_visited ? 'Verified Visit Photo' : 'Pending Verification'}');" alt="Photo" title="Tap to view photo" style="width:28px; height:28px; border-radius:8px; object-fit:cover; border:1px solid ${item.is_visited ? 'rgba(52,199,89,0.5)' : (item.proof_status === 'rejected' ? 'rgba(239,68,68,0.5)' : 'rgba(255,149,0,0.5)')}; flex-shrink:0; cursor:pointer;">
+                                    <img src="${pUrl}" onerror="if(this.dataset.triedFallback!=='1'){this.dataset.triedFallback='1';this.src='${fallbackUrl}';}else{this.onerror=null;this.src='assets/img/no_image.svg';}" onclick="event.stopPropagation(); if(typeof window.viewTripPhotoModal==='function') window.viewTripPhotoModal(${jsonUrlsAttr}, '${destEscaped}', '${item.is_visited ? 'Verified Visit Photo' : 'Uploaded Photo'}');" alt="Photo" title="Tap to view photo" style="width:28px; height:28px; border-radius:8px; object-fit:cover; border:1px solid ${item.is_visited ? 'rgba(52,199,89,0.5)' : 'rgba(255,149,0,0.5)'}; flex-shrink:0; cursor:pointer;">
                                     ${uploadedPhotos.length > 1 ? `<span style="position:absolute; bottom:0; right:0; background:rgba(0,0,0,0.75); color:#fff; font-size:6.5px; font-weight:800; padding:0 2px; border-radius:2px;">+${uploadedPhotos.length - 1}</span>` : ''}
                                 </div>`;
                             } else if (isQueued && queuedItem && queuedItem.previewUrl) {
@@ -4043,21 +4043,12 @@ window.applyTouristSitesFilterModal = function() {
                             let statusBadge = '';
                             const isLocVerified = Boolean(item.is_location_verified || item.visited_at);
                             const hasPhoto = Boolean(uploadedPhotos.length > 0);
-                            const isPhotoApproved = (item.proof_status === 'approved');
-                            const isApproved = Boolean(item.is_visited || isPhotoApproved || item.proof_status === 'approved' || (item.is_visited && isLocVerified));
+                            const isVisited = Boolean(item.is_visited || isLocVerified || item.proof_status === 'approved');
 
                             if (isQueued) {
                                 statusBadge = `<span style="font-size:10px; font-weight:800; color:#fbbf24; background:rgba(245,158,11,0.18); border:1px solid rgba(245,158,11,0.35); padding:2px 8px; border-radius:100px; margin-left:auto; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-cloud-arrow-up"></i> Queued</span>`;
-                            } else if (isApproved) {
+                            } else if (isVisited) {
                                 statusBadge = `<span style="font-size:10px; font-weight:800; color:#34c759; background:rgba(52,199,89,0.15); border:1px solid rgba(52,199,89,0.3); padding:2px 8px; border-radius:100px; margin-left:auto; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-circle-check"></i> Verified</span>`;
-                            } else if (isPhotoApproved && !isLocVerified) {
-                                statusBadge = `<span style="font-size:10px; font-weight:800; color:#38bdf8; background:rgba(56,189,248,0.15); border:1px solid rgba(56,189,248,0.3); padding:2px 8px; border-radius:100px; margin-left:auto; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-camera"></i> Photo Approved</span>`;
-                            } else if (item.proof_status === 'rejected') {
-                                statusBadge = `<span style="font-size:10px; font-weight:800; color:#ef4444; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.3); padding:2px 8px; border-radius:100px; margin-left:auto; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-circle-xmark"></i> Rejected</span>`;
-                            } else if (isLocVerified && hasPhoto) {
-                                statusBadge = `<span style="font-size:10px; font-weight:800; color:#FF9500; background:rgba(255,149,0,0.15); border:1px solid rgba(255,149,0,0.3); padding:2px 8px; border-radius:100px; margin-left:auto; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-clock"></i> Pending</span>`;
-                            } else if (isLocVerified && !hasPhoto) {
-                                statusBadge = `<span style="font-size:10px; font-weight:800; color:#38bdf8; background:rgba(56,189,248,0.15); border:1px solid rgba(56,189,248,0.3); padding:2px 8px; border-radius:100px; margin-left:auto; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-location-dot"></i> Checked In</span>`;
                             } else if (!isLocVerified && hasPhoto) {
                                 statusBadge = `<span style="font-size:10px; font-weight:800; color:#a78bfa; background:rgba(167,139,250,0.15); border:1px solid rgba(167,139,250,0.3); padding:2px 8px; border-radius:100px; margin-left:auto; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-camera"></i> Photo Ready</span>`;
                             }

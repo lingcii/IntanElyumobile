@@ -597,8 +597,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
 
         function hasSubmittedStopProof(item) {
             if (!item) return false;
-            const hasCheckin = Boolean(item.is_location_verified || item.visited_at);
-            return hasCheckin && String(item.proof_status || '').toLowerCase() !== 'rejected';
+            return Boolean(item.is_location_verified || item.visited_at);
         }
 
         function renderConveyorCards(items, activeIndex) {
@@ -612,11 +611,8 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                     const card = document.getElementById(`conveyor-card-${idx}`);
                     if (!card) return;
                     const isLocationVerified = Boolean(item.is_location_verified || item.visited_at);
-                    const isPhotoApproved = (item.proof_status === 'approved');
                     // In optional photo proof mode, checking in verifies the visit immediately
-                    const isVisited = Boolean(isLocationVerified || item.is_visited || isPhotoApproved);
-                    const isPending = Boolean(item.proof_image && item.proof_status === 'pending' && !isVisited);
-                    const isRejected = (item.proof_status === 'rejected');
+                    const isVisited = Boolean(isLocationVerified || item.is_visited || item.proof_status === 'approved');
                     const spotIdVal = item.tourist_spot_id || item.destination_id || (item.destination ? item.destination.id : null);
                     const isQueued = Boolean((window.OfflineCheckinManager && window.OfflineCheckinManager.isItemQueued(item.id, spotIdVal, window.currentTripId)) || item.is_offline_queued);
                     const isActive = idx === activeIndex;
@@ -641,16 +637,6 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                             badgeEl.style.background = '#dcfce7';
                             badgeEl.style.color = '#15803d';
                             badgeEl.style.borderColor = '#bbf7d0';
-                        } else if (isPhotoApproved && !isLocationVerified) {
-                            badgeEl.innerHTML = '<i class="fa-solid fa-camera"></i> Photo Approved • GPS Req.';
-                            badgeEl.style.background = '#e0f2fe';
-                            badgeEl.style.color = '#0284c7';
-                            badgeEl.style.borderColor = '#bae6fd';
-                        } else if (isRejected) {
-                            badgeEl.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> Rejected';
-                            badgeEl.style.background = '#fee2e2';
-                            badgeEl.style.color = '#b91c1c';
-                            badgeEl.style.borderColor = '#fecaca';
                         } else if (isActive) {
                             badgeEl.innerHTML = `Stop ${idx + 1} of ${items.length} • NEXT`;
                             badgeEl.style.background = '#eff6ff';
@@ -685,10 +671,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                 const lat = parseFloat(dest.lat || dest.latitude);
                 const lng = parseFloat(dest.lng || dest.longitude);
                 const isLocationVerified = Boolean(item.is_location_verified || item.visited_at);
-                const proofStatus = item.proof_status || (item.is_visited ? 'approved' : null);
-                const isPhotoApproved = (proofStatus === 'approved');
-                const isVisited = Boolean(isLocationVerified || item.is_visited || isPhotoApproved);
-                const isRejected = (item.proof_status === 'rejected');
+                const isVisited = Boolean(isLocationVerified || item.is_visited || item.proof_status === 'approved');
                 const spotIdVal = item.tourist_spot_id || item.destination_id || (item.destination ? item.destination.id : null);
                 const queuedItem = window.OfflineCheckinManager ? window.OfflineCheckinManager.getQueuedItem(item.id, spotIdVal, window.currentTripId) : null;
                 const isQueued = Boolean(queuedItem || item.is_offline_queued);
@@ -711,20 +694,12 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                     proofImages = [queuedItem.previewUrl || queuedItem.image];
                 }
                 const hasProof = Boolean(proofImages.length > 0);
-                // In optional photo proof mode, check-in completes the stop; submitted photos do not leave the user stuck on pending
-                const isPendingApproval = false;
 
                 let badgeHtml = '';
                 if (isQueued) {
                     badgeHtml = `<span class="conveyor-status-badge" style="background:#fef3c7; border:1px solid #fde68a; color:#b45309; padding:4px 10px; border-radius:100px; font-size:10px; font-weight:800; flex-shrink:0;"><i class="fa-solid fa-cloud-arrow-up"></i> Queued (Offline)</span>`;
                 } else if (isVisited) {
                     badgeHtml = `<span class="conveyor-status-badge" style="background:#dcfce7; border:1px solid #bbf7d0; color:#15803d; padding:4px 10px; border-radius:100px; font-size:10px; font-weight:800; flex-shrink:0;"><i class="fa-solid fa-circle-check"></i> Visited</span>`;
-                } else if (isPhotoApproved && !isLocationVerified) {
-                    badgeHtml = `<span class="conveyor-status-badge" style="background:#e0f2fe; border:1px solid #bae6fd; color:#0284c7; padding:4px 10px; border-radius:100px; font-size:10px; font-weight:800; flex-shrink:0;"><i class="fa-solid fa-camera"></i> Photo Approved • GPS Req.</span>`;
-                } else if (isRejected) {
-                    badgeHtml = `<span class="conveyor-status-badge" style="background:#fee2e2; border:1px solid #fecaca; color:#b91c1c; padding:4px 10px; border-radius:100px; font-size:10px; font-weight:800; flex-shrink:0;"><i class="fa-solid fa-circle-xmark"></i> Rejected</span>`;
-                } else if (isPendingApproval) {
-                    badgeHtml = `<span class="conveyor-status-badge" style="background:#fef3c7; border:1px solid #fde68a; color:#b45309; padding:4px 10px; border-radius:100px; font-size:10px; font-weight:800; flex-shrink:0;"><i class="fa-solid fa-clock"></i> Pending Review</span>`;
                 } else if (isLocationVerified && !hasProof) {
                     badgeHtml = `<span class="conveyor-status-badge" style="background:#e0f2fe; border:1px solid #bae6fd; color:#0284c7; padding:4px 10px; border-radius:100px; font-size:10px; font-weight:800; flex-shrink:0;"><i class="fa-solid fa-location-dot"></i> Checked In</span>`;
                 } else if (!isLocationVerified && hasProof) {
@@ -773,48 +748,25 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                             <button type="button" onclick="event.stopPropagation(); window.syncAllOfflineTripData(this);" title="Tap to sync this check-in to cloud" style="background:linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color:#fff; border:none; padding:4px 10px; border-radius:100px; font-size:10.5px; font-weight:800; display:inline-flex; align-items:center; gap:4px; cursor:pointer; box-shadow:0 2px 6px rgba(245,158,11,0.3); white-space:nowrap;">
                                 <i class="fa-solid fa-cloud-arrow-up"></i> Sync
                             </button>
-                        ` : `
-                            <span style="background:#fef3c7; border:1px solid #fde68a; color:#b45309; font-weight:800; font-size:10.5px; padding:3px 8px; border-radius:100px; display:inline-flex; align-items:center; gap:4px; white-space:nowrap;"><i class="fa-solid fa-cloud-arrow-up"></i> Queued</span>
-                        `}
+                        ` : ''}
                     </div>`;
                 } else if (isVisited) {
                     const sId = item.tourist_spot_id || (item.destination ? item.destination.id : '');
                     const isReviewed = window.userReviewedItemIds && window.userReviewedItemIds.has(Number(item.id));
                     const sClass = (dest && dest.classification_status) ? dest.classification_status : '';
                     const sMeta = (window.getRewardPointsForClassification) ? window.getRewardPointsForClassification(sClass) : { points: 25 };
-                    actionBtnHtml = `<div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
+                    actionBtnHtml = `<div style="display:flex; align-items:center; justify-content:flex-end; gap:5px; flex-wrap:wrap;">
                         ${photoThumbnailStrip}
-                        <div style="display:flex; flex-direction:column; gap:4px;">
-                            <div style="display:flex; align-items:center; gap:4px;">
-                                <span style="background:#dcfce7; border:1px solid #bbf7d0; color:#15803d; font-weight:800; font-size:10px; padding:2px 8px; border-radius:100px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-circle-check"></i> Visited</span>
-                                <button type="button" data-tourist-spot-id="${sId}" data-itinerary-item-id="${item.id}" data-spot-classification="${sClass}" onclick="event.stopPropagation(); window.openWriteTestimonyModal('${sId}', this, '${item.id}')" style="background:#eff6ff; border:1px solid #bfdbfe; color:#1d4ed8; font-size:9.5px; font-weight:800; padding:2px 8px; border-radius:100px; cursor:pointer; width:fit-content;">
-                                    ${isReviewed ? '<i class="fa-solid fa-check"></i> Reviewed' : '<i class="fa-solid fa-pen"></i> Review'}
-                                </button>
-                            </div>
-                            <button onclick="event.stopPropagation(); window.openPhotoUploadModal('${item.id}', '${destEscaped}')" style="background:linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color:#ffffff; border:none; padding:4px 9px; border-radius:100px; font-weight:800; font-size:10px; box-shadow:0 2px 6px rgba(2,132,199,0.25); cursor:pointer; white-space:nowrap; display:inline-flex; align-items:center; gap:4px;">
-                                <i class="fa-solid fa-camera"></i> ${hasProof ? 'Add Photos' : 'Upload Photos'}
-                            </button>
-                        </div>
+                        <button type="button" data-tourist-spot-id="${sId}" data-itinerary-item-id="${item.id}" data-spot-classification="${sClass}" onclick="event.stopPropagation(); window.openWriteTestimonyModal('${sId}', this, '${item.id}')" style="background:#eff6ff; border:1px solid #bfdbfe; color:#1d4ed8; font-size:10px; font-weight:800; padding:5px 10px; border-radius:100px; cursor:pointer; white-space:nowrap; display:inline-flex; align-items:center; gap:4px;">
+                            ${isReviewed ? '<i class="fa-solid fa-check"></i> Reviewed' : '<i class="fa-solid fa-pen"></i> Review'}
+                        </button>
+                        <button onclick="event.stopPropagation(); window.openPhotoUploadModal('${item.id}', '${destEscaped}')" style="background:linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color:#ffffff; border:none; padding:5px 10px; border-radius:100px; font-weight:800; font-size:10px; box-shadow:0 2px 6px rgba(2,132,199,0.25); cursor:pointer; white-space:nowrap; display:inline-flex; align-items:center; gap:4px;">
+                            <i class="fa-solid fa-camera"></i> ${hasProof ? 'Add Photos' : 'Upload Photos'}
+                        </button>
                     </div>`;
-                } else if (isRejected) {
-                    actionBtnHtml = `<div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
-                        ${photoThumbnailStrip}
-                        <div style="display:flex; flex-direction:column; gap:2px;">
-                            <span style="background:#fee2e2; border:1px solid #fecaca; color:#b91c1c; font-weight:800; font-size:10px; padding:2px 6px; border-radius:100px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-circle-xmark"></i> Rejected</span>
-                            <button onclick="event.stopPropagation(); window.openPhotoUploadModal('${item.id}', '${destEscaped}')" style="background:linear-gradient(135deg, #ef4444, #dc2626); color:#ffffff; border:none; padding:4px 8px; border-radius:100px; font-weight:800; font-size:9.5px; cursor:pointer; white-space:nowrap; box-shadow:0 2px 6px rgba(239,68,68,0.25);"><i class="fa-solid fa-camera" style="margin-right:2px;"></i> Re-upload Photo</button>
-                        </div>
-                    </div>`;
-                } else if (isPendingApproval) {
-                    actionBtnHtml = photoThumbnailStrip ? `<div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">${photoThumbnailStrip}</div>` : '';
                 } else if (isLocationVerified && !hasProof) {
                     actionBtnHtml = `<div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
-                        <span style="background:#e0f2fe; border:1px solid #bae6fd; color:#0284c7; font-weight:800; font-size:10px; padding:4px 8px; border-radius:100px; white-space:nowrap;"><i class="fa-solid fa-location-dot"></i> Checked In</span>
                         <button onclick="event.stopPropagation(); window.openPhotoUploadModal('${item.id}', '${destEscaped}')" style="background:linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color:#ffffff; border:none; padding:6px 12px; border-radius:100px; font-weight:800; font-size:10.5px; box-shadow:0 2px 8px rgba(2,132,199,0.3); cursor:pointer; white-space:nowrap;"><i class="fa-solid fa-camera" style="margin-right:3px;"></i> Upload Photo</button>
-                    </div>`;
-                } else if (isPhotoApproved && !isLocationVerified) {
-                    actionBtnHtml = `<div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
-                        ${photoThumbnailStrip}
-                        <button ${checkInButtonAttrs} onclick="event.stopPropagation(); window.executeLocationCheckIn('${item.id}', '${destEscaped}', ${lat}, ${lng}, this)" style="background:linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color:#ffffff; border:none; padding:6px 12px; border-radius:100px; font-weight:800; font-size:10.5px; box-shadow:0 2px 8px rgba(2,132,199,0.3); cursor:pointer; white-space:nowrap;"><i class="fa-solid fa-location-crosshairs" style="margin-right:3px;"></i> Check In</button>
                     </div>`;
                 } else if (!isLocationVerified && hasProof) {
                     actionBtnHtml = `<div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
@@ -823,8 +775,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                     </div>`;
                 } else {
                     actionBtnHtml = `<div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
-                        <button ${checkInButtonAttrs} onclick="event.stopPropagation(); window.executeLocationCheckIn('${item.id}', '${destEscaped}', ${lat}, ${lng}, this)" style="background:linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color:#ffffff; border:none; padding:6px 11px; border-radius:100px; font-weight:800; font-size:10.5px; box-shadow:0 2px 8px rgba(2,132,199,0.3); cursor:pointer; white-space:nowrap;"><i class="fa-solid fa-location-crosshairs" style="margin-right:3px;"></i> Check In</button>
-                        <button onclick="event.stopPropagation(); window.openPhotoUploadModal('${item.id}', '${destEscaped}')" style="background:#f1f5f9; color:#1e3a8a; border:1.5px solid #cbd5e1; padding:6px 11px; border-radius:100px; font-weight:800; font-size:10.5px; cursor:pointer; white-space:nowrap;"><i class="fa-solid fa-camera" style="margin-right:3px;"></i> Upload Photo</button>
+                        <button ${checkInButtonAttrs} onclick="event.stopPropagation(); window.executeLocationCheckIn('${item.id}', '${destEscaped}', ${lat}, ${lng}, this)" style="background:linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color:#ffffff; border:none; padding:6px 12px; border-radius:100px; font-weight:800; font-size:10.5px; box-shadow:0 2px 8px rgba(2,132,199,0.3); cursor:pointer; white-space:nowrap;"><i class="fa-solid fa-location-crosshairs" style="margin-right:3px;"></i> Check In</button>
                     </div>`;
                 }
 
@@ -1030,32 +981,16 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                                 proofImgs = [queuedEntry.previewUrl || queuedEntry.image];
                             }
 
-                            const isServerApproved = Boolean(it.is_visited || it.proof_status === 'approved' || (override && (override.proof_status === 'approved' || override.is_visited)));
-                            const isServerRejected = (it.proof_status === 'rejected' || (override && override.proof_status === 'rejected'));
-
-                            let pStatus;
-                            if (isServerApproved) {
-                                pStatus = 'approved';
-                            } else if (isServerRejected) {
-                                pStatus = 'rejected';
-                            } else if (it.proof_status) {
-                                pStatus = it.proof_status;
-                            } else if (override && override.proof_status) {
-                                pStatus = override.proof_status;
-                            } else if (queuedEntry) {
-                                pStatus = 'pending';
-                            } else {
-                                pStatus = (proofImgs.length > 0 ? 'pending' : null);
-                            }
+                            const isServerVisited = Boolean(it.is_visited || it.is_location_verified || it.visited_at || it.proof_status === 'approved' || (override && (override.proof_status === 'approved' || override.is_visited)));
 
                             return {
                                 ...it,
-                                is_visited: isServerApproved ? true : Boolean(it.is_visited),
-                                is_location_verified: Boolean(isServerApproved || isLocVerified),
+                                is_visited: isServerVisited,
+                                is_location_verified: Boolean(isServerVisited || isLocVerified),
                                 visited_at: visitedAt,
                                 proof_image: proofImgs[0] || null,
                                 proof_images: proofImgs,
-                                proof_status: pStatus,
+                                proof_status: isServerVisited ? 'approved' : null,
                                 is_offline_queued: Boolean(queuedEntry)
                             };
                         });
@@ -1104,73 +1039,6 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                     plotTrip(window.currentTripItems, window.currentRouteType);
                 } else {
                     if (typeof showToast === 'function') showToast("This trip has no destinations yet.");
-                }
-
-                if (typeof checkAndManageTripMapApprovalPolling === 'function') {
-                    checkAndManageTripMapApprovalPolling(trip);
-                }
-            };
-
-            window._tripMapApprovalPollingInterval = null;
-            function checkAndManageTripMapApprovalPolling(trip) {
-                const curTrip = trip || window.currentTrip;
-                const currentView = document.body.getAttribute('data-view');
-                if (!curTrip || (currentView && currentView !== 'trip_map')) {
-                    if (window._tripMapApprovalPollingInterval) {
-                        clearInterval(window._tripMapApprovalPollingInterval);
-                        window._tripMapApprovalPollingInterval = null;
-                    }
-                    return;
-                }
-
-                let hasPending = false;
-                if (curTrip && Array.isArray(curTrip.items)) {
-                    for (const it of curTrip.items) {
-                        if (!it) continue;
-                        const hasProof = (Array.isArray(it.proof_images) && it.proof_images.length > 0) || it.proof_image;
-                        const isApproved = Boolean(it.is_visited || it.proof_status === 'approved');
-                        const isRejected = (it.proof_status === 'rejected');
-                        if (!isApproved && !isRejected && hasProof && (it.proof_status === 'pending' || !it.proof_status)) {
-                            hasPending = true;
-                            break;
-                        }
-                    }
-                }
-
-                if (hasPending) {
-                    if (!window._tripMapApprovalPollingInterval) {
-                        window._tripMapApprovalPollingInterval = setInterval(() => {
-                            const curView = document.body.getAttribute('data-view') || (window.state ? window.state.currentView : '');
-                            if (!document.getElementById('trip-map') || (curView && curView !== 'trip_map')) {
-                                clearInterval(window._tripMapApprovalPollingInterval);
-                                window._tripMapApprovalPollingInterval = null;
-                                return;
-                            }
-                            if (document.visibilityState === 'visible' && !window._isStartingTrip) {
-                                const tok = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
-                                if (!tok) return;
-                                const bUrl = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
-                                fetch(bUrl + '/api/tourist/itineraries', {
-                                    headers: { 'Accept': 'application/json', 'Authorization': 'Bearer ' + tok, 'ngrok-skip-browser-warning': 'true' }
-                                })
-                                .then(r => r.json())
-                                .then(d => {
-                                    if (d && Array.isArray(d.itineraries)) {
-                                        const freshTrip = d.itineraries.find(t => t.id == tripId || t.local_id == tripId);
-                                        if (freshTrip) {
-                                            applyTripToMap(freshTrip);
-                                        }
-                                    }
-                                })
-                                .catch(() => {});
-                            }
-                        }, 3500);
-                    }
-                } else {
-                    if (window._tripMapApprovalPollingInterval) {
-                        clearInterval(window._tripMapApprovalPollingInterval);
-                        window._tripMapApprovalPollingInterval = null;
-                    }
                 }
             };
 
@@ -1322,13 +1190,10 @@ include_once __DIR__ . '/../components/testimony_modal.php';
 
                         let iconHtml = '';
                         const isLocationVerified = Boolean(item.is_location_verified || item.visited_at);
-                        const isPhotoApproved = (item.proof_status === 'approved');
-                        const isVisited = Boolean(isLocationVerified || item.is_visited || isPhotoApproved);
-                        const isRejected = (item.proof_status === 'rejected');
+                        const isVisited = Boolean(isLocationVerified || item.is_visited || item.proof_status === 'approved');
                         const hasProof = Boolean((Array.isArray(item.proof_images) && item.proof_images.length > 0) || item.proof_image);
-                        const isPending = Boolean(hasProof && item.proof_status === 'pending' && !isVisited);
                         const isLocOnly = Boolean(isLocationVerified && !hasProof && !isVisited);
-                        const isPhotoOnly = Boolean(!isLocationVerified && hasProof && !isVisited && !isPhotoApproved);
+                        const isPhotoOnly = Boolean(!isLocationVerified && hasProof && !isVisited);
                         const sId = item.tourist_spot_id || item.destination_id || (item.destination ? item.destination.id : null);
                         const isQueued = Boolean((window.OfflineCheckinManager && window.OfflineCheckinManager.isItemQueued(item.id, sId, window.currentTripId)) || item.is_offline_queued);
 
@@ -1353,42 +1218,6 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                                 </div>
                                 <div style="background: #ffffff; border: 1.5px solid #bbf7d0; border-radius: 10px; padding: 4px 8px; margin-top: 5px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(16,185,129,0.18); z-index: 1;">
                                     <span style="color: #15803d; font-size: 11px; font-weight: 700; text-decoration: line-through;">${dest.name}</span>
-                                </div>
-                            </div>
-                        `;
-                        } else if (isPhotoApproved && !isLocationVerified) {
-                            // PHOTO APPROVED, GPS PENDING - Sky Blue Camera + Check-in Required Tag
-                            iconHtml = `
-                            <div style="display: flex; flex-direction: column; align-items: center; cursor: pointer;">
-                                <div style="background: linear-gradient(135deg, #00f2fe 0%, #0284c7 100%); color: #ffffff; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; border: 2.5px solid #ffffff; box-shadow: 0 4px 12px rgba(2,132,199,0.4); z-index: 2;">
-                                    <i class="fa-solid fa-camera"></i>
-                                </div>
-                                <div style="background: #ffffff; border: 1.5px solid #bae6fd; border-radius: 10px; padding: 4px 8px; margin-top: 5px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(2,132,199,0.18); z-index: 1;">
-                                    <span style="color: #0284c7; font-size: 10px; font-weight: 800;">Photo Approved (GPS Req.)</span>
-                                </div>
-                            </div>
-                        `;
-                        } else if (isPending) {
-                            // PENDING REVIEW - Orange Clock
-                            iconHtml = `
-                            <div style="display: flex; flex-direction: column; align-items: center; cursor: pointer;">
-                                <div style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #ffffff; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; border: 2.5px solid #ffffff; box-shadow: 0 4px 12px rgba(245,158,11,0.4); z-index: 2;">
-                                    <i class="fa-solid fa-clock"></i>
-                                </div>
-                                <div style="background: #ffffff; border: 1.5px solid #fde68a; border-radius: 10px; padding: 4px 8px; margin-top: 5px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(245,158,11,0.18); z-index: 1;">
-                                    <span style="color: #b45309; font-size: 11px; font-weight: 700; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${dest.name}</span>
-                                </div>
-                            </div>
-                        `;
-                        } else if (isRejected) {
-                            // REJECTED - Red X
-                            iconHtml = `
-                            <div style="display: flex; flex-direction: column; align-items: center; cursor: pointer;">
-                                <div style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: #ffffff; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; border: 2.5px solid #ffffff; box-shadow: 0 4px 12px rgba(239,68,68,0.4); z-index: 2;">
-                                    <i class="fa-solid fa-xmark"></i>
-                                </div>
-                                <div style="background: #ffffff; border: 1.5px solid #fecaca; border-radius: 10px; padding: 4px 8px; margin-top: 5px; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 14px rgba(239,68,68,0.18); z-index: 1;">
-                                    <span style="color: #b91c1c; font-size: 10px; font-weight: 800;">Re-upload</span>
                                 </div>
                             </div>
                         `;
@@ -1972,8 +1801,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                             ...it,
                             proof_image: urls[0],
                             proof_images: urls,
-                            proof_status: proofStatus,
-                            rejection_reason: null
+                            proof_status: proofStatus
                         };
                     }
                     return it;
@@ -1999,7 +1827,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                                     ...trip,
                                     items: trip.items.map(it => {
                                         if (String(it.id) === targetIdStr) {
-                                            return { ...it, proof_image: urls[0], proof_images: urls, proof_status: proofStatus, rejection_reason: null };
+                                            return { ...it, proof_image: urls[0], proof_images: urls, proof_status: proofStatus };
                                         }
                                         return it;
                                     })
@@ -2171,7 +1999,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                 if (response.ok && data.success) {
                     window.closePhotoUploadModal();
                     const permanentUrls = data.proof_images || (data.proof_image ? [data.proof_image] : previewUrls);
-                    window.applyTripPhotoUpdateLocally(itemId, permanentUrls, data.proof_status || 'pending');
+                    window.applyTripPhotoUpdateLocally(itemId, permanentUrls, data.proof_status || 'approved');
 
                     if (typeof showToast === 'function') {
                         showToast(data.message || 'Photo uploaded!', 'success');

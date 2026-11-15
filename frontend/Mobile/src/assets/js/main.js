@@ -367,7 +367,7 @@ try {
     for (let i = localStorage.length - 1; i >= 0; i--) {
         const k = localStorage.key(i);
         if (k && (
-            (k.startsWith('elyu_view_cache_') && !k.startsWith('elyu_view_cache_v20_')) ||
+            (k.startsWith('elyu_view_cache_') && !k.startsWith('elyu_view_cache_v21_')) ||
             k.startsWith('elyu_view_cache_v13_') ||
             k.startsWith('elyu_view_cache_v14_') ||
             k.startsWith('leaderboard_data_v15_') || 
@@ -984,10 +984,10 @@ window.OfflineCheckinManager = {
                 if (isResolved) {
                     syncedCount++;
 
-                    // Optimistically update cached itinerary trips so user immediately sees their photo & pending review status
+                    // Optimistically update cached itinerary trips so user immediately sees their uploaded photo
                     const returnedPhoto = data.proof_image || item.previewUrl || null;
-                    const finalStatus = data.proof_status || data.status || 'pending';
-                    const isApproved = finalStatus === 'approved' || finalStatus === 'success';
+                    const finalStatus = data.proof_status || data.status || 'approved';
+                    const isVisited = finalStatus === 'approved' || finalStatus === 'success';
 
                     if (resolvedItemId && !String(resolvedItemId).startsWith('offline_')) {
                         try {
@@ -1006,7 +1006,7 @@ window.OfflineCheckinManager = {
                                             if (match) {
                                                 match.proof_status = finalStatus;
                                                 if (returnedPhoto) match.proof_image = returnedPhoto;
-                                                if (isApproved) match.is_visited = true;
+                                                if (isVisited) match.is_visited = true;
                                             }
                                         }
                                     });
@@ -1025,7 +1025,7 @@ window.OfflineCheckinManager = {
                                     proof_status: finalStatus,
                                     is_queued: false,
                                     is_location_verified: true,
-                                    is_visited: isApproved,
+                                    is_visited: isVisited,
                                     spot_id: item.spotId
                                 });
                             }
@@ -3341,7 +3341,6 @@ window.fetchSavedTrips = async function (forceRefresh = false) {
                     const itins = data.itineraries || [];
                     const persistentStates = (typeof window.getPersistentItemStates === 'function') ? window.getPersistentItemStates() : {};
                     let persistentStatesChanged = false;
-                    const newlyApprovedItems = [];
                     const queuedCheckins = (window.OfflineCheckinManager && typeof window.OfflineCheckinManager.getQueue === 'function')
                         ? window.OfflineCheckinManager.getQueue()
                         : [];
@@ -3356,25 +3355,13 @@ window.fetchSavedTrips = async function (forceRefresh = false) {
                                 const spotIdKey = String(it.tourist_spot_id || it.destination_id || (it.destination ? it.destination.id : ''));
                                 const override = persistentStates[itKey] || null;
 
-                                const isServerApproved = Boolean(it.is_visited || it.proof_status === 'approved');
-                                const isServerRejected = (it.proof_status === 'rejected');
+                                const isServerVisited = Boolean(it.is_visited || it.visited_at || it.proof_status === 'approved');
 
-                                if (isServerApproved) {
-                                    if (override && (override.proof_status === 'pending' || !override.proof_status) && override.proof_status !== 'approved') {
-                                        newlyApprovedItems.push(it);
-                                    }
-                                    if (persistentStates[itKey] && persistentStates[itKey].proof_status !== 'approved') {
-                                        persistentStates[itKey].proof_status = 'approved';
-                                        persistentStates[itKey].is_visited = true;
-                                        persistentStates[itKey].is_location_verified = true;
-                                        persistentStatesChanged = true;
-                                    }
-                                } else if (isServerRejected) {
-                                    if (persistentStates[itKey] && persistentStates[itKey].proof_status !== 'rejected') {
-                                        persistentStates[itKey].proof_status = 'rejected';
-                                        persistentStates[itKey].rejection_reason = it.rejection_reason;
-                                        persistentStatesChanged = true;
-                                    }
+                                if (isServerVisited && persistentStates[itKey] && !persistentStates[itKey].is_visited) {
+                                    persistentStates[itKey].proof_status = 'approved';
+                                    persistentStates[itKey].is_visited = true;
+                                    persistentStates[itKey].is_location_verified = true;
+                                    persistentStatesChanged = true;
                                 }
 
                                 const queued = queuedCheckins.find(q => {
@@ -3416,27 +3403,12 @@ window.fetchSavedTrips = async function (forceRefresh = false) {
                                     ? serverProofs
                                     : (queuedProofs.length > 0 ? queuedProofs : (localProofs.length > 0 ? localProofs : inMemProofs));
 
-                                let activeStatus;
-                                if (isServerApproved) {
-                                    activeStatus = 'approved';
-                                } else if (isServerRejected) {
-                                    activeStatus = 'rejected';
-                                } else if (it.proof_status) {
-                                    activeStatus = it.proof_status;
-                                } else if (override && override.proof_status) {
-                                    activeStatus = override.proof_status;
-                                } else if (queued) {
-                                    activeStatus = 'pending';
-                                } else if (inMemoryItem && inMemoryItem.proof_status) {
-                                    activeStatus = inMemoryItem.proof_status;
-                                } else {
-                                    activeStatus = (activeProofs.length > 0 ? 'pending' : null);
-                                }
+                                const activeStatus = isServerVisited ? 'approved' : (it.proof_status || null);
 
                                 return {
                                     ...it,
-                                    is_visited: isServerApproved ? true : Boolean(it.is_visited || (override && override.is_visited)),
-                                    is_location_verified: Boolean(isServerApproved || it.is_location_verified || it.visited_at || (override && (override.is_location_verified || override.visited_at)) || (queued && queued.status) || (inMemoryItem && inMemoryItem.is_location_verified)),
+                                    is_visited: isServerVisited ? true : Boolean(it.is_visited || (override && override.is_visited)),
+                                    is_location_verified: Boolean(isServerVisited || it.is_location_verified || it.visited_at || (override && (override.is_location_verified || override.visited_at)) || (queued && queued.status) || (inMemoryItem && inMemoryItem.is_location_verified)),
                                     visited_at: it.visited_at || (override ? override.visited_at : null) || (queued ? queued.capturedAt : null) || (inMemoryItem ? inMemoryItem.visited_at : null),
                                     proof_image: activeProofs.length > 0 ? activeProofs[0] : null,
                                     proof_images: activeProofs,
@@ -3451,12 +3423,6 @@ window.fetchSavedTrips = async function (forceRefresh = false) {
                         try {
                             localStorage.setItem('intan_elyu_verified_item_states', JSON.stringify(persistentStates));
                         } catch (e) { }
-                    }
-
-                    if (newlyApprovedItems.length > 0) {
-                        if (typeof window.fetchUserProfile === 'function') {
-                            window.fetchUserProfile();
-                        }
                     }
 
                     try {
@@ -3475,8 +3441,8 @@ window.fetchSavedTrips = async function (forceRefresh = false) {
                     window.renderSavedTrips(getLocalTripsCombined());
                 }
             },
-            (forceRefresh || Boolean(window._hasPendingApprovalItems)),
-            (window._hasPendingApprovalItems ? 3000 : 30000)
+            forceRefresh,
+            30000
         );
     } catch (fetchErr) {
         console.warn("fetchSavedTrips handled offline fallback:", fetchErr);
@@ -3542,7 +3508,7 @@ window.renderSavedTrips = function (itineraries) {
                         localItemProofs[itId] = {
                             proof_image: it.proof_image || proofs[0] || null,
                             proof_images: proofs,
-                            proof_status: it.proof_status || (hasProofs ? 'pending' : null),
+                            proof_status: it.proof_status || (it.is_visited ? 'approved' : null),
                             is_location_verified: hasCheckin,
                             visited_at: it.visited_at || null,
                             is_queued: Boolean(it.is_offline_queued || (previous && previous.is_queued))
@@ -3562,7 +3528,7 @@ window.renderSavedTrips = function (itineraries) {
                     localItemProofs[k] = {
                         proof_image: st.proof_image || null,
                         proof_images: stProofs,
-                        proof_status: st.proof_status || (stProofs.length > 0 ? 'pending' : null),
+                        proof_status: st.proof_status || (st.is_visited ? 'approved' : null),
                         is_location_verified: Boolean(st.is_location_verified || st.visited_at),
                         visited_at: st.visited_at || null
                     };
@@ -3572,7 +3538,7 @@ window.renderSavedTrips = function (itineraries) {
                     if ((!localItemProofs[k].proof_images || localItemProofs[k].proof_images.length === 0) && st.proof_images && st.proof_images.length > 0) {
                         localItemProofs[k].proof_images = st.proof_images;
                         localItemProofs[k].proof_image = st.proof_image || st.proof_images[0];
-                        localItemProofs[k].proof_status = st.proof_status || 'pending';
+                        localItemProofs[k].proof_status = st.proof_status || localItemProofs[k].proof_status || null;
                     }
                 }
             });
@@ -3607,7 +3573,7 @@ window.renderSavedTrips = function (itineraries) {
                             ...it,
                             proof_image: (mergedProofs && mergedProofs.length > 0) ? mergedProofs[0] : (saved.proof_image || it.proof_image),
                             proof_images: mergedProofs || [],
-                            proof_status: serverStatus || savedStatus || (mergedProofs.length > 0 ? 'pending' : null),
+                            proof_status: serverStatus || savedStatus || (it.is_visited ? 'approved' : null),
                             is_location_verified: Boolean(it.is_location_verified || saved.is_location_verified || it.visited_at || saved.visited_at),
                             visited_at: it.visited_at || saved.visited_at,
                             is_offline_queued: Boolean(saved.is_queued)
@@ -3792,13 +3758,9 @@ window.renderSavedTrips = function (itineraries) {
 
                         const hasPhoto = (uploadedPhotos.length > 0);
                         const isLocVerified = Boolean(item.visited_at || item.is_location_verified);
-                        const photoStatus = item.proof_status || (hasPhoto ? (item.is_visited ? 'approved' : 'pending') : null);
-                        const isPhotoApproved = (photoStatus === 'approved');
-                        const isApproved = Boolean(item.is_visited || isPhotoApproved || item.proof_status === 'approved' || (item.is_visited && isLocVerified));
-                        const isRejected = (photoStatus === 'rejected');
-                        const isPendingPhoto = !isApproved && !isRejected && !isQueued && hasPhoto && (photoStatus === 'pending');
-                        const isNextStop = (!isApproved && !isPendingPhoto && !isQueued && index === firstUnvisitedIdx);
-                        if (!isApproved && !isQueued) unvisitedCount++;
+                        const isVisited = Boolean(item.is_visited || isLocVerified || item.proof_status === 'approved');
+                        const isNextStop = (!isVisited && !isQueued && index === firstUnvisitedIdx);
+                        if (!isVisited && !isQueued) unvisitedCount++;
 
                         let photosStripHtml = '';
                         if (uploadedPhotos.length > 0) {
@@ -3882,7 +3844,7 @@ window.renderSavedTrips = function (itineraries) {
                         }
 
                         html += `
-                        <div class="timeline-item ${isApproved ? 'completed' : (isPendingPhoto ? 'pending' : (isNextStop ? 'is-next-stop' : ''))}" style="margin-bottom: 12px;">
+                        <div class="timeline-item ${isVisited ? 'completed' : (isNextStop ? 'is-next-stop' : '')}" style="margin-bottom: 12px;">
                             <div class="timeline-dot"></div>
                             <div class="timeline-content" style="padding:14px; background: rgba(255,255,255,0.12); border: none !important; outline: none !important; border-radius: 16px; display:flex; flex-direction:column; gap:10px;">
                                 <div style="display:flex; gap:12px; align-items:flex-start;">
@@ -3901,28 +3863,13 @@ window.renderSavedTrips = function (itineraries) {
                                             </div>` : ''}
                                     </div>
                                 </div>
-                                ${isApproved ?
+                                ${isVisited ?
                                     `<div style="display:flex; flex-direction:column; gap:8px; margin-top:4px;">
                                         <span style="color:#34c759; font-size:12px; font-weight:800; display:inline-flex; align-items:center; gap:5px; background:rgba(52,199,89,0.18); padding:4px 10px; border-radius:100px;">
                                             <i class="fa-solid fa-circle-check"></i> Visit Verified
                                         </span>
                                         ${photosStripHtml}
                                     </div>` :
-                                    (isRejected ?
-                                        `<div style="display:flex; flex-direction:column; gap:8px; margin-top:4px;">
-                                            <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
-                                                <div>
-                                                    <span style="color:#ef4444; font-size:12px; font-weight:800; display:inline-flex; align-items:center; gap:5px;">
-                                                        <i class="fa-solid fa-circle-xmark"></i> Photo Rejected
-                                                    </span>
-                                                    <span style="font-size:10px; color:#fca5a5; display:block; margin-top:2px;">${item.rejection_reason || 'Please upload a clearer photo taken at this destination.'}</span>
-                                                </div>
-                                                <button type="button" class="btn-primary" style="padding:7px 14px; font-size:11.5px; font-weight:800; border-radius:100px; background:linear-gradient(135deg, #ef4444, #dc2626); border:none !important; outline:none !important; color:#fff; cursor:pointer;" onclick="event.stopPropagation(); window.openPhotoUploadModal('${item.id}', '${destEscaped}')">
-                                                    <i class="fa-solid fa-camera" style="margin-right:4px;"></i> Re-upload Photo
-                                                </button>
-                                            </div>
-                                            ${photosStripHtml}
-                                        </div>` :
                                         (isQueued ?
                                             `<div style="display:flex; align-items:center; gap:10px; margin-top:4px; flex-wrap:wrap;">
                                                 ${queuedThumbnailHtml}
@@ -3936,34 +3883,7 @@ window.renderSavedTrips = function (itineraries) {
                                                     <i class="fa-solid fa-camera"></i> ${hasPhoto ? 'Update Photo' : 'Upload Photo'}
                                                 </button>
                                             </div>` :
-                                        (isPhotoApproved && !isLocVerified ?
-                                            `<div style="display:flex; flex-direction:column; gap:8px; margin-top:4px;">
-                                                <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
-                                                    <div>
-                                                        <span style="background:rgba(52,199,89,0.18); border:none !important; outline:none !important; color:#34c759; font-size:11px; font-weight:800; padding:3px 10px; border-radius:100px; display:inline-flex; align-items:center; gap:5px;">
-                                                            <i class="fa-solid fa-circle-check"></i> Photo Approved &bull; ⚠️ Check-in Required
-                                                        </span>
-                                                        <span style="font-size:10px; color:#ffffff; opacity:0.8; display:block; margin-top:4px;">Photo uploaded! Please check in to complete this stop.</span>
-                                                    </div>
-                                                    <button type="button" class="btn-primary" style="padding:7px 14px; font-size:11.5px; font-weight:800; border-radius:100px; background:linear-gradient(135deg, #00f2fe, #0284c7); border:none !important; outline:none !important; color:#fff; cursor:pointer;" onclick="event.stopPropagation(); window.executeLocationCheckIn('${item.id}', '${destEscaped}', ${dest?.latitude || 'null'}, ${dest?.longitude || 'null'}, this)">
-                                                        <i class="fa-solid fa-location-crosshairs" style="margin-right:4px;"></i> Check In
-                                                    </button>
-                                                </div>
-                                                ${photosStripHtml}
-                                            </div>` :
-                                        (isLocVerified && isPendingPhoto ?
-                                            `<div style="display:flex; flex-direction:column; gap:8px; margin-top:4px;">
-                                                <div>
-                                                    <span style="background:rgba(255,149,0,0.22); border:none !important; outline:none !important; color:#ff9f0a; font-size:11.5px; font-weight:800; padding:3px 10px; border-radius:100px; display:inline-flex; align-items:center; gap:5px;">
-                                                        <i class="fa-solid fa-hourglass-half"></i> Pending Approval
-                                                    </span>
-                                                    <span style="font-size:10px; color:#ffffff; opacity:0.8; display:block; margin-top:4px;">
-                                                        <i class="fa-solid fa-circle-check" style="color:#34c759; margin-right:3px;"></i> Location Verified &bull; Photos submitted
-                                                    </span>
-                                                </div>
-                                                ${photosStripHtml}
-                                            </div>` :
-                                        (!isLocVerified && (isPendingPhoto || hasPhoto) ?
+                                        (!isLocVerified && hasPhoto ?
                                             `<div style="display:flex; flex-direction:column; gap:8px; margin-top:4px;">
                                                 <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
                                                     <div>
@@ -3994,10 +3914,7 @@ window.renderSavedTrips = function (itineraries) {
                                                 <button type="button" class="btn-primary" style="padding:8px 14px; font-size:11.5px; font-weight:800; border-radius:100px; background:linear-gradient(135deg, #00f2fe, #0284c7); border:none !important; outline:none !important; color:#fff; cursor:pointer; display:inline-flex; align-items:center; gap:5px;" onclick="event.stopPropagation(); window.executeLocationCheckIn('${item.id}', '${destEscaped}', ${dest?.latitude || 'null'}, ${dest?.longitude || 'null'}, this)">
                                                     <i class="fa-solid fa-location-crosshairs"></i> Check In
                                                 </button>
-                                                <button type="button" class="btn-primary" style="padding:8px 14px; font-size:11.5px; font-weight:800; border-radius:100px; background:rgba(255,255,255,0.18); border:none !important; outline:none !important; color:#fff; cursor:pointer; display:inline-flex; align-items:center; gap:5px;" onclick="event.stopPropagation(); window.openPhotoUploadModal('${item.id}', '${destEscaped}')">
-                                                    <i class="fa-solid fa-camera"></i> Upload Photo
-                                                </button>
-                                            </div>`))))))
+                                            </div>`)))
                                 }
                             </div>
                         </div>`;
@@ -4511,8 +4428,7 @@ window.applyTripPhotoUpdateLocally = function (itemId, photoUrls, proofStatus = 
                         proof_image: urls[0],
                         proof_images: urls,
                         proof_status: proofStatus,
-                        is_offline_queued: Boolean(isQueued),
-                        rejection_reason: null
+                        is_offline_queued: Boolean(isQueued)
                     };
                 }
                 return it;
@@ -4766,7 +4682,7 @@ window.submitTripPhotos = async function () {
         if (response.ok && data.success) {
             window.closePhotoUploadModal();
             const permanentUrls = data.proof_images || (data.proof_image ? [data.proof_image] : previewUrls);
-            window.applyTripPhotoUpdateLocally(itemId, permanentUrls, data.proof_status || 'pending');
+            window.applyTripPhotoUpdateLocally(itemId, permanentUrls, data.proof_status || 'approved');
             if (typeof window.fetchSavedTrips === 'function') {
                 window.fetchSavedTrips(true);
             }
@@ -6236,12 +6152,12 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
 
         if (!html) {
             try {
-                const cached = localStorage.getItem('elyu_view_cache_v20_' + targetView);
+                const cached = localStorage.getItem('elyu_view_cache_v21_' + targetView);
                 if (isValidViewPartial(cached)) {
                     html = cached;
                     window._viewHtmlCache[targetView] = html;
                 } else if (cached) {
-                    localStorage.removeItem('elyu_view_cache_v20_' + targetView);
+                    localStorage.removeItem('elyu_view_cache_v21_' + targetView);
                 }
             } catch (e) {}
         }
@@ -6252,7 +6168,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
             fetchViewPartial(targetView, extraParams).then((freshHtml) => {
                 if (!isValidViewPartial(freshHtml)) return;
                 window._viewHtmlCache[targetView] = freshHtml;
-                try { localStorage.setItem('elyu_view_cache_v20_' + targetView, freshHtml); } catch (e) { }
+                try { localStorage.setItem('elyu_view_cache_v21_' + targetView, freshHtml); } catch (e) { }
                 window.dispatchEvent(new CustomEvent('viewCacheUpdated', { detail: { view: targetView } }));
             }).catch((fetchErr) => {
                 if (!window.isExpectedAbortError(fetchErr)) {
@@ -6265,7 +6181,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                 if (isValidViewPartial(freshHtml)) {
                     html = freshHtml;
                     window._viewHtmlCache[targetView] = html;
-                    try { localStorage.setItem('elyu_view_cache_v20_' + targetView, html); } catch(e) {}
+                    try { localStorage.setItem('elyu_view_cache_v21_' + targetView, html); } catch(e) {}
                 }
             } catch (fetchErr) {
                 if (!window.isExpectedAbortError(fetchErr)) {
@@ -6705,10 +6621,6 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                     clearTimeout(window._gpsDebounceTimer);
                     window._gpsDebounceTimer = null;
                 }
-                if (window._tripMapApprovalPollingInterval) {
-                    clearInterval(window._tripMapApprovalPollingInterval);
-                    window._tripMapApprovalPollingInterval = null;
-                }
                 document.querySelectorAll('#toast-container .toast-card').forEach(toast => {
                     const txt = (toast.textContent || '').toLowerCase();
                     if (txt.includes('route') || txt.includes('starting trip') || txt.includes('loading trip')) {
@@ -6954,10 +6866,6 @@ window.navigateTo = navigateTo;
         window._isStartingTrip = false;
         try { sessionStorage.removeItem('active_trip_id'); } catch (e) {}
         window.currentTripId = null;
-        if (window._tripMapApprovalPollingInterval) {
-            clearInterval(window._tripMapApprovalPollingInterval);
-            window._tripMapApprovalPollingInterval = null;
-        }
         // 0. If App Exit Modal is currently open, dismiss it
         const exitModal = document.getElementById('app-exit-confirm-modal');
         if (exitModal && exitModal.style.display !== 'none' && window.getComputedStyle(exitModal).display !== 'none') {
@@ -7138,10 +7046,6 @@ window.navigateTo = navigateTo;
         window._isStartingTrip = false;
         try { sessionStorage.removeItem('active_trip_id'); } catch (e) {}
         window.currentTripId = null;
-        if (window._tripMapApprovalPollingInterval) {
-            clearInterval(window._tripMapApprovalPollingInterval);
-            window._tripMapApprovalPollingInterval = null;
-        }
         return window.handleAppBack(fallbackRoute);
     };
 
@@ -9207,6 +9111,10 @@ window.navigateTo = navigateTo;
                         </button>
                     </div>
                     <div style="position:relative; width:100%; max-height:60vh; min-height:220px; border-radius:16px; overflow:hidden; background:#000; display:flex; align-items:center; justify-content:center;">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                    <div style="position:relative; width:100%; max-height:60vh; min-height:220px; border-radius:16px; overflow:hidden; background:#000; display:flex; align-items:center; justify-content:center;">
                         <img src="${currentUrl}" onerror="if(this.dataset.triedFallback!=='1'){this.dataset.triedFallback='1';this.src='${currentFallback}';}else{this.onerror=null;this.src='assets/img/no_image.svg';}" alt="Visit Photo" style="width:100%; height:auto; max-height:60vh; object-fit:contain; display:block;">
                         ${navControls}
                     </div>
@@ -9771,11 +9679,11 @@ window.navigateTo = navigateTo;
 
         for (const v of viewsToPrewarm.filter(view => view !== state.currentView)) {
             try {
-                if (!window._viewHtmlCache[v] && !localStorage.getItem('elyu_view_cache_v20_' + v)) {
+                if (!window._viewHtmlCache[v] && !localStorage.getItem('elyu_view_cache_v21_' + v)) {
                     const text = await fetchViewPartial(v, new URLSearchParams());
                     if (text && text.length > 50) {
                         window._viewHtmlCache[v] = text;
-                        try { localStorage.setItem('elyu_view_cache_v20_' + v, text); } catch (e) { }
+                        try { localStorage.setItem('elyu_view_cache_v21_' + v, text); } catch (e) { }
                     }
                 }
             } catch (e) { }

@@ -120,8 +120,8 @@ assert.match(puzzlesView, /normalizePuzzleSpots[\s\S]*?\.\.\.\(Array\.isArray\(s
 assert.match(puzzlesView, /cached\?\.data\?\.destinations \|\| cached\?\.data\?\.spots/,
     'offline GameZone must understand the complete cached map catalog');
 
-assert.match(main, /window\._tripMapApprovalPollingInterval/,
-    'navigation teardown must clear trip map polling interval');
+assert.doesNotMatch(main, /window\._tripMapApprovalPollingInterval/,
+    'trip map approval polling must remain removed');
 assert.match(dashboardView, /window\._appColdBoot/,
     'dashboard must revalidate live data on cold boot');
 assert.match(dashboardView, /recContainer\._lastRecSig !== recSig/,

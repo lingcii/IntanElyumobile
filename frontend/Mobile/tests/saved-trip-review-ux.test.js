@@ -93,26 +93,18 @@ assert.match(trips, /Saved Trips[\s\S]*Trip History/,
     'saved trips must provide active and completed trip tabs');
 assert.match(trips, /showingHistory \? historyTrips : activeTrips/,
     'trip history must render completed trips separately');
-assert.match(trips, /function hasConfirmedProofSubmission\(item\)[\s\S]*proofStatus === 'pending' && hasServerProof/,
-    'a pending status may hide Start Trip only when an actual proof was submitted');
-const proofGuardStart = trips.indexOf('function hasConfirmedProofSubmission(item)');
-const proofGuardEnd = trips.indexOf('const SAVED_TRIP_CHECKIN_RADIUS_METERS', proofGuardStart);
+const proofGuardStart = trips.indexOf('function hasProgressedPastStop(item)');
+const proofGuardEnd = trips.indexOf('function shouldHideStartTripForTrip', proofGuardStart);
 const proofGuardContext = {};
-vm.runInNewContext(`${trips.slice(proofGuardStart, proofGuardEnd)}; this.hasConfirmedProofSubmission = hasConfirmedProofSubmission; this.hasProgressedPastStop = hasProgressedPastStop;`, proofGuardContext);
-assert.equal(proofGuardContext.hasConfirmedProofSubmission({ proof_status: 'pending', proof_images: [] }), false,
-    'a fresh draft with a stale pending label must retain Start Trip');
-assert.equal(proofGuardContext.hasConfirmedProofSubmission({ proof_status: 'pending', proof_images: ['proof.jpg'] }), true,
-    'a genuinely submitted pending proof may hide Start Trip');
-assert.equal(proofGuardContext.hasProgressedPastStop({ visited_at: '2026-10-29T00:00:00Z', proof_status: 'pending', proof_images: ['proof.jpg'] }), true,
-    'a checked-in stop with pending proof must unlock the next destination');
-assert.equal(proofGuardContext.hasProgressedPastStop({ visited_at: '2026-10-29T00:00:00Z', proof_status: 'pending', proof_images: [] }), false,
-    'check-in without submitted proof must not unlock the next destination');
-assert.equal(proofGuardContext.hasProgressedPastStop({ visited_at: '2026-10-29T00:00:00Z', proof_status: 'rejected', proof_images: ['proof.jpg'] }), false,
-    'a rejected proof must lock route progression until it is resubmitted');
+vm.runInNewContext(`${trips.slice(proofGuardStart, proofGuardEnd)}; this.hasProgressedPastStop = hasProgressedPastStop;`, proofGuardContext);
+assert.equal(proofGuardContext.hasProgressedPastStop({ visited_at: '2026-10-29T00:00:00Z' }), true,
+    'a checked-in stop must unlock the next destination');
+assert.equal(proofGuardContext.hasProgressedPastStop({ visited_at: null, is_location_verified: false }), false,
+    'an unvisited stop must not unlock the next destination');
 assert.match(trips, /is_queued: Boolean\(it\.is_offline_queued \|\| \(previous && previous\.is_queued\)\)/,
-    'queued proof state must survive cache merging without being mistaken for a confirmed submission');
-assert.match(trips, /items\.length > 0 && items\.every\(hasConfirmedProofSubmission\)/,
-    'Start Trip must hide only after every stop in that specific itinerary has submitted proof');
+    'queued state must survive cache merging without being mistaken for a confirmed check-in');
+assert.doesNotMatch(trips, /isRejected|isPendingPhoto|isPhotoApproved|Pending Approval|Photo Approved|checkAndManageApprovalPolling|_hasPendingApprovalItems/,
+    'Saved Trips must not render or poll proof-approval states');
 assert.match(trips, /tripHasCheckin = Array\.isArray\(trip\.items\)[\s\S]*shouldShowTripAction = isTripCompleted \|\| unvisitedCount === 0 \|\| \(!tripHasCheckin && !shouldHideStartTripForTrip\(trip\)\)/,
     'Start Trip must disappear after location check-in while remaining available for a new draft');
 assert.doesNotMatch(trips, /targetIdStr\.includes\(itIdStr\)/,
@@ -177,8 +169,8 @@ assert.match(trips, /markTripAsCompletedLocally\(id,[\s\S]*switchSavedTripsTab\(
     'completed trips must move into Trip History immediately');
 assert.match(trips, /const allReviewed = reviewItems\.every[\s\S]*showTripCompletionReviewModal\(reviewItems, true\)/,
     'a trip whose stops were already reviewed must still show the review-and-save screen');
-assert.match(itineraryController, /whereNull\('visited_at'\)[\s\S]*orWhereNull\('proof_image'\)[\s\S]*orWhere\('proof_status', 'rejected'\)/,
-    'trip completion must accept submitted pending proof while rejecting missing or rejected proof');
+assert.match(itineraryController, /whereNull\('visited_at'\)[\s\S]*where\('is_visited', false\)/,
+    'trip completion must require every stop to be checked in without proof rejection checks');
 assert.match(trips, /cachedPosition[\s\S]*timestamp[\s\S]*accuracy/,
     'saved-trip check-in must reuse a recent accurate GPS fix');
 assert.match(trips, /timeout: 7000, maximumAge: 30000/,
@@ -189,13 +181,13 @@ const tripProgressStart = tripMap.indexOf('function hasSubmittedStopProof(item)'
 const tripProgressEnd = tripMap.indexOf('function renderConveyorCards', tripProgressStart);
 const tripProgressContext = {};
 vm.runInNewContext(`${tripMap.slice(tripProgressStart, tripProgressEnd)}; this.hasSubmittedStopProof = hasSubmittedStopProof;`, tripProgressContext);
-assert.equal(tripProgressContext.hasSubmittedStopProof({ is_location_verified: true, proof_status: 'pending', proof_image: 'proof.jpg' }), true,
-    'Trip Map must advance to the next stop while submitted proof awaits approval');
-assert.equal(tripProgressContext.hasSubmittedStopProof({ is_location_verified: true, proof_status: 'rejected', proof_image: 'proof.jpg' }), false,
-    'Trip Map must not advance past rejected proof');
+assert.equal(tripProgressContext.hasSubmittedStopProof({ is_location_verified: true }), true,
+    'Trip Map must advance to the next stop once checked in');
+assert.doesNotMatch(tripMap, /isRejected|isPendingApproval|isPhotoApproved|Pending Review|Photo Approved|checkAndManageTripMapApprovalPolling|_tripMapApprovalPollingInterval/,
+    'Trip Map must not contain rejected, pending, or approval polling logic');
 
-assert.doesNotMatch(tripMap, /Check In<\/button>\s*<button[^>]*openPhotoUploadModal[^>]*>Proof<\/button>/,
-    'Trip Map must hide the proof button until checked in');
+assert.doesNotMatch(tripMap, /Check In<\/button>\s*<button[^>]*openPhotoUploadModal/,
+    'Trip Map must hide the upload photo button until checked in');
 assert.match(tripMap, /isLocationVerified\s*&&\s*!hasProof[\s\S]*openPhotoUploadModal[\s\S]*Upload Photo/,
     'Trip Map must show the upload proof button only once location is checked in');
 assert.match(main, /transientNavClasses[\s\S]*classList\.remove\(\.\.\.transientNavClasses\)/,

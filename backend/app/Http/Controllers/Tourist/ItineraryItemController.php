@@ -26,8 +26,7 @@ class ItineraryItemController extends Controller
             ->where(function ($query) {
                 $query->whereNull('visited_at')
                     ->orWhereNull('proof_image')
-                    ->orWhere('proof_image', '')
-                    ->orWhere('proof_status', 'rejected');
+                    ->orWhere('proof_image', '');
             })
             ->exists();
     }
@@ -356,7 +355,6 @@ class ItineraryItemController extends Controller
                 'proof_status'     => 'approved',
                 'visited_at'       => $effectiveTime,
                 'is_visited'       => true,
-                'rejection_reason' => null,
             ]);
 
             return response()->json([
