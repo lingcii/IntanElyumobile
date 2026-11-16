@@ -25,13 +25,15 @@ class ItineraryItemController extends Controller
      */
     private function recordFirstVisitPax(ItineraryItem $item, array $updateData, $spot, int $totalPax): bool
     {
-        $firstVisit = DB::transaction(function () use ($item, $updateData, $spot, $totalPax) {
+        $dbData = \Illuminate\Support\Arr::only($updateData, $item->getFillable());
+
+        $firstVisit = DB::transaction(function () use ($item, $dbData, $spot, $totalPax) {
             $claimed = ItineraryItem::whereKey($item->id)
                 ->where(function ($q) {
                     $q->where('is_visited', false)->orWhereNull('is_visited');
                 })
                 ->whereNull('visited_at')
-                ->update($updateData);
+                ->update($dbData);
 
             if ($claimed && $spot) {
                 $spot->increment('visits', max(1, $totalPax));
@@ -42,7 +44,7 @@ class ItineraryItemController extends Controller
         });
 
         if (!$firstVisit) {
-            $item->update($updateData);
+            $item->update($dbData);
         } else {
             Cache::forget('map:public:spots');
             Cache::forget('trending:top:5');
@@ -225,7 +227,6 @@ class ItineraryItemController extends Controller
             $firstVisit = $this->recordFirstVisitPax($item, [
                 'visited_at'           => $effectiveTime,
                 'is_visited'           => true,
-                'is_location_verified' => true,
                 'proof_status'         => 'approved',
                 'companion_males'      => $males,
                 'companion_females'    => $females,
@@ -539,7 +540,6 @@ class ItineraryItemController extends Controller
             $itemData = [
                 'is_visited'           => true,
                 'visited_at'           => $effectiveTime,
-                'is_location_verified' => true,
                 'proof_status'         => 'approved',
             ];
 
