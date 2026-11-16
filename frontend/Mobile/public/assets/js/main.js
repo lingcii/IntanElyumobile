@@ -4630,34 +4630,38 @@ window.submitTripPhotos = async function () {
 
     const fallbackOffline = async (reason) => {
         if (window.OfflineCheckinManager) {
-            const queuedEntry = await window.OfflineCheckinManager.queueOfflineCheckin({
-                type: 'itinerary',
-                itemId: itemId,
-                spotId: spotId,
-                itineraryId: tripId,
-                spotName: spotName,
-                lat: window.myLat || 16.6159,
-                lng: window.myLng || 120.3209,
-                image: firstFile,
-                previewUrl: previewUrls[0] || null,
-                capturedAt: window.getPhilippineTimestampISO(),
-                isPhotoUploadOnly: true
-            });
-            const queuedPreview = queuedEntry?.previewUrl || previewUrls[0] || null;
-            if (queuedPreview) window.applyTripPhotoUpdateLocally(itemId, [queuedPreview], 'pending', true);
-            window.closePhotoUploadModal();
-            if (typeof showToast === 'function') {
-                showToast('📍 Saved Offline! Photo saved on device. Auto-syncs when online.', 'success');
+            try {
+                const queuedEntry = await window.OfflineCheckinManager.queueOfflineCheckin({
+                    type: 'itinerary',
+                    itemId: itemId,
+                    spotId: spotId,
+                    itineraryId: tripId,
+                    spotName: spotName,
+                    lat: window.myLat || 16.6159,
+                    lng: window.myLng || 120.3209,
+                    image: firstFile,
+                    previewUrl: previewUrls[0] || null,
+                    capturedAt: window.getPhilippineTimestampISO(),
+                    isPhotoUploadOnly: true
+                });
+                const queuedPreview = queuedEntry?.previewUrl || previewUrls[0] || null;
+                if (queuedPreview) window.applyTripPhotoUpdateLocally(itemId, [queuedPreview], 'pending', true);
+                window.closePhotoUploadModal();
+                if (typeof showToast === 'function') {
+                    showToast('📍 Saved Offline! Photo saved on device. Auto-syncs when online.', 'success');
+                }
+                if (Array.isArray(window._cachedSavedTrips) && typeof window.renderSavedTrips === 'function') {
+                    window.renderSavedTrips(window._cachedSavedTrips);
+                }
+                return;
+            } catch (qErr) {
+                console.warn('Offline queue fallback failed:', qErr);
             }
-            if (Array.isArray(window._cachedSavedTrips) && typeof window.renderSavedTrips === 'function') {
-                window.renderSavedTrips(window._cachedSavedTrips);
-            }
-        } else {
-            if (typeof showToast === 'function') showToast(reason || 'Upload failed. Please try again.');
-            if (btn) {
-                btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up" style="margin-right:6px;"></i> Submit';
-                btn.disabled = false;
-            }
+        }
+        if (typeof showToast === 'function') showToast(reason || 'Upload failed. Please try again.', 'error');
+        if (btn) {
+            btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up" style="margin-right:6px;"></i> Submit';
+            btn.disabled = false;
         }
     };
 
@@ -4677,12 +4681,22 @@ window.submitTripPhotos = async function () {
             signal: controller.signal
         });
         clearTimeout(timeoutId);
-        const data = await response.json();
+        let data = {};
+        try {
+            const text = await response.text();
+            data = text ? JSON.parse(text) : {};
+        } catch (parseErr) {
+            data = {};
+        }
 
         if (response.ok && data.success) {
             window.closePhotoUploadModal();
             const permanentUrls = data.proof_images || (data.proof_image ? [data.proof_image] : previewUrls);
             window.applyTripPhotoUpdateLocally(itemId, permanentUrls, data.proof_status || 'approved');
+            if (typeof window.syncUserPointsEverywhere === 'function' && (data.places_visited !== undefined || data.completed_activities !== undefined)) {
+                const basePts = typeof window._userPointsBalance === 'number' ? window._userPointsBalance : 0;
+                window.syncUserPointsEverywhere(basePts, null, { places_visited: data.places_visited ?? data.completed_activities });
+            }
             if (typeof window.fetchSavedTrips === 'function') {
                 window.fetchSavedTrips(true);
             }
@@ -4693,6 +4707,10 @@ window.submitTripPhotos = async function () {
             if (window.confetti) {
                 try { window.confetti({ particleCount: 80, spread: 60, origin: { y: 0.7 } }); } catch (e) { }
             }
+        } else if (response.status >= 400 && response.status < 500 && response.status !== 408) {
+            if (typeof showToast === 'function') {
+                showToast(data.message || 'Upload rejected. Please check your photo and try again.', 'error');
+            }
         } else {
             console.warn('Server photo upload failed:', data);
             await fallbackOffline(data.message || 'Server upload failed; saved offline.');
@@ -4701,6 +4719,11 @@ window.submitTripPhotos = async function () {
         clearTimeout(timeoutId);
         console.warn('Network timeout or error during photo upload, falling back offline:', err);
         await fallbackOffline('Network timeout during upload.');
+    } finally {
+        if (btn) {
+            btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up" style="margin-right:6px;"></i> Submit';
+            btn.disabled = false;
+        }
     }
 };
 
@@ -4922,6 +4945,11 @@ window.executeLocationCheckIn = function (itemId, spotName = '', spotLat = null,
 
             if (response.ok && (data.success || data.is_location_verified)) {
                 window.applyLocationCheckinLocally(itemId);
+                if (typeof window.syncUserPointsEverywhere === 'function' && (data.total_points !== undefined || data.places_visited !== undefined || data.completed_activities !== undefined)) {
+                    const basePts = typeof window._userPointsBalance === 'number' ? window._userPointsBalance : 0;
+                    const nextPts = (data.total_points !== undefined && data.total_points !== null) ? parseInt(data.total_points, 10) : basePts;
+                    window.syncUserPointsEverywhere(nextPts, null, { xp: data.xp, places_visited: data.places_visited ?? data.completed_activities ?? null });
+                }
                 if (typeof showToast === 'function') {
                     showToast(data.message || `📍 Location verified at ${spotName}!`, 'success');
                 }

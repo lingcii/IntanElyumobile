@@ -8,6 +8,7 @@ use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class ItineraryItemController extends Controller
@@ -18,6 +19,39 @@ class ItineraryItemController extends Controller
      * Maximum allowed distance (in meters) for a valid GPS check-in.
      */
     private const MAX_DISTANCE_METERS = 70;
+
+    /**
+     * Atomically mark an itinerary stop visited and increment spot visits once by total_pax.
+     */
+    private function recordFirstVisitPax(ItineraryItem $item, array $updateData, $spot, int $totalPax): bool
+    {
+        $firstVisit = DB::transaction(function () use ($item, $updateData, $spot, $totalPax) {
+            $claimed = ItineraryItem::whereKey($item->id)
+                ->where(function ($q) {
+                    $q->where('is_visited', false)->orWhereNull('is_visited');
+                })
+                ->whereNull('visited_at')
+                ->update($updateData);
+
+            if ($claimed && $spot) {
+                $spot->increment('visits', max(1, $totalPax));
+                return true;
+            }
+
+            return (bool) $claimed;
+        });
+
+        if (!$firstVisit) {
+            $item->update($updateData);
+        } else {
+            Cache::forget('map:public:spots');
+            Cache::forget('trending:top:5');
+            Cache::forget('trending:top:10');
+        }
+
+        $item->refresh();
+        return $firstVisit;
+    }
 
     private function hasIncompletePreviousStop(ItineraryItem $item): bool
     {
@@ -188,10 +222,11 @@ class ItineraryItemController extends Controller
             $totalPax = $request->has('total_pax') ? max(1, (int)$request->total_pax) : max(1, (int)($item->total_pax ?? $itin?->total_pax ?? (1 + $additionalComps)));
 
             $isFullyVisited = true;
-            $item->update([
+            $firstVisit = $this->recordFirstVisitPax($item, [
                 'visited_at'           => $effectiveTime,
                 'is_visited'           => true,
                 'is_location_verified' => true,
+                'proof_status'         => 'approved',
                 'companion_males'      => $males,
                 'companion_females'    => $females,
                 'companion_adults'     => $adults,
@@ -199,14 +234,14 @@ class ItineraryItemController extends Controller
                 'companion_seniors'    => $seniors,
                 'companion_pwds'       => $pwds,
                 'total_pax'            => $totalPax,
-            ]);
+            ], $spot, $totalPax);
 
-            // Award points immediately upon check-in
+            // Award points immediately upon first check-in
             $rewardPoints = \App\Models\Classification::getPointsForStatus($spot->classification_status);
             $canonical = \App\Models\Classification::normalizeStatus($spot->classification_status);
             $pointsAwarded = false;
 
-            if ($user) {
+            if ($user && $firstVisit) {
                 try {
                     $newXp = ($user->xp ?? 0) + $rewardPoints;
                     $newLevel = (int) floor($newXp / 1000) + 1;
@@ -264,6 +299,9 @@ class ItineraryItemController extends Controller
                 ? (method_exists($freshUser, 'syncPointsBalance') ? $freshUser->syncPointsBalance() : (int) ($freshUser->points ?? 0))
                 : 0;
             $totalXp = $freshUser ? (int) ($freshUser->xp ?? $totalPoints) : 0;
+            $placesVisited = $freshUser
+                ? (method_exists($freshUser, 'syncPlacesVisitedCount') ? $freshUser->syncPlacesVisitedCount() : (int) ($freshUser->completed_activities ?? 0))
+                : 0;
 
             return response()->json([
                 'success'              => true,
@@ -273,7 +311,9 @@ class ItineraryItemController extends Controller
                 'points_earned'        => $pointsAwarded ? $rewardPoints : 0,
                 'total_points'         => $totalPoints,
                 'xp'                   => $totalXp,
-                'message'              => "Checked in at {$spot->name}! 📍 +{$rewardPoints} Points & XP earned! Uploading photo is optional.",
+                'places_visited'       => $placesVisited,
+                'completed_activities' => $placesVisited,
+                'message'              => "Checked in at {$spot->name}! 📍 Uploading photo is optional.",
             ]);
         } catch (\Illuminate\Validation\ValidationException $ve) {
             return response()->json([
@@ -350,20 +390,26 @@ class ItineraryItemController extends Controller
             }
             $effectiveTime = $capturedAt ?? Carbon::now('Asia/Manila');
 
-            $item->update([
+            $this->recordFirstVisitPax($item, [
                 'proof_image'      => $jsonImages,
                 'proof_status'     => 'approved',
                 'visited_at'       => $effectiveTime,
                 'is_visited'       => true,
-            ]);
+            ], $item->destination, max(1, (int) ($item->total_pax ?? $item->itinerary?->total_pax ?? 1)));
+
+            $placesVisited = ($user && method_exists($user, 'syncPlacesVisitedCount'))
+                ? $user->syncPlacesVisitedCount()
+                : (int) ($user?->completed_activities ?? 0);
 
             return response()->json([
-                'success'      => true,
-                'proof_status' => 'approved',
-                'is_visited'   => true,
-                'proof_image'  => $storedUrls[0],
-                'proof_images' => $storedUrls,
-                'message'      => 'Photos uploaded!',
+                'success'              => true,
+                'proof_status'         => 'approved',
+                'is_visited'           => true,
+                'proof_image'          => $storedUrls[0],
+                'proof_images'         => $storedUrls,
+                'places_visited'       => $placesVisited,
+                'completed_activities' => $placesVisited,
+                'message'              => 'Photos uploaded!',
             ]);
         } catch (\Throwable $ex) {
             Log::error("Proof upload error on item {$id}: " . $ex->getMessage());
@@ -494,6 +540,7 @@ class ItineraryItemController extends Controller
                 'is_visited'           => true,
                 'visited_at'           => $effectiveTime,
                 'is_location_verified' => true,
+                'proof_status'         => 'approved',
             ];
 
             // Collect files
@@ -532,12 +579,11 @@ class ItineraryItemController extends Controller
             $itemData['companion_pwds']    = $pwds;
             $itemData['total_pax']         = $totalPax;
 
-            $item->update($itemData);
-            $item->refresh();
+            $this->recordFirstVisitPax($item, $itemData, $spot, $totalPax);
 
-            if ($user && method_exists($user, 'syncPlacesVisitedCount')) {
-                $user->syncPlacesVisitedCount();
-            }
+            $placesVisited = ($user && method_exists($user, 'syncPlacesVisitedCount'))
+                ? $user->syncPlacesVisitedCount()
+                : (int) ($user?->completed_activities ?? 0);
 
             try {
                 $shouldUpdatePing = !$user->last_gps_ping_at || ($effectiveTime->gte(Carbon::parse($user->last_gps_ping_at)));
@@ -561,6 +607,8 @@ class ItineraryItemController extends Controller
                 'proof_image'          => $item->proof_image,
                 'proof_images'         => $item->proof_images,
                 'distance'             => round($distanceMeters) . 'm',
+                'places_visited'       => $placesVisited,
+                'completed_activities' => $placesVisited,
             ]);
         } catch (\Illuminate\Validation\ValidationException $ve) {
             return response()->json([

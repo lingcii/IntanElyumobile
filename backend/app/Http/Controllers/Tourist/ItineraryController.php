@@ -637,16 +637,7 @@ class ItineraryController extends Controller
                 return false;
             }
 
-            // Count the traveler and companions exactly once, after the trip is fully complete.
-            foreach ($itemsToVisit as $item) {
-                if ($item->tourist_spot_id) {
-                    $spot = TouristSpot::find($item->tourist_spot_id);
-                    if ($spot) {
-                        $paxIncrement = max(1, (int) ($item->total_pax ?? $itinerary->total_pax ?? 1));
-                        $spot->increment('visits', $paxIncrement);
-                    }
-                }
-            }
+            // Visits/pax are already counted once on check-in in ItineraryItemController.
 
             // Also prune any unvisited duplicate pending copies of this same itinerary so completing never leaves a phantom duplicate
             $completedSpotIds = $itemsToVisit->pluck('tourist_spot_id')->filter()->map(fn($v) => (int) $v)->values()->all();

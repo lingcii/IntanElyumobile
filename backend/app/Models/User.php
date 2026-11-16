@@ -218,13 +218,13 @@ class User extends Authenticatable
     }
 
     /**
-     * Reconcile and persist the exact distinct places visited count for this user.
+     * Reconcile and persist the total spot check-ins (places visited) count for this user.
      */
     public function syncPlacesVisitedCount(): int
     {
-        $distinctSpots = [];
+        $totalCount = 0;
         try {
-            $itemSpotIds = \Illuminate\Support\Facades\DB::table('itinerary_items')
+            $totalCount += (int) \Illuminate\Support\Facades\DB::table('itinerary_items')
                 ->join('itineraries', 'itinerary_items.itinerary_id', '=', 'itineraries.id')
                 ->where('itineraries.user_id', $this->id)
                 ->whereNotNull('itinerary_items.tourist_spot_id')
@@ -233,32 +233,27 @@ class User extends Authenticatable
                       ->orWhereNotNull('itinerary_items.visited_at')
                       ->orWhere('itineraries.status', 'completed');
                 })
-                ->pluck('itinerary_items.tourist_spot_id')
-                ->all();
-            foreach ($itemSpotIds as $sid) {
-                if ((int) $sid > 0) {
-                    $distinctSpots[(int) $sid] = true;
-                }
-            }
+                ->count();
         } catch (\Throwable $e) {}
 
         try {
             if (\Illuminate\Support\Facades\Schema::hasTable('user_points')) {
-                $pointSpotIds = \Illuminate\Support\Facades\DB::table('user_points')
+                $totalCount += (int) \Illuminate\Support\Facades\DB::table('user_points')
                     ->where('user_id', $this->id)
                     ->whereIn('source', ['check_in', 'ar_checkin'])
                     ->whereNotNull('spot_id')
-                    ->pluck('spot_id')
-                    ->all();
-                foreach ($pointSpotIds as $sid) {
-                    if ((int) $sid > 0) {
-                        $distinctSpots[(int) $sid] = true;
-                    }
-                }
+                    ->where(function ($q) {
+                        $q->whereNull('description')
+                          ->orWhere(function ($d) {
+                              $d->where('description', 'not like', 'GPS Check-in at%')
+                                ->where('description', 'not like', 'Proof Check-in Approved at%');
+                          });
+                    })
+                    ->count();
             }
         } catch (\Throwable $e) {}
 
-        $trueCount = count($distinctSpots);
+        $trueCount = $totalCount;
 
         // Preserve non-zero count only if user had no itinerary items left (e.g. deleted all completed trips)
         if ($trueCount === 0 && (int) ($this->completed_activities ?? 0) > 0) {
