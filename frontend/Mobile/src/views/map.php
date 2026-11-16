@@ -4936,6 +4936,15 @@ if (is_dir($imgDir)) {
                     vPhotosSec.style.display = 'block';
                     if (rawVisitorPhotos.length > 0) {
                         if (vPhotosCount) vPhotosCount.textContent = `${rawVisitorPhotos.length} photo${rawVisitorPhotos.length > 1 ? 's' : ''}`;
+                        window._currentVisitorPhotos = rawVisitorPhotos.map((rawUrl) => {
+                            const resolved = (typeof window.resolveTripPhotoUrl === 'function')
+                                ? window.resolveTripPhotoUrl(rawUrl)
+                                : ((typeof window.getDestImage === 'function') ? window.getDestImage(rawUrl, 800) : rawUrl);
+                            const fallback = (typeof window.getTripPhotoFallbackUrl === 'function')
+                                ? window.getTripPhotoFallbackUrl(rawUrl)
+                                : rawUrl;
+                            return { url: resolved || rawUrl, fallback_url: fallback || rawUrl };
+                        });
                         vPhotosTrack.style.display = 'flex';
                         vPhotosTrack.innerHTML = rawVisitorPhotos.map((rawUrl, idx) => {
                             const resolved = (typeof window.resolveTripPhotoUrl === 'function')
@@ -4947,12 +4956,13 @@ if (is_dir($imgDir)) {
                                 ? `<div style="position:absolute; inset:auto 0 0 0; padding:18px 8px 6px; background:linear-gradient(180deg, transparent 0%, rgba(15,23,42,0.78) 100%); color:#ffffff; font-size:11px; font-weight:800; pointer-events:none;">All</div>`
                                 : '';
                             return `
-                                <div onclick="window.openVisitorPhotoLightbox('${safeUrl}')" style="position:relative; width:108px; height:108px; border-radius:14px; overflow:hidden; flex-shrink:0; scroll-snap-align:start; background:rgba(255,255,255,0.14); border:1px solid rgba(255,255,255,0.22); cursor:pointer; box-shadow:0 2px 8px rgba(15,23,42,0.18);">
+                                <div onclick="window.openVisitorPhotoLightbox('${safeUrl}', ${idx})" style="position:relative; width:108px; height:108px; border-radius:14px; overflow:hidden; flex-shrink:0; scroll-snap-align:start; background:rgba(255,255,255,0.14); border:1px solid rgba(255,255,255,0.22); cursor:pointer; box-shadow:0 2px 8px rgba(15,23,42,0.18);">
                                     <img src="${resolved}" alt="Visitor photo" style="width:100%; height:100%; object-fit:cover; display:block;" onerror="if(!this.dataset.fb && typeof window.getTripPhotoFallbackUrl==='function'){this.dataset.fb='1';this.src=window.getTripPhotoFallbackUrl('${safeRaw}');}else{this.parentElement.style.display='none';}">
                                     ${labelOverlay}
                                 </div>`;
                         }).join('');
                     } else {
+                        window._currentVisitorPhotos = [];
                         if (vPhotosCount) vPhotosCount.textContent = '0 photos';
                         vPhotosTrack.style.display = 'block';
                         vPhotosTrack.innerHTML = `
@@ -6843,17 +6853,113 @@ if (is_dir($imgDir)) {
         }
     };
 
-    window.openVisitorPhotoLightbox = function (imgUrl) {
+    window._visitorLightboxIndex = 0;
+    window._visitorLightboxZoomed = false;
+
+    window.setVisitorPhotoLightboxIndex = function (idx) {
+        const items = Array.isArray(window._visitorLightboxItems) ? window._visitorLightboxItems : [];
+        if (items.length === 0) return;
+
+        const safeIdx = ((idx % items.length) + items.length) % items.length;
+        window._visitorLightboxIndex = safeIdx;
+        window._visitorLightboxZoomed = false;
+
+        const current = items[safeIdx] || {};
+        const imgEl = document.getElementById('visitor-photo-lightbox-img');
+        const counterEl = document.getElementById('visitor-photo-counter');
+        const zoomBtn = document.getElementById('visitor-photo-zoom-btn');
+        const prevBtn = document.getElementById('visitor-photo-prev-btn');
+        const nextBtn = document.getElementById('visitor-photo-next-btn');
+        const thumbsEl = document.getElementById('visitor-photo-thumbs');
+
+        if (imgEl) {
+            imgEl.dataset.fb = '';
+            imgEl.style.transform = 'scale(1)';
+            imgEl.style.cursor = 'zoom-in';
+            imgEl.onerror = function () {
+                if (!this.dataset.fb && current.fallback_url && this.src !== current.fallback_url) {
+                    this.dataset.fb = '1';
+                    this.src = current.fallback_url;
+                }
+            };
+            imgEl.src = current.url || current.fallback_url || '';
+        }
+        if (counterEl) {
+            counterEl.textContent = items.length > 1 ? `Photo ${safeIdx + 1} of ${items.length}` : 'Visitor Photo';
+        }
+        if (zoomBtn) {
+            zoomBtn.innerHTML = '<i class="fa-solid fa-magnifying-glass-plus"></i>';
+        }
+        if (prevBtn && nextBtn) {
+            const showArrows = items.length > 1 ? 'flex' : 'none';
+            prevBtn.style.display = showArrows;
+            nextBtn.style.display = showArrows;
+        }
+        if (thumbsEl) {
+            if (items.length <= 1) {
+                thumbsEl.style.display = 'none';
+                thumbsEl.innerHTML = '';
+            } else {
+                thumbsEl.style.display = 'flex';
+                thumbsEl.innerHTML = '';
+                items.forEach((it, i) => {
+                    const thumbBtn = document.createElement('button');
+                    thumbBtn.type = 'button';
+                    thumbBtn.onclick = (ev) => {
+                        ev.stopPropagation();
+                        window.setVisitorPhotoLightboxIndex(i);
+                    };
+                    thumbBtn.style.cssText = `width:48px; height:48px; border-radius:10px; overflow:hidden; padding:0; flex-shrink:0; cursor:pointer; background:#0f172a; border:${i === safeIdx ? '2px solid #38bdf8' : '1.5px solid rgba(255,255,255,0.22)'}; opacity:${i === safeIdx ? '1' : '0.6'};`;
+                    thumbBtn.innerHTML = `<img src="${it.url || it.fallback_url || ''}" alt="Photo ${i + 1}" style="width:100%; height:100%; object-fit:cover; display:block;">`;
+                    thumbsEl.appendChild(thumbBtn);
+                });
+            }
+        }
+    };
+
+    window.toggleVisitorPhotoZoom = function (e) {
+        if (e) e.stopPropagation();
+        const imgEl = document.getElementById('visitor-photo-lightbox-img');
+        const zoomBtn = document.getElementById('visitor-photo-zoom-btn');
+        if (!imgEl) return;
+        window._visitorLightboxZoomed = !window._visitorLightboxZoomed;
+        imgEl.style.transform = window._visitorLightboxZoomed ? 'scale(1.85)' : 'scale(1)';
+        imgEl.style.cursor = window._visitorLightboxZoomed ? 'zoom-out' : 'zoom-in';
+        if (zoomBtn) {
+            zoomBtn.innerHTML = window._visitorLightboxZoomed
+                ? '<i class="fa-solid fa-magnifying-glass-minus"></i>'
+                : '<i class="fa-solid fa-magnifying-glass-plus"></i>';
+        }
+    };
+
+    window.openVisitorPhotoLightbox = function (imgUrl, startIndex) {
         const lb = document.getElementById('visitor-photo-lightbox');
-        const lbImg = document.getElementById('visitor-photo-lightbox-img');
-        if (!lb || !lbImg || !imgUrl) return;
-        lbImg.src = imgUrl;
+        const titleEl = document.getElementById('visitor-photo-title');
+        if (!lb || !imgUrl) return;
+
+        const spotName = (window.currentSelectedLocationData && window.currentSelectedLocationData.name) || 'Visitor Photos';
+        if (titleEl) titleEl.textContent = spotName;
+
+        const gallery = Array.isArray(window._currentVisitorPhotos) && window._currentVisitorPhotos.length > 0
+            ? window._currentVisitorPhotos
+            : [{ url: imgUrl, fallback_url: imgUrl }];
+
+        let idx = typeof startIndex === 'number' ? startIndex : gallery.findIndex(it => it.url === imgUrl || it.fallback_url === imgUrl);
+        if (idx < 0) {
+            window._visitorLightboxItems = [{ url: imgUrl, fallback_url: imgUrl }];
+            idx = 0;
+        } else {
+            window._visitorLightboxItems = gallery;
+        }
+
+        window.setVisitorPhotoLightboxIndex(idx);
         lb.style.display = 'flex';
     };
 
     window.closeVisitorPhotoLightbox = function () {
         const lb = document.getElementById('visitor-photo-lightbox');
         if (lb) lb.style.display = 'none';
+        window._visitorLightboxZoomed = false;
     };
 
     window._ordinanceViewerIndex = 0;
@@ -6906,10 +7012,11 @@ if (is_dir($imgDir)) {
             imgEl.src = primarySrc;
         }
         if (counterEl) {
-            counterEl.textContent = items.length > 1 ? `Page ${safeIdx + 1} of ${items.length}` : 'Official Ordinance Document';
+            counterEl.textContent = items.length > 1 ? `Ordinance · Page ${safeIdx + 1} of ${items.length}` : 'Ordinance';
         }
         if (filenameEl) {
-            filenameEl.textContent = current.original_filename || current.title || '';
+            filenameEl.textContent = '';
+            filenameEl.style.display = 'none';
         }
         if (zoomBtn) {
             zoomBtn.innerHTML = '<i class="fa-solid fa-magnifying-glass-plus"></i>';
@@ -6981,7 +7088,7 @@ if (is_dir($imgDir)) {
             document.body.appendChild(modal);
         }
         if (titleEl) {
-            titleEl.textContent = `${state.spotName} · Ordinance`;
+            titleEl.textContent = state.spotName || 'Tourist Site';
         }
         window.setOrdinanceViewerIndex(startIndex);
         modal.style.display = 'flex';
@@ -7050,13 +7157,54 @@ if (is_dir($imgDir)) {
 
 <!-- Visitor Photo Lightbox Modal -->
 <div id="visitor-photo-lightbox" onclick="window.closeVisitorPhotoLightbox()"
-    style="display:none; position:fixed; inset:0; z-index:9999999; background:rgba(6,11,25,0.92); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); align-items:center; justify-content:center; padding:20px;">
-    <button type="button" onclick="window.closeVisitorPhotoLightbox()" aria-label="Close"
-        style="position:absolute; top:calc(16px + env(safe-area-inset-top, 0px)); right:16px; width:40px; height:40px; border-radius:50%; border:none; background:rgba(255,255,255,0.18); color:#ffffff; font-size:18px; display:flex; align-items:center; justify-content:center; cursor:pointer;">
-        <i class="fa-solid fa-xmark"></i>
-    </button>
-    <img id="visitor-photo-lightbox-img" src="" alt="Visitor Photo Preview" onclick="event.stopPropagation()"
-        style="max-width:100%; max-height:85vh; border-radius:16px; object-fit:contain; box-shadow:0 20px 60px rgba(0,0,0,0.6);">
+    style="display:none; position:fixed; inset:0; z-index:9999999; background:rgba(6,11,25,0.94); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); flex-direction:column; padding:calc(14px + env(safe-area-inset-top, 0px)) 14px calc(14px + env(safe-area-inset-bottom, 0px)) 14px; box-sizing:border-box;">
+    <div onclick="event.stopPropagation()"
+        style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; flex-shrink:0;">
+        <div style="min-width:0; flex:1;">
+            <div id="visitor-photo-title"
+                style="font-size:15px; font-weight:800; color:#ffffff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                Visitor Photos
+            </div>
+            <div style="display:flex; align-items:center; gap:8px; margin-top:2px; font-size:11.5px; color:rgba(255,255,255,0.75);">
+                <span id="visitor-photo-counter" style="font-weight:700; color:#38bdf8;">Visitor Photo</span>
+            </div>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px; flex-shrink:0;">
+            <button type="button" id="visitor-photo-zoom-btn" onclick="window.toggleVisitorPhotoZoom(event)"
+                aria-label="Toggle Zoom"
+                style="width:38px; height:38px; border-radius:50%; border:none; background:rgba(255,255,255,0.16); color:#ffffff; font-size:15px; display:flex; align-items:center; justify-content:center; cursor:pointer;">
+                <i class="fa-solid fa-magnifying-glass-plus"></i>
+            </button>
+            <button type="button" onclick="window.closeVisitorPhotoLightbox()" aria-label="Close"
+                style="width:38px; height:38px; border-radius:50%; border:none; background:rgba(255,255,255,0.16); color:#ffffff; font-size:17px; display:flex; align-items:center; justify-content:center; cursor:pointer;">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+    </div>
+
+    <div onclick="event.stopPropagation()"
+        style="position:relative; flex:1; min-height:0; overflow:auto; display:flex; align-items:center; justify-content:center; border-radius:18px; background:rgba(15,23,42,0.55); border:1px solid rgba(255,255,255,0.1); padding:10px;">
+        <button type="button" id="visitor-photo-prev-btn"
+            onclick="event.stopPropagation(); window.setVisitorPhotoLightboxIndex(window._visitorLightboxIndex - 1)"
+            aria-label="Previous photo"
+            style="display:none; position:fixed; left:18px; top:50%; transform:translateY(-50%); z-index:3; width:40px; height:40px; border-radius:50%; border:none; background:rgba(15,23,42,0.78); color:#ffffff; font-size:15px; align-items:center; justify-content:center; cursor:pointer;">
+            <i class="fa-solid fa-chevron-left"></i>
+        </button>
+
+        <img id="visitor-photo-lightbox-img" src="" alt="Visitor Photo Preview"
+            onclick="window.toggleVisitorPhotoZoom(event)"
+            style="max-width:100%; max-height:100%; border-radius:12px; object-fit:contain; transition:transform 0.2s ease; transform-origin:center center; cursor:zoom-in;">
+
+        <button type="button" id="visitor-photo-next-btn"
+            onclick="event.stopPropagation(); window.setVisitorPhotoLightboxIndex(window._visitorLightboxIndex + 1)"
+            aria-label="Next photo"
+            style="display:none; position:fixed; right:18px; top:50%; transform:translateY(-50%); z-index:3; width:40px; height:40px; border-radius:50%; border:none; background:rgba(15,23,42,0.78); color:#ffffff; font-size:15px; align-items:center; justify-content:center; cursor:pointer;">
+            <i class="fa-solid fa-chevron-right"></i>
+        </button>
+    </div>
+
+    <div id="visitor-photo-thumbs" onclick="event.stopPropagation()"
+        style="display:none; gap:8px; overflow-x:auto; padding:10px 4px 2px; flex-shrink:0; justify-content:center;"></div>
 </div>
 
 <?php include_once __DIR__ . '/../components/testimony_modal.php'; ?>
