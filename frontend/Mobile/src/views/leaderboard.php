@@ -324,12 +324,12 @@ $activeTab = 'leaderboard';
                 if (titleEl) titleEl.textContent = myExplorerName;
                 if (tagEl) { tagEl.textContent = 'YOU'; tagEl.style.display = ''; }
                 if (avatarEl) avatarEl.src = (cachedMeData && cachedMeData.avatar) ? cachedMeData.avatar : (authUser.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(myExplorerName)}&background=007AFF&color=fff&rounded=true&bold=true&size=128`);
-                if (rankCircle) {
-                    rankCircle.style.display = 'flex';
-                    rankCircle.textContent = (cachedMyRank && cachedMyRank < 999 && (myPts > 0 || (parseInt(authUser.places_visited || 0) > 0))) ? '#' + cachedMyRank : '—';
-                }
                 const myPts = parseInt(authUser.points || authUser.xp || 0);
                 const myActs = parseInt(authUser.completed_activities || authUser.places_visited || 0);
+                if (rankCircle) {
+                    rankCircle.style.display = 'flex';
+                    rankCircle.textContent = (cachedMyRank && cachedMyRank < 999 && (myPts > 0 || myActs > 0)) ? '#' + cachedMyRank : '—';
+                }
                 if (subtext) {
                     subtext.textContent = (currentSortMode === 'visited')
                         ? `${myActs} ${myActs === 1 ? 'Spot' : 'Spots'} Visited`

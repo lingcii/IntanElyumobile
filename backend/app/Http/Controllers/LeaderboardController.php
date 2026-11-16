@@ -37,39 +37,29 @@ class LeaderboardController extends Controller
                     COALESCE(u.points, 0)                             AS points,
                     COALESCE(u.points, 0)                             AS total_points,
                     COALESCE(u.points, 0)                             AS claimable_points,
-                    (
-                        (
+                    COALESCE(
+                        NULLIF((
                             SELECT COUNT(*)
                             FROM itinerary_items ii
                             INNER JOIN itineraries i ON ii.itinerary_id = i.id
                             WHERE i.user_id = u.id
                               AND ii.tourist_spot_id IS NOT NULL
                               AND (ii.is_visited = 1 OR ii.visited_at IS NOT NULL OR i.status = 'completed')
-                        ) + COALESCE((
-                            SELECT COUNT(*)
-                            FROM user_points up
-                            WHERE up.user_id = u.id
-                              AND up.source IN ('check_in', 'ar_checkin')
-                              AND up.spot_id IS NOT NULL
-                              AND (up.description IS NULL OR (up.description NOT LIKE 'GPS Check-in at%' AND up.description NOT LIKE 'Proof Check-in Approved at%'))
-                        ), 0)
+                        ), 0),
+                        u.completed_activities,
+                        0
                     )                                                 AS completed_activities,
-                    (
-                        (
+                    COALESCE(
+                        NULLIF((
                             SELECT COUNT(*)
                             FROM itinerary_items ii
                             INNER JOIN itineraries i ON ii.itinerary_id = i.id
                             WHERE i.user_id = u.id
                               AND ii.tourist_spot_id IS NOT NULL
                               AND (ii.is_visited = 1 OR ii.visited_at IS NOT NULL OR i.status = 'completed')
-                        ) + COALESCE((
-                            SELECT COUNT(*)
-                            FROM user_points up
-                            WHERE up.user_id = u.id
-                              AND up.source IN ('check_in', 'ar_checkin')
-                              AND up.spot_id IS NOT NULL
-                              AND (up.description IS NULL OR (up.description NOT LIKE 'GPS Check-in at%' AND up.description NOT LIKE 'Proof Check-in Approved at%'))
-                        ), 0)
+                        ), 0),
+                        u.completed_activities,
+                        0
                     )                                                 AS places_visited,
                     COALESCE(u.created_at, NOW())                     AS points_since,
                     COALESCE(u.created_at, NOW())                     AS created_at

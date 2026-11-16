@@ -232,13 +232,23 @@ class DashboardController extends Controller
     {
         $imageUrl = $spot->photo_url;
         $imagesList = [];
+        $seenKeys = [];
+        $normKey = static function ($u): string {
+            $path = (string) (parse_url((string) $u, PHP_URL_PATH) ?: $u);
+            return strtolower(basename(str_replace('\\', '/', trim($path))));
+        };
         if ($spot->photo_url) {
             $imagesList[] = $spot->photo_url;
+            $seenKeys[$normKey($spot->photo_url)] = true;
         }
         if ($spot->relationLoaded('images') && $spot->images->isNotEmpty()) {
             foreach ($spot->images as $imgObj) {
-                if ($imgObj->photo_url && !in_array($imgObj->photo_url, $imagesList)) {
-                    $imagesList[] = $imgObj->photo_url;
+                $pUrl = $imgObj->photo_url ?? null;
+                if (!$pUrl) continue;
+                $k = $normKey($pUrl);
+                if (!in_array($pUrl, $imagesList) && ($k === '' || !isset($seenKeys[$k]))) {
+                    $imagesList[] = $pUrl;
+                    if ($k !== '') $seenKeys[$k] = true;
                 }
             }
         }

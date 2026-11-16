@@ -1926,26 +1926,36 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                 token.startsWith('offline_');
 
             if (isOfflineItem) {
-                if (window.OfflineCheckinManager) {
-                    await window.OfflineCheckinManager.queueOfflineCheckin({
-                        type: 'itinerary',
-                        itemId: itemId,
-                        spotId: spotId,
-                        itineraryId: tripId,
-                        spotName: spotName,
-                        lat: window.myLat || 16.6159,
-                        lng: window.myLng || 120.3209,
-                        image: firstFile,
-                        previewUrl: previewUrls[0] || null,
-                        capturedAt: (typeof window.getPhilippineTimestampISO === 'function' ? window.getPhilippineTimestampISO() : new Date().toISOString())
-                    });
-                }
-                window.closePhotoUploadModal();
-                if (typeof showToast === 'function') {
-                    showToast('📍 Photo saved on device! Auto-syncs when online.', 'success');
-                }
-                if (window.confetti) {
-                    try { window.confetti({ particleCount: 70, spread: 60, origin: { y: 0.7 } }); } catch (e) { }
+                try {
+                    if (window.OfflineCheckinManager) {
+                        await Promise.race([
+                            window.OfflineCheckinManager.queueOfflineCheckin({
+                                type: 'itinerary',
+                                itemId: itemId,
+                                spotId: spotId,
+                                itineraryId: tripId,
+                                spotName: spotName,
+                                lat: window.myLat || 16.6159,
+                                lng: window.myLng || 120.3209,
+                                image: firstFile,
+                                previewUrl: previewUrls[0] || null,
+                                capturedAt: (typeof window.getPhilippineTimestampISO === 'function' ? window.getPhilippineTimestampISO() : new Date().toISOString())
+                            }),
+                            new Promise((_, reject) => setTimeout(() => reject(new Error('Offline save timed out')), 8000))
+                        ]);
+                    }
+                    window.closePhotoUploadModal();
+                    if (typeof showToast === 'function') {
+                        showToast('📍 Photo saved on device! Auto-syncs when online.', 'success');
+                    }
+                    if (window.confetti) {
+                        try { window.confetti({ particleCount: 70, spread: 60, origin: { y: 0.7 } }); } catch (e) { }
+                    }
+                } catch (offErr) {
+                    console.warn('Offline photo save failed:', offErr);
+                    if (typeof showToast === 'function') showToast('Could not save photo offline. Please try again.', 'error');
+                } finally {
+                    resetSubmitBtn();
                 }
                 return;
             }

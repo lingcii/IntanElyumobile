@@ -3447,12 +3447,10 @@ $activeTab = 'profile';
                 const _isGuest = !_tok || _tok === 'guest_token' || _tok === 'offline_guest_token' || _tok.indexOf('guest_') === 0 || _tok.indexOf('offline_') === 0 || localStorage.getItem('intan_elyu_guest') === 'true' || localStorage.getItem('intan_elyu_offline_guest') === 'true';
                 if (!_isGuest) {
                     hydrateProfileFromCache();
-                    const now = Date.now();
                     window._viewRenderedAt = window._viewRenderedAt || {};
-                    const isStale = Boolean(window.profileNeedsRefresh) || (now - (window._viewRenderedAt['profile'] || 0) > 180000);
-                    if (isStale) {
-                        window._viewRenderedAt['profile'] = now;
-                        window.profileNeedsRefresh = false;
+                    window._viewRenderedAt['profile'] = Date.now();
+                    window.profileNeedsRefresh = false;
+                    if (navigator.onLine && window.isAppOnline !== false) {
                         fetchProfileData(true);
                         fetchPointsAndVouchers(true);
                     }
@@ -3506,7 +3504,7 @@ $activeTab = 'profile';
     var _initGuest = !_initTok || _initTok === 'guest_token' || _initTok === 'offline_guest_token' || _initTok.indexOf('guest_') === 0 || _initTok.indexOf('offline_') === 0 || localStorage.getItem('intan_elyu_guest') === 'true' || localStorage.getItem('intan_elyu_offline_guest') === 'true';
     if (!_initGuest) {
         hydrateProfileFromCache();
-        fetchProfileData();
+        fetchProfileData(true);
         fetchPointsAndVouchers(true);
         if (typeof window.loadUserReviewsAndCheckins === 'function') {
             window.loadUserReviewsAndCheckins(true);

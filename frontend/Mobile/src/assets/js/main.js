@@ -90,8 +90,13 @@ window.syncUserPointsEverywhere = function (newPoints, newVoucherItem, extraStat
         el.textContent = `${pts.toLocaleString()} Points`;
     });
     if (placesVal !== null) {
-        document.querySelectorAll('#dash-stat-places, #profile-places-val').forEach(el => {
+        document.querySelectorAll('#dash-stat-places, #profile-places-val, #stat-places').forEach(el => {
             el.textContent = placesVal.toLocaleString();
+        });
+    }
+    if (rankVal !== undefined && rankVal !== null && Number(rankVal) > 0 && Number(rankVal) < 999) {
+        document.querySelectorAll('#stat-rank').forEach(el => {
+            el.textContent = '#' + rankVal;
         });
     }
 
@@ -4591,32 +4596,45 @@ window.submitTripPhotos = async function () {
         token.startsWith('offline_');
 
     if (isOfflineItem) {
-        if (window.OfflineCheckinManager) {
-            const queuedEntry = await window.OfflineCheckinManager.queueOfflineCheckin({
-                type: 'itinerary',
-                itemId: itemId,
-                spotId: spotId,
-                itineraryId: tripId,
-                spotName: spotName,
-                lat: window.myLat || 16.6159,
-                lng: window.myLng || 120.3209,
-                image: firstFile,
-                previewUrl: previewUrls[0] || null,
-                capturedAt: window.getPhilippineTimestampISO(),
-                isPhotoUploadOnly: true
-            });
-            const queuedPreview = queuedEntry?.previewUrl || previewUrls[0] || null;
-            if (queuedPreview) window.applyTripPhotoUpdateLocally(itemId, [queuedPreview], 'pending', true);
-        }
-        window.closePhotoUploadModal();
-        if (typeof showToast === 'function') {
-            showToast('📍 Photo saved on device! Auto-syncs when online.', 'success');
-        }
-        if (window.confetti) {
-            try { window.confetti({ particleCount: 70, spread: 60, origin: { y: 0.7 } }); } catch (e) { }
-        }
-        if (Array.isArray(window._cachedSavedTrips) && typeof window.renderSavedTrips === 'function') {
-            window.renderSavedTrips(window._cachedSavedTrips);
+        try {
+            if (window.OfflineCheckinManager) {
+                const queuedEntry = await Promise.race([
+                    window.OfflineCheckinManager.queueOfflineCheckin({
+                        type: 'itinerary',
+                        itemId: itemId,
+                        spotId: spotId,
+                        itineraryId: tripId,
+                        spotName: spotName,
+                        lat: window.myLat || 16.6159,
+                        lng: window.myLng || 120.3209,
+                        image: firstFile,
+                        previewUrl: previewUrls[0] || null,
+                        capturedAt: window.getPhilippineTimestampISO(),
+                        isPhotoUploadOnly: true
+                    }),
+                    new Promise((_, reject) => setTimeout(() => reject(new Error('Offline save timed out')), 8000))
+                ]);
+                const queuedPreview = queuedEntry?.previewUrl || previewUrls[0] || null;
+                if (queuedPreview) window.applyTripPhotoUpdateLocally(itemId, [queuedPreview], 'pending', true);
+            }
+            window.closePhotoUploadModal();
+            if (typeof showToast === 'function') {
+                showToast('📍 Photo saved on device! Auto-syncs when online.', 'success');
+            }
+            if (window.confetti) {
+                try { window.confetti({ particleCount: 70, spread: 60, origin: { y: 0.7 } }); } catch (e) { }
+            }
+            if (Array.isArray(window._cachedSavedTrips) && typeof window.renderSavedTrips === 'function') {
+                window.renderSavedTrips(window._cachedSavedTrips);
+            }
+        } catch (offErr) {
+            console.warn('Offline photo save failed:', offErr);
+            if (typeof showToast === 'function') showToast('Could not save photo offline. Please try again.', 'error');
+        } finally {
+            if (btn) {
+                btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up" style="margin-right:6px;"></i> Submit';
+                btn.disabled = false;
+            }
         }
         return;
     }
@@ -9242,13 +9260,23 @@ window.navigateTo = navigateTo;
     window.getDestImages = function (dest, width) {
         if (!width) width = 600;
         var list = [];
-
-        if (dest && typeof dest === 'object') {
-            if (Array.isArray(dest.images) && dest.images.length > 0) {
-                dest.images.forEach(function (imgItem) {
+        var seenNames = {};
+        var normName = function (u) {
+            if (!u) return '';
+            var clean = String(u).split(/[?#]/)[0];
+            var parts = clean.split('/');
+            return (parts[parts.length - 1] || '').toLowerCase().trim();
+        };
+        var seenNames = {};
+        var normName = function (u) {
+            if (!u) return '';
+            var clean = String(u).split(/[?#]/)[0];
+            var parts = clean.split('/');
                     var resolved = window.getDestImage(imgItem, width);
-                    if (resolved && !list.includes(resolved) && resolved !== 'assets/img/no_image.svg' && resolved !== window.noImageFallback) {
+                    var key = normName(resolved);
+                    if (resolved && !list.includes(resolved) && (!key || !seenNames[key]) && resolved !== 'assets/img/no_image.svg' && resolved !== window.noImageFallback) {
                         list.push(resolved);
+                        if (key) seenNames[key] = true;
                     }
                 });
             }

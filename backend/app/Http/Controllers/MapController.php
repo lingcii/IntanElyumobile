@@ -139,21 +139,29 @@ class MapController extends Controller
                     };
 
                     $imagesList = [];
+                    $seenImageKeys = [];
+                    $normalizeImgKey = static function ($u): string {
+                        $path = (string) (parse_url((string) $u, PHP_URL_PATH) ?: $u);
+                        return strtolower(basename(str_replace('\\', '/', trim($path))));
+                    };
                     $visitorPhotosList = $spotVisitorPhotosMap[$spot->id] ?? [];
 
                     if ($spot->photo_url && !$isVisitorProofUrl($spot->photo_url)) {
                         $imagesList[] = $spot->photo_url;
+                        $seenImageKeys[$normalizeImgKey($spot->photo_url)] = true;
                     }
                     if ($spot instanceof TouristSpot && $spot->relationLoaded('images') && $spot->images && $spot->images->isNotEmpty()) {
                         foreach ($spot->images as $imgObj) {
                             $pUrl = $imgObj->photo_url ?? null;
                             if (!$pUrl) continue;
+                            $imgKey = $normalizeImgKey($pUrl);
                             if ($isVisitorProofUrl($pUrl)) {
                                 if (!in_array($pUrl, $visitorPhotosList)) {
                                     $visitorPhotosList[] = $pUrl;
                                 }
-                            } elseif (!in_array($pUrl, $imagesList)) {
+                            } elseif (!in_array($pUrl, $imagesList) && ($imgKey === '' || !isset($seenImageKeys[$imgKey]))) {
                                 $imagesList[] = $pUrl;
+                                if ($imgKey !== '') $seenImageKeys[$imgKey] = true;
                             }
                         }
                     }

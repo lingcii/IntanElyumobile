@@ -2585,35 +2585,43 @@ $backRoute = 'itinerary';
                 token.startsWith('guest_') ||
                 token.startsWith('offline_');
 
-            // If item is created offline or app is offline, store in OfflineCheckinManager and finish instantly!
             if (isOfflineItem) {
-                if (window.OfflineCheckinManager) {
-                    const queuedEntry = await window.OfflineCheckinManager.queueOfflineCheckin({
-                        type: 'itinerary',
-                        itemId: itemId,
-                        spotId: spotId,
-                        itineraryId: tripId,
-                        spotName: spotName,
-                        lat: window.myLat || 16.6159,
-                        lng: window.myLng || 120.3209,
-                        image: firstFile,
-                        previewUrl: previewUrls[0] || null,
-                        capturedAt: (typeof window.getPhilippineTimestampISO === 'function' ? window.getPhilippineTimestampISO() : new Date().toISOString()),
-                        isPhotoUploadOnly: true
-                    });
-                    const queuedPreview = queuedEntry?.previewUrl || previewUrls[0] || null;
-                    if (queuedPreview) window.applyTripPhotoUpdateLocally(itemId, [queuedPreview], 'pending', true);
-                }
-                window.closePhotoUploadModal();
-                if (typeof showToast === 'function') {
-                    showToast('📍 Photo saved on device! Auto-syncs when online.', 'success');
-                }
-                if (window.confetti) {
-                    try { window.confetti({ particleCount: 70, spread: 60, origin: { y: 0.7 } }); } catch (e) { }
-                }
-                // Re-render once more with queued status
-                if (Array.isArray(window._cachedSavedTrips) && typeof renderSavedTrips === 'function') {
-                    renderSavedTrips(window._cachedSavedTrips);
+                try {
+                    if (window.OfflineCheckinManager) {
+                        const queuedEntry = await Promise.race([
+                            window.OfflineCheckinManager.queueOfflineCheckin({
+                                type: 'itinerary',
+                                itemId: itemId,
+                                spotId: spotId,
+                                itineraryId: tripId,
+                                spotName: spotName,
+                                lat: window.myLat || 16.6159,
+                                lng: window.myLng || 120.3209,
+                                image: firstFile,
+                                previewUrl: previewUrls[0] || null,
+                                capturedAt: (typeof window.getPhilippineTimestampISO === 'function' ? window.getPhilippineTimestampISO() : new Date().toISOString()),
+                                isPhotoUploadOnly: true
+                            }),
+                            new Promise((_, reject) => setTimeout(() => reject(new Error('Offline save timed out')), 8000))
+                        ]);
+                        const queuedPreview = queuedEntry?.previewUrl || previewUrls[0] || null;
+                        if (queuedPreview) window.applyTripPhotoUpdateLocally(itemId, [queuedPreview], 'pending', true);
+                    }
+                    window.closePhotoUploadModal();
+                    if (typeof showToast === 'function') {
+                        showToast('📍 Photo saved on device! Auto-syncs when online.', 'success');
+                    }
+                    if (window.confetti) {
+                        try { window.confetti({ particleCount: 70, spread: 60, origin: { y: 0.7 } }); } catch (e) { }
+                    }
+                    if (Array.isArray(window._cachedSavedTrips) && typeof renderSavedTrips === 'function') {
+                        renderSavedTrips(window._cachedSavedTrips);
+                    }
+                } catch (offErr) {
+                    console.warn('Offline photo save failed:', offErr);
+                    if (typeof showToast === 'function') showToast('Could not save photo offline. Please try again.', 'error');
+                } finally {
+                    resetSubmitBtn();
                 }
                 return;
             }
