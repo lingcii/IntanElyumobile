@@ -7905,7 +7905,8 @@ window.navigateTo = navigateTo;
                             if (u.avatar || u.profile_picture || u.avatar_url) {
                                 avEl.src = u.avatar || u.profile_picture || u.avatar_url;
                             } else if (u.name || u.full_name) {
-                                avEl.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(u.name || u.full_name) + '&background=007AFF&color=fff&rounded=true&bold=true&size=128';
+                                const avName = window.getAvatarInitialsName ? window.getAvatarInitialsName(u.name || u.full_name) : (u.name || u.full_name);
+                                avEl.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(avName) + '&background=007AFF&color=fff&rounded=true&bold=true&size=128';
                             }
                         }
                         var ptEl = document.getElementById('dash-stat-points');
@@ -9257,6 +9258,13 @@ window.navigateTo = navigateTo;
      * @param {number} [width=600]
      * @returns {Array<string>} Array of image URLs
      */
+    window.getAvatarInitialsName = function (fullName) {
+        const cleaned = String(fullName || '').trim().replace(/\s+/g, ' ');
+        if (!cleaned) return 'Explorer';
+        const parts = cleaned.split(' ');
+        return parts.length >= 2 ? (parts[0] + ' ' + parts[parts.length - 1]) : parts[0];
+    };
+
     window.getDestImages = function (dest, width) {
         if (!width) width = 600;
         var list = [];

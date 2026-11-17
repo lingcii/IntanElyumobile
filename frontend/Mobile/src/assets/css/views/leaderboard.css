@@ -98,7 +98,7 @@ body[data-view="leaderboard"] .mobile-header .header-icon i {
     position: relative;
     display: flex;
     background: #f1f5f9 !important;
-    border: none !important;
+    border: 1.5px solid #cbd5e1 !important;
     outline: none !important;
     border-radius: 100px;
     padding: 4px;

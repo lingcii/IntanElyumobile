@@ -3850,7 +3850,8 @@ window.applyTouristSitesFilterModal = function() {
                 if (u && u.avatar) {
                     setSrc('dash-avatar', u.avatar);
                 } else if (u && u.name) {
-                    setSrc('dash-avatar', `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name)}&background=007AFF&color=fff&rounded=true&bold=true&size=128`);
+                    const avatarName = window.getAvatarInitialsName ? window.getAvatarInitialsName(u.name) : u.name;
+                    setSrc('dash-avatar', `https://ui-avatars.com/api/?name=${encodeURIComponent(avatarName)}&background=007AFF&color=fff&rounded=true&bold=true&size=128`);
                 }
             }
         }
@@ -4397,13 +4398,15 @@ window.applyTouristSitesFilterModal = function() {
                                 this.src = fallbackAvatar;
                             } else {
                                 this.onerror = null;
-                                this.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name || 'Tourist')}&background=007AFF&color=fff&rounded=true&bold=true&size=128`;
+                                const avatarName = window.getAvatarInitialsName ? window.getAvatarInitialsName(u.name || 'Tourist') : (u.name || 'Tourist');
+                                this.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(avatarName)}&background=007AFF&color=fff&rounded=true&bold=true&size=128`;
                             }
                         };
                         dashAvatarEl.src = avatarUrl;
                     }
                 } else {
-                    setSrc('dash-avatar', `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name || 'Tourist')}&background=007AFF&color=fff&rounded=true&bold=true&size=128`);
+                    const avatarName = window.getAvatarInitialsName ? window.getAvatarInitialsName(u.name || 'Tourist') : (u.name || 'Tourist');
+                    setSrc('dash-avatar', `https://ui-avatars.com/api/?name=${encodeURIComponent(avatarName)}&background=007AFF&color=fff&rounded=true&bold=true&size=128`);
                 }
 
                 // Stats

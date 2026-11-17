@@ -53,7 +53,7 @@ $activeTab = 'leaderboard';
             <div class="standing-info">
                 <div class="standing-name-row">
                     <span id="my-explorer-title"
-                        style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Your Standing</span>
+                        style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"></span>
                     <span id="my-standing-tag"
                         style="font-size: 9.5px; background: rgba(0, 242, 254, 0.2); color: #00f2fe; padding: 2px 7px; border-radius: 100px; font-weight: 800; border: none !important; outline: none !important;">YOU</span>
                 </div>
@@ -343,7 +343,8 @@ $activeTab = 'leaderboard';
                 const myExplorerName = getMyFormattedName(authUser, cachedMeData);
                 if (titleEl) titleEl.textContent = myExplorerName;
                 if (tagEl) { tagEl.textContent = 'YOU'; tagEl.style.display = ''; }
-                if (avatarEl) avatarEl.src = (cachedMeData && cachedMeData.avatar) ? cachedMeData.avatar : (authUser.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(myExplorerName)}&background=007AFF&color=fff&rounded=true&bold=true&size=128`);
+                const avatarName = window.getAvatarInitialsName ? window.getAvatarInitialsName(myExplorerName) : myExplorerName;
+                if (avatarEl) avatarEl.src = (cachedMeData && cachedMeData.avatar) ? cachedMeData.avatar : (authUser.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(avatarName)}&background=007AFF&color=fff&rounded=true&bold=true&size=128`);
                 const myPts = parseInt(authUser.points || authUser.xp || 0);
                 const myActs = parseInt(authUser.completed_activities || authUser.places_visited || 0);
                 if (rankCircle) {
@@ -477,16 +478,26 @@ $activeTab = 'leaderboard';
                 (myRealId > 0 && Number(cachedMeData.id || cachedMeData.user_id || 0) === myRealId) ||
                 (myRealEmail && cachedMeData.email && String(cachedMeData.email).trim().toLowerCase() === myRealEmail)
             ));
-            const myPts = isMeMatches ? parseInt(cachedMeData.points ?? cachedMeData.pts ?? cachedMeData.total_points ?? cachedMeData.claimable_points ?? 0) : parseInt(authUser.points || authUser.xp || 0);
-            const myActivities = isMeMatches ? parseInt(cachedMeData.completed_activities ?? cachedMeData.activities ?? cachedMeData.total_activities ?? cachedMeData.places_visited ?? 0) : parseInt(authUser.completed_activities || authUser.places_visited || 0);
-            const hasEarnedRank = Boolean((cachedMyRank && cachedMyRank < 999) || myPts > 0 || myActivities > 0);
-            const myRankNum = (cachedMyRank && cachedMyRank < 999) ? cachedMyRank : (hasEarnedRank ? (rawLeadersList.length > 0 ? (rawLeadersList.length + '+') : '★') : '—');
+            const myPts = isMeMatches
+                ? parseInt(cachedMeData.points ?? cachedMeData.pts ?? cachedMeData.total_points ?? cachedMeData.claimable_points ?? 0)
+                : (currentDateFilter === 'all' ? parseInt(authUser.points || authUser.xp || 0) : 0);
+            const myActivities = isMeMatches
+                ? parseInt(cachedMeData.completed_activities ?? cachedMeData.activities ?? cachedMeData.total_activities ?? cachedMeData.places_visited ?? 0)
+                : (currentDateFilter === 'all' ? parseInt(authUser.completed_activities || authUser.places_visited || 0) : 0);
+            const hasEarnedRank = Boolean(
+                (cachedMyRank && cachedMyRank < 999) ||
+                (currentSortMode === 'visited' ? myActivities > 0 : (myPts > 0 || (currentDateFilter === 'all' && myActivities > 0)))
+            );
+            const myRankNum = (cachedMyRank && cachedMyRank < 999)
+                ? cachedMyRank
+                : (hasEarnedRank ? (rawLeadersList.length > 0 ? (rawLeadersList.length + 1) : 1) : '—');
             const myExplorerName = getMyFormattedName(authUser, cachedMeData);
             const myDisplayName = (!hasEarnedRank) ? `${myExplorerName} (Unranked)` : myExplorerName;
             const rawAvatar = cachedMeData && cachedMeData.avatar ? cachedMeData.avatar : (authUser.avatar || '');
+            const avatarName = window.getAvatarInitialsName ? window.getAvatarInitialsName(myExplorerName) : myExplorerName;
             const myAvatar = (rawAvatar && rawAvatar !== 'null' && rawAvatar !== 'undefined' && String(rawAvatar).trim() !== '')
                 ? rawAvatar
-                : `https://ui-avatars.com/api/?name=${encodeURIComponent(myExplorerName)}&background=007AFF&color=fff&rounded=true&bold=true&size=128`;
+                : `https://ui-avatars.com/api/?name=${encodeURIComponent(avatarName)}&background=007AFF&color=fff&rounded=true&bold=true&size=128`;
 
             window.myUserData = {
                 name: myExplorerName,
@@ -804,8 +815,8 @@ $activeTab = 'leaderboard';
         if (rankNumEl) rankNumEl.innerText = isUnranked ? 'Unranked' : '#' + cleanRank;
         document.getElementById('modal-activities').innerText = activities ? Number(activities).toLocaleString() : '0';
 
-        // When viewing self, fetch fresh live balance to guarantee accuracy
-        if (isSelf) {
+        // When viewing self on All Time, fetch fresh live balance to guarantee accuracy
+        if (isSelf && currentDateFilter === 'all') {
             const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('api_token');
             if (token) {
                 const backendUrl = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
@@ -850,7 +861,8 @@ $activeTab = 'leaderboard';
         }
         const headerStatus = document.getElementById('modal-header-status');
         if (headerStatus) {
-            headerStatus.textContent = isSelf ? 'Your Standing' : 'Leaderboard Standing';
+            headerStatus.textContent = isSelf ? '' : 'Leaderboard Standing';
+            headerStatus.style.display = isSelf ? 'none' : '';
         }
 
         // Yourself should not be sending high fives to yourself

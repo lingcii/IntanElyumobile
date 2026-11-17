@@ -538,7 +538,8 @@ $activeTab = 'profile';
             if (u.avatar && u.avatar !== 'null' && u.avatar !== 'undefined' && String(u.avatar).trim().length > 0) {
                 elImg.src = window.getFullImageUrl ? window.getFullImageUrl(u.avatar) : u.avatar;
             } else {
-                const fbName = encodeURIComponent(u.name || 'Explorer');
+                const rawFb = u.name || 'Explorer';
+                const fbName = encodeURIComponent(window.getAvatarInitialsName ? window.getAvatarInitialsName(rawFb) : rawFb);
                 elImg.src = `https://ui-avatars.com/api/?name=${fbName}&background=1e3a8a&color=fff&rounded=true&bold=true&size=128`;
             }
         }
@@ -1111,8 +1112,11 @@ $activeTab = 'profile';
             if (_cachedAuth.email && document.getElementById('profile-email')) {
                 document.getElementById('profile-email').textContent = _cachedAuth.email;
             }
-            if (_cachedAuth.avatar && document.getElementById('profile-img')) {
+            if (_cachedAuth.avatar && _cachedAuth.avatar !== 'null' && _cachedAuth.avatar !== 'undefined' && String(_cachedAuth.avatar).trim().length > 0 && document.getElementById('profile-img')) {
                 document.getElementById('profile-img').src = window.getFullImageUrl ? window.getFullImageUrl(_cachedAuth.avatar) : _cachedAuth.avatar;
+            } else if (_cachedAuth.name && document.getElementById('profile-img')) {
+                const initName = encodeURIComponent(window.getAvatarInitialsName ? window.getAvatarInitialsName(_cachedAuth.name) : _cachedAuth.name);
+                document.getElementById('profile-img').src = `https://ui-avatars.com/api/?name=${initName}&background=1e3a8a&color=fff&rounded=true&bold=true&size=128`;
             }
             if (_cachedAuth.points !== undefined || _cachedAuth.xp !== undefined) {
                 const pts = parseInt(_cachedAuth.points !== undefined ? _cachedAuth.points : _cachedAuth.xp) || 0;

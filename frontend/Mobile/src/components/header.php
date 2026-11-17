@@ -225,7 +225,8 @@
                 const fullName = combinedParts || (user.name || '').trim() || 'Explorer';
                 if (nameEl) nameEl.textContent = fullName;
                 if (avatarEl) {
-                    avatarEl.src = user.avatar ? (window.getFullImageUrl ? window.getFullImageUrl(user.avatar) : user.avatar) : `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=007AFF&color=fff&rounded=true&bold=true&size=128`;
+                    const avatarName = window.getAvatarInitialsName ? window.getAvatarInitialsName(fullName) : fullName;
+                    avatarEl.src = user.avatar ? (window.getFullImageUrl ? window.getFullImageUrl(user.avatar) : user.avatar) : `https://ui-avatars.com/api/?name=${encodeURIComponent(avatarName)}&background=007AFF&color=fff&rounded=true&bold=true&size=128`;
                 }
             }
             const logoutBtn = document.getElementById('sidebar-logout-btn');
