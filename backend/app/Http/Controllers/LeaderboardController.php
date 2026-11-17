@@ -89,6 +89,8 @@ class LeaderboardController extends Controller
     {
         $search = trim($request->get('search', ''));
         $rawSort = strtolower(trim($request->get('sort', 'points')));
+        $rawPeriod = strtolower(trim($request->get('period', 'all')));
+        $period = in_array($rawPeriod, ['week', 'month'], true) ? $rawPeriod : 'all';
 
         $myRank = null;
         $me = null;
@@ -106,56 +108,67 @@ class LeaderboardController extends Controller
         $limit = min(max((int) $request->get('limit', 10), 1), $maxLimit);
         $offset = max((int) $request->get('offset', 0), 0);
 
-        // Normalize sorting parameter names (Prioritize Points, Visited & XP)
-        $orderSql = match ($rawSort) {
-            'xp_asc' => 'total_xp ASC, total_points ASC, completed_activities ASC, user_id ASC',
-            'xp', 'top_xp', 'xp_desc' => 'total_xp DESC, total_points DESC, completed_activities DESC, user_id ASC',
-            'points', 'top_points', 'points_desc', 'highest_points' => 'total_points DESC, total_xp DESC, completed_activities DESC, user_id ASC',
-            'points_asc', 'lowest_points' => 'total_points ASC, total_xp ASC, completed_activities ASC, user_id ASC',
-            'most_activities', 'activities', 'activities_desc', 'completed_activities', 'visited', 'most_visited', 'places_visited', 'visited_desc' => 'completed_activities DESC, places_visited DESC, total_points DESC, total_xp DESC, user_id ASC',
-            'least_activities', 'activities_asc' => 'completed_activities ASC, total_points ASC, total_xp ASC, user_id ASC',
-            'name_asc', 'name' => 'full_name ASC, user_id ASC',
-            'name_desc' => 'full_name DESC, user_id ASC',
-            'recent', 'newest', 'latest' => 'points_since DESC, user_id ASC',
-            default => 'total_points DESC, total_xp DESC, completed_activities DESC, user_id ASC',
-        };
+        $isVisitedSort = in_array($rawSort, [
+            'most_activities', 'activities', 'activities_desc', 'completed_activities',
+            'visited', 'most_visited', 'places_visited', 'visited_desc', 'least_activities', 'activities_asc'
+        ], true);
 
-        // Filter out users with zero score for the requested metric
-        $filterSql = match ($rawSort) {
-            'most_activities', 'activities', 'activities_desc', 'completed_activities', 'visited', 'most_visited', 'places_visited', 'visited_desc' => 'AND COALESCE(u.completed_activities, 0) > 0',
-            default => 'AND (COALESCE(u.points, 0) > 0 OR COALESCE(u.xp, 0) > 0 OR COALESCE(u.completed_activities, 0) > 0)',
-        };
+        if ($period !== 'all') {
+            $periodResult = $this->queryForPeriod($period, $search, $isVisitedSort, $rawSort, $limit, $offset, $user);
+            $rows = $periodResult['rows'];
+            $totalTourists = $periodResult['total'];
+            $myRank = $periodResult['my_rank'];
+            $me = $periodResult['me'];
+        } else {
+            // Normalize sorting parameter names (Prioritize Points, Visited & XP)
+            $orderSql = match ($rawSort) {
+                'xp_asc' => 'total_xp ASC, total_points ASC, completed_activities ASC, user_id ASC',
+                'xp', 'top_xp', 'xp_desc' => 'total_xp DESC, total_points DESC, completed_activities DESC, user_id ASC',
+                'points', 'top_points', 'points_desc', 'highest_points' => 'total_points DESC, total_xp DESC, completed_activities DESC, user_id ASC',
+                'points_asc', 'lowest_points' => 'total_points ASC, total_xp ASC, completed_activities ASC, user_id ASC',
+                'most_activities', 'activities', 'activities_desc', 'completed_activities', 'visited', 'most_visited', 'places_visited', 'visited_desc' => 'completed_activities DESC, places_visited DESC, total_points DESC, total_xp DESC, user_id ASC',
+                'least_activities', 'activities_asc' => 'completed_activities ASC, total_points ASC, total_xp ASC, user_id ASC',
+                'name_asc', 'name' => 'full_name ASC, user_id ASC',
+                'name_desc' => 'full_name DESC, user_id ASC',
+                'recent', 'newest', 'latest' => 'points_since DESC, user_id ASC',
+                default => 'total_points DESC, total_xp DESC, completed_activities DESC, user_id ASC',
+            };
 
-        if ($user) {
-            if (method_exists($user, 'syncPlacesVisitedCount')) {
-                $user->syncPlacesVisitedCount();
-            }
-            if (method_exists($user, 'syncPointsBalance')) {
-                $user->syncPointsBalance();
-            }
-            $uPts = (int) ($user->points ?? $user->xp ?? 0);
-            $uActs = (int) ($user->completed_activities ?? 0);
-            if ($uPts > 0 || $uActs > 0) {
-                try {
-                    $myRankRow = DB::selectOne(
-                        $this->rankedCte($orderSql, $filterSql) . "SELECT * FROM ranked WHERE user_id = ?",
-                        [$user->id]
-                    );
-                    if ($myRankRow) {
-                        $myRank = (int) $myRankRow->rank;
-                        $meRows = $this->castRows([(array) $myRankRow]);
-                        $me = $meRows[0] ?? null;
+            // Filter out users with zero score for the requested metric
+            $filterSql = $isVisitedSort
+                ? 'AND COALESCE(u.completed_activities, 0) > 0'
+                : 'AND (COALESCE(u.points, 0) > 0 OR COALESCE(u.xp, 0) > 0 OR COALESCE(u.completed_activities, 0) > 0)';
+
+            if ($user) {
+                if (method_exists($user, 'syncPlacesVisitedCount')) {
+                    $user->syncPlacesVisitedCount();
+                }
+                if (method_exists($user, 'syncPointsBalance')) {
+                    $user->syncPointsBalance();
+                }
+                $uPts = (int) ($user->points ?? $user->xp ?? 0);
+                $uActs = (int) ($user->completed_activities ?? 0);
+                if ($uPts > 0 || $uActs > 0) {
+                    try {
+                        $myRankRow = DB::selectOne(
+                            $this->rankedCte($orderSql, $filterSql) . "SELECT * FROM ranked WHERE user_id = ?",
+                            [$user->id]
+                        );
+                        if ($myRankRow) {
+                            $myRank = (int) $myRankRow->rank;
+                            $meRows = $this->castRows([(array) $myRankRow]);
+                            $me = $meRows[0] ?? null;
+                        }
+                    } catch (\Throwable $e) {
                     }
-                } catch (\Throwable $e) {
                 }
             }
+
+            // Execute dynamic ranked query
+            $cachedData = $this->queryFromLiveCte($search, $orderSql, $limit, $offset, $filterSql);
+            $rows = $this->castRows($cachedData['rows']);
+            $totalTourists = (int) ($cachedData['total'] ?? count($rows));
         }
-
-        // Execute dynamic ranked query
-        $cachedData = $this->queryFromLiveCte($search, $orderSql, $limit, $offset, $filterSql);
-        $rows = $this->castRows($cachedData['rows']);
-
-        $totalTourists = (int) ($cachedData['total'] ?? count($rows));
         $highestXp = count($rows) > 0 ? (int) max(array_column($rows, 'total_xp')) : 0;
         $highestPoints = count($rows) > 0 ? (int) max(array_column($rows, 'total_points')) : 0;
         $totalActivities = (int) array_sum(array_column($rows, 'completed_activities'));
@@ -193,6 +206,172 @@ class LeaderboardController extends Controller
             'limit' => $limit,
             'updated_at' => now()->toIso8601String(),
         ])->header('Cache-Control', 'no-store, no-cache, must-revalidate');
+    }
+
+    /**
+     * Aggregate points (from activity_logs) and visited stops (from itinerary_items) within week/month.
+     */
+    private function queryForPeriod(string $period, string $search, bool $isVisitedSort, string $rawSort, int $limit, int $offset, $currentUser): array
+    {
+        $nowPh = now('Asia/Manila');
+        $cutoffPh = $period === 'week'
+            ? $nowPh->copy()->startOfWeek(\Carbon\Carbon::SUNDAY)
+            : $nowPh->copy()->startOfMonth();
+        $cutoff = $cutoffPh->copy()->setTimezone(config('app.timezone', 'UTC'));
+        $pointsByUser = [];
+        $visitedByUser = [];
+        $latestAtByUser = [];
+
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('activity_logs')) {
+                $logs = DB::table('activity_logs')
+                    ->where('action', 'Points Awarded')
+                    ->where('created_at', '>=', $cutoff)
+                    ->whereNotNull('user_id')
+                    ->get(['user_id', 'details', 'created_at']);
+                foreach ($logs as $log) {
+                    $uid = (int) $log->user_id;
+                    if ($uid <= 0) continue;
+                    if (preg_match('/Earned\s*\+?(\d+)\s*Points/i', (string) ($log->details ?? ''), $m)) {
+                        $pointsByUser[$uid] = ($pointsByUser[$uid] ?? 0) + (int) $m[1];
+                    }
+                    if (!isset($latestAtByUser[$uid]) || $log->created_at > $latestAtByUser[$uid]) {
+                        $latestAtByUser[$uid] = $log->created_at;
+                    }
+                }
+            }
+        } catch (\Throwable $e) {}
+
+        try {
+            $visitRows = DB::table('itinerary_items as ii')
+                ->join('itineraries as i', 'ii.itinerary_id', '=', 'i.id')
+                ->whereNotNull('i.user_id')
+                ->whereNotNull('ii.tourist_spot_id')
+                ->where(function ($q) {
+                    $q->where('ii.is_visited', true)
+                      ->orWhereNotNull('ii.visited_at')
+                      ->orWhere('i.status', 'completed');
+                })
+                ->whereRaw('COALESCE(ii.visited_at, ii.updated_at, ii.created_at) >= ?', [$cutoff])
+                ->selectRaw('i.user_id as user_id, COUNT(*) as cnt, MAX(COALESCE(ii.visited_at, ii.updated_at, ii.created_at)) as latest_at')
+                ->groupBy('i.user_id')
+                ->get();
+            foreach ($visitRows as $vr) {
+                $uid = (int) $vr->user_id;
+                $visitedByUser[$uid] = (int) $vr->cnt;
+                if (!isset($latestAtByUser[$uid]) || $vr->latest_at > $latestAtByUser[$uid]) {
+                    $latestAtByUser[$uid] = $vr->latest_at;
+                }
+            }
+        } catch (\Throwable $e) {}
+
+        $activeUserIds = array_values(array_unique(array_merge(array_keys($pointsByUser), array_keys($visitedByUser))));
+        if (empty($activeUserIds)) {
+            return ['rows' => [], 'total' => 0, 'my_rank' => null, 'me' => null];
+        }
+
+        $users = DB::table('users as u')
+            ->leftJoin('municipalities as m', 'u.municipality_id', '=', 'm.id')
+            ->where('u.role', 'tourist')
+            ->where(function ($q) {
+                $q->where('u.status', 'active')->orWhereNull('u.status');
+            })
+            ->whereIn('u.id', $activeUserIds)
+            ->select([
+                'u.id as user_id',
+                'u.name',
+                'u.email',
+                'u.avatar',
+                'u.home_location',
+                'u.bio',
+                'u.is_leaderboard_private',
+                'u.created_at',
+                DB::raw("COALESCE(NULLIF(m.name, ''), NULLIF(u.home_location, ''), 'La Union') as municipality"),
+            ])
+            ->get();
+
+        $allTouristIds = DB::table('users')->where('role', 'tourist')->orderBy('id')->pluck('id')->all();
+        $touristNumMap = array_flip($allTouristIds);
+
+        $candidates = [];
+        foreach ($users as $u) {
+            $uid = (int) $u->user_id;
+            $pts = (int) ($pointsByUser[$uid] ?? 0);
+            $acts = (int) ($visitedByUser[$uid] ?? 0);
+            if ($isVisitedSort && $acts <= 0) continue;
+            if (!$isVisitedSort && $pts <= 0) continue;
+
+            if ($search !== '') {
+                $hay = strtolower(($u->name ?? '') . ' ' . $uid . ' ' . ($u->municipality ?? ''));
+                if (!str_contains($hay, strtolower($search))) continue;
+            }
+
+            $candidates[] = [
+                'user_id' => $uid,
+                'tourist_number' => isset($touristNumMap[$uid]) ? ($touristNumMap[$uid] + 1) : $uid,
+                'name' => $u->name,
+                'full_name' => $u->name ?: "Explorer #{$uid}",
+                'email' => $u->email,
+                'avatar' => $u->avatar,
+                'home_location' => $u->home_location,
+                'municipality' => $u->municipality,
+                'bio' => $u->bio,
+                'is_leaderboard_private' => $u->is_leaderboard_private,
+                'last_activity_date' => $latestAtByUser[$uid] ?? $u->created_at,
+                'total_xp' => $pts,
+                'xp' => $pts,
+                'points' => $pts,
+                'total_points' => $pts,
+                'claimable_points' => $pts,
+                'completed_activities' => $acts,
+                'places_visited' => $acts,
+                'points_since' => $latestAtByUser[$uid] ?? $u->created_at,
+                'created_at' => $u->created_at,
+            ];
+        }
+
+        usort($candidates, function ($a, $b) use ($isVisitedSort, $rawSort) {
+            if ($isVisitedSort) {
+                if ($b['completed_activities'] !== $a['completed_activities']) {
+                    return $b['completed_activities'] <=> $a['completed_activities'];
+                }
+                if ($b['total_points'] !== $a['total_points']) {
+                    return $b['total_points'] <=> $a['total_points'];
+                }
+                return $a['user_id'] <=> $b['user_id'];
+            }
+            if (in_array($rawSort, ['points_asc', 'lowest_points'], true)) {
+                return ($a['total_points'] <=> $b['total_points']) ?: ($a['user_id'] <=> $b['user_id']);
+            }
+            if ($b['total_points'] !== $a['total_points']) {
+                return $b['total_points'] <=> $a['total_points'];
+            }
+            if ($b['completed_activities'] !== $a['completed_activities']) {
+                return $b['completed_activities'] <=> $a['completed_activities'];
+            }
+            return $a['user_id'] <=> $b['user_id'];
+        });
+
+        $myRank = null;
+        $me = null;
+        $ranked = [];
+        foreach ($candidates as $idx => $row) {
+            $row['rank'] = $idx + 1;
+            $ranked[] = $row;
+            if ($currentUser && (int) $currentUser->id === (int) $row['user_id']) {
+                $myRank = $row['rank'];
+                $castMe = $this->castRows([$row]);
+                $me = $castMe[0] ?? null;
+            }
+        }
+
+        $paged = array_slice($ranked, $offset, $limit);
+        return [
+            'rows' => $this->castRows($paged),
+            'total' => count($ranked),
+            'my_rank' => $myRank,
+            'me' => $me,
+        ];
     }
 
     /**

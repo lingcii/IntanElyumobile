@@ -311,7 +311,7 @@ body.trip-guide-open .floating-trip-guide-btn {
                 {
                     number: 2,
                     title: "Companion Ages & PWD",
-                    desc: "Enter each companion's age (automatically tagged as Kid, Adult, or Senior) and check PWD if applicable for statutory discounts.",
+                    desc: "Enter each companion's age (automatically tagged as Kid/Child 0-12, Teenager 13-17, Adult 18-59, or Senior Citizen 60+) and check PWD if applicable for statutory discounts.",
                     pinX: "55%",
                     pinY: "58%"
                 },

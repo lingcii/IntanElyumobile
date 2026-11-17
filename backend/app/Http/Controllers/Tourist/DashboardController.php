@@ -144,15 +144,8 @@ class DashboardController extends Controller
 
         // If the tourist has 0 points and 0 places/activities, they are unranked (null)
         if ($userPoints > 0 || $userPlaces > 0) {
-            $myRank = Cache::remember("rank:user:{$user->id}", 60, function () use ($user) {
+            $myRank = Cache::remember("rank:user:{$user->id}", 15, function () use ($user) {
                 try {
-                    if (\Illuminate\Support\Facades\Schema::hasTable('leaderboard_cache')) {
-                        $cached = DB::table('leaderboard_cache')->where('user_id', $user->id)->first();
-                        if ($cached && (int) ($cached->total_points ?? 0) > 0) {
-                            return (int) $cached->rank;
-                        }
-                    }
-
                     $rankData = DB::selectOne("
                         WITH ranked AS (
                             SELECT

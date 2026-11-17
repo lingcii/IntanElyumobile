@@ -9265,4 +9265,574 @@ window.navigateTo = navigateTo;
             if (!u) return '';
             var clean = String(u).split(/[?#]/)[0];
             var parts = clean.split('/');
-... [truncated for diff preview]
+            return (parts[parts.length - 1] || '').toLowerCase().trim();
+        };
+
+        if (dest && typeof dest === 'object') {
+            if (Array.isArray(dest.images) && dest.images.length > 0) {
+                dest.images.forEach(function (imgItem) {
+                    var resolved = window.getDestImage(imgItem, width);
+                    var key = normName(resolved);
+                    if (resolved && !list.includes(resolved) && (!key || !seenNames[key]) && resolved !== 'assets/img/no_image.svg' && resolved !== window.noImageFallback) {
+                        list.push(resolved);
+                        if (key) seenNames[key] = true;
+                    }
+                });
+            }
+        }
+
+        if (list.length === 0) {
+            var single = window.getDestImage(dest, width);
+            if (single) list.push(single);
+        }
+
+        return list;
+    };
+
+    window.noImageFallback = 'assets/img/no_image.svg';
+
+    function safeCacheSet(key, valueStr) {
+        try {
+            localStorage.setItem(key, valueStr);
+            return true;
+        } catch (e) {
+            const isQuota = e && (e.name === 'QuotaExceededError' || e.code === 22 || e.code === 1014 || e.number === -2147024882);
+            if (!isQuota) return false;
+            try {
+                const preserveKeys = ['auth_user', 'auth_user_backup', 'intan_elyu_user', 'intan_elyu_token', 'Intan_Elyu_Token', 'api_token', 'user_role', 'offline_queue'];
+                const keysToRemove = [];
+                for (let i = 0; i < localStorage.length; i++) {
+                    const k = localStorage.key(i);
+                    if (!k || preserveKeys.includes(k)) continue;
+                    if (k.startsWith('dashboard_data_') || k.startsWith('dashboard_rank_') || k.startsWith('places_cache_') || k.includes('_cache') || k.startsWith('weather_') || k.startsWith('points_balance_')) {
+                        keysToRemove.push(k);
+                    }
+                }
+                keysToRemove.forEach(k => {
+                    try { localStorage.removeItem(k); } catch (_) {}
+                });
+                localStorage.setItem(key, valueStr);
+                return true;
+            } catch (_) {
+                return false;
+            }
+        }
+    }
+
+    /**
+     * Stale-While-Revalidate Caching fetch helper
+     * @param {string} cacheKey - The key to use in localStorage
+     * @param {Function} fetchFn - Function returning a Promise that fetches the data
+     * @param {Function} callback - Callback function(data, isCached) called with the data
+     * @param {boolean} [forceRefresh=false] - If true, ignores cache age (but still does SWR if cache exists)
+     * @param {number} [ttl=60000] - Time in ms before cache is considered stale (default 1 minute)
+     */
+    window.useCache = async function (cacheKey, fetchFn, callback, forceRefresh = false, ttl = 60000) {
+        const cached = localStorage.getItem(cacheKey);
+        let cachedData = null;
+        let isExpired = true;
+
+        if (cached) {
+            try {
+                cachedData = window.safeJsonParse(cached, null);
+                if (cachedData && cachedData.hasOwnProperty('data')) {
+                    // Stale-While-Revalidate: render cached data immediately
+                    callback(cachedData.data, true);
+                    const age = Date.now() - (cachedData.timestamp || 0);
+                    isExpired = age > ttl;
+                }
+            } catch (e) {
+                console.warn("Error parsing cache for " + cacheKey, e);
+            }
+        }
+
+        // Fetch from network if expired, forceRefresh is true, or no cache exists
+        if (!cachedData || isExpired || forceRefresh) {
+            try {
+                window._cacheFetchInflight = window._cacheFetchInflight || new Map();
+                let request = window._cacheFetchInflight.get(cacheKey);
+                if (!request) {
+                    request = Promise.resolve().then(fetchFn).finally(() => {
+                        window._cacheFetchInflight.delete(cacheKey);
+                    });
+                    window._cacheFetchInflight.set(cacheKey, request);
+                }
+                const data = await request;
+                if (data !== undefined) {
+                    safeCacheSet(cacheKey, JSON.stringify({
+                        data: data,
+                        timestamp: Date.now()
+                    }));
+                    callback(data, false);
+                    if (window.isAppOnline === false && typeof window.notifyAppOnline === 'function') {
+                        window.notifyAppOnline();
+                    }
+                }
+            } catch (err) {
+                if (window.isExpectedAbortError(err)) return;
+                const isNetworkErr = err && (err.name === 'TypeError' || String(err).includes('Failed to fetch') || String(err).includes('NetworkError'));
+                if (isNetworkErr) {
+                    console.warn("Network unreachable for " + cacheKey + ", serving offline/cached state if available.");
+                } else {
+                    console.error("Fetch error for " + cacheKey, err);
+                }
+                // If no cache exists, report the error via callback (passing null)
+                if (!cachedData && typeof callback === 'function') {
+                    callback(null, false);
+                }
+            }
+        }
+    };
+
+    window.syncSavedPlaceLocalState = function (destId, isSaved, spotObj) {
+        if (destId === undefined || destId === null) return;
+        const targetIdStr = String(destId);
+        window._removedSavedPlaceIds = window._removedSavedPlaceIds || new Set();
+        if (isSaved) {
+            window._removedSavedPlaceIds.delete(targetIdStr);
+        } else {
+            window._removedSavedPlaceIds.add(targetIdStr);
+        }
+        window.savedPlaceIdsFetched = true;
+        window._lastDashSavedSig = null;
+        window._lastSavedPlacesSig = null;
+        window.dashboardNeedsRefresh = true;
+
+        try {
+            let savedIds = JSON.parse(localStorage.getItem('intan_elyu_saved_place_ids') || '[]');
+            if (!Array.isArray(savedIds)) savedIds = [];
+            savedIds = savedIds.filter(id => String(id) !== targetIdStr);
+            if (isSaved) savedIds.push(destId);
+            localStorage.setItem('intan_elyu_saved_place_ids', JSON.stringify(savedIds));
+        } catch (e) {}
+
+        const updateList = (list) => {
+            if (!Array.isArray(list)) return list;
+            let next = list.filter(p => p && String(p.id) !== targetIdStr);
+            if (isSaved && spotObj && spotObj.id !== undefined) {
+                next.unshift(spotObj);
+            }
+            return next;
+        };
+
+        if (window._lastDashboardPayload && Array.isArray(window._lastDashboardPayload.savedPlaces)) {
+            window._lastDashboardPayload.savedPlaces = updateList(window._lastDashboardPayload.savedPlaces);
+        }
+
+        try {
+            const rawDashPayload = localStorage.getItem('dashboard_cached_payload');
+            if (rawDashPayload) {
+                const parsedDash = JSON.parse(rawDashPayload);
+                if (parsedDash && Array.isArray(parsedDash.savedPlaces)) {
+                    parsedDash.savedPlaces = updateList(parsedDash.savedPlaces);
+                    localStorage.setItem('dashboard_cached_payload', JSON.stringify(parsedDash));
+                }
+            }
+        } catch (e) {}
+
+        try {
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (!key) continue;
+                if (key.startsWith('dashboard_data_')) {
+                    const cached = JSON.parse(localStorage.getItem(key) || '{}');
+                    if (cached && Array.isArray(cached.savedPlaces)) {
+                        cached.savedPlaces = updateList(cached.savedPlaces);
+                    }
+                    if (cached && cached.data && Array.isArray(cached.data.savedPlaces)) {
+                        cached.data.savedPlaces = updateList(cached.data.savedPlaces);
+                    }
+                    localStorage.setItem(key, JSON.stringify(cached));
+                } else if (key.startsWith('saved_places_')) {
+                    const cached = JSON.parse(localStorage.getItem(key) || '{}');
+                    if (cached && Array.isArray(cached.data)) {
+                        cached.data = updateList(cached.data);
+                        localStorage.setItem(key, JSON.stringify(cached));
+                    } else if (Array.isArray(cached)) {
+                        localStorage.setItem(key, JSON.stringify(updateList(cached)));
+                    }
+                }
+            }
+        } catch (e) {}
+    };
+
+    // ── Badges Removed: Safe No-Op Handlers & Residual DOM Purge ────────────────
+    window.openBadgeModal = function () {};
+    window.closeBadgeModal = function () {
+        const m1 = document.getElementById('badge-details-modal');
+        if (m1) m1.remove();
+        const m2 = document.getElementById('all-badges-modal');
+        if (m2) m2.remove();
+    };
+    window.openAllBadgesModal = function () {};
+    window.closeAllBadgesModal = function () {
+        const m2 = document.getElementById('all-badges-modal');
+        if (m2) m2.remove();
+    };
+
+    // Emergency purge for stale cached DOM elements from ServiceWorker or web cache
+    window.purgeResidualBadges = function () {
+        try {
+            const el1 = document.getElementById('profile-badges-container');
+            if (el1) el1.remove();
+            const el2 = document.getElementById('profile-badges-grid');
+            if (el2) el2.remove();
+            const el3 = document.getElementById('profile-badge-count-label');
+            if (el3) el3.remove();
+            const m1 = document.getElementById('badge-details-modal');
+            if (m1) m1.remove();
+            const m2 = document.getElementById('all-badges-modal');
+            if (m2) m2.remove();
+            document.querySelectorAll('h3').forEach(h3 => {
+                if (h3 && h3.textContent && h3.textContent.includes('Badges & Achievements')) {
+                    const row = h3.closest('.stagger-3') || h3.parentElement;
+                    if (row) row.remove();
+                }
+            });
+        } catch (e) {}
+    };
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', window.purgeResidualBadges);
+    } else {
+        window.purgeResidualBadges();
+    }
+    [100, 300, 600, 1000, 2000].forEach(delay => setTimeout(window.purgeResidualBadges, delay));
+
+    // ── Offline Low-Signal Check-in Auto-Sync Queue Handler ─────────────────────
+    window.processOfflineCheckinQueue = async function () {
+        const queueRaw = localStorage.getItem('offline_checkin_queue');
+        if (!queueRaw) return;
+        try {
+            const queue = JSON.parse(queueRaw);
+            if (!Array.isArray(queue) || queue.length === 0) return;
+
+            const token = localStorage.getItem('tourist_token');
+            const headers = { 'Content-Type': 'application/json', 'Accept': 'application/json' };
+            if (token) headers['Authorization'] = `Bearer ${token}`;
+
+            const remaining = [];
+            let syncedCount = 0;
+
+            for (const item of queue) {
+                try {
+                    const res = await fetch(`${backendUrl}/api/tourist/points/ar-checkin`, {
+                        method: 'POST',
+                        headers,
+                        body: JSON.stringify(item)
+                    });
+                    if (res.ok) {
+                        syncedCount++;
+                    } else {
+                        remaining.push(item);
+                    }
+                } catch (err) {
+                    remaining.push(item);
+                }
+            }
+
+            if (remaining.length > 0) {
+                localStorage.setItem('offline_checkin_queue', JSON.stringify(remaining));
+            } else {
+                localStorage.removeItem('offline_checkin_queue');
+            }
+
+            if (syncedCount > 0 && typeof showToast === 'function') {
+                showToast(`⚡ ${syncedCount} Offline Check-in(s) synced! Points awarded!`);
+            }
+        } catch (e) {
+            console.warn('Failed processing offline checkin queue', e);
+        }
+    };
+
+    window.addEventListener('online', window.processOfflineCheckinQueue);
+    document.addEventListener('DOMContentLoaded', () => {
+        if (navigator.onLine) {
+            window.processOfflineCheckinQueue();
+        }
+    });
+
+    // =========================================================================
+    // Mobile Virtual Keyboard Detection & Auto-Hide Navigation Bar
+    // =========================================================================
+    (function initVirtualKeyboardDetector() {
+        function isEditableTarget(el) {
+            if (!el) return false;
+            const tag = (el.tagName || '').toUpperCase();
+            if (tag === 'TEXTAREA' || el.isContentEditable) return true;
+            if (tag === 'INPUT') {
+                const type = (el.type || 'text').toLowerCase();
+                return !['submit', 'button', 'checkbox', 'radio', 'file', 'image', 'reset', 'range', 'color'].includes(type);
+            }
+            return false;
+        }
+
+        function hideNavForKeyboard() {
+            document.body.classList.add('keyboard-open');
+            document.documentElement.classList.add('keyboard-open');
+            const bNav = document.getElementById('bottom-navigation');
+            const mNav = document.getElementById('magic-nav');
+            if (bNav) bNav.classList.add('keyboard-hidden');
+            if (mNav) mNav.classList.add('keyboard-hidden');
+        }
+
+        function showNavAfterKeyboard() {
+            document.body.classList.remove('keyboard-open');
+            document.documentElement.classList.remove('keyboard-open');
+            const bNav = document.getElementById('bottom-navigation');
+            const mNav = document.getElementById('magic-nav');
+            if (bNav) bNav.classList.remove('keyboard-hidden');
+            if (mNav) mNav.classList.remove('keyboard-hidden');
+        }
+
+        // 1. Focusin / Focusout listeners (instant reaction when tapping any input)
+        document.addEventListener('focusin', (e) => {
+            if (isEditableTarget(e.target)) {
+                hideNavForKeyboard();
+            }
+        }, true);
+
+        document.addEventListener('focusout', (e) => {
+            if (isEditableTarget(e.target)) {
+                setTimeout(() => {
+                    if (!isEditableTarget(document.activeElement)) {
+                        showNavAfterKeyboard();
+                    }
+                }, 120);
+            }
+        }, true);
+
+        // 2. VisualViewport API (detects virtual keyboard slide-up on Android & iOS)
+        if (window.visualViewport) {
+            const onViewportChange = () => {
+                const currentHeight = window.visualViewport.height;
+                const screenHeight = window.screen.height || window.innerHeight;
+                const heightDiff = window.innerHeight - currentHeight;
+
+                if (heightDiff > 120 || (isEditableTarget(document.activeElement) && currentHeight < screenHeight * 0.8)) {
+                    hideNavForKeyboard();
+                } else if (!isEditableTarget(document.activeElement)) {
+                    showNavAfterKeyboard();
+                }
+            };
+
+            window.visualViewport.addEventListener('resize', onViewportChange);
+            window.visualViewport.addEventListener('scroll', onViewportChange);
+        }
+
+        // 3. Capacitor Keyboard plugin events (for native Android / iOS wrapper)
+        if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Keyboard) {
+            try {
+                const { Keyboard } = window.Capacitor.Plugins;
+                Keyboard.addListener('keyboardWillShow', hideNavForKeyboard);
+                Keyboard.addListener('keyboardDidShow', hideNavForKeyboard);
+                Keyboard.addListener('keyboardWillHide', showNavAfterKeyboard);
+                Keyboard.addListener('keyboardDidHide', showNavAfterKeyboard);
+            } catch (e) { }
+        }
+    })();
+
+    // =========================================================================
+    // Global Dimension Lock for Auth & Reset Password Views
+    // =========================================================================
+    window.freezeAuthLayout = function () {
+        const view = document.body ? document.body.getAttribute('data-view') : '';
+        if (view !== 'auth' && view !== 'reset-password') return;
+
+        const winH = window.innerHeight || 0;
+        const viewportH = window.visualViewport ? window.visualViewport.height : winH;
+        let storedH = parseInt(sessionStorage.getItem('auth_layout_h_v2') || '0', 10);
+        if (!storedH || viewportH > storedH) {
+            storedH = Math.max(winH, viewportH || 0);
+            try { sessionStorage.setItem('auth_layout_h_v2', storedH); } catch (e) { }
+        }
+        if (storedH > 0) {
+            document.documentElement.style.setProperty('--auth-screen-h', storedH + 'px');
+        }
+    };
+
+    document.addEventListener('DOMContentLoaded', window.freezeAuthLayout);
+    window.addEventListener('load', window.freezeAuthLayout);
+    window.addEventListener('orientationchange', function () {
+        try { sessionStorage.removeItem('auth_layout_h_v2'); } catch (e) { }
+        setTimeout(window.freezeAuthLayout, 250);
+    });
+
+    // =========================================================================
+    // Native-feeling pull-to-refresh using each view's existing targeted loader
+    // =========================================================================
+    window.refreshCurrentView = async function () {
+        if (window._pullRefreshPromise) return window._pullRefreshPromise;
+        const currentView = (document.body && document.body.getAttribute('data-view')) || state.currentView;
+        if (navigator.onLine === false || window.isAppOnline === false) {
+            if (typeof showToast === 'function') showToast('You are offline. Showing saved data.', 'info', 2500);
+            return false;
+        }
+
+        const refreshers = {
+            dashboard: () => window.dashboardInit && window.dashboardInit(true),
+            map: () => window.refreshMapSpots && window.refreshMapSpots(true),
+            itinerary: () => window.renderItinerary && window.renderItinerary(true),
+            saved_trips: () => window.fetchSavedTrips && window.fetchSavedTrips(true),
+            saved_places: () => window.fetchSavedPlaces && window.fetchSavedPlaces(true),
+            leaderboard: () => window.refreshLeaderboard && window.refreshLeaderboard(true),
+            profile: () => Promise.all([
+                window.fetchProfileData && window.fetchProfileData(true),
+                window.fetchPointsAndVouchers && window.fetchPointsAndVouchers(true)
+            ]),
+            discount: () => Promise.all([
+                window.fetchLiveDatabaseVouchers && window.fetchLiveDatabaseVouchers(true),
+                window.fetchUserPointsAndRedemptions && window.fetchUserPointsAndRedemptions(true)
+            ]),
+            trending: () => window.fetchTrendingSpots && window.fetchTrendingSpots(true)
+        };
+        const refresher = refreshers[currentView];
+        if (!refresher) return false;
+
+        window._pullRefreshPromise = Promise.resolve().then(refresher).then(() => {
+            window.dispatchEvent(new CustomEvent('appRefreshed', { detail: { view: currentView } }));
+            return true;
+        }).catch((error) => {
+            console.warn(`Refresh for ${currentView} failed:`, error);
+            if (typeof showToast === 'function') showToast('Could not refresh. Existing data was kept.', 'error', 3000);
+            return false;
+        }).finally(() => {
+            window._pullRefreshPromise = null;
+        });
+        return window._pullRefreshPromise;
+    };
+
+    (function initPullToRefresh() {
+        if (!document.body) {
+            document.addEventListener('DOMContentLoaded', initPullToRefresh, { once: true });
+            return;
+        }
+        if (window._pullToRefreshBound) return;
+        window._pullToRefreshBound = true;
+        const indicator = document.createElement('div');
+        indicator.id = 'app-pull-refresh';
+        indicator.setAttribute('aria-hidden', 'true');
+        indicator.innerHTML = '<i class="fa-solid fa-rotate-right"></i>';
+        document.body.appendChild(indicator);
+
+        let startX = 0;
+        let startY = 0;
+        let distance = 0;
+        let eligible = false;
+
+        function scrollParent(element) {
+            let node = element;
+            while (node && node !== document.body) {
+                const style = window.getComputedStyle(node);
+                if (/(auto|scroll)/.test(style.overflowY) && node.scrollHeight > node.clientHeight) return node;
+                node = node.parentElement;
+            }
+            return document.scrollingElement || document.documentElement;
+        }
+
+        document.addEventListener('touchstart', (event) => {
+            const touch = event.touches && event.touches[0];
+            const target = event.target;
+            if (!touch || !target || target.closest('input, textarea, select, [contenteditable="true"], .maplibregl-canvas-container, .leaflet-container, #tourist-map, .modal, [role="dialog"]')) {
+                eligible = false;
+                return;
+            }
+            const scroller = scrollParent(target);
+            eligible = !window._pullRefreshPromise && (!scroller || scroller.scrollTop <= 0);
+            startX = touch.clientX;
+            startY = touch.clientY;
+            distance = 0;
+        }, { passive: true });
+
+        document.addEventListener('touchmove', (event) => {
+            if (!eligible || !event.touches || !event.touches[0]) return;
+            const touch = event.touches[0];
+            const deltaY = touch.clientY - startY;
+            const deltaX = Math.abs(touch.clientX - startX);
+            if (deltaY <= 0 || deltaX > deltaY) return;
+            distance = Math.min(92, deltaY * 0.55);
+            if (distance > 8) event.preventDefault();
+            indicator.classList.add('is-visible');
+            indicator.classList.toggle('is-ready', distance >= 64);
+            indicator.style.transform = `translate3d(-50%, ${distance}px, 0)`;
+        }, { passive: false });
+
+        const finishPull = async () => {
+            if (!eligible) return;
+            eligible = false;
+            if (distance >= 64) {
+                indicator.classList.add('is-refreshing');
+                indicator.style.transform = 'translate3d(-50%, 64px, 0)';
+                await window.refreshCurrentView();
+            }
+            distance = 0;
+            indicator.classList.remove('is-visible', 'is-ready', 'is-refreshing');
+            indicator.style.transform = '';
+        };
+        document.addEventListener('touchend', finishPull, { passive: true });
+        document.addEventListener('touchcancel', finishPull, { passive: true });
+    })();
+
+    // =========================================================================
+    // Low-cost view pre-warming: only primary navigation, during browser idle time
+    // =========================================================================
+    window.prewarmAllViews = async function () {
+        if (!navigator.onLine) return;
+        const viewsToPrewarm = ['dashboard', 'map', 'itinerary', 'trip_map', 'leaderboard', 'profile'];
+        window._viewHtmlCache = window._viewHtmlCache || {};
+
+        for (const v of viewsToPrewarm.filter(view => view !== state.currentView)) {
+            try {
+                if (!window._viewHtmlCache[v] && !localStorage.getItem('elyu_view_cache_v21_' + v)) {
+                    const text = await fetchViewPartial(v, new URLSearchParams());
+                    if (text && text.length > 50) {
+                        window._viewHtmlCache[v] = text;
+                        try { localStorage.setItem('elyu_view_cache_v21_' + v, text); } catch (e) { }
+                    }
+                }
+            } catch (e) { }
+        }
+    };
+
+    // App-styled replacement for native <select> dialogs in the mobile WebView.
+    window.openAppChoiceModal = function ({ title = 'Choose an option', options = [], value = '', onSelect } = {}) {
+        document.getElementById('app-choice-modal')?.remove();
+        const escapeHtml = text => String(text ?? '').replace(/[&<>"']/g, char => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
+        })[char]);
+        const modal = document.createElement('div');
+        modal.id = 'app-choice-modal';
+        modal.style.cssText = 'position:fixed;inset:0;z-index:1000015;background:rgba(6,11,25,.72);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;padding:18px;box-sizing:border-box;';
+        modal.innerHTML = `
+            <div style="width:100%;max-width:390px;max-height:82vh;background:#fff;border-radius:24px;overflow:hidden;box-shadow:0 24px 60px rgba(10,25,60,.45);display:flex;flex-direction:column;">
+                <div style="background:linear-gradient(135deg,#1e3a8a,#2563eb);padding:17px 18px;color:#fff;display:flex;align-items:center;justify-content:space-between;gap:12px;">
+                    <h3 style="margin:0;color:#fff;font-size:17px;font-weight:850;">${escapeHtml(title)}</h3>
+                    <button type="button" data-choice-close style="width:34px;height:34px;border:0;border-radius:50%;background:rgba(255,255,255,.2);color:#fff;font-size:18px;display:flex;align-items:center;justify-content:center;"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <div style="padding:12px;overflow-y:auto;background:#f8fafc;">
+                    ${options.map(option => {
+                        const selected = String(option.value) === String(value);
+                        return `<button type="button" data-choice-value="${escapeHtml(option.value)}" style="width:100%;border:${selected ? '2px solid #2563eb' : '1px solid #e2e8f0'};background:${selected ? '#eff6ff' : '#fff'};border-radius:14px;padding:12px 13px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:10px;text-align:left;color:#0f172a;font-size:13px;font-weight:750;">
+                            <span>${escapeHtml(option.label)}</span><i class="fa-${selected ? 'solid' : 'regular'} fa-circle${selected ? '-check' : ''}" style="color:${selected ? '#2563eb' : '#94a3b8'};font-size:17px;"></i>
+                        </button>`;
+                    }).join('')}
+                </div>
+            </div>`;
+        const close = () => modal.remove();
+        modal.addEventListener('click', event => {
+            if (event.target === modal || event.target.closest('[data-choice-close]')) return close();
+            const optionButton = event.target.closest('[data-choice-value]');
+            if (!optionButton) return;
+            const selected = options.find(option => String(option.value) === optionButton.dataset.choiceValue);
+            if (selected && typeof onSelect === 'function') onSelect(selected.value, selected.label);
+            close();
+        });
+        document.body.appendChild(modal);
+    };
+
+    const schedulePrewarm = () => {
+        if ('requestIdleCallback' in window) requestIdleCallback(window.prewarmAllViews, { timeout: 4000 });
+        else setTimeout(window.prewarmAllViews, 1800);
+    };
+    if (document.readyState === 'complete') schedulePrewarm();
+    else window.addEventListener('load', schedulePrewarm, { once: true });

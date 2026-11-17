@@ -2430,10 +2430,10 @@
         const hint = document.getElementById('temp-pwd-hint');
         const submitBtn = document.getElementById('btn-save-permanent-pwd');
 
-        if (newPwd.length < 8 || !/[A-Za-z]/.test(newPwd) || !/[0-9]/.test(newPwd)) {
+        if (newPwd.length < 8 || !/[A-Z]/.test(newPwd) || !/[a-z]/.test(newPwd) || !/[0-9]/.test(newPwd) || !/[^A-Za-z0-9]/.test(newPwd)) {
             if (hint) {
                 hint.style.display = 'block';
-                hint.innerHTML = '<span style="color: #ef4444;"><i class="fa-solid fa-circle-xmark" style="margin-right: 4px;"></i> Password must be 8+ characters with letters &amp; numbers.</span>';
+                hint.innerHTML = '<span style="color: #ef4444;"><i class="fa-solid fa-circle-xmark" style="margin-right: 4px;"></i> Password must be 8+ chars with uppercase, lowercase, number, and symbol.</span>';
             }
             document.getElementById('temp-new-password')?.focus();
             return;

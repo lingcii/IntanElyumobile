@@ -295,7 +295,7 @@ $activeTab = 'profile';
         }
     };
 
-    const PROFILE_TRAVEL_INTERESTS = [
+    var PROFILE_TRAVEL_INTERESTS = window.PROFILE_TRAVEL_INTERESTS || [
         { label: 'Surfing & Beach', icon: '🏄‍♂️', desc: 'Waves, resorts & coastal spots', keywords: ['surf', 'beach'] },
         { label: 'Nature & Falls', icon: '🌿', desc: 'Waterfalls, trails & viewpoints', keywords: ['nature', 'mountain', 'hiking', 'trek'] },
         { label: 'Food & Coffee', icon: '☕', desc: 'Cafes, local dining & seafood', keywords: ['food', 'coffee', 'dining'] },

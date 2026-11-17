@@ -5832,45 +5832,32 @@ try {
                 const genderIcon = isMale ? 'fa-mars' : 'fa-venus';
                 const ageVal = (comp.age !== undefined && comp.age !== null) ? comp.age : '';
 
-                let badgeText = 'Adult';
-                let badgeBg = '#f1f5f9';
-                let badgeColor = '#334155';
-
-                if (ageVal !== '' && Number(ageVal) < 3) {
-                    badgeText = '3+ only';
-                    badgeBg = '#fee2e2';
-                    badgeColor = '#dc2626';
-                } else if (ageVal !== '' && Number(ageVal) < 18) {
-                    badgeText = 'Kid';
-                    badgeBg = '#e0f2fe';
-                    badgeColor = '#0284c7';
-                } else if (ageVal !== '' && Number(ageVal) >= 60) {
-                    badgeText = 'Senior';
-                    badgeBg = '#fef3c7';
-                    badgeColor = '#b45309';
-                }
+                const ageMeta = window.getCompanionAgeMeta(ageVal);
+                const badgeText = ageMeta.label;
+                const badgeBg = ageMeta.bg;
+                const badgeColor = ageMeta.color;
 
                 html += `
-                    <div class="companion-age-row" style="display:flex; align-items:center; justify-content:space-between; background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:8px 10px; gap:6px; box-sizing:border-box;">
-                        <div style="display:flex; align-items:center; gap:5px; flex-shrink:0;">
-                            <span style="font-size:11.5px; color:#334155; font-weight:700;">${genderLabel}</span>
+                    <div class="companion-age-row" style="width:100%; max-width:100%; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:8px; gap:4px; box-sizing:border-box;">
+                        <div style="display:flex; align-items:center; gap:4px; flex-shrink:0;">
+                            <span style="font-size:11px; color:#334155; font-weight:700;">${genderLabel}</span>
                         </div>
-                        <div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
-                            <div style="display:flex; align-items:center; gap:3px;">
+                        <div style="display:flex; align-items:center; justify-content:flex-end; flex-wrap:wrap; gap:5px; flex:1 1 auto; min-width:0;">
+                            <div style="display:flex; align-items:center; gap:3px; flex-shrink:0;">
                                 <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="2" autocomplete="off"
-                                    value="${ageVal}" placeholder="Age" min="3" max="99"
+                                    value="${ageVal}" placeholder="Age" min="0" max="99"
                                     class="companion-age-input"
                                     oninput="this.value = this.value.replace(/[^0-9]/g, ''); if(this.value.length > 2) this.value = this.value.slice(0, 2); window.updateCompanionAge(${idx}, this.value)"
                                     onblur="window.validateCompanionAgeBlur(${idx}, this)"
                                     onfocus="this.select(); setTimeout(() => { try { this.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch(e){} }, 180);"
-                                    style="width:48px; height:32px; border:1.5px solid #cbd5e1; border-radius:8px; text-align:center; font-size:13px; font-weight:800; color:#0f172a; padding:0 3px; outline:none; background:#ffffff; box-sizing:border-box; transition:border-color 0.2s;" />
+                                    style="width:42px; height:30px; border:1.5px solid #cbd5e1; border-radius:8px; text-align:center; font-size:12.5px; font-weight:800; color:#0f172a; padding:0 2px; outline:none; background:#ffffff; box-sizing:border-box; transition:border-color 0.2s;" />
                                 <span style="font-size:10px; color:#64748b; font-weight:700;">y.o.</span>
                             </div>
-                            <span id="comp-badge-${idx}" style="font-size:10.5px; font-weight:800; padding:3px 7px; border-radius:7px; background:${badgeBg}; color:${badgeColor}; min-width:38px; text-align:center;">
+                            <span id="comp-badge-${idx}" style="font-size:9.5px; font-weight:800; padding:3px 6px; border-radius:7px; background:${badgeBg}; color:${badgeColor}; text-align:center; white-space:nowrap;">
                                 ${badgeText}
                             </span>
-                            <label style="display:flex; align-items:center; gap:3px; font-size:11px; font-weight:700; color:#475569; cursor:pointer; user-select:none; margin:0;">
-                                <input type="checkbox" ${comp.isPwd ? 'checked' : ''} onchange="window.toggleCompanionPwd(${idx}, this.checked)" style="accent-color:#7c3aed; width:15px; height:15px; cursor:pointer;" /> PWD
+                            <label style="display:flex; align-items:center; gap:3px; font-size:10.5px; font-weight:700; color:#475569; cursor:pointer; user-select:none; margin:0; flex-shrink:0;">
+                                <input type="checkbox" ${comp.isPwd ? 'checked' : ''} onchange="window.toggleCompanionPwd(${idx}, this.checked)" style="accent-color:#7c3aed; width:14px; height:14px; cursor:pointer;" /> PWD
                             </label>
                         </div>
                     </div>
@@ -5881,18 +5868,29 @@ try {
             window.recalcConcessionsFromAges();
         };
 
+        window.getCompanionAgeMeta = function (val) {
+            if (val === '' || val === null || val === undefined) {
+                return { bucket: 'adult', label: 'Adult', bg: '#f1f5f9', color: '#334155' };
+            }
+            const n = Number(val);
+            if (n >= 0 && n <= 12) {
+                return { bucket: 'kid', label: 'Kid/Child', bg: '#e0f2fe', color: '#0284c7' };
+            }
+            if (n >= 13 && n <= 17) {
+                return { bucket: 'teen', label: 'Teenager', bg: '#eef2ff', color: '#4f46e5' };
+            }
+            if (n >= 60) {
+                return { bucket: 'senior', label: 'Senior Citizen', bg: '#fef3c7', color: '#b45309' };
+            }
+            return { bucket: 'adult', label: 'Adult', bg: '#f1f5f9', color: '#334155' };
+        };
+
         window.validateCompanionAgeBlur = function (idx, inputEl) {
             if (!window.companionList || !window.companionList[idx]) return;
             const val = inputEl.value.trim().replace(/[^0-9]/g, '');
             if (val !== '') {
                 const num = parseInt(val, 10);
-                if (num < 3) {
-                    inputEl.value = '3';
-                    window.updateCompanionAge(idx, '3');
-                    if (typeof showToast === 'function') {
-                        showToast('Ages 0 to 2 are not included. Minimum companion age is 3.');
-                    }
-                } else if (num > 99) {
+                if (num > 99) {
                     inputEl.value = '99';
                     window.updateCompanionAge(idx, '99');
                     if (typeof showToast === 'function') {
@@ -5908,26 +5906,12 @@ try {
             const cleanVal = cleanDigits === '' ? '' : Math.min(99, parseInt(cleanDigits, 10) || 0);
             window.companionList[idx].age = cleanVal;
 
-            const comp = window.companionList[idx];
+            const ageMeta = window.getCompanionAgeMeta(cleanVal);
             const badgeEl = document.getElementById(`comp-badge-${idx}`);
             if (badgeEl) {
-                if (cleanVal !== '' && cleanVal < 3) {
-                    badgeEl.textContent = '3+ only';
-                    badgeEl.style.background = '#fee2e2';
-                    badgeEl.style.color = '#dc2626';
-                } else if (cleanVal !== '' && cleanVal < 18) {
-                    badgeEl.textContent = 'Kid';
-                    badgeEl.style.background = '#e0f2fe';
-                    badgeEl.style.color = '#0284c7';
-                } else if (cleanVal !== '' && cleanVal >= 60) {
-                    badgeEl.textContent = 'Senior';
-                    badgeEl.style.background = '#fef3c7';
-                    badgeEl.style.color = '#b45309';
-                } else {
-                    badgeEl.textContent = 'Adult';
-                    badgeEl.style.background = '#f1f5f9';
-                    badgeEl.style.color = '#334155';
-                }
+                badgeEl.textContent = ageMeta.label;
+                badgeEl.style.background = ageMeta.bg;
+                badgeEl.style.color = ageMeta.color;
             }
 
             window.recalcConcessionsFromAges();
@@ -5941,6 +5925,7 @@ try {
 
         window.recalcConcessionsFromAges = function () {
             let adults = 0;
+            let teens = 0;
             let kids = 0;
             let seniors = 0;
             let pwds = 0;
@@ -5948,9 +5933,15 @@ try {
             (window.companionList || []).forEach(comp => {
                 if (comp.isPwd) {
                     pwds++;
-                } else if (comp.age !== '' && comp.age !== null && Number(comp.age) >= 3 && Number(comp.age) < 18) {
+                    return;
+                }
+                const meta = window.getCompanionAgeMeta(comp.age);
+                if (meta.bucket === 'kid') {
                     kids++;
-                } else if (comp.age !== '' && comp.age !== null && Number(comp.age) >= 60) {
+                } else if (meta.bucket === 'teen') {
+                    teens++;
+                    adults++;
+                } else if (meta.bucket === 'senior') {
                     seniors++;
                 } else {
                     adults++;
@@ -5968,10 +5959,12 @@ try {
 
             const summaryEl = document.getElementById('companion-detected-summary');
             if (summaryEl) {
+                const pureAdults = Math.max(0, adults - teens);
                 const parts = [];
-                if (adults > 0) parts.push(`${adults} Adult${adults > 1 ? 's' : ''}`);
-                if (kids > 0) parts.push(`${kids} Kid${kids > 1 ? 's' : ''}`);
-                if (seniors > 0) parts.push(`${seniors} Senior${seniors > 1 ? 's' : ''}`);
+                if (pureAdults > 0) parts.push(`${pureAdults} Adult${pureAdults > 1 ? 's' : ''}`);
+                if (teens > 0) parts.push(`${teens} Teenager${teens > 1 ? 's' : ''}`);
+                if (kids > 0) parts.push(`${kids} Kid/Child`);
+                if (seniors > 0) parts.push(`${seniors} Senior Citizen${seniors > 1 ? 's' : ''}`);
                 if (pwds > 0) parts.push(`${pwds} PWD${pwds > 1 ? 's' : ''}`);
                 summaryEl.textContent = parts.length > 0 ? parts.join(', ') : '0 travelers';
             }

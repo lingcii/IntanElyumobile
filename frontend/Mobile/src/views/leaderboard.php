@@ -246,10 +246,10 @@ $activeTab = 'leaderboard';
         if (tabPoints) tabPoints.classList.toggle('active', mode === 'points');
         if (tabVisited) tabVisited.classList.toggle('active', mode === 'visited');
 
-        // Check cache for this specific sort mode
+        // Check cache for this specific sort mode + date period
         try {
             const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('api_token');
-            const cacheKey = `leaderboard_data_v27_${mode}_` + (token ? token.substring(0, 10) : 'public');
+            const cacheKey = `leaderboard_data_v28_${mode}_${currentDateFilter}_` + (token ? token.substring(0, 10) : 'public');
             const stored = localStorage.getItem(cacheKey);
             if (stored) {
                 const parsed = JSON.parse(stored);
@@ -259,16 +259,17 @@ $activeTab = 'leaderboard';
 
         renderLeaderboardUI();
 
-        // Fetch fresh top 10 for this sort mode from the server
+        // Fetch fresh top 10 for this sort mode & period from the server
         if (navigator.onLine && window.isAppOnline !== false) {
-            window.refreshLeaderboard(false, mode);
+            window.refreshLeaderboard(false, mode, currentDateFilter);
         }
     }
     window.setLeaderboardSort = setLeaderboardSort;
 
-    var currentDateFilter = 'all';
+    var currentDateFilter = window._cachedLeaderboardDateFilter || 'all';
     window.setLeaderboardDateFilter = function (period) {
         currentDateFilter = (period === 'week' || period === 'month') ? period : 'all';
+        window._cachedLeaderboardDateFilter = currentDateFilter;
         document.querySelectorAll('#leaderboard-date-filters .lb-date-btn').forEach(btn => {
             const isActive = btn.getAttribute('data-period') === currentDateFilter;
             btn.classList.toggle('active', isActive);
@@ -276,7 +277,26 @@ $activeTab = 'leaderboard';
             btn.style.color = isActive ? '#ffffff' : '#475569';
             btn.style.fontWeight = isActive ? '800' : '700';
         });
+
+        try {
+            const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('api_token');
+            const cacheKey = `leaderboard_data_v28_${currentSortMode}_${currentDateFilter}_` + (token ? token.substring(0, 10) : 'public');
+            const stored = localStorage.getItem(cacheKey);
+            if (stored) {
+                const parsed = JSON.parse(stored);
+                if (parsed) applyLeaderboardData(parsed);
+            } else {
+                rawLeadersList = [];
+                cachedMeData = null;
+                cachedMyRank = null;
+            }
+        } catch (e) { }
+
         renderLeaderboardUI();
+
+        if (navigator.onLine && window.isAppOnline !== false && typeof window.refreshLeaderboard === 'function') {
+            window.refreshLeaderboard(false, currentSortMode, currentDateFilter);
+        }
     };
 
     function renderLeaderboardLoading() {
@@ -364,19 +384,8 @@ $activeTab = 'leaderboard';
             if (!podiumContainer && !rankListContainer) return;
             if (!rawLeadersList) return;
 
-            // Display all ranked explorers without omitting newcomers
+            // Display all ranked explorers for the active period without omitting newcomers
             let leaders = Array.isArray(rawLeadersList) ? [...rawLeadersList] : [];
-
-            if (currentDateFilter === 'week' || currentDateFilter === 'month') {
-                const days = currentDateFilter === 'week' ? 7 : 30;
-                const cutoffMs = Date.now() - days * 24 * 60 * 60 * 1000;
-                leaders = leaders.filter(u => {
-                    const rawDate = u.last_activity_date || u.points_since || u.created_at;
-                    if (!rawDate) return false;
-                    const ts = new Date(rawDate).getTime();
-                    return !isNaN(ts) && ts >= cutoffMs;
-                });
-            }
 
             // Sort items based on current sort mode
             if (currentSortMode === 'visited') {
@@ -441,7 +450,7 @@ $activeTab = 'leaderboard';
                 window._cachedMyRank = null;
             }
 
-            if (!cachedMeData && authUser && (authUser.id || authUser.name || authUser.email)) {
+            if (currentDateFilter === 'all' && !cachedMeData && authUser && (authUser.id || authUser.name || authUser.email)) {
                 const userPts = parseInt(authUser.points || authUser.xp || 0);
                 const userActs = parseInt(authUser.completed_activities || authUser.places_visited || 0);
                 cachedMeData = {
@@ -577,16 +586,6 @@ $activeTab = 'leaderboard';
                     );
                     rankListHTML += generateRankItem(user, i + 1, isMe, false, i);
                 }
-            }
-
-            // Append current user ONLY if they have earned points/activity and are outside the top 10
-            const isMeAlreadyInList = Boolean(
-                (myRealId > 0 && leaders.some(u => Number(u.id || u.user_id) === myRealId)) ||
-                (myRealEmail && myRealEmail.includes('@') && leaders.some(u => String(u.email || '').trim().toLowerCase() === myRealEmail))
-            );
-            if (cachedMeData && !isMeAlreadyInList && hasEarnedRank && (currentSortMode !== 'visited' || myActivities > 0)) {
-                const displayRank = (cachedMyRank && cachedMyRank < 999) ? cachedMyRank : (leaders.length > 0 ? (leaders.length + '+') : 11);
-                rankListHTML += generateRankItem(cachedMeData, displayRank, true, true, -1);
             }
 
             const rankListSec = document.getElementById('rank-list-section');
@@ -957,7 +956,7 @@ $activeTab = 'leaderboard';
         const myRealEmail = String(authUser.email || '').trim().toLowerCase();
 
         const list = data.users || data.leaders || data.tourists || data.data || data.leaderboard || (Array.isArray(data) ? data : []);
-        if (Array.isArray(list) && list.length > 0) {
+        if (Array.isArray(list)) {
             rawLeadersList = list.slice(0, 10);
             window._cachedRawLeadersList = rawLeadersList;
         }
@@ -972,10 +971,16 @@ $activeTab = 'leaderboard';
                 cachedMeData = null;
                 window._cachedMeData = null;
             }
+        } else if ('me' in data) {
+            cachedMeData = null;
+            window._cachedMeData = null;
         }
         if (data.my_rank !== undefined && data.my_rank !== null) {
             cachedMyRank = parseInt(data.my_rank);
             window._cachedMyRank = cachedMyRank;
+        } else if ('my_rank' in data) {
+            cachedMyRank = null;
+            window._cachedMyRank = null;
         } else if (data.myRank !== undefined && data.myRank !== null) {
             cachedMyRank = parseInt(data.myRank);
             window._cachedMyRank = cachedMyRank;
@@ -1045,13 +1050,28 @@ $activeTab = 'leaderboard';
 
     // Immediate hydration from real cached standings, then fetch real live data if online
     (function hydrateAndFetchLeaderboard() {
+        const tabsWrapper = document.querySelector('.leaderboard-tabs-wrapper');
+        if (tabsWrapper) {
+            tabsWrapper.classList.remove('mode-points', 'mode-visited');
+            tabsWrapper.classList.add(`mode-${currentSortMode}`);
+        }
+        const tabPoints = document.getElementById('tab-sort-points');
+        const tabVisited = document.getElementById('tab-sort-visited');
+        if (tabPoints) tabPoints.classList.toggle('active', currentSortMode === 'points');
+        if (tabVisited) tabVisited.classList.toggle('active', currentSortMode === 'visited');
+        document.querySelectorAll('#leaderboard-date-filters .lb-date-btn').forEach(btn => {
+            const isActive = btn.getAttribute('data-period') === currentDateFilter;
+            btn.classList.toggle('active', isActive);
+            btn.style.background = isActive ? '#1e3a8a' : 'transparent';
+            btn.style.color = isActive ? '#ffffff' : '#475569';
+            btn.style.fontWeight = isActive ? '800' : '700';
+        });
+
         try {
             const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('api_token');
             const tokenSuffix = token ? token.substring(0, 10) : 'public';
-            const cacheKeyMode = 'leaderboard_data_v27_' + currentSortMode + '_' + tokenSuffix;
-            const cacheKeyLegacy = 'leaderboard_data_v27_' + tokenSuffix;
-            const storedRaw = localStorage.getItem(cacheKeyMode) || 
-                              localStorage.getItem(cacheKeyLegacy);
+            const cacheKeyMode = `leaderboard_data_v28_${currentSortMode}_${currentDateFilter}_${tokenSuffix}`;
+            const storedRaw = localStorage.getItem(cacheKeyMode);
             if (storedRaw) {
                 const parsed = JSON.parse(storedRaw);
                 const d = parsed.data || parsed;
@@ -1068,7 +1088,7 @@ $activeTab = 'leaderboard';
         if (navigator.onLine && window.isAppOnline !== false) {
             setTimeout(() => {
                 if (typeof window.refreshLeaderboard === 'function') {
-                    window.refreshLeaderboard(false, currentSortMode);
+                    window.refreshLeaderboard(false, currentSortMode, currentDateFilter);
                 }
             }, 60);
         }
@@ -1077,7 +1097,7 @@ $activeTab = 'leaderboard';
     window._isFetchingLeaderboard = Boolean(window._isFetchingLeaderboard);
 
     // Targeted refresh used by filters, pull-to-refresh, and connectivity recovery.
-    window._refreshLeaderboardOnce = async function (force = true, requestedSort = null) {
+    window._refreshLeaderboardOnce = async function (force = true, requestedSort = null, requestedPeriod = null) {
         if (window._isFetchingLeaderboard) return;
         window._isFetchingLeaderboard = true;
 
@@ -1090,6 +1110,7 @@ $activeTab = 'leaderboard';
         }
 
         const sortMode = requestedSort || currentSortMode || 'points';
+        const periodFilter = requestedPeriod || currentDateFilter || 'all';
         let apiSort = 'points';
         if (sortMode === 'visited') {
             apiSort = 'visited';
@@ -1108,18 +1129,12 @@ $activeTab = 'leaderboard';
             const bUrl = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || '')).replace(/\/+$/, '');
             const candidates = [];
             if (bUrl) {
-                if (token) {
-                    candidates.push(`${bUrl}/api/tourist/leaderboard?limit=10&sort=${apiSort}`);
-                }
-                candidates.push(`${bUrl}/api/public/leaderboard?limit=10&sort=${apiSort}`);
+                candidates.push(`${bUrl}/api/public/leaderboard?limit=10&sort=${apiSort}&period=${encodeURIComponent(periodFilter)}`);
             }
 
             // Fallback production Cloudflare endpoints
-            if (token) {
-                candidates.push(`https://api.intan-elyu.online/api/tourist/leaderboard?limit=10&sort=${apiSort}`);
-            }
-            candidates.push(`https://api.intan-elyu.online/api/public/leaderboard?limit=10&sort=${apiSort}`);
-            candidates.push(`/api/public/leaderboard?limit=10&sort=${apiSort}`);
+            candidates.push(`https://api.intan-elyu.online/api/public/leaderboard?limit=10&sort=${apiSort}&period=${encodeURIComponent(periodFilter)}`);
+            candidates.push(`/api/public/leaderboard?limit=10&sort=${apiSort}&period=${encodeURIComponent(periodFilter)}`);
 
             let fetchedData = null;
             for (const url of [...new Set(candidates)]) {
@@ -1131,8 +1146,8 @@ $activeTab = 'leaderboard';
                     if (timeoutId) clearTimeout(timeoutId);
                     if (res.ok) {
                         const json = await res.json();
-                        const users = json.users || json.leaders || json.data || json.tourists || (Array.isArray(json) ? json : []);
-                        if (Array.isArray(users) && users.length > 0) {
+                        const users = json.users || json.leaders || json.data || json.tourists || (Array.isArray(json) ? json : null);
+                        if (Array.isArray(users)) {
                             fetchedData = json;
                             break;
                         }
@@ -1146,8 +1161,7 @@ $activeTab = 'leaderboard';
                 applyLeaderboardData(fetchedData);
                 try {
                     const tokenSuffix = token ? token.substring(0, 10) : 'public';
-                    localStorage.setItem(`leaderboard_data_v27_${sortMode}_${tokenSuffix}`, JSON.stringify(fetchedData));
-                    localStorage.setItem(`leaderboard_data_v27_${tokenSuffix}`, JSON.stringify(fetchedData));
+                    localStorage.setItem(`leaderboard_data_v28_${sortMode}_${periodFilter}_${tokenSuffix}`, JSON.stringify(fetchedData));
                     window.leaderboardNeedsRefresh = false;
                 } catch (e) { }
                 if (force && typeof showToast === 'function') {
@@ -1215,15 +1229,17 @@ $activeTab = 'leaderboard';
         }
     };
 
-    window.refreshLeaderboard = function (force = true, requestedSort = null) {
-        if (window._leaderboardFetchPromise) return window._leaderboardFetchPromise;
+    window.refreshLeaderboard = function (force = true, requestedSort = null, requestedPeriod = null) {
+        const isFilterSwitch = requestedSort !== null || requestedPeriod !== null;
+        if (window._leaderboardFetchPromise && !isFilterSwitch) return window._leaderboardFetchPromise;
 
         const now = Date.now();
-        if (!force && window._leaderboardLastFetchCompletedAt && now - window._leaderboardLastFetchCompletedAt < 1500) {
+        if (!force && !isFilterSwitch && window._leaderboardLastFetchCompletedAt && now - window._leaderboardLastFetchCompletedAt < 1500) {
             return Promise.resolve();
         }
+        if (isFilterSwitch) window._isFetchingLeaderboard = false;
 
-        const request = window._refreshLeaderboardOnce(force, requestedSort).finally(() => {
+        const request = window._refreshLeaderboardOnce(force, requestedSort, requestedPeriod).finally(() => {
             if (window._leaderboardFetchPromise === request) {
                 window._leaderboardFetchPromise = null;
                 window._leaderboardLastFetchCompletedAt = Date.now();

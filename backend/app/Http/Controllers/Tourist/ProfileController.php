@@ -33,19 +33,9 @@ class ProfileController extends Controller
 
         // If the tourist has 0 points and 0 places/activities, they are unranked (null)
         if ($userPoints > 0 || $userPlaces > 0) {
-            $myRank = Cache::remember("rank:user:{$user->id}", 60, function () use ($user) {
+            $myRank = Cache::remember("rank:user:{$user->id}", 15, function () use ($user) {
                 try {
-                    // Try materialized view first
-                    $cached = DB::table('leaderboard_cache')->where('user_id', $user->id)->first();
-                    if ($cached && (int) ($cached->total_points ?? 0) > 0) {
-                        return (int) $cached->rank;
-                    }
-                } catch (\Throwable $e) {
-                    // leaderboard_cache table may not exist yet
-                }
-
-                try {
-                    // Fallback: live CTE aligned with LeaderboardController ordering and status check
+                    // Live CTE aligned with LeaderboardController ordering and status check
                     $rankData = DB::selectOne("
                         WITH ranked AS (
                             SELECT
@@ -670,10 +660,16 @@ class ProfileController extends Controller
 
         $newPassword = $request->input('new_password');
 
-        if (!preg_match('/[A-Za-z]/', $newPassword) || !preg_match('/[0-9]/', $newPassword)) {
+        if (
+            strlen((string) $newPassword) < 8
+            || !preg_match('/[A-Z]/', $newPassword)
+            || !preg_match('/[a-z]/', $newPassword)
+            || !preg_match('/[0-9]/', $newPassword)
+            || !preg_match('/[^A-Za-z0-9]/', $newPassword)
+        ) {
             return response()->json([
                 'success' => false,
-                'message' => 'New password must be at least 8 characters and contain both letters and numbers.'
+                'message' => 'New password must be at least 8 characters and include uppercase, lowercase, number, and symbol.'
             ], 422);
         }
 

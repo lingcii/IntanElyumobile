@@ -602,6 +602,19 @@ class LoginController extends Controller
             'password' => 'required|string|min:8|confirmed',
         ]);
 
+        $resetPassword = (string) $request->input('password');
+        if (
+            !preg_match('/[A-Z]/', $resetPassword)
+            || !preg_match('/[a-z]/', $resetPassword)
+            || !preg_match('/[0-9]/', $resetPassword)
+            || !preg_match('/[^A-Za-z0-9]/', $resetPassword)
+        ) {
+            return response()->json([
+                'error'   => 'Password must be at least 8 characters and include uppercase, lowercase, number, and symbol.',
+                'message' => 'Password must be at least 8 characters and include uppercase, lowercase, number, and symbol.',
+            ], 422);
+        }
+
         $tokenHash = hash('sha256', $request->token);
         $record = null;
 
@@ -659,11 +672,17 @@ class LoginController extends Controller
             'new_password' => 'required|string|min:8|confirmed',
         ]);
 
-        $newPassword = $request->input('new_password');
-        if (!preg_match('/[A-Za-z]/', $newPassword) || !preg_match('/[0-9]/', $newPassword)) {
+        $newPassword = (string) $request->input('new_password');
+        if (
+            strlen($newPassword) < 8
+            || !preg_match('/[A-Z]/', $newPassword)
+            || !preg_match('/[a-z]/', $newPassword)
+            || !preg_match('/[0-9]/', $newPassword)
+            || !preg_match('/[^A-Za-z0-9]/', $newPassword)
+        ) {
             return response()->json([
                 'success' => false,
-                'message' => 'New password must be at least 8 characters and contain both letters and numbers.'
+                'message' => 'New password must be at least 8 characters and include uppercase, lowercase, number, and symbol.'
             ], 422);
         }
 

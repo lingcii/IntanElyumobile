@@ -704,12 +704,8 @@ $backRoute = 'dashboard';
                 if (typeof showToast === 'function') showToast('Please fill in all password fields.', 'warning');
                 return;
             }
-            if (newPass.length < 8) {
-                if (typeof showToast === 'function') showToast('New password must be at least 8 characters.', 'warning');
-                return;
-            }
-            if (!/[A-Za-z]/.test(newPass) || !/\d/.test(newPass)) {
-                if (typeof showToast === 'function') showToast('Password must contain both letters and numbers.', 'warning');
+            if (newPass.length < 8 || !/[A-Z]/.test(newPass) || !/[a-z]/.test(newPass) || !/\d/.test(newPass) || !/[^A-Za-z0-9]/.test(newPass)) {
+                if (typeof showToast === 'function') showToast('Password must be 8+ characters with uppercase, lowercase, number, and symbol.', 'warning');
                 return;
             }
             if (currPass === newPass) {
