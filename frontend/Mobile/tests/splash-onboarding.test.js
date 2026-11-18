@@ -11,7 +11,7 @@ const sourceSw = fs.readFileSync(path.join(root, 'src', 'sw.js'), 'utf8');
 const slideMatches = splash.match(/data-onboarding-slide="\d"/g) || [];
 assert.equal(slideMatches.length, 4, 'the startup animation must contain exactly four scenes');
 assert.match(splash, /Create[\s\S]*Memorable Trips/);
-assert.match(splash, /Discover[\s\S]*La Union/);
+assert.match(splash, /Feel[\s\S]*La Union/);
 assert.match(splash, /id="onboarding-loader"[\s\S]*aria-valuemax="4"/,
     'the lower loading indicator must report all four scenes');
 assert.match(splash, /showSlide\(index\)[\s\S]*navigateAfterSplash\('auth'\)/,

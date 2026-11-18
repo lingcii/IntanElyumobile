@@ -128,7 +128,7 @@ $backRoute = 'settings';
                     </label>
                     <select class="form-control" id="profile-gender"
                         style="cursor: pointer; background: rgba(255, 255, 255, 0.12) !important; color: #ffffff !important; border: none !important; outline: none !important; border-radius: 16px; padding: 13px 14px; font-size: 14px; font-weight: 600; width: 100%; box-sizing: border-box;">
-                        <option value="" style="background: #1e3a8a; color: #ffffff;">Select gender</option>
+                        <option value="" style="background: #1e3a8a; color: #ffffff;">Select Gender</option>
                         <option value="Male" style="background: #1e3a8a; color: #ffffff;">Male</option>
                         <option value="Female" style="background: #1e3a8a; color: #ffffff;">Female</option>
                     </select>

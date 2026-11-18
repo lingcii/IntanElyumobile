@@ -581,6 +581,11 @@ class PointsController extends Controller
                         // Check if voucher has expired based on voucher_expires_at
                         $exp = $r->voucher_expires_at ? \Carbon\Carbon::parse($r->voucher_expires_at) : ($r->expires_at ? \Carbon\Carbon::parse($r->expires_at) : null);
                         if ($exp && now()->gte($exp)) {
+                            if ($rawStatus !== 'expired') {
+                                \Illuminate\Support\Facades\DB::table('voucher_redemptions')
+                                    ->where('id', $r->id)
+                                    ->update(['status' => 'expired', 'updated_at' => now()]);
+                            }
                             $r->status = 'expired';
                         } elseif ($rawStatus === 'active' && $r->qr_expires_at && now()->lt(\Carbon\Carbon::parse($r->qr_expires_at))) {
                             $r->status = 'active';
@@ -636,6 +641,11 @@ class PointsController extends Controller
                 } else {
                     $exp = $pr->voucher_expires_at ? \Carbon\Carbon::parse($pr->voucher_expires_at) : null;
                     if ($exp && now()->gte($exp)) {
+                        if ($prStatus !== 'expired') {
+                            \Illuminate\Support\Facades\DB::table('point_redemptions')
+                                ->where('id', $pr->id)
+                                ->update(['status' => 'expired', 'updated_at' => now()]);
+                        }
                         $normStatus = 'expired';
                     } elseif ($prStatus === 'active' && $pr->qr_expires_at && now()->lt(\Carbon\Carbon::parse($pr->qr_expires_at))) {
                         $normStatus = 'active';

@@ -18,7 +18,7 @@
                 style="width: 100%; height: 100%; object-fit: contain; border-radius: 50%; display: block;">
         </div>
         <h1 id="auth-title" style="color: #ffffff; font-weight: 800;">Welcome to <span>Elyu</span></h1>
-        <p id="auth-subtitle" class="auth-subtitle">Explore places. Create memories.<br>Discover La Union.</p>
+        <p id="auth-subtitle" class="auth-subtitle">Explore places. Create memories.<br>Feel La Union.</p>
 
         <!-- Animated Seamless SVG Wave -->
         <div class="wave-bottom">
@@ -148,7 +148,7 @@
                     </div>
                     <div class="input-group" id="reg-gender-trigger" onclick="openGenderModal(event)" style="cursor: pointer;">
                         <i class="fa-solid fa-venus-mars"></i>
-                        <input type="text" id="reg-gender-display" class="auth-input" placeholder="Select Sex / Gender" readonly style="cursor: pointer; background: transparent; caret-color: transparent; -webkit-user-select: none; user-select: none;" onclick="openGenderModal(event)">
+                        <input type="text" id="reg-gender-display" class="auth-input" placeholder="Select Gender" readonly style="cursor: pointer; background: transparent; caret-color: transparent; -webkit-user-select: none; user-select: none;" onclick="openGenderModal(event)">
                         <input type="hidden" id="reg-gender" value="">
                         <i class="fa-solid fa-chevron-down select-arrow" id="reg-gender-arrow"></i>
                     </div>
@@ -735,14 +735,14 @@
     </div>
 </div>
 
-<!-- Sex / Gender Selection Droplist Modal -->
+<!-- Gender Selection Droplist Modal -->
 <div id="gender-select-modal" class="auth-2fa-overlay" style="display: none; background: rgba(15, 23, 42, 0.96) !important;"
     onclick="if(event.target===this) window.closeGenderModal(event);">
     <div class="gender-modal-card" style="background: #ffffff !important;">
         <div class="gender-modal-header" style="background: #1e3a8a !important;">
             <div class="gender-modal-header-content">
                 <span class="gender-modal-badge"><i class="fa-solid fa-venus-mars"></i> Personalization</span>
-                <h3 class="gender-modal-title">Select Sex / Gender</h3>
+                <h3 class="gender-modal-title">Select Gender</h3>
             </div>
             <button type="button" class="gender-modal-close" onclick="window.closeGenderModal(event)" aria-label="Close">
                 &times;
@@ -1242,7 +1242,7 @@
                 'Start your Journey': 'Start your <span>Journey</span>'
             };
             const subtitles = {
-                'Welcome to Elyu': 'Explore places. Create memories.<br>Discover La Union.',
+                'Welcome to Elyu': 'Explore places. Create memories.<br>Feel La Union.',
                 'Start your Journey': 'Create your account and explore<br>the beauty of La Union.',
                 'Account Recovery': 'Recover your account securely.',
                 'Verify Your Email': 'Check your inbox and enter the 6-digit code below.'
@@ -1861,7 +1861,7 @@
 
         if (!firstName || !lastName || !gender || !email) {
             if (!gender) {
-                if (typeof showToast === 'function') showToast('Please select your sex or gender.');
+                if (typeof showToast === 'function') showToast('Please select your gender.');
                 document.getElementById('reg-gender')?.focus();
             } else {
                 if (typeof showToast === 'function') showToast('Please fill in all registration fields.');

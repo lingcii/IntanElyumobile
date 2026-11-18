@@ -6312,7 +6312,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                 <div class="header-icon" onclick="typeof toggleSidebar==='function'&&toggleSidebar()" title="Menu">
                     <i class="fa-solid fa-bars"></i>
                 </div>
-                <h1 class="header-title">Discover La Union</h1>
+                <h1 class="header-title">Feel La Union</h1>
                 <div class="header-icon" onclick="typeof toggleNotifications==='function'&&toggleNotifications()" title="Notifications">
                     <i class="fa-solid fa-bell" id="bell-icon"></i>
                     <div class="bell-dot" id="bell-dot"></div>

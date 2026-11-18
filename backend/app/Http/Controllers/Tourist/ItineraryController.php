@@ -199,9 +199,9 @@ class ItineraryController extends Controller
     {
         $user = $request->user();
 
-        // Auto-fulfill untouched destination reviews older than 2 days (48 hours) at most once per 5 min per user
+        // Auto-fulfill untouched destination reviews older than 3 days (72 hours) at most once per 5 min per user
         if (Cache::add("untouched_reviews_sync:{$user->id}", 1, 300)) {
-            static::processUntouchedVisitReviews(2, $user->id);
+            static::processUntouchedVisitReviews(3, $user->id);
         }
 
         $rawItineraries = Itinerary::where('user_id', $user->id)
@@ -585,6 +585,33 @@ class ItineraryController extends Controller
         ]);
         $spotIds = $itinerary->items->pluck('tourist_spot_id')->filter()->unique()->values()->all();
         [$spotPublicVehicles, $spotPrivateVehicles, $spotAllVehicles] = $this->getSpotVehiclesMap($spotIds);
+
+        // Create system notification & send planned trip confirmation email
+        try {
+            $dateLabel = $itinerary->trip_date ? $itinerary->trip_date->format('M d, Y') : 'your upcoming schedule';
+            $stopCount = $itinerary->items->count();
+            \App\Models\Notification::createSafely(
+                $user->id,
+                'trip_planned',
+                'Planned Trip Scheduled!',
+                "Your trip '{$itinerary->title}' ({$stopCount} " . ($stopCount === 1 ? 'stop' : 'stops') . ") is scheduled for {$dateLabel}.",
+                [
+                    'module'       => 'saved_trips',
+                    'action_url'   => 'saved_trips',
+                    'itinerary_id' => $itinerary->id,
+                ]
+            );
+        } catch (\Throwable $e) {}
+
+        if (!empty($user->email)) {
+            app()->terminating(function () use ($user, $itinerary): void {
+                try {
+                    \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\PlannedTripMail($user, $itinerary));
+                } catch (\Throwable $e) {
+                    \Illuminate\Support\Facades\Log::warning('Planned trip email failed: ' . $e->getMessage());
+                }
+            });
+        }
 
         return response()->json([
             'message'      => 'Trip saved! 🎉',
@@ -1143,9 +1170,9 @@ class ItineraryController extends Controller
     }
 
     /**
-     * Auto-process untouched visits older than 2-3 days into default 5-star reviews.
+     * Auto-process untouched visits older than 3 days into default 5-star reviews.
      */
-    public static function processUntouchedVisitReviews(int $daysThreshold = 2, ?int $filterUserId = null): int
+    public static function processUntouchedVisitReviews(int $daysThreshold = 3, ?int $filterUserId = null): int
     {
         $processedCount = 0;
         try {

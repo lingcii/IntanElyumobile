@@ -134,8 +134,8 @@ assert.match(apiRoutesSource, /Route::post\('\/vouchers\/\{code\}\/refresh-qr',/
 assert.match(voucherControllerSource, /now\(\)->gte\(\$voucherExpiresAt\)/, 'useVoucher must validate server-side expiration timestamp');
 assert.match(voucherControllerSource, /\$isActive[\s\S]*?now\(\)->gte\(\$qrExpiresAt\)[\s\S]*?'status' => 'active'/,
     'status checks must rotate an expired QR while keeping the three-day claim active');
-assert.match(voucherControllerSource, /whereIn\('status',\s*\['claimed',\s*'active',\s*'redeemed',\s*'used',\s*'completed'\]\)/,
-    'redeemVoucher duplicate claim check must exclude cancelled vouchers');
+assert.match(voucherControllerSource, /whereIn\('status',\s*\['claimed',\s*'active',\s*'redeemed',\s*'used',\s*'completed'(?:,\s*'expired')?\]\)/,
+    'redeemVoucher duplicate claim check must exclude cancelled vouchers and block expired claims');
 assert.match(pointsControllerSource, /!in_array\(\$st,\s*\['cancelled'\]\)/,
     'PointsController getBalance must exclude cancelled vouchers when computing redeemed total');
 assert.match(voucherControllerSource, /Cannot cancel an expired voucher|Cannot cancel a voucher that has already been used/i, 'cancelVoucher must validate status and expiration');

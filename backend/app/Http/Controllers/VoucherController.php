@@ -257,12 +257,20 @@ class VoucherController extends Controller
                 return response()->json(['status' => 'error', 'message' => 'Voucher is fully claimed.'], 400);
             }
 
-            // Enforce one-time claim per tourist account per voucher (ignoring cancelled claims)
+            // Enforce one-time claim per tourist account per voucher (including expired 3-day claims; only cancelled claims are ignored)
             if (\Illuminate\Support\Facades\Schema::hasTable('voucher_redemptions')) {
+                \Illuminate\Support\Facades\DB::table('voucher_redemptions')
+                    ->where('user_id', $user->id)
+                    ->where('voucher_id', $voucher->id)
+                    ->whereIn('status', ['claimed', 'active'])
+                    ->whereNotNull('voucher_expires_at')
+                    ->where('voucher_expires_at', '<=', now())
+                    ->update(['status' => 'expired', 'updated_at' => now()]);
+
                 $alreadyClaimed = \Illuminate\Support\Facades\DB::table('voucher_redemptions')
                     ->where('user_id', $user->id)
                     ->where('voucher_id', $voucher->id)
-                    ->whereIn('status', ['claimed', 'active', 'redeemed', 'used', 'completed'])
+                    ->whereIn('status', ['claimed', 'active', 'redeemed', 'used', 'completed', 'expired'])
                     ->exists();
 
                 if ($alreadyClaimed) {

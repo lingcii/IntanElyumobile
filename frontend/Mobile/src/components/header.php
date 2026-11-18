@@ -9,7 +9,7 @@
             <i class="fa-solid fa-bars"></i>
         </div>
     <?php endif; ?>
-    <h1 class="header-title" id="mobile-header-title"<?php if ((isset($activeTab) && $activeTab === 'dashboard') || (isset($pageTitle) && $pageTitle === 'Discover La Union')) echo ' style="opacity: 0; transform: translateY(12px) scale(0.92); pointer-events: none;"'; ?>><?php echo isset($pageTitle) ? $pageTitle : 'Intan Elyu'; ?></h1>
+    <h1 class="header-title" id="mobile-header-title"<?php if ((isset($activeTab) && $activeTab === 'dashboard') || (isset($pageTitle) && ($pageTitle === 'Feel La Union' || $pageTitle === 'Discover La Union'))) echo ' style="opacity: 0; transform: translateY(12px) scale(0.92); pointer-events: none;"'; ?>><?php echo isset($pageTitle) ? $pageTitle : 'Intan Elyu'; ?></h1>
     <div class="header-icon" onclick="toggleNotifications()" title="Notifications">
         <i class="fa-solid fa-bell" id="bell-icon"></i>
         <div class="bell-dot" id="bell-dot"></div>

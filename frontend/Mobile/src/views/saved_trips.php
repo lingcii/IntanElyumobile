@@ -3032,8 +3032,11 @@ $backRoute = 'itinerary';
                 item && (item.tourist_spot_id || item.destination_id || (item.destination && item.destination.id))
             ) : [];
             
-            // Show modal where user can review spots or skip with "Review Later"
-            showTripCompletionReviewModal(reviewItems, false);
+            if (reviewItems.length > 0) {
+                showTripCompletionReviewModal(reviewItems, true);
+            } else {
+                window.executeConfirmCompleteTrip();
+            }
         };
 
         window.closeCompleteTripModal = function () {
@@ -3244,12 +3247,18 @@ $backRoute = 'itinerary';
 
                 <!-- Footer (Royal Blue) -->
                 <div style="background:linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%) !important; padding:14px 20px; flex-shrink:0; display:flex; flex-direction:column; gap:8px;">
+                    ${requireBeforeCompletion ? `
+                    <button type="button" id="btn-trip-completion-close" onclick="window.finishTripAfterReviews();" style="width:100%; padding:12px; border-radius:100px; border:none; outline:none; background:linear-gradient(135deg, #10b981, #059669); color:#ffffff; font-size:13.5px; font-weight:800; cursor:pointer; box-shadow:0 3px 10px rgba(16,185,129,0.3); transition:all 0.2s ease;">
+                        Review destinations first
+                    </button>
+                    ` : `
                     <button type="button" id="btn-trip-completion-save" onclick="window.closeTripCompletionReviewModal(); window.executeConfirmCompleteTrip();" style="width:100%; padding:12px; border-radius:100px; border:none; outline:none; background:linear-gradient(135deg, #10b981, #059669); color:#ffffff; font-size:13.5px; font-weight:800; cursor:pointer; box-shadow:0 3px 10px rgba(16,185,129,0.3); transition:all 0.2s ease;">
                         <i class="fa-solid fa-flag-checkered" style="margin-right:6px;"></i> Complete Trip
                     </button>
                     <button type="button" onclick="window.closeTripCompletionReviewModal(); window.executeConfirmCompleteTrip();" style="background:transparent; border:none; outline:none; color:rgba(255,255,255,0.85); font-size:12px; font-weight:700; cursor:pointer; padding:4px; text-decoration:underline;">
                         I'll review destinations later
                     </button>
+                    `}
                 </div>
             </div>
         </div>`;
@@ -3520,6 +3529,9 @@ $backRoute = 'itinerary';
             if (idInput) idInput.value = trip.id;
             if (titleInput) titleInput.value = trip.title || '';
             if (dateInput) {
+                const now = new Date();
+                const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+                dateInput.min = todayStr;
                 dateInput.value = trip.trip_date ? String(trip.trip_date).split(/[T ]/)[0] : '';
             }
 
@@ -3548,6 +3560,14 @@ $backRoute = 'itinerary';
 
             const title = (document.getElementById('quick-edit-trip-title')?.value || '').trim() || 'My Trip';
             const date = document.getElementById('quick-edit-trip-date')?.value || null;
+            if (date) {
+                const now = new Date();
+                const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+                if (date < todayStr) {
+                    if (typeof showToast === 'function') showToast('Cannot select past dates for a trip plan.', 'warning');
+                    return;
+                }
+            }
             const tripType = document.getElementById('quick-edit-trip-type')?.value || 'solo';
             const males = tripType === 'group' ? Math.max(0, parseInt(document.getElementById('quick-edit-males-count')?.textContent || '0', 10)) : 0;
             const females = tripType === 'group' ? Math.max(0, parseInt(document.getElementById('quick-edit-females-count')?.textContent || '0', 10)) : 0;

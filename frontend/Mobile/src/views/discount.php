@@ -738,7 +738,7 @@ function isVoucherClaimed(v) {
     if (Array.isArray(window._touristRedemptions) && window._touristRedemptions.length > 0) {
         return window._touristRedemptions.some(r => {
             const mst = (r.status || '').toLowerCase().trim();
-            if (mst !== 'claimed' && mst !== 'active') return false;
+            if (mst !== 'claimed' && mst !== 'active' && mst !== 'expired') return false;
 
             const rVid = String(r.voucher_id || r.dbId || '').replace(/^db_/, '');
             const rCode = (r.voucher_code || r.code || '').toUpperCase().trim();
@@ -1049,8 +1049,8 @@ function renderDiscounts() {
     } else if (activeStatus === 'Expired') {
         filtered = getUserRedemptionItems().filter(r => r.isExpired).concat(vouchersData.filter(v => isVoucherExpired(v)));
     } else {
-        // 'All' / Available: Exclude already claimed, in-use, redeemed, expired, or upcoming deals from available catalog browsing
-        filtered = vouchersData.filter(v => !isVoucherClaimed(v) && !isVoucherInUse(v) && !isVoucherRedeemed(v) && !isVoucherExpired(v) && !isVoucherUpcoming(v));
+        // 'All' / Available: Exclude already claimed, in-use, redeemed, expired, upcoming, or out-of-stock deals from available catalog browsing
+        filtered = vouchersData.filter(v => !isVoucherClaimed(v) && !isVoucherInUse(v) && !isVoucherRedeemed(v) && !isVoucherExpired(v) && !isVoucherUpcoming(v) && !isVoucherFullyClaimed(v));
     }
 
     // 2. Category Filter
@@ -2285,7 +2285,7 @@ async function handleModalRedeem() {
         return window._touristRedemptions.some(r => {
             if (!r) return false;
             const rSt = (r.status || '').toLowerCase().trim();
-            if (['cancelled', 'expired'].includes(rSt)) return false;
+            if (rSt === 'cancelled') return false;
             const rVid = String(r.voucher_id || r.dbId || '').replace(/^db_/, '');
             const targetVid = String(voucherDbId || '').replace(/^db_/, '');
             if (rVid && targetVid && rVid === targetVid) return true;

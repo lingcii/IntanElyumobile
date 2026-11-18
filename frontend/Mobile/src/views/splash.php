@@ -5,7 +5,7 @@
         <div class="onboarding-brand-lockup">
             <img src="assets/img/logo.png" alt="Elyu">
             <strong>Elyu</strong>
-            <span>DISCOVER LA UNION</span>
+            <span>FEEL LA UNION</span>
         </div>
         <div class="brand-waves" aria-hidden="true"><span></span><span></span><span></span></div>
     </section>
@@ -14,7 +14,7 @@
         <img class="onboarding-backdrop" src="assets/img/onboarding/ma-cho-temple.webp" alt="Ma-Cho Temple in San Fernando, La Union">
         <div class="onboarding-photo-shade"></div>
         <div class="onboarding-mini-brand">
-            <img src="assets/img/logo.png" alt=""><strong>Elyu</strong><span>DISCOVER LA UNION</span>
+            <img src="assets/img/logo.png" alt=""><strong>Elyu</strong><span>FEEL LA UNION</span>
         </div>
         <p class="onboarding-explore">Explore<br><strong>Beautiful Places</strong></p>
     </section>
@@ -32,7 +32,7 @@
         <img class="onboarding-backdrop" src="assets/img/onboarding/baluarte-watchtower.jpg" alt="Baluarte Watchtower in Luna, La Union">
         <div class="onboarding-photo-shade onboarding-photo-shade--deep"></div>
         <div class="onboarding-copy onboarding-copy--discover">
-            <h1>Discover<br><strong>La Union</strong></h1>
+            <h1>Feel<br><strong>La Union</strong></h1>
             <p>Beaches <b>•</b> Nature <b>•</b> Culture<br>and more</p>
         </div>
         <svg class="onboarding-route" viewBox="0 0 260 360" role="img" aria-label="Animated destination route">

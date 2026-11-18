@@ -243,12 +243,22 @@ class RegisterController extends Controller
 
         \Illuminate\Support\Facades\Cache::forget("pending_reg_{$emailKey}");
 
-        // Send the non-critical welcome email after the verification response.
-        app()->terminating(function () use ($user): void {
+        $tempPassword = $pending['temp_password'] ?? null;
+
+        // Send the non-critical welcome & temporary password emails after the verification response.
+        app()->terminating(function () use ($user, $mustChangePassword, $tempPassword): void {
             try {
                 Mail::to($user->email)->send(new TouristWelcomeMail($user));
             } catch (\Throwable $e) {
                 Log::warning('Tourist welcome email failed', ['user_id' => $user->id, 'error' => $e->getMessage()]);
+            }
+
+            if ($mustChangePassword && !empty($tempPassword)) {
+                try {
+                    Mail::to($user->email)->send(new TemporaryPasswordMail($user->name, $user->email, $tempPassword));
+                } catch (\Throwable $e) {
+                    Log::warning('Temporary password email failed', ['user_id' => $user->id, 'error' => $e->getMessage()]);
+                }
             }
         });
 

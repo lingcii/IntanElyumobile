@@ -1,6 +1,6 @@
 <!-- Dashboard View -->
 <?php
-$pageTitle = 'Discover La Union';
+$pageTitle = 'Feel La Union';
 $activeTab = 'dashboard';
 
 // Scan municipality images from local assets
@@ -1121,10 +1121,10 @@ if (is_dir($imgDir)) {
         <div id="dash-search-results" class="dash-search-dropdown" style="display:none; position:absolute; top:calc(100% + 8px); left:0; right:0; background:#ffffff; border-radius:18px; border:1.5px solid #e2e8f0; box-shadow:none; max-height:320px; overflow-y:auto; z-index:1000; padding:6px; -webkit-overflow-scrolling:touch;"></div>
     </div>
 
-    <!-- Coastal Hero Banner: Discover La Union -->
+    <!-- Coastal Hero Banner: Feel La Union -->
     <div class="dash-hero-banner stagger-1" style="position: relative; border-radius: 28px; background: linear-gradient(135deg, #0e2a56 0%, #15386f 50%, #1e4080 100%) !important; padding: 22px 18px 18px 18px; overflow: hidden; margin-bottom: 14px; box-shadow: none !important; display: flex; flex-direction: column; gap: 14px;">
         <div class="dash-hero-content" style="width: 100%;">
-            <span class="dash-hero-eyebrow">Discover</span>
+            <span class="dash-hero-eyebrow">Feel</span>
             <h1 class="dash-hero-title">La Union</h1>
             
             
