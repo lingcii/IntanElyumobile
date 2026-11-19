@@ -2864,9 +2864,13 @@ window.OfflineProfileManager = {
         }
     }
 
-    // Pre-warm offline data when online
+    // Pre-warm offline data when online (skip if map cache was recently populated)
     function prewarmOfflineData() {
         if (!navigator.onLine) return;
+        try {
+            const existing = JSON.parse(localStorage.getItem('public_map_data') || 'null');
+            if (existing && existing.timestamp && (Date.now() - existing.timestamp) < 300000) return;
+        } catch (e) {}
         const bUrl = (window.backendUrl || window.BACKEND_URL || 'https://api.intan-elyu.online').replace(/\/+$/, '');
         
         fetch(`${bUrl}/api/public/map`, { headers: { 'Accept': 'application/json' } })
@@ -2881,7 +2885,7 @@ window.OfflineProfileManager = {
 
 // Sync the mobile lock screen with the admin portal's shared maintenance setting.
 (function initMobileMaintenanceModeSync() {
-    const MAINTENANCE_CHECK_INTERVAL_MS = 2000;
+    const MAINTENANCE_CHECK_INTERVAL_MS = 30000;
     let maintenanceCheckInFlight = false;
 
     function ensureMaintenanceOverlay() {
@@ -6788,7 +6792,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                     const _curU = window.safeJsonParse ? window.safeJsonParse(localStorage.getItem('auth_user'), {}) : {};
                     window.updateDashboardProfileHeader(_isG, _curU);
                     if (!_isG && navigator.onLine !== false && window.isAppOnline !== false && typeof window.dashboardInit === 'function') {
-                        window.dashboardInit(true);
+                        window.dashboardInit(Boolean(window.dashboardNeedsRefresh));
                     }
                 }
                 if (targetView === 'discount' && navigator.onLine !== false && window.isAppOnline !== false && typeof window.fetchUserPointsAndRedemptions === 'function') {

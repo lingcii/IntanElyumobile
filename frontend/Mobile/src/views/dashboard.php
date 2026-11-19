@@ -5150,23 +5150,7 @@ window.applyTouristSitesFilterModal = function() {
                 }
             }
 
-            // Fetch Rank concurrently
-            const rankCacheKey = 'dashboard_rank_' + token.substring(0, 10);
-            const rankPromise = window.useCache(
-                rankCacheKey,
-                async () => {
-                    const rankRes = await fetch(backendUrl + '/api/tourist/leaderboard', {
-                        headers: { 'Accept': 'application/json', 'Authorization': 'Bearer ' + token, 'ngrok-skip-browser-warning': 'true' }
-                    });
-                    if (rankRes.ok) return await rankRes.json();
-                    throw new Error("Rank fetch failed");
-                },
-                (rankData) => {
-                    if (rankData) renderRank(rankData);
-                },
-                Boolean(forceRefresh || window.dashboardNeedsRefresh),
-                60000 // 1 minute TTL
-            ).catch(e => console.warn('Rank fetch handled:', e));
+            // Rank is already returned by /api/tourist/dashboard (data.myRank / data.stats.rank); avoid redundant /leaderboard call.
 
             // Fetch Saved Trips concurrently
             const tripsContainer = document.getElementById('saved-trips-container');
@@ -5193,7 +5177,7 @@ window.applyTouristSitesFilterModal = function() {
                 });
             }
 
-            await Promise.allSettled([dashPromise, rankPromise, tripsPromise, spotsPromise]);
+            await Promise.allSettled([dashPromise, tripsPromise, spotsPromise]);
             handleDashboardEmptyOrError();
             window.dashboardNeedsRefresh = false;
         } catch (e) {

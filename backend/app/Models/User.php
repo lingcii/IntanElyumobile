@@ -195,11 +195,13 @@ class User extends Authenticatable
      */
     public function getTouristNumber(): int
     {
-        $count = static::where('role', 'tourist')
-            ->where('id', '<=', $this->id)
-            ->count();
+        return (int) \Illuminate\Support\Facades\Cache::remember("user:tourist_num:{$this->id}", 3600, function () {
+            $count = static::where('role', 'tourist')
+                ->where('id', '<=', $this->id)
+                ->count();
 
-        return $count > 0 ? $count : 1;
+            return $count > 0 ? $count : 1;
+        });
     }
 
     public function getTouristNumberAttribute(): int
@@ -237,20 +239,18 @@ class User extends Authenticatable
         } catch (\Throwable $e) {}
 
         try {
-            if (\Illuminate\Support\Facades\Schema::hasTable('user_points')) {
-                $totalCount += (int) \Illuminate\Support\Facades\DB::table('user_points')
-                    ->where('user_id', $this->id)
-                    ->whereIn('source', ['check_in', 'ar_checkin'])
-                    ->whereNotNull('spot_id')
-                    ->where(function ($q) {
-                        $q->whereNull('description')
-                          ->orWhere(function ($d) {
-                              $d->where('description', 'not like', 'GPS Check-in at%')
-                                ->where('description', 'not like', 'Proof Check-in Approved at%');
-                          });
-                    })
-                    ->count();
-            }
+            $totalCount += (int) \Illuminate\Support\Facades\DB::table('user_points')
+                ->where('user_id', $this->id)
+                ->whereIn('source', ['check_in', 'ar_checkin'])
+                ->whereNotNull('spot_id')
+                ->where(function ($q) {
+                    $q->whereNull('description')
+                      ->orWhere(function ($d) {
+                          $d->where('description', 'not like', 'GPS Check-in at%')
+                            ->where('description', 'not like', 'Proof Check-in Approved at%');
+                      });
+                })
+                ->count();
         } catch (\Throwable $e) {}
 
         $trueCount = $totalCount;
@@ -294,8 +294,9 @@ class User extends Authenticatable
         $userXp = max($rawXp, $rawPoints);
         $redeemedTotal = 0;
 
-        try {
-            if (\Illuminate\Support\Facades\Schema::hasTable('point_redemptions')) {
+        // Only query point_redemptions when reconciliation could actually change spendable points
+        if (($rawPoints === $userXp && $userXp > 0) || ($rawPoints === 0 && $rawXp > 0)) {
+            try {
                 $redeemedTotal = (int) \Illuminate\Support\Facades\DB::table('point_redemptions')
                     ->where('user_id', $this->id)
                     ->where(function ($q) {
@@ -303,8 +304,8 @@ class User extends Authenticatable
                           ->orWhereRaw("LOWER(status) != 'cancelled'");
                     })
                     ->sum('points_cost');
-            }
-        } catch (\Throwable $e) {}
+            } catch (\Throwable $e) {}
+        }
 
         if ($redeemedTotal > 0 && $rawPoints === $userXp && $userXp > 0) {
             $userPoints = max(0, $userXp - $redeemedTotal);

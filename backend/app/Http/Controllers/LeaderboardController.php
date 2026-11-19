@@ -15,12 +15,25 @@ class LeaderboardController extends Controller
     private function rankedCte(string $orderSql = 'total_points DESC, total_xp DESC, completed_activities DESC, user_id ASC', string $filterSql = ''): string
     {
         return "
-            WITH user_summary AS (
+            WITH tourist_numbers AS (
+                SELECT id, ROW_NUMBER() OVER (ORDER BY id ASC) AS tourist_number
+                FROM users
+                WHERE role = 'tourist'
+            ),
+            visited_counts AS (
+                SELECT i.user_id, COUNT(*) AS visited_cnt
+                FROM itinerary_items ii
+                INNER JOIN itineraries i ON ii.itinerary_id = i.id
+                WHERE ii.tourist_spot_id IS NOT NULL
+                  AND (ii.is_visited = 1 OR ii.visited_at IS NOT NULL OR i.status = 'completed')
+                GROUP BY i.user_id
+            ),
+            user_summary AS (
                 SELECT
                     u.id                                              AS user_id,
                     u.name                                            AS name,
                     COALESCE(NULLIF(u.name, ''), CONCAT('Explorer #', u.id)) AS full_name,
-                    (SELECT COUNT(*) FROM users u_tn WHERE u_tn.role = 'tourist' AND u_tn.id <= u.id) AS tourist_number,
+                    COALESCE(tn.tourist_number, 1)                    AS tourist_number,
                     u.email                                           AS email,
                     u.avatar                                          AS avatar,
                     u.home_location                                   AS home_location,
@@ -37,37 +50,16 @@ class LeaderboardController extends Controller
                     COALESCE(u.points, 0)                             AS points,
                     COALESCE(u.points, 0)                             AS total_points,
                     COALESCE(u.points, 0)                             AS claimable_points,
-                    COALESCE(
-                        NULLIF((
-                            SELECT COUNT(*)
-                            FROM itinerary_items ii
-                            INNER JOIN itineraries i ON ii.itinerary_id = i.id
-                            WHERE i.user_id = u.id
-                              AND ii.tourist_spot_id IS NOT NULL
-                              AND (ii.is_visited = 1 OR ii.visited_at IS NOT NULL OR i.status = 'completed')
-                        ), 0),
-                        u.completed_activities,
-                        0
-                    )                                                 AS completed_activities,
-                    COALESCE(
-                        NULLIF((
-                            SELECT COUNT(*)
-                            FROM itinerary_items ii
-                            INNER JOIN itineraries i ON ii.itinerary_id = i.id
-                            WHERE i.user_id = u.id
-                              AND ii.tourist_spot_id IS NOT NULL
-                              AND (ii.is_visited = 1 OR ii.visited_at IS NOT NULL OR i.status = 'completed')
-                        ), 0),
-                        u.completed_activities,
-                        0
-                    )                                                 AS places_visited,
+                    COALESCE(NULLIF(vc.visited_cnt, 0), u.completed_activities, 0) AS completed_activities,
+                    COALESCE(NULLIF(vc.visited_cnt, 0), u.completed_activities, 0) AS places_visited,
                     COALESCE(u.created_at, NOW())                     AS points_since,
                     COALESCE(u.created_at, NOW())                     AS created_at
                 FROM users u
+                LEFT JOIN tourist_numbers tn ON tn.id = u.id
+                LEFT JOIN visited_counts vc ON vc.user_id = u.id
                 LEFT JOIN municipalities m ON u.municipality_id = m.id
                 WHERE u.role = 'tourist' AND (u.status = 'active' OR u.status IS NULL)
                   {$filterSql}
-                GROUP BY u.id, u.name, u.email, u.avatar, u.home_location, m.name, u.bio, u.is_leaderboard_private, u.last_activity, u.xp, u.points, u.completed_activities, u.created_at
             ),
             ranked AS (
                 SELECT
@@ -146,28 +138,41 @@ class LeaderboardController extends Controller
                 if (method_exists($user, 'syncPointsBalance')) {
                     $user->syncPointsBalance();
                 }
-                $uPts = (int) ($user->points ?? $user->xp ?? 0);
-                $uActs = (int) ($user->completed_activities ?? 0);
-                if ($uPts > 0 || $uActs > 0) {
-                    try {
-                        $myRankRow = DB::selectOne(
-                            $this->rankedCte($orderSql, $filterSql) . "SELECT * FROM ranked WHERE user_id = ?",
-                            [$user->id]
-                        );
-                        if ($myRankRow) {
-                            $myRank = (int) $myRankRow->rank;
-                            $meRows = $this->castRows([(array) $myRankRow]);
-                            $me = $meRows[0] ?? null;
-                        }
-                    } catch (\Throwable $e) {
-                    }
-                }
             }
 
-            // Execute dynamic ranked query
+            // Execute dynamic ranked query once (single CTE pass returns rows + total_count)
             $cachedData = $this->queryFromLiveCte($search, $orderSql, $limit, $offset, $filterSql);
             $rows = $this->castRows($cachedData['rows']);
             $totalTourists = (int) ($cachedData['total'] ?? count($rows));
+
+            if ($user) {
+                $uPts = (int) ($user->points ?? $user->xp ?? 0);
+                $uActs = (int) ($user->completed_activities ?? 0);
+                if ($uPts > 0 || $uActs > 0) {
+                    // Reuse current user's row if already in this page (avoids a second CTE query)
+                    foreach ($rows as $row) {
+                        if ((int) ($row['user_id'] ?? $row['id'] ?? 0) === (int) $user->id) {
+                            $myRank = (int) ($row['rank'] ?? 0) ?: null;
+                            $me = $row;
+                            break;
+                        }
+                    }
+                    if ($myRank === null) {
+                        try {
+                            $myRankRow = DB::selectOne(
+                                $this->rankedCte($orderSql, $filterSql) . "SELECT * FROM ranked WHERE user_id = ?",
+                                [$user->id]
+                            );
+                            if ($myRankRow) {
+                                $myRank = (int) $myRankRow->rank;
+                                $meRows = $this->castRows([(array) $myRankRow]);
+                                $me = $meRows[0] ?? null;
+                            }
+                        } catch (\Throwable $e) {
+                        }
+                    }
+                }
+            }
         }
         $highestXp = count($rows) > 0 ? (int) max(array_column($rows, 'total_xp')) : 0;
         $highestPoints = count($rows) > 0 ? (int) max(array_column($rows, 'total_points')) : 0;
@@ -387,20 +392,31 @@ class LeaderboardController extends Controller
             $params = ["%{$search}%", "%{$search}%", "%{$search}%"];
         }
 
-        $totalResult = DB::selectOne(
-            $this->rankedCte($orderSql, $filterSql) . "SELECT COUNT(*) as cnt FROM ranked {$whereClause}",
-            $params
-        );
-        $total = $totalResult ? $totalResult->cnt : 0;
-
         $rows = DB::select(
-            $this->rankedCte($orderSql, $filterSql) . "SELECT * FROM ranked {$whereClause} ORDER BY `rank` ASC LIMIT {$limit} OFFSET {$offset}",
+            $this->rankedCte($orderSql, $filterSql) . "SELECT r.*, COUNT(*) OVER() AS total_count FROM ranked r {$whereClause} ORDER BY r.`rank` ASC LIMIT {$limit} OFFSET {$offset}",
             $params
         );
+
+        $rowsArray = json_decode(json_encode($rows), true);
+        if (!empty($rowsArray)) {
+            $total = (int) ($rowsArray[0]['total_count'] ?? count($rowsArray));
+            foreach ($rowsArray as &$r) {
+                unset($r['total_count']);
+            }
+            unset($r);
+        } elseif ($offset > 0) {
+            $totalResult = DB::selectOne(
+                $this->rankedCte($orderSql, $filterSql) . "SELECT COUNT(*) as cnt FROM ranked {$whereClause}",
+                $params
+            );
+            $total = $totalResult ? (int) $totalResult->cnt : 0;
+        } else {
+            $total = 0;
+        }
 
         return [
-            'total' => (int) $total,
-            'rows' => json_decode(json_encode($rows), true),
+            'total' => $total,
+            'rows' => $rowsArray,
         ];
     }
 

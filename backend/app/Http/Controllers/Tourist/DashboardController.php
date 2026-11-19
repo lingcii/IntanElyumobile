@@ -34,98 +34,90 @@ class DashboardController extends Controller
             } catch (\Throwable $e) {}
         }
 
-        // Trending: top spots based primarily on rating (main) and visitor count (visits)
-        // Technique 2: Server-Side Caching — 30-second TTL for trending spots
+        // Single cached pool of active spots powers trending, favorites, and recommendations without 3 separate full scans
         $trendingLimit = min((int) $request->query('limit', 10), 50);
-        $trending = Cache::remember("trending:top:{$trendingLimit}", 30, function () use ($trendingLimit) {
-            return TouristSpot::activeForTourists()
-                ->withCount('feedbacks')
-                ->orderByDesc('rating')
-                ->orderByDesc('visits')
-                ->limit($trendingLimit)
-                ->get(['id', 'name', 'category', 'photo_url', 'latitude', 'longitude', 'visits', 'rating', 'description', 'entrance_fee', 'adult_fee', 'kids_fee', 'pwd_fee', 'senior_citizen_fee', 'entrance_fee_types', 'environmental_fee', 'fee_types', 'classification_status', 'municipality_id', 'status'])
-                ->map(fn($s) => $this->formatSpot($s))
-                ->toArray();
-        });
+        $allActiveSpots = [];
+        try {
+            $allActiveSpots = Cache::remember('dashboard:active_spots:v1', 120, function () {
+                return TouristSpot::activeForTourists()
+                    ->withCount('feedbacks')
+                    ->orderByDesc('rating')
+                    ->orderByDesc('visits')
+                    ->get(['id', 'name', 'category', 'photo_url', 'latitude', 'longitude', 'visits', 'rating', 'description', 'entrance_fee', 'adult_fee', 'kids_fee', 'pwd_fee', 'senior_citizen_fee', 'entrance_fee_types', 'environmental_fee', 'fee_types', 'classification_status', 'municipality_id', 'status'])
+                    ->map(fn($s) => $this->formatSpot($s))
+                    ->values()
+                    ->toArray();
+            });
+        } catch (\Throwable $e) {
+            $allActiveSpots = [];
+        }
+
+        $trending = array_slice($allActiveSpots, 0, $trendingLimit);
 
         // Saved/Favorite places
-        $favoriteIds = collect();
+        $favoriteSet = [];
         try {
-            if (\Illuminate\Support\Facades\Schema::hasTable('favorites')) {
-                $favoriteIds = Favorite::where('user_id', $user->id)->pluck('tourist_spot_id');
+            $favIds = Favorite::where('user_id', $user->id)->pluck('tourist_spot_id')->all();
+            foreach ($favIds as $fid) {
+                $favoriteSet[(int) $fid] = true;
             }
         } catch (\Throwable $e) {
-            $favoriteIds = collect();
+            $favoriteSet = [];
         }
 
-        $savedPlaces = collect();
-        try {
-            if (\Illuminate\Support\Facades\Schema::hasTable('tourist_spots') && $favoriteIds->isNotEmpty()) {
-                $savedPlaces = TouristSpot::whereIn('id', $favoriteIds)
-                    ->activeForTourists()
-                    ->withCount('feedbacks')
-                    ->get(['id', 'name', 'category', 'photo_url', 'latitude', 'longitude', 'visits', 'rating', 'description', 'entrance_fee', 'adult_fee', 'kids_fee', 'pwd_fee', 'senior_citizen_fee', 'entrance_fee_types', 'environmental_fee', 'fee_types', 'classification_status', 'municipality_id', 'status'])
-                    ->map(fn($s) => $this->formatSpot($s));
-            }
-        } catch (\Throwable $e) {
-            $savedPlaces = collect();
-        }
+        $savedPlaces = empty($favoriteSet)
+            ? []
+            : array_values(array_filter($allActiveSpots, fn($s) => isset($favoriteSet[(int) ($s['id'] ?? 0)])));
 
         // Recommendations: Near Me feature
         $lat = $request->query('lat');
         $lng = $request->query('lng');
         $timeLabel = '📍 Near Me';
 
-        $recommended = collect();
-        try {
-            if (\Illuminate\Support\Facades\Schema::hasTable('tourist_spots')) {
-                $recommendedQuery = TouristSpot::activeForTourists()
-                    ->withCount('feedbacks')
-                    ->when($favoriteIds->isNotEmpty(), function($q) use ($favoriteIds) {
-                        $q->whereNotIn('id', $favoriteIds);
-                    })
-                    ->get(['id', 'name', 'category', 'photo_url', 'latitude', 'longitude', 'visits', 'rating', 'description', 'entrance_fee', 'adult_fee', 'kids_fee', 'pwd_fee', 'senior_citizen_fee', 'entrance_fee_types', 'environmental_fee', 'fee_types', 'classification_status', 'municipality_id', 'status']);
+        $recommendedCandidates = empty($favoriteSet)
+            ? $allActiveSpots
+            : array_values(array_filter($allActiveSpots, fn($s) => !isset($favoriteSet[(int) ($s['id'] ?? 0)])));
 
-                // If user has saved preferences, prioritize matching categories
-                $userPrefs = strtolower((string) ($user->travel_preferences ?? ''));
-                $prefKeywords = array_filter(array_map('trim', preg_split('/[,\s]+/', $userPrefs)), fn($w) => strlen($w) > 2);
+        $userPrefs = strtolower((string) ($user->travel_preferences ?? ''));
+        $prefKeywords = array_filter(array_map('trim', preg_split('/[,\s]+/', $userPrefs)), fn($w) => strlen($w) > 2);
 
-                if ($lat && $lng) {
-                    $recommendedQuery = $recommendedQuery->sortBy(function($spot) use ($lat, $lng, $prefKeywords) {
-                        $cat = strtolower(($spot->category ?? '') . ' ' . ($spot->name ?? ''));
-                        $prefBonus = 0;
-                        foreach ($prefKeywords as $kw) {
-                            if (strpos($cat, $kw) !== false) {
-                                $prefBonus = -500; // prior boost
-                                break;
-                            }
+        if ($lat && $lng) {
+            $latF = (float) $lat;
+            $lngF = (float) $lng;
+            usort($recommendedCandidates, function ($a, $b) use ($latF, $lngF, $prefKeywords) {
+                $scoreFor = function ($spot) use ($latF, $lngF, $prefKeywords) {
+                    $cat = strtolower(($spot['category'] ?? '') . ' ' . ($spot['name'] ?? ''));
+                    $prefBonus = 0;
+                    foreach ($prefKeywords as $kw) {
+                        if (strpos($cat, $kw) !== false) {
+                            $prefBonus = -500;
+                            break;
                         }
-                        return (pow($spot->latitude - $lat, 2) + pow($spot->longitude - $lng, 2)) + $prefBonus;
-                    });
-                } else {
-                    $recommendedQuery = $recommendedQuery->sort(function($a, $b) use ($prefKeywords) {
-                        $catA = strtolower(($a->category ?? '') . ' ' . ($a->name ?? ''));
-                        $catB = strtolower(($b->category ?? '') . ' ' . ($b->name ?? ''));
-                        $matchA = 0;
-                        foreach ($prefKeywords as $kw) {
-                            if (strpos($catA, $kw) !== false) { $matchA = 1; break; }
-                        }
-                        $matchB = 0;
-                        foreach ($prefKeywords as $kw) {
-                            if (strpos($catB, $kw) !== false) { $matchB = 1; break; }
-                        }
-                        if ($matchA !== $matchB) {
-                            return $matchB - $matchA;
-                        }
-                        return (float)($b->rating ?? 0) <=> (float)($a->rating ?? 0);
-                    });
+                    }
+                    return (pow((float) ($spot['latitude'] ?? 0) - $latF, 2) + pow((float) ($spot['longitude'] ?? 0) - $lngF, 2)) + $prefBonus;
+                };
+                return $scoreFor($a) <=> $scoreFor($b);
+            });
+        } elseif (!empty($prefKeywords)) {
+            usort($recommendedCandidates, function ($a, $b) use ($prefKeywords) {
+                $catA = strtolower(($a['category'] ?? '') . ' ' . ($a['name'] ?? ''));
+                $catB = strtolower(($b['category'] ?? '') . ' ' . ($b['name'] ?? ''));
+                $matchA = 0;
+                foreach ($prefKeywords as $kw) {
+                    if (strpos($catA, $kw) !== false) { $matchA = 1; break; }
                 }
-
-                $recommended = $recommendedQuery->take(5)->values()->map(fn($s) => $this->formatSpot($s));
-            }
-        } catch (\Throwable $e) {
-            $recommended = collect();
+                $matchB = 0;
+                foreach ($prefKeywords as $kw) {
+                    if (strpos($catB, $kw) !== false) { $matchB = 1; break; }
+                }
+                if ($matchA !== $matchB) {
+                    return $matchB - $matchA;
+                }
+                return (float) ($b['rating'] ?? 0) <=> (float) ($a['rating'] ?? 0);
+            });
         }
+
+        $recommended = array_slice($recommendedCandidates, 0, 5);
 
         // Stats — Calculate and reconcile true distinct places visited and spendable points
         $placesVisited = method_exists($user, 'syncPlacesVisitedCount')
@@ -172,11 +164,9 @@ class DashboardController extends Controller
 
         $unreadNotifications = 0;
         try {
-            if (\Illuminate\Support\Facades\Schema::hasTable('notifications')) {
-                $unreadNotifications = Notification::where('user_id', $user->id)
-                    ->where('is_read', false)
-                    ->count();
-            }
+            $unreadNotifications = Notification::where('user_id', $user->id)
+                ->where('is_read', false)
+                ->count();
         } catch (\Throwable $e) {
             $unreadNotifications = 0;
         }
@@ -250,7 +240,9 @@ class DashboardController extends Controller
         static $muniCache = null;
         if ($muniCache === null) {
             try {
-                $muniCache = \Illuminate\Support\Facades\DB::table('municipalities')->pluck('name', 'id')->toArray();
+                $muniCache = Cache::remember('municipalities:name_map', 3600, function () {
+                    return \Illuminate\Support\Facades\DB::table('municipalities')->pluck('name', 'id')->toArray();
+                });
             } catch (\Throwable $e) {
                 $muniCache = [];
             }
