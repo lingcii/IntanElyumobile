@@ -1065,25 +1065,15 @@
     outline: none;
 }
 
-/* Custom Calendar Date Picker Dropdown inside Save Trip Modal */
+/* Custom Calendar Date Picker Modal Overlay */
 #custom-calendar-dropdown {
     display: none;
-    background: #ffffff !important;
-    border: 1.5px solid #0284c7 !important;
-    outline: none !important;
-    box-shadow: 0 10px 25px rgba(2, 132, 199, 0.12) !important;
-    border-radius: 18px !important;
-    padding: 14px 14px 12px 14px !important;
-    margin-top: -8px !important;
-    margin-bottom: 16px !important;
     pointer-events: auto !important;
     box-sizing: border-box;
-    overflow: visible !important;
-    max-height: none !important;
 }
 
 #custom-calendar-dropdown.calendar-open {
-    display: block !important;
+    display: flex !important;
     opacity: 1 !important;
     visibility: visible !important;
     transform: none !important;

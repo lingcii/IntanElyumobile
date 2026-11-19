@@ -530,6 +530,11 @@ $activeTab = 'profile';
         const hasRankActivity = (points > 0 || placesCount > 0);
 
         if (elPoints) elPoints.textContent = points.toLocaleString();
+        const elProfilePtsVal = document.getElementById('profile-points-val');
+        const elDealsPts = document.getElementById('full-deals-user-points');
+        if (elProfilePtsVal) elProfilePtsVal.textContent = points.toLocaleString();
+        if (elDealsPts) elDealsPts.textContent = points.toLocaleString();
+        window._userPointsBalance = points;
         if (elPlaces) elPlaces.textContent = placesCount.toLocaleString();
         if (elRank) elRank.textContent = (hasRankActivity && data.my_rank && data.my_rank < 999) ? '#' + data.my_rank : (hasRankActivity && u.my_rank ? '#' + u.my_rank : 'Unranked');
         if (elName && u.name) elName.textContent = u.name;
@@ -637,7 +642,7 @@ $activeTab = 'profile';
         }
     };
 
-    window.syncUserPointsEverywhere = window.syncUserPointsEverywhere || function (newPoints, newVoucherItem) {
+    window.syncUserPointsEverywhere = function (newPoints, newVoucherItem) {
         const pts = Math.max(0, parseInt(newPoints, 10) || 0);
         window._userPointsBalance = pts;
 
@@ -1252,8 +1257,8 @@ $activeTab = 'profile';
             if (normal) normal.style.display = 'block';
             hydrateProfileFromCache();
             if (!isOffline) {
-                fetchProfileData();
-                fetchPointsAndVouchers();
+                fetchProfileData(true);
+                fetchPointsAndVouchers(true);
                 if (typeof window.loadUserReviewsAndCheckins === 'function') {
                     window.loadUserReviewsAndCheckins(true);
                 }
@@ -1288,6 +1293,7 @@ $activeTab = 'profile';
             cacheKey,
             async () => {
                 const response = await fetch(backendUrl + '/api/tourist/profile', {
+                    cache: 'no-store',
                     headers: {
                         'Accept': 'application/json',
                         'Authorization': 'Bearer ' + token
@@ -1303,6 +1309,7 @@ $activeTab = 'profile';
             60000
         );
     }
+    window.fetchProfileData = fetchProfileData;
 
     async function fetchProfileVoucherCatalog() {
         try {
@@ -1378,6 +1385,7 @@ $activeTab = 'profile';
             } catch (e) { }
         }
     }
+    window.fetchPointsAndVouchers = fetchPointsAndVouchers;
 
     window._redeemConfirmResolver = null;
 

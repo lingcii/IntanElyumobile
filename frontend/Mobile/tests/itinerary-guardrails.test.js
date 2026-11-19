@@ -26,8 +26,8 @@ assert.match(itinerary, /client_request_id: clientRequestId/,
     'new trips must carry a stable idempotency key into online and offline retries');
 assert.match(itineraryController, /client_request_id[\s\S]*idempotencyCacheKey[\s\S]*Cache::put\(\$idempotencyCacheKey, \$itinerary->id/,
     'the backend must resolve retried Save Trip requests to the original itinerary');
-assert.match(itemController, /hasIncompletePreviousStop[\s\S]*whereNull\('visited_at'\)[\s\S]*orWhereNull\('proof_image'\)/,
-    'the backend must unlock the next stop once check-in and photo are recorded without rejected proof checks');
+assert.match(itemController, /hasIncompletePreviousStop[\s\S]*whereNull\('visited_at'\)[\s\S]*where\('is_visited',\s*false\)/,
+    'the backend must unlock the next stop once check-in is recorded without requiring optional proof photos');
 assert.match(itemController, /MAX_DISTANCE_METERS = 70[\s\S]*hasIncompletePreviousStop[\s\S]*lockedStopResponse/,
     'the backend must still enforce the 70-meter radius and sequential stop order');
 assert.match(itineraryController, /whereIn\('itinerary_item_id'[\s\S]*DB::transaction[\s\S]*increment\('visits', \$paxIncrement\)/,

@@ -183,13 +183,28 @@ try {
             display: block !important;
         }
 
-        #custom-calendar-dropdown {
-            background: #ffffff !important;
-            border: 1.5px solid #0284c7 !important;
-            box-shadow: 0 10px 25px rgba(2, 132, 199, 0.12) !important;
-            border-radius: 18px !important;
-            overflow: visible !important;
+        #custom-calendar-dropdown,
+        #focus-base-modal {
+            position: fixed !important;
+            inset: 0 !important;
+            z-index: 99999 !important;
+            background: rgba(15, 23, 42, 0.52) !important;
+            backdrop-filter: blur(4px) !important;
+            -webkit-backdrop-filter: blur(4px) !important;
+            border: none !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
+            margin: 0 !important;
+            padding: calc(74px + env(safe-area-inset-top, 0px)) 16px calc(156px + env(safe-area-inset-bottom, 0px)) 16px !important;
             max-height: none !important;
+            overflow: hidden !important;
+            align-items: center !important;
+            justify-content: center !important;
+            box-sizing: border-box !important;
+        }
+        #custom-calendar-dropdown.calendar-open,
+        #focus-base-modal.focus-base-open {
+            display: flex !important;
         }
         .calendar-day-cell {
             color: #0f172a !important;
@@ -448,36 +463,51 @@ try {
             </div>
             <input type="hidden" id="trip-date" value="">
 
-            <!-- Floating Calendar Card -->
+            <!-- Trip Date Modal (Clamped above Proceed to Stops, No Scrollview) -->
             <div id="custom-calendar-dropdown"
-                style="display:none; background:#ffffff !important; border:1.5px solid #0284c7 !important; border-radius:18px !important; padding:14px !important; margin-top:-6px !important; margin-bottom:14px !important; box-shadow:0 10px 25px rgba(2, 132, 199, 0.12) !important; box-sizing:border-box;"
-                onclick="event.stopPropagation()">
-                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; padding:0 4px;">
-                    <button type="button" onclick="window.changeCalendarMonth(-1, event)"
-                        style="background:#f1f5f9; border:1px solid #cbd5e1 !important; color:#0f172a; width:34px; height:34px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center;">
-                        <i class="fa-solid fa-chevron-left" style="font-size:11px;"></i>
-                    </button>
-                    <div id="calendar-month-year" style="font-size:15px; font-weight:800; color:#0f172a !important;"></div>
-                    <button type="button" onclick="window.changeCalendarMonth(1, event)"
-                        style="background:#f1f5f9; border:1px solid #cbd5e1 !important; color:#0f172a; width:34px; height:34px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center;">
-                        <i class="fa-solid fa-chevron-right" style="font-size:11px;"></i>
-                    </button>
-                </div>
-                <div style="display:grid; grid-template-columns:repeat(7, 1fr); text-align:center; margin-bottom:8px;">
-                    <span style="font-size:11.5px; font-weight:800; color:#ef4444 !important;">Su</span>
-                    <span style="font-size:11.5px; font-weight:700; color:#475569 !important;">Mo</span>
-                    <span style="font-size:11.5px; font-weight:700; color:#475569 !important;">Tu</span>
-                    <span style="font-size:11.5px; font-weight:700; color:#475569 !important;">We</span>
-                    <span style="font-size:11.5px; font-weight:700; color:#475569 !important;">Th</span>
-                    <span style="font-size:11.5px; font-weight:700; color:#475569 !important;">Fr</span>
-                    <span style="font-size:11.5px; font-weight:800; color:#0284c7 !important;">Sa</span>
-                </div>
-                <div id="calendar-days-grid" style="display:grid; grid-template-columns:repeat(7, 1fr); gap:4px; text-align:center;"></div>
-                <div style="display:flex; justify-content:flex-start; align-items:center; margin-top:12px; padding-top:10px; border-top:1px solid #e2e8f0;">
-                    <button type="button" onclick="window.selectTodayDate(event)"
-                        style="background:#f1f5f9; border:1px solid #cbd5e1 !important; color:#0f172a !important; font-size:11.5px; font-weight:700; padding:6px 14px; border-radius:100px; cursor:pointer;">
-                        <i class="fa-solid fa-calendar-day" style="margin-right:4px; color:#0284c7;"></i> Today
-                    </button>
+                style="display:none; position:fixed; top:0; left:0; right:0; bottom:calc(136px + env(safe-area-inset-bottom, 0px)); z-index:99990; background:rgba(15,23,42,0.45); backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); align-items:flex-end; justify-content:center; padding:12px 14px 8px; box-sizing:border-box;"
+                onclick="if(event.target===this) window.toggleCustomCalendar(event, false);">
+                <div style="width:100%; max-width:390px; background:#ffffff !important; border:1.5px solid #cbd5e1 !important; border-radius:22px !important; overflow:hidden !important; box-shadow:0 18px 42px rgba(15,23,42,0.28) !important; box-sizing:border-box;"
+                    onclick="event.stopPropagation()">
+                    <div style="background:linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%); padding:12px 16px; display:flex; align-items:center; justify-content:space-between; color:#ffffff;">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <i class="fa-regular fa-calendar" style="font-size:14px; color:#38bdf8;"></i>
+                            <span style="font-size:14.5px; font-weight:800; color:#ffffff;">Select Trip Date</span>
+                        </div>
+                        <button type="button" onclick="window.toggleCustomCalendar(event, false)"
+                            style="background:rgba(255,255,255,0.2); border:none; color:#ffffff; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer;">
+                            <i class="fa-solid fa-xmark" style="font-size:12px;"></i>
+                        </button>
+                    </div>
+                    <div style="padding:12px 14px; overflow:visible !important; box-sizing:border-box;">
+                        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; padding:0 4px;">
+                            <button type="button" onclick="window.changeCalendarMonth(-1, event)"
+                                style="background:#f1f5f9; border:1px solid #cbd5e1 !important; color:#0f172a; width:32px; height:32px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center;">
+                                <i class="fa-solid fa-chevron-left" style="font-size:11px;"></i>
+                            </button>
+                            <div id="calendar-month-year" style="font-size:14.5px; font-weight:800; color:#0f172a !important;"></div>
+                            <button type="button" onclick="window.changeCalendarMonth(1, event)"
+                                style="background:#f1f5f9; border:1px solid #cbd5e1 !important; color:#0f172a; width:32px; height:32px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center;">
+                                <i class="fa-solid fa-chevron-right" style="font-size:11px;"></i>
+                            </button>
+                        </div>
+                        <div style="display:grid; grid-template-columns:repeat(7, 1fr); text-align:center; margin-bottom:6px;">
+                            <span style="font-size:11px; font-weight:800; color:#ef4444 !important;">Su</span>
+                            <span style="font-size:11px; font-weight:700; color:#475569 !important;">Mo</span>
+                            <span style="font-size:11px; font-weight:700; color:#475569 !important;">Tu</span>
+                            <span style="font-size:11px; font-weight:700; color:#475569 !important;">We</span>
+                            <span style="font-size:11px; font-weight:700; color:#475569 !important;">Th</span>
+                            <span style="font-size:11px; font-weight:700; color:#475569 !important;">Fr</span>
+                            <span style="font-size:11px; font-weight:800; color:#0284c7 !important;">Sa</span>
+                        </div>
+                        <div id="calendar-days-grid" style="display:grid; grid-template-columns:repeat(7, 1fr); gap:3px; text-align:center;"></div>
+                        <div style="display:flex; justify-content:flex-start; align-items:center; margin-top:10px; padding-top:8px; border-top:1px solid #e2e8f0;">
+                            <button type="button" onclick="window.selectTodayDate(event)"
+                                style="background:#f1f5f9; border:1px solid #cbd5e1 !important; color:#0f172a !important; font-size:11.5px; font-weight:700; padding:6px 14px; border-radius:100px; cursor:pointer;">
+                                <i class="fa-solid fa-calendar-day" style="margin-right:4px; color:#0284c7;"></i> Today
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -485,21 +515,74 @@ try {
             <label style="font-size:12.5px; color:#1e293b !important; margin-bottom:6px; display:block; font-weight:700;">
                 Focus Base Municipality / Hub
             </label>
-            <div style="position:relative; margin-bottom:14px;">
-                <select id="trip-municipality"
-                    onchange="this.style.color = this.value ? '#0f172a' : '#94a3b8';"
-                    style="width:100%; padding:12px 14px; border-radius:14px; border:1.5px solid #cbd5e1 !important; outline:none !important; background:#ffffff; color:#94a3b8; font-family:inherit; font-size:13.5px; font-weight:600; box-sizing:border-box; appearance:none; -webkit-appearance:none; cursor:pointer;">
-                    <option value="" selected>Select Focus Base</option>
-                    <option value="All La Union">All La Union (Provincial-wide)</option>
-                    <option value="San Juan">San Juan (Surfing Capital & Coastal)</option>
-                    <option value="San Fernando City">San Fernando City (Capital & Commercial Hub)</option>
-                    <option value="Luna">Luna (Pebble Beach & Heritage)</option>
-                    <option value="Bauang">Bauang (Grape Farms & Calm Beaches)</option>
-                    <option value="Agoo">Agoo (Basilica & Eco-Fun)</option>
-                    <option value="San Gabriel">San Gabriel (Tangadan Falls)</option>
-                    <option value="Rosario">Rosario (Gateway to La Union)</option>
-                </select>
-                <i class="fa-solid fa-chevron-down" style="position:absolute; right:14px; top:50%; transform:translateY(-50%); font-size:11px; color:#64748b; pointer-events:none;"></i>
+            <div id="focus-base-trigger" onclick="window.toggleFocusBaseModal(event)"
+                style="position:relative; width:100%; padding:12px 14px; border-radius:14px; border:1.5px solid #cbd5e1 !important; outline:none !important; background:#ffffff; color:#0f172a; margin-bottom:14px; font-size:13.5px; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:space-between; transition:all 0.2s ease; user-select:none; box-sizing:border-box;">
+                <span id="focus-base-display" style="color:#94a3b8; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Select Focus Base</span>
+                <i class="fa-solid fa-chevron-down" id="focus-base-arrow"
+                    style="font-size:11px; color:#64748b; transition:transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); flex-shrink:0; margin-left:8px;"></i>
+            </div>
+            <input type="hidden" id="trip-municipality" value="">
+
+            <!-- Focus Base Municipality Droplist Modal (Scrollable, Clamped above Proceed to Stops) -->
+            <div id="focus-base-modal"
+                style="display:none; position:fixed; top:0; left:0; right:0; bottom:calc(136px + env(safe-area-inset-bottom, 0px)); z-index:99990; background:rgba(15,23,42,0.45); backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); align-items:flex-end; justify-content:center; padding:12px 14px 8px; box-sizing:border-box;"
+                onclick="if(event.target===this) window.toggleFocusBaseModal(event, false);">
+                <div style="width:100%; max-width:380px; max-height:100%; background:#ffffff !important; border:1.5px solid #cbd5e1 !important; border-radius:22px !important; overflow:hidden; display:flex; flex-direction:column; box-shadow:0 18px 42px rgba(15,23,42,0.28) !important; box-sizing:border-box;"
+                    onclick="event.stopPropagation()">
+                    <div style="flex-shrink:0; background:linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%); padding:13px 16px; display:flex; align-items:center; justify-content:space-between; color:#ffffff;">
+                        <div>
+                            <div style="font-size:14.5px; font-weight:800; color:#ffffff; display:flex; align-items:center; gap:7px;">
+                                <i class="fa-solid fa-location-dot" style="font-size:13px; color:#38bdf8;"></i> Select Focus Base
+                            </div>
+                            <div style="font-size:11px; color:rgba(255,255,255,0.85); margin-top:2px;">All 20 La Union Municipalities</div>
+                        </div>
+                        <button type="button" onclick="window.toggleFocusBaseModal(event, false)"
+                            style="background:rgba(255,255,255,0.2); border:none; color:#ffffff; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer;">
+                            <i class="fa-solid fa-xmark" style="font-size:12px;"></i>
+                        </button>
+                    </div>
+                    <div id="focus-base-options-list" style="flex:1; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:10px 12px; display:flex; flex-direction:column; gap:6px; background:#f8fafc;">
+                        <?php
+                        $focusBaseOptions = [
+                            ['value' => 'All La Union', 'label' => 'All La Union', 'sub' => 'Provincial-wide'],
+                            ['value' => 'Agoo', 'label' => 'Agoo', 'sub' => 'Basilica & Eco-Fun'],
+                            ['value' => 'Aringay', 'label' => 'Aringay', 'sub' => 'Heritage & Coastal'],
+                            ['value' => 'Bacnotan', 'label' => 'Bacnotan', 'sub' => 'Beaches & Bee Farms'],
+                            ['value' => 'Bagulin', 'label' => 'Bagulin', 'sub' => 'Highland Falls & Trails'],
+                            ['value' => 'Balaoan', 'label' => 'Balaoan', 'sub' => 'Immuki Island & Coast'],
+                            ['value' => 'Bangar', 'label' => 'Bangar', 'sub' => 'Inabel Weaving & Coast'],
+                            ['value' => 'Bauang', 'label' => 'Bauang', 'sub' => 'Grape Farms & Beaches'],
+                            ['value' => 'Burgos', 'label' => 'Burgos', 'sub' => 'Mountain Views & Crafts'],
+                            ['value' => 'Caba', 'label' => 'Caba', 'sub' => 'Coastal Resorts'],
+                            ['value' => 'Luna', 'label' => 'Luna', 'sub' => 'Pebble Beach & Watchtower'],
+                            ['value' => 'Naguilian', 'label' => 'Naguilian', 'sub' => 'Basi Wine & Falls'],
+                            ['value' => 'Pugo', 'label' => 'Pugo', 'sub' => 'Adventure Parks & Eco-Tourism'],
+                            ['value' => 'Rosario', 'label' => 'Rosario', 'sub' => 'Gateway to La Union'],
+                            ['value' => 'San Fernando City', 'label' => 'San Fernando City', 'sub' => 'Capital & Commercial Hub'],
+                            ['value' => 'San Gabriel', 'label' => 'San Gabriel', 'sub' => 'Tangadan Falls'],
+                            ['value' => 'San Juan', 'label' => 'San Juan', 'sub' => 'Surfing Capital & Coastal'],
+                            ['value' => 'Santol', 'label' => 'Santol', 'sub' => 'Highland Nature & Falls'],
+                            ['value' => 'Santo Tomas', 'label' => 'Santo Tomas', 'sub' => 'Coastal & Fish Port'],
+                            ['value' => 'Sudipen', 'label' => 'Sudipen', 'sub' => 'Northern Gateway & River'],
+                            ['value' => 'Tubao', 'label' => 'Tubao', 'sub' => 'Valleys & Native Crafts'],
+                        ];
+                        foreach ($focusBaseOptions as $opt):
+                            $valEsc = htmlspecialchars($opt['value'], ENT_QUOTES);
+                            $lblEsc = htmlspecialchars($opt['label'], ENT_QUOTES);
+                            $subEsc = htmlspecialchars($opt['sub'], ENT_QUOTES);
+                        ?>
+                        <button type="button" class="focus-base-opt-btn" data-value="<?= $valEsc ?>"
+                            onclick="window.selectFocusBaseMunicipality('<?= $valEsc ?>', '<?= $lblEsc ?>')"
+                            style="width:100%; padding:10px 12px; border-radius:13px; border:1.5px solid #e2e8f0; background:#ffffff; display:flex; align-items:center; justify-content:space-between; gap:10px; text-align:left; cursor:pointer; box-sizing:border-box;">
+                            <div style="min-width:0;">
+                                <div style="font-size:13px; font-weight:800; color:#0f172a;"><?= $lblEsc ?></div>
+                                <div style="font-size:11px; color:#64748b; font-weight:500;"><?= $subEsc ?></div>
+                            </div>
+                            <i class="fa-regular fa-circle focus-base-check" style="font-size:16px; color:#94a3b8; flex-shrink:0;"></i>
+                        </button>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
             </div>
 
             <!-- Travel Group / Companions Section -->
@@ -5596,10 +5679,10 @@ try {
                 }
 
                 html += `
-                    <div class="calendar-day-cell" onclick="window.selectCalendarDate('${dayStr}')" style="padding:8px 0; font-size:13px; font-weight:${weight}; cursor:pointer; border-radius:11px; background:${bg}; color:${color} !important; border:${border} !important; outline:none !important; box-shadow:${shadow} !important; transition:all 0.15s ease; position:relative; display:flex; align-items:center; justify-content:center;">
+                    <button type="button" class="calendar-day-cell" data-date="${dayStr}" onclick="event.stopPropagation(); window.selectCalendarDate('${dayStr}'); return false;" style="width:100%; padding:8px 0; font-size:13px; font-weight:${weight}; cursor:pointer; border-radius:11px; background:${bg}; color:${color} !important; border:${border} !important; outline:none !important; box-shadow:${shadow} !important; transition:all 0.15s ease; position:relative; display:flex; align-items:center; justify-content:center; font-family:inherit;">
                         ${day}
                         ${isToday && !isSelected ? '<span style="position:absolute; bottom:2px; width:4px; height:4px; border-radius:50%; background:#0284c7;"></span>' : ''}
-                    </div>
+                    </button>
                 `;
             }
 
@@ -5671,9 +5754,6 @@ try {
             if (clearLink) clearLink.style.display = dateStr ? 'inline' : 'none';
 
             window.renderCalendarGrid();
-            setTimeout(() => {
-                window.toggleCustomCalendar(null, false);
-            }, 200);
         };
 
         window.customClearDate = function (e) {
@@ -5701,31 +5781,44 @@ try {
             window.selectCalendarDate(todayStr);
         };
 
+        // Clean up any lingering calendar / focus-base modals previously teleported to document.body
+        ['custom-calendar-dropdown', 'focus-base-modal'].forEach(id => {
+            document.body.querySelectorAll(':scope > #' + id).forEach(stale => {
+                try { stale.remove(); } catch (err) { }
+            });
+        });
+
         window.toggleCustomCalendar = function (e, forceState) {
             if (e) e.stopPropagation();
-            const dropdown = document.getElementById('custom-calendar-dropdown');
+            const allCals = Array.from(document.querySelectorAll('#custom-calendar-dropdown'));
+            const dropdown = allCals[0] || null;
+            allCals.slice(1).forEach(stale => { try { stale.remove(); } catch (err) { } });
             const arrow = document.getElementById('custom-date-arrow');
             const trigger = document.getElementById('custom-date-trigger');
             if (!dropdown) return;
 
             const isOpen = dropdown.classList.contains('calendar-open');
             const shouldOpen = forceState !== undefined ? forceState : !isOpen;
+            if (shouldOpen && forceState === undefined && (Date.now() - (window._calendarClosedAt || 0) < 350)) {
+                return;
+            }
 
             if (shouldOpen) {
+                if (typeof window.toggleFocusBaseModal === 'function') window.toggleFocusBaseModal(null, false);
+                if (dropdown.parentElement !== document.body) document.body.appendChild(dropdown);
                 window.renderCalendarGrid();
-                dropdown.style.display = 'block';
+                dropdown.style.setProperty('display', 'flex', 'important');
                 dropdown.classList.add('calendar-open');
                 if (arrow) arrow.style.transform = 'rotate(180deg)';
                 if (trigger) {
                     trigger.style.borderColor = '#0284c7';
                     trigger.style.boxShadow = '0 0 0 3px rgba(2, 132, 199, 0.15)';
                 }
-                setTimeout(() => {
-                    dropdown.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                }, 50);
             } else {
-                dropdown.classList.remove('calendar-open');
-                dropdown.style.display = 'none';
+                document.querySelectorAll('#custom-calendar-dropdown').forEach(el => {
+                    el.classList.remove('calendar-open');
+                    el.style.setProperty('display', 'none', 'important');
+                });
                 if (arrow) arrow.style.transform = 'rotate(0deg)';
                 if (trigger) {
                     trigger.style.borderColor = '#cbd5e1';
@@ -5734,15 +5827,112 @@ try {
             }
         };
 
-        // Close calendar dropdown when tapping outside
-        document.addEventListener('click', function (e) {
-            const dropdown = document.getElementById('custom-calendar-dropdown');
-            const trigger = document.getElementById('custom-date-trigger');
-            if (!dropdown || !dropdown.classList.contains('calendar-open')) return;
-            if (trigger && (trigger === e.target || trigger.contains(e.target))) return;
-            if (dropdown.contains(e.target)) return;
-            window.toggleCustomCalendar(null, false);
-        });
+        window.getSelectedFocusBases = function () {
+            const raw = (document.getElementById('trip-municipality')?.value || '').trim();
+            if (!raw) return [];
+            return raw.split(',').map(s => s.trim()).filter(Boolean);
+        };
+
+        window.syncFocusBaseModalUI = function (modalEl) {
+            const modal = modalEl || document.getElementById('focus-base-modal');
+            const selectedList = window.getSelectedFocusBases();
+            const selectedSet = new Set(selectedList);
+
+            if (modal) {
+                modal.querySelectorAll('.focus-base-opt-btn').forEach(btn => {
+                    const selected = selectedSet.has(btn.dataset.value);
+                    btn.style.borderColor = selected ? '#2563eb' : '#e2e8f0';
+                    btn.style.background = selected ? '#eff6ff' : '#ffffff';
+                    const icon = btn.querySelector('.focus-base-check');
+                    if (icon) {
+                        icon.className = selected ? 'fa-solid fa-circle-check focus-base-check' : 'fa-regular fa-circle focus-base-check';
+                        icon.style.color = selected ? '#2563eb' : '#94a3b8';
+                    }
+                });
+            }
+
+            const display = document.getElementById('focus-base-display');
+            if (display) {
+                if (selectedList.length === 0) {
+                    display.textContent = 'Select Focus Base';
+                    display.style.color = '#94a3b8';
+                    display.style.fontWeight = '600';
+                } else if (selectedList.length <= 2) {
+                    display.textContent = selectedList.join(', ');
+                    display.style.color = '#0f172a';
+                    display.style.fontWeight = '700';
+                } else {
+                    display.textContent = `${selectedList[0]}, ${selectedList[1]} +${selectedList.length - 2} more`;
+                    display.style.color = '#0f172a';
+                    display.style.fontWeight = '700';
+                }
+            }
+        };
+
+        window.toggleFocusBaseModal = function (e, forceState) {
+            if (e) e.stopPropagation();
+            const allModals = Array.from(document.querySelectorAll('#focus-base-modal'));
+            const modal = allModals[0] || null;
+            allModals.slice(1).forEach(stale => { try { stale.remove(); } catch (err) { } });
+            const arrow = document.getElementById('focus-base-arrow');
+            const trigger = document.getElementById('focus-base-trigger');
+            if (!modal) return;
+
+            const isOpen = modal.classList.contains('focus-base-open');
+            const shouldOpen = forceState !== undefined ? forceState : !isOpen;
+            if (shouldOpen && forceState === undefined && (Date.now() - (window._focusBaseClosedAt || 0) < 350)) {
+                return;
+            }
+
+            if (shouldOpen) {
+                window.toggleCustomCalendar(null, false);
+                if (modal.parentElement !== document.body) document.body.appendChild(modal);
+                window.syncFocusBaseModalUI(modal);
+                modal.style.setProperty('display', 'flex', 'important');
+                modal.classList.add('focus-base-open');
+                if (arrow) arrow.style.transform = 'rotate(180deg)';
+                if (trigger) {
+                    trigger.style.borderColor = '#0284c7';
+                    trigger.style.boxShadow = '0 0 0 3px rgba(2, 132, 199, 0.15)';
+                }
+            } else {
+                window._focusBaseClosedAt = Date.now();
+                document.querySelectorAll('#focus-base-modal').forEach(el => {
+                    el.classList.remove('focus-base-open');
+                    el.style.setProperty('display', 'none', 'important');
+                });
+                if (arrow) arrow.style.transform = 'rotate(0deg)';
+                if (trigger) {
+                    trigger.style.borderColor = '#cbd5e1';
+                    trigger.style.boxShadow = 'none';
+                }
+            }
+        };
+
+        window.selectFocusBaseMunicipality = function (val, label) {
+            const hidden = document.getElementById('trip-municipality');
+            let current = window.getSelectedFocusBases();
+            const target = String(val || '').trim();
+
+            if (!target) {
+                current = [];
+            } else if (target === 'All La Union') {
+                current = current.includes('All La Union') ? [] : ['All La Union'];
+            } else {
+                current = current.filter(v => v !== 'All La Union');
+                if (current.includes(target)) {
+                    current = current.filter(v => v !== target);
+                } else {
+                    current.push(target);
+                }
+            }
+
+            if (hidden) hidden.value = current.join(', ');
+            window.syncFocusBaseModalUI();
+            if (typeof window.renderStep2SpotsSlider === 'function') {
+                window.renderStep2SpotsSlider();
+            }
+        };
 
         window.setTripType = function (type) {
             const isGroup = type === 'group';
@@ -6364,10 +6554,13 @@ try {
                 return;
             }
 
-            // Get base municipality selected in Step 1
+            // Get base municipality/municipalities selected in Step 1 (supports multiselect)
             const baseMuniSelect = document.getElementById('trip-municipality');
             const baseMuniRaw = (baseMuniSelect ? baseMuniSelect.value : '').toLowerCase().trim();
-            const hasBaseMuni = baseMuniRaw && !baseMuniRaw.includes('all');
+            const baseMuniList = baseMuniRaw
+                ? baseMuniRaw.split(',').map(m => m.replace(/\s+city$/i, '').trim()).filter(m => m && !m.includes('all'))
+                : [];
+            const hasBaseMuni = baseMuniList.length > 0;
 
             // Category filter check
             const catMatches = (spot, cat) => {
@@ -6389,12 +6582,12 @@ try {
                 return hay.includes(searchQuery);
             });
 
-            // Sort: Prioritize matching base municipality hub
+            // Sort: Prioritize matching base municipality hub(s)
             filtered.sort((a, b) => {
                 const aMuni = String(a.municipality || '').toLowerCase();
                 const bMuni = String(b.municipality || '').toLowerCase();
-                const aIsBase = hasBaseMuni && aMuni.includes(baseMuniRaw);
-                const bIsBase = hasBaseMuni && bMuni.includes(baseMuniRaw);
+                const aIsBase = hasBaseMuni && baseMuniList.some(bm => aMuni.includes(bm));
+                const bIsBase = hasBaseMuni && baseMuniList.some(bm => bMuni.includes(bm));
 
                 if (aIsBase && !bIsBase) return -1;
                 if (!aIsBase && bIsBase) return 1;
@@ -6908,8 +7101,10 @@ try {
             const dateDisplay = document.getElementById('custom-date-display')?.textContent || 'Flexible / Anytime';
             const partySummary = document.getElementById('companion-summary-text')?.textContent || '1 Traveler (Solo)';
             const muniSelect = document.getElementById('trip-municipality');
-            const muniVal = (muniSelect && muniSelect.value && muniSelect.options[muniSelect.selectedIndex])
-                ? (muniSelect.options[muniSelect.selectedIndex].text.split('(')[0].trim() || muniSelect.value)
+            const muniVal = (muniSelect && muniSelect.value)
+                ? (muniSelect.options && muniSelect.options[muniSelect.selectedIndex]
+                    ? (muniSelect.options[muniSelect.selectedIndex].text.split('(')[0].trim() || muniSelect.value)
+                    : String(muniSelect.value).trim())
                 : 'All La Union';
             const transMode = document.getElementById('trip-transport')?.value || 'no_vehicle';
 

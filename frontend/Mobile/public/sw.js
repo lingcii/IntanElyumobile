@@ -1,4 +1,4 @@
-const CACHE_NAME = 'Intan_Elyu_cache-v57-age-lightbox';
+const CACHE_NAME = 'Intan_Elyu_cache-v58-plan-modals-sync';
 const ASSETS = [
     './',
     './index.php',

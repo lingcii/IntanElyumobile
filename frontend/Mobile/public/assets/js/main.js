@@ -372,7 +372,7 @@ try {
     for (let i = localStorage.length - 1; i >= 0; i--) {
         const k = localStorage.key(i);
         if (k && (
-            (k.startsWith('elyu_view_cache_') && !k.startsWith('elyu_view_cache_v21_')) ||
+            (k.startsWith('elyu_view_cache_') && !k.startsWith('elyu_view_cache_v22_')) ||
             k.startsWith('elyu_view_cache_v13_') ||
             k.startsWith('elyu_view_cache_v14_') ||
             k.startsWith('leaderboard_data_v15_') || 
@@ -1222,7 +1222,10 @@ window.markTripAsCompletedLocally = function (tripId, earnedPoints = 0, newTotal
         const isCompletedTripMatch = (t, refTrip) => {
             if (!t) return false;
             if (String(t.id) === sId || String(t.local_id) === sId || String(t.trip_id) === sId || String(t.update_id) === sId) return true;
-            if (refTrip && refTrip.title && t.title && t.title.trim().toLowerCase() === refTrip.title.trim().toLowerCase()) {
+            // Only fall back to title match for un-synced offline copies without a distinct numeric server ID
+            const tIdStr = String(t.id || t.local_id || '');
+            const isOfflineCopy = !tIdStr || !/^\d+$/.test(tIdStr) || Boolean(t.is_offline_queued);
+            if (isOfflineCopy && refTrip && refTrip.title && t.title && t.title.trim().toLowerCase() === refTrip.title.trim().toLowerCase()) {
                 const refDate = String(refTrip.trip_date || '').slice(0, 10);
                 const tDate = String(t.trip_date || '').slice(0, 10);
                 if (!refDate || !tDate || refDate === tDate) return true;
@@ -1237,40 +1240,42 @@ window.markTripAsCompletedLocally = function (tripId, earnedPoints = 0, newTotal
 
         const dedupeAndMarkCompleted = (arr) => {
             if (!Array.isArray(arr)) return [];
-            const seenComp = new Set();
+            const seenCompIds = new Set();
             return arr.map(t => {
                 if (isCompletedTripMatch(t, refCompletedTrip)) {
                     if (!refCompletedTrip) refCompletedTrip = t;
-                    return { ...t, status: 'completed', is_offline_queued: false };
+                    return { ...t, status: 'completed', is_offline_queued: false, updated_at: new Date().toISOString() };
                 }
                 return t;
             }).filter(t => {
                 if (!t) return false;
                 if (t.status === 'completed' && isCompletedTripMatch(t, refCompletedTrip)) {
-                    const key = (refCompletedTrip && refCompletedTrip.title) ? refCompletedTrip.title.trim().toLowerCase() : sId;
-                    if (seenComp.has(key)) return false;
-                    seenComp.add(key);
+                    const key = String(t.id || t.local_id || sId);
+                    if (seenCompIds.has(key)) return false;
+                    seenCompIds.add(key);
                 }
                 return true;
             });
         };
 
-        // 2. Mark completed & deduplicate in intan_elyu_saved_trips
-        try {
-            let localSaved = JSON.parse(localStorage.getItem('intan_elyu_saved_trips') || '[]');
-            if (Array.isArray(localSaved)) {
-                localStorage.setItem('intan_elyu_saved_trips', JSON.stringify(dedupeAndMarkCompleted(localSaved)));
-            }
-        } catch (e) { }
+        // 2. Mark completed in all local saved trips caches
+        ['intan_elyu_saved_trips', 'intan_elyu_offline_saved_trips', 'intan_elyu_offline_saved_trips_backup'].forEach(storageKey => {
+            try {
+                let raw = JSON.parse(localStorage.getItem(storageKey) || 'null');
+                if (Array.isArray(raw)) {
+                    localStorage.setItem(storageKey, JSON.stringify(dedupeAndMarkCompleted(raw)));
+                } else if (raw && Array.isArray(raw.itineraries)) {
+                    raw.itineraries = dedupeAndMarkCompleted(raw.itineraries);
+                    localStorage.setItem(storageKey, JSON.stringify(raw));
+                } else if (raw && Array.isArray(raw.data)) {
+                    raw.data = dedupeAndMarkCompleted(raw.data);
+                    localStorage.setItem(storageKey, JSON.stringify(raw));
+                }
+            } catch (e) { }
+        });
 
-        // 3. Mark completed & deduplicate in intan_elyu_offline_saved_trips_backup
-        try {
-            let backup = JSON.parse(localStorage.getItem('intan_elyu_offline_saved_trips_backup') || '[]');
-            const backupList = Array.isArray(backup) ? backup : (backup.itineraries || backup.data || []);
-            if (Array.isArray(backupList)) {
-                localStorage.setItem('intan_elyu_offline_saved_trips_backup', JSON.stringify(dedupeAndMarkCompleted(backupList)));
-            }
-        } catch (e) { }
+        window.profileNeedsRefresh = true;
+        window.dashboardNeedsRefresh = true;
 
         // 4. Update in-memory window._cachedSavedTrips
         if (Array.isArray(window._cachedSavedTrips)) {
@@ -4340,9 +4345,14 @@ window.addTripPhotoFromSource = async function (source) {
             });
 
             if (image && image.dataUrl) {
-                const res = await fetch(image.dataUrl);
-                const blob = await res.blob();
-                const rawFile = new File([blob], 'photo_' + Date.now() + '.jpg', { type: blob.type || 'image/jpeg' });
+                const parts = String(image.dataUrl).split(',');
+                const mimeMatch = parts[0].match(/:(.*?);/);
+                const mimeType = (mimeMatch && mimeMatch[1]) || 'image/jpeg';
+                const binaryStr = atob(parts[1] || '');
+                const bytes = new Uint8Array(binaryStr.length);
+                for (let bi = 0; bi < binaryStr.length; bi++) bytes[bi] = binaryStr.charCodeAt(bi);
+                const blob = new Blob([bytes], { type: mimeType });
+                const rawFile = new File([blob], 'photo_' + Date.now() + '.jpg', { type: mimeType });
                 const compressed = await window.compressImageFile(rawFile, 1280, 0.8);
                 window.selectedTripPhotos.push({
                     file: compressed,
@@ -4711,10 +4721,6 @@ window.submitTripPhotos = async function () {
             window.closePhotoUploadModal();
             const permanentUrls = data.proof_images || (data.proof_image ? [data.proof_image] : previewUrls);
             window.applyTripPhotoUpdateLocally(itemId, permanentUrls, data.proof_status || 'approved');
-            if (typeof window.syncUserPointsEverywhere === 'function' && (data.places_visited !== undefined || data.completed_activities !== undefined)) {
-                const basePts = typeof window._userPointsBalance === 'number' ? window._userPointsBalance : 0;
-                window.syncUserPointsEverywhere(basePts, null, { places_visited: data.places_visited ?? data.completed_activities });
-            }
             if (typeof window.fetchSavedTrips === 'function') {
                 window.fetchSavedTrips(true);
             }
@@ -6198,12 +6204,12 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
 
         if (!html) {
             try {
-                const cached = localStorage.getItem('elyu_view_cache_v21_' + targetView);
+                const cached = localStorage.getItem('elyu_view_cache_v22_' + targetView);
                 if (isValidViewPartial(cached)) {
                     html = cached;
                     window._viewHtmlCache[targetView] = html;
                 } else if (cached) {
-                    localStorage.removeItem('elyu_view_cache_v21_' + targetView);
+                    localStorage.removeItem('elyu_view_cache_v22_' + targetView);
                 }
             } catch (e) {}
         }
@@ -6214,7 +6220,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
             fetchViewPartial(targetView, extraParams).then((freshHtml) => {
                 if (!isValidViewPartial(freshHtml)) return;
                 window._viewHtmlCache[targetView] = freshHtml;
-                try { localStorage.setItem('elyu_view_cache_v21_' + targetView, freshHtml); } catch (e) { }
+                try { localStorage.setItem('elyu_view_cache_v22_' + targetView, freshHtml); } catch (e) { }
                 window.dispatchEvent(new CustomEvent('viewCacheUpdated', { detail: { view: targetView } }));
             }).catch((fetchErr) => {
                 if (!window.isExpectedAbortError(fetchErr)) {
@@ -6227,7 +6233,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                 if (isValidViewPartial(freshHtml)) {
                     html = freshHtml;
                     window._viewHtmlCache[targetView] = html;
-                    try { localStorage.setItem('elyu_view_cache_v21_' + targetView, html); } catch(e) {}
+                    try { localStorage.setItem('elyu_view_cache_v22_' + targetView, html); } catch(e) {}
                 }
             } catch (fetchErr) {
                 if (!window.isExpectedAbortError(fetchErr)) {
@@ -6781,6 +6787,12 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                     const _isG = !_curTok || _curTok === 'guest_token' || _curTok === 'offline_guest_token' || _curTok.indexOf('guest_') === 0 || _curTok.indexOf('offline_') === 0 || localStorage.getItem('intan_elyu_guest') === 'true' || localStorage.getItem('intan_elyu_offline_guest') === 'true';
                     const _curU = window.safeJsonParse ? window.safeJsonParse(localStorage.getItem('auth_user'), {}) : {};
                     window.updateDashboardProfileHeader(_isG, _curU);
+                    if (!_isG && navigator.onLine !== false && window.isAppOnline !== false && typeof window.dashboardInit === 'function') {
+                        window.dashboardInit(true);
+                    }
+                }
+                if (targetView === 'discount' && navigator.onLine !== false && window.isAppOnline !== false && typeof window.fetchUserPointsAndRedemptions === 'function') {
+                    window.fetchUserPointsAndRedemptions(true);
                 }
                 restoreViewScrollPosition(targetView);
             } catch (err) {
@@ -7738,6 +7750,7 @@ window.navigateTo = navigateTo;
                 container.firstElementChild.remove();
             }
         }
+        container.style.zIndex = '1000050';
 
         // Determine icon and color variant
         let iconHTML = '<i class="fa-solid fa-circle-info" style="color:#38bdf8; font-size:16px;"></i>';
@@ -9791,11 +9804,11 @@ window.navigateTo = navigateTo;
 
         for (const v of viewsToPrewarm.filter(view => view !== state.currentView)) {
             try {
-                if (!window._viewHtmlCache[v] && !localStorage.getItem('elyu_view_cache_v21_' + v)) {
+                if (!window._viewHtmlCache[v] && !localStorage.getItem('elyu_view_cache_v22_' + v)) {
                     const text = await fetchViewPartial(v, new URLSearchParams());
                     if (text && text.length > 50) {
                         window._viewHtmlCache[v] = text;
-                        try { localStorage.setItem('elyu_view_cache_v21_' + v, text); } catch (e) { }
+                        try { localStorage.setItem('elyu_view_cache_v22_' + v, text); } catch (e) { }
                     }
                 }
             } catch (e) { }

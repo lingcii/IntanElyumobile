@@ -459,7 +459,8 @@ class ItineraryController extends Controller
                     $request->trip_date,
                     null,
                     $legTransports,
-                    $companionCounts
+                    $companionCounts,
+                    true
                 );
                 $totalEstimatedCost = (float) ($est['total_cost'] ?? 0.00);
             } catch (\Throwable $e) {
@@ -605,6 +606,9 @@ class ItineraryController extends Controller
 
         if (!empty($user->email)) {
             app()->terminating(function () use ($user, $itinerary): void {
+                if (function_exists('fastcgi_finish_request')) {
+                    @fastcgi_finish_request();
+                }
                 try {
                     \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\PlannedTripMail($user, $itinerary));
                 } catch (\Throwable $e) {
@@ -666,10 +670,11 @@ class ItineraryController extends Controller
 
             // Visits/pax are already counted once on check-in in ItineraryItemController.
 
-            // Also prune any unvisited duplicate pending copies of this same itinerary so completing never leaves a phantom duplicate
+            // Also prune any unvisited duplicate pending copies of this same itinerary (never delete already-completed trips in History)
             $completedSpotIds = $itemsToVisit->pluck('tourist_spot_id')->filter()->map(fn($v) => (int) $v)->values()->all();
             $duplicateCandidates = Itinerary::where('user_id', $itinerary->user_id)
                 ->where('id', '!=', $itinerary->id)
+                ->where('status', '!=', 'completed')
                 ->whereRaw('LOWER(TRIM(title)) = ?', [strtolower(trim((string) $itinerary->title))])
                 ->with('items')
                 ->get();
@@ -690,10 +695,13 @@ class ItineraryController extends Controller
             return response()->json(['success' => true, 'message' => 'This trip is already completed.']);
         }
 
-        // Invalidate map and trending caches
+        // Invalidate map, trending, profile trip history, and rank caches
         Cache::forget('map:public:spots');
         Cache::forget('trending:top:5');
         Cache::forget('trending:top:10');
+        Cache::forget("profile:trips:v3:{$user->id}");
+        Cache::forget("profile:trips:{$user->id}");
+        Cache::forget("rank:user:{$user->id}");
 
         // Auto-fulfill unreviewed stops with a default 5-star rating if left untouched
         $this->autoDefaultUntouchedReviews($user->id, $itemsToVisit);
@@ -909,7 +917,8 @@ class ItineraryController extends Controller
                     $itinerary->trip_date,
                     null,
                     $legTransports,
-                    $companionCounts
+                    $companionCounts,
+                    true
                 );
                 $totalEstimatedCost = (float) ($est['total_cost'] ?? 0.00);
             } catch (\Throwable $e) {

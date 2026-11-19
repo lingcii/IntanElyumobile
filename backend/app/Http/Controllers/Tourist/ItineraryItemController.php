@@ -61,8 +61,7 @@ class ItineraryItemController extends Controller
             ->where('order_index', '<', $item->order_index)
             ->where(function ($query) {
                 $query->whereNull('visited_at')
-                    ->orWhereNull('proof_image')
-                    ->orWhere('proof_image', '');
+                    ->where('is_visited', false);
             })
             ->exists();
     }
@@ -267,6 +266,7 @@ class ItineraryItemController extends Controller
                     $pointsAwarded = true;
 
                     \Illuminate\Support\Facades\Cache::forget("rank:user:{$user->id}");
+                    \Illuminate\Support\Facades\Cache::forget("profile:trips:v3:{$user->id}");
                     \Illuminate\Support\Facades\Cache::forget("profile:trips:{$user->id}");
                     \Illuminate\Support\Facades\Cache::forget("feedback:user:{$user->id}");
                     \Illuminate\Support\Facades\Cache::forget("feedback:user:v2:{$user->id}");
@@ -401,6 +401,11 @@ class ItineraryItemController extends Controller
             $placesVisited = ($user && method_exists($user, 'syncPlacesVisitedCount'))
                 ? $user->syncPlacesVisitedCount()
                 : (int) ($user?->completed_activities ?? 0);
+
+            if ($user) {
+                Cache::forget("profile:trips:v3:{$user->id}");
+                Cache::forget("profile:trips:{$user->id}");
+            }
 
             return response()->json([
                 'success'              => true,
@@ -584,6 +589,11 @@ class ItineraryItemController extends Controller
             $placesVisited = ($user && method_exists($user, 'syncPlacesVisitedCount'))
                 ? $user->syncPlacesVisitedCount()
                 : (int) ($user?->completed_activities ?? 0);
+
+            if ($user) {
+                Cache::forget("profile:trips:v3:{$user->id}");
+                Cache::forget("profile:trips:{$user->id}");
+            }
 
             try {
                 $shouldUpdatePing = !$user->last_gps_ping_at || ($effectiveTime->gte(Carbon::parse($user->last_gps_ping_at)));

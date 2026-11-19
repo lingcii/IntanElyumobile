@@ -1529,24 +1529,31 @@ include_once __DIR__ . '/../components/testimony_modal.php';
             window._currentPhotoSpotName = spotName;
             window.selectedTripPhotos = [];
 
-            const titleEl = document.getElementById('photo-spot-title');
+            const allPhotoModals = Array.from(document.querySelectorAll('#photo-upload-modal'));
+            const modal = allPhotoModals[allPhotoModals.length - 1] || null;
+            allPhotoModals.slice(0, -1).forEach(stale => { try { stale.remove(); } catch (e) { } });
+            if (modal && modal.parentElement !== document.body) {
+                document.body.appendChild(modal);
+            }
+
+            const titleEl = (modal && modal.querySelector('#photo-spot-title')) || document.getElementById('photo-spot-title');
             if (titleEl) {
                 titleEl.innerHTML = `<i class="fa-solid fa-camera" style="color:#38bdf8; font-size:17px;"></i> ${spotName || 'Upload Photo'}`;
             }
 
-            const input = document.getElementById('photo-upload-input');
+            const input = (modal && modal.querySelector('#photo-upload-input')) || document.getElementById('photo-upload-input');
             if (input) input.value = '';
 
             window.renderTripPhotoThumbnailsGrid();
 
-            const modal = document.getElementById('photo-upload-modal');
             if (modal) modal.style.display = 'flex';
         };
 
         window.closePhotoUploadModal = function () {
             document.body.classList.remove('modal-blurred');
-            const modal = document.getElementById('photo-upload-modal');
-            if (modal) modal.style.display = 'none';
+            document.querySelectorAll('#photo-upload-modal').forEach(m => {
+                m.style.display = 'none';
+            });
             window.selectedTripPhotos = [];
             window._currentPhotoItemId = null;
             window._currentPhotoSpotName = null;
@@ -1701,9 +1708,14 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                     });
 
                     if (image && image.dataUrl) {
-                        const res = await fetch(image.dataUrl);
-                        const blob = await res.blob();
-                        const rawFile = new File([blob], `photo_${Date.now()}.jpg`, { type: blob.type || 'image/jpeg' });
+                        const parts = String(image.dataUrl).split(',');
+                        const mimeMatch = parts[0].match(/:(.*?);/);
+                        const mimeType = (mimeMatch && mimeMatch[1]) || 'image/jpeg';
+                        const binaryStr = atob(parts[1] || '');
+                        const bytes = new Uint8Array(binaryStr.length);
+                        for (let bi = 0; bi < binaryStr.length; bi++) bytes[bi] = binaryStr.charCodeAt(bi);
+                        const blob = new Blob([bytes], { type: mimeType });
+                        const rawFile = new File([blob], `photo_${Date.now()}.jpg`, { type: mimeType });
                         const compressed = await window.compressImageFile(rawFile, 1280, 0.8);
 
                         window.selectedTripPhotos.push({
@@ -1782,7 +1794,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
         window.applyTripPhotoUpdateLocally = function (itemId, photoUrls, proofStatus = 'pending') {
             if (!itemId) return;
             const targetIdStr = String(itemId);
-            const urls = Array.isArray(proofUrls) ? proofUrls : (proofUrls ? [proofUrls] : []);
+            const urls = Array.isArray(photoUrls) ? photoUrls : (photoUrls ? [photoUrls] : []);
             if (urls.length === 0) return;
 
             // Persist locally so status and uploaded photos survive page refresh
@@ -2023,10 +2035,6 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                     window.closePhotoUploadModal();
                     const permanentUrls = data.proof_images || (data.proof_image ? [data.proof_image] : previewUrls);
                     window.applyTripPhotoUpdateLocally(itemId, permanentUrls, data.proof_status || 'approved');
-                    if (typeof window.syncUserPointsEverywhere === 'function' && (data.places_visited !== undefined || data.completed_activities !== undefined)) {
-                        const basePts = typeof window._userPointsBalance === 'number' ? window._userPointsBalance : 0;
-                        window.syncUserPointsEverywhere(basePts, null, { places_visited: data.places_visited ?? data.completed_activities });
-                    }
 
                     if (typeof showToast === 'function') {
                         showToast(data.message || 'Photo uploaded!', 'success');

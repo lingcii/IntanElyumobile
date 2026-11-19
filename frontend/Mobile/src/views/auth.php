@@ -1459,9 +1459,16 @@
                     k.startsWith('dashboard_data_') ||
                     k.startsWith('dashboard_rank_') ||
                     k.startsWith('dashboard_trips_') ||
+                    k.startsWith('dashboard_saved_trips_') ||
                     k.startsWith('saved_trips_') ||
                     k.startsWith('saved_places_') ||
                     k.startsWith('intan_cache_') ||
+                    k.startsWith('intan_elyu_saved_trips') ||
+                    k.startsWith('intan_elyu_offline_saved_trips') ||
+                    k.startsWith('intan_elyu_offline_trips') ||
+                    k.startsWith('intan_elyu_completed_trip_ids') ||
+                    k.startsWith('intan_elyu_deleted_trip_ids') ||
+                    k.startsWith('intan_elyu_verified_item_states') ||
                     k.startsWith('intan_elyu_claimed_vouchers') ||
                     k.startsWith('intan_elyu_cached_vouchers') ||
                     k.startsWith('game_done_') ||
@@ -1506,6 +1513,7 @@
         window._cachedHistoryVouchers = null;
         window._practiceModes = {};
         window._cachedCompletedTrips = [];
+        window._cachedSavedTrips = [];
         window.profileNeedsRefresh = true;
         window.leaderboardNeedsRefresh = true;
         window.dashboardNeedsRefresh = true;

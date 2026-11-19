@@ -610,7 +610,14 @@ $backRoute = 'itinerary';
                             if (updateId && (exId === updateId || exUpdateId === updateId)) return true;
                             if (exUpdateId && (exUpdateId === id)) return true;
                             if (exId === ('offline_edit_' + id) || id === ('offline_edit_' + exId)) return true;
-                            if (ex.title && t.title && ex.title.trim().toLowerCase() === t.title.trim().toLowerCase()) return true;
+                            const exCompleted = ex.status === 'completed' || (typeof window.isTripCompletedLocally === 'function' && window.isTripCompletedLocally(ex));
+                            const tCompleted = t.status === 'completed' || (typeof window.isTripCompletedLocally === 'function' && window.isTripCompletedLocally(t));
+                            const bothNumericIds = /^\d+$/.test(exId) && /^\d+$/.test(id) && exId !== id;
+                            if (!bothNumericIds && exCompleted === tCompleted && ex.title && t.title && ex.title.trim().toLowerCase() === t.title.trim().toLowerCase()) {
+                                const exDate = String(ex.trip_date || '').slice(0, 10);
+                                const tDate = String(t.trip_date || '').slice(0, 10);
+                                if (exDate === tDate) return true;
+                            }
                             return false;
                         });
 
@@ -779,6 +786,7 @@ $backRoute = 'itinerary';
                             let response;
                             try {
                                 response = await fetch(bUrl + '/api/tourist/itineraries', {
+                                    cache: 'no-store',
                                     signal: controller ? controller.signal : undefined,
                                     headers: {
                                         'Accept': 'application/json',
@@ -1478,8 +1486,9 @@ $backRoute = 'itinerary';
                     const spotSig = itemsArr.map(i => i && (i.tourist_spot_id || i.destination_id || (i.destination && i.destination.id) || '')).filter(Boolean).join(',');
                     const titleNorm = String(t.title || '').trim().toLowerCase();
                     const dateNorm = String(t.trip_date || '').slice(0, 10);
-                    if (titleNorm) {
-                        const sig = `${titleNorm}|${dateNorm}|${spotSig}`;
+                    const statusNorm = (t.status === 'completed' || (typeof window.isTripCompletedLocally === 'function' && window.isTripCompletedLocally(t))) ? 'completed' : 'active';
+                    if (titleNorm && !(statusNorm === 'completed' && /^\d+$/.test(tId))) {
+                        const sig = `${statusNorm}|${titleNorm}|${dateNorm}|${spotSig}`;
                         if (seenTripSignatures.has(sig)) return false;
                         seenTripSignatures.add(sig);
                     }
@@ -2146,17 +2155,23 @@ $backRoute = 'itinerary';
             window._currentPhotoSpotName = spotName;
             window.selectedTripPhotos = [];
 
-            const titleEl = document.getElementById('photo-spot-title');
+            const allPhotoModals = Array.from(document.querySelectorAll('#photo-upload-modal'));
+            const modal = allPhotoModals[allPhotoModals.length - 1] || null;
+            allPhotoModals.slice(0, -1).forEach(stale => { try { stale.remove(); } catch (e) { } });
+            if (modal && modal.parentElement !== document.body) {
+                document.body.appendChild(modal);
+            }
+
+            const titleEl = (modal && modal.querySelector('#photo-spot-title')) || document.getElementById('photo-spot-title');
             if (titleEl) {
                 titleEl.innerHTML = `<i class="fa-solid fa-camera" style="color:#38bdf8; font-size:17px;"></i> ${spotName || 'Upload Photo'}`;
             }
 
-            const input = document.getElementById('photo-upload-input');
+            const input = (modal && modal.querySelector('#photo-upload-input')) || document.getElementById('photo-upload-input');
             if (input) input.value = '';
 
             window.renderTripPhotoThumbnailsGrid();
 
-            const modal = document.getElementById('photo-upload-modal');
             if (modal) modal.style.display = 'flex';
         };
 
@@ -2318,9 +2333,14 @@ $backRoute = 'itinerary';
                     });
 
                     if (image && image.dataUrl) {
-                        const res = await fetch(image.dataUrl);
-                        const blob = await res.blob();
-                        const rawFile = new File([blob], 'photo_' + Date.now() + '.jpg', { type: blob.type || 'image/jpeg' });
+                        const parts = String(image.dataUrl).split(',');
+                        const mimeMatch = parts[0].match(/:(.*?);/);
+                        const mimeType = (mimeMatch && mimeMatch[1]) || 'image/jpeg';
+                        const binaryStr = atob(parts[1] || '');
+                        const bytes = new Uint8Array(binaryStr.length);
+                        for (let bi = 0; bi < binaryStr.length; bi++) bytes[bi] = binaryStr.charCodeAt(bi);
+                        const blob = new Blob([bytes], { type: mimeType });
+                        const rawFile = new File([blob], 'photo_' + Date.now() + '.jpg', { type: mimeType });
                         const compressed = await window.compressImageFile(rawFile, 1280, 0.8);
                         window.selectedTripPhotos.push({
                             file: compressed,
@@ -2697,10 +2717,6 @@ $backRoute = 'itinerary';
                     // Replace preview URLs with permanent server URLs from response
                     const permanentUrls = data.proof_images || (data.proof_image ? [data.proof_image] : previewUrls);
                     window.applyTripPhotoUpdateLocally(itemId, permanentUrls, data.proof_status || 'approved');
-                    if (typeof window.syncUserPointsEverywhere === 'function' && (data.places_visited !== undefined || data.completed_activities !== undefined)) {
-                        const basePts = typeof window._userPointsBalance === 'number' ? window._userPointsBalance : 0;
-                        window.syncUserPointsEverywhere(basePts, null, { places_visited: data.places_visited ?? data.completed_activities });
-                    }
                     if (typeof window.fetchSavedTrips === 'function') {
                         window.fetchSavedTrips(true);
                     }
@@ -3132,7 +3148,10 @@ $backRoute = 'itinerary';
                         localStorage.removeItem('dashboard_trips_' + tokenKey);
                         localStorage.removeItem('dashboard_saved_trips_' + tokenKey);
                         localStorage.removeItem('profile_data_' + tokenKey);
+                        localStorage.removeItem('points_balance_' + tokenKey);
                     }
+                    window.profileNeedsRefresh = true;
+                    window.dashboardNeedsRefresh = true;
                     window.fetchSavedTrips(true);
 
                     window.showTripCompletedSuccessModal();
@@ -4408,7 +4427,7 @@ $backRoute = 'itinerary';
         // Single initial request for both Saved Trips and its Trip History tab.
         // Any simultaneous action-driven refresh shares the same in-flight promise.
         window._isStartingTrip = false;
-        window.fetchSavedTrips(false).finally(() => {
+        window.fetchSavedTrips(true).finally(() => {
             window._savedTripsInitialLoadPending = false;
         });
 

@@ -207,7 +207,8 @@ class CostEstimationService
         ?string $travelDate = null,
         ?float $customPeakMultiplier = null,
         ?array $perLegModes = null,
-        ?array $companionCounts = null
+        ?array $companionCounts = null,
+        bool $skipExternalOsrm = false
     ): array {
         if (empty($destinationIds)) {
             return [
@@ -270,7 +271,7 @@ class CostEstimationService
             return $spots->firstWhere('id', $id);
         })->filter()->values();
 
-        $legs = $this->calculateRouteLegs($orderedSpots);
+        $legs = $this->calculateRouteLegs($orderedSpots, $skipExternalOsrm);
         $totalDistanceKm = (float) collect($legs)->sum('distance_km');
 
         // 3. If No Vehicle Selected or empty transport mode, zero out transit fares and fuel
@@ -520,7 +521,7 @@ class CostEstimationService
     /**
      * Build sequential route legs with municipal boundaries and OSRM/Haversine leg distances.
      */
-    public function calculateRouteLegs($orderedSpots): array
+    public function calculateRouteLegs($orderedSpots, bool $skipExternalOsrm = false): array
     {
         $count = $orderedSpots->count();
         if ($count === 0) {
@@ -559,21 +560,25 @@ class CostEstimationService
             })->implode(';');
 
             $cacheKey = 'osrm_legs_' . md5($coords);
-            $osrmLegs = \Illuminate\Support\Facades\Cache::remember($cacheKey, 86400, function () use ($coords) {
-                try {
-                    $response = Http::timeout(3)->get("https://router.project-osrm.org/route/v1/driving/{$coords}", [
-                        'overview'   => 'false',
-                        'geometries' => 'geojson'
-                    ]);
+            if ($skipExternalOsrm) {
+                $osrmLegs = \Illuminate\Support\Facades\Cache::get($cacheKey, []);
+            } else {
+                $osrmLegs = \Illuminate\Support\Facades\Cache::remember($cacheKey, 86400, function () use ($coords) {
+                    try {
+                        $response = Http::timeout(3)->get("https://router.project-osrm.org/route/v1/driving/{$coords}", [
+                            'overview'   => 'false',
+                            'geometries' => 'geojson'
+                        ]);
 
-                    if ($response->successful() && isset($response->json()['routes'][0]['legs'])) {
-                        return $response->json()['routes'][0]['legs'];
+                        if ($response->successful() && isset($response->json()['routes'][0]['legs'])) {
+                            return $response->json()['routes'][0]['legs'];
+                        }
+                    } catch (\Throwable $e) {
+                        Log::warning("OSRM API failed in calculateRouteLegs, using Haversine: " . $e->getMessage());
                     }
-                } catch (\Throwable $e) {
-                    Log::warning("OSRM API failed in calculateRouteLegs, using Haversine: " . $e->getMessage());
-                }
-                return [];
-            });
+                    return [];
+                });
+            }
         }
 
         $firstSpot = $orderedSpots->first();
