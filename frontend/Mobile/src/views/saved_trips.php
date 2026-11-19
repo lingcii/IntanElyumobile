@@ -1724,7 +1724,7 @@ $backRoute = 'itinerary';
                                                     alt="Photo ${pIdx + 1}" 
                                                     title="Tap to view photo" 
                                                     loading="lazy"
-                                                    style="width:52px; height:52px; border-radius:12px; object-fit:cover; border:1.5px solid rgba(255,255,255,0.25); box-shadow:0 4px 12px rgba(0,0,0,0.3); cursor:pointer; display:block;">
+                                                    style="width:52px; height:52px; border-radius:12px; object-fit:cover; border:1px solid #cbd5e1; box-shadow:none; cursor:pointer; display:block;">
                                                 ${uploadedPhotos.length > 1 ? `<span style="position:absolute; bottom:2px; right:2px; background:rgba(0,0,0,0.7); color:#fff; font-size:8px; font-weight:800; padding:1px 4px; border-radius:4px;">${pIdx + 1}</span>` : ''}
                                             </div>
                                         `;
@@ -1733,7 +1733,7 @@ $backRoute = 'itinerary';
                                     photosStripHtml = `
                                         <div style="display:flex; align-items:center; gap:8px; overflow-x:auto; padding:4px 0; max-width:100%; -webkit-overflow-scrolling:touch;">
                                             ${thumbs}
-                                            ${uploadedPhotos.length > 1 ? `<span style="font-size:10px; color:#00f2fe; font-weight:700; white-space:nowrap; margin-left:2px;">${uploadedPhotos.length} photos</span>` : ''}
+                                            ${uploadedPhotos.length > 1 ? `<span style="font-size:11px; color:#0f172a; font-weight:800; white-space:nowrap; margin-left:2px;">${uploadedPhotos.length} photos</span>` : ''}
                                         </div>
                                     `;
                                 }
@@ -1742,7 +1742,7 @@ $backRoute = 'itinerary';
                                 if (isCheckinQueued && queuedItem) {
                                     const qSrc = queuedItem.previewUrl || queuedItem.image || '';
                                     if (qSrc) {
-                                        queuedThumbnailHtml = `<img src="${qSrc}" onerror="this.onerror=null; this.src='assets/img/no_image.svg';" onclick="event.stopPropagation(); if(typeof window.viewTripPhotoModal==='function') window.viewTripPhotoModal('${qSrc}', '${destEscaped}', 'Offline Photo (Queued on Device)');" alt="Photo" title="Tap to view offline photo" style="width:52px; height:52px; border-radius:12px; object-fit:cover; border:2px solid #f59e0b !important; outline:none !important; box-shadow:0 4px 12px rgba(0,0,0,0.3); flex-shrink:0; cursor:pointer;">`;
+                                        queuedThumbnailHtml = `<img src="${qSrc}" onerror="this.onerror=null; this.src='assets/img/no_image.svg';" onclick="event.stopPropagation(); if(typeof window.viewTripPhotoModal==='function') window.viewTripPhotoModal('${qSrc}', '${destEscaped}', 'Offline Photo (Queued on Device)');" alt="Photo" title="Tap to view offline photo" style="width:52px; height:52px; border-radius:12px; object-fit:cover; border:2px solid #f59e0b !important; outline:none !important; box-shadow:none !important; flex-shrink:0; cursor:pointer;">`;
                                     } else {
                                         queuedThumbnailHtml = `<div style="width:52px; height:52px; border-radius:12px; background:rgba(245,158,11,0.2); border:1.5px dashed #f59e0b; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#fbbf24; flex-shrink:0;"><i class="fa-solid fa-camera" style="font-size:16px;"></i><span style="font-size:8px; font-weight:800; margin-top:2px;">OFFLINE</span></div>`;
                                     }
@@ -1810,9 +1810,9 @@ $backRoute = 'itinerary';
                                 html += `
                                 <div class="timeline-item ${isVisited ? 'completed' : (isNextStop ? 'is-next-stop' : 'is-locked-stop')}" data-stop-unlocked="${isStopUnlocked}" style="margin-bottom: 12px; ${!isStopUnlocked ? 'opacity:.68;' : ''}">
                                     <div class="timeline-dot"></div>
-                                    <div class="timeline-content" ${!isStopUnlocked ? 'inert' : ''} style="padding:14px; background: #f8fafc; border: 1px solid #e2e8f0 !important; outline: none !important; border-radius: 16px; display:flex; flex-direction:column; gap:10px; box-shadow: 0 1px 4px rgba(15, 23, 42, 0.04);">
+                                    <div class="timeline-content" ${!isStopUnlocked ? 'inert' : ''} style="padding:14px; background: #f8fafc; border: 1px solid #e2e8f0 !important; outline: none !important; border-radius: 16px; display:flex; flex-direction:column; gap:10px; box-shadow: none;">
                                         <div style="display:flex; gap:12px; align-items:flex-start;">
-                                            <div class="saved-trip-spot-thumb" style="width:56px; height:56px; border-radius:14px; overflow:hidden; flex-shrink:0; background:#e2e8f0; position:relative; box-shadow:0 2px 6px rgba(15,23,42,0.08); border:1px solid #cbd5e1;">
+                                            <div class="saved-trip-spot-thumb" style="width:56px; height:56px; border-radius:14px; overflow:hidden; flex-shrink:0; background:#e2e8f0; position:relative; box-shadow:none; border:1px solid #cbd5e1;">
                                                 <img src="${spotImgUrl}" alt="${destEscaped}" loading="lazy" style="width:100%; height:100%; object-fit:cover; display:block;" onerror="this.onerror=null; this.src='assets/img/no_image.svg';">
                                             </div>
                                             <div style="flex:1; min-width:0;">
@@ -2150,9 +2150,18 @@ $backRoute = 'itinerary';
                 return;
             }
 
+            const existingUrls = typeof window.getExistingTripItemPhotos === 'function' ? window.getExistingTripItemPhotos(itemId) : [];
+            const maxAllowed = Math.max(0, 5 - existingUrls.length);
+            if (maxAllowed <= 0) {
+                if (typeof showToast === 'function') showToast('Maximum of 5 photos already uploaded for this stop.');
+                return;
+            }
+
             document.body.classList.add('modal-blurred');
             window._currentPhotoItemId = itemId;
             window._currentPhotoSpotName = spotName;
+            window._currentPhotoExistingUrls = existingUrls;
+            window._currentPhotoMaxAllowed = maxAllowed;
             window.selectedTripPhotos = [];
 
             const allPhotoModals = Array.from(document.querySelectorAll('#photo-upload-modal'));
@@ -2245,11 +2254,24 @@ $backRoute = 'itinerary';
             const emptyPrompt = document.getElementById('photo-empty-prompt');
             const grid = document.getElementById('photo-thumbnails-grid');
             const countBadge = document.getElementById('photo-count-badge');
+            const subtitleEl = document.getElementById('photo-spot-subtitle');
             const submitBtn = document.getElementById('btn-submit-trip-photos');
 
+            const maxAllowed = (typeof window._currentPhotoMaxAllowed === 'number') ? window._currentPhotoMaxAllowed : 5;
             const total = window.selectedTripPhotos.length;
+            const remaining = Math.max(0, maxAllowed - total);
+
+            if (subtitleEl) {
+                if (remaining <= 0) {
+                    subtitleEl.textContent = 'Maximum 5 photos reached';
+                } else if (maxAllowed < 5 || total > 0) {
+                    subtitleEl.textContent = `Select up to ${remaining} more ${remaining === 1 ? 'photo' : 'photos'}`;
+                } else {
+                    subtitleEl.textContent = `Select up to ${remaining} photos`;
+                }
+            }
             if (countBadge) {
-                countBadge.textContent = `${total} / 5 photos`;
+                countBadge.textContent = `${total} / ${maxAllowed} photos`;
             }
 
             if (submitBtn) {
@@ -2285,7 +2307,7 @@ $backRoute = 'itinerary';
                     `;
                 });
 
-                if (total < 5) {
+                if (total < maxAllowed) {
                     html += `
                         <div onclick="window.addTripPhotoFromSource('gallery')"
                             style="aspect-ratio:1/1; border:2px dashed #94a3b8; border-radius:14px; display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer; background:#f8fafc; transition:all 0.2s ease;">
@@ -2307,7 +2329,8 @@ $backRoute = 'itinerary';
         };
 
         window.addTripPhotoFromSource = async function (source) {
-            if (window.selectedTripPhotos.length >= 5) {
+            const maxAllowed = (typeof window._currentPhotoMaxAllowed === 'number') ? window._currentPhotoMaxAllowed : 5;
+            if (window.selectedTripPhotos.length >= maxAllowed) {
                 if (typeof showToast === 'function') showToast('Maximum 5 photos allowed.');
                 return;
             }
@@ -2369,7 +2392,8 @@ $backRoute = 'itinerary';
         window.handleSelectedTripPhotos = async function (input) {
             if (!input.files || input.files.length === 0) return;
 
-            const remainingSlots = 5 - window.selectedTripPhotos.length;
+            const maxAllowed = (typeof window._currentPhotoMaxAllowed === 'number') ? window._currentPhotoMaxAllowed : 5;
+            const remainingSlots = maxAllowed - window.selectedTripPhotos.length;
             if (remainingSlots <= 0) {
                 if (typeof showToast === 'function') showToast('Maximum 5 photos allowed.');
                 return;
@@ -2625,7 +2649,10 @@ $backRoute = 'itinerary';
                             new Promise((_, reject) => setTimeout(() => reject(new Error('Offline save timed out')), 8000))
                         ]);
                         const queuedPreview = queuedEntry?.previewUrl || previewUrls[0] || null;
-                        if (queuedPreview) window.applyTripPhotoUpdateLocally(itemId, [queuedPreview], 'pending', true);
+                        if (queuedPreview) {
+                            const mergedOffline = Array.from(new Set([...(window._currentPhotoExistingUrls || []), queuedPreview])).slice(0, 5);
+                            window.applyTripPhotoUpdateLocally(itemId, mergedOffline, 'pending', true);
+                        }
                     }
                     window.closePhotoUploadModal();
                     if (typeof showToast === 'function') {
@@ -2671,7 +2698,10 @@ $backRoute = 'itinerary';
                             isPhotoUploadOnly: true
                         });
                         const queuedPreview = queuedEntry?.previewUrl || previewUrls[0] || null;
-                        if (queuedPreview) window.applyTripPhotoUpdateLocally(itemId, [queuedPreview], 'pending', true);
+                        if (queuedPreview) {
+                            const mergedOffline = Array.from(new Set([...(window._currentPhotoExistingUrls || []), queuedPreview])).slice(0, 5);
+                            window.applyTripPhotoUpdateLocally(itemId, mergedOffline, 'pending', true);
+                        }
                         window.closePhotoUploadModal();
                         if (typeof showToast === 'function') {
                             showToast('📍 Saved Offline! Photo saved on device. Auto-syncs when online.', 'success');
@@ -2713,9 +2743,12 @@ $backRoute = 'itinerary';
                 }
 
                 if (response.ok && data.success) {
+                    const prevUrls = Array.isArray(window._currentPhotoExistingUrls) ? window._currentPhotoExistingUrls : [];
                     window.closePhotoUploadModal();
-                    // Replace preview URLs with permanent server URLs from response
-                    const permanentUrls = data.proof_images || (data.proof_image ? [data.proof_image] : previewUrls);
+                    // Replace preview URLs with permanent merged server URLs from response
+                    const permanentUrls = (Array.isArray(data.proof_images) && data.proof_images.length > 0)
+                        ? data.proof_images
+                        : Array.from(new Set([...prevUrls, ...(data.proof_image ? [data.proof_image] : previewUrls)])).slice(0, 5);
                     window.applyTripPhotoUpdateLocally(itemId, permanentUrls, data.proof_status || 'approved');
                     if (typeof window.fetchSavedTrips === 'function') {
                         window.fetchSavedTrips(true);

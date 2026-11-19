@@ -329,11 +329,26 @@ class ItineraryItemController extends Controller
         }
     }
 
+    private function getExistingProofUrls(ItineraryItem $item): array
+    {
+        // Use getRawOriginal() so ItineraryItem::getProofImageAttribute() doesn't truncate JSON arrays to element [0]
+        $raw = trim((string) ($item->getRawOriginal('proof_image') ?? ''));
+        if ($raw === '') {
+            return [];
+        }
+        if (str_starts_with($raw, '[')) {
+            $decoded = json_decode($raw, true);
+            if (is_array($decoded)) {
+                return array_values(array_filter($decoded, fn($u) => is_string($u) && trim($u) !== ''));
+            }
+        }
+        return [$raw];
+    }
+
     /**
      * POST /api/tourist/itineraries/items/{id}/proof
      * Independent Photo Proof Upload process.
-     * Supports multiple photo selection (up to 5 photos).
-     * Sets proof_status to 'pending' without requiring immediate GPS check-in.
+     * Supports multiple photo selection (up to 5 photos total; appends to existing photos).
      */
     public function uploadProof(Request $request, int $id): JsonResponse
     {
@@ -369,8 +384,16 @@ class ItineraryItemController extends Controller
                 ], 422);
             }
 
-            // Limit to max 5 photos
-            $files = array_slice($files, 0, 5);
+            // Preserve existing photos and only fill remaining slots up to 5 total
+            $existingUrls = $this->getExistingProofUrls($item);
+            $remainingSlots = max(0, 5 - count($existingUrls));
+            if ($remainingSlots <= 0) {
+                return response()->json([
+                    'message' => 'Maximum of 5 photos already uploaded for this destination.',
+                ], 422);
+            }
+
+            $files = array_slice($files, 0, $remainingSlots);
 
             $storedUrls = $this->storeProofFiles($files);
 
@@ -380,8 +403,9 @@ class ItineraryItemController extends Controller
                 ], 422);
             }
 
+            $mergedUrls = array_slice(array_values(array_unique(array_merge($existingUrls, $storedUrls))), 0, 5);
             // Store JSON array of image URLs
-            $jsonImages = json_encode($storedUrls);
+            $jsonImages = json_encode($mergedUrls);
 
             $capturedAt = null;
             if ($request->filled('captured_at')) {
@@ -411,8 +435,8 @@ class ItineraryItemController extends Controller
                 'success'              => true,
                 'proof_status'         => 'approved',
                 'is_visited'           => true,
-                'proof_image'          => $storedUrls[0],
-                'proof_images'         => $storedUrls,
+                'proof_image'          => $mergedUrls[0],
+                'proof_images'         => $mergedUrls,
                 'places_visited'       => $placesVisited,
                 'completed_activities' => $placesVisited,
                 'message'              => 'Photos uploaded!',
@@ -558,11 +582,16 @@ class ItineraryItemController extends Controller
             }
 
             if (!empty($files)) {
-                $files = array_slice($files, 0, 5);
-                $storedUrls = $this->storeProofFiles($files);
-                if (!empty($storedUrls)) {
-                    $itemData['proof_image']  = json_encode($storedUrls);
-                    $itemData['proof_status'] = 'approved';
+                $existingUrls = $this->getExistingProofUrls($item);
+                $remainingSlots = max(0, 5 - count($existingUrls));
+                if ($remainingSlots > 0) {
+                    $files = array_slice($files, 0, $remainingSlots);
+                    $storedUrls = $this->storeProofFiles($files);
+                    if (!empty($storedUrls)) {
+                        $mergedUrls = array_slice(array_values(array_unique(array_merge($existingUrls, $storedUrls))), 0, 5);
+                        $itemData['proof_image']  = json_encode($mergedUrls);
+                        $itemData['proof_status'] = 'approved';
+                    }
                 }
             }
 

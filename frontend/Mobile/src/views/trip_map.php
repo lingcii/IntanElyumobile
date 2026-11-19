@@ -760,9 +760,9 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                         <button type="button" data-tourist-spot-id="${sId}" data-itinerary-item-id="${item.id}" data-spot-classification="${sClass}" onclick="event.stopPropagation(); window.openWriteTestimonyModal('${sId}', this, '${item.id}')" style="background:#eff6ff; border:1px solid #bfdbfe; color:#1d4ed8; font-size:10px; font-weight:800; padding:5px 10px; border-radius:100px; cursor:pointer; white-space:nowrap; display:inline-flex; align-items:center; gap:4px;">
                             ${isReviewed ? '<i class="fa-solid fa-check"></i> Reviewed' : '<i class="fa-solid fa-pen"></i> Review'}
                         </button>
-                        <button onclick="event.stopPropagation(); window.openPhotoUploadModal('${item.id}', '${destEscaped}')" style="background:linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color:#ffffff; border:none; padding:5px 10px; border-radius:100px; font-weight:800; font-size:10px; box-shadow:0 2px 6px rgba(2,132,199,0.25); cursor:pointer; white-space:nowrap; display:inline-flex; align-items:center; gap:4px;">
+                        ${proofImages.length < 5 ? `<button onclick="event.stopPropagation(); window.openPhotoUploadModal('${item.id}', '${destEscaped}')" style="background:linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color:#ffffff; border:none; padding:5px 10px; border-radius:100px; font-weight:800; font-size:10px; box-shadow:0 2px 6px rgba(2,132,199,0.25); cursor:pointer; white-space:nowrap; display:inline-flex; align-items:center; gap:4px;">
                             <i class="fa-solid fa-camera"></i> ${hasProof ? 'Add Photos' : 'Upload Photos'}
-                        </button>
+                        </button>` : ''}
                     </div>`;
                 } else if (isLocationVerified && !hasProof) {
                     actionBtnHtml = `<div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
@@ -1524,9 +1524,18 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                 return;
             }
 
+            const existingUrls = typeof window.getExistingTripItemPhotos === 'function' ? window.getExistingTripItemPhotos(itemId) : [];
+            const maxAllowed = Math.max(0, 5 - existingUrls.length);
+            if (maxAllowed <= 0) {
+                if (typeof showToast === 'function') showToast('Maximum of 5 photos already uploaded for this stop.');
+                return;
+            }
+
             document.body.classList.add('modal-blurred');
             window._currentPhotoItemId = itemId;
             window._currentPhotoSpotName = spotName;
+            window._currentPhotoExistingUrls = existingUrls;
+            window._currentPhotoMaxAllowed = maxAllowed;
             window.selectedTripPhotos = [];
 
             const allPhotoModals = Array.from(document.querySelectorAll('#photo-upload-modal'));
@@ -1621,11 +1630,24 @@ include_once __DIR__ . '/../components/testimony_modal.php';
             const emptyPrompt = document.getElementById('photo-empty-prompt');
             const grid = document.getElementById('photo-thumbnails-grid');
             const countBadge = document.getElementById('photo-count-badge');
+            const subtitleEl = document.getElementById('photo-spot-subtitle');
             const submitBtn = document.getElementById('btn-submit-trip-photos');
 
+            const maxAllowed = (typeof window._currentPhotoMaxAllowed === 'number') ? window._currentPhotoMaxAllowed : 5;
             const total = window.selectedTripPhotos.length;
+            const remaining = Math.max(0, maxAllowed - total);
+
+            if (subtitleEl) {
+                if (remaining <= 0) {
+                    subtitleEl.textContent = 'Maximum 5 photos reached';
+                } else if (maxAllowed < 5 || total > 0) {
+                    subtitleEl.textContent = `Select up to ${remaining} more ${remaining === 1 ? 'photo' : 'photos'}`;
+                } else {
+                    subtitleEl.textContent = `Select up to ${remaining} photos`;
+                }
+            }
             if (countBadge) {
-                countBadge.textContent = `${total} / 5 photos`;
+                countBadge.textContent = `${total} / ${maxAllowed} photos`;
             }
 
             if (submitBtn) {
@@ -1661,7 +1683,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                     `;
                 });
 
-                if (total < 5) {
+                if (total < maxAllowed) {
                     html += `
                         <div onclick="window.addTripPhotoFromSource('gallery')"
                             style="aspect-ratio:1/1; border:2px dashed #94a3b8; border-radius:14px; display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer; background:#f8fafc; transition:all 0.2s ease;">
@@ -1681,7 +1703,8 @@ include_once __DIR__ . '/../components/testimony_modal.php';
         };
 
         window.addTripPhotoFromSource = async function (mode) {
-            const remainingSlots = 5 - window.selectedTripPhotos.length;
+            const maxAllowed = (typeof window._currentPhotoMaxAllowed === 'number') ? window._currentPhotoMaxAllowed : 5;
+            const remainingSlots = maxAllowed - window.selectedTripPhotos.length;
             if (remainingSlots <= 0) {
                 if (typeof showToast === 'function') showToast('Maximum 5 photos reached.');
                 return;
@@ -1742,7 +1765,8 @@ include_once __DIR__ . '/../components/testimony_modal.php';
         window.handleSelectedTripPhotos = async function (input) {
             if (!input.files || input.files.length === 0) return;
 
-            const remainingSlots = 5 - window.selectedTripPhotos.length;
+            const maxAllowed = (typeof window._currentPhotoMaxAllowed === 'number') ? window._currentPhotoMaxAllowed : 5;
+            const remainingSlots = maxAllowed - window.selectedTripPhotos.length;
             if (remainingSlots <= 0) {
                 if (typeof showToast === 'function') showToast('Maximum 5 photos allowed.');
                 return;
@@ -1916,12 +1940,14 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                 btn.disabled = true;
             }
 
+            const existingUrls = Array.isArray(window._currentPhotoExistingUrls) ? window._currentPhotoExistingUrls : [];
             const previewUrls = window.selectedTripPhotos.map(p => p.dataUrl).filter(Boolean);
+            const mergedPreviewUrls = Array.from(new Set([...existingUrls, ...previewUrls])).slice(0, 5);
             const firstFile = window.selectedTripPhotos[0].file;
             const spotName = window._currentPhotoSpotName || 'Destination';
 
-            // Optimistically update memory and DOM right now!
-            window.applyTripPhotoUpdateLocally(itemId, previewUrls, 'pending');
+            // Optimistically append new photos to existing ones without replacing previous photos
+            window.applyTripPhotoUpdateLocally(itemId, mergedPreviewUrls, 'pending');
 
             const matchingItem = (window.currentTripItems || []).find(it => String(it.id) === String(itemId));
             const spotId = matchingItem ? (matchingItem.tourist_spot_id || matchingItem.destination_id || (matchingItem.destination ? matchingItem.destination.id : null)) : null;
@@ -2033,7 +2059,9 @@ include_once __DIR__ . '/../components/testimony_modal.php';
 
                 if (response.ok && data.success) {
                     window.closePhotoUploadModal();
-                    const permanentUrls = data.proof_images || (data.proof_image ? [data.proof_image] : previewUrls);
+                    const permanentUrls = (Array.isArray(data.proof_images) && data.proof_images.length > 0)
+                        ? data.proof_images
+                        : (data.proof_image ? Array.from(new Set([...existingUrls, data.proof_image])).slice(0, 5) : mergedPreviewUrls);
                     window.applyTripPhotoUpdateLocally(itemId, permanentUrls, data.proof_status || 'approved');
 
                     if (typeof showToast === 'function') {
