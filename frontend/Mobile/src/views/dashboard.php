@@ -1003,18 +1003,20 @@ if (is_dir($imgDir)) {
     </style>
 
     <script>
-    window.getDestImage = function (dest, width) {
-        if (!dest) return 'assets/img/no_image.svg';
-        if (typeof dest === 'string') {
-            if (dest.includes('default-spot') || !dest.trim()) return 'assets/img/no_image.svg';
-            return dest;
-        }
-        var src = dest.photo_url || dest.image || dest.avatar || 'assets/img/no_image.svg';
-        if (!src || typeof src !== 'string' || src.includes('default-spot') || !src.trim()) {
-            return 'assets/img/no_image.svg';
-        }
-        return src;
-    };
+    if (typeof window.getDestImage !== 'function') {
+        window.getDestImage = function (dest, width) {
+            if (!dest) return 'assets/img/no_image.svg';
+            if (typeof dest === 'string') {
+                if (dest.includes('default-spot') || !dest.trim()) return 'assets/img/no_image.svg';
+                return dest;
+            }
+            var src = dest.photo_url || dest.image || dest.avatar || 'assets/img/no_image.svg';
+            if (!src || typeof src !== 'string' || src.includes('default-spot') || !src.trim()) {
+                return 'assets/img/no_image.svg';
+            }
+            return src;
+        };
+    }
 
     window.renderFavCard = function(dest) {
         if (!dest) return '';
@@ -1059,7 +1061,8 @@ if (is_dir($imgDir)) {
                 var u = null;
                 try { u = JSON.parse(localStorage.getItem('auth_user') || 'null'); } catch(e){}
                 if (u && (u.must_change_password === true || u.must_change_password === 1 || u.must_change_password === '1' || u.must_change_password === 'true')) {
-                    window.location.replace('auth.php');
+                    if (typeof window.navigateTo === 'function') window.navigateTo('auth');
+                    else window.location.replace('index.php?view=auth');
                     return;
                 }
                 var isReal = Boolean(t && t !== 'guest_token' && t !== 'offline_guest_token' && t.indexOf('guest_') !== 0 && t.indexOf('offline_') !== 0);
@@ -2181,6 +2184,12 @@ window.applyTouristSitesFilterModal = function() {
         });
 
         if (resultsEl) {
+            const escDashHtml = (str) => String(str ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
             if (matched.length > 0) {
                 let html = '';
                 matched.slice(0, 8).forEach(dest => {
@@ -2188,11 +2197,12 @@ window.applyTouristSitesFilterModal = function() {
                         ? window.getDestImage(dest, 150)
                         : (dest.thumbnail_url || dest.image_url || dest.image || 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=150');
                     const encodedDest = encodeURIComponent(JSON.stringify(dest)).replace(/'/g, '%27');
-                    const locName = dest.location || dest.municipality || 'La Union';
+                    const locName = escDashHtml(dest.location || dest.municipality || 'La Union');
 
-                    const cls = (dest.classification || '').toLowerCase();
+                    const rawCls = dest.classification || dest.classification_status || '';
+                    const cls = String(rawCls).toLowerCase();
                     let badgeBg = '#0284c7';
-                    let badgeLabel = dest.classification || 'Existing';
+                    let badgeLabel = escDashHtml(rawCls || 'Existing');
                     if (cls.includes('potential')) { badgeBg = '#10b981'; }
                     else if (cls.includes('emerging')) { badgeBg = '#ef4444'; }
 
@@ -2201,10 +2211,10 @@ window.applyTouristSitesFilterModal = function() {
                              style="display:flex; align-items:center; gap:12px; padding:9px 12px; border-radius:12px; cursor:pointer; transition:background 0.15s ease; border-bottom:1px solid #f1f5f9;"
                              onmouseover="this.style.background='#f8fafc'" 
                              onmouseout="this.style.background='transparent'">
-                            <img src="${img}" alt="${(dest.name||'').replace(/"/g, '&quot;')}" style="width:42px; height:42px; border-radius:10px; object-fit:cover; border:1px solid #e2e8f0; flex-shrink:0;">
+                            <img src="${img}" alt="${escDashHtml(dest.name)}" style="width:42px; height:42px; border-radius:10px; object-fit:cover; border:1px solid #e2e8f0; flex-shrink:0;">
                             <div style="flex:1; min-width:0;">
                                 <div style="display:flex; align-items:center; gap:6px; margin-bottom:2px;">
-                                    <div style="font-size:13.5px; font-weight:700; color:#0f172a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${dest.name}</div>
+                                    <div style="font-size:13.5px; font-weight:700; color:#0f172a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escDashHtml(dest.name)}</div>
                                     <span style="font-size:9.5px; font-weight:700; text-transform:uppercase; color:#ffffff; background:${badgeBg}; padding:1px 6px; border-radius:6px; flex-shrink:0;">${badgeLabel}</span>
                                 </div>
                                 <div style="font-size:11.5px; font-weight:500; color:#64748b; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
@@ -2222,7 +2232,7 @@ window.applyTouristSitesFilterModal = function() {
                     <div style="padding:22px 14px; text-align:center;">
                         <i class="fa-solid fa-location-dot" style="font-size:22px; color:#cbd5e1; margin-bottom:6px; display:block;"></i>
                         <div style="font-size:13px; font-weight:700; color:#0f172a;">No places found</div>
-                        <div style="font-size:11.5px; color:#64748b; margin-top:2px;">We couldn't find any spot matching "${(query||'').replace(/"/g, '&quot;')}"</div>
+                        <div style="font-size:11.5px; color:#64748b; margin-top:2px;">We couldn't find any spot matching "${escDashHtml(query)}"</div>
                     </div>
                 `;
                 resultsEl.style.display = 'block';
@@ -3733,12 +3743,14 @@ window.applyTouristSitesFilterModal = function() {
         }
     };
 
-    // Immediately port weather modals to document.body so they stay above bottom navigation
+    // Immediately port weather modals to document.body so they stay above bottom navigation (deduplicate stale body-ported copies first)
     try {
+        document.querySelectorAll('body > #weather-modal').forEach(el => el.remove());
         const initialWModal = document.getElementById('weather-modal');
         if (initialWModal && initialWModal.parentElement !== document.body) {
             document.body.appendChild(initialWModal);
         }
+        document.querySelectorAll('body > #weather-day-picks-modal').forEach(el => el.remove());
         const initialDayModal = document.getElementById('weather-day-picks-modal');
         if (initialDayModal && initialDayModal.parentElement !== document.body) {
             document.body.appendChild(initialDayModal);
@@ -4033,7 +4045,7 @@ window.applyTouristSitesFilterModal = function() {
                                 const resolvedAll = uploadedPhotos.map(u => (typeof window.resolveTripPhotoUrl === 'function' ? window.resolveTripPhotoUrl(u) : u));
                                 const jsonUrlsAttr = JSON.stringify(resolvedAll).replace(/"/g, '&quot;');
                                 photoImgHtml = `<div style="position:relative; flex-shrink:0;">
-                                    <img src="${pUrl}" onerror="if(this.dataset.triedFallback!=='1'){this.dataset.triedFallback='1';this.src='${fallbackUrl}';}else{this.onerror=null;this.src='assets/img/no_image.svg';}" onclick="event.stopPropagation(); if(typeof window.viewTripPhotoModal==='function') window.viewTripPhotoModal(${jsonUrlsAttr}, '${destEscaped}', '${item.is_visited ? 'Verified Visit Photo' : 'Uploaded Photo'}');" alt="Photo" title="Tap to view photo" style="width:28px; height:28px; border-radius:8px; object-fit:cover; border:1px solid ${item.is_visited ? 'rgba(52,199,89,0.5)' : 'rgba(255,149,0,0.5)'}; flex-shrink:0; cursor:pointer;">
+                                    <img src="${pUrl}" onerror="if(this.dataset.triedFallback!=='1'){this.dataset.triedFallback='1';this.src='${fallbackUrl}';}else{this.onerror=null;this.src='assets/img/no_image.svg';}" onclick="event.stopPropagation(); if(typeof window.viewTripPhotoModal==='function') window.viewTripPhotoModal(${jsonUrlsAttr}, '${destEscaped}', '${item.is_visited ? 'Verified Visit Photo' : 'Uploaded Photo'}', 0, { itemId: '${item.id}', canDelete: true });" alt="Photo" title="Tap to view photo" style="width:28px; height:28px; border-radius:8px; object-fit:cover; border:1px solid ${item.is_visited ? 'rgba(52,199,89,0.5)' : 'rgba(255,149,0,0.5)'}; flex-shrink:0; cursor:pointer;">
                                     ${uploadedPhotos.length > 1 ? `<span style="position:absolute; bottom:0; right:0; background:rgba(0,0,0,0.75); color:#fff; font-size:6.5px; font-weight:800; padding:0 2px; border-radius:2px;">+${uploadedPhotos.length - 1}</span>` : ''}
                                 </div>`;
                             } else if (isQueued && queuedItem && queuedItem.previewUrl) {
@@ -4352,7 +4364,7 @@ window.applyTouristSitesFilterModal = function() {
                 window.updateUnreadBadge(data.stats.unread_notifications || 0);
             }
 
-            const u = data.user || {};
+            const u = (data.user && (data.user.id || data.user.name)) ? data.user : (user || {});
             const isGuestSession = !token || 
                 token === 'guest_token' || 
                 token === 'offline_guest_token' || 
@@ -4366,8 +4378,9 @@ window.applyTouristSitesFilterModal = function() {
 
             if (!isGuestSession) {
                 // Profile header
-                const firstName = (u.name || 'Explorer').split(' ')[0];
-                setHtml('dash-name', 'Hi, ' + firstName + '! <i class="fa-solid fa-hand" style="color:#fbbf24; font-size:18px; margin-left:4px;"></i>');
+                const rawFirstName = (u.name || 'Explorer').split(' ')[0];
+                const safeFirstName = String(rawFirstName).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+                setHtml('dash-name', 'Hi, ' + safeFirstName + '! <i class="fa-solid fa-hand" style="color:#fbbf24; font-size:18px; margin-left:4px;"></i>');
                 setTxt('dash-title', 'Explorer of Elyu');
 
                 const touristNum = u.tourist_number || u.tourist_id || (u.role === 'tourist' ? 1 : (u.id || u.user_id || ''));
@@ -4610,8 +4623,10 @@ window.applyTouristSitesFilterModal = function() {
                 }
             }
 
-            // Cache updated user
-            localStorage.setItem('auth_user', JSON.stringify(u));
+            // Cache updated user only when valid user payload is present
+            if (u && (u.id || u.email || u.name)) {
+                localStorage.setItem('auth_user', JSON.stringify(u));
+            }
         }
         window.renderDashboard = renderDashboard;
 

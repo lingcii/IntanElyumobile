@@ -25,6 +25,7 @@ class ItineraryItemController extends Controller
      */
     private function recordFirstVisitPax(ItineraryItem $item, array $updateData, $spot, int $totalPax): bool
     {
+        $totalPax = min(200, max(1, $totalPax));
         $dbData = \Illuminate\Support\Arr::only($updateData, $item->getFillable());
 
         $firstVisit = DB::transaction(function () use ($item, $dbData, $spot, $totalPax) {
@@ -93,10 +94,15 @@ class ItineraryItemController extends Controller
                 // 1. Always save compressed WebP copy to local folder
                 $localPath = \App\Helpers\ImageCompressor::compressAndStore($file, 'proof_images', 'public', 'proof_', 1200, 80);
 
-                // 2. Also upload compressed WebP copy to Cloudflare R2 Bucket
+                // 2. Also upload exact same compressed WebP file (same filename) to Cloudflare R2 Bucket
                 try {
-                    $r2Path = \App\Helpers\ImageCompressor::compressAndStore($file, 'proof_images', 'r2', 'proof_', 1200, 80);
-                    $urls[] = $r2PublicUrl . '/' . ltrim($r2Path, '/');
+                    $localBytes = \Illuminate\Support\Facades\Storage::disk('public')->get($localPath);
+                    if ($localBytes !== null && \Illuminate\Support\Facades\Storage::disk('r2')->put($localPath, $localBytes, 'public')) {
+                        $urls[] = $r2PublicUrl . '/' . ltrim($localPath, '/');
+                    } else {
+                        $r2Path = \App\Helpers\ImageCompressor::compressAndStore($file, 'proof_images', 'r2', 'proof_', 1200, 80);
+                        $urls[] = $r2PublicUrl . '/' . ltrim($r2Path, '/');
+                    }
                 } catch (\Throwable $r2Exception) {
                     Log::warning("R2 disk store failed for proof, using local fallback: " . $r2Exception->getMessage());
                     $urls[] = 'storage/' . $localPath;
@@ -220,7 +226,7 @@ class ItineraryItemController extends Controller
             $seniors = $request->has('companion_seniors') ? max(0, (int)$request->companion_seniors) : (int)($item->companion_seniors ?? $itin?->companion_seniors ?? 0);
             $pwds = $request->has('companion_pwds') ? max(0, (int)$request->companion_pwds) : (int)($item->companion_pwds ?? $itin?->companion_pwds ?? 0);
             $additionalComps = max($males + $females, $adults + $kids + $seniors + $pwds);
-            $totalPax = $request->has('total_pax') ? max(1, (int)$request->total_pax) : max(1, (int)($item->total_pax ?? $itin?->total_pax ?? (1 + $additionalComps)));
+            $totalPax = min(200, $request->has('total_pax') ? max(1, (int)$request->total_pax) : max(1, (int)($item->total_pax ?? $itin?->total_pax ?? (1 + $additionalComps))));
 
             $isFullyVisited = true;
             $firstVisit = $this->recordFirstVisitPax($item, [
@@ -450,6 +456,102 @@ class ItineraryItemController extends Controller
     }
 
     /**
+     * DELETE /api/tourist/itineraries/items/{id}/proof
+     * Removes a single uploaded photo from an active trip stop without altering check-in verification or points.
+     */
+    public function deleteProof(Request $request, int $id): JsonResponse
+    {
+        try {
+            $user = $request->user();
+
+            $item = ItineraryItem::whereHas('itinerary', fn($q) => $q->where('user_id', $user->id))
+                ->with('itinerary:id,status')
+                ->find($id);
+
+            if (!$item) {
+                return response()->json(['message' => 'Itinerary item not found or unauthorized.'], 404);
+            }
+
+            if (strtolower((string) ($item->itinerary?->status ?? '')) === 'completed') {
+                return response()->json(['message' => 'Photos from completed trips cannot be deleted.'], 403);
+            }
+
+            $existingUrls = $this->getExistingProofUrls($item);
+            if (empty($existingUrls)) {
+                return response()->json(['message' => 'No uploaded photos found for this stop.'], 404);
+            }
+
+            $targetUrl = trim((string) ($request->input('photo_url') ?? ''));
+            $targetIndex = $request->has('index') && is_numeric($request->input('index')) ? (int) $request->input('index') : null;
+
+            $extractFileName = static function (string $u): string {
+                if (preg_match('#proof_[a-z0-9_]+\.(?:jpg|jpeg|png|webp|gif)#i', $u, $m)) {
+                    return strtolower($m[0]);
+                }
+                return strtolower(basename(strtok($u, '?#') ?: $u));
+            };
+
+            $removeIdx = null;
+            if ($targetUrl !== '') {
+                $targetName = $extractFileName($targetUrl);
+                foreach ($existingUrls as $idx => $url) {
+                    if ($url === $targetUrl || ($targetName !== '' && $extractFileName($url) === $targetName)) {
+                        $removeIdx = $idx;
+                        break;
+                    }
+                }
+            }
+            if ($removeIdx === null && $targetUrl === '' && $targetIndex !== null && isset($existingUrls[$targetIndex])) {
+                $removeIdx = $targetIndex;
+            }
+            if ($removeIdx === null) {
+                return response()->json(['message' => 'Selected photo was not found on this stop.'], 404);
+            }
+
+            $removedUrl = $existingUrls[$removeIdx];
+            unset($existingUrls[$removeIdx]);
+            $remainingUrls = array_values($existingUrls);
+
+            $item->proof_image = empty($remainingUrls) ? null : json_encode($remainingUrls);
+            $item->save();
+
+            // Best-effort cleanup of the deleted proof file from local public and Cloudflare R2 disks
+            $fileName = $extractFileName($removedUrl);
+            if ($fileName !== '' && str_starts_with($fileName, 'proof_')) {
+                $relPath = 'proof_images/' . $fileName;
+                foreach (['public', 'r2'] as $disk) {
+                    try {
+                        if (\Illuminate\Support\Facades\Storage::disk($disk)->exists($relPath)) {
+                            \Illuminate\Support\Facades\Storage::disk($disk)->delete($relPath);
+                        }
+                    } catch (\Throwable $storageErr) {
+                        Log::warning("Could not delete proof file {$relPath} from {$disk}: " . $storageErr->getMessage());
+                    }
+                }
+            }
+
+            if ($user) {
+                Cache::forget("profile:trips:v3:{$user->id}");
+                Cache::forget("profile:trips:{$user->id}");
+            }
+
+            $formattedRemaining = array_values(array_filter(array_map([ItineraryItem::class, 'formatProofUrl'], $remainingUrls)));
+
+            return response()->json([
+                'success'      => true,
+                'proof_image'  => $formattedRemaining[0] ?? null,
+                'proof_images' => $formattedRemaining,
+                'message'      => 'Photo deleted.',
+            ]);
+        } catch (\Throwable $ex) {
+            Log::error("Proof delete error on item {$id}: " . $ex->getMessage());
+            return response()->json([
+                'message' => 'Failed to delete photo: ' . $ex->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
      * PATCH/POST /api/tourist/itineraries/items/{id}/visit
      * Combined GPS check-in and multi-photo proof upload.
      */
@@ -603,7 +705,7 @@ class ItineraryItemController extends Controller
             $seniors = $request->has('companion_seniors') ? max(0, (int)$request->companion_seniors) : (int)($item->companion_seniors ?? $itin?->companion_seniors ?? 0);
             $pwds = $request->has('companion_pwds') ? max(0, (int)$request->companion_pwds) : (int)($item->companion_pwds ?? $itin?->companion_pwds ?? 0);
             $additionalComps = max($males + $females, $adults + $kids + $seniors + $pwds);
-            $totalPax = $request->has('total_pax') ? max(1, (int)$request->total_pax) : max(1, (int)($item->total_pax ?? $itin?->total_pax ?? (1 + $additionalComps)));
+            $totalPax = min(200, $request->has('total_pax') ? max(1, (int)$request->total_pax) : max(1, (int)($item->total_pax ?? $itin?->total_pax ?? (1 + $additionalComps))));
 
             $itemData['companion_males']   = $males;
             $itemData['companion_females'] = $females;

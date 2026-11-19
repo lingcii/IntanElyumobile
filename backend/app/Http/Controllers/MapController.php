@@ -86,11 +86,20 @@ class MapController extends Controller
 
             $spotVisitorPhotosMap = [];
             try {
-                $proofRows = \Illuminate\Support\Facades\DB::table('itinerary_items')
+                $proofQuery = \Illuminate\Support\Facades\DB::table('itinerary_items')
                     ->whereNotNull('tourist_spot_id')
                     ->whereNotNull('proof_image')
-                    ->where('proof_image', '!=', '')
+                    ->where('proof_image', '!=', '');
+                if (\Illuminate\Support\Facades\Schema::hasColumn('itinerary_items', 'proof_status')) {
+                    $proofQuery->where(function ($q) {
+                        $q->whereNull('proof_status')
+                          ->orWhere('proof_status', '!=', 'rejected');
+                    });
+                }
+                // shortcut: bounded to latest 1000 proof rows; upgrade to per-spot window query if >50 spots exceed 20 recent proofs each
+                $proofRows = $proofQuery
                     ->orderBy('id', 'desc')
+                    ->limit(1000)
                     ->get(['tourist_spot_id', 'proof_image']);
                 foreach ($proofRows as $pr) {
                     $sid = $pr->tourist_spot_id;
@@ -122,16 +131,23 @@ class MapController extends Controller
                 }
             } catch (\Throwable $e) {}
 
+            $spotColumns = [
+                'id', 'name', 'category', 'municipality_id', 'barangay', 'latitude', 'longitude',
+                'entrance_fee', 'adult_fee', 'kids_fee', 'pwd_fee', 'senior_citizen_fee', 'entrance_fee_types',
+                'environmental_fee', 'fee_types', 'route_guide', 'tour_guide_notice',
+                'accessible_by_private_vehicle', 'photo_url', 'description', 'opening_time', 'closing_time',
+                'is_open_24_hours', 'is_maintenance', 'rating', 'visits', 'classification_status', 'status', 'boundary_geojson'
+            ];
+            if (\Illuminate\Support\Facades\Schema::hasColumn('tourist_spots', 'maximum_capacity')) {
+                $spotColumns[] = 'maximum_capacity';
+            }
+
             return TouristSpot::activeForTourists()
                 ->with('municipality:id,name')
                 ->with('images')
                 ->withCount('feedbacks')
                 ->orderBy('id', 'desc')
-                ->get(['id', 'name', 'category', 'municipality_id', 'barangay', 'latitude', 'longitude',
-                       'entrance_fee', 'adult_fee', 'kids_fee', 'pwd_fee', 'senior_citizen_fee', 'entrance_fee_types',
-                       'environmental_fee', 'fee_types', 'route_guide', 'tour_guide_notice',
-                       'accessible_by_private_vehicle', 'photo_url', 'description', 'opening_time', 'closing_time',
-                       'is_open_24_hours', 'is_maintenance', 'rating', 'visits', 'classification_status', 'status', 'boundary_geojson'])
+                ->get($spotColumns)
                 ->map(function ($spot) use ($spotPublicVehicles, $spotPrivateVehicles, $spotAllVehicles, $spotServiceCenterMap, $spotVisitorPhotosMap, $spotOrdinanceMap) {
                     /** @var TouristSpot $spot */
                     $isVisitorProofUrl = function (?string $url): bool {
@@ -184,8 +200,8 @@ class MapController extends Controller
                         // Standard default vehicle access for spots without custom database assignments
                         if ($isDrivable) {
                             $privList = ['Car', 'Motorcycle', 'Tricycle', 'Van'];
-                            $pubList = ['Aircon Bus', 'Modern Jeepney', 'Regular Bus', 'Taxi', 'Traditional Jeepney', 'Tricycle', 'UV Express'];
-                            $allList = ['Aircon Bus', 'Car', 'Modern Jeepney', 'Motorcycle', 'Regular Bus', 'Taxi', 'Traditional Jeepney', 'Tricycle', 'UV Express', 'Van'];
+                            $pubList = ['Aircon Bus', 'Modern Jeepney', 'Regular Bus', 'Taxi', 'Traditional Jeepney', 'Tricycle'];
+                            $allList = ['Aircon Bus', 'Car', 'Modern Jeepney', 'Motorcycle', 'Regular Bus', 'Taxi', 'Traditional Jeepney', 'Tricycle', 'Van'];
                         } else {
                             $privList = ['Motorcycle', 'Tricycle'];
                             $pubList = ['Motorcycle', 'Tricycle'];
@@ -475,7 +491,6 @@ class MapController extends Controller
                 ['name' => 'Taxi', 'category' => 'Public Vehicle'],
                 ['name' => 'Traditional Jeepney', 'category' => 'Public Vehicle'],
                 ['name' => 'Tricycle', 'category' => 'Public Vehicle'],
-                ['name' => 'UV Express', 'category' => 'Public Vehicle'],
                 ['name' => 'Van', 'category' => 'Private Vehicle'],
             ];
         });

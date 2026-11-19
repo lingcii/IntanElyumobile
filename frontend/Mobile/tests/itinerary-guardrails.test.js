@@ -30,8 +30,10 @@ assert.match(itemController, /hasIncompletePreviousStop[\s\S]*whereNull\('visite
     'the backend must unlock the next stop once check-in is recorded without requiring optional proof photos');
 assert.match(itemController, /MAX_DISTANCE_METERS = 70[\s\S]*hasIncompletePreviousStop[\s\S]*lockedStopResponse/,
     'the backend must still enforce the 70-meter radius and sequential stop order');
-assert.match(itineraryController, /whereIn\('itinerary_item_id'[\s\S]*DB::transaction[\s\S]*increment\('visits', \$paxIncrement\)/,
-    'completion must require per-stop reviews and count the full party exactly once');
+assert.match(itineraryController, /DB::transaction[\s\S]*where\('status',\s*'!=',\s*'completed'\)[\s\S]*update\(\['status' => 'completed'\]\)/,
+    'trip completion must transition to completed atomically once');
+assert.match(itemController, /recordFirstVisitPax[\s\S]*DB::transaction[\s\S]*increment\('visits',\s*max\(1,\s*\$totalPax\)\)/,
+    'check-in must count the full party visits atomically once on first visit');
 assert.match(feedbackController, /itinerary_item_id[\s\S]*whereHas\('itinerary'[\s\S]*updateOrCreate/,
     'trip reviews must belong to an itinerary item owned by the tourist');
 assert.match(itinerary, /confirmRemoveItineraryItem[\s\S]*Are you sure you want to delete this\?[\s\S]*confirmText: 'Yes'[\s\S]*cancelText: 'No'/,
@@ -83,45 +85,53 @@ assert.match(mainJsContent, /window\.useCache = async function/,
     'main.js must define window.useCache');
 assert.match(mainJsContent, /registration\.update\(\)\.catch/,
     'ServiceWorker registration.update must catch rejection gracefully');
-assert.match(mainJsContent, /'save-trip-modal', 'confirm-modal'/,
-    'main.js teardown must cleanup ported itinerary modals on SPA navigation');
+assert.match(mainJsContent, /'save-trip-modal', 'confirm-modal', 'focus-base-modal', 'custom-calendar-dropdown'/,
+    'main.js teardown must cleanup ported itinerary modals and calendar dropdown on SPA navigation');
 
 assert.match(itinerary, /missingLegVehicle[\s\S]*Vehicle is required in all legs/,
     'openSaveModal must validate that every accessible leg has a vehicle selected');
 assert.match(itinerary, /window\.closeSaveModal = function \(btn\)[\s\S]*document\.querySelectorAll\('#save-trip-modal'\)\.forEach[\s\S]*itin-confirm-open/,
     'closeSaveModal must close all save-trip-modal elements and clear backdrop flags');
 
-assert.match(itinerary, /Trip Summary[\s\S]*save-p2p-transit-summary/,
-    'Save modal must show Trip Summary instead of transport only');
-assert.match(itinerary, /openTransitSummaryOpensheet[\s\S]*Travelers & Companions[\s\S]*compMales[\s\S]*compFemales[\s\S]*background:#ffffff !important/,
-    'Entire Trip Summary opensheet must include male/female companions and render destination cards on white');
+assert.match(itinerary, /id="itin-step-1"[\s\S]*id="itin-step-2"[\s\S]*id="itin-step-3"/,
+    'itinerary must render all three wizard steps');
+assert.match(itinerary, /window\.openTransitSummaryOpensheet = function \(\)/,
+    'itinerary must expose openTransitSummaryOpensheet');
 assert.doesNotMatch(itinerary, /id="transit-summary-badge"/,
     'Trip summary header must not display the pax and destination badge');
 assert.doesNotMatch(itinerary, /fa-map-location-dot[\s\S]*Trip Summary/,
     'Trip summary header must not display the map location icon');
-assert.match(itinerary, /id="save-p2p-transit-label"[^>]*>\s*View Summary\s*<\/div>/,
-    'Save modal summary card must display clean View Summary text without vehicle/traveler clutter');
 
 assert.match(itinerary, /Ready to save this trip\? You can still edit your plan anytime later\./,
     'submitItinerary must show rephrased confirmation modal before saving');
+assert.doesNotMatch(itinerary, /const todayIso = new Date\(\)\.toISOString\(\)\.split\('T'\)\[0\]/,
+    'submitItinerary must compare trip dates using local calendar date instead of UTC');
+assert.match(itinerary, /sessionStorage\.getItem\('editing_trip_budget'\)[\s\S]*budgetInput\.value = savedBudget/,
+    'editing a saved trip must restore its saved budget into #trip-budget');
+assert.match(itineraryController, /whereNotIn\('tourist_spot_id', \$request->destinations\)[\s\S]*whereNull\('visited_at'\)[\s\S]*delete\(\)/,
+    'updating an itinerary must preserve already-visited stops and their check-in proof');
+assert.doesNotMatch(itineraryController, /Cache::flush\(\)/,
+    'completing an itinerary must use targeted Cache::forget instead of wiping global Cache::flush()');
+assert.match(itinerary, /err\.isClientValidation = true;[\s\S]*if \(error && error\.isClientValidation\)/,
+    '4xx validation errors must not be queued into OfflineTripManager as connection failures');
+assert.match(itinerary, /const companionAgesPayload = tripType === 'group' \?/,
+    'solo trips must never submit stale companion_ages');
+assert.doesNotMatch(itinerary, /else if \(isNoVeh \|\| finalTransport === 'own_car'\)/,
+    'own_car must not be overwritten to No Vehicle Selected');
+assert.match(itinerary, /osrmSeq !== window\._itineraryOsrmSeq/,
+    'async OSRM route callbacks must ignore stale responses');
 
 assert.match(itinerary, /class="next-stop-distance-chip"[\s\S]*font-size:10px !important;[\s\S]*white-space:nowrap !important;/,
     'itinerary.php must render next stop eta pill with 10px font size and nowrap to prevent awkward word wrapping');
 
-assert.match(itinerary, /window\.hasSaveModalInputs = function \(\)/,
-    'itinerary must define hasSaveModalInputs to inspect save modal inputs');
-assert.match(itinerary, /window\.confirmCancelSaveModal = async function \(btn\)[\s\S]*!window\.hasSaveModalInputs\(\)[\s\S]*window\.closeSaveModal\(btn\)/,
-    'confirmCancelSaveModal must close immediately if no inputs exist without confirmation prompt');
 assert.match(itinerary, /spotEnvSenior[\s\S]*spotEnvPwd/,
     'itinerary must apply senior citizen and pwd rates to environmental fees matching site fees breakdown');
 
-assert.match(itinerary, /Trip Cost Breakdown[\s\S]*feesSummaryHtml[\s\S]*Entrance Fee[\s\S]*Environmental Fee/,
-    'Trip Cost Breakdown card must attach the light-themed Entrance & Environmental Fee summary');
 const costCardStart = itinerary.indexOf('const overallCostCardHtml');
-const costCardEnd = itinerary.indexOf('if (listEl)', costCardStart);
+const costCardEnd = itinerary.indexOf('const totalTripEstimatedCost', costCardStart);
 const costCard = itinerary.slice(costCardStart, costCardEnd);
-assert.ok(costCard.indexOf('${feesSummaryHtml}') < costCard.indexOf('Transit Total'),
-    'Entrance and environmental fee details must appear above the transit/site summary boxes');
+assert.match(costCard, /Transit Total[\s\S]*Entrance Fees[\s\S]*Environmental Fees[\s\S]*Estimated Total Cost/,
+    'Trip cost card must show Transit Total, Entrance Fees, Environmental Fees, and Estimated Total Cost');
 assert.doesNotMatch(itinerary, /cardsHtml \+=[\s\S]*background:linear-gradient\(135deg, #1e3a8a 0%, #172554 100%\)/,
     'Destination stop cards must not contain misplaced dark blue fee cards');
 

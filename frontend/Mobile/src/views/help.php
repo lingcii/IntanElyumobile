@@ -141,22 +141,24 @@ $backRoute = 'dashboard';
             }
         });
 
-        // Animate the Email Support button briefly
+        // Animate the Email Support button briefly (guard against double-tap overwriting origHTML)
         const emailBtn = document.getElementById('btn-email-support');
-        if (emailBtn) {
+        if (emailBtn && !emailBtn.dataset.animating) {
+            emailBtn.dataset.animating = '1';
             const origHTML = emailBtn.innerHTML;
             emailBtn.innerHTML = '<i class="fa-solid fa-check" style="color:#ffffff;"></i> Opening...';
-            setTimeout(() => { emailBtn.innerHTML = origHTML; }, 2200);
+            setTimeout(() => {
+                emailBtn.innerHTML = origHTML;
+                delete emailBtn.dataset.animating;
+            }, 2200);
         }
 
-        // 2. If running inside native Capacitor wrapper, use App or Browser plugin
+        // 2. If running inside native Capacitor wrapper, use App.openUrl for mailto: (Browser.open rejects mailto: schemes)
         if (window.Capacitor && window.Capacitor.Plugins) {
             if (window.Capacitor.Plugins.App && typeof window.Capacitor.Plugins.App.openUrl === 'function') {
-                window.Capacitor.Plugins.App.openUrl({ url: mailtoUrl }).catch(function () { });
-                return;
-            }
-            if (window.Capacitor.Plugins.Browser && typeof window.Capacitor.Plugins.Browser.open === 'function') {
-                window.Capacitor.Plugins.Browser.open({ url: mailtoUrl }).catch(function () { });
+                window.Capacitor.Plugins.App.openUrl({ url: mailtoUrl }).catch(function () {
+                    try { window.location.href = mailtoUrl; } catch (e) {}
+                });
                 return;
             }
         }
@@ -177,13 +179,15 @@ $backRoute = 'dashboard';
             if (typeof showToast === 'function') {
                 showToast('Copied support@intan-elyu.online to clipboard! 📋');
             }
-            if (btn) {
+            if (btn && !btn.dataset.animating) {
+                btn.dataset.animating = '1';
                 const originalHTML = btn.innerHTML;
                 btn.classList.add('copied');
                 btn.innerHTML = '<i class="fa-solid fa-check" style="color:#00f2fe;"></i> <span>Copied!</span>';
                 setTimeout(() => {
                     btn.classList.remove('copied');
                     btn.innerHTML = originalHTML;
+                    delete btn.dataset.animating;
                 }, 2000);
             }
         }

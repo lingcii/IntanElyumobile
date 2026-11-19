@@ -972,6 +972,7 @@ include __DIR__ . '/../components/header.php';
                 initMemoryGame();
             } else if (gameType === 'word_scramble') {
                 updateScrambleInfoUI();
+                randomizeScrambleWords();
                 initScrambleGame();
             }
         }
@@ -2455,7 +2456,7 @@ include __DIR__ . '/../components/header.php';
                         bodyObj = {};
                     }
 
-                    await fetch(_baseUrl + endpoint, {
+                    const res = await fetch(_baseUrl + endpoint, {
                         method: 'POST',
                         cache: 'no-store',
                         headers: {
@@ -2466,8 +2467,10 @@ include __DIR__ . '/../components/header.php';
                         },
                         body: JSON.stringify(bodyObj)
                     });
+                    if (res.ok || (res.status >= 400 && res.status < 500 && res.status !== 401 && res.status !== 408 && res.status !== 429)) {
+                        localStorage.removeItem(key);
+                    }
                 }
-                claimKeys.forEach(k => localStorage.removeItem(k));
             } catch (e) { }
             finally {
                 if (didIncrement) {
@@ -2538,5 +2541,15 @@ include __DIR__ . '/../components/header.php';
         window.updateDailyResetCountdown = updateDailyResetCountdown;
 
         window.playInPracticeMode = playInPracticeMode;
+        window._cleanupPuzzles = function () {
+            if (window._puzzleTimerInterval) {
+                clearInterval(window._puzzleTimerInterval);
+                window._puzzleTimerInterval = null;
+            }
+            if (window._gameResetCountdownInterval) {
+                clearInterval(window._gameResetCountdownInterval);
+                window._gameResetCountdownInterval = null;
+            }
+        };
     })();
 </script>

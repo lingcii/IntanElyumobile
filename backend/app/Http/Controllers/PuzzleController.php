@@ -45,13 +45,15 @@ class PuzzleController extends Controller
                     ->unique()
                     ->values();
 
+                $safeSpotName = e($spot->name);
+                $safeMunName = e($munName);
                 return $imageUrls->map(fn ($imageUrl, $imageIndex) => [
                     'id' => $spot->id . '-' . $imageIndex,
                     'spot_id' => $spot->id,
                     'name' => $spot->name,
                     'location' => $munName,
                     'image' => $imageUrl,
-                    'desc' => "Rearrange the tiles to reveal the image of {$spot->name} in {$munName}! Solve to earn <strong style=\"color: #38bdf8;\">+50 Points</strong>."
+                    'desc' => "Rearrange the tiles to reveal the image of {$safeSpotName} in {$safeMunName}! Solve to earn <strong style=\"color: #38bdf8;\">+50 Points</strong>."
                 ]);
             })->values();
 

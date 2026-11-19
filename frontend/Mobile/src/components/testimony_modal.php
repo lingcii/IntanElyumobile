@@ -121,7 +121,8 @@ window.getRewardPointsForClassification = function(status) {
 // Fetch spot IDs reviewed by user to keep UI synchronized across Trip Map, Saved Trips, and Trip History
 window.fetchUserReviewedSpots = async function() {
     const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
-    if (!token) return;
+    const isGuest = !token || localStorage.getItem('intan_elyu_guest') === 'true' || (typeof window.isGuestUser === 'function' && window.isGuestUser()) || token === 'guest_token' || token === 'offline_guest_token' || token.startsWith('guest_') || token.startsWith('offline_');
+    if (isGuest) return;
 
     const _backendBase = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
     const ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
@@ -264,6 +265,9 @@ window.openWriteTestimonyModal = function(spotId, btnEl, itineraryItemId = null)
     const modal = document.getElementById('testimony-modal');
     if (modal) {
         if (modal.parentElement !== document.body) {
+            document.querySelectorAll('body > #testimony-modal').forEach(el => {
+                if (el !== modal) { try { el.remove(); } catch (e) {} }
+            });
             document.body.appendChild(modal);
         }
         modal.style.zIndex = '2147483647';
@@ -404,7 +408,8 @@ window.submitTestimony = async function(event) {
     if (window._isSubmittingTestimony) return;
 
     const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
-    if (!token) {
+    const isGuest = !token || localStorage.getItem('intan_elyu_guest') === 'true' || (typeof window.isGuestUser === 'function' && window.isGuestUser()) || token === 'guest_token' || token === 'offline_guest_token' || token.startsWith('guest_') || token.startsWith('offline_');
+    if (isGuest) {
         if (typeof showToast === 'function') showToast("Please log in to submit a review.");
         return;
     }

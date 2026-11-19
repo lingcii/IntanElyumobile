@@ -270,6 +270,7 @@ class TouristSpot extends Model
         \Illuminate\Support\Facades\Cache::forget('trending:top:10');
         \Illuminate\Support\Facades\Cache::forget('trending:top:20');
         \Illuminate\Support\Facades\Cache::forget('trending:top:50');
+        \Illuminate\Support\Facades\Cache::forget('dashboard:active_spots:v1');
     }
 
     protected static function booted()

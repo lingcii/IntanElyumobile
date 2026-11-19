@@ -249,7 +249,9 @@ class VoucherController extends Controller
                 return response()->json(['status' => 'error', 'message' => "This voucher is upcoming and will be available on {$timeStr}."], 400);
             }
 
-            if ($voucher->expires_at && $voucher->expires_at->isPast()) {
+            $expType = strtolower(trim((string) ($voucher->expiration_type ?? '')));
+            $isNoExpiry = in_array($expType, ['no_expiry_claim', 'no_expiry_usable', 'no_expiration_claim', 'no_expiration_usable'], true);
+            if (!$isNoExpiry && $voucher->expires_at && $voucher->expires_at->isPast()) {
                 return response()->json(['status' => 'error', 'message' => 'Voucher has expired.'], 400);
             }
 
@@ -321,28 +323,49 @@ class VoucherController extends Controller
             }
 
             $redemption = DB::transaction(function() use ($user, $voucher, $cost, $uniqueCode) {
+                $lockedUser = \App\Models\User::where('id', $user->id)->lockForUpdate()->first();
+                $lockedVoucher = Voucher::where('id', $voucher->id)->lockForUpdate()->first();
+
+                if (!$lockedUser || (int) ($lockedUser->points ?? 0) < $cost) {
+                    throw new \RuntimeException('INSUFFICIENT_POINTS');
+                }
+                if ($lockedVoucher && $lockedVoucher->remaining_quantity !== null && $lockedVoucher->remaining_quantity <= 0) {
+                    throw new \RuntimeException('VOUCHER_SOLD_OUT');
+                }
+                if (\Illuminate\Support\Facades\Schema::hasTable('voucher_redemptions')) {
+                    $already = \Illuminate\Support\Facades\DB::table('voucher_redemptions')
+                        ->where('user_id', $user->id)
+                        ->where('voucher_id', $voucher->id)
+                        ->whereIn('status', ['claimed', 'active', 'redeemed', 'used', 'completed', 'expired'])
+                        ->exists();
+                    if ($already) {
+                        throw new \RuntimeException('ALREADY_CLAIMED');
+                    }
+                }
+
                 // Deduct remaining quantity if tracked
-                if ($voucher->remaining_quantity > 0) {
-                    $voucher->decrement('remaining_quantity');
-                    $voucher->increment('redeemed_quantity');
+                if ($lockedVoucher && $lockedVoucher->remaining_quantity > 0) {
+                    $lockedVoucher->decrement('remaining_quantity');
+                    $lockedVoucher->increment('redeemed_quantity');
                 }
 
                 try {
-                    if (method_exists($user, 'deductPoints')) {
-                        $user->deductPoints($cost);
+                    if (method_exists($lockedUser, 'deductPoints')) {
+                        $lockedUser->deductPoints($cost);
                     } else {
-                        $currentPts = (int) ($user->points ?? 0);
+                        $currentPts = (int) ($lockedUser->points ?? 0);
                         $newPts = max(0, $currentPts - $cost);
                         if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'points')) {
-                            $user->points = $newPts;
-                            $user->save();
+                            $lockedUser->points = $newPts;
+                            $lockedUser->save();
                         }
                     }
                 } catch (\Throwable $e) {
                     try {
-                        $user->decrement('points', $cost);
+                        $lockedUser->decrement('points', $cost);
                     } catch (\Throwable $ignored) {}
                 }
+                $user->points = $lockedUser->points;
 
                 // A claimed voucher lasts three days, but never beyond the campaign deadline.
                 $voucherExpiresAt = now()->addDays(3);
@@ -424,7 +447,7 @@ class VoucherController extends Controller
             // Trigger notification safely
             \App\Models\Notification::createSafely(
                 $user->id,
-                'favorite_update',
+                'voucher',
                 'Voucher Claimed!',
                 "Claimed '{$voucher->voucher_name}'. Tap Use when you are ready to show the 20-minute QR pass.",
                 ['action_url' => '/discount']
@@ -473,6 +496,12 @@ class VoucherController extends Controller
                 'message' => $ve->validator->errors()->first() ?: 'Validation failed.',
                 'errors' => $ve->errors()
             ], 422);
+        } catch (\RuntimeException $re) {
+            $codeMsg = $re->getMessage();
+            $msg = $codeMsg === 'ALREADY_CLAIMED'
+                ? 'You have already claimed this voucher. Each voucher is valid for one-time claim only.'
+                : ($codeMsg === 'VOUCHER_SOLD_OUT' ? 'Voucher is fully claimed.' : 'Insufficient points to claim this voucher.');
+            return response()->json(['status' => 'error', 'message' => $msg], 400);
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::error('Voucher redemption error: ' . $e->getMessage(), [
                 'exception' => $e,
@@ -510,14 +539,19 @@ class VoucherController extends Controller
             $voucherRecord = $query->first();
 
             $pointRecord = null;
-            if (!$voucherRecord) {
+            if (\Illuminate\Support\Facades\Schema::hasTable('point_redemptions')) {
                 $pQuery = \Illuminate\Support\Facades\DB::table('point_redemptions')
-                    ->where(function ($q) use ($code) {
+                    ->where(function ($q) use ($code, $voucherRecord) {
                         $q->where('voucher_code', $code)
                           ->orWhere('qr_token', $code);
+                        if ($voucherRecord && !empty($voucherRecord->redemption_code)) {
+                            $q->orWhere('voucher_code', $voucherRecord->redemption_code);
+                        }
                     });
                 if ($user) {
                     $pQuery->where('user_id', $user->id);
+                } elseif ($voucherRecord && !empty($voucherRecord->user_id)) {
+                    $pQuery->where('user_id', $voucherRecord->user_id);
                 }
                 $pointRecord = $pQuery->first();
             }
@@ -607,7 +641,7 @@ class VoucherController extends Controller
                 'is_expired'           => $isExpired,
                 'voucher_expires_at'   => $voucherExpiresAt ? $voucherExpiresAt->toIso8601String() : null,
                 'qr_expires_at'        => $isActive && $qrExpiresAt ? $qrExpiresAt->toIso8601String() : null,
-                'qr_token'             => $isActive ? $activeQrToken : null,
+                'qr_token'             => ($isActive && ($user || str_starts_with($code, 'elyu_qr_'))) ? $activeQrToken : null,
                 'redeemed_at'          => $redeemedRecord->redeemed_at ?? ($redeemedRecord->updated_at ?? null),
                 'cancelled_at'         => $record->cancelled_at ?? null,
                 'redeemed_by_partner'  => $partnerName,
@@ -641,8 +675,6 @@ class VoucherController extends Controller
                 })->first();
 
             $pointRecord = null;
-            // Most claims have a voucher_redemptions row. Only query the legacy
-            // points table when that primary record is absent to keep activation fast.
             if (!$voucherRecord) {
                 $pointRecord = \Illuminate\Support\Facades\DB::table('point_redemptions')
                     ->where('user_id', $user->id)
@@ -670,6 +702,14 @@ class VoucherController extends Controller
                 return response()->json([
                     'status' => 'error',
                     'message' => 'This voucher claim was cancelled and cannot be used.'
+                ], 400);
+            }
+
+            if ($currentStatus === 'expired') {
+                return response()->json([
+                    'status' => 'error',
+                    'voucher_status' => 'expired',
+                    'message' => 'This voucher has expired and cannot be used.'
                 ], 400);
             }
 
@@ -804,6 +844,14 @@ class VoucherController extends Controller
                 ], 400);
             }
 
+            if ($currentStatus === 'expired') {
+                return response()->json([
+                    'status' => 'error',
+                    'voucher_status' => 'expired',
+                    'message' => 'Cannot cancel an expired voucher.'
+                ], 400);
+            }
+
             // Server-side timestamp validation: Check voucher expiration
             $voucherExpiresAt = $record->voucher_expires_at ? \Carbon\Carbon::parse($record->voucher_expires_at) : null;
             if ($voucherExpiresAt && now()->gte($voucherExpiresAt)) {
@@ -829,14 +877,53 @@ class VoucherController extends Controller
             $cost = (int) ($record->points_used ?? ($record->points_cost ?? 0));
             $now = now();
 
-            \Illuminate\Support\Facades\DB::transaction(function () use ($user, $cost, $record, $voucherRecord, $pointRecord, $now) {
+            $didCancel = \Illuminate\Support\Facades\DB::transaction(function () use ($user, $cost, $record, $voucherRecord, $pointRecord, $now) {
+                $affected = 0;
+                if ($voucherRecord) {
+                    $affected += \Illuminate\Support\Facades\DB::table('voucher_redemptions')
+                        ->where('id', $voucherRecord->id)
+                        ->whereIn('status', ['claimed', 'active'])
+                        ->update([
+                            'status' => 'cancelled',
+                            'cancelled_at' => $now,
+                            'updated_at' => $now,
+                        ]);
+                    if ($affected > 0 && !empty($voucherRecord->redemption_code) && \Illuminate\Support\Facades\Schema::hasTable('point_redemptions')) {
+                        \Illuminate\Support\Facades\DB::table('point_redemptions')
+                            ->where('user_id', $user->id)
+                            ->where('voucher_code', $voucherRecord->redemption_code)
+                            ->whereIn('status', ['claimed', 'active'])
+                            ->update([
+                                'status' => 'cancelled',
+                                'cancelled_at' => $now,
+                                'updated_at' => $now,
+                            ]);
+                    }
+                }
+                if ($pointRecord) {
+                    $pAffected = \Illuminate\Support\Facades\DB::table('point_redemptions')
+                        ->where('id', $pointRecord->id)
+                        ->whereIn('status', ['claimed', 'active'])
+                        ->update([
+                            'status' => 'cancelled',
+                            'cancelled_at' => $now,
+                            'updated_at' => $now,
+                        ]);
+                    if (!$voucherRecord) {
+                        $affected += $pAffected;
+                    }
+                }
+                if ($affected <= 0) {
+                    return false;
+                }
+
                 if ($cost > 0) {
                     $user->increment('points', $cost);
                 }
 
                 $vId = $record->voucher_id ?? null;
                 if ($vId) {
-                    $voucherModel = Voucher::find($vId);
+                    $voucherModel = Voucher::where('id', $vId)->lockForUpdate()->first();
                     if ($voucherModel && $voucherModel->remaining_quantity !== null) {
                         $voucherModel->increment('remaining_quantity');
                         if ($voucherModel->redeemed_quantity > 0) {
@@ -844,22 +931,15 @@ class VoucherController extends Controller
                         }
                     }
                 }
-
-                if ($voucherRecord) {
-                    \Illuminate\Support\Facades\DB::table('voucher_redemptions')->where('id', $voucherRecord->id)->update([
-                        'status' => 'cancelled',
-                        'cancelled_at' => $now,
-                        'updated_at' => $now,
-                    ]);
-                }
-                if ($pointRecord) {
-                    \Illuminate\Support\Facades\DB::table('point_redemptions')->where('id', $pointRecord->id)->update([
-                        'status' => 'cancelled',
-                        'cancelled_at' => $now,
-                        'updated_at' => $now,
-                    ]);
-                }
+                return true;
             });
+
+            if (!$didCancel) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'This voucher claim is already cancelled or cannot be cancelled.'
+                ], 400);
+            }
 
             $user->refresh();
             $newPoints = (int) ($user->points ?? 0);
@@ -879,7 +959,7 @@ class VoucherController extends Controller
 
             \App\Models\Notification::createSafely(
                 $user->id,
-                'favorite_update',
+                'voucher',
                 'Voucher Claim Cancelled',
                 "Your claim for '{$voucherTitle}' was cancelled. +{$cost} Points have been refunded.",
                 ['action_url' => '/discount']
@@ -949,6 +1029,14 @@ class VoucherController extends Controller
                 return response()->json([
                     'status' => 'error',
                     'message' => 'Voucher claim was cancelled.'
+                ], 400);
+            }
+
+            if ($currentStatus === 'expired') {
+                return response()->json([
+                    'status' => 'error',
+                    'voucher_status' => 'expired',
+                    'message' => 'Voucher has expired and cannot be refreshed.'
                 ], 400);
             }
 

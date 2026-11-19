@@ -282,7 +282,7 @@ if (is_dir($imgDir)) {
 
             // 26. Other
             if (t === 'other') {
-                return true;
+                return !['beach', 'nature', 'waterfall', 'mountain', 'cultural', 'historical', 'church', 'food', 'art', 'farm', 'park', 'lake', 'river', 'cave', 'resort'].some(k => combined.includes(k));
             }
 
             return false;
@@ -330,8 +330,9 @@ if (is_dir($imgDir)) {
             const token = localStorage.getItem('intan_elyu_token');
 
             // 1. Fetch Trending Spots
-            const trendCacheKey = 'trending_spots_' + (token ? token.substring(0, 10) : 'guest');
-            const p1 = window.useCache(
+            const isRealUserToken = Boolean(token && token !== 'guest_token' && token !== 'offline_guest_token' && !token.startsWith('guest_') && !token.startsWith('offline_'));
+            const trendCacheKey = 'trending_spots_' + (isRealUserToken ? token.substring(0, 10) : 'guest');
+            const p1 = isRealUserToken ? window.useCache(
                 trendCacheKey,
                 async () => {
                     const headers = { 'Accept': 'application/json' };
@@ -349,7 +350,7 @@ if (is_dir($imgDir)) {
                 },
                 Boolean(forceRefresh),
                 60000
-            );
+            ) : Promise.resolve();
 
             // 2. Fetch All Destinations from Map Data
             const mapCacheKey = 'public_map_data';
@@ -363,6 +364,9 @@ if (is_dir($imgDir)) {
                 (data, isCached) => {
                     if (data && data.destinations) {
                         allDestinations = (data.destinations || []).filter(d => !d.status || !['pending', 'draft', 'rejected'].includes(d.status.toLowerCase()));
+                        if (!trendingSpots || !trendingSpots.length) {
+                            trendingSpots = [...allDestinations].sort((a, b) => (parseFloat(b.rating) || 0) - (parseFloat(a.rating) || 0)).slice(0, 15);
+                        }
                         applyFilters();
                     }
                 },
@@ -381,7 +385,8 @@ if (is_dir($imgDir)) {
                 try {
                     const fallbackSpotsRaw = localStorage.getItem('intan_elyu_cached_spots_map');
                     if (fallbackSpotsRaw) {
-                        const fallbackList = JSON.parse(fallbackSpotsRaw);
+                        const parsedFallback = JSON.parse(fallbackSpotsRaw);
+                        const fallbackList = Array.isArray(parsedFallback) ? parsedFallback : (Array.isArray(parsedFallback?.data?.destinations) ? parsedFallback.data.destinations : (Array.isArray(parsedFallback?.destinations) ? parsedFallback.destinations : (Array.isArray(parsedFallback?.data) ? parsedFallback.data : [])));
                         if (Array.isArray(fallbackList) && fallbackList.length > 0) {
                             allDestinations = fallbackList;
                             if (!trendingSpots || !trendingSpots.length) {

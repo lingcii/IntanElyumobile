@@ -15,6 +15,7 @@ class SeasonController extends Controller
      */
     public function getStatus(Request $request): JsonResponse
     {
+        $targetDate = now();
         try {
             $dateString = $request->query('date');
             $municipality = $request->query('municipality');
@@ -77,14 +78,14 @@ class SeasonController extends Controller
             ]);
         } catch (\Throwable $e) {
             // Graceful fallback if database error
-            $currentMonth = (int) now()->format('n');
-            $fallbackIsPeak = in_array($currentMonth, [1, 3, 4, 5, 10, 11, 12], true) || now()->isWeekend();
+            $currentMonth = (int) $targetDate->format('n');
+            $fallbackIsPeak = in_array($currentMonth, [1, 3, 4, 5, 10, 11, 12], true) || $targetDate->isWeekend();
 
             return response()->json([
                 'status'  => 'success',
                 'success' => true,
                 'data'    => [
-                    'date'                              => now()->toDateString(),
+                    'date'                              => $targetDate->toDateString(),
                     'is_peak'                           => $fallbackIsPeak,
                     'is_peak_season'                    => $fallbackIsPeak,
                     'effective_surcharge_percent'       => $fallbackIsPeak ? 20.0 : 0.0,
@@ -118,7 +119,6 @@ class SeasonController extends Controller
             return response()->json([
                 'status'  => 'error',
                 'message' => 'Failed to retrieve seasons.',
-                'error'   => $e->getMessage()
             ], 500);
         }
     }

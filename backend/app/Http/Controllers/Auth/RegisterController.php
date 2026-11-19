@@ -245,17 +245,26 @@ class RegisterController extends Controller
 
         $tempPassword = $pending['temp_password'] ?? null;
 
-        // Send the non-critical welcome & temporary password emails after the verification response.
+        // Send the non-critical welcome & temporary password emails after the verification response (Resend HTTPS first).
         app()->terminating(function () use ($user, $mustChangePassword, $tempPassword): void {
             try {
-                Mail::to($user->email)->send(new TouristWelcomeMail($user));
+                $welcomeMail = new TouristWelcomeMail($user);
+                $resendKey = config('services.resend.key') ?: env('RESEND_API_KEY');
+                $welcomeSent = false;
+                if (!empty($resendKey)) {
+                    $res = ResendMailService::send($user->email, 'Welcome to Intan Elyu!', $welcomeMail->render());
+                    $welcomeSent = !empty($res['success']);
+                }
+                if (!$welcomeSent) {
+                    Mail::to($user->email)->send($welcomeMail);
+                }
             } catch (\Throwable $e) {
                 Log::warning('Tourist welcome email failed', ['user_id' => $user->id, 'error' => $e->getMessage()]);
             }
 
             if ($mustChangePassword && !empty($tempPassword)) {
                 try {
-                    Mail::to($user->email)->send(new TemporaryPasswordMail($user->name, $user->email, $tempPassword));
+                    $this->sendTemporaryPasswordEmail($user->email, (string) ($user->name ?? 'Explorer'), $tempPassword);
                 } catch (\Throwable $e) {
                     Log::warning('Temporary password email failed', ['user_id' => $user->id, 'error' => $e->getMessage()]);
                 }
@@ -311,7 +320,7 @@ class RegisterController extends Controller
         $startedAt = microtime(true);
         $mailable = new EmailVerificationOtpMail($name, $otp);
 
-        $resendKey = config('services.resend.key') ?: env('RESEND_API_KEY') ?: base64_decode('cmVfN3p1VFVlRkRfRnJ4RFVtUlg5TVhoYUpLemVUeUNVQURT');
+        $resendKey = config('services.resend.key') ?: env('RESEND_API_KEY');
         if (!empty($resendKey)) {
             try {
                 $result = ResendMailService::send(
@@ -350,7 +359,7 @@ class RegisterController extends Controller
         $startedAt = microtime(true);
         $mailable = new TemporaryPasswordMail($name, $email, $tempPassword);
 
-        $resendKey = config('services.resend.key') ?: env('RESEND_API_KEY') ?: base64_decode('cmVfN3p1VFVlRkRfRnJ4RFVtUlg5TVhoYUpLemVUeUNVQURT');
+        $resendKey = config('services.resend.key') ?: env('RESEND_API_KEY');
         if (!empty($resendKey)) {
             try {
                 $result = ResendMailService::send(

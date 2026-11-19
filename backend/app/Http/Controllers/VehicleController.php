@@ -14,6 +14,9 @@ class VehicleController extends Controller
     public function index(): JsonResponse
     {
         try {
+            if (!\Illuminate\Support\Facades\Schema::hasTable('vehicle_types')) {
+                throw new \Exception('vehicle_types table not present');
+            }
             $dbTypes = \Illuminate\Support\Facades\DB::table('vehicle_types')
                 ->select('name', 'category')
                 ->orderBy('category', 'desc')

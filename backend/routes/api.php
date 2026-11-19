@@ -38,15 +38,29 @@ Route::options('/{any}', function (\Illuminate\Http\Request $request) {
 $serveFileHandler = function ($file) {
     if (!$file)
         abort(404);
-    $file = rawurldecode(urldecode($file));
+    $file = rawurldecode(urldecode((string) $file));
+    if (
+        str_contains($file, '..') ||
+        str_contains($file, "\0") ||
+        str_contains($file, '\\') ||
+        !preg_match('/\.(jpe?g|png|webp|gif|svg|bmp|avif|ico|pdf)$/i', $file)
+    ) {
+        abort(404);
+    }
     $base = storage_path('app/public');
 
-    $cleanFile = preg_replace('#^storage/#i', '', $file);
+    $cleanFile = ltrim(preg_replace('#^storage/#i', '', $file), '/');
     $normalizedFile = preg_replace('#^municipalities/#i', 'MUNICIPALITIES/', $cleanFile);
+
+    $allowedRoots = array_values(array_filter([
+        realpath($base),
+        realpath(public_path()),
+        realpath(base_path('../frontend/Mobile/src/assets')),
+    ]));
 
     $paths = [
         $base . '/' . $cleanFile,
-        $base . '/' . $file,
+        $base . '/' . ltrim($file, '/'),
         $base . '/Logo/' . preg_replace('#^Logo/#i', '', $cleanFile),
         $base . '/proof_images/' . preg_replace('#^proof_images/#i', '', $cleanFile),
         $base . '/tourist_spots/' . preg_replace('#^tourist_spots/#i', '', $cleanFile),
@@ -66,7 +80,14 @@ $serveFileHandler = function ($file) {
 
     foreach ($paths as $path) {
         if (file_exists($path) && is_file($path)) {
-            return response()->file($path);
+            $realPath = realpath($path);
+            if ($realPath !== false) {
+                foreach ($allowedRoots as $root) {
+                    if (str_starts_with(strtolower($realPath), strtolower($root) . DIRECTORY_SEPARATOR)) {
+                        return response()->file($realPath);
+                    }
+                }
+            }
         }
     }
 
@@ -210,17 +231,20 @@ Route::prefix('auth')->group(function () {
         Route::post('/verify-otp', [RegisterController::class, 'verifyOtp']);
     });
 
-    // Not rate-limited — these can't be brute-forced in any meaningful way
+    // Rate-limited password reset, temporary password, and 2FA OTP endpoints
+    Route::middleware('auth.throttle:8,60')->group(function () {
+        Route::post('/forgot-password', [LoginController::class, 'sendResetLinkEmail']);
+        Route::post('/validate-reset-otp', [LoginController::class, 'validateResetOtp']);
+        Route::post('/reset-password', [LoginController::class, 'resetPassword']);
+        Route::post('/reset-password-otp', [LoginController::class, 'resetPasswordWithOtp']);
+        Route::post('/change-temporary-password', [LoginController::class, 'changeTemporaryPassword']);
+        Route::post('/2fa/resend', [LoginController::class, 'resend2FACode']);
+    });
+
+    // Not rate-limited — session check, logout, and verified Google OAuth
     Route::post('/logout', [LogoutController::class, 'logout']);
     Route::get('/check', [SessionController::class, 'check']);
     Route::post('/google', [LoginController::class, 'googleLogin']);
-    Route::post('/forgot-password', [LoginController::class, 'sendResetLinkEmail']);
-    Route::post('/validate-reset-otp', [LoginController::class, 'validateResetOtp']);
-    Route::post('/reset-password', [LoginController::class, 'resetPassword']);
-    Route::post('/reset-password-otp', [LoginController::class, 'resetPasswordWithOtp']);
-    Route::post('/change-temporary-password', [LoginController::class, 'changeTemporaryPassword']);
-    Route::post('/2fa/resend', [LoginController::class, 'resend2FACode']);
-    Route::get('/test-email', [LoginController::class, 'testEmail']);
 
     Route::get('/google/redirect', function () {
         return response()->json([
@@ -567,6 +591,7 @@ Route::prefix('admin')->middleware('tourist.auth')->group(function () {
         }
 
         $item = \App\Models\ItineraryItem::findOrFail($id);
+        $alreadyApproved = ($item->proof_status === 'approved' || (bool) $item->is_visited);
         $item->update([
             'proof_status' => 'approved',
             'is_visited'   => true,
@@ -580,7 +605,7 @@ Route::prefix('admin')->middleware('tourist.auth')->group(function () {
         $canonical = \App\Models\Classification::normalizeStatus($item->destination?->classification_status);
 
         $tourist = $item->itinerary ? $item->itinerary->user : null;
-        if ($tourist) {
+        if ($tourist && !$alreadyApproved) {
             try {
                 $tourist->increment('xp', $rewardPoints);
                 $tourist->increment('completed_activities');
@@ -1042,6 +1067,7 @@ foreach (['lupto', 'pitco', 'picto', 'municipal'] as $rolePrefix) {
 
         Route::post('/proof-checkins/{id}/approve', function (\Illuminate\Http\Request $request, $id) {
             $item = \App\Models\ItineraryItem::findOrFail($id);
+            $alreadyApproved = ($item->proof_status === 'approved' || (bool) $item->is_visited);
             $user = $request->user();
             $item->update([
                 'proof_status' => 'approved',
@@ -1056,7 +1082,7 @@ foreach (['lupto', 'pitco', 'picto', 'municipal'] as $rolePrefix) {
             $canonical = \App\Models\Classification::normalizeStatus($item->destination?->classification_status);
 
             $tourist = $item->itinerary ? $item->itinerary->user : null;
-            if ($tourist) {
+            if ($tourist && !$alreadyApproved) {
                 try {
                     $tourist->increment('xp', $rewardPoints);
                     if (method_exists($tourist, 'syncPlacesVisitedCount')) {
@@ -1263,6 +1289,7 @@ Route::prefix('tourist')->middleware('tourist.auth')->group(function () use ($va
     Route::post('/itineraries/items/{id}/visit', [ItineraryItemController::class, 'visit']);
     Route::post('/itineraries/items/{id}/checkin', [ItineraryItemController::class, 'checkinLocation']);
     Route::post('/itineraries/items/{id}/proof', [ItineraryItemController::class, 'uploadProof']);
+    Route::delete('/itineraries/items/{id}/proof', [ItineraryItemController::class, 'deleteProof']);
 
     Route::get('/notifications', [NotificationController::class, 'index']);
     Route::post('/notifications/{id}/read', [NotificationController::class, 'markRead']);
@@ -1538,18 +1565,23 @@ Route::post('/points/ar-checkin', function (\Illuminate\Http\Request $request) u
 });
 Route::post('/feedback', [FeedbackController::class, 'store']);
 Route::post('/destinations/{id}/rate', function (\Illuminate\Http\Request $request, int $id) {
-    $spot = TouristSpot::findOrFail($id);
-    $rating = (int) $request->input('rating', 5);
+    $spot = TouristSpot::activeForTourists()->findOrFail($id);
+    $rating = max(1, min(5, (int) $request->input('rating', 5)));
     $user = $request->user();
+    if (!$user && $request->bearerToken()) {
+        $user = User::where('api_token', $request->bearerToken())->where('status', 'active')->first();
+    }
+    if (!$user) {
+        return response()->json(['status' => 'error', 'message' => 'Authentication required to rate a destination.'], 401);
+    }
     \App\Models\SiteFeedback::updateOrCreate(
-        ['user_id' => $user ? $user->id : null, 'tourist_spot_id' => $id],
+        ['user_id' => $user->id, 'tourist_spot_id' => $id, 'itinerary_item_id' => null],
         ['rating' => $rating]
     );
     $avg = \App\Models\SiteFeedback::where('tourist_spot_id', $id)->whereNotNull('rating')->avg('rating');
     $spot->rating = round((float) ($avg ?: $rating), 1);
     $spot->save();
-    \Illuminate\Support\Facades\Cache::forget('map:public:spots');
-    \Illuminate\Support\Facades\Cache::forget('trending:top:5');
+    TouristSpot::clearSpotCaches();
     return response()->json(['status' => 'success', 'success' => true, 'spot_rating' => $spot->rating]);
 });
 
@@ -1570,6 +1602,14 @@ Route::get('/pitco/activity-logs', [AnalyticsController::class, 'activityLogs'])
 Route::get('/municipal/activity-logs', [AnalyticsController::class, 'activityLogs']);
 
 $usersHandler = function (\Illuminate\Http\Request $request) {
+    $caller = $request->user();
+    if (!$caller && $request->bearerToken()) {
+        $caller = User::where('api_token', $request->bearerToken())->where('status', 'active')->first();
+    }
+    $sessionRole = $request->hasSession() ? $request->session()->get('user_role') : null;
+    $callerRole = strtolower((string) ($caller?->role ?? $sessionRole ?? ''));
+    $isStaffCaller = in_array($callerRole, ['admin', 'super_admin', 'lupto', 'pitco', 'picto', 'municipal'], true);
+
     $ctrl = new LeaderboardController();
     $leaderboardResp = $ctrl->index($request);
     $leaderboardData = json_decode($leaderboardResp->getContent(), true);
@@ -1581,7 +1621,7 @@ $usersHandler = function (\Illuminate\Http\Request $request) {
     $touristCount = $allUsers->where('role', 'tourist')->count();
 
     $rankedUserMap = collect($rankedUsers)->keyBy('id');
-    $enrichedAll = $allUsers->map(function ($u, $idx) use ($rankedUserMap) {
+    $enrichedAll = $allUsers->map(function ($u, $idx) use ($rankedUserMap, $isStaffCaller, $caller) {
         $mName = $u->municipality ? $u->municipality->name : (!empty($u->home_location) ? $u->home_location : 'La Union');
         $ranked = $rankedUserMap->get($u->id);
 
@@ -1596,6 +1636,12 @@ $usersHandler = function (\Illuminate\Http\Request $request) {
         }
 
         $uArr = is_array($u) ? $u : (method_exists($u, 'toArray') ? $u->toArray() : (array) $u);
+        if (!$isStaffCaller && (!$caller || (int) $caller->id !== (int) $u->id)) {
+            unset($uArr['email'], $uArr['phone'], $uArr['google_id'], $uArr['last_gps_lat'], $uArr['last_gps_lng'], $uArr['last_gps_ping_at']);
+            if (($u->role ?? 'tourist') === 'tourist') {
+                $uArr['name'] = $ranked['name'] ?? ('Explorer #' . ($idx + 1));
+            }
+        }
         $createdRaw = $u->created_at ?? ($uArr['created_at'] ?? null);
         $createdCarbon = $createdRaw ? (\Carbon\Carbon::parse($createdRaw)) : null;
         $createdFormatted = $createdCarbon ? $createdCarbon->format('M d, Y h:i A') : '—';

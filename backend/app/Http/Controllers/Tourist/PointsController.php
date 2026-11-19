@@ -96,7 +96,7 @@ class PointsController extends Controller
         try {
             if (\Illuminate\Support\Facades\Schema::hasTable('activity_logs')) {
                 $rawLogs = \App\Models\ActivityLog::where('user_id', $user->id)
-                    ->whereIn('action', ['Points Awarded', 'Points Redeemed', 'Voucher Redeemed'])
+                    ->whereIn('action', ['Points Awarded', 'Points Redeemed', 'Voucher Redeemed', 'Voucher Claimed', 'Voucher Cancelled'])
                     ->latest()
                     ->limit(50)
                     ->get();
@@ -185,6 +185,14 @@ class PointsController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Unauthenticated.'], 401);
         }
 
+        $dailyKey = 'daily_game_award:' . $user->id . ':puzzle:' . now()->format('Y-m-d');
+        if (!\Illuminate\Support\Facades\Cache::add($dailyKey, 1, 86400)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'You already completed the puzzle today. Come back tomorrow!'
+            ], 429);
+        }
+
         $todayCompleted = false;
         try {
             if (\Illuminate\Support\Facades\Schema::hasTable('activity_logs')) {
@@ -236,6 +244,14 @@ class PointsController extends Controller
         $user = $request->user();
         if (!$user) {
             return response()->json(['status' => 'error', 'message' => 'Unauthenticated.'], 401);
+        }
+
+        $dailyKey = 'daily_game_award:' . $user->id . ':trivia:' . now()->format('Y-m-d');
+        if (!\Illuminate\Support\Facades\Cache::add($dailyKey, 1, 86400)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'You already completed the trivia today. Come back tomorrow!'
+            ], 429);
         }
 
         $todayCompleted = false;
@@ -296,6 +312,14 @@ class PointsController extends Controller
         }
 
         $gameType = $request->game_type;
+
+        $dailyKey = 'daily_game_award:' . $user->id . ':' . $gameType . ':' . now()->format('Y-m-d');
+        if (!\Illuminate\Support\Facades\Cache::add($dailyKey, 1, 86400)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'You already played this game today. Come back tomorrow!'
+            ], 429);
+        }
 
         $todayCompleted = false;
         try {
@@ -392,26 +416,33 @@ class PointsController extends Controller
                 }
                 $code = $prefix . $suffix;
                 $attempts++;
-            } while (PointRedemption::where('voucher_code', $code)->exists() && $attempts < 10);
+                $existsInVoucherTbl = \Illuminate\Support\Facades\Schema::hasTable('voucher_redemptions') &&
+                    \Illuminate\Support\Facades\DB::table('voucher_redemptions')->where('redemption_code', $code)->exists();
+            } while ((PointRedemption::where('voucher_code', $code)->exists() || $existsInVoucherTbl) && $attempts < 10);
 
             // Start transaction
             $redemption = DB::transaction(function() use ($user, $type, $cost, $code) {
+                $lockedUser = \App\Models\User::where('id', $user->id)->lockForUpdate()->first();
+                if (!$lockedUser || (int) ($lockedUser->points ?? 0) < $cost) {
+                    throw new \RuntimeException('INSUFFICIENT_POINTS');
+                }
                 try {
-                    if (method_exists($user, 'deductPoints')) {
-                        $user->deductPoints($cost);
+                    if (method_exists($lockedUser, 'deductPoints')) {
+                        $lockedUser->deductPoints($cost);
                     } else {
-                        $currentPts = (int) ($user->points ?? 0);
+                        $currentPts = (int) ($lockedUser->points ?? 0);
                         $newPts = max(0, $currentPts - $cost);
                         if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'points')) {
-                            $user->points = $newPts;
-                            $user->save();
+                            $lockedUser->points = $newPts;
+                            $lockedUser->save();
                         }
                     }
                 } catch (\Throwable $e) {
                     try {
-                        $user->decrement('points', $cost);
+                        $lockedUser->decrement('points', $cost);
                     } catch (\Throwable $ignored) {}
                 }
+                $user->points = $lockedUser->points;
 
                 $voucherExpiresAt = now()->addDays(3);
                 $qrExpiresAt = null;
@@ -455,7 +486,7 @@ class PointsController extends Controller
 
             \App\Models\Notification::createSafely(
                 $user->id,
-                'favorite_update',
+                'voucher',
                 'Voucher Claimed!',
                 "Claimed voucher {$code} ({$type}). Tap Use when you are ready to show the 20-minute QR pass.",
                 ['action_url' => '/discount']
@@ -473,7 +504,8 @@ class PointsController extends Controller
                 }
             } catch (\Throwable $e) {}
 
-            $newPoints = max(0, $balance - $cost);
+            $user->refresh();
+            $newPoints = (int) ($user->points ?? max(0, $balance - $cost));
 
             return response()->json([
                 'status' => 'success',
@@ -521,7 +553,7 @@ class PointsController extends Controller
                 $columns = [
                     'voucher_redemptions.id',
                     'voucher_redemptions.voucher_id',
-                    \Illuminate\Support\Facades\DB::raw('COALESCE(vouchers.voucher_name, voucher_redemptions.reward_name_snapshot, "Voucher") as type'),
+                    \Illuminate\Support\Facades\DB::raw("COALESCE(vouchers.voucher_name, voucher_redemptions.reward_name_snapshot, 'Voucher') as type"),
                     'voucher_redemptions.points_used as points_cost',
                     'voucher_redemptions.redemption_code as voucher_code',
                     'voucher_redemptions.status',
@@ -587,7 +619,7 @@ class PointsController extends Controller
                                     ->update(['status' => 'expired', 'updated_at' => now()]);
                             }
                             $r->status = 'expired';
-                        } elseif ($rawStatus === 'active' && $r->qr_expires_at && now()->lt(\Carbon\Carbon::parse($r->qr_expires_at))) {
+                        } elseif ($rawStatus === 'active') {
                             $r->status = 'active';
                         } else {
                             $r->status = 'claimed';
@@ -647,7 +679,7 @@ class PointsController extends Controller
                                 ->update(['status' => 'expired', 'updated_at' => now()]);
                         }
                         $normStatus = 'expired';
-                    } elseif ($prStatus === 'active' && $pr->qr_expires_at && now()->lt(\Carbon\Carbon::parse($pr->qr_expires_at))) {
+                    } elseif ($prStatus === 'active') {
                         $normStatus = 'active';
                     } else {
                         $normStatus = 'claimed';

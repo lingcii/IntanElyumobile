@@ -56,10 +56,11 @@ $gdriveMirrorUrl = getenv('APK_GDRIVE_MIRROR_URL') ?: '';
       var s = window.location.search || '';
       var targetPayload = h || s;
       if (targetPayload && (targetPayload.includes('access_token=') || targetPayload.includes('id_token=') || targetPayload.includes('error='))) {
+        var cleanPayload = targetPayload.replace(/^[#?]+/, '');
         var isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
         if (isMobile) {
-          var appUrl = "intanelyu://google-auth" + targetPayload;
-          var intentUrl = "intent://google-auth" + targetPayload + "#Intent;scheme=intanelyu;package=com.intan.elyu;end";
+          var appUrl = "intanelyu://google-auth?" + cleanPayload;
+          var intentUrl = "intent://google-auth?" + cleanPayload + "#Intent;scheme=intanelyu;package=com.intan.elyu;end";
           try {
             if (/Android/i.test(navigator.userAgent)) {
               window.location.replace(intentUrl);
@@ -71,7 +72,7 @@ $gdriveMirrorUrl = getenv('APK_GDRIVE_MIRROR_URL') ?: '';
           }
           setTimeout(function() { window.location.href = appUrl; }, 600);
         } else {
-          window.location.replace('index.php?view=auth&app=true' + targetPayload);
+          window.location.replace('index.php?view=auth&app=true&' + cleanPayload);
         }
       }
     })();
@@ -1317,7 +1318,8 @@ $gdriveMirrorUrl = getenv('APK_GDRIVE_MIRROR_URL') ?: '';
 
       qrImg.src = qrSource;
       qrImg.onerror = function () {
-        this.src = 'https://chart.googleapis.com/chart?cht=qr&chs=200x200&chl=' + encodeURIComponent(apkUrl) + '&chld=M|1';
+        this.onerror = null;
+        this.style.display = 'none';
       };
     })();
 

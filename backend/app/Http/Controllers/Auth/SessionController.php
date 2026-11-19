@@ -13,18 +13,26 @@ class SessionController extends Controller
      */
     public function check(Request $request): JsonResponse
     {
-        if (!$request->session()->has('user_id')) {
+        $user = $request->user();
+        if (!$user && $request->bearerToken()) {
+            $user = \App\Models\User::where('api_token', $request->bearerToken())->first();
+        }
+        if (!$user && $request->hasSession() && $request->session()->has('user_id')) {
+            $user = \App\Models\User::find($request->session()->get('user_id'));
+        }
+
+        if (!$user || ($user->status ?? 'active') !== 'active') {
             return response()->json(['authenticated' => false], 401);
         }
 
         return response()->json([
             'authenticated' => true,
             'user' => [
-                'id'              => $request->session()->get('user_id'),
-                'name'            => $request->session()->get('user_name'),
-                'email'           => $request->session()->get('user_email'),
-                'role'            => $request->session()->get('user_role'),
-                'municipality_id' => $request->session()->get('user_municipality_id'),
+                'id'              => $user->id,
+                'name'            => $user->name,
+                'email'           => $user->email,
+                'role'            => $user->role,
+                'municipality_id' => $user->municipality_id,
             ],
         ]);
     }

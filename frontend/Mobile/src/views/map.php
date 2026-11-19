@@ -957,7 +957,7 @@ if (is_dir($imgDir)) {
                             <div class="dest-guide-title">
                                 <i class="fa-solid fa-signs-post"></i> Route Guide
                             </div>
-                            <p id="sheet-manual-guide" class="dest-guide-text" style="text-align:left;"></p>
+                            <p id="sheet-manual-guide" class="dest-guide-text" style="text-align:justify;"></p>
                         </div>
 
                         <!-- Nearby Amenities Box with Individual Distances -->
@@ -2480,15 +2480,6 @@ if (is_dir($imgDir)) {
                 chip.style.setProperty('box-shadow', isSelected ? '0 4px 12px rgba(2, 132, 199, 0.16)' : '0 2px 8px rgba(15, 23, 42, 0.05)', 'important');
             });
 
-            document.querySelectorAll('.classification-item-chip[data-status]').forEach(chip => {
-                const chipStatus = chip.getAttribute('data-status');
-                const isSelected = (chipStatus === 'ALL') ? (selected.length === 0) : selected.includes(chipStatus);
-                chip.classList.toggle('active', isSelected);
-                chip.style.setProperty('background', isSelected ? '#f0f9ff' : '#ffffff', 'important');
-                chip.style.setProperty('border', isSelected ? '1.5px solid #0284c7' : '1.5px solid #e2e8f0', 'important');
-                chip.style.setProperty('box-shadow', isSelected ? '0 4px 12px rgba(2, 132, 199, 0.16)' : '0 2px 8px rgba(15, 23, 42, 0.05)', 'important');
-            });
-
             const dotExist = document.getElementById('dot-exist');
             const dotEmerge = document.getElementById('dot-emerge');
             const dotPot = document.getElementById('dot-potential');
@@ -2511,11 +2502,60 @@ if (is_dir($imgDir)) {
             window.filterCategory(window.currentActiveCategory || 'All', activeCatEl, true);
         };
 
-        document.addEventListener('click', (e) => {
+        window._cleanupMapGlobalListeners = function () {
+            if (window._mapClassificationClickHandler) {
+                document.removeEventListener('click', window._mapClassificationClickHandler);
+                window._mapClassificationClickHandler = null;
+            }
+            if (window._mapViewportResizeHandler && window.visualViewport) {
+                window.visualViewport.removeEventListener('resize', window._mapViewportResizeHandler);
+                window._mapViewportResizeHandler = null;
+            }
+            if (window._mapSearchOutsideClickHandler) {
+                document.removeEventListener('click', window._mapSearchOutsideClickHandler);
+                window._mapSearchOutsideClickHandler = null;
+            }
+            if (window._mapSheetDragHandlers) {
+                Object.values(window._mapSheetDragHandlers).forEach(h => {
+                    if (!h) return;
+                    document.removeEventListener('mousemove', h.move);
+                    document.removeEventListener('mouseup', h.up);
+                    document.removeEventListener('touchmove', h.move);
+                    document.removeEventListener('touchend', h.up);
+                });
+                window._mapSheetDragHandlers = {};
+            }
+            if (window._mapCheckinsSyncedHandler) {
+                window.removeEventListener('checkins-synced', window._mapCheckinsSyncedHandler);
+                window._mapCheckinsSyncedHandler = null;
+            }
+            if (window._mapSpotReviewedHandler) {
+                window.removeEventListener('spot-reviewed', window._mapSpotReviewedHandler);
+                window._mapSpotReviewedHandler = null;
+            }
+            if (window._mapSpotsVisibilityHandler) {
+                document.removeEventListener('visibilitychange', window._mapSpotsVisibilityHandler);
+                window._mapSpotsVisibilityHandler = null;
+            }
+        };
+        window._cleanupMapGlobalListeners();
+
+        function getMapAuthToken() {
+            const raw = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('api_token') || '';
+            const isGuestFlag = localStorage.getItem('intan_elyu_guest') === 'true' || (typeof window.isGuestUser === 'function' && window.isGuestUser());
+            if (!raw || isGuestFlag || raw === 'guest_token' || raw === 'offline_guest_token' || raw.startsWith('guest_') || raw.startsWith('offline_')) {
+                return null;
+            }
+            return raw;
+        }
+        window.getMapAuthToken = getMapAuthToken;
+
+        window._mapClassificationClickHandler = (e) => {
             if (!e.target.closest('.btn-classification-wrapper')) {
                 window.toggleClassificationMenu(false);
             }
-        });
+        };
+        document.addEventListener('click', window._mapClassificationClickHandler);
 
         window.filterCategory = function (category, element, shouldFitBounds = true) {
             window.currentActiveCategory = category;
@@ -2610,14 +2650,18 @@ if (is_dir($imgDir)) {
             const searchInput = document.getElementById('map-search-input');
             const suggestionsEl = document.getElementById('map-search-suggestions');
 
+            function escMapSearchHtml(v) {
+                return String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+            }
+
             function highlightMatch(text, query) {
                 if (!text) return '';
-                if (!query) return text;
+                if (!query) return escMapSearchHtml(text);
                 const idx = text.toLowerCase().indexOf(query.toLowerCase());
-                if (idx === -1) return text;
-                const before = text.slice(0, idx);
-                const matched = text.slice(idx, idx + query.length);
-                const after = text.slice(idx + query.length);
+                if (idx === -1) return escMapSearchHtml(text);
+                const before = escMapSearchHtml(text.slice(0, idx));
+                const matched = escMapSearchHtml(text.slice(idx, idx + query.length));
+                const after = escMapSearchHtml(text.slice(idx + query.length));
                 return `${before}<mark style="background:rgba(2,132,199,0.12); color:#0284c7; font-weight:800; padding:0 2px; border-radius:3px;">${matched}</mark>${after}`;
             }
 
@@ -2681,23 +2725,23 @@ if (is_dir($imgDir)) {
                         if (cls.includes('potential')) { badgeBg = '#10b981'; badgeLabel = 'Potential'; }
                         else if (cls.includes('emerging') || cls.includes('emerge')) { badgeBg = '#ef4444'; badgeLabel = 'Emerging'; }
 
-                        const displayName = q ? highlightMatch(dest.name || '', q) : (dest.name || '');
+                        const displayName = q ? highlightMatch(dest.name || '', q) : escMapSearchHtml(dest.name || '');
 
                         html += `
-                            <div class="map-search-suggestion-item" data-id="${dest.id}" data-lat="${safeLat}" data-lng="${safeLng}"
+                            <div class="map-search-suggestion-item" data-id="${escMapSearchHtml(dest.id)}" data-lat="${safeLat}" data-lng="${safeLng}"
                                  style="display:flex; align-items:center; gap:12px; padding:9px 12px; border-radius:12px; cursor:pointer; transition:background 0.15s ease; border-bottom:1px solid #f1f5f9; touch-action:pan-y; user-select:none; -webkit-user-select:none;"
                                  onmouseover="this.style.background='#f8fafc'" 
                                  onmouseout="this.style.background='transparent'">
-                                <img src="${img}" alt="${(dest.name||'').replace(/"/g, '&quot;')}" 
+                                <img src="${img}" alt="${escMapSearchHtml(dest.name||'')}" 
                                      onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=150';" 
                                      style="width:42px; height:42px; border-radius:10px; object-fit:cover; border:1px solid #e2e8f0; flex-shrink:0;">
                                 <div style="flex:1; min-width:0;">
                                     <div style="display:flex; align-items:center; gap:6px; margin-bottom:2px;">
                                         <div style="font-size:13.5px; font-weight:700; color:#0f172a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${displayName}</div>
-                                        <span style="font-size:9.5px; font-weight:700; text-transform:uppercase; color:#ffffff; background:${badgeBg}; padding:1px 6px; border-radius:6px; flex-shrink:0;">${badgeLabel}</span>
+                                        <span style="font-size:9.5px; font-weight:700; text-transform:uppercase; color:#ffffff; background:${badgeBg}; padding:1px 6px; border-radius:6px; flex-shrink:0;">${escMapSearchHtml(badgeLabel)}</span>
                                     </div>
                                     <div style="font-size:11.5px; font-weight:500; color:#64748b; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                                        <i class="fa-solid fa-location-dot" style="color:#0284c7; margin-right:4px;"></i>${locName}
+                                        <i class="fa-solid fa-location-dot" style="color:#0284c7; margin-right:4px;"></i>${escMapSearchHtml(locName)}
                                     </div>
                                 </div>
                                 <i class="fa-solid fa-chevron-right" style="color:#cbd5e1; font-size:12px; margin-left:4px; flex-shrink:0;"></i>
@@ -2712,7 +2756,7 @@ if (is_dir($imgDir)) {
                         <div style="padding:22px 14px; text-align:center;">
                             <i class="fa-solid fa-location-dot" style="font-size:22px; color:#cbd5e1; margin-bottom:6px; display:block;"></i>
                             <div style="font-size:13px; font-weight:700; color:#0f172a;">No places found</div>
-                            <div style="font-size:11.5px; color:#64748b; margin-top:2px;">We couldn't find any spot matching "${(query||'').replace(/"/g, '&quot;')}"</div>
+                            <div style="font-size:11.5px; color:#64748b; margin-top:2px;">We couldn't find any spot matching "${escMapSearchHtml(query||'')}"</div>
                         </div>
                     `;
                     suggestionsEl.classList.add('open');
@@ -2743,11 +2787,15 @@ if (is_dir($imgDir)) {
             }
 
             if (window.visualViewport) {
-                window.visualViewport.addEventListener('resize', () => {
+                if (window._mapViewportResizeHandler) {
+                    window.visualViewport.removeEventListener('resize', window._mapViewportResizeHandler);
+                }
+                window._mapViewportResizeHandler = () => {
                     if (document.body.classList.contains('map-search-active')) {
                         updateSuggestionsHeight();
                     }
-                });
+                };
+                window.visualViewport.addEventListener('resize', window._mapViewportResizeHandler);
             }
 
             window.clearMapSearch = function () {
@@ -2812,7 +2860,7 @@ if (is_dir($imgDir)) {
 
                 // 5. Ensure markers exist so the destination marker is visible
                 if (typeof window.renderMarkers === 'function' && Array.isArray(window.allMapLocations)) {
-                    const markerKey = String(loc.id);
+                    const markerKey = 'spot_' + loc.id;
                     if (!window.mountedMarkersMap || !window.mountedMarkersMap.has(markerKey)) {
                         window.renderMarkers(window.allMapLocations);
                     }
@@ -2837,16 +2885,17 @@ if (is_dir($imgDir)) {
                     window.openSheet(loc);
                 }
 
-                // 8. Pop & highlight marker pin
+                // 8. Pop & highlight marker pin (scale inner pin bubble so MapLibre root translate() is preserved)
                 setTimeout(() => {
                     if (window.mountedMarkersMap) {
-                        const marker = window.mountedMarkersMap.get(String(loc.id));
+                        const marker = window.mountedMarkersMap.get('spot_' + loc.id) || window.mountedMarkersMap.get(String(loc.id));
                         if (marker && marker.getElement()) {
                             const el = marker.getElement();
-                            el.style.transform = 'scale(1.28)';
+                            const pin = el.querySelector('.elyu-pin-bubble') || el;
+                            pin.style.transform = 'scale(1.28)';
                             el.style.zIndex = '999';
                             setTimeout(() => {
-                                el.style.transform = '';
+                                pin.style.transform = '';
                                 el.style.zIndex = '10';
                             }, 1400);
                         }
@@ -2990,14 +3039,18 @@ if (is_dir($imgDir)) {
                 }
 
                 // Dismiss search dropdown when clicking outside
-                document.addEventListener('click', (e) => {
+                if (window._mapSearchOutsideClickHandler) {
+                    document.removeEventListener('click', window._mapSearchOutsideClickHandler);
+                }
+                window._mapSearchOutsideClickHandler = (e) => {
                     const floatingHeader = document.querySelector('.map-floating-header');
                     if (suggestionsEl && suggestionsEl.classList.contains('open') && floatingHeader && !floatingHeader.contains(e.target)) {
                         if (typeof deactivateMapSearch === 'function') {
                             deactivateMapSearch(true);
                         }
                     }
-                });
+                };
+                document.addEventListener('click', window._mapSearchOutsideClickHandler);
 
                 // Keyboard navigation
                 searchInput.addEventListener('keydown', (e) => {
@@ -3231,35 +3284,39 @@ if (is_dir($imgDir)) {
                 if (!sheet) return;
 
                 if (btn) btn.classList.add('active');
-                document.body.classList.add('sheet-open');
-
-                sheet.style.display = 'block';
-                sheet.style.transition = 'transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease';
-                sheet.style.transform = 'translateY(calc(100% + 120px))';
-                sheet.classList.remove('active');
-
-                void sheet.offsetHeight; // force reflow for smooth slide-up animation
-
-                sheet.classList.add('active');
-                sheet.style.transform = 'translateY(0)';
+                if (typeof sheet.openSheet === 'function') {
+                    sheet.openSheet(true);
+                } else {
+                    document.body.classList.add('sheet-open');
+                    sheet.style.display = 'block';
+                    sheet.classList.add('active');
+                    sheet.style.transform = 'translateY(0)';
+                }
 
                 await window.renderNearbyTouristSites();
             };
 
             window.closeNearbySitesSheet = function () {
-                document.body.classList.remove('sheet-open');
                 const sheet = document.getElementById('nearby-sites-sheet');
                 const btn = document.getElementById('btn-nearby-sites');
                 if (btn) btn.classList.remove('active');
-                if (!sheet) return;
-                sheet.style.transition = 'transform 0.38s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease';
-                sheet.style.transform = 'translateY(calc(100% + 120px))';
-                sheet.classList.remove('active');
-                setTimeout(() => {
-                    if (!sheet.classList.contains('active')) {
-                        sheet.style.display = 'none';
-                    }
-                }, 380);
+                if (!sheet) {
+                    document.body.classList.remove('sheet-open');
+                    return;
+                }
+                if (typeof sheet.closeSheet === 'function') {
+                    sheet.closeSheet();
+                } else {
+                    document.body.classList.remove('sheet-open');
+                    sheet.style.transition = 'transform 0.38s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease';
+                    sheet.style.transform = 'translateY(calc(100% + 120px))';
+                    sheet.classList.remove('active');
+                    setTimeout(() => {
+                        if (!sheet.classList.contains('active')) {
+                            sheet.style.display = 'none';
+                        }
+                    }, 380);
+                }
             };
 
             window.filterNearbyRadius = function (radius, btn) {
@@ -3565,7 +3622,9 @@ if (is_dir($imgDir)) {
                         }
                     }
 
-                    window._liveMarineTelemetry.lastFetched = now;
+                    if (marineData || weatherData) {
+                        window._liveMarineTelemetry.lastFetched = now;
+                    }
                     if (isManual && typeof showToast === 'function') {
                         showToast("🌊 Live Elyu Marine & Sunset Data Synced");
                     }
@@ -3614,7 +3673,7 @@ if (is_dir($imgDir)) {
                 // Astronomical Tide Cycle (12h 25m semi-diurnal period for Lingayen Gulf / San Juan Coast)
                 const tideCycleMs = 12.42 * 3600 * 1000;
                 const refTideEpoch = new Date('2026-01-01T06:00:00+08:00').getTime();
-                const phaseMs = (now.getTime() - refTideEpoch) % tideCycleMs;
+                const phaseMs = (((now.getTime() - refTideEpoch) % tideCycleMs) + tideCycleMs) % tideCycleMs;
                 const halfCycle = tideCycleMs / 2;
 
                 let tideText = '';
@@ -3879,6 +3938,10 @@ if (is_dir($imgDir)) {
 
             function closeSheet() {
                 isOpen = false;
+                if (sheetId === 'place-details-sheet' && window.sheetSliderTimer) {
+                    clearInterval(window.sheetSliderTimer);
+                    window.sheetSliderTimer = null;
+                }
                 sheet.classList.remove('sheet-peeked');
                 restoreNav();
                 const mNav = document.getElementById('magic-nav');
@@ -3902,7 +3965,7 @@ if (is_dir($imgDir)) {
             function onPointerDown(e) {
                 if (!isOpen) return;
                 isDragging = true;
-                startY = e.clientY || e.touches[0].clientY;
+                startY = (e.touches && e.touches.length) ? e.touches[0].clientY : e.clientY;
                 initialY = currentY;
                 sheet.classList.add('sheet-dragging');
                 sheet.style.transition = 'none';
@@ -3910,7 +3973,7 @@ if (is_dir($imgDir)) {
 
             function onPointerMove(e) {
                 if (!isDragging) return;
-                const clientY = e.clientY || e.touches[0].clientY;
+                const clientY = (e.touches && e.touches.length) ? e.touches[0].clientY : e.clientY;
                 const delta = clientY - startY;
                 if (animFrame) cancelAnimationFrame(animFrame);
                 animFrame = requestAnimationFrame(() => applyY(initialY + delta));
@@ -3972,6 +4035,16 @@ if (is_dir($imgDir)) {
 
                 setTimeout(() => { if (!isDragging) sheet.style.transition = ''; }, 500);
             }
+
+            window._mapSheetDragHandlers = window._mapSheetDragHandlers || {};
+            if (window._mapSheetDragHandlers[sheetId]) {
+                const prev = window._mapSheetDragHandlers[sheetId];
+                document.removeEventListener('mousemove', prev.move);
+                document.removeEventListener('mouseup', prev.up);
+                document.removeEventListener('touchmove', prev.move);
+                document.removeEventListener('touchend', prev.up);
+            }
+            window._mapSheetDragHandlers[sheetId] = { move: onPointerMove, up: onPointerUp };
 
             handle.addEventListener('mousedown', onPointerDown);
             document.addEventListener('mousemove', onPointerMove);
@@ -4043,9 +4116,15 @@ if (is_dir($imgDir)) {
         window.toggleMapFavorite = function (element) {
             if (!window.currentDestinationForRoute) return;
             const destId = window.currentDestinationForRoute.id;
-            const token = localStorage.getItem('intan_elyu_token');
+            const token = getMapAuthToken();
             if (!token) {
-                if (typeof showToast === 'function') showToast('Please login to save places');
+                if (typeof window.promptGuestLogin === 'function') {
+                    window.promptGuestLogin('favorite');
+                } else if (typeof window.showGuestActionModal === 'function') {
+                    window.showGuestActionModal('favorite');
+                } else if (typeof showToast === 'function') {
+                    showToast('Please login to save places');
+                }
                 return;
             }
 
@@ -4496,7 +4575,7 @@ if (is_dir($imgDir)) {
             // Sync heart button state (red if saved, faded if unsaved)
             window.updateSheetFavButton(window.isPlaceSaved(locationData.id));
 
-            const token = localStorage.getItem('intan_elyu_token');
+            const token = getMapAuthToken();
             if (token && !window.savedPlaceIdsFetched) {
                 fetch(getAppBackendUrl() + '/api/tourist/dashboard', {
                     headers: { 'Accept': 'application/json', 'Authorization': 'Bearer ' + token }
@@ -4826,8 +4905,12 @@ if (is_dir($imgDir)) {
                 pointsEl.textContent = `${rewardPoints} Points`;
             }
 
+            const distanceReqSeq = (window._mapDistanceReqSeq || 0) + 1;
+            window._mapDistanceReqSeq = distanceReqSeq;
+
             if (window.getDeviceLocation) {
                 window.getDeviceLocation().then(async (pos) => {
+                    if (window._mapDistanceReqSeq !== distanceReqSeq) return;
                     const startLat = pos.coords.latitude;
                     const startLng = pos.coords.longitude;
                     const destLat = parseFloat(locationData.lat || locationData.latitude);
@@ -4844,6 +4927,7 @@ if (is_dir($imgDir)) {
                     }
 
                     if (!navigator.onLine || window.isAppOnline === false) {
+                        if (window._mapDistanceReqSeq !== distanceReqSeq) return;
                         const directDist = getLocalHaversineKm(startLat, startLng, destLat, destLng);
                         if (distanceEl) distanceEl.textContent = directDist.toFixed(1) + ' km (direct)';
                         return;
@@ -4852,6 +4936,7 @@ if (is_dir($imgDir)) {
                     try {
                         const res = await fetch(`https://router.project-osrm.org/route/v1/driving/${startLng},${startLat};${destLng},${destLat}?overview=false`);
                         const text = await res.text();
+                        if (window._mapDistanceReqSeq !== distanceReqSeq) return;
                         const routeData = window.safeJsonParse(text, null);
                         if (routeData && routeData.code === 'Ok' && routeData.routes && routeData.routes.length > 0) {
                             const distanceKm = routeData.routes[0].distance / 1000;
@@ -4861,10 +4946,12 @@ if (is_dir($imgDir)) {
                             if (distanceEl) distanceEl.textContent = directDist.toFixed(1) + ' km (direct)';
                         }
                     } catch (e) {
+                        if (window._mapDistanceReqSeq !== distanceReqSeq) return;
                         const directDist = getLocalHaversineKm(startLat, startLng, destLat, destLng);
                         if (distanceEl) distanceEl.textContent = directDist.toFixed(1) + ' km (direct)';
                     }
                 }).catch(() => {
+                    if (window._mapDistanceReqSeq !== distanceReqSeq) return;
                     if (distanceEl) distanceEl.textContent = 'Location needed';
                 });
             }
@@ -5689,12 +5776,16 @@ if (is_dir($imgDir)) {
                         return parts.map(maskWord).join(' ');
                     };
 
+                    const escMapHtml = (v) => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
                     const renderCard = (fb) => {
                         const user = fb.user || { name: 'Explorer' };
                         const rawName = user.name || user.full_name || 'Explorer';
-                        const maskedName = maskUserName(rawName);
-                        const initial = (rawName || 'E').charAt(0).toUpperCase();
-                        const date = fb.created_at ? new Date(fb.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) : '';
+                        const maskedName = escMapHtml(maskUserName(rawName));
+                        const initial = escMapHtml((rawName || 'E').charAt(0).toUpperCase());
+                        const date = escMapHtml(fb.created_at ? new Date(fb.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) : '');
+                        const safeTestimony = escMapHtml(fb.testimony || 'Visited this destination.');
+                        const safePolicy = fb.policy_recommendation ? escMapHtml(fb.policy_recommendation) : '';
                         const ratingNum = Math.min(5, Math.max(1, parseInt(fb.rating) || 5));
                         let starsHtml = '';
                         for (let s = 1; s <= 5; s++) {
@@ -5725,12 +5816,12 @@ if (is_dir($imgDir)) {
                             </div>
                         </div>`;
 
-                        const policyHtml = fb.policy_recommendation ? `
+                        const policyHtml = safePolicy ? `
                         <div style="background:linear-gradient(135deg, rgba(0,242,254,0.12) 0%, rgba(2,132,199,0.12) 100%); border-left:3px solid #00f2fe; border-radius:10px; padding:9px 12px; margin-top:9px;">
                             <div style="display:flex; align-items:center; margin-bottom:3px;">
                                 <strong style="font-size:10px; color:#ffffff; text-transform:uppercase; letter-spacing:0.5px; font-weight:800;">Policy Recommendation</strong>
                             </div>
-                            <span style="color:#ffffff; font-size:12px; line-height:1.45; display:block; font-weight:500;">${fb.policy_recommendation}</span>
+                            <span style="color:#ffffff; font-size:12px; line-height:1.45; display:block; font-weight:500;">${safePolicy}</span>
                         </div>` : '';
 
                         return `
@@ -5753,7 +5844,7 @@ if (is_dir($imgDir)) {
                             </div>
                             ${metricsHtml}
                             <div style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.14); border-radius:12px; padding:10px 12px; margin-top:9px;">
-                                <p style="margin:0; color:#ffffff; font-size:12.5px; line-height:1.5; font-weight:500;">${fb.testimony || 'Visited this destination.'}</p>
+                                <p style="margin:0; color:#ffffff; font-size:12.5px; line-height:1.5; font-weight:500;">${safeTestimony}</p>
                             </div>
                             ${policyHtml}
                         </div>`;
@@ -6026,7 +6117,7 @@ if (is_dir($imgDir)) {
                 });
                 clearTimeout(timeoutId);
 
-                const data = await res.json();
+                const data = await res.json().catch(() => ({}));
                 if (res.ok && (data.status === 'success' || data.success)) {
                     if (typeof showToast === 'function') showToast(data.message || `Check-in verified at ${dest.name}!`);
 
@@ -6041,7 +6132,7 @@ if (is_dir($imgDir)) {
                         btn.style.background = 'linear-gradient(135deg, #059669, #047857)';
                     }
                 } else {
-                    if (typeof showToast === 'function') showToast(data.message || 'Check-in completed!');
+                    if (typeof showToast === 'function') showToast(data.message || 'Check-in failed. Please try again.', 'warning');
                     if (btn) {
                         btn.innerHTML = origHtml;
                         btn.disabled = false;
@@ -6083,13 +6174,17 @@ if (is_dir($imgDir)) {
         };
 
         // Automatically update check-in button state if currently queued check-in syncs
-        window.addEventListener('checkins-synced', () => {
+        if (window._mapCheckinsSyncedHandler) {
+            window.removeEventListener('checkins-synced', window._mapCheckinsSyncedHandler);
+        }
+        window._mapCheckinsSyncedHandler = () => {
             const btn = document.getElementById('btn-checkin-spot');
             if (btn && btn.innerHTML && btn.innerHTML.includes('Queued')) {
                 btn.innerHTML = '<i class="fa-solid fa-check"></i> Checked In!';
                 btn.style.background = 'linear-gradient(135deg, #059669, #047857)';
             }
-        });
+        };
+        window.addEventListener('checkins-synced', window._mapCheckinsSyncedHandler);
 
         const directionsVehicles = {
             own_car: { label: 'Own Car', mode: 'driving', icon: 'fa-car' },
@@ -6829,17 +6924,21 @@ if (is_dir($imgDir)) {
             }
         };
         document.addEventListener('visibilitychange', window._mapSpotsVisibilityHandler);
-        window.addEventListener('spot-reviewed', (e) => {
+        if (window._mapSpotReviewedHandler) {
+            window.removeEventListener('spot-reviewed', window._mapSpotReviewedHandler);
+        }
+        window._mapSpotReviewedHandler = (e) => {
             if (e && e.detail && e.detail.spotId && window.currentSelectedSpotId == e.detail.spotId) {
                 if (typeof fetchTestimonies === 'function') {
                     fetchTestimonies(e.detail.spotId, window.currentSelectedLocationData);
                 }
             }
-        });
+        };
+        window.addEventListener('spot-reviewed', window._mapSpotReviewedHandler);
     })();
 
     window.openSheetReviewModal = function (btnEl) {
-        const token = localStorage.getItem('intan_elyu_token');
+        const token = typeof window.getMapAuthToken === 'function' ? window.getMapAuthToken() : null;
         if (!token) {
             if (typeof window.showGuestActionModal === 'function') {
                 window.showGuestActionModal('review');
@@ -7085,6 +7184,9 @@ if (is_dir($imgDir)) {
             return;
         }
         if (modal.parentElement !== document.body) {
+            document.querySelectorAll('body > #ordinance-viewer-modal').forEach(el => {
+                if (el !== modal) { try { el.remove(); } catch (e) { } }
+            });
             document.body.appendChild(modal);
         }
         if (titleEl) {

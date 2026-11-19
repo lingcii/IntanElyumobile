@@ -125,9 +125,12 @@
         const rawUser = localStorage.getItem('auth_user') || localStorage.getItem('intan_elyu_user');
         let user = null;
         try { user = rawUser ? JSON.parse(rawUser) : null; } catch (error) { user = null; }
+        const isGuestFlag = localStorage.getItem('intan_elyu_guest') === 'true' || localStorage.getItem('intan_elyu_offline_guest') === 'true';
         const realTourist = Boolean(
-            (rawToken && rawToken !== 'guest_token' && rawToken !== 'offline_guest_token' && !rawToken.startsWith('guest_') && !rawToken.startsWith('offline_')) ||
-            (user && user.id && user.id !== 'offline_guest' && !user.is_offline_guest && user.role !== 'guest')
+            !isGuestFlag && (
+                (rawToken && rawToken !== 'guest_token' && rawToken !== 'offline_guest_token' && !rawToken.startsWith('guest_') && !rawToken.startsWith('offline_')) ||
+                (user && user.id && user.id !== 'guest' && user.id !== 'offline_guest' && !user.is_guest && !user.is_offline_guest && user.role !== 'guest')
+            )
         );
 
         if (realTourist) {

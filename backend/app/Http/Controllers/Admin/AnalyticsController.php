@@ -136,7 +136,7 @@ class AnalyticsController extends Controller
         $category = $request->query('category');
         $status   = $request->query('spot_status') ?: $request->query('status');
         $sort     = $request->query('sort', 'visits');
-        $limit    = min((int) $request->query('limit', 10), 100);
+        $limit    = max(1, min((int) $request->query('limit', 10), 100));
 
         $user = $request->user();
         if ($user && method_exists($user, 'isMunicipal') && $user->isMunicipal() && $user->municipality_id) {
@@ -190,14 +190,9 @@ class AnalyticsController extends Controller
         }
 
         $rankedSpots = $spots->map(function ($spot, $index) use ($reviewCounts, $ratingAverages) {
-            $computedRating = (float) ($spot->rating ?: ($ratingAverages[$spot->id] ?? 0));
-            
-            // Sync spot rating if computed from reviews and different
-            if (isset($ratingAverages[$spot->id]) && round((float)$ratingAverages[$spot->id], 1) !== (float)$spot->rating) {
-                try {
-                    TouristSpot::where('id', $spot->id)->update(['rating' => round((float)$ratingAverages[$spot->id], 1)]);
-                } catch (\Throwable $e) {}
-            }
+            $computedRating = isset($ratingAverages[$spot->id])
+                ? round((float) $ratingAverages[$spot->id], 1)
+                : (float) ($spot->rating ?: 0);
 
             return [
                 'id'                    => $spot->id,
@@ -382,16 +377,18 @@ class AnalyticsController extends Controller
         $monthlyVisitsPrev = array_fill(1, 12, 0);
 
         try {
+            $driver = DB::connection()->getDriverName();
+            $monthExpr = $driver === 'sqlite' ? "CAST(strftime('%m', visited_at) AS INTEGER) as month" : 'MONTH(visited_at) as month';
             $checkinsCurrent = DB::table('itinerary_items')
                 ->where('is_visited', true)
                 ->whereYear('visited_at', $year)
-                ->select(DB::raw('MONTH(visited_at) as month'), DB::raw('COUNT(*) as count'))
+                ->select(DB::raw($monthExpr), DB::raw('COUNT(*) as count'))
                 ->groupBy('month')
                 ->pluck('count', 'month')
                 ->toArray();
 
             foreach ($checkinsCurrent as $m => $cnt) {
-                $monthlyVisitsCurrent[$m] = (int) $cnt;
+                $monthlyVisitsCurrent[(int) $m] = (int) $cnt;
             }
         } catch (\Throwable $e) {}
 

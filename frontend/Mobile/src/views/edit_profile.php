@@ -411,10 +411,11 @@ $backRoute = 'settings';
 
         // Immediately fetch fresh profile from API to ensure 100% accuracy from DB
         (async function fetchLatestUserData() {
-            const token = localStorage.getItem('intan_elyu_token');
+            const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('api_token');
             if (!token) return;
             try {
-                const res = await fetch((window.backendUrl || '') + '/api/tourist/profile', {
+                const bUrl = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || '')).replace(/\/+$/, '');
+                const res = await fetch(bUrl + '/api/tourist/profile', {
                     headers: {
                         'Accept': 'application/json',
                         'Authorization': 'Bearer ' + token
@@ -434,7 +435,10 @@ $backRoute = 'settings';
 
                         const stored = JSON.parse(localStorage.getItem('auth_user') || '{}');
                         Object.assign(stored, u);
-                        localStorage.setItem('auth_user', JSON.stringify(stored));
+                        const serializedUser = JSON.stringify(stored);
+                    localStorage.setItem('auth_user', serializedUser);
+                    localStorage.setItem('auth_user_backup', serializedUser);
+                    localStorage.setItem('intan_elyu_user', serializedUser);
                     }
                 }
             } catch (e) {
@@ -861,7 +865,7 @@ $backRoute = 'settings';
             const formData = new FormData();
             formData.append('name', name);
             formData.append('email', email);
-            formData.append('phone', phone);
+            formData.append('phone', (phone && phone.trim() !== '+63') ? phone.trim() : '');
             formData.append('home_location', homeLocation);
             formData.append('age', age);
             formData.append('gender', gender);
@@ -912,7 +916,10 @@ $backRoute = 'settings';
                         stored.gender = gender;
                         stored.bio = bio;
                     }
-                    localStorage.setItem('auth_user', JSON.stringify(stored));
+                    const serializedUser = JSON.stringify(stored);
+                    localStorage.setItem('auth_user', serializedUser);
+                    localStorage.setItem('auth_user_backup', serializedUser);
+                    localStorage.setItem('intan_elyu_user', serializedUser);
 
                     // Invalidate cached profile, dashboard, and leaderboard data so all screens reload fresh data from DB
                     window.profileNeedsRefresh = true;
@@ -956,7 +963,10 @@ $backRoute = 'settings';
                     if (avatarSrc && (avatarSrc.startsWith('data:') || avatarSrc.startsWith('blob:'))) {
                         stored.avatar = avatarSrc;
                     }
-                    localStorage.setItem('auth_user', JSON.stringify(stored));
+                    const serializedUser = JSON.stringify(stored);
+                    localStorage.setItem('auth_user', serializedUser);
+                    localStorage.setItem('auth_user_backup', serializedUser);
+                    localStorage.setItem('intan_elyu_user', serializedUser);
 
                     if (window.OfflineProfileManager && typeof window.OfflineProfileManager.queueProfileUpdate === 'function') {
                         window.OfflineProfileManager.queueProfileUpdate({

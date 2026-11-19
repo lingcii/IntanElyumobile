@@ -81,27 +81,38 @@ if (is_dir($imgDir)) {
             } catch (e) { }
             if (!Array.isArray(savedIds) || savedIds.length === 0) return [];
 
+            const extractSpotsList = (rawObj) => {
+                if (!rawObj) return [];
+                if (Array.isArray(rawObj)) return rawObj;
+                if (Array.isArray(rawObj.destinations)) return rawObj.destinations;
+                if (Array.isArray(rawObj.spots)) return rawObj.spots;
+                if (Array.isArray(rawObj.data)) return rawObj.data;
+                if (rawObj.data && Array.isArray(rawObj.data.destinations)) return rawObj.data.destinations;
+                if (rawObj.data && Array.isArray(rawObj.data.spots)) return rawObj.data.spots;
+                return [];
+            };
+
             let allSpots = [];
             try {
                 const mapRaw = localStorage.getItem('public_map_data');
                 if (mapRaw) {
-                    const parsed = JSON.parse(mapRaw);
-                    allSpots = parsed.destinations || parsed.data || (Array.isArray(parsed) ? parsed : []);
+                    allSpots = extractSpotsList(JSON.parse(mapRaw));
                 }
             } catch (e) { }
 
             if (!allSpots.length) {
                 try {
                     const cacheRaw = localStorage.getItem('intan_elyu_cached_spots_map');
-                    if (cacheRaw) allSpots = JSON.parse(cacheRaw);
+                    if (cacheRaw) allSpots = extractSpotsList(JSON.parse(cacheRaw));
                 } catch (e) { }
             }
 
             if (!allSpots.length && Array.isArray(window.allTouristSpots)) {
                 allSpots = window.allTouristSpots;
             }
+            if (!Array.isArray(allSpots)) allSpots = [];
 
-            return allSpots.filter(spot => savedIds.some(id => String(id) === String(spot.id)));
+            return allSpots.filter(spot => spot && savedIds.some(id => String(id) === String(spot.id)));
         }
 
         function getKnownLocalSavedPlaces(token) {
@@ -304,7 +315,10 @@ if (is_dir($imgDir)) {
 
         window.toggleFavLocal = async function (id, btn) {
             const token = localStorage.getItem('intan_elyu_token');
-            if (!token) return;
+            if (!token || token === 'guest_token' || token === 'offline_guest_token' || token.startsWith('guest_') || token.startsWith('offline_')) {
+                if (typeof window.promptGuestLogin === 'function') window.promptGuestLogin('saved places');
+                return;
+            }
 
             const isOffline = (typeof navigator.onLine === 'boolean') ? !navigator.onLine : (window.isAppOnline === false);
 
@@ -377,7 +391,7 @@ if (is_dir($imgDir)) {
                     headers: { 'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
                     body: JSON.stringify({ action: 'remove' })
                 });
-                if (!res.ok) {
+                if (!res.ok && (res.status >= 500 || res.status === 408 || res.status === 429)) {
                     if (window.OfflineFavoriteManager && typeof window.OfflineFavoriteManager.queueToggle === 'function') {
                         window.OfflineFavoriteManager.queueToggle(id, 'remove');
                     }
@@ -392,10 +406,15 @@ if (is_dir($imgDir)) {
 
         window.viewTrendingDest = function (id, name, encodedDest) {
             try {
-                const dest = (typeof encodedDest === 'object' && encodedDest !== null) ? encodedDest : (encodedDest ? JSON.parse(decodeURIComponent(encodedDest)) : ((savedPlacesList || []).find(s => Number(s.id) === Number(id))));
+                const listRef = (typeof savedPlacesList !== 'undefined' && Array.isArray(savedPlacesList)) ? savedPlacesList : [];
+                const dest = (typeof encodedDest === 'object' && encodedDest !== null) ? encodedDest : (encodedDest ? JSON.parse(decodeURIComponent(encodedDest)) : listRef.find(s => Number(s.id) === Number(id)));
                 if (!dest) return;
                 localStorage.setItem('intan_elyu_view_destination', JSON.stringify(dest));
-                window.location.href = '?view=map';
+                if (typeof window.navigateTo === 'function') {
+                    window.navigateTo('map');
+                } else {
+                    window.location.href = '?view=map';
+                }
             } catch (e) {
                 console.error('Failed to view destination:', e);
             }

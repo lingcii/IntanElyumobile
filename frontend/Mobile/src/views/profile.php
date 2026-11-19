@@ -263,23 +263,35 @@ $activeTab = 'profile';
         return modal;
     };
 
+    function escProfileHtml(val) {
+        return String(val ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
     window.renderProfileUserMeta = function (u) {
         const elMeta = document.getElementById('profile-meta');
         if (!elMeta || !u) return;
-        const gLow = String(u.gender || 'male').toLowerCase();
+        const rawGender = (u.gender !== null && u.gender !== undefined) ? String(u.gender).trim() : '';
+        if (!rawGender) {
+            elMeta.innerHTML = '';
+            elMeta.style.display = 'none';
+            return;
+        }
+        const gLow = rawGender.toLowerCase();
         let gIcon = 'fa-mars';
-        let gLabel = u.gender || 'Male';
+        let gLabel = rawGender;
         if (gLow === 'female') {
             gIcon = 'fa-venus';
             gLabel = 'Female';
-        } else if (gLow !== 'male' && u.gender) {
+        } else if (gLow === 'male') {
+            gIcon = 'fa-mars';
+            gLabel = 'Male';
+        } else {
             gIcon = 'fa-venus-mars';
-            gLabel = u.gender;
         }
 
         elMeta.innerHTML = `
         <span style="background: rgba(255, 255, 255, 0.18); border: none !important; outline: none !important; color: #ffffff; padding: 3px 12px; border-radius: 100px; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; gap: 5px;">
-            <i class="fa-solid ${gIcon}" style="color: #00f2fe; font-size: 11.5px;"></i> ${gLabel}
+            <i class="fa-solid ${gIcon}" style="color: #00f2fe; font-size: 11.5px;"></i> ${escProfileHtml(gLabel)}
         </span>`;
         elMeta.style.display = 'flex';
     };
@@ -536,7 +548,7 @@ $activeTab = 'profile';
         if (elDealsPts) elDealsPts.textContent = points.toLocaleString();
         window._userPointsBalance = points;
         if (elPlaces) elPlaces.textContent = placesCount.toLocaleString();
-        if (elRank) elRank.textContent = (hasRankActivity && data.my_rank && data.my_rank < 999) ? '#' + data.my_rank : (hasRankActivity && u.my_rank ? '#' + u.my_rank : 'Unranked');
+        if (elRank) elRank.textContent = (hasRankActivity && Number(data.my_rank) > 0) ? '#' + Number(data.my_rank) : (hasRankActivity && Number(u.my_rank) > 0 ? '#' + Number(u.my_rank) : 'Unranked');
         if (elName && u.name) elName.textContent = u.name;
         if (elEmail && u.email) elEmail.textContent = u.email;
         if (elImg) {
@@ -617,12 +629,23 @@ $activeTab = 'profile';
                     const visitedCount = items.filter(i => i.is_visited === true || i.is_visited === 1 || i.is_visited === '1').length;
                     const count = visitedCount > 0 ? visitedCount : (items.length || parseInt(trip.destinations_visited) || 1);
                     const cost = parseFloat(trip.total_cost || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    const photoCount = items.reduce((acc, it) => {
+                        if (!it) return acc;
+                        if (Array.isArray(it.proof_images) && it.proof_images.length > 0) return acc + it.proof_images.length;
+                        if (it.proof_image) {
+                            try {
+                                const p = JSON.parse(it.proof_image);
+                                return acc + (Array.isArray(p) ? p.filter(Boolean).length : 1);
+                            } catch (e) { return acc + 1; }
+                        }
+                        return acc;
+                    }, 0);
 
                     html += `
-                    <div onclick="window.showTripDetailsModal('${trip.id}')" role="button" tabindex="0" style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border: none !important; outline: none !important; border-radius: 20px; padding: 16px 18px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; gap: 10px; cursor: pointer; user-select: none; touch-action: manipulation; -webkit-tap-highlight-color: transparent; transition: transform 0.15s ease, opacity 0.15s ease; box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25);" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'" onpointerleave="this.style.transform='scale(1)'">
+                    <div onclick="window.showTripDetailsModal('${trip.id}')" role="button" tabindex="0" style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border: none !important; outline: none !important; border-radius: 20px; padding: 16px 18px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; gap: 10px; cursor: pointer; user-select: none; touch-action: manipulation; -webkit-tap-highlight-color: transparent; transition: transform 0.15s ease, opacity 0.15s ease; box-shadow: none;" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'" onpointerleave="this.style.transform='scale(1)'">
                         <div style="flex: 1; min-width: 0;">
                             <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 2px;">
-                                <strong style="color: #ffffff; font-size: 14px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${trip.title || 'Completed Trip'}</strong>
+                                <strong style="color: #ffffff; font-size: 14px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escProfileHtml(trip.title || 'Completed Trip')}</strong>
                             </div>
                             <div style="font-size: 11px; color: #ffffff; opacity: 0.95; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
                                 <span><i class="fa-regular fa-calendar" style="color: #00f2fe; margin-right: 3px;"></i>${date}</span>
@@ -630,9 +653,10 @@ $activeTab = 'profile';
                                 <span><i class="fa-solid fa-coins" style="color: #fbbf24; margin-right: 3px;"></i>₱${cost}</span>
                                 <span>&bull;</span>
                                 <span><i class="fa-solid fa-location-dot" style="color: #00f2fe; margin-right: 3px;"></i>${count} Visited</span>
+                                ${photoCount > 0 ? `<span>&bull;</span><span><i class="fa-solid fa-camera" style="color: #38bdf8; margin-right: 3px;"></i>${photoCount}</span>` : ''}
                             </div>
                         </div>
-                        <span style="color: #ffffff !important; font-weight: 800; font-size: 11px; background: #10b981 !important; border: none !important; outline: none !important; padding: 4px 10px; border-radius: 100px; white-space: nowrap; flex-shrink: 0; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 2px 6px rgba(0,0,0,0.15);">
+                        <span style="color: #ffffff !important; font-weight: 800; font-size: 11px; background: #10b981 !important; border: none !important; outline: none !important; padding: 4px 10px; border-radius: 100px; white-space: nowrap; flex-shrink: 0; display: inline-flex; align-items: center; gap: 4px; box-shadow: none;">
                             <i class="fa-solid fa-check" style="color: #ffffff !important; font-size: 11px;"></i>Done
                         </span>
                     </div>`;
@@ -904,10 +928,10 @@ $activeTab = 'profile';
                         <div style="text-align: left; flex: 1; min-width: 0;">
                             <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 3px;">
                                 <i class="fa-solid fa-ticket" style="color: #00f2fe; font-size: 13px;"></i>
-                                <span style="font-size: 13.5px; font-weight: 800; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -0.2px;">${voucherTitle}</span>
+                                <span style="font-size: 13.5px; font-weight: 800; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -0.2px;">${escProfileHtml(voucherTitle)}</span>
                             </div>
                             <div style="font-size: 11px; font-weight: 600; color: rgba(255, 255, 255, 0.85); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 3px;">
-                                ${partnerName}
+                                ${escProfileHtml(partnerName)}
                             </div>
                             <div style="display: flex; align-items: center; gap: 5px; font-size: 10.5px; font-weight: 700; color: #bae6fd;">
                                 <i class="fa-regular fa-calendar-xmark" style="color: #00f2fe; font-size: 11px;"></i>
@@ -1068,11 +1092,11 @@ $activeTab = 'profile';
                     </div>
                     <div style="min-width:0; flex:1;">
                         <div style="display:flex; align-items:center; gap:6px;">
-                            <strong style="display:block; font-size:13.5px; font-weight:800; color:#ffffff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; letter-spacing:-0.2px;">${v.title}</strong>
-                            <span style="font-size:9.5px; font-weight:800; color:#1e3a8a !important; background:#ffffff !important; border:none !important; padding:2px 7px; border-radius:6px; flex-shrink:0; text-transform:uppercase; box-shadow:0 1px 4px rgba(0,0,0,0.12);">${v.badge || 'PROMO'}</span>
+                            <strong style="display:block; font-size:13.5px; font-weight:800; color:#ffffff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; letter-spacing:-0.2px;">${escProfileHtml(v.title)}</strong>
+                            <span style="font-size:9.5px; font-weight:800; color:#1e3a8a !important; background:#ffffff !important; border:none !important; padding:2px 7px; border-radius:6px; flex-shrink:0; text-transform:uppercase; box-shadow:0 1px 4px rgba(0,0,0,0.12);">${escProfileHtml(v.badge || 'PROMO')}</span>
                             ${v.id_needed ? `<span style="font-size:8.5px; font-weight:800; color:#ffffff !important; background:#ef4444 !important; padding:2px 6px; border-radius:4px; flex-shrink:0;"><i class="fa-solid fa-id-card"></i> ID</span>` : ''}
                         </div>
-                        <span style="font-size:11.5px; color:rgba(255, 255, 255, 0.88); font-weight:600; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:1px;">${v.partner || v.merchant || 'La Union Partner'}</span>
+                        <span style="font-size:11.5px; color:rgba(255, 255, 255, 0.88); font-weight:600; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:1px;">${escProfileHtml(v.partner || v.merchant || 'La Union Partner')}</span>
                     </div>
                 </div>
                 <button type="button" onclick="event.stopPropagation(); window.showRewardDetailsModal(${idx})" style="background:#ffffff !important; color:#1e3a8a !important; border:none !important; outline:none !important; padding:7px 14px; border-radius:100px; font-size:11.5px; font-weight:900; cursor:pointer; flex-shrink:0; box-shadow:0 2px 8px rgba(0,0,0,0.18) !important; white-space:nowrap; transition:transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.94)'" onpointerup="this.style.transform='scale(1)'">
@@ -1266,12 +1290,6 @@ $activeTab = 'profile';
         }
     }
     window.updateProfileAccessBarrier = updateProfileAccessBarrier;
-
-    updateProfileAccessBarrier();
-    window.addEventListener('online', updateProfileAccessBarrier);
-    window.addEventListener('offline', updateProfileAccessBarrier);
-    window.addEventListener('appOnline', updateProfileAccessBarrier);
-    window.addEventListener('appOffline', updateProfileAccessBarrier);
 
     async function fetchProfileData(force = false) {
         const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('api_token');
@@ -2174,13 +2192,24 @@ $activeTab = 'profile';
                 const visitedCount = items.filter(i => i.is_visited === true || i.is_visited === 1 || i.is_visited === '1').length;
                 const count = visitedCount > 0 ? visitedCount : (items.length || parseInt(trip.destinations_visited) || 1);
                 const cost = parseFloat(trip.total_cost || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                const photoCount = items.reduce((acc, it) => {
+                    if (!it) return acc;
+                    if (Array.isArray(it.proof_images) && it.proof_images.length > 0) return acc + it.proof_images.length;
+                    if (it.proof_image) {
+                        try {
+                            const p = JSON.parse(it.proof_image);
+                            return acc + (Array.isArray(p) ? p.filter(Boolean).length : 1);
+                        } catch (e) { return acc + 1; }
+                    }
+                    return acc;
+                }, 0);
 
                 html += `
                 <div onclick="window.showTripDetailsModal('${trip.id}')" role="button" tabindex="0" style="background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline: none !important; box-shadow: none !important; border-radius: 18px; padding: 16px; margin-bottom: 12px; cursor: pointer; user-select: none; touch-action: manipulation; -webkit-tap-highlight-color: transparent; transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'" onpointerleave="this.style.transform='scale(1)'">
                     <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
                         <div>
                             <div style="font-size:10px; font-weight:800; color:#00f2fe; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:2px;">Trip #${trips.length - idx}</div>
-                            <strong style="color: #ffffff; font-size: 16px; font-weight: 800; line-height: 1.3;">${trip.title || 'Completed Trip'}</strong>
+                            <strong style="color: #ffffff; font-size: 16px; font-weight: 800; line-height: 1.3;">${escProfileHtml(trip.title || 'Completed Trip')}</strong>
                         </div>
                         <span style="color: #ffffff; font-weight: 800; font-size: 11px; background: #10b981; border: none !important; outline: none !important; box-shadow: none !important; padding: 4px 10px; border-radius: 100px; white-space: nowrap;">
                             <i class="fa-solid fa-circle-check" style="margin-right: 4px; color: #ffffff;"></i>Completed
@@ -2192,6 +2221,7 @@ $activeTab = 'profile';
                         <span><i class="fa-solid fa-coins" style="color: #fbbf24; margin-right: 4px;"></i>₱${cost}</span>
                         <span>&bull;</span>
                         <span><i class="fa-solid fa-location-dot" style="color: #34d399; margin-right: 4px;"></i>${count} Destinations Visited</span>
+                        ${photoCount > 0 ? `<span>&bull;</span><span><i class="fa-solid fa-camera" style="color: #38bdf8; margin-right: 4px;"></i>${photoCount} ${photoCount === 1 ? 'Photo' : 'Photos'}</span>` : ''}
                     </div>
                 </div>`;
             });
@@ -2640,8 +2670,9 @@ $activeTab = 'profile';
         const expiryContainer = document.getElementById('active-qr-modal-expiry-container');
         if (expiryEl) {
             const formattedExp = window.formatVoucherExpiry ? window.formatVoucherExpiry(voucher) : (voucher.expires_at || 'No Expiration');
-            const rawExp = voucher.expires_at || voucher.valid_until || voucher.expiry_date;
-            const isPast = rawExp && new Date(rawExp).getTime() < Date.now();
+            const rawExp = voucher.voucher_expires_at || voucher.expires_at || voucher.valid_until || voucher.expiry_date;
+            const parsedExpMs = rawExp ? new Date(String(rawExp).replace(' ', 'T')).getTime() : NaN;
+            const isPast = !isNaN(parsedExpMs) && parsedExpMs < Date.now();
             if (isPast) {
                 expiryEl.innerHTML = `<span style="color:#dc2626;"><i class="fa-solid fa-triangle-exclamation" style="margin-right:4px;"></i>Expired (${formattedExp})</span>`;
                 if (expiryContainer) {
@@ -2872,7 +2903,7 @@ $activeTab = 'profile';
 
     function stopActiveQrTimers() {
         if (window.activeQrTimerInterval) {
-            clearInterval(activeQrTimerInterval);
+            clearInterval(window.activeQrTimerInterval);
             window.activeQrTimerInterval = null;
         }
     }
@@ -3240,9 +3271,14 @@ $activeTab = 'profile';
 
         void check();
         activeQrSyncInterval = setInterval(check, 4000);
+        window.activeQrSyncInterval = activeQrSyncInterval;
     }
 
     function stopActiveQrSync() {
+        if (window.activeQrSyncInterval) {
+            clearInterval(window.activeQrSyncInterval);
+            window.activeQrSyncInterval = null;
+        }
         if (activeQrSyncInterval) {
             clearInterval(activeQrSyncInterval);
             activeQrSyncInterval = null;
@@ -3280,14 +3316,42 @@ $activeTab = 'profile';
                 const sClass = (dest && dest.classification_status) ? dest.classification_status : '';
                 const sMeta = (typeof window.getRewardPointsForClassification === 'function') ? window.getRewardPointsForClassification(sClass) : { points: 25 };
 
+                let stopPhotos = [];
+                if (Array.isArray(item.proof_images) && item.proof_images.length > 0) {
+                    stopPhotos = item.proof_images.filter(Boolean);
+                } else if (item.proof_image) {
+                    try {
+                        const parsedP = JSON.parse(item.proof_image);
+                        stopPhotos = Array.isArray(parsedP) ? parsedP.filter(Boolean) : [item.proof_image];
+                    } catch (e) {
+                        stopPhotos = [item.proof_image];
+                    }
+                }
+                let stopPhotosHtml = '';
+                if (stopPhotos.length > 0) {
+                    const resolvedStopPhotos = stopPhotos.map(u => (typeof window.resolveTripPhotoUrl === 'function' ? window.resolveTripPhotoUrl(u) : u));
+                    const jsonStopPhotos = JSON.stringify(resolvedStopPhotos).replace(/"/g, '&quot;');
+                    const destEsc = String(destName).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                    stopPhotosHtml = `<div style="display:flex; align-items:center; gap:6px; overflow-x:auto; margin-top:10px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.14); -webkit-overflow-scrolling:touch;">
+                        ${resolvedStopPhotos.map((pUrl, pIdx) => {
+                            const fbUrl = (typeof window.getTripPhotoFallbackUrl === 'function') ? window.getTripPhotoFallbackUrl(stopPhotos[pIdx]) : 'assets/img/no_image.svg';
+                            return `<img src="${pUrl}" onerror="if(this.dataset.triedFallback!=='1'){this.dataset.triedFallback='1';this.src='${fbUrl}';}else{this.onerror=null;this.src='assets/img/no_image.svg';}" onclick="event.stopPropagation(); if(typeof window.viewTripPhotoModal==='function') window.viewTripPhotoModal(${jsonStopPhotos}, '${destEsc}', 'Trip Memory', ${pIdx}, { canDelete: false });" alt="Memory ${pIdx + 1}" style="width:44px; height:44px; border-radius:10px; object-fit:cover; border:1px solid rgba(255,255,255,0.28); flex-shrink:0; cursor:pointer; display:block;">`;
+                        }).join('')}
+                        <span style="font-size:10.5px; color:rgba(255,255,255,0.85); font-weight:700; white-space:nowrap; margin-left:2px;">${stopPhotos.length} ${stopPhotos.length === 1 ? 'photo' : 'photos'}</span>
+                    </div>`;
+                }
+
                 destHtml += `
-                <div style="display:flex; align-items:center; gap:10px; padding:12px 14px; background:linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border:none !important; outline:none !important; box-shadow:none !important; border-radius:14px; margin-bottom:8px;">
-                    <div style="width:34px; height:34px; border-radius:10px; background:rgba(255,255,255,0.2); border:none !important; outline:none !important; box-shadow:none !important; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-weight:900; font-size:14px; color:#ffffff;">${idx + 1}</div>
-                    <div style="flex:1; min-width:0;">
-                        <div style="font-size:13.5px; font-weight:800; color:#ffffff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${destName}</div>
-                        <div style="font-size:11.5px; color:rgba(255,255,255,0.85); font-weight:600; margin-top:2px;">${fee}</div>
+                <div style="padding:12px 14px; background:linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border:none !important; outline:none !important; box-shadow:none !important; border-radius:14px; margin-bottom:8px;">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <div style="width:34px; height:34px; border-radius:10px; background:rgba(255,255,255,0.2); border:none !important; outline:none !important; box-shadow:none !important; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-weight:900; font-size:14px; color:#ffffff;">${idx + 1}</div>
+                        <div style="flex:1; min-width:0;">
+                            <div style="font-size:13.5px; font-weight:800; color:#ffffff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escProfileHtml(destName)}</div>
+                            <div style="font-size:11.5px; color:rgba(255,255,255,0.85); font-weight:600; margin-top:2px;">${fee}</div>
+                        </div>
+                        ${spotId ? `<button type="button" data-spot-id="${spotId}"${itemId ? ` data-itinerary-item-id="${itemId}"` : ''} data-spot-classification="${sClass}" onclick="event.stopPropagation(); window.openWriteTestimonyModal('${spotId}', this, ${itemId ? `'${itemId}'` : 'null'})" style="background: ${isReviewed ? 'rgba(255,255,255,0.22)' : 'linear-gradient(135deg, #00f2fe 0%, #0284c7 100%)'}; border: none !important; outline: none !important; box-shadow: none !important; color: #ffffff; padding: 7px 14px; border-radius: 100px; font-weight: 800; font-size: 11.5px; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; flex-shrink: 0;">${isReviewed ? '<i class="fa-solid fa-check" style="font-size: 10px; margin-right: 4px;"></i> Reviewed' : '<i class="fa-solid fa-pen" style="font-size: 10px;"></i> Review'}</button>` : ''}
                     </div>
-                    ${spotId ? `<button type="button" data-spot-id="${spotId}"${itemId ? ` data-itinerary-item-id="${itemId}"` : ''} data-spot-classification="${sClass}" onclick="event.stopPropagation(); window.openWriteTestimonyModal('${spotId}', this, ${itemId ? `'${itemId}'` : 'null'})" style="background: ${isReviewed ? 'rgba(255,255,255,0.22)' : 'linear-gradient(135deg, #00f2fe 0%, #0284c7 100%)'}; border: none !important; outline: none !important; box-shadow: none !important; color: #ffffff; padding: 7px 14px; border-radius: 100px; font-weight: 800; font-size: 11.5px; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; flex-shrink: 0;">${isReviewed ? '<i class="fa-solid fa-check" style="font-size: 10px; margin-right: 4px;"></i> Reviewed' : '<i class="fa-solid fa-pen" style="font-size: 10px;"></i> Review'}</button>` : ''}
+                    ${stopPhotosHtml}
                 </div>`;
             });
         }
@@ -3339,8 +3403,22 @@ $activeTab = 'profile';
     };
 
 
+    // Detach any previously registered Profile listeners before binding fresh ones (prevents SPA stacking)
+    if (window._profileBoundHandlers) {
+        const prev = window._profileBoundHandlers;
+        window.removeEventListener('userProfileUpdated', prev.onUserProfileUpdated);
+        window.removeEventListener('voucherClaimed', prev.onVoucherClaimed);
+        window.removeEventListener('online', prev.onOnline);
+        window.removeEventListener('offline', prev.onOffline);
+        window.removeEventListener('appOnline', prev.onOnline);
+        window.removeEventListener('appOffline', prev.onOffline);
+        window.removeEventListener('app-connection-changed', prev.onConnectionChanged);
+        window.removeEventListener('viewLoaded', prev.onViewLoaded);
+        document.removeEventListener('visibilitychange', prev.onVisibilityChange);
+    }
+
     // Listen for real-time profile updates from edit_profile
-    window.addEventListener('userProfileUpdated', function (e) {
+    function onProfileUserUpdated(e) {
         if (e.detail) {
             const u = e.detail;
             if (u.name && document.getElementById('profile-name')) document.getElementById('profile-name').textContent = u.name;
@@ -3352,10 +3430,10 @@ $activeTab = 'profile';
             if ('bio' in u) window.renderProfileBio(u.bio);
             if ('travel_preferences' in u) window.renderProfilePreferences(u.travel_preferences);
         }
-    });
+    }
 
     // Listen for real-time voucher claims across the app (e.g. from Discounts & Vouchers page)
-    window.addEventListener('voucherClaimed', function (e) {
+    function onProfileVoucherClaimed(e) {
         const detail = e.detail || {};
         const cost = Number(detail.pointsCost || (detail.voucher && (detail.voucher.points_cost || detail.voucher.pointsCost)) || 0);
         const newBalance = detail.newBalance !== undefined ? detail.newBalance : Math.max(0, (window._userPointsBalance || 0) - cost);
@@ -3427,57 +3505,10 @@ $activeTab = 'profile';
         if (dealsModal && dealsModal.style.display === 'flex' && Array.isArray(window._profileAvailableVouchers)) {
             window.renderFullDealsList(window._profileAvailableVouchers);
         }
-    });
+    }
 
     window.fetchProfileData = fetchProfileData;
     window.fetchPointsAndVouchers = fetchPointsAndVouchers;
-
-    // Ambient automatic reconnect listener - quietly syncs profile & vouchers when network restores
-    function handleProfileReconnect() {
-        const current = (document.body ? document.body.getAttribute('data-view') : '') || (window.currentView || '');
-        if (current !== 'profile') {
-            window.profileNeedsRefresh = true;
-            return;
-        }
-        if (typeof fetchProfileData === 'function') fetchProfileData(true);
-        if (typeof fetchPointsAndVouchers === 'function') fetchPointsAndVouchers(true);
-    }
-    window.addEventListener('online', handleProfileReconnect);
-    window.addEventListener('appOnline', handleProfileReconnect);
-    document.addEventListener('visibilitychange', function () {
-        const current = (document.body ? document.body.getAttribute('data-view') : '') || (window.currentView || '');
-        if (current !== 'profile') return;
-        if (!document.hidden) handleProfileReconnect();
-    });
-
-    // Real-time re-hydration when returning to Profile view
-    window.addEventListener('viewLoaded', function (e) {
-        if (e && e.detail) {
-            if (e.detail.view === 'profile') {
-                if (typeof updateProfileAccessBarrier === 'function') updateProfileAccessBarrier();
-                const _tok = getProfileAuthToken();
-                const _isGuest = !_tok || _tok === 'guest_token' || _tok === 'offline_guest_token' || _tok.indexOf('guest_') === 0 || _tok.indexOf('offline_') === 0 || localStorage.getItem('intan_elyu_guest') === 'true' || localStorage.getItem('intan_elyu_offline_guest') === 'true';
-                if (!_isGuest) {
-                    hydrateProfileFromCache();
-                    window._viewRenderedAt = window._viewRenderedAt || {};
-                    window._viewRenderedAt['profile'] = Date.now();
-                    window.profileNeedsRefresh = false;
-                    if (navigator.onLine && window.isAppOnline !== false) {
-                        fetchProfileData(true);
-                        fetchPointsAndVouchers(true);
-                    }
-                }
-            } else {
-                // When navigating away from profile, close open modals and stop polling
-                if (typeof window.closeRedeemConfirmModal === 'function') window.closeRedeemConfirmModal(false);
-                ['full-history-modal', 'full-vouchers-modal', 'full-deals-modal', 'active-voucher-qr-modal', 'active-voucher-cancel-confirm-modal', 'trip-details-modal', 'reward-details-modal', 'redeem-confirm-modal'].forEach(id => {
-                    const m = document.getElementById(id);
-                    if (m) m.style.display = 'none';
-                });
-                if (typeof stopActiveQrSync === 'function') stopActiveQrSync();
-            }
-        }
-    });
 
     // Offline Indicator Status Management
     function updateProfileOfflineStatus() {
@@ -3491,17 +3522,76 @@ $activeTab = 'profile';
             } catch(e) {}
         }
     }
-    window.addEventListener('online', () => {
+
+    // Ambient automatic reconnect listener - quietly syncs profile & vouchers when network restores
+    function onProfileOnline() {
         updateProfileOfflineStatus();
         if (typeof window.enforceAllOfflineBadgesHidden === 'function') window.enforceAllOfflineBadgesHidden();
-    });
-    window.addEventListener('offline', updateProfileOfflineStatus);
-    window.addEventListener('appOnline', () => {
+        const current = (document.body ? document.body.getAttribute('data-view') : '') || (window.currentView || '');
+        if (current !== 'profile') {
+            window.profileNeedsRefresh = true;
+            return;
+        }
+        if (typeof updateProfileAccessBarrier === 'function') updateProfileAccessBarrier();
+    }
+
+    function onProfileOffline() {
         updateProfileOfflineStatus();
-        if (typeof window.enforceAllOfflineBadgesHidden === 'function') window.enforceAllOfflineBadgesHidden();
-    });
-    window.addEventListener('appOffline', updateProfileOfflineStatus);
+        const current = (document.body ? document.body.getAttribute('data-view') : '') || (window.currentView || '');
+        if (current === 'profile' && typeof updateProfileAccessBarrier === 'function') {
+            updateProfileAccessBarrier();
+        }
+    }
+
+    function onProfileVisibilityChange() {
+        const current = (document.body ? document.body.getAttribute('data-view') : '') || (window.currentView || '');
+        if (current !== 'profile' || document.hidden) return;
+        if (typeof fetchProfileData === 'function') fetchProfileData(true);
+        if (typeof fetchPointsAndVouchers === 'function') fetchPointsAndVouchers(true);
+    }
+
+    // Real-time re-hydration when returning to Profile view & clean teardown when leaving
+    function onProfileViewLoaded(e) {
+        if (!e || !e.detail) return;
+        if (e.detail.view === 'profile') {
+            // Skip duplicate fetch if this script just initialized the view moments ago
+            if ((Date.now() - (window._profileLastInitAt || 0)) < 600) return;
+            window._profileLastInitAt = Date.now();
+            window._viewRenderedAt = window._viewRenderedAt || {};
+            window._viewRenderedAt['profile'] = Date.now();
+            window.profileNeedsRefresh = false;
+            if (typeof updateProfileAccessBarrier === 'function') updateProfileAccessBarrier();
+        } else {
+            // When navigating away from profile, close all ported modals and stop all QR timers/polling
+            if (typeof window.closeRedeemConfirmModal === 'function') window.closeRedeemConfirmModal(false);
+            ['full-history-modal', 'full-vouchers-modal', 'full-deals-modal', 'active-voucher-qr-modal', 'active-voucher-cancel-confirm-modal', 'trip-details-modal', 'reward-details-modal', 'redeem-confirm-modal', 'personalize-trips-modal', 'reviews-checkins-modal'].forEach(id => {
+                const m = document.getElementById(id);
+                if (m) m.style.display = 'none';
+            });
+            if (typeof stopActiveQrSync === 'function') stopActiveQrSync();
+            if (typeof stopActiveQrTimers === 'function') stopActiveQrTimers();
+        }
+    }
+
+    window._profileBoundHandlers = {
+        onUserProfileUpdated: onProfileUserUpdated,
+        onVoucherClaimed: onProfileVoucherClaimed,
+        onOnline: onProfileOnline,
+        onOffline: onProfileOffline,
+        onConnectionChanged: updateProfileOfflineStatus,
+        onViewLoaded: onProfileViewLoaded,
+        onVisibilityChange: onProfileVisibilityChange
+    };
+
+    window.addEventListener('userProfileUpdated', onProfileUserUpdated);
+    window.addEventListener('voucherClaimed', onProfileVoucherClaimed);
+    window.addEventListener('online', onProfileOnline);
+    window.addEventListener('offline', onProfileOffline);
+    window.addEventListener('appOnline', onProfileOnline);
+    window.addEventListener('appOffline', onProfileOffline);
     window.addEventListener('app-connection-changed', updateProfileOfflineStatus);
+    window.addEventListener('viewLoaded', onProfileViewLoaded);
+    document.addEventListener('visibilitychange', onProfileVisibilityChange);
     setTimeout(updateProfileOfflineStatus, 150);
 
     // Immediately port all modals to document.body so they stay above bottom-navigation and blur out the nav bar behind backdrop
@@ -3511,17 +3601,11 @@ $activeTab = 'profile';
         });
     }, 50);
 
+    // Single initial hydration + fetch entry point (updateProfileAccessBarrier handles guest barrier, cache hydration, and online fetches)
+    window._profileLastInitAt = Date.now();
+    window._viewRenderedAt = window._viewRenderedAt || {};
+    window._viewRenderedAt['profile'] = Date.now();
     if (typeof updateProfileAccessBarrier === 'function') updateProfileAccessBarrier();
-    var _initTok = getProfileAuthToken();
-    var _initGuest = !_initTok || _initTok === 'guest_token' || _initTok === 'offline_guest_token' || _initTok.indexOf('guest_') === 0 || _initTok.indexOf('offline_') === 0 || localStorage.getItem('intan_elyu_guest') === 'true' || localStorage.getItem('intan_elyu_offline_guest') === 'true';
-    if (!_initGuest) {
-        hydrateProfileFromCache();
-        fetchProfileData(true);
-        fetchPointsAndVouchers(true);
-        if (typeof window.loadUserReviewsAndCheckins === 'function') {
-            window.loadUserReviewsAndCheckins(true);
-        }
-    }
 </script>
 
 <!-- Reviews & Check-ins Modal -->
@@ -3684,7 +3768,7 @@ $activeTab = 'profile';
 </div>
 
 <!-- Active Voucher Cancel Confirmation Modal -->
-<div id="active-voucher-cancel-confirm-modal" role="dialog" aria-modal="true" aria-labelledby="active-voucher-cancel-confirm-title" style="display:none; position:fixed; inset:0; z-index:120000; background:rgba(15,23,42,.72); align-items:center; justify-content:center; padding:24px; backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);">
+<div id="active-voucher-cancel-confirm-modal" role="dialog" aria-modal="true" aria-labelledby="active-voucher-cancel-confirm-title" style="display:none; position:fixed; inset:0; z-index:10000000 !important; background:rgba(15,23,42,.72); align-items:center; justify-content:center; padding:24px; backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);">
     <div style="width:100%; max-width:340px; background:#fff; border-radius:22px; padding:24px 20px 18px; box-shadow:0 20px 55px rgba(15,23,42,.4); text-align:center;">
         <div style="width:54px; height:54px; margin:0 auto 13px; border-radius:50%; display:flex; align-items:center; justify-content:center; background:#fef2f2; color:#dc2626; font-size:22px;"><i class="fa-solid fa-ticket"></i></div>
         <h3 id="active-voucher-cancel-confirm-title" style="margin:0 0 8px; color:#0f172a; font-size:18px; font-weight:800;">Cancel voucher claim?</h3>

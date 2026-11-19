@@ -770,6 +770,9 @@ window.OfflineCheckinManager = {
             altitude: data.altitude || null,
             speed: data.speed || null,
             capturedAt: capturedAt,
+            total_pax: data.total_pax || null,
+            companion_males: data.companion_males ?? null,
+            companion_females: data.companion_females ?? null,
             isPhotoUploadOnly: Boolean(data.isPhotoUploadOnly),
             hasPhoto: hasPhoto || Boolean(previewUrl),
             previewUrl: previewUrl,
@@ -843,6 +846,9 @@ window.OfflineCheckinManager = {
                 if (item.altitude) formData.append('altitude', String(item.altitude));
                 if (item.speed) formData.append('speed', String(item.speed));
                 if (item.capturedAt) formData.append('captured_at', item.capturedAt);
+                if (item.total_pax != null) formData.append('total_pax', String(item.total_pax));
+                if (item.companion_males != null) formData.append('companion_males', String(item.companion_males));
+                if (item.companion_females != null) formData.append('companion_females', String(item.companion_females));
 
                 if (photoBlob) {
                     if (photoBlob instanceof Blob) {
@@ -1116,6 +1122,7 @@ window.OfflineCheckinManager = {
         }
     }
 };
+try { window.OfflineCheckinManager.init(); } catch (e) {}
 
 // ══════════════════════════════════════════════════════════════════════════
 // PERSISTENT DELETED TRIPS BLACKLIST & PENDING SERVER DELETIONS
@@ -1661,8 +1668,10 @@ window.sanitizeLocalTripQueues = function () {
 
         const queuedTrips = (window.OfflineTripManager && typeof window.OfflineTripManager.getQueuedTrips === 'function')
             ? window.OfflineTripManager.getQueuedTrips()
-            : [];
-        const queuedIdSet = new Set(queuedTrips.map(q => String(q.id || q.local_id || q.update_id || '')));
+            : (function () {
+                try { return JSON.parse(localStorage.getItem('intan_elyu_offline_saved_trips') || '[]'); } catch (e) { return []; }
+            })();
+        const queuedIdSet = new Set((Array.isArray(queuedTrips) ? queuedTrips : []).map(q => String(q.id || q.local_id || q.update_id || '')));
 
         // 1. Clean orphaned pre-edit draft backup if not actively editing
         if (!sessionStorage.getItem('editing_itinerary_id')) {
@@ -1717,8 +1726,9 @@ window.sanitizeLocalTripQueues = function () {
                 }
                 return true;
             });
-            if (qChanged && window.OfflineTripManager) {
-                localStorage.setItem(window.OfflineTripManager.STORAGE_KEY, JSON.stringify(validQueued));
+            if (qChanged) {
+                const qKey = (window.OfflineTripManager && window.OfflineTripManager.STORAGE_KEY) || 'intan_elyu_offline_saved_trips';
+                localStorage.setItem(qKey, JSON.stringify(validQueued));
             }
         }
     } catch(e) {
@@ -1981,7 +1991,9 @@ window.OfflineTripManager = {
             if (primaryUrl && !baseCandidates.includes(primaryUrl)) {
                 baseCandidates.push(primaryUrl);
             }
-            baseCandidates.push('');
+            if (baseCandidates.length === 0) {
+                baseCandidates.push('');
+            }
 
             // Process pending server deletions first
             try {
@@ -2052,7 +2064,12 @@ window.OfflineTripManager = {
                         route_type: trip.route_type || 'Recommended',
                         transport_mode: trip.transport_mode || 'No Vehicle Selected',
                         client_request_id: trip.client_request_id || null,
-                        leg_transports: trip.leg_transports || []
+                        leg_transports: trip.leg_transports || [],
+                        trip_type: trip.trip_type || 'solo',
+                        companion_males: trip.companion_males || 0,
+                        companion_females: trip.companion_females || 0,
+                        companion_ages: Array.isArray(trip.companion_ages) ? trip.companion_ages : [],
+                        total_pax: trip.total_pax || 1
                     };
 
                     let tripSuccess = false;
@@ -2159,62 +2176,69 @@ window.OfflineCompletedTripsManager = {
         }
     },
 
+    _isSyncing: false,
     processQueue: async function () {
-        if (!navigator.onLine) return 0;
+        if (!navigator.onLine || this._isSyncing) return 0;
         const queue = this.getQueue();
         if (!queue || queue.length === 0) return 0;
 
         const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
-        if (!token) return 0;
+        if (!token || (typeof window.isGuestUser === 'function' && window.isGuestUser())) return 0;
 
-        const bUrl = (window.backendUrl || window.BACKEND_URL || 'https://api.intan-elyu.online').replace(/\/+$/, '');
-        let synced = 0;
-        const remaining = [];
+        this._isSyncing = true;
+        try {
+            const bUrl = (window.backendUrl || window.BACKEND_URL || 'https://api.intan-elyu.online').replace(/\/+$/, '');
+            let synced = 0;
+            const remaining = [];
 
-        for (const item of queue) {
-            try {
-                const res = await fetch(`${bUrl}/api/tourist/itineraries/${item.tripId}/complete`, {
-                    method: 'PATCH',
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + token
-                    }
-                });
-                if (res.ok || res.status === 409) {
-                    synced++;
-                    try {
-                        const data = await res.json();
-                        if (typeof window.markTripAsCompletedLocally === 'function') {
-                            window.markTripAsCompletedLocally(item.tripId, data?.points_awarded || 0, data?.total_points, data?.completed_activities);
+            for (let idx = 0; idx < queue.length; idx++) {
+                const item = queue[idx];
+                try {
+                    const res = await fetch(`${bUrl}/api/tourist/itineraries/${item.tripId}/complete`, {
+                        method: 'PATCH',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer ' + token
                         }
-                    } catch(e) {
+                    });
+                    if (res.ok || res.status === 409) {
+                        synced++;
+                        try {
+                            const data = await res.json();
+                            if (typeof window.markTripAsCompletedLocally === 'function') {
+                                window.markTripAsCompletedLocally(item.tripId, data?.points_awarded || 0, data?.total_points, data?.completed_activities);
+                            }
+                        } catch(e) {
+                            if (typeof window.markTripAsCompletedLocally === 'function') {
+                                window.markTripAsCompletedLocally(item.tripId, 0, null);
+                            }
+                        }
+                    } else if (res.status >= 400 && res.status < 500 && res.status !== 401 && res.status !== 403 && res.status !== 408 && res.status !== 429) {
+                        // permanent client error (e.g. 404 deleted)
                         if (typeof window.markTripAsCompletedLocally === 'function') {
                             window.markTripAsCompletedLocally(item.tripId, 0, null);
                         }
+                    } else {
+                        remaining.push(item);
                     }
-                } else if (res.status >= 400 && res.status < 500 && res.status !== 408) {
-                    // permanent client error (e.g. 404 deleted)
-                    if (typeof window.markTripAsCompletedLocally === 'function') {
-                        window.markTripAsCompletedLocally(item.tripId, 0, null);
-                    }
-                } else {
-                    remaining.push(item);
+                } catch (err) {
+                    remaining.push(...queue.slice(idx));
+                    break;
                 }
-            } catch (err) {
-                remaining.push(item);
-                break;
             }
-        }
 
-        this.saveQueue(remaining);
-        if (synced > 0) {
-            const tokenKey = token.substring(0, 10);
-            localStorage.removeItem('saved_trips_' + tokenKey);
-            localStorage.removeItem('dashboard_trips_' + tokenKey);
-            window.dispatchEvent(new CustomEvent('tripsSynced'));
+            this.saveQueue(remaining);
+            if (synced > 0) {
+                const tokenKey = token.substring(0, 10);
+                localStorage.removeItem('saved_trips_' + tokenKey);
+                localStorage.removeItem('dashboard_trips_' + tokenKey);
+                window.dispatchEvent(new CustomEvent('tripsSynced'));
+            }
+            return synced;
+        } finally {
+            this._isSyncing = false;
         }
-        return synced;
     }
 };
 
@@ -2223,6 +2247,7 @@ window.OfflineCompletedTripsManager = {
 // ══════════════════════════════════════════════════════════════════════════
 window.OfflineFavoriteManager = {
     STORAGE_KEY: 'intan_elyu_offline_favorite_toggles',
+    _isSyncing: false,
 
     getQueue: function () {
         try {
@@ -2249,51 +2274,57 @@ window.OfflineFavoriteManager = {
     },
 
     processQueue: async function () {
-        if (!navigator.onLine) return 0;
+        if (!navigator.onLine || this._isSyncing) return 0;
         const queue = this.getQueue();
         if (!queue || queue.length === 0) return 0;
 
         const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
-        if (!token) return 0;
+        if (!token || (typeof window.isGuestUser === 'function' && window.isGuestUser())) return 0;
 
-        const bUrl = (window.backendUrl || window.BACKEND_URL || 'https://api.intan-elyu.online').replace(/\/+$/, '');
-        let synced = 0;
-        const remaining = [];
+        this._isSyncing = true;
+        try {
+            const bUrl = (window.backendUrl || window.BACKEND_URL || 'https://api.intan-elyu.online').replace(/\/+$/, '');
+            let synced = 0;
+            const remaining = [];
 
-        for (const item of queue) {
-            try {
-                const res = await fetch(`${bUrl}/api/tourist/destinations/${item.spotId}/favorite`, {
-                    method: 'POST',
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + token
+            for (let idx = 0; idx < queue.length; idx++) {
+                const item = queue[idx];
+                try {
+                    const res = await fetch(`${bUrl}/api/tourist/destinations/${item.spotId}/favorite`, {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer ' + token
+                        }
+                    });
+                    if (res.ok || res.status === 409) {
+                        synced++;
+                    } else if (res.status >= 400 && res.status < 500 && res.status !== 401 && res.status !== 403 && res.status !== 408 && res.status !== 429) {
+                        // permanent client error
+                    } else {
+                        remaining.push(item);
                     }
-                });
-                if (res.ok || res.status === 409) {
-                    synced++;
-                } else if (res.status >= 400 && res.status < 500 && res.status !== 408) {
-                    // permanent client error
-                } else {
-                    remaining.push(item);
+                } catch (err) {
+                    remaining.push(...queue.slice(idx));
+                    break;
                 }
-            } catch (err) {
-                remaining.push(item);
-                break;
             }
-        }
 
-        this.saveQueue(remaining);
-        if (synced > 0) {
-            const tokenKey = token.substring(0, 10);
-            localStorage.removeItem('saved_places_' + tokenKey);
-            for (let i = 0; i < localStorage.length; i++) {
-                const k = localStorage.key(i);
-                if (k && k.startsWith('dashboard_data_')) localStorage.removeItem(k);
+            this.saveQueue(remaining);
+            if (synced > 0) {
+                const tokenKey = token.substring(0, 10);
+                localStorage.removeItem('saved_places_' + tokenKey);
+                for (let i = localStorage.length - 1; i >= 0; i--) {
+                    const k = localStorage.key(i);
+                    if (k && k.startsWith('dashboard_data_')) localStorage.removeItem(k);
+                }
+                window.dispatchEvent(new CustomEvent('favoritesSynced'));
             }
-            window.dispatchEvent(new CustomEvent('favoritesSynced'));
+            return synced;
+        } finally {
+            this._isSyncing = false;
         }
-        return synced;
     }
 };
 
@@ -2302,6 +2333,7 @@ window.OfflineFavoriteManager = {
 // ══════════════════════════════════════════════════════════════════════════
 window.OfflineGameClaimsManager = {
     STORAGE_KEY: 'intan_elyu_offline_game_claims',
+    _isSyncing: false,
 
     getQueue: function () {
         try {
@@ -2330,63 +2362,69 @@ window.OfflineGameClaimsManager = {
     },
 
     processQueue: async function () {
-        if (!navigator.onLine) return 0;
+        if (!navigator.onLine || this._isSyncing) return 0;
         const queue = this.getQueue();
         if (!queue || queue.length === 0) return 0;
 
         const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('api_token');
-        if (!token) return 0;
+        if (!token || (typeof window.isGuestUser === 'function' && window.isGuestUser())) return 0;
 
-        const bUrl = (window.backendUrl || window.BACKEND_URL || 'https://api.intan-elyu.online').replace(/\/+$/, '');
-        let synced = 0;
-        const remaining = [];
+        this._isSyncing = true;
+        try {
+            const bUrl = (window.backendUrl || window.BACKEND_URL || 'https://api.intan-elyu.online').replace(/\/+$/, '');
+            let synced = 0;
+            const remaining = [];
 
-        for (const item of queue) {
-            try {
-                let endpoint = '/api/tourist/points/minigame';
-                let bodyObj = { game_type: item.game_type };
-                if (item.game_type === 'puzzle') {
-                    endpoint = '/api/tourist/points/puzzle';
-                    bodyObj = {};
-                } else if (item.game_type === 'trivia') {
-                    endpoint = '/api/tourist/points/trivia';
-                    bodyObj = {};
-                }
+            for (let idx = 0; idx < queue.length; idx++) {
+                const item = queue[idx];
+                try {
+                    let endpoint = '/api/tourist/points/minigame';
+                    let bodyObj = { game_type: item.game_type };
+                    if (item.game_type === 'puzzle') {
+                        endpoint = '/api/tourist/points/puzzle';
+                        bodyObj = {};
+                    } else if (item.game_type === 'trivia') {
+                        endpoint = '/api/tourist/points/trivia';
+                        bodyObj = {};
+                    }
 
-                const res = await fetch(`${bUrl}${endpoint}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        'Authorization': 'Bearer ' + token
-                    },
-                    body: JSON.stringify(bodyObj)
-                });
-                if (res.ok || res.status === 409 || res.status === 429) {
-                    synced++;
-                } else if (res.status >= 400 && res.status < 500 && res.status !== 408) {
-                    // permanent client error
-                } else {
-                    remaining.push(item);
-                }
-            } catch (err) {
-                remaining.push(item);
-                break;
-            }
-        }
-
-        this.saveQueue(remaining);
-        if (synced > 0) {
-            window.leaderboardNeedsRefresh = true;
-            for (let i = localStorage.length - 1; i >= 0; i--) {
-                const k = localStorage.key(i);
-                if (k && (k.startsWith('leaderboard_data_') || k.startsWith('points_balance_'))) {
-                    localStorage.removeItem(k);
+                    const res = await fetch(`${bUrl}${endpoint}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'Authorization': 'Bearer ' + token
+                        },
+                        body: JSON.stringify(bodyObj)
+                    });
+                    if (res.ok || res.status === 409 || res.status === 429) {
+                        synced++;
+                    } else if (res.status >= 400 && res.status < 500 && res.status !== 401 && res.status !== 403 && res.status !== 408) {
+                        // permanent client error
+                    } else {
+                        remaining.push(item);
+                    }
+                } catch (err) {
+                    remaining.push(...queue.slice(idx));
+                    break;
                 }
             }
-            window.dispatchEvent(new CustomEvent('gamePointsSynced'));
+
+            this.saveQueue(remaining);
+            if (synced > 0) {
+                window.leaderboardNeedsRefresh = true;
+                for (let i = localStorage.length - 1; i >= 0; i--) {
+                    const k = localStorage.key(i);
+                    if (k && (k.startsWith('leaderboard_data_') || k.startsWith('points_balance_'))) {
+                        localStorage.removeItem(k);
+                    }
+                }
+                window.dispatchEvent(new CustomEvent('gamePointsSynced'));
+            }
+            return synced;
+        } finally {
+            this._isSyncing = false;
         }
-        return synced;
     }
 };
 
@@ -2395,6 +2433,7 @@ window.OfflineGameClaimsManager = {
 // ══════════════════════════════════════════════════════════════════════════
 window.OfflineProfileManager = {
     STORAGE_KEY: 'intan_elyu_pending_profile_update',
+    _isSyncing: false,
 
     getPending: function () {
         try {
@@ -2412,13 +2451,14 @@ window.OfflineProfileManager = {
     },
 
     processQueue: async function () {
-        if (!navigator.onLine) return 0;
+        if (!navigator.onLine || this._isSyncing) return 0;
         const pending = this.getPending();
         if (!pending) return 0;
 
         const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
-        if (!token) return 0;
+        if (!token || (typeof window.isGuestUser === 'function' && window.isGuestUser())) return 0;
 
+        this._isSyncing = true;
         const bUrl = (window.backendUrl || window.BACKEND_URL || 'https://api.intan-elyu.online').replace(/\/+$/, '');
 
         try {
@@ -2460,6 +2500,8 @@ window.OfflineProfileManager = {
             }
         } catch (err) {
             console.warn('Offline profile sync error:', err);
+        } finally {
+            this._isSyncing = false;
         }
         return 0;
     }
@@ -3710,11 +3752,12 @@ window.renderSavedTrips = function (itineraries) {
                     paxBadge = `<span style="background:rgba(255,255,255,0.18); color:#ffffff; padding:3px 9px; border-radius:100px; font-weight:700; font-size:11.5px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-user" style="font-size:10px; color:#38bdf8;"></i> Solo</span>`;
                 }
 
+                const isCompletedHistoryTrip = Boolean(trip.status === 'completed' || trip.is_completed);
                 html += `
                 <div class="trip-swipe-container" data-trip-id="${trip.id}" data-trip-title="${safeTitle}" style="position:relative; overflow:hidden; border-radius:24px; -webkit-mask-image:-webkit-radial-gradient(white, black); mask-image:radial-gradient(white, black); isolation:isolate; contain:paint; margin-bottom:20px; touch-action:pan-y;">
-                    <div class="trip-swipe-bg" onclick="event.stopPropagation(); window.confirmDeleteSavedTrip('${trip.id}', this.closest('.trip-swipe-container'), '${safeTitle}');" style="position:absolute; top:0; right:0; bottom:0; width:95px; background:linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border-radius:0 24px 24px 0; display:flex; align-items:center; justify-content:center; color:#ffffff; font-size:13px; font-weight:800; gap:6px; z-index:1; cursor:pointer; opacity:0; pointer-events:none; transform:translateX(95px); transition:transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease; touch-action:manipulation;">
+                    ${!isCompletedHistoryTrip ? `<div class="trip-swipe-bg" onclick="event.stopPropagation(); window.confirmDeleteSavedTrip('${trip.id}', this.closest('.trip-swipe-container'), '${safeTitle}');" style="position:absolute; top:0; right:0; bottom:0; width:95px; background:linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border-radius:0 24px 24px 0; display:flex; align-items:center; justify-content:center; color:#ffffff; font-size:13px; font-weight:800; gap:6px; z-index:1; cursor:pointer; opacity:0; pointer-events:none; transform:translateX(95px); transition:transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease; touch-action:manipulation;">
                         <i class="fa-solid fa-trash-can"></i> Delete
-                    </div>
+                    </div>` : ''}
                     <div class="trip-swipe-content" style="position:relative; z-index:2; background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border: none !important; outline: none !important; border-radius: 24px; padding: 22px; transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-radius 0.25s ease; box-shadow: 0 10px 28px rgba(10, 25, 60, 0.28);">
                         <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 6px;">
                             <h3 style="margin: 0; font-size: 20px; font-weight: 800; color: #ffffff; letter-spacing: -0.3px; flex: 1; min-width: 0; word-break: break-word;">${trip.title}</h3>
@@ -3787,7 +3830,7 @@ window.renderSavedTrips = function (itineraries) {
                                     <div style="position:relative; flex-shrink:0;">
                                         <img src="${displayUrl}" 
                                             onerror="if(this.dataset.triedFallback!=='1'){this.dataset.triedFallback='1';this.src='${fallbackUrl}';}else{this.onerror=null;this.src='assets/img/no_image.svg';}" 
-                                            onclick="event.stopPropagation(); if(typeof window.viewTripPhotoModal==='function') window.viewTripPhotoModal(${jsonUrlsAttr}, '${destEscaped}', 'Photo (${pIdx + 1} of ${uploadedPhotos.length})', ${pIdx});" 
+                                            onclick="event.stopPropagation(); if(typeof window.viewTripPhotoModal==='function') window.viewTripPhotoModal(${jsonUrlsAttr}, '${destEscaped}', 'Photo (${pIdx + 1} of ${uploadedPhotos.length})', ${pIdx}, { itemId: '${item.id}', canDelete: ${!isTripCompleted && !isQueued} });" 
                                             alt="Photo ${pIdx + 1}" 
                                             title="Tap to view photo" 
                                             loading="lazy"
@@ -5457,7 +5500,7 @@ window.initSavedTripsSwipe = function () {
 
         const content = container.querySelector('.trip-swipe-content');
         const bg = container.querySelector('.trip-swipe-bg');
-        if (!content) return;
+        if (!content || !bg) return;
 
         let startX = 0, startY = 0, currentX = 0, currentY = 0;
         let isSwiping = false, isHorizontalSwipe = false, isGestureDetermined = false;
@@ -6193,7 +6236,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
     let authToken = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
     const isNetworkOffline = (typeof navigator.onLine === 'boolean') ? !navigator.onLine : (window.isAppOnline === false);
 
-    if (!authToken && targetView !== 'auth' && targetView !== 'download') {
+    if (!authToken && targetView !== 'auth' && targetView !== 'download' && targetView !== 'reset-password' && targetView !== 'splash') {
         if (isNetworkOffline) {
             authToken = 'offline_guest_token';
             localStorage.setItem('intan_elyu_token', authToken);
@@ -6267,6 +6310,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
     rememberViewScrollPosition(state.currentView);
 
     state.isNavigating = true;
+    const navSeq = (window._navReqSeq = (window._navReqSeq || 0) + 1);
     const mainContent = document.getElementById('main-content');
 
     // Emergency failsafe: auto-unlock after 3 seconds no matter what
@@ -6333,12 +6377,14 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
         } else if (!isNetworkOffline || !html) {
             try {
                 const freshHtml = await fetchViewPartial(targetView, extraParams);
+                if (window._navReqSeq !== navSeq) return;
                 if (isValidViewPartial(freshHtml)) {
                     html = freshHtml;
                     window._viewHtmlCache[targetView] = html;
                     try { localStorage.setItem('elyu_view_cache_v22_' + targetView, html); } catch(e) {}
                 }
             } catch (fetchErr) {
+                if (window._navReqSeq !== navSeq) return;
                 if (!window.isExpectedAbortError(fetchErr)) {
                     console.warn(`View fetch for ${targetView} failed (using cache if available):`, fetchErr);
                 }
@@ -6418,7 +6464,7 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
             </div>`;
         } else if (!html && targetView === 'dashboard') {
             html = `<div class="mobile-header">
-                <div class="header-icon" onclick="typeof toggleSidebar==='function'&&toggleSidebar()" title="Menu">
+                <div class="header-icon" onclick="if(document.getElementById('sidebar-menu') && typeof toggleSidebar==='function'){toggleSidebar();}else if(typeof navigateTo==='function'){navigateTo('settings');}" title="Menu">
                     <i class="fa-solid fa-bars"></i>
                 </div>
                 <h1 class="header-title">Feel La Union</h1>
@@ -6729,23 +6775,45 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
 
         const updateContent = () => {
             try {
-                // Immediately dismiss and remove any lingering sidebar menu or overlay
-                const lingeringOverlay = document.getElementById('sidebar-overlay');
-                if (lingeringOverlay) {
-                    lingeringOverlay.style.display = 'none';
-                    lingeringOverlay.style.opacity = '0';
-                    lingeringOverlay.style.pointerEvents = 'none';
-                    try { lingeringOverlay.remove(); } catch (e) { }
+                // Immediately dismiss and remove any lingering sidebar menu or overlay (all duplicates)
+                if (window._sidebarOverlayTimer) {
+                    clearTimeout(window._sidebarOverlayTimer);
+                    window._sidebarOverlayTimer = null;
                 }
-                const lingeringNav = document.getElementById('bottom-navigation'); if (lingeringNav) lingeringNav.classList.remove('nav-hidden'); document.body.classList.remove('itin-confirm-open');
-                const lingeringSidebar = document.getElementById('sidebar-menu');
-                if (lingeringSidebar) {
-                    lingeringSidebar.style.left = '-280px';
-                    try { lingeringSidebar.remove(); } catch (e) { }
+                document.querySelectorAll('#sidebar-overlay').forEach(ov => {
+                    ov.style.display = 'none';
+                    ov.style.opacity = '0';
+                    ov.style.pointerEvents = 'none';
+                    try { ov.remove(); } catch (e) { }
+                });
+                const lingeringNav = document.getElementById('bottom-navigation');
+                if (lingeringNav) {
+                    lingeringNav.classList.remove('nav-hidden');
+                    if (document.body.classList.contains('profile-modal-open')) {
+                        lingeringNav.style.filter = '';
+                        lingeringNav.style.webkitFilter = '';
+                        lingeringNav.style.opacity = '';
+                        lingeringNav.style.zIndex = '';
+                        lingeringNav.style.pointerEvents = '';
+                    }
                 }
+                const lingeringMagicNav = document.querySelector('.magic-nav');
+                if (lingeringMagicNav && document.body.classList.contains('profile-modal-open')) {
+                    lingeringMagicNav.style.filter = '';
+                    lingeringMagicNav.style.webkitFilter = '';
+                    lingeringMagicNav.style.opacity = '';
+                    lingeringMagicNav.style.zIndex = '';
+                    lingeringMagicNav.style.pointerEvents = '';
+                }
+                document.body.classList.remove('itin-confirm-open', 'profile-modal-open', 'modal-blurred');
+                document.documentElement.classList.remove('profile-modal-open', 'modal-blurred');
+                document.querySelectorAll('#sidebar-menu').forEach(sb => {
+                    sb.style.left = '-280px';
+                    try { sb.remove(); } catch (e) { }
+                });
 
                 // ── Teardown previous view resources to prevent mobile lag & leaks ──
-                ['full-history-modal', 'full-vouchers-modal', 'full-deals-modal', 'active-voucher-qr-modal', 'trip-details-modal', 'reward-details-modal', 'personalize-trips-modal', 'delete-trip-modal', 'edit-trip-details-modal', 'complete-trip-modal', 'photo-upload-modal', 'trip-guide-modal', 'elyu-photo-viewer-modal', 'global-oauth-overlay', 'offline-auth-modal', 'login-success-modal', 'auth-cancel-modal', 'privacy-policy-modal', 'testimony-modal', 'trip-completion-review-modal', 'trip-completed-success-modal', 'save-trip-modal', 'confirm-modal', 'leg-transport-modal', 'transit-summary-opensheet', 'travel-mode-starter-modal', 'game-success-modal', 'game-alert-modal', 'game-confirm-modal', 'target-goal-preview-modal'].forEach(id => {
+                ['logout-confirm-modal', 'user-profile-modal', 'full-history-modal', 'full-vouchers-modal', 'full-deals-modal', 'active-voucher-qr-modal', 'active-voucher-cancel-confirm-modal', 'trip-details-modal', 'reward-details-modal', 'redeem-confirm-modal', 'personalize-trips-modal', 'reviews-checkins-modal', 'delete-trip-modal', 'edit-trip-details-modal', 'complete-trip-modal', 'complete-trip-save-confirmation', 'photo-upload-modal', 'trip-guide-modal', 'elyu-photo-viewer-modal', 'ordinance-viewer-modal', 'visitor-photo-lightbox', 'weather-modal', 'weather-day-picks-modal', 'tourist-sites-filter-modal', 'global-oauth-overlay', 'offline-auth-modal', 'login-success-modal', 'auth-cancel-modal', 'privacy-policy-modal', 'testimony-modal', 'trip-completion-review-modal', 'trip-completed-success-modal', 'save-trip-modal', 'confirm-modal', 'focus-base-modal', 'custom-calendar-dropdown', 'leg-transport-modal', 'transit-summary-opensheet', 'travel-mode-starter-modal', 'game-success-modal', 'game-alert-modal', 'game-confirm-modal', 'target-goal-preview-modal'].forEach(id => {
                     document.querySelectorAll('#' + id).forEach(m => {
                         if (m.parentElement === document.body) {
                             try { m.remove(); } catch (e) { }
@@ -6771,6 +6839,41 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                 if (window._mapMarineSyncInterval) {
                     clearInterval(window._mapMarineSyncInterval);
                     window._mapMarineSyncInterval = null;
+                }
+                if (window.sheetSliderTimer) {
+                    clearInterval(window.sheetSliderTimer);
+                    window.sheetSliderTimer = null;
+                }
+                if (targetView !== 'map' && typeof window._cleanupMapGlobalListeners === 'function') {
+                    try { window._cleanupMapGlobalListeners(); } catch (e) { }
+                }
+                if (targetView !== 'splash' && typeof window._elyuSplashCleanup === 'function') {
+                    try { window._elyuSplashCleanup(); } catch (e) { }
+                }
+                if (targetView !== 'ar_checkin' && typeof window._cleanupArCheckin === 'function') {
+                    try { window._cleanupArCheckin(); } catch (e) { }
+                }
+                if (targetView !== 'trip_map' && typeof window._cleanupTripMap === 'function') {
+                    try { window._cleanupTripMap(); } catch (e) { }
+                }
+                if (targetView !== 'saved_trips' && typeof window._cleanupSavedTrips === 'function') {
+                    try { window._cleanupSavedTrips(); } catch (e) { }
+                }
+                if (targetView !== 'discount' && typeof window._cleanupDiscount === 'function') {
+                    try { window._cleanupDiscount(); } catch (e) { }
+                }
+                if (targetView !== 'puzzles' && typeof window._cleanupPuzzles === 'function') {
+                    try { window._cleanupPuzzles(); } catch (e) { }
+                }
+                if (targetView !== 'settings' && typeof window._cleanupSettings === 'function') {
+                    try { window._cleanupSettings(); } catch (e) { }
+                }
+                if (targetView !== 'reset-password' && typeof window._cleanupResetPassword === 'function') {
+                    try { window._cleanupResetPassword(); } catch (e) { }
+                }
+                if (window._savedTripsWatchId && navigator.geolocation) {
+                    try { navigator.geolocation.clearWatch(window._savedTripsWatchId); } catch (e) { }
+                    window._savedTripsWatchId = null;
                 }
                 if (window._gpsDebounceTimer) {
                     clearTimeout(window._gpsDebounceTimer);
@@ -6822,9 +6925,11 @@ async function navigateTo(viewName, addToHistory = true, fade = true) {
                 document.body.setAttribute('data-view', targetView);
 
                 // A replaced view must not inherit navigation-hiding state from the previous screen.
-                const transientNavClasses = ['keyboard-open', 'map-search-active', 'sheet-open', 'modal-blurred', 'itinerary-confirm-open', 'itin-confirm-open', 'notif-open', 'logout-open', 'map-route-active', 'map-directions-open'];
+                const transientNavClasses = ['keyboard-open', 'map-search-active', 'sheet-open', 'modal-blurred', 'itinerary-confirm-open', 'itin-confirm-open', 'notif-open', 'logout-open', 'map-route-active', 'map-route-preview', 'map-directions-open', 'trip-guide-open'];
                 document.body.classList.remove(...transientNavClasses);
                 document.documentElement.classList.remove(...transientNavClasses);
+                document.body.style.overflow = '';
+                document.documentElement.style.overflow = '';
 
                 // Execute any scripts in the new view
                 executeScripts(mainContent);
@@ -7025,8 +7130,6 @@ window.navigateTo = navigateTo;
      */
     window.handleAppBack = function (explicitFallback) {
         window._isStartingTrip = false;
-        try { sessionStorage.removeItem('active_trip_id'); } catch (e) {}
-        window.currentTripId = null;
         // 0. If App Exit Modal is currently open, dismiss it
         const exitModal = document.getElementById('app-exit-confirm-modal');
         if (exitModal && exitModal.style.display !== 'none' && window.getComputedStyle(exitModal).display !== 'none') {
@@ -7146,6 +7249,8 @@ window.navigateTo = navigateTo;
         }
 
         // 5. Navigate back to most recent page opened first, then fallback to explicit $backRoute / parent
+        try { sessionStorage.removeItem('active_trip_id'); } catch (e) {}
+        window.currentTripId = null;
         const currentView = (state && state.currentView) || new URLSearchParams(window.location.search).get('view') || 'dashboard';
 
         // Navigation history stack check (return to whichever recent page opened this view)
@@ -7385,6 +7490,8 @@ window.navigateTo = navigateTo;
                 window.history.replaceState({}, document.title, window.location.pathname + '?view=' + targetView);
             }
             if (typeof showToast === 'function') showToast('Logged in successfully!', 'success');
+            window._isProcessingGoogleOAuth = false;
+            window._googleOAuthActiveProcessing = false;
             navigateTo(targetView, true, true);
             return;
         }
@@ -7423,6 +7530,7 @@ window.navigateTo = navigateTo;
 
         if (hasError) {
             window._isProcessingGoogleOAuth = false;
+            window._googleOAuthActiveProcessing = false;
             try { sessionStorage.removeItem('intan_elyu_google_oauth_pending'); } catch (e) { }
             const errorDesc = params.get('error_description') || params.get('error') || 'Google sign-in was cancelled.';
             console.warn('Google OAuth returned error:', errorDesc);
@@ -7436,6 +7544,7 @@ window.navigateTo = navigateTo;
 
         if (!accessToken && !idToken) {
             window._isProcessingGoogleOAuth = false;
+            window._googleOAuthActiveProcessing = false;
             try { sessionStorage.removeItem('intan_elyu_google_oauth_pending'); } catch (e) { }
             return;
         }
@@ -7480,25 +7589,16 @@ window.navigateTo = navigateTo;
 
         const overlay = showOverlay();
 
-        // Retrieve profile info using OAuth access token
-        const fetchProfile = accessToken
-            ? fetch('https://www.googleapis.com/oauth2/v3/userinfo', { headers: { Authorization: `Bearer ${accessToken}` } }).then(r => r.json())
-            : Promise.resolve(null);
-
-        fetchProfile
-            .then(profile => {
+        // Send Google OAuth token directly so the backend verifies it server-side with Google
+        Promise.resolve()
+            .then(() => {
                 let payload = {};
-                if (profile && profile.email) {
-                    payload = {
-                        email: profile.email,
-                        name: profile.name || (profile.given_name + ' ' + (profile.family_name || '')).trim(),
-                        google_id: 'g_' + profile.sub,
-                        avatar: profile.picture
-                    };
-                } else if (idToken) {
+                if (idToken) {
                     payload = { credential: idToken };
+                } else if (accessToken) {
+                    payload = { access_token: accessToken };
                 } else {
-                    throw new Error('Unable to retrieve profile from Google.');
+                    throw new Error('Unable to retrieve Google authentication token.');
                 }
 
                 const backend = (typeof window.getBackendUrl === 'function') ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online');
@@ -7701,6 +7801,7 @@ window.navigateTo = navigateTo;
                         setTimeout(() => ov.remove(), 300);
                     }
                     window._isProcessingGoogleOAuth = false;
+                    window._googleOAuthActiveProcessing = false;
                     if (typeof showToast === 'function') {
                         showToast(`Welcome back, ${data.user?.name || 'Explorer'}!`, 'success');
                     }
@@ -7710,6 +7811,7 @@ window.navigateTo = navigateTo;
             .catch(err => {
                 console.error('Google OAuth Handshake Error:', err);
                 window._isProcessingGoogleOAuth = false;
+                window._googleOAuthActiveProcessing = false;
                 try { sessionStorage.removeItem('intan_elyu_google_oauth_pending'); } catch (e) { }
                 const ov = document.getElementById('global-oauth-overlay');
                 if (ov) ov.remove();
@@ -8161,12 +8263,12 @@ window.navigateTo = navigateTo;
 
             const hasPending = (function () {
                 try {
-                    const c1 = JSON.parse(localStorage.getItem('intan_elyu_offline_checkins_queue') || '[]').length;
-                    const c2 = JSON.parse(localStorage.getItem('intan_elyu_offline_trips_queue') || '[]').length;
-                    const c3 = JSON.parse(localStorage.getItem('intan_elyu_offline_completed_trips_queue') || '[]').length;
-                    const c4 = JSON.parse(localStorage.getItem('intan_elyu_offline_favorites_queue') || '[]').length;
-                    const c5 = JSON.parse(localStorage.getItem('intan_elyu_offline_game_claims_queue') || '[]').length;
-                    const c6 = JSON.parse(localStorage.getItem('intan_elyu_offline_profile_queue') || '[]').length;
+                    const c1 = JSON.parse(localStorage.getItem('intan_elyu_offline_checkins') || '[]').length;
+                    const c2 = JSON.parse(localStorage.getItem('intan_elyu_offline_saved_trips') || '[]').length;
+                    const c3 = JSON.parse(localStorage.getItem('intan_elyu_offline_completed_trips') || '[]').length;
+                    const c4 = JSON.parse(localStorage.getItem('intan_elyu_offline_favorite_toggles') || '[]').length;
+                    const c5 = JSON.parse(localStorage.getItem('intan_elyu_offline_game_claims') || '[]').length;
+                    const c6 = localStorage.getItem('intan_elyu_pending_profile_update') ? 1 : 0;
                     return (c1 + c2 + c3 + c4 + c5 + c6);
                 } catch (e) { return 0; }
             })();
@@ -8230,6 +8332,17 @@ window.navigateTo = navigateTo;
                     k.startsWith('intan_elyu_offline_game_claims') ||
                     k.startsWith('intan_elyu_offline_checkins') ||
                     k.startsWith('intan_elyu_offline_visited_spots') ||
+                    k.startsWith('intan_elyu_offline_saved_trips') ||
+                    k.startsWith('intan_elyu_offline_completed_trips') ||
+                    k.startsWith('intan_elyu_offline_favorite_toggles') ||
+                    k === 'intan_elyu_saved_trips' ||
+                    k === 'intan_elyu_pending_profile_update' ||
+                    k === 'intan_elyu_pending_delete_trips' ||
+                    k === 'intan_elyu_deleted_trip_ids' ||
+                    k === 'intan_elyu_completed_trip_ids' ||
+                    k === 'intan_elyu_verified_item_states' ||
+                    k === 'dashboard_cached_payload' ||
+                    k === 'offline_checkin_queue' ||
                     k === 'api_token' ||
                     k === 'intan_elyu_token' ||
                     k === 'Intan_Elyu_Token' ||
@@ -8478,7 +8591,12 @@ window.navigateTo = navigateTo;
             navigator.geolocation.clearWatch(window.intanElyuLocationWatchId);
         }
 
-        let lastAlertedItems = JSON.parse(localStorage.getItem('intan_elyu_alerted_items') || '{}');
+        let lastAlertedItems = {};
+        try {
+            lastAlertedItems = JSON.parse(localStorage.getItem('intan_elyu_alerted_items') || '{}') || {};
+        } catch (e) {
+            lastAlertedItems = {};
+        }
         let lastGpsProcessTime = 0;
 
         const onPos = (position) => {
@@ -8824,7 +8942,7 @@ window.navigateTo = navigateTo;
                 </div>
                 ${window.LA_UNION_TOWNS.map(t => `
                     <div onclick="window.setManualLocation(${t.lat}, ${t.lng}, '${t.name.replace(/'/g, "\\'")}')" style="display:flex; align-items:center; gap:12px; padding:10px 14px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:14px; cursor:pointer; transition:all 0.15s ease;" onmouseover="this.style.background='rgba(56,189,248,0.15)'; this.style.borderColor='rgba(56,189,248,0.4)';" onmouseout="this.style.background='rgba(255,255,255,0.04)'; this.style.borderColor='rgba(255,255,255,0.08)';">
-                        <span style="font-size:20px; width:28px; text-align:center;">${t.icon}</span>
+                        <span style="font-size:18px; width:28px; text-align:center; color:#38bdf8;">${String(t.icon || '').startsWith('fa-') ? `<i class="fa-solid ${t.icon}"></i>` : t.icon}</span>
                         <div style="flex:1; min-width:0;">
                             <div style="font-size:13px; font-weight:700; color:#fff;">${t.name}</div>
                             <div style="font-size:11px; color:rgba(148,163,184,0.8);">${t.desc}</div>
@@ -9243,10 +9361,86 @@ window.navigateTo = navigateTo;
         return 'assets/img/no_image.svg';
     };
 
+    window.syncDeletedTripPhotoLocally = function (itemId, remainingUrls) {
+        if (!itemId) return;
+        var targetIdStr = String(itemId);
+        var cleanUrls = Array.isArray(remainingUrls) ? remainingUrls.filter(Boolean) : [];
+        var nextProofImage = cleanUrls.length > 0 ? cleanUrls[0] : null;
+
+        try {
+            var states = JSON.parse(localStorage.getItem('intan_elyu_verified_item_states') || '{}');
+            if (states[targetIdStr]) {
+                states[targetIdStr] = {
+                    ...states[targetIdStr],
+                    proof_image: nextProofImage,
+                    proof_images: cleanUrls,
+                    updated_at: Date.now()
+                };
+                localStorage.setItem('intan_elyu_verified_item_states', JSON.stringify(states));
+            }
+        } catch (e) { }
+
+        var patchItems = function (items) {
+            if (!Array.isArray(items)) return items;
+            return items.map(function (it) {
+                if (!it || String(it.id || '') !== targetIdStr) return it;
+                return { ...it, proof_image: nextProofImage, proof_images: cleanUrls };
+            });
+        };
+
+        if (window.currentTrip && Array.isArray(window.currentTrip.items)) {
+            window.currentTrip.items = patchItems(window.currentTrip.items);
+            window.currentTripItems = window.currentTrip.items;
+            if (typeof window.renderConveyorCards === 'function') {
+                var activeIdx = window.currentTripItems.findIndex(function (i) { return !(i && (i.is_visited || i.visited_at || i.is_location_verified)); });
+                window.renderConveyorCards(window.currentTripItems, activeIdx >= 0 ? activeIdx : 0);
+            }
+        }
+
+        var patchTripsList = function (list) {
+            if (!Array.isArray(list)) return list;
+            return list.map(function (t) {
+                if (!t || !Array.isArray(t.items)) return t;
+                return { ...t, items: patchItems(t.items) };
+            });
+        };
+
+        if (Array.isArray(window._cachedSavedTrips)) {
+            window._cachedSavedTrips = patchTripsList(window._cachedSavedTrips);
+            if (typeof window.renderSavedTrips === 'function') {
+                window.renderSavedTrips(window._cachedSavedTrips);
+            }
+        }
+
+        ['intan_elyu_saved_trips', 'intan_elyu_offline_saved_trips', 'intan_elyu_offline_saved_trips_backup'].forEach(function (k) {
+            try {
+                var raw = localStorage.getItem(k);
+                if (!raw) return;
+                var parsed = JSON.parse(raw);
+                if (Array.isArray(parsed)) {
+                    localStorage.setItem(k, JSON.stringify(patchTripsList(parsed)));
+                } else if (parsed && Array.isArray(parsed.itineraries)) {
+                    parsed.itineraries = patchTripsList(parsed.itineraries);
+                    localStorage.setItem(k, JSON.stringify(parsed));
+                }
+            } catch (e) { }
+        });
+
+        try {
+            Object.keys(localStorage).forEach(function (k) {
+                if (k.startsWith('saved_trips_') || k.startsWith('dashboard_trips_')) {
+                    localStorage.removeItem(k);
+                }
+            });
+        } catch (e) { }
+
+        window.dashboardNeedsRefresh = true;
+    };
+
     /**
-     * Global Lightbox Photo Viewer Modal (Supports single photo or multiple photos gallery)
+     * Global Lightbox Photo Viewer Modal (Supports single photo or multiple photos gallery + active-trip photo delete)
      */
-    window.viewTripPhotoModal = function (urlOrUrls, title = 'Visit Photo', subtitle = '', initialIndex = 0) {
+    window.viewTripPhotoModal = function (urlOrUrls, title = 'Visit Photo', subtitle = '', initialIndex = 0, options = null) {
         if (!urlOrUrls) return;
         var urls = [];
         if (Array.isArray(urlOrUrls)) {
@@ -9267,23 +9461,102 @@ window.navigateTo = navigateTo;
             return (typeof window.resolveTripPhotoUrl === 'function') ? window.resolveTripPhotoUrl(u) : u;
         });
 
+        var itemId = (options && options.itemId) ? options.itemId : null;
+        var canDelete = Boolean(
+            itemId &&
+            (!options || options.canDelete !== false) &&
+            !String(itemId).startsWith('offline_') &&
+            !(typeof window.isGuestUser === 'function' && window.isGuestUser())
+        );
+        var confirmingDelete = false;
+        var deletingInFlight = false;
+
         var currentIndex = Math.max(0, Math.min(initialIndex || 0, urls.length - 1));
         var existing = document.getElementById('elyu-photo-viewer-modal');
         if (existing) existing.remove();
 
         var modal = document.createElement('div');
         modal.id = 'elyu-photo-viewer-modal';
-        modal.style.cssText = 'display:flex; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.88); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:999999; flex-direction:column; align-items:center; justify-content:center; padding:16px; box-sizing:border-box;';
+        modal.style.cssText = 'display:flex; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.88); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:2147483000 !important; flex-direction:column; align-items:center; justify-content:center; padding:16px; box-sizing:border-box;';
         modal.onclick = function (e) {
+            if (deletingInFlight) return;
             if (e.target === modal || e.target.closest('.close-viewer-btn')) {
                 modal.remove();
             }
         };
 
+        async function executePhotoDelete() {
+            if (deletingInFlight || !itemId || !urls[currentIndex]) return;
+            if (navigator.onLine === false || window.isAppOnline === false) {
+                if (typeof showToast === 'function') showToast('Internet connection required to delete uploaded photos.', 'error');
+                return;
+            }
+            var token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
+            if (!token) {
+                if (typeof showToast === 'function') showToast('Please sign in again to delete photos.', 'error');
+                return;
+            }
+            deletingInFlight = true;
+            renderContent();
+            try {
+                var activeBackend = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
+                var res = await fetch(activeBackend + '/api/tourist/itineraries/items/' + itemId + '/proof', {
+                    method: 'DELETE',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token,
+                        'ngrok-skip-browser-warning': 'true'
+                    },
+                    body: JSON.stringify({
+                        photo_url: urls[currentIndex],
+                        index: currentIndex
+                    })
+                });
+                var data = {};
+                try { data = await res.json(); } catch (e) { }
+                if (!res.ok || !data.success) {
+                    throw new Error(data.message || 'Could not delete photo.');
+                }
+
+                var serverRemaining = Array.isArray(data.proof_images)
+                    ? data.proof_images.map(function (u) { return typeof window.resolveTripPhotoUrl === 'function' ? window.resolveTripPhotoUrl(u) : u; })
+                    : urls.filter(function (_, i) { return i !== currentIndex; });
+
+                urls = serverRemaining;
+                confirmingDelete = false;
+                deletingInFlight = false;
+
+                window.syncDeletedTripPhotoLocally(itemId, urls);
+                if (typeof window.fetchSavedTrips === 'function' && document.getElementById('saved-trips-list')) {
+                    window.fetchSavedTrips(true);
+                }
+                if (typeof showToast === 'function') showToast('Photo deleted.', 'success');
+
+                if (urls.length === 0) {
+                    modal.remove();
+                    return;
+                }
+                currentIndex = Math.min(currentIndex, urls.length - 1);
+                renderContent();
+            } catch (err) {
+                deletingInFlight = false;
+                confirmingDelete = false;
+                renderContent();
+                if (typeof showToast === 'function') showToast(err.message || 'Failed to delete photo.', 'error');
+            }
+        }
+
         function renderContent() {
             var total = urls.length;
             var currentUrl = urls[currentIndex];
-            var counterText = total > 1 ? `<span style="font-size:11px; font-weight:800; background:rgba(0,242,254,0.2); color:#00f2fe; padding:2px 8px; border-radius:100px;">${currentIndex + 1} / ${total}</span>` : '';
+            var counterText = total > 1
+                ? `<span style="font-size:11px; font-weight:800; background:rgba(0,242,254,0.2); color:#00f2fe; padding:2px 9px; border-radius:100px; white-space:nowrap; flex-shrink:0; line-height:1.3;">${currentIndex + 1} / ${total}</span>`
+                : '';
+            var displaySubtitle = subtitle ? String(subtitle).trim() : '';
+            if (/^Photo\s*\(\d+\s*of\s*\d+\)$/i.test(displaySubtitle)) {
+                displaySubtitle = 'Uploaded Photo';
+            }
 
             var navControls = '';
             if (total > 1) {
@@ -9307,21 +9580,43 @@ window.navigateTo = navigateTo;
                 thumbStrip = `<div style="display:flex; gap:8px; overflow-x:auto; padding:6px 0; justify-content:center; max-width:100%; -webkit-overflow-scrolling:touch;">${thumbsHtml}</div>`;
             }
 
+            var deleteBtnHtml = canDelete ? `
+                <button type="button" class="delete-viewer-photo-btn" title="Delete photo" ${deletingInFlight ? 'disabled' : ''} style="width:34px; height:34px; border-radius:50%; background:rgba(239,68,68,0.24); border:1px solid rgba(248,113,113,0.45); outline:none; color:#fecaca; display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0;">
+                    <i class="fa-solid fa-trash-can" style="font-size:13px;"></i>
+                </button>` : '';
+
+            var deleteConfirmBar = (canDelete && confirmingDelete) ? `
+                <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 12px; border-radius:14px; background:rgba(239,68,68,0.16); border:1px solid rgba(248,113,113,0.4);">
+                    <span style="font-size:12px; font-weight:700; color:#fee2e2;">Delete this photo?</span>
+                    <div style="display:flex; gap:8px;">
+                        <button type="button" class="cancel-delete-photo-btn" ${deletingInFlight ? 'disabled' : ''} style="padding:6px 12px; border-radius:10px; border:none; background:rgba(255,255,255,0.16); color:#fff; font-size:11.5px; font-weight:700; cursor:pointer;">Cancel</button>
+                        <button type="button" class="confirm-delete-photo-btn" ${deletingInFlight ? 'disabled' : ''} style="padding:6px 12px; border-radius:10px; border:none; background:#ef4444; color:#fff; font-size:11.5px; font-weight:800; cursor:pointer;">${deletingInFlight ? 'Deleting...' : 'Delete'}</button>
+                    </div>
+                </div>` : '';
+
             var currentFallback = (typeof window.getTripPhotoFallbackUrl === 'function') ? window.getTripPhotoFallbackUrl(currentUrl) : 'assets/img/no_image.svg';
 
             modal.innerHTML = `
                 <div style="position:relative; width:100%; max-width:440px; background:linear-gradient(135deg, rgba(30, 58, 138, 0.98), rgba(15, 23, 42, 0.99)); border-radius:24px; padding:20px; box-shadow:0 20px 50px rgba(0,0,0,0.6); display:flex; flex-direction:column; gap:14px; border:1px solid rgba(255,255,255,0.15);" onclick="event.stopPropagation();">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <div>
-                            <h3 style="margin:0; font-size:16px; font-weight:800; color:#ffffff; display:flex; align-items:center; gap:8px;">
-                                <i class="fa-solid fa-camera" style="color:#00f2fe; font-size:15px;"></i> ${title} ${counterText}
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">
+                        <div style="flex:1; min-width:0;">
+                            <h3 style="margin:0; font-size:16px; font-weight:800; color:#ffffff; line-height:1.25; display:flex; align-items:flex-start; gap:8px;">
+                                <i class="fa-solid fa-camera" style="color:#00f2fe; font-size:15px; margin-top:2px; flex-shrink:0;"></i>
+                                <span style="min-width:0; word-break:break-word;">${title}</span>
                             </h3>
-                            ${subtitle ? `<span style="font-size:11px; color:#cbd5e1; font-weight:600; display:block; margin-top:2px;">${subtitle}</span>` : ''}
+                            ${(displaySubtitle || counterText) ? `<div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-top:5px;">
+                                ${displaySubtitle ? `<span style="font-size:11.5px; color:#cbd5e1; font-weight:600;">${displaySubtitle}</span>` : ''}
+                                ${counterText}
+                            </div>` : ''}
                         </div>
-                        <button type="button" class="close-viewer-btn" onclick="document.getElementById('elyu-photo-viewer-modal')?.remove();" style="width:34px; height:34px; border-radius:50%; background:rgba(255,255,255,0.18); border:none; outline:none; color:#ffffff; display:flex; align-items:center; justify-content:center; cursor:pointer;">
-                            <i class="fa-solid fa-xmark"></i>
-                        </button>
+                        <div style="display:flex; align-items:center; gap:8px; flex-shrink:0;">
+                            ${deleteBtnHtml}
+                            <button type="button" class="close-viewer-btn" onclick="document.getElementById('elyu-photo-viewer-modal')?.remove();" style="width:34px; height:34px; border-radius:50%; background:rgba(255,255,255,0.18); border:none; outline:none; color:#ffffff; display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0;">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                        </div>
                     </div>
+                    ${deleteConfirmBar}
                     <div style="position:relative; width:100%; max-height:60vh; min-height:220px; border-radius:16px; overflow:hidden; background:#000; display:flex; align-items:center; justify-content:center;">
                         <img src="${currentUrl}" onerror="if(this.dataset.triedFallback!=='1'){this.dataset.triedFallback='1';this.src='${currentFallback}';}else{this.onerror=null;this.src='assets/img/no_image.svg';}" alt="Visit Photo" style="width:100%; height:auto; max-height:60vh; object-fit:contain; display:block;">
                         ${navControls}
@@ -9335,6 +9630,7 @@ window.navigateTo = navigateTo;
             if (prevBtn) {
                 prevBtn.onclick = function (ev) {
                     ev.stopPropagation();
+                    confirmingDelete = false;
                     currentIndex = (currentIndex - 1 + total) % total;
                     renderContent();
                 };
@@ -9342,8 +9638,33 @@ window.navigateTo = navigateTo;
             if (nextBtn) {
                 nextBtn.onclick = function (ev) {
                     ev.stopPropagation();
+                    confirmingDelete = false;
                     currentIndex = (currentIndex + 1) % total;
                     renderContent();
+                };
+            }
+
+            var delTrigger = modal.querySelector('.delete-viewer-photo-btn');
+            if (delTrigger) {
+                delTrigger.onclick = function (ev) {
+                    ev.stopPropagation();
+                    confirmingDelete = !confirmingDelete;
+                    renderContent();
+                };
+            }
+            var cancelDelBtn = modal.querySelector('.cancel-delete-photo-btn');
+            if (cancelDelBtn) {
+                cancelDelBtn.onclick = function (ev) {
+                    ev.stopPropagation();
+                    confirmingDelete = false;
+                    renderContent();
+                };
+            }
+            var confirmDelBtn = modal.querySelector('.confirm-delete-photo-btn');
+            if (confirmDelBtn) {
+                confirmDelBtn.onclick = function (ev) {
+                    ev.stopPropagation();
+                    executePhotoDelete();
                 };
             }
 
@@ -9352,6 +9673,7 @@ window.navigateTo = navigateTo;
                     ev.stopPropagation();
                     var targetIdx = parseInt(thumb.getAttribute('data-idx'), 10);
                     if (!isNaN(targetIdx) && targetIdx !== currentIndex) {
+                        confirmingDelete = false;
                         currentIndex = targetIdx;
                         renderContent();
                     }
@@ -9457,7 +9779,7 @@ window.navigateTo = navigateTo;
                 cachedData = window.safeJsonParse(cached, null);
                 if (cachedData && cachedData.hasOwnProperty('data')) {
                     // Stale-While-Revalidate: render cached data immediately
-                    callback(cachedData.data, true);
+                    if (typeof callback === 'function') callback(cachedData.data, true);
                     const age = Date.now() - (cachedData.timestamp || 0);
                     isExpired = age > ttl;
                 }
@@ -9483,13 +9805,14 @@ window.navigateTo = navigateTo;
                         data: data,
                         timestamp: Date.now()
                     }));
-                    callback(data, false);
+                    if (typeof callback === 'function') callback(data, false);
                     if (window.isAppOnline === false && typeof window.notifyAppOnline === 'function') {
                         window.notifyAppOnline();
                     }
+                    return data;
                 }
             } catch (err) {
-                if (window.isExpectedAbortError(err)) return;
+                if (window.isExpectedAbortError(err)) return cachedData ? cachedData.data : null;
                 const isNetworkErr = err && (err.name === 'TypeError' || String(err).includes('Failed to fetch') || String(err).includes('NetworkError'));
                 if (isNetworkErr) {
                     console.warn("Network unreachable for " + cacheKey + ", serving offline/cached state if available.");
@@ -9502,6 +9825,7 @@ window.navigateTo = navigateTo;
                 }
             }
         }
+        return cachedData ? cachedData.data : null;
     };
 
     window.syncSavedPlaceLocalState = function (destId, isSaved, spotObj) {
@@ -9627,16 +9951,17 @@ window.navigateTo = navigateTo;
             const queue = JSON.parse(queueRaw);
             if (!Array.isArray(queue) || queue.length === 0) return;
 
-            const token = localStorage.getItem('tourist_token');
-            const headers = { 'Content-Type': 'application/json', 'Accept': 'application/json' };
-            if (token) headers['Authorization'] = `Bearer ${token}`;
+            const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('api_token') || localStorage.getItem('tourist_token');
+            if (!token || (typeof window.isGuestUser === 'function' && window.isGuestUser())) return;
+            const headers = { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` };
+            const bUrl = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || window.BACKEND_URL || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
 
             const remaining = [];
             let syncedCount = 0;
 
             for (const item of queue) {
                 try {
-                    const res = await fetch(`${backendUrl}/api/tourist/points/ar-checkin`, {
+                    const res = await fetch(`${bUrl}/api/tourist/points/ar-checkin`, {
                         method: 'POST',
                         headers,
                         body: JSON.stringify(item)

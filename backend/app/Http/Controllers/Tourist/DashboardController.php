@@ -35,7 +35,7 @@ class DashboardController extends Controller
         }
 
         // Single cached pool of active spots powers trending, favorites, and recommendations without 3 separate full scans
-        $trendingLimit = min((int) $request->query('limit', 10), 50);
+        $trendingLimit = max(1, min((int) $request->query('limit', 10), 50));
         $allActiveSpots = [];
         try {
             $allActiveSpots = Cache::remember('dashboard:active_spots:v1', 120, function () {
@@ -164,6 +164,7 @@ class DashboardController extends Controller
 
         $unreadNotifications = 0;
         try {
+            ItineraryController::syncUpcomingTripReminders((int) $user->id);
             $unreadNotifications = Notification::where('user_id', $user->id)
                 ->where('is_read', false)
                 ->count();

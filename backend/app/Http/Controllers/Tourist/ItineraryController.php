@@ -509,7 +509,7 @@ class ItineraryController extends Controller
                 $itineraryData['companion_pwds']    = $companionPwds;
             }
             if ($request->has('companion_ages') && Schema::hasColumn('itineraries', 'companion_ages')) {
-                $itineraryData['companion_ages'] = $request->input('companion_ages');
+                $itineraryData['companion_ages'] = $tripType === 'group' ? ($request->input('companion_ages') ?? []) : [];
             }
 
             $itinerary = Itinerary::create($itineraryData);
@@ -587,21 +587,30 @@ class ItineraryController extends Controller
         $spotIds = $itinerary->items->pluck('tourist_spot_id')->filter()->unique()->values()->all();
         [$spotPublicVehicles, $spotPrivateVehicles, $spotAllVehicles] = $this->getSpotVehiclesMap($spotIds);
 
-        // Create system notification & send planned trip confirmation email
+        // Create system notification (for today/tomorrow trips, fire only the upcoming reminder to avoid double alerts)
         try {
-            $dateLabel = $itinerary->trip_date ? $itinerary->trip_date->format('M d, Y') : 'your upcoming schedule';
-            $stopCount = $itinerary->items->count();
-            \App\Models\Notification::createSafely(
-                $user->id,
-                'trip_planned',
-                'Planned Trip Scheduled!',
-                "Your trip '{$itinerary->title}' ({$stopCount} " . ($stopCount === 1 ? 'stop' : 'stops') . ") is scheduled for {$dateLabel}.",
-                [
-                    'module'       => 'saved_trips',
-                    'action_url'   => 'saved_trips',
-                    'itinerary_id' => $itinerary->id,
-                ]
-            );
+            $nowPh = \Carbon\Carbon::now('Asia/Manila');
+            $tripDateStr = $itinerary->trip_date ? $itinerary->trip_date->format('Y-m-d') : null;
+            $isNearTrip = $tripDateStr && ($tripDateStr === $nowPh->toDateString() || $tripDateStr === $nowPh->copy()->addDay()->toDateString());
+
+            Cache::forget("trip_reminders_sync:{$user->id}");
+            if ($isNearTrip) {
+                self::syncUpcomingTripReminders((int) $user->id, true);
+            } else {
+                $dateLabel = $itinerary->trip_date ? $itinerary->trip_date->format('M d, Y') : 'your upcoming schedule';
+                $stopCount = $itinerary->items->count();
+                \App\Models\Notification::createSafely(
+                    $user->id,
+                    'trip_planned',
+                    'Planned Trip Scheduled!',
+                    "Your trip '{$itinerary->title}' ({$stopCount} " . ($stopCount === 1 ? 'stop' : 'stops') . ") is scheduled for {$dateLabel}.",
+                    [
+                        'module'       => 'saved_trips',
+                        'action_url'   => 'saved_trips',
+                        'itinerary_id' => $itinerary->id,
+                    ]
+                );
+            }
         } catch (\Throwable $e) {}
 
         if (!empty($user->email)) {
@@ -758,16 +767,19 @@ class ItineraryController extends Controller
 
         \App\Models\Notification::createSafely(
             $user->id,
-            'itinerary_reminder',
+            'trip_completed',
             'Trip Completed!',
             "Congratulations! You completed '{$itinerary->title}'! Share your reviews on the spots you visited to earn points.",
             ['action_url' => '/saved_trips']
         );
 
-        // Cache invalidation — flush stale profile/rank caches
+        // Targeted cache invalidation (avoids global cache flush wiping other users' 2FA OTPs & dedup keys)
         Cache::forget("rank:user:{$user->id}");
         Cache::forget("profile:trips:{$user->id}");
-        Cache::flush();
+        Cache::forget("profile:trips:v2:{$user->id}");
+        Cache::forget("profile:trips:v3:{$user->id}");
+        Cache::forget("trip_reminders_sync:{$user->id}");
+        Cache::forget('leaderboard:top');
 
         // Return visited items with complete destination data for the review modal
         $visitedItems = $itinerary->items()
@@ -860,6 +872,7 @@ class ItineraryController extends Controller
             $isNoVeh = empty($rawT) || stripos($rawT, 'no_vehicle') !== false || stripos($rawT, 'no vehicle') !== false;
             $updateData['transport_mode'] = $isNoVeh ? 'No Vehicle Selected' : $rawT;
         }
+        $hasCompanionAgesCol = Schema::hasColumn('itineraries', 'companion_ages');
         if (array_key_exists('trip_type', $updateData)) {
             $isGrp = in_array(strtolower((string)$updateData['trip_type']), ['group', 'with companions', 'companions']);
             $updateData['trip_type'] = $isGrp ? 'group' : 'solo';
@@ -871,6 +884,9 @@ class ItineraryController extends Controller
                 $updateData['companion_seniors'] = 0;
                 $updateData['companion_pwds'] = 0;
                 $updateData['total_pax'] = 1;
+                if ($hasCompanionAgesCol) {
+                    $updateData['companion_ages'] = [];
+                }
             } else {
                 $m = max(0, (int)($updateData['companion_males'] ?? $itinerary->companion_males ?? 0));
                 $f = max(0, (int)($updateData['companion_females'] ?? $itinerary->companion_females ?? 0));
@@ -888,7 +904,8 @@ class ItineraryController extends Controller
                 $updateData['total_pax'] = max(1, (int)($updateData['total_pax'] ?? (1 + $addComp)));
             }
         }
-        if ($request->has('companion_ages') && Schema::hasColumn('itineraries', 'companion_ages')) {
+        $effectiveTripType = $updateData['trip_type'] ?? $itinerary->trip_type ?? 'solo';
+        if ($request->has('companion_ages') && $hasCompanionAgesCol && $effectiveTripType === 'group') {
             $updateData['companion_ages'] = $request->input('companion_ages');
         }
         if (!Schema::hasColumn('itineraries', 'companion_adults')) {
@@ -947,10 +964,17 @@ class ItineraryController extends Controller
             $itinerary->update(['total_cost' => $totalEstimatedCost]);
 
             $existingItems = $itinerary->items->keyBy('tourist_spot_id');
-            // Remove items no longer in destinations
-            $itinerary->items()->whereNotIn('tourist_spot_id', $request->destinations)->delete();
+            // Remove unvisited items no longer in destinations; preserve already-visited stops and their check-in proof
+            $itinerary->items()
+                ->whereNotIn('tourist_spot_id', $request->destinations)
+                ->where(function ($q) {
+                    $q->where('is_visited', false)->orWhereNull('is_visited');
+                })
+                ->whereNull('visited_at')
+                ->delete();
 
             $legsList = $est['legs'] ?? [];
+            $hasItemComp = Schema::hasColumn('itinerary_items', 'companion_adults');
             // Re-create or update destination stops with leg transportation
             foreach ($request->destinations as $idx => $spotId) {
                 $legMode = null;
@@ -985,7 +1009,6 @@ class ItineraryController extends Controller
                     }
                 }
 
-                $hasItemComp = Schema::hasColumn('itinerary_items', 'companion_adults');
                 $itemPayload = [
                     'order_index'       => $idx + 1,
                     'transport_mode'    => $legMode,
@@ -1014,6 +1037,8 @@ class ItineraryController extends Controller
 
         Cache::forget("profile:trips:{$user->id}");
         Cache::forget("profile:trips:v2:{$user->id}");
+        Cache::forget("profile:trips:v3:{$user->id}");
+        Cache::forget("trip_reminders_sync:{$user->id}");
 
         $itinerary->touch();
         $freshItinerary = $itinerary->fresh()->load([
@@ -1049,6 +1074,10 @@ class ItineraryController extends Controller
             return response()->json(['message' => 'Unauthorized to delete this trip.'], 403);
         }
 
+        if (strtolower((string) ($itinerary->status ?? '')) === 'completed' && !in_array($user->role, ['admin', 'super_admin'])) {
+            return response()->json(['message' => 'Completed trips in Trip History cannot be deleted.'], 403);
+        }
+
         $title = $itinerary->title;
         $userId = $itinerary->user_id;
         $createdAt = $itinerary->created_at;
@@ -1077,6 +1106,8 @@ class ItineraryController extends Controller
         Cache::forget("rank:user:{$user->id}");
         Cache::forget("profile:trips:{$user->id}");
         Cache::forget("profile:trips:v2:{$user->id}");
+        Cache::forget("profile:trips:v3:{$user->id}");
+        Cache::forget("trip_reminders_sync:{$user->id}");
 
         return response()->json([
             'success' => true,
@@ -1279,5 +1310,100 @@ class ItineraryController extends Controller
         }
 
         return $processedCount;
+    }
+
+    /**
+     * Generate deduplicated in-app reminders for a tourist's active trips scheduled for today or tomorrow (Asia/Manila).
+     * Throttled per user (15 min) so Dashboard/Notifications stay fast without requiring a separate cron worker.
+     */
+    public static function syncUpcomingTripReminders(int $userId, bool $force = false): int
+    {
+        if ($userId <= 0) {
+            return 0;
+        }
+        if (!$force && !Cache::add("trip_reminders_sync:{$userId}", 1, 900)) {
+            return 0;
+        }
+
+        $created = 0;
+        try {
+            $nowPh = \Carbon\Carbon::now('Asia/Manila');
+            $todayStr = $nowPh->toDateString();
+            $tomorrowStr = $nowPh->copy()->addDay()->toDateString();
+
+            $upcomingTrips = Itinerary::where('user_id', $userId)
+                ->whereNotNull('trip_date')
+                ->where(function ($q) {
+                    $q->whereNull('status')->orWhere('status', '!=', 'completed');
+                })
+                ->whereDate('trip_date', '>=', $todayStr)
+                ->whereDate('trip_date', '<=', $tomorrowStr)
+                ->withCount('items')
+                ->get(['id', 'user_id', 'title', 'trip_date', 'status']);
+
+            foreach ($upcomingTrips as $trip) {
+                $tripDateStr = $trip->trip_date ? $trip->trip_date->format('Y-m-d') : null;
+                if (!$tripDateStr || ($tripDateStr !== $todayStr && $tripDateStr !== $tomorrowStr)) {
+                    continue;
+                }
+
+                $bucket = ($tripDateStr === $todayStr) ? 'today' : 'tomorrow';
+                $reminderKey = "trip_{$trip->id}_{$bucket}_{$tripDateStr}";
+                $sentCacheKey = "trip_reminder_sent:{$userId}:{$reminderKey}";
+
+                if (Cache::has($sentCacheKey)) {
+                    continue;
+                }
+
+                $alreadyExists = \App\Models\Notification::where('user_id', $userId)
+                    ->where('type', 'itinerary_reminder')
+                    ->where('data', 'like', '%' . $reminderKey . '%')
+                    ->exists();
+
+                if ($alreadyExists) {
+                    Cache::put($sentCacheKey, 1, 259200);
+                    continue;
+                }
+
+                $titleText = trim((string) ($trip->title ?: 'La Union Trip'));
+                $stopCount = (int) ($trip->items_count ?? 0);
+                $stopsLabel = $stopCount > 0 ? " ({$stopCount} " . ($stopCount === 1 ? 'stop' : 'stops') . ')' : '';
+                $formattedDate = $trip->trip_date->format('M d, Y');
+
+                if ($bucket === 'today') {
+                    $notifTitle = "Trip Today: {$titleText}";
+                    $notifMsg = "Today is the day! Your trip '{$titleText}'{$stopsLabel} is scheduled for today, {$formattedDate}. Safe travels!";
+                } else {
+                    $notifTitle = "Trip Tomorrow: {$titleText}";
+                    $notifMsg = "Reminder: Your trip '{$titleText}'{$stopsLabel} is scheduled for tomorrow, {$formattedDate}. Get ready to explore!";
+                }
+
+                $notif = \App\Models\Notification::createSafely(
+                    $userId,
+                    'itinerary_reminder',
+                    $notifTitle,
+                    $notifMsg,
+                    [
+                        'module'     => 'saved_trips',
+                        'action_url' => '?view=saved_trips',
+                        'data'       => [
+                            'itinerary_id' => $trip->id,
+                            'trip_date'    => $tripDateStr,
+                            'bucket'       => $bucket,
+                            'reminder_key' => $reminderKey,
+                        ],
+                    ]
+                );
+
+                if ($notif) {
+                    Cache::put($sentCacheKey, 1, 259200); // 3-day dedup prevents resurfacing if user dismisses it
+                    $created++;
+                }
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Upcoming trip reminders sync failed: ' . $e->getMessage());
+        }
+
+        return $created;
     }
 }

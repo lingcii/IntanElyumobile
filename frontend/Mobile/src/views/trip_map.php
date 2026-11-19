@@ -532,10 +532,11 @@ include_once __DIR__ . '/../components/testimony_modal.php';
         }
 
         window.updateTripMapCheckinAvailability = function (lat, lng, accuracy = null) {
-            const userLat = Number(lat);
-            const userLng = Number(lng);
-            const gpsAccuracy = Number(accuracy);
-            const hasReliableFix = Number.isFinite(userLat) && Number.isFinite(userLng) &&
+            const hasRawCoords = lat !== null && lat !== undefined && lat !== '' && lng !== null && lng !== undefined && lng !== '';
+            const userLat = hasRawCoords ? Number(lat) : NaN;
+            const userLng = hasRawCoords ? Number(lng) : NaN;
+            const gpsAccuracy = (accuracy !== null && accuracy !== undefined && accuracy !== '') ? Number(accuracy) : NaN;
+            const hasReliableFix = Number.isFinite(userLat) && Number.isFinite(userLng) && (userLat !== 0 || userLng !== 0) &&
                 (!Number.isFinite(gpsAccuracy) || gpsAccuracy <= TRIP_MAP_MAX_GPS_ACCURACY_METERS);
 
             if (hasReliableFix) {
@@ -718,14 +719,15 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                 const checkInButtonAttrs = `class="trip-map-checkin-btn" data-item-id="${item.id}" data-tourist-spot-id="${sId}" data-boundary="${encodeURIComponent(JSON.stringify(dest?.boundary_geojson || ''))}" data-dest-lat="${Number.isFinite(lat) ? lat : ''}" data-dest-lng="${Number.isFinite(lng) ? lng : ''}" disabled aria-disabled="true"`;
 
                 let photoThumbnailStrip = '';
+                const canDeleteStopPhoto = Boolean(item.id && !isQueued && !String(item.id).startsWith('offline_') && !(trip && (trip.status === 'completed' || trip.is_completed)));
                 if (proofImages.length > 0) {
                     photoThumbnailStrip = `<div style="display:inline-flex; align-items:center; gap:4px; flex-shrink:0;">
                         ${proofImages.slice(0, 3).map((imgUrl, pIdx) => {
                             let pUrl = (typeof window.resolveTripPhotoUrl === 'function') ? window.resolveTripPhotoUrl(imgUrl) : imgUrl;
                             let fallbackUrl = (typeof window.getTripPhotoFallbackUrl === 'function') ? window.getTripPhotoFallbackUrl(imgUrl) : 'assets/img/no_image.svg';
-                            return `<img src="${pUrl}" onerror="if(this.dataset.triedFallback!=='1'){this.dataset.triedFallback='1';this.src='${fallbackUrl}';}else{this.onerror=null;this.src='assets/img/no_image.svg';}" onclick="event.stopPropagation(); if(typeof window.viewTripPhotoModal==='function') window.viewTripPhotoModal(${jsonUrlsAttr}, '${destEscaped}', '${isVisited ? 'Verified Visit Photo' : 'Uploaded Photo'}');" alt="Photo" title="Tap to view photo" style="width:30px; height:30px; border-radius:8px; object-fit:cover; border:1.5px solid #e2e8f0; flex-shrink:0; cursor:pointer;">`;
+                            return `<img src="${pUrl}" onerror="if(this.dataset.triedFallback!=='1'){this.dataset.triedFallback='1';this.src='${fallbackUrl}';}else{this.onerror=null;this.src='assets/img/no_image.svg';}" onclick="event.stopPropagation(); if(typeof window.viewTripPhotoModal==='function') window.viewTripPhotoModal(${jsonUrlsAttr}, '${destEscaped}', '${isVisited ? 'Verified Visit Photo' : 'Uploaded Photo'}', ${pIdx}, { itemId: '${item.id}', canDelete: ${canDeleteStopPhoto} });" alt="Photo" title="Tap to view photo" style="width:30px; height:30px; border-radius:8px; object-fit:cover; border:1.5px solid #e2e8f0; flex-shrink:0; cursor:pointer;">`;
                         }).join('')}
-                        ${proofImages.length > 3 ? `<span onclick="event.stopPropagation(); if(typeof window.viewTripPhotoModal==='function') window.viewTripPhotoModal(${jsonUrlsAttr}, '${destEscaped}', '${isVisited ? 'Verified Visit Photo' : 'Uploaded Photo'}');" style="background:#0f172a; color:#fff; font-size:8.5px; font-weight:800; padding:2px 5px; border-radius:6px; cursor:pointer;">+${proofImages.length - 3}</span>` : ''}
+                        ${proofImages.length > 3 ? `<span onclick="event.stopPropagation(); if(typeof window.viewTripPhotoModal==='function') window.viewTripPhotoModal(${jsonUrlsAttr}, '${destEscaped}', '${isVisited ? 'Verified Visit Photo' : 'Uploaded Photo'}', 0, { itemId: '${item.id}', canDelete: ${canDeleteStopPhoto} });" style="background:#0f172a; color:#fff; font-size:8.5px; font-weight:800; padding:2px 5px; border-radius:6px; cursor:pointer;">+${proofImages.length - 3}</span>` : ''}
                     </div>`;
                 }
 
@@ -1832,7 +1834,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                 window.currentTrip.items = window.currentTrip.items.map(it => {
                     if (!it) return it;
                     const itIdStr = String(it.id || '');
-                    if (itIdStr === targetIdStr || (targetIdStr && itIdStr && targetIdStr.includes(itIdStr))) {
+                    if (itIdStr === targetIdStr) {
                         return {
                             ...it,
                             proof_image: urls[0],
@@ -1896,7 +1898,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                 window.currentTrip.items = window.currentTrip.items.map(it => {
                     if (!it) return it;
                     const itIdStr = String(it.id || '');
-                    if (itIdStr === targetIdStr || (targetIdStr && itIdStr && targetIdStr.includes(itIdStr))) {
+                    if (itIdStr === targetIdStr) {
                         return {
                             ...it,
                             is_location_verified: true,
@@ -2141,7 +2143,7 @@ include_once __DIR__ . '/../components/testimony_modal.php';
                 return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
             };
 
-            const parentTrip = (window._cachedTrip || window._activeTrip || (window._cachedSavedTrips || []).find(t => (t.items || []).some(i => String(i.id) === String(itemId))));
+            const parentTrip = (window.currentTrip || window._cachedTrip || window._activeTrip || (window._cachedSavedTrips || []).find(t => (t.items || []).some(i => String(i.id) === String(itemId))));
             const targetItem = (window.currentTripItems || []).find(it => String(it.id) === String(itemId));
             if (targetItem && (targetItem.is_location_verified || targetItem.visited_at)) {
                 lockCheckedInButton();
@@ -2607,25 +2609,37 @@ include_once __DIR__ . '/../components/testimony_modal.php';
             }
         };
 
-        window.addEventListener('online', () => {
+        if (typeof window._cleanupTripMap === 'function') {
+            try { window._cleanupTripMap(); } catch (e) {}
+        }
+        const _onTripOnline = () => {
             updateTripOfflineStatus();
             if (typeof window.enforceAllOfflineBadgesHidden === 'function') window.enforceAllOfflineBadgesHidden();
             if (typeof window.syncAllOfflineTripData === 'function') {
                 window.syncAllOfflineTripData();
             }
-        });
-        window.addEventListener('offline', updateTripOfflineStatus);
-        window.addEventListener('appOnline', () => {
-            updateTripOfflineStatus();
-            if (typeof window.enforceAllOfflineBadgesHidden === 'function') window.enforceAllOfflineBadgesHidden();
-            if (typeof window.syncAllOfflineTripData === 'function') {
-                window.syncAllOfflineTripData();
+        };
+        const _onTripOffline = () => updateTripOfflineStatus();
+        window.addEventListener('online', _onTripOnline);
+        window.addEventListener('offline', _onTripOffline);
+        window.addEventListener('appOnline', _onTripOnline);
+        window.addEventListener('appOffline', _onTripOffline);
+        window.addEventListener('checkins-synced', _onTripOffline);
+        window.addEventListener('tripsSynced', _onTripOffline);
+        window.addEventListener('offline-checkin-queued', _onTripOffline);
+        window._cleanupTripMap = function () {
+            window.removeEventListener('online', _onTripOnline);
+            window.removeEventListener('offline', _onTripOffline);
+            window.removeEventListener('appOnline', _onTripOnline);
+            window.removeEventListener('appOffline', _onTripOffline);
+            window.removeEventListener('checkins-synced', _onTripOffline);
+            window.removeEventListener('tripsSynced', _onTripOffline);
+            window.removeEventListener('offline-checkin-queued', _onTripOffline);
+            if (window._tripMapInstance && typeof window._tripMapInstance.remove === 'function') {
+                try { window._tripMapInstance.remove(); } catch (e) {}
+                window._tripMapInstance = null;
             }
-        });
-        window.addEventListener('appOffline', updateTripOfflineStatus);
-        window.addEventListener('checkins-synced', () => updateTripOfflineStatus());
-        window.addEventListener('tripsSynced', () => updateTripOfflineStatus());
-        window.addEventListener('offline-checkin-queued', () => updateTripOfflineStatus());
+        };
         setTimeout(updateTripOfflineStatus, 150);
         setTimeout(() => {
             updateTripOfflineStatus();

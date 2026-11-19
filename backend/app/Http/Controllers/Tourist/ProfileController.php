@@ -14,6 +14,35 @@ use Illuminate\Support\Facades\Schema;
 class ProfileController extends Controller
 {
     /**
+     * Cached schema capability flags to avoid repeated information_schema queries on every profile load.
+     */
+    private function getProfileSchemaFlags(): array
+    {
+        return Cache::remember('schema:profile_flags_v1', 3600, function () {
+            $userCols = [];
+            try {
+                $userCols = array_flip(Schema::getColumnListing('users'));
+            } catch (\Throwable $e) {
+                $userCols = [];
+            }
+
+            return [
+                'phone' => isset($userCols['phone']),
+                'home_location' => isset($userCols['home_location']),
+                'bio' => isset($userCols['bio']),
+                'age' => isset($userCols['age']),
+                'gender' => isset($userCols['gender']),
+                'travel_preferences' => isset($userCols['travel_preferences']),
+                'is_leaderboard_private' => isset($userCols['is_leaderboard_private']),
+                'two_factor_enabled' => isset($userCols['two_factor_enabled']),
+                'table_quest_completions' => Schema::hasTable('quest_completions'),
+                'table_site_feedbacks' => Schema::hasTable('site_feedbacks'),
+                'table_quests' => Schema::hasTable('quests'),
+            ];
+        });
+    }
+
+    /**
      * GET /api/tourist/profile
      * Returns detailed profile data for the tourist mobile app.
      */
@@ -111,6 +140,7 @@ class ProfileController extends Controller
                                 'tourist_spot_id' => $item->tourist_spot_id,
                                 'is_visited' => (bool) $item->is_visited,
                                 'proof_image' => $item->proof_image,
+                                'proof_images' => $item->proof_images ?? [],
                                 'visited_at' => $item->visited_at,
                                 'destination' => $dest ? [
                                     'id' => $dest->id,
@@ -130,20 +160,21 @@ class ProfileController extends Controller
                 ->toArray();
         });
 
-        $hasPhone = Schema::hasColumn('users', 'phone');
-        $hasLocation = Schema::hasColumn('users', 'home_location');
-        $hasBio = Schema::hasColumn('users', 'bio');
-        $hasAge = Schema::hasColumn('users', 'age');
-        $hasGender = Schema::hasColumn('users', 'gender');
-        $hasPrefs = Schema::hasColumn('users', 'travel_preferences');
-        $hasPrivacy = Schema::hasColumn('users', 'is_leaderboard_private');
-        $has2FA = Schema::hasColumn('users', 'two_factor_enabled');
+        $schemaFlags = $this->getProfileSchemaFlags();
+        $hasPhone = $schemaFlags['phone'];
+        $hasLocation = $schemaFlags['home_location'];
+        $hasBio = $schemaFlags['bio'];
+        $hasAge = $schemaFlags['age'];
+        $hasGender = $schemaFlags['gender'];
+        $hasPrefs = $schemaFlags['travel_preferences'];
+        $hasPrivacy = $schemaFlags['is_leaderboard_private'];
+        $has2FA = $schemaFlags['two_factor_enabled'];
         $is2FAEnabled = $has2FA ? (bool) $user->two_factor_enabled : false;
 
         // 4. Calculate Master Badges System (Locked vs Unlocked)
         $completedQuestIds = [];
         try {
-            if (Schema::hasTable('quest_completions')) {
+            if ($schemaFlags['table_quest_completions']) {
                 $completedQuestIds = \App\Models\QuestCompletion::where('user_id', $user->id)->pluck('quest_id')->toArray();
             }
         } catch (\Throwable $e) {
@@ -156,7 +187,7 @@ class ProfileController extends Controller
 
         $reviewCount = 0;
         try {
-            if (Schema::hasTable('site_feedbacks')) {
+            if ($schemaFlags['table_site_feedbacks']) {
                 $reviewCount = (int) \App\Models\SiteFeedback::where('user_id', $user->id)->count();
             }
         } catch (\Throwable $e) {
@@ -165,7 +196,7 @@ class ProfileController extends Controller
 
         $allQuests = collect();
         try {
-            if (Schema::hasTable('quests')) {
+            if ($schemaFlags['table_quests']) {
                 $allQuests = \App\Models\Quest::active()->get();
             }
         } catch (\Throwable $e) {
@@ -284,8 +315,17 @@ class ProfileController extends Controller
     {
         $user = $request->user();
 
+        // Normalize bare "+63" placeholder before validation so clearing phone never fails regex
+        if ($request->exists('phone')) {
+            $trimmedPhone = trim((string) $request->input('phone', ''));
+            if ($trimmedPhone === '' || $trimmedPhone === '+63') {
+                $request->merge(['phone' => null]);
+            }
+        }
+
         $request->validate([
             'name' => 'sometimes|string|max:255',
+            'email' => 'sometimes|nullable|email|max:255',
             'phone' => ['nullable', 'string', 'max:50', 'regex:/^(\+63)[\s0-9\-]{9,15}$/'],
             'home_location' => 'nullable|string|max:255',
             'bio' => 'nullable|string|max:500',
@@ -298,6 +338,8 @@ class ProfileController extends Controller
             'age.min' => 'Age must be at least 1.',
             'phone.regex' => 'Contact number must start with +63 (e.g. +63 9XX XXX XXXX).',
         ]);
+
+        $schemaFlags = $this->getProfileSchemaFlags();
 
         if ($request->exists('name') && $request->filled('name')) {
             $user->name = $request->input('name');
@@ -315,31 +357,31 @@ class ProfileController extends Controller
             $user->email = $newEmail;
         }
 
-        if ($request->exists('phone') && Schema::hasColumn('users', 'phone')) {
+        if ($request->exists('phone') && $schemaFlags['phone']) {
             $rawPhone = $request->input('phone');
             $user->phone = ($rawPhone !== null && trim($rawPhone) !== '' && trim($rawPhone) !== '+63') ? trim($rawPhone) : null;
         }
 
-        if ($request->exists('home_location') && Schema::hasColumn('users', 'home_location')) {
+        if ($request->exists('home_location') && $schemaFlags['home_location']) {
             $rawLoc = $request->input('home_location');
             $user->home_location = ($rawLoc !== null && trim($rawLoc) !== '') ? trim($rawLoc) : null;
         }
 
-        if ($request->exists('bio') && Schema::hasColumn('users', 'bio')) {
+        if ($request->exists('bio') && $schemaFlags['bio']) {
             $user->bio = $request->input('bio');
         }
 
-        if ($request->exists('age') && Schema::hasColumn('users', 'age')) {
+        if ($request->exists('age') && $schemaFlags['age']) {
             $ageVal = $request->input('age');
             $user->age = ($ageVal !== null && $ageVal !== '') ? (int) $ageVal : null;
         }
 
-        if ($request->exists('gender') && Schema::hasColumn('users', 'gender')) {
+        if ($request->exists('gender') && $schemaFlags['gender']) {
             $genderVal = $request->input('gender');
             $user->gender = ($genderVal !== null && trim($genderVal) !== '') ? trim($genderVal) : null;
         }
 
-        if ($request->exists('travel_preferences') && Schema::hasColumn('users', 'travel_preferences')) {
+        if ($request->exists('travel_preferences') && $schemaFlags['travel_preferences']) {
             $rawPrefs = $request->input('travel_preferences');
             $user->travel_preferences = ($rawPrefs !== null && trim($rawPrefs) !== '') ? trim($rawPrefs) : null;
         }
@@ -377,11 +419,11 @@ class ProfileController extends Controller
         try {
             $user->save();
         } catch (\Throwable $e) {
-            try {
-                $user->saveQuietly();
-            } catch (\Throwable $e2) {
-                // Ignore non-fatal database save exception
-            }
+            \Illuminate\Support\Facades\Log::error('Profile update failed: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to save profile changes. Please try again.'
+            ], 500);
         }
 
         return response()->json([
@@ -479,8 +521,8 @@ class ProfileController extends Controller
             ]);
         }
 
-        // Generate 6-digit OTP verification code
-        $code = (string) rand(100000, 999999);
+        // Generate cryptographically secure 6-digit OTP verification code
+        $code = (string) random_int(100000, 999999);
         $user->two_factor_code = $code;
         $user->two_factor_expires_at = now()->addMinutes(10);
         $user->save();
@@ -516,8 +558,7 @@ class ProfileController extends Controller
 
         $isCodeValid = $code && (
             ($user->two_factor_code && $code === $user->two_factor_code && $user->two_factor_expires_at && $user->two_factor_expires_at->isFuture()) ||
-            ($cachedCode && $code === $cachedCode) ||
-            $code === '123456'
+            ($cachedCode && $code === $cachedCode)
         );
 
         if (!$isCodeValid) {
@@ -554,8 +595,8 @@ class ProfileController extends Controller
             return response()->json(['success' => false, 'message' => 'Unauthenticated.'], 401);
         }
 
-        // Generate 6-digit OTP code for deactivation
-        $code = (string) rand(100000, 999999);
+        // Generate cryptographically secure 6-digit OTP code for deactivation
+        $code = (string) random_int(100000, 999999);
         $user->two_factor_code = $code;
         $user->two_factor_expires_at = now()->addMinutes(10);
         $user->save();
@@ -590,8 +631,7 @@ class ProfileController extends Controller
 
         $isCodeValid = $code && (
             ($user->two_factor_code && $code === $user->two_factor_code && $user->two_factor_expires_at && $user->two_factor_expires_at->isFuture()) ||
-            ($cachedCode && $code === $cachedCode) ||
-            $code === '123456'
+            ($cachedCode && $code === $cachedCode)
         );
 
         if (!$isCodeValid) {
@@ -680,13 +720,13 @@ class ProfileController extends Controller
         $user->save();
 
         try {
-            \App\Models\Notification::createSafely([
-                'user_id' => $user->id,
-                'title' => 'Password Changed',
-                'message' => 'Your account password was successfully updated.',
-                'type' => 'security',
-                'is_read' => false,
-            ]);
+            \App\Models\Notification::createSafely(
+                $user->id,
+                'security',
+                'Password Changed',
+                'Your account password was successfully updated.',
+                ['module' => 'security']
+            );
         } catch (\Throwable $e) { }
 
         return response()->json([

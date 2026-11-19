@@ -337,9 +337,9 @@ $pageTitle = 'Complete Profile';
     window.onboardNextStep = function() {
         if (currentStep === 1) {
             const ageInput = document.getElementById('onboard-age');
-            if (ageInput && ageInput.value) {
-                window._onboardState.age = ageInput.value.trim();
-            }
+            const rawAge = ageInput ? ageInput.value.trim() : '';
+            const parsedAge = rawAge ? parseInt(rawAge, 10) : null;
+            window._onboardState.age = (parsedAge && parsedAge >= 1 && parsedAge <= 99) ? String(parsedAge) : '';
         }
 
         if (currentStep < totalSteps) {
@@ -377,8 +377,9 @@ $pageTitle = 'Complete Profile';
             }
         }
 
-        const travelPrefsStr = allPrefs.join(', ');
-        const ageVal = (!isSkipped && window._onboardState.age) ? parseInt(window._onboardState.age, 10) : (user.age || null);
+        const travelPrefsStr = allPrefs.join(', ').slice(0, 255);
+        const parsedAgeVal = (!isSkipped && window._onboardState.age) ? parseInt(window._onboardState.age, 10) : (user.age || null);
+        const ageVal = (parsedAgeVal && parsedAgeVal >= 1 && parsedAgeVal <= 99) ? parsedAgeVal : null;
 
         // Update local session
         user.travel_preferences = travelPrefsStr || user.travel_preferences || 'Beaches, Nature, Food & Dining';
@@ -386,6 +387,10 @@ $pageTitle = 'Complete Profile';
         user.onboarding_completed = true;
         localStorage.setItem('auth_user', JSON.stringify(user));
         localStorage.setItem('intan_elyu_onboarding_done_' + (user.id || 'user'), 'true');
+        try {
+            sessionStorage.removeItem('show_onboarding');
+            sessionStorage.removeItem('onboarding_active');
+        } catch (e) {}
 
         // Persist to server
         const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('api_token');

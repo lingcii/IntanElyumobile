@@ -15,9 +15,11 @@ class WeatherController extends Controller
      */
     public function getWeather(Request $request)
     {
-        $lat = floatval($request->query('lat', 16.6159));
-        $lng = floatval($request->query('lng', $request->query('lon', 120.3209)));
-        $requestedLocation = $request->query('location', 'San Fernando, La Union');
+        $rawLat = $request->query('lat', 16.6159);
+        $rawLng = $request->query('lng', $request->query('lon', 120.3209));
+        $lat = is_numeric($rawLat) ? max(15.5, min(18.0, floatval($rawLat))) : 16.6159;
+        $lng = is_numeric($rawLng) ? max(119.5, min(121.5, floatval($rawLng))) : 120.3209;
+        $requestedLocation = trim(strip_tags((string) $request->query('location', 'San Fernando, La Union'))) ?: 'San Fernando, La Union';
         $isCurrentLocRequested = $request->boolean('is_current_location', str_contains(strtolower($requestedLocation), 'my location'));
 
         // Resolve location name (via reverse geocoding or nearest municipality)
@@ -187,7 +189,7 @@ class WeatherController extends Controller
             }
         }
 
-        $smartInsights = $this->buildSmartWeatherInsights($code, $temp, $feelsLike, $windSpeed, $uvIndex, $todayRainProb, $hourly, $isDay);
+        $smartInsights = $this->buildSmartWeatherInsights($code, $temp, $feelsLike, $windSpeed, $uvIndex, $currentHourRainProb, $hourly, $isDay);
 
         return response()->json([
             'success' => true,

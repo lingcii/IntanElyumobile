@@ -65,11 +65,11 @@
         
         <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 2px;">
             <div style="width: 46px; height: 46px; border-radius: 50%; overflow: hidden; border: 2px solid rgba(255, 255, 255, 0.35); box-shadow: 0 2px 8px rgba(0,0,0,0.2); flex-shrink: 0;">
-                <img id="sidebar-avatar" src="https://ui-avatars.com/api/?name=Explorer&background=007AFF&color=fff&rounded=true&bold=true&size=128" alt="Avatar" style="width:100%; height:100%; object-fit:cover;">
+                <img id="sidebar-avatar" src="https://ui-avatars.com/api/?name=Explorer&background=007AFF&color=fff&rounded=true&bold=true&size=128" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=Explorer&background=007AFF&color=fff&rounded=true&bold=true&size=128';" alt="Avatar" style="width:100%; height:100%; object-fit:cover;">
             </div>
             <div style="flex: 1; min-width: 0; padding-right: 28px;">
                 <h3 id="sidebar-user-name" style="margin: 0 0 3px 0; font-size: 16px; font-weight: 800; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -0.2px;">Explorer</h3>
-                <span style="font-size: 10.5px; font-weight: 800; color: #00f2fe; background: rgba(0, 242, 254, 0.18); padding: 2px 8px; border-radius: 100px; border: none !important; outline: none !important; display: inline-flex; align-items: center; gap: 4px;">
+                <span id="sidebar-role-badge" style="font-size: 10.5px; font-weight: 800; color: #00f2fe; background: rgba(0, 242, 254, 0.18); padding: 2px 8px; border-radius: 100px; border: none !important; outline: none !important; display: inline-flex; align-items: center; gap: 4px;">
                     <i class="fa-solid fa-compass" style="font-size: 9.5px; color: #00f2fe;"></i> Elyu Tourist
                 </span>
             </div>
@@ -83,11 +83,11 @@
         <div>
             <div style="font-size: 10.5px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 5px; padding-left: 4px;">Your Stuff</div>
             <div style="display: flex; flex-direction: column; gap: 6px;">
-                <a href="#" onclick="toggleSidebar(); navigateTo('saved_places'); return false;" style="color: #0f172a !important; text-decoration: none; font-size: 13px; font-weight: 800; display: flex; align-items: center; gap: 10px; padding: 7px 11px; border-radius: 12px; background: #ffffff !important; border: 1.5px solid #e2e8f0 !important; outline: none !important; box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04) !important; transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;" onpointerdown="this.style.transform='scale(0.98)'; this.style.background='#f8fafc';" onpointerup="this.style.transform='scale(1)'; this.style.background='#ffffff';" onpointercancel="this.style.transform='scale(1)'; this.style.background='#ffffff';">
+                <a href="#" onclick="closeSidebarInstantly(); navigateTo('saved_places'); return false;" style="color: #0f172a !important; text-decoration: none; font-size: 13px; font-weight: 800; display: flex; align-items: center; gap: 10px; padding: 7px 11px; border-radius: 12px; background: #ffffff !important; border: 1.5px solid #e2e8f0 !important; outline: none !important; box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04) !important; transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;" onpointerdown="this.style.transform='scale(0.98)'; this.style.background='#f8fafc';" onpointerup="this.style.transform='scale(1)'; this.style.background='#ffffff';" onpointercancel="this.style.transform='scale(1)'; this.style.background='#ffffff';">
                     <span style="width: 28px; height: 28px; border-radius: 8px; background: #eff6ff !important; border: 1px solid #dbeafe !important; display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><i class="fa-solid fa-heart" style="color: #1e3a8a !important; font-size: 12px;"></i></span>
                     Saved Places
                 </a>
-                <a href="#" onclick="toggleSidebar(); navigateTo('saved_trips'); return false;" style="color: #0f172a !important; text-decoration: none; font-size: 13px; font-weight: 800; display: flex; align-items: center; gap: 10px; padding: 7px 11px; border-radius: 12px; background: #ffffff !important; border: 1.5px solid #e2e8f0 !important; outline: none !important; box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04) !important; transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;" onpointerdown="this.style.transform='scale(0.98)'; this.style.background='#f8fafc';" onpointerup="this.style.transform='scale(1)'; this.style.background='#ffffff';" onpointercancel="this.style.transform='scale(1)'; this.style.background='#ffffff';">
+                <a href="#" onclick="closeSidebarInstantly(); navigateTo('saved_trips'); return false;" style="color: #0f172a !important; text-decoration: none; font-size: 13px; font-weight: 800; display: flex; align-items: center; gap: 10px; padding: 7px 11px; border-radius: 12px; background: #ffffff !important; border: 1.5px solid #e2e8f0 !important; outline: none !important; box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04) !important; transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;" onpointerdown="this.style.transform='scale(0.98)'; this.style.background='#f8fafc';" onpointerup="this.style.transform='scale(1)'; this.style.background='#ffffff';" onpointercancel="this.style.transform='scale(1)'; this.style.background='#ffffff';">
                     <span style="width: 28px; height: 28px; border-radius: 8px; background: #eff6ff !important; border: 1px solid #dbeafe !important; display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><i class="fa-solid fa-route" style="color: #1e3a8a !important; font-size: 12px;"></i></span>
                     Saved Trips
                 </a>
@@ -98,11 +98,11 @@
         <div>
             <div style="font-size: 10.5px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 5px; padding-left: 4px;">Discover & Explore</div>
             <div style="display: flex; flex-direction: column; gap: 6px;">
-                <a href="#" onclick="toggleSidebar(); navigateTo('puzzles'); return false;" style="color: #0f172a !important; text-decoration: none; font-size: 13px; font-weight: 800; display: flex; align-items: center; gap: 10px; padding: 7px 11px; border-radius: 12px; background: #ffffff !important; border: 1.5px solid #e2e8f0 !important; outline: none !important; box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04) !important; transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;" onpointerdown="this.style.transform='scale(0.98)'; this.style.background='#f8fafc';" onpointerup="this.style.transform='scale(1)'; this.style.background='#ffffff';" onpointercancel="this.style.transform='scale(1)'; this.style.background='#ffffff';">
+                <a href="#" onclick="closeSidebarInstantly(); navigateTo('puzzles'); return false;" style="color: #0f172a !important; text-decoration: none; font-size: 13px; font-weight: 800; display: flex; align-items: center; gap: 10px; padding: 7px 11px; border-radius: 12px; background: #ffffff !important; border: 1.5px solid #e2e8f0 !important; outline: none !important; box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04) !important; transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;" onpointerdown="this.style.transform='scale(0.98)'; this.style.background='#f8fafc';" onpointerup="this.style.transform='scale(1)'; this.style.background='#ffffff';" onpointercancel="this.style.transform='scale(1)'; this.style.background='#ffffff';">
                     <span style="width: 28px; height: 28px; border-radius: 8px; background: #eff6ff !important; border: 1px solid #dbeafe !important; display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><i class="fa-solid fa-gamepad" style="color: #1e3a8a !important; font-size: 12px;"></i></span>
                     GameZone
                 </a>
-                <a href="#" onclick="toggleSidebar(); navigateTo('discount'); return false;" style="color: #0f172a !important; text-decoration: none; font-size: 13px; font-weight: 800; display: flex; align-items: center; gap: 10px; padding: 7px 11px; border-radius: 12px; background: #ffffff !important; border: 1.5px solid #e2e8f0 !important; outline: none !important; box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04) !important; transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;" onpointerdown="this.style.transform='scale(0.98)'; this.style.background='#f8fafc';" onpointerup="this.style.transform='scale(1)'; this.style.background='#ffffff';" onpointercancel="this.style.transform='scale(1)'; this.style.background='#ffffff';">
+                <a href="#" onclick="closeSidebarInstantly(); navigateTo('discount'); return false;" style="color: #0f172a !important; text-decoration: none; font-size: 13px; font-weight: 800; display: flex; align-items: center; gap: 10px; padding: 7px 11px; border-radius: 12px; background: #ffffff !important; border: 1.5px solid #e2e8f0 !important; outline: none !important; box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04) !important; transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;" onpointerdown="this.style.transform='scale(0.98)'; this.style.background='#f8fafc';" onpointerup="this.style.transform='scale(1)'; this.style.background='#ffffff';" onpointercancel="this.style.transform='scale(1)'; this.style.background='#ffffff';">
                     <span style="width: 28px; height: 28px; border-radius: 8px; background: #eff6ff !important; border: 1px solid #dbeafe !important; display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><i class="fa-solid fa-tags" style="color: #1e3a8a !important; font-size: 12px;"></i></span>
                     Discounts & Vouchers
                 </a>
@@ -113,19 +113,19 @@
         <div>
             <div style="font-size: 10.5px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 5px; padding-left: 4px;">Support & System</div>
             <div style="display: flex; flex-direction: column; gap: 6px;">
-                <a href="#" onclick="toggleSidebar(); navigateTo('settings'); return false;" style="color: #0f172a !important; text-decoration: none; font-size: 13px; font-weight: 800; display: flex; align-items: center; gap: 10px; padding: 7px 11px; border-radius: 12px; background: #ffffff !important; border: 1.5px solid #e2e8f0 !important; outline: none !important; box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04) !important; transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;" onpointerdown="this.style.transform='scale(0.98)'; this.style.background='#f8fafc';" onpointerup="this.style.transform='scale(1)'; this.style.background='#ffffff';" onpointercancel="this.style.transform='scale(1)'; this.style.background='#ffffff';">
+                <a href="#" onclick="closeSidebarInstantly(); navigateTo('settings'); return false;" style="color: #0f172a !important; text-decoration: none; font-size: 13px; font-weight: 800; display: flex; align-items: center; gap: 10px; padding: 7px 11px; border-radius: 12px; background: #ffffff !important; border: 1.5px solid #e2e8f0 !important; outline: none !important; box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04) !important; transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;" onpointerdown="this.style.transform='scale(0.98)'; this.style.background='#f8fafc';" onpointerup="this.style.transform='scale(1)'; this.style.background='#ffffff';" onpointercancel="this.style.transform='scale(1)'; this.style.background='#ffffff';">
                     <span style="width: 28px; height: 28px; border-radius: 8px; background: #eff6ff !important; border: 1px solid #dbeafe !important; display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><i class="fa-solid fa-gear" style="color: #1e3a8a !important; font-size: 12px;"></i></span>
                     Settings
                 </a>
-                <a href="#" onclick="toggleSidebar(); navigateTo('help'); return false;" style="color: #0f172a !important; text-decoration: none; font-size: 13px; font-weight: 800; display: flex; align-items: center; gap: 10px; padding: 7px 11px; border-radius: 12px; background: #ffffff !important; border: 1.5px solid #e2e8f0 !important; outline: none !important; box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04) !important; transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;" onpointerdown="this.style.transform='scale(0.98)'; this.style.background='#f8fafc';" onpointerup="this.style.transform='scale(1)'; this.style.background='#ffffff';" onpointercancel="this.style.transform='scale(1)'; this.style.background='#ffffff';">
+                <a href="#" onclick="closeSidebarInstantly(); navigateTo('help'); return false;" style="color: #0f172a !important; text-decoration: none; font-size: 13px; font-weight: 800; display: flex; align-items: center; gap: 10px; padding: 7px 11px; border-radius: 12px; background: #ffffff !important; border: 1.5px solid #e2e8f0 !important; outline: none !important; box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04) !important; transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;" onpointerdown="this.style.transform='scale(0.98)'; this.style.background='#f8fafc';" onpointerup="this.style.transform='scale(1)'; this.style.background='#ffffff';" onpointercancel="this.style.transform='scale(1)'; this.style.background='#ffffff';">
                     <span style="width: 28px; height: 28px; border-radius: 8px; background: #eff6ff !important; border: 1px solid #dbeafe !important; display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><i class="fa-solid fa-circle-question" style="color: #1e3a8a !important; font-size: 12px;"></i></span>
                     Help & FAQ
                 </a>
-                <a href="#" onclick="toggleSidebar(); navigateTo('terms'); return false;" style="color: #0f172a !important; text-decoration: none; font-size: 13px; font-weight: 800; display: flex; align-items: center; gap: 10px; padding: 7px 11px; border-radius: 12px; background: #ffffff !important; border: 1.5px solid #e2e8f0 !important; outline: none !important; box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04) !important; transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;" onpointerdown="this.style.transform='scale(0.98)'; this.style.background='#f8fafc';" onpointerup="this.style.transform='scale(1)'; this.style.background='#ffffff';" onpointercancel="this.style.transform='scale(1)'; this.style.background='#ffffff';">
+                <a href="#" onclick="closeSidebarInstantly(); navigateTo('terms'); return false;" style="color: #0f172a !important; text-decoration: none; font-size: 13px; font-weight: 800; display: flex; align-items: center; gap: 10px; padding: 7px 11px; border-radius: 12px; background: #ffffff !important; border: 1.5px solid #e2e8f0 !important; outline: none !important; box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04) !important; transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;" onpointerdown="this.style.transform='scale(0.98)'; this.style.background='#f8fafc';" onpointerup="this.style.transform='scale(1)'; this.style.background='#ffffff';" onpointercancel="this.style.transform='scale(1)'; this.style.background='#ffffff';">
                     <span style="width: 28px; height: 28px; border-radius: 8px; background: #eff6ff !important; border: 1px solid #dbeafe !important; display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><i class="fa-solid fa-shield-halved" style="color: #1e3a8a !important; font-size: 12px;"></i></span>
                     Terms & Privacy
                 </a>
-                <a href="#" onclick="toggleSidebar(); navigateTo('about'); return false;" style="color: #0f172a !important; text-decoration: none; font-size: 13px; font-weight: 800; display: flex; align-items: center; gap: 10px; padding: 7px 11px; border-radius: 12px; background: #ffffff !important; border: 1.5px solid #e2e8f0 !important; outline: none !important; box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04) !important; transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;" onpointerdown="this.style.transform='scale(0.98)'; this.style.background='#f8fafc';" onpointerup="this.style.transform='scale(1)'; this.style.background='#ffffff';" onpointercancel="this.style.transform='scale(1)'; this.style.background='#ffffff';">
+                <a href="#" onclick="closeSidebarInstantly(); navigateTo('about'); return false;" style="color: #0f172a !important; text-decoration: none; font-size: 13px; font-weight: 800; display: flex; align-items: center; gap: 10px; padding: 7px 11px; border-radius: 12px; background: #ffffff !important; border: 1.5px solid #e2e8f0 !important; outline: none !important; box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04) !important; transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;" onpointerdown="this.style.transform='scale(0.98)'; this.style.background='#f8fafc';" onpointerup="this.style.transform='scale(1)'; this.style.background='#ffffff';" onpointercancel="this.style.transform='scale(1)'; this.style.background='#ffffff';">
                     <span style="width: 28px; height: 28px; border-radius: 8px; background: #eff6ff !important; border: 1px solid #dbeafe !important; display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><i class="fa-solid fa-circle-info" style="color: #1e3a8a !important; font-size: 12px;"></i></span>
                     About Us
                 </a>
@@ -182,12 +182,33 @@
     0% { opacity: 0; transform: scale(0.92); }
     100% { opacity: 1; transform: scale(1); }
 }
+@keyframes notifBellShake {
+    0%, 55%, 100% { transform: rotate(0deg); }
+    60% { transform: rotate(16deg); }
+    66% { transform: rotate(-14deg); }
+    72% { transform: rotate(10deg); }
+    78% { transform: rotate(-8deg); }
+    84% { transform: rotate(4deg); }
+    90% { transform: rotate(0deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .notif-reminder-bell { animation: none !important; }
+}
 </style>
 
 <script>
-    // Immediately port #logout-confirm-modal to document.body so it is never trapped under parent stacking contexts
+    // Immediately port #logout-confirm-modal to document.body and deduplicate any prior copies from SPA views
     (function initLogoutModalPort() {
         function portModal() {
+            const modals = Array.from(document.querySelectorAll('#logout-confirm-modal'));
+            if (modals.length > 1) {
+                const keep = modals.find(el => el.parentElement === document.body) || modals[0];
+                modals.forEach(el => {
+                    if (el !== keep) {
+                        try { el.remove(); } catch (e) {}
+                    }
+                });
+            }
             const m = document.getElementById('logout-confirm-modal');
             if (m && m.parentElement !== document.body) {
                 document.body.appendChild(m);
@@ -213,31 +234,62 @@
         };
     }
 
+    function restoreSidebarBottomNav() {
+        const bottomNav = document.getElementById('bottom-navigation');
+        if (!bottomNav) return;
+        const currentView = (document.body ? document.body.getAttribute('data-view') : '') || (window.currentView || '');
+        const noNavViews = ['splash', 'auth', 'onboarding', 'about', 'terms', 'edit_profile', 'help', 'trip_map', 'saved_places', 'trending', 'categories', 'reset-password', 'puzzles', 'discount', 'settings', 'user_manual', 'download'];
+        if (
+            !noNavViews.includes(currentView) &&
+            !document.body.classList.contains('sheet-open') &&
+            !document.body.classList.contains('itin-confirm-open') &&
+            !document.body.classList.contains('logout-open')
+        ) {
+            bottomNav.classList.remove('nav-hidden');
+        }
+    }
+
     function updateSidebarUserProfile() {
         try {
             const user = window.safeJsonParse ? window.safeJsonParse(localStorage.getItem('auth_user'), {}) : (JSON.parse(localStorage.getItem('auth_user') || '{}'));
             const avatarEl = document.getElementById('sidebar-avatar');
             const nameEl = document.getElementById('sidebar-user-name');
-            const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
-            const isGuest = !token || token === 'guest_token' || token === 'offline_guest_token' || token.startsWith('guest_') || token.startsWith('offline_');
-            if (user) {
-                const combinedParts = [user.first_name, user.last_name].filter(Boolean).join(' ').trim();
-                const fullName = combinedParts || (user.name || '').trim() || 'Explorer';
-                if (nameEl) nameEl.textContent = fullName;
+            const roleBadgeEl = document.getElementById('sidebar-role-badge');
+            const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token') || localStorage.getItem('api_token');
+            const isGuest = (typeof window.isGuestUser === 'function')
+                ? window.isGuestUser()
+                : (!token || token === 'guest_token' || token === 'offline_guest_token' || token.startsWith('guest_') || token.startsWith('offline_') || localStorage.getItem('intan_elyu_guest') === 'true' || localStorage.getItem('intan_elyu_offline_guest') === 'true');
+
+            if (isGuest) {
+                if (nameEl) nameEl.textContent = 'Guest Explorer';
+                if (roleBadgeEl) roleBadgeEl.innerHTML = '<i class="fa-solid fa-user-clock" style="font-size: 9.5px; color: #00f2fe;"></i> Guest Mode';
                 if (avatarEl) {
+                    avatarEl.src = 'https://ui-avatars.com/api/?name=Guest&background=0284c7&color=fff&rounded=true&bold=true&size=128';
+                }
+            } else {
+                const combinedParts = [user && user.first_name, user && user.last_name].filter(Boolean).join(' ').trim();
+                const fullName = combinedParts || ((user && user.name) || '').trim() || 'Explorer';
+                if (nameEl) nameEl.textContent = fullName;
+                if (roleBadgeEl) roleBadgeEl.innerHTML = '<i class="fa-solid fa-compass" style="font-size: 9.5px; color: #00f2fe;"></i> Elyu Tourist';
+                if (avatarEl) {
+                    const rawAvatar = (user && user.avatar !== null && user.avatar !== undefined) ? String(user.avatar).trim() : '';
+                    const hasValidAvatar = rawAvatar.length > 0 && rawAvatar !== 'null' && rawAvatar !== 'undefined';
                     const avatarName = window.getAvatarInitialsName ? window.getAvatarInitialsName(fullName) : fullName;
-                    avatarEl.src = user.avatar ? (window.getFullImageUrl ? window.getFullImageUrl(user.avatar) : user.avatar) : `https://ui-avatars.com/api/?name=${encodeURIComponent(avatarName)}&background=007AFF&color=fff&rounded=true&bold=true&size=128`;
+                    avatarEl.src = hasValidAvatar
+                        ? (window.getFullImageUrl ? window.getFullImageUrl(rawAvatar) : rawAvatar)
+                        : `https://ui-avatars.com/api/?name=${encodeURIComponent(avatarName)}&background=007AFF&color=fff&rounded=true&bold=true&size=128`;
                 }
             }
+
             const logoutBtn = document.getElementById('sidebar-logout-btn');
             if (logoutBtn) {
                 if (isGuest) {
                     logoutBtn.innerHTML = '<i class="fa-solid fa-user-plus" style="color: #ffffff !important; font-size: 14px;"></i> Register / Sign In';
                     logoutBtn.style.setProperty('background', 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)', 'important');
-                    logoutBtn.onclick = function() { 
-                        closeSidebarInstantly(); 
-                        navigateTo('auth&mode=register&from_sidebar=1'); 
-                        return false; 
+                    logoutBtn.onclick = function() {
+                        closeSidebarInstantly();
+                        navigateTo('auth&mode=register&from_sidebar=1');
+                        return false;
                     };
                 } else {
                     logoutBtn.innerHTML = '<i class="fa-solid fa-right-from-bracket" style="color: #ffffff !important; font-size: 14px;"></i> Log Out';
@@ -249,16 +301,19 @@
     }
 
     function closeSidebarInstantly() {
+        if (window._sidebarOverlayTimer) {
+            clearTimeout(window._sidebarOverlayTimer);
+            window._sidebarOverlayTimer = null;
+        }
         const sidebar = document.getElementById('sidebar-menu');
         const overlay = document.getElementById('sidebar-overlay');
-        const bottomNav = document.getElementById('bottom-navigation');
         if (sidebar) sidebar.style.left = '-280px';
         if (overlay) {
             overlay.style.display = 'none';
             overlay.style.opacity = '0';
             overlay.style.pointerEvents = 'none';
         }
-        if (bottomNav) bottomNav.classList.remove('nav-hidden');
+        restoreSidebarBottomNav();
     }
     window.closeSidebarInstantly = closeSidebarInstantly;
 
@@ -268,7 +323,16 @@
         const bottomNav = document.getElementById('bottom-navigation');
         if (sidebar && overlay) {
             const isClosed = sidebar.style.left === '-280px' || !sidebar.style.left || sidebar.style.left === '' || sidebar.style.left.startsWith('-');
+            if (window._sidebarOverlayTimer) {
+                clearTimeout(window._sidebarOverlayTimer);
+                window._sidebarOverlayTimer = null;
+            }
             if (isClosed) {
+                // Close notifications dropdown first so it never overlaps on top of the sidebar
+                const notifDropdown = document.getElementById('notifications-dropdown');
+                if (notifDropdown && notifDropdown.style.opacity === '1' && typeof toggleNotifications === 'function') {
+                    toggleNotifications();
+                }
                 updateSidebarUserProfile();
                 sidebar.style.left = '0px';
                 overlay.style.display = 'block';
@@ -279,11 +343,17 @@
                 sidebar.style.left = '-280px';
                 overlay.style.opacity = '0';
                 overlay.style.pointerEvents = 'none';
-                if (bottomNav) bottomNav.classList.remove('nav-hidden');
-                setTimeout(() => { overlay.style.display = 'none'; }, 250);
+                restoreSidebarBottomNav();
+                window._sidebarOverlayTimer = setTimeout(() => {
+                    window._sidebarOverlayTimer = null;
+                    if (sidebar.style.left !== '0px') {
+                        overlay.style.display = 'none';
+                    }
+                }, 250);
             }
         }
     }
+    window.toggleSidebar = toggleSidebar;
 
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', updateSidebarUserProfile);
@@ -292,13 +362,7 @@
     }
 
     function logoutUser() {
-        const sidebar = document.getElementById('sidebar-menu');
-        const overlay = document.getElementById('sidebar-overlay');
-        if (sidebar && overlay) {
-            sidebar.style.left = '-280px';
-            overlay.style.opacity = '0';
-            setTimeout(() => { overlay.style.display = 'none'; }, 300);
-        }
+        closeSidebarInstantly();
         if (typeof window.showLogoutConfirmationModal === 'function') {
             window.showLogoutConfirmationModal();
         } else if (typeof handleLogout === 'function') {
@@ -329,6 +393,10 @@
         const isOpen = dropdown.style.opacity === '1';
         if (isOpen) {
             window._isNotifDropdownOpen = false;
+            if (window._notifTimerInterval) {
+                clearInterval(window._notifTimerInterval);
+                window._notifTimerInterval = null;
+            }
             document.body.classList.remove('notif-open');
             dropdown.style.opacity = '0';
             dropdown.style.pointerEvents = 'none';
@@ -343,6 +411,11 @@
                 }, 300);
             }
         } else {
+            // Close sidebar if open so both overlays are never active simultaneously
+            const sidebar = document.getElementById('sidebar-menu');
+            if (sidebar && sidebar.style.left === '0px') {
+                closeSidebarInstantly();
+            }
             window._isNotifDropdownOpen = true;
             document.body.classList.add('notif-open');
             if (backdrop) {
@@ -360,8 +433,11 @@
         }
     }
 
-    // Close notifications dropdown on click outside
-    document.addEventListener('click', function(e) {
+    // Close notifications dropdown on click outside (deduplicated across SPA navigations)
+    if (window._headerDocClickHandler) {
+        document.removeEventListener('click', window._headerDocClickHandler);
+    }
+    window._headerDocClickHandler = function(e) {
         if (e.target.closest('#push-notification-modal') || e.target.closest('.push-notif-backdrop') || e.target.closest('.push-notif-card') || e.target.closest('.push-notif-close-btn') || e.target.closest('.push-notif-btn-secondary') || e.target.closest('.push-notif-btn-delete')) {
             return;
         }
@@ -376,7 +452,8 @@
                 toggleNotifications();
             }
         }
-    });
+    };
+    document.addEventListener('click', window._headerDocClickHandler);
 
     async function fetchNotifications() {
         const list = document.getElementById('notifications-list');
@@ -494,10 +571,9 @@
             </div>
         </div>
 
-        <!-- Footer Buttons (Dismiss & Delete only; View Details removed) -->
+        <!-- Footer Action -->
         <div class="push-notif-footer">
-            <button type="button" class="push-notif-btn-secondary" onclick="event.stopPropagation(); closePushNotificationModal(event)">Dismiss</button>
-            <button id="push-notif-delete-btn" type="button" class="push-notif-btn-delete" onclick="event.stopPropagation(); handlePushNotificationDelete(event)">Delete</button>
+            <button type="button" class="push-notif-btn-secondary" style="width: 100%;" onclick="event.stopPropagation(); closePushNotificationModal(event)">Dismiss</button>
         </div>
     </div>
 </div>
@@ -739,6 +815,7 @@
                 if (!item || !item.id) return;
                 window._notifItemsMap[item.id] = item;
                 const isWelcome = item.type === 'welcome';
+                const isTripReminder = item.type === 'itinerary_reminder' && !/completed/i.test(String(item.title || ''));
                 const isUnread = !item.is_read;
                 const itemTime = window.getNotifTimestamp(item);
                 const timerStr = window.formatReverseTimer(itemTime);
@@ -748,26 +825,35 @@
                 const displayMsg = window.cleanNotifMessage(item.message, spotName);
 
                 html += `
-                    <div class="notif-card-item" id="notif-item-${item.id}" style="display: block; padding: 13px 14px; background: #ffffff !important; border: 1.5px solid #e2e8f0 !important; box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05) !important; border-radius: 14px; cursor: pointer; transition: transform 0.2s ease, opacity 0.2s ease, border-color 0.2s;" onclick="handleNotifClick('${item.id}', this)" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'" onpointercancel="this.style.transform='scale(1)'">
-                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px;">
-                            <div style="display: flex; align-items: center; gap: 6px; min-width: 0; flex: 1;">
-                                ${isUnread ? '<span class="unread-dot" style="width: 7px; height: 7px; border-radius: 50%; background: #0284c7; flex-shrink: 0; box-shadow: 0 0 6px #0284c7; display: inline-block;"></span>' : ''}
-                                ${isWelcome ? '<span style="font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; padding: 2px 6px; border-radius: 4px; flex-shrink: 0;">Welcome</span>' : ''}
-                                <span style="font-size: 14px; color: #0f172a; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${displayTitle}</span>
-                            </div>
-                            <button type="button" onclick="event.stopPropagation(); window.deleteNotification('${item.id}', this.closest('.notif-card-item'))" style="background: #fee2e2 !important; border: 1px solid #fecaca !important; outline: none !important; color: #dc2626 !important; font-size: 11px; font-weight: 800; cursor: pointer; padding: 3px 10px; border-radius: 8px; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">Delete</button>
-                        </div>
-                        <p style="margin: 0 0 8px 0; font-size: 12.5px; color: ${isUnread ? '#334155' : '#64748b'}; line-height: 1.45; font-weight: ${isUnread ? '600' : '500'};">${displayMsg}</p>
-                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
-                            <span class="notif-reverse-timer" data-time="${itemTime}" style="font-size: 10px; font-weight: 700; color: #0284c7; display: inline-flex; align-items: center; background: #e0f2fe; padding: 2px 8px; border-radius: 100px; border: 1px solid #bae6fd;">
-                                <span class="timer-text">${timerStr}</span>
+                    <div class="notif-card-item notif-swipe-wrap" id="notif-item-${item.id}" data-notif-id="${item.id}" style="position: relative; overflow: hidden; border-radius: 14px; flex-shrink: 0; touch-action: pan-y; transition: opacity 0.2s ease, transform 0.2s ease;">
+                        <button type="button" class="notif-swipe-delete-bg" onclick="event.stopPropagation(); window.deleteNotification('${item.id}', this.closest('.notif-card-item'))" style="position: absolute; inset: 0; width: 100%; border-radius: 14px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border: none; outline: none; color: #ffffff; font-size: 11.5px; font-weight: 800; display: flex; align-items: center; justify-content: flex-end; padding-right: 20px; cursor: pointer; z-index: 1; opacity: 0; pointer-events: none; transition: opacity 0.16s ease;">
+                            <span style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; width: 44px;">
+                                <i class="fa-solid fa-trash-can" style="font-size: 14px;"></i>
+                                <span>Delete</span>
                             </span>
-                            <span style="font-size: 10.5px; color: #94a3b8; font-weight: 600;">${formattedDate}</span>
+                        </button>
+                        <div class="notif-card-content" style="position: relative; z-index: 2; display: block; padding: 13px 14px; background: #ffffff !important; border: 1.5px solid #e2e8f0 !important; box-shadow: none !important; border-radius: 14px; cursor: pointer; transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1); user-select: none;" onclick="if(this.dataset.justSwiped==='1'){this.dataset.justSwiped='0';return;} handleNotifClick('${item.id}', this.closest('.notif-card-item'))">
+                            <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px;">
+                                <div style="display: flex; align-items: center; gap: 6px; min-width: 0; flex: 1;">
+                                    ${isUnread ? '<span class="unread-dot" style="width: 7px; height: 7px; border-radius: 50%; background: #0284c7; flex-shrink: 0; box-shadow: 0 0 6px #0284c7; display: inline-block;"></span>' : ''}
+                                    ${isWelcome ? '<span style="font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; padding: 2px 6px; border-radius: 4px; flex-shrink: 0;">Welcome</span>' : ''}
+                                    ${isTripReminder ? '<i class="fa-solid fa-bell notif-reminder-bell" aria-hidden="true" style="color: #f59e0b; font-size: 13.5px; flex-shrink: 0; display: inline-block; transform-origin: top center; animation: notifBellShake 2.2s ease-in-out infinite;"></i>' : ''}
+                                    <span style="font-size: 14px; color: #0f172a; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${displayTitle}</span>
+                                </div>
+                            </div>
+                            <p style="margin: 0 0 8px 0; font-size: 12.5px; color: ${isUnread ? '#334155' : '#64748b'}; line-height: 1.45; font-weight: ${isUnread ? '600' : '500'};">${displayMsg}</p>
+                            <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                                <span class="notif-reverse-timer" data-time="${itemTime}" style="font-size: 10px; font-weight: 700; color: #0284c7; display: inline-flex; align-items: center; background: #e0f2fe; padding: 2px 8px; border-radius: 100px; border: 1px solid #bae6fd;">
+                                    <span class="timer-text">${timerStr}</span>
+                                </span>
+                                <span style="font-size: 10.5px; color: #94a3b8; font-weight: 600;">${formattedDate}</span>
+                            </div>
                         </div>
                     </div>
                 `;
             });
             list.innerHTML = html;
+            initNotifSwipeGestures();
             if (footer) {
                 footer.style.display = 'flex';
                 const markBtn = document.getElementById('notif-mark-all-btn');
@@ -783,6 +869,92 @@
             if (footer) footer.style.display = 'none';
             if (dot) dot.classList.remove('show');
         }
+    }
+
+    function initNotifSwipeGestures() {
+        const wraps = document.querySelectorAll('#notifications-list .notif-swipe-wrap');
+        wraps.forEach(wrap => {
+            if (wrap.dataset.swipeBound === '1') return;
+            wrap.dataset.swipeBound = '1';
+            const content = wrap.querySelector('.notif-card-content');
+            const delBtn = wrap.querySelector('.notif-swipe-delete-bg');
+            const notifId = wrap.getAttribute('data-notif-id');
+            if (!content || !delBtn || !notifId) return;
+
+            let startX = 0, startY = 0, curX = 0, dragging = false, isHoriz = false, decided = false, isOpen = false;
+            const REVEAL_W = 78;
+
+            const setOffset = (px, animate) => {
+                content.style.transition = animate ? 'transform 0.22s cubic-bezier(0.16, 1, 0.3, 1)' : 'none';
+                content.style.transform = `translateX(-${px}px)`;
+                delBtn.style.opacity = px > 8 ? '1' : '0';
+                delBtn.style.pointerEvents = px >= REVEAL_W - 10 ? 'auto' : 'none';
+            };
+            const closeOthers = () => {
+                document.querySelectorAll('#notifications-list .notif-swipe-wrap').forEach(other => {
+                    if (other !== wrap && typeof other._closeNotifSwipe === 'function') other._closeNotifSwipe();
+                });
+            };
+            wrap._closeNotifSwipe = () => { isOpen = false; setOffset(0, true); };
+
+            const onStart = (x, y, target) => {
+                if (target && target.closest('.notif-swipe-delete-bg')) return;
+                startX = curX = x; startY = y;
+                dragging = true; isHoriz = false; decided = false;
+                content.style.transition = 'none';
+            };
+            const onMove = (x, y, e) => {
+                if (!dragging) return;
+                curX = x;
+                const dx = startX - x;
+                const dy = Math.abs(startY - y);
+                if (!decided && (Math.abs(dx) > 7 || dy > 7)) {
+                    decided = true;
+                    isHoriz = Math.abs(dx) > dy;
+                    if (!isHoriz) { dragging = false; return; }
+                    closeOthers();
+                }
+                if (!isHoriz) return;
+                if (e && e.cancelable) e.preventDefault();
+                const offset = Math.max(0, Math.min((isOpen ? REVEAL_W : 0) + dx, (wrap.offsetWidth || 300) * 0.75));
+                setOffset(offset, false);
+            };
+            const onEnd = () => {
+                if (!dragging) return;
+                dragging = false;
+                if (!isHoriz) return;
+                content.dataset.justSwiped = '1';
+                setTimeout(() => { content.dataset.justSwiped = '0'; }, 120);
+                const totalOffset = (isOpen ? REVEAL_W : 0) + (startX - curX);
+                const w = wrap.offsetWidth || 300;
+                if (totalOffset > w * 0.52) {
+                    window.deleteNotification(notifId, wrap);
+                } else if (totalOffset > 38) {
+                    isOpen = true;
+                    setOffset(REVEAL_W, true);
+                } else {
+                    isOpen = false;
+                    setOffset(0, true);
+                }
+            };
+
+            wrap.addEventListener('touchstart', e => { if (e.touches[0]) onStart(e.touches[0].clientX, e.touches[0].clientY, e.target); }, { passive: true });
+            wrap.addEventListener('touchmove', e => { if (e.touches[0]) onMove(e.touches[0].clientX, e.touches[0].clientY, e); }, { passive: false });
+            wrap.addEventListener('touchend', onEnd);
+            wrap.addEventListener('touchcancel', onEnd);
+            wrap.addEventListener('mousedown', e => {
+                if (e.button !== 0) return;
+                onStart(e.clientX, e.clientY, e.target);
+                const handleMouseMove = (ev) => onMove(ev.clientX, ev.clientY, ev);
+                const handleMouseUp = () => {
+                    window.removeEventListener('mousemove', handleMouseMove);
+                    window.removeEventListener('mouseup', handleMouseUp);
+                    onEnd();
+                };
+                window.addEventListener('mousemove', handleMouseMove);
+                window.addEventListener('mouseup', handleMouseUp);
+            });
+        });
     }
 
     window.handleNotifClick = function(id, el) {
@@ -820,6 +992,10 @@
             category = 'NEW SPOT';
         } else if (type === 'favorite_update' || type === 'spot_updated') {
             category = 'FAVORITE UPDATE';
+        } else if (type === 'trip_completed') {
+            category = 'TRIP COMPLETED';
+        } else if (type === 'voucher') {
+            category = 'VOUCHER';
         } else if (type === 'itinerary_reminder' || type === 'trip') {
             category = 'TRIP REMINDER';
         } else if (type === 'spot_maintenance' || type === 'alert') {
@@ -926,7 +1102,7 @@
 
         if (el) {
             el.style.opacity = '0';
-            el.style.transform = 'translateX(20px)';
+            el.style.transform = 'translateX(-40px)';
             setTimeout(() => {
                 el.remove();
                 const list = document.getElementById('notifications-list');

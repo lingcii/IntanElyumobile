@@ -184,8 +184,8 @@ $email = $_GET['email'] ?? '';
         const apkBox = document.getElementById('apk-launch-box');
         if (apkBox && isApk) {
             apkBox.style.display = 'none';
-        } else if (!isApk && (params.get('open_app') === '1' || /android/i.test(navigator.userAgent))) {
-            // Auto-attempt launch into APK
+        } else if (!isApk && params.get('open_app') === '1') {
+            // Auto-attempt launch into APK only when explicitly requested via open_app=1
             window.launchInApk();
         }
 
@@ -280,8 +280,8 @@ $email = $_GET['email'] ?? '';
                 return;
             }
 
-            if (!/[A-Za-z]/.test(password) || !/\d/.test(password)) {
-                if (typeof showToast === 'function') showToast('Password must contain both letters and numbers.');
+            if (!/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/\d/.test(password) || !/[^A-Za-z0-9]/.test(password)) {
+                if (typeof showToast === 'function') showToast('Password must include uppercase, lowercase, number, and symbol.');
                 return;
             }
 

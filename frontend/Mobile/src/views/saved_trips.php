@@ -705,12 +705,13 @@ $backRoute = 'itinerary';
                         return (qId === lId || qUpdateId === lId || (uId && (qId === uId || qUpdateId === uId)) || qId === ('offline_edit_' + lId));
                     });
 
-                    // Match server trip by ID, updateId, or normalized title
+                    // Match server trip by ID or updateId (only fall back to title if local trip has no server numeric ID)
                     const sIdx = list.findIndex(st => {
                         if (!st) return false;
                         const sId = String(st.id || st.trip_id || '');
                         if (sId === lId || (uId && sId === uId)) return true;
-                        if (st.title && lTrip.title && st.title.trim().toLowerCase() === lTrip.title.trim().toLowerCase()) return true;
+                        const isLocalOnlyId = lId.startsWith('offline_') || lId.startsWith('local_') || !/^\d+$/.test(lId);
+                        if (isLocalOnlyId && !uId && st.title && lTrip.title && st.title.trim().toLowerCase() === lTrip.title.trim().toLowerCase()) return true;
                         return false;
                     });
 
@@ -1188,10 +1189,11 @@ $backRoute = 'itinerary';
         }
 
         window.updateSavedTripCheckinAvailability = function (lat, lng, accuracy = null) {
-            const userLat = Number(lat);
-            const userLng = Number(lng);
-            const gpsAccuracy = Number(accuracy);
-            const hasReliableFix = Number.isFinite(userLat) && Number.isFinite(userLng) &&
+            const hasRawCoords = lat !== null && lat !== undefined && lat !== '' && lng !== null && lng !== undefined && lng !== '';
+            const userLat = hasRawCoords ? Number(lat) : NaN;
+            const userLng = hasRawCoords ? Number(lng) : NaN;
+            const gpsAccuracy = (accuracy !== null && accuracy !== undefined && accuracy !== '') ? Number(accuracy) : NaN;
+            const hasReliableFix = Number.isFinite(userLat) && Number.isFinite(userLng) && (userLat !== 0 || userLng !== 0) &&
                 (!Number.isFinite(gpsAccuracy) || gpsAccuracy <= SAVED_TRIP_MAX_GPS_ACCURACY_METERS);
 
             if (hasReliableFix) {
@@ -1624,31 +1626,52 @@ $backRoute = 'itinerary';
                         }
 
                         const isLockedFromEditing = isTripLockedFromEditing(trip);
+                        const isCompletedHistoryTrip = Boolean(showingHistory || trip.status === 'completed' || trip.is_completed);
+                        const historyStopsCount = Array.isArray(trip.items) ? trip.items.length : 0;
+                        const historyTotalCost = parseFloat(trip.total_cost || 0);
+                        const historyPhotoCount = (Array.isArray(trip.items) ? trip.items : []).reduce((acc, it) => {
+                            if (!it) return acc;
+                            if (Array.isArray(it.proof_images) && it.proof_images.length > 0) return acc + it.proof_images.length;
+                            if (it.proof_image) {
+                                try {
+                                    const p = JSON.parse(it.proof_image);
+                                    return acc + (Array.isArray(p) ? p.filter(Boolean).length : 1);
+                                } catch (e) { return acc + 1; }
+                            }
+                            return acc;
+                        }, 0);
 
                         html += `
                     <div class="trip-swipe-container" data-trip-id="${trip.id}" data-trip-title="${safeTitle}" style="position:relative; overflow:hidden; border-radius:24px; margin-bottom:20px; touch-action:pan-y;">
-                        <!-- Red Delete Action Button (Slides smoothly in tandem from right wall) -->
+                        ${!isCompletedHistoryTrip ? `<!-- Red Delete Action Button (Active trips only; Trip History is read-only) -->
                         <div class="trip-swipe-bg" onclick="event.stopPropagation(); window.confirmDeleteSavedTrip('${trip.id}', this.closest('.trip-swipe-container'), '${safeTitle}');" style="position:absolute; top:0; right:0; bottom:0; width:95px; background:linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border-radius:0 24px 24px 0; display:flex; align-items:center; justify-content:center; color:#ffffff; font-size:13px; font-weight:800; gap:6px; z-index:1; cursor:pointer; opacity:0; pointer-events:none; transform:translateX(95px); transition:transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease; touch-action:manipulation;">
                             <i class="fa-solid fa-trash-can"></i> Delete
-                        </div>
+                        </div>` : ''}
                         
                         <!-- Rich White Card Content (Overlays z-index 2) -->
-                        <div class="trip-swipe-content" style="position:relative; z-index:2; background:#ffffff !important; border:1px solid #e2e8f0 !important; outline:none !important; border-radius:24px; padding:22px; transition:transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-radius 0.25s ease; box-shadow:0 4px 20px rgba(15, 23, 42, 0.08);">
+                        <div class="trip-swipe-content" style="position:relative; z-index:2; background:#ffffff !important; border:1px solid #e2e8f0 !important; outline:none !important; border-radius:24px; padding:22px; transition:transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-radius 0.25s ease; box-shadow:none;">
                             <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 6px;">
                                 <h3 style="margin: 0; font-size: 20px; font-weight: 800; color: #0f172a; letter-spacing: -0.3px; flex: 1; min-width: 0; word-break: break-word;">${trip.title}</h3>
                                 <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
-                                    ${!isLockedFromEditing ? `
+                                    ${isCompletedHistoryTrip ? `
+                                    <span style="background: #ecfdf5; border: 1px solid #a7f3d0; color: #059669; border-radius: 100px; padding: 5px 11px; font-size: 11px; font-weight: 800; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;">
+                                        <i class="fa-solid fa-circle-check" style="font-size: 11px;"></i> Completed
+                                    </span>
+                                    ` : (!isLockedFromEditing ? `
                                     <button type="button" class="btn-edit-saved-trip" onclick="event.stopPropagation(); window.editSavedTrip('${trip.id}')" ontouchstart="event.stopPropagation();" onpointerdown="event.stopPropagation();" onmousedown="event.stopPropagation();" onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'" style="background: #f1f5f9; border: 1px solid #e2e8f0 !important; outline: none !important; border-radius: 12px; padding: 6px 14px; color: #1e3a8a; font-size: 12px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s ease; box-shadow: none !important; position: relative; z-index: 10; pointer-events: auto; touch-action: manipulation;">
                                         <i class="fa-solid fa-pen-to-square"></i> Edit
                                     </button>
-                                    ` : ''}
+                                    ` : '')}
                                 </div>
                             </div>
                             <div style="font-size: 12.5px; color: #64748b; margin: 0 0 16px 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                                 <span style="display:inline-flex; align-items:center; gap:5px; font-weight:700; color:#475569;"><i class="fa-regular fa-calendar" style="color: #64748b;"></i>${trip.trip_date ? new Date(trip.trip_date).toLocaleDateString() : 'No date set'}</span> 
                                 ${paxBadge}
+                                ${isCompletedHistoryTrip && historyStopsCount > 0 ? `<span style="background: #eff6ff; border: 1px solid #bfdbfe; color: #1e3a8a; padding: 3px 10px; border-radius: 100px; font-weight: 800; font-size: 11.5px; display: inline-flex; align-items: center; gap: 4px;"><i class="fa-solid fa-location-dot" style="font-size: 10px; color: #0284c7;"></i> ${historyStopsCount} ${historyStopsCount === 1 ? 'Stop' : 'Stops'}</span>` : ''}
+                                ${isCompletedHistoryTrip && historyTotalCost > 0 ? `<span style="background: #fefce8; border: 1px solid #fde68a; color: #92400e; padding: 3px 10px; border-radius: 100px; font-weight: 800; font-size: 11.5px; display: inline-flex; align-items: center; gap: 4px;"><i class="fa-solid fa-coins" style="font-size: 10px; color: #d97706;"></i> Total: ₱${historyTotalCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>` : ''}
+                                ${isCompletedHistoryTrip && historyPhotoCount > 0 ? `<span style="background: #f1f5f9; border: 1px solid #e2e8f0; color: #0f172a; padding: 3px 10px; border-radius: 100px; font-weight: 800; font-size: 11.5px; display: inline-flex; align-items: center; gap: 4px;"><i class="fa-solid fa-camera" style="font-size: 10px; color: #0284c7;"></i> ${historyPhotoCount} ${historyPhotoCount === 1 ? 'Photo' : 'Photos'}</span>` : ''}
                                 ${trip.is_offline_queued ? `<span style="background: #fef3c7; border: 1px solid #fde68a; color: #b45309; padding: 3px 10px; border-radius: 100px; font-weight: 800; font-size: 11px; display: inline-flex; align-items: center; gap: 4px;"><i class="fa-solid fa-cloud-arrow-up"></i> Queued (Offline)</span>` : ''}
-                                ${trip.budget ? `<span style="background: #fef3c7; border: 1px solid #fde68a; color: #92400e; padding: 3px 10px; border-radius: 100px; font-weight: 700; font-size: 12px; display: inline-flex; align-items: center; gap: 4px;"><i class="fa-solid fa-coins" style="font-size:10px; color:#d97706;"></i>Budget: ₱${parseFloat(trip.budget).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}${budgetIndicator}</span>` : ''}
+                                ${!isCompletedHistoryTrip && trip.budget ? `<span style="background: #fef3c7; border: 1px solid #fde68a; color: #92400e; padding: 3px 10px; border-radius: 100px; font-weight: 700; font-size: 12px; display: inline-flex; align-items: center; gap: 4px;"><i class="fa-solid fa-coins" style="font-size:10px; color:#d97706;"></i>Budget: ₱${parseFloat(trip.budget).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}${budgetIndicator}</span>` : ''}
                             </div>
                             <div class="timeline-collapsible" id="timeline-${trip.id}">
                                 <div class="timeline-inner">
@@ -1720,7 +1743,7 @@ $backRoute = 'itinerary';
                                             <div style="position:relative; flex-shrink:0;">
                                                 <img src="${displayUrl}" 
                                                     onerror="if(this.dataset.triedFallback!=='1'){this.dataset.triedFallback='1';this.src='${fallbackUrl}';}else{this.onerror=null;this.src='assets/img/no_image.svg';}" 
-                                                    onclick="event.stopPropagation(); if(typeof window.viewTripPhotoModal==='function') window.viewTripPhotoModal(${jsonUrlsAttr}, '${destEscaped}', 'Photo (${pIdx + 1} of ${uploadedPhotos.length})', ${pIdx});" 
+                                                    onclick="event.stopPropagation(); if(typeof window.viewTripPhotoModal==='function') window.viewTripPhotoModal(${jsonUrlsAttr}, '${destEscaped}', 'Photo (${pIdx + 1} of ${uploadedPhotos.length})', ${pIdx}, { itemId: '${item.id}', canDelete: ${!(trip && (trip.status === 'completed' || trip.is_completed)) && !isCheckinQueued} });" 
                                                     alt="Photo ${pIdx + 1}" 
                                                     title="Tap to view photo" 
                                                     loading="lazy"
@@ -1907,8 +1930,8 @@ $backRoute = 'itinerary';
                         html += `<div class="start-collapsible expanded" id="start-wrapper-${trip.id}" style="flex:1; min-width:0;">`;
                         if (isTripCompleted) {
                             html += `
-                            <button class="btn-primary" style="width:100%; white-space:nowrap; background: #ecfdf5; border: 1px solid #a7f3d0 !important; outline: none !important; color: #059669; padding: 12px 10px; border-radius: 14px; font-weight: 800; font-size: 12.5px; cursor: default; display: inline-flex; align-items: center; justify-content: center; gap: 6px; box-shadow: none !important;" disabled>
-                                <i class="fa-solid fa-circle-check" style="color:#059669; font-size:12px;"></i> Completed
+                            <button type="button" class="btn-primary" onclick="event.stopPropagation(); window.replayCompletedTrip('${trip.id}')" style="width:100%; white-space:nowrap; background: linear-gradient(135deg, #1e3a8a 0%, #0284c7 100%); border: none !important; outline: none !important; color: #ffffff; padding: 12px 10px; border-radius: 14px; font-weight: 800; font-size: 12.5px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; box-shadow: none !important;">
+                                <i class="fa-solid fa-rotate-right" style="color:#ffffff; font-size:12px;"></i> Plan Again
                             </button>`;
                         } else if (!trip.is_offline_queued && unvisitedCount === 0 && trip.items && trip.items.length > 0) {
                             html += `
@@ -3562,47 +3585,7 @@ $backRoute = 'itinerary';
             }
 
             window._currentEditingTrip = trip;
-
-            const allEditModals = Array.from(document.querySelectorAll('#edit-trip-details-modal'));
-            let modal = document.querySelector('#main-content #edit-trip-details-modal') || allEditModals[allEditModals.length - 1] || document.getElementById('edit-trip-details-modal');
-            allEditModals.forEach(m => {
-                if (m !== modal) {
-                    try { m.remove(); } catch (e) { }
-                }
-            });
-            if (modal && modal.parentElement !== document.body) {
-                document.body.appendChild(modal);
-            }
-
-            const idInput = (modal && modal.querySelector('#quick-edit-trip-id')) || document.getElementById('quick-edit-trip-id');
-            const titleInput = (modal && modal.querySelector('#quick-edit-trip-title')) || document.getElementById('quick-edit-trip-title');
-            const dateInput = (modal && modal.querySelector('#quick-edit-trip-date')) || document.getElementById('quick-edit-trip-date');
-
-            if (idInput) idInput.value = trip.id;
-            if (titleInput) titleInput.value = trip.title || '';
-            if (dateInput) {
-                const now = new Date();
-                const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-                dateInput.min = todayStr;
-                dateInput.value = trip.trip_date ? String(trip.trip_date).split(/[T ]/)[0] : '';
-            }
-
-            const isGroup = (trip.trip_type === 'group' || (trip.total_pax && parseInt(trip.total_pax, 10) > 1));
-            window.setQuickEditTripType(isGroup ? 'group' : 'solo');
-
-            const mEl = document.getElementById('quick-edit-males-count');
-            const fEl = document.getElementById('quick-edit-females-count');
-            if (mEl) mEl.textContent = String(trip.companion_males || 0);
-            if (fEl) fEl.textContent = String(trip.companion_females || 0);
-
-            window.updateQuickEditPartySummary();
-
-            if (modal) {
-                modal.style.display = 'flex';
-                modal.style.pointerEvents = 'auto';
-            }
-            document.body.classList.add('modal-open');
-            document.body.classList.add('sheet-open');
+            window.openPlannerFromQuickEdit();
         };
 
         window.submitQuickEditTripDetails = async function () {
@@ -3825,6 +3808,11 @@ $backRoute = 'itinerary';
             sessionStorage.setItem('editing_companion_seniors', String(trip.companion_seniors || 0));
             sessionStorage.setItem('editing_companion_pwds', String(trip.companion_pwds || 0));
             sessionStorage.setItem('editing_total_pax', String(trip.total_pax || 1));
+            if (Array.isArray(trip.companion_ages) && trip.companion_ages.length > 0) {
+                sessionStorage.setItem('editing_companion_ages', JSON.stringify(trip.companion_ages));
+            } else {
+                sessionStorage.removeItem('editing_companion_ages');
+            }
             if (trip.transport_mode) {
                 localStorage.setItem('intan_elyu_draft_trip_transport', trip.transport_mode);
                 const rawModes = trip.transport_mode.split(/[\+,]/).map(s => s.trim().toLowerCase()).filter(Boolean);
@@ -3918,6 +3906,80 @@ $backRoute = 'itinerary';
             }
         };
 
+        window.replayCompletedTrip = function (tripId) {
+            const trip = (window._cachedSavedTrips || []).find(t => String(t.id) === String(tripId));
+            if (!trip || !Array.isArray(trip.items) || trip.items.length === 0) {
+                if (typeof showToast === 'function') showToast('No destinations available to replay for this trip.');
+                return;
+            }
+
+            // Clear any editing state so this always starts a brand-new draft
+            ['editing_itinerary_id', 'editing_trip_title', 'editing_trip_date', 'editing_trip_budget',
+             'editing_trip_transport', 'editing_trip_type', 'editing_companion_males', 'editing_companion_females',
+             'editing_companion_adults', 'editing_companion_kids', 'editing_companion_seniors',
+             'editing_companion_pwds', 'editing_total_pax'].forEach(k => {
+                try { sessionStorage.removeItem(k); } catch (e) { }
+            });
+
+            let mapSpotsMap = {};
+            try {
+                const rawMap = localStorage.getItem('public_map_data');
+                if (rawMap) {
+                    const parsedMap = (typeof window.safeJsonParse === 'function') ? window.safeJsonParse(rawMap, null) : JSON.parse(rawMap);
+                    const spotsArr = (parsedMap && parsedMap.data && parsedMap.data.destinations) ? parsedMap.data.destinations : (parsedMap && parsedMap.destinations ? parsedMap.destinations : []);
+                    if (Array.isArray(spotsArr)) {
+                        spotsArr.forEach(s => { if (s && s.id) mapSpotsMap[String(s.id)] = s; });
+                    }
+                }
+            } catch (e) { }
+
+            const sortedItems = [...trip.items].sort((a, b) => (a.order_index || 0) - (b.order_index || 0));
+            const spots = sortedItems.map(i => {
+                const spotId = i.tourist_spot_id || i.destination_id || (i.destination && i.destination.id);
+                let dest = i.destination || (spotId && typeof window.getTouristSpotById === 'function' ? window.getTouristSpotById(spotId) : null) || (spotId ? mapSpotsMap[String(spotId)] : null);
+                if (!dest) return null;
+                const finalSpotId = spotId || dest.id;
+                const mapSpot = (finalSpotId && mapSpotsMap[String(finalSpotId)]) ? mapSpotsMap[String(finalSpotId)] : {};
+                const rawMuni = dest.municipality || mapSpot.municipality || '';
+                const muniName = (typeof rawMuni === 'string') ? rawMuni : (rawMuni?.name || '');
+                const accVeh = (Array.isArray(dest.accessible_vehicles) && dest.accessible_vehicles.length > 0)
+                    ? dest.accessible_vehicles
+                    : (Array.isArray(mapSpot.accessible_vehicles) ? mapSpot.accessible_vehicles : []);
+                return {
+                    ...dest,
+                    id: finalSpotId,
+                    tourist_spot_id: finalSpotId,
+                    lat: dest.latitude || dest.lat || mapSpot.lat,
+                    lng: dest.longitude || dest.lng || mapSpot.lng,
+                    photo_url: dest.image || dest.photo_url || mapSpot.photo_url || '',
+                    municipality: muniName,
+                    accessible_vehicles: accVeh,
+                    public_vehicles: (Array.isArray(dest.public_vehicles) && dest.public_vehicles.length > 0) ? dest.public_vehicles : (mapSpot.public_vehicles || []),
+                    private_vehicles: (Array.isArray(dest.private_vehicles) && dest.private_vehicles.length > 0) ? dest.private_vehicles : (mapSpot.private_vehicles || []),
+                    has_available_vehicles: Array.isArray(accVeh) && accVeh.length > 0
+                };
+            }).filter(Boolean);
+
+            if (spots.length === 0) {
+                if (typeof showToast === 'function') showToast('No destinations available to replay for this trip.');
+                return;
+            }
+
+            try {
+                localStorage.setItem('intan_elyu_draft_itinerary', JSON.stringify(spots));
+                localStorage.removeItem('intan_elyu_draft_leg_vehicles');
+                localStorage.removeItem('intan_elyu_draft_trip_transport');
+                localStorage.removeItem('intan_elyu_draft_trip_transports');
+            } catch (e) { }
+
+            if (typeof showToast === 'function') showToast('Destinations loaded into a new trip plan!', 'success');
+            if (typeof window.navigateTo === 'function') {
+                window.navigateTo('itinerary');
+            } else {
+                window.location.href = '?view=itinerary';
+            }
+        };
+
         window.confirmDeleteSavedTrip = function (id, container, title) {
             window._pendingDeleteTripId = id;
             window._pendingDeleteTripContainer = container || (id ? document.querySelector(`.trip-swipe-container[data-trip-id="${id}"]`) : null);
@@ -3988,11 +4050,15 @@ $backRoute = 'itinerary';
                 window.markTripAsDeleted(String(id).replace('offline_edit_', ''));
             }
 
-            // If deletedTitle is available, also mark any ghost clones with identical title in cached trips
+            // If deletedTitle is available, only mark offline-only ghost clones (never distinct server trips or Trip History that happen to share a title)
             if (deletedTitle && Array.isArray(window._cachedSavedTrips)) {
+                const targetStr = String(id).trim();
                 window._cachedSavedTrips.forEach(t => {
-                    if (t && t.title && t.title.trim().toLowerCase() === deletedTitle.trim().toLowerCase()) {
-                        window.markTripAsDeleted(t.id);
+                    if (!t) return;
+                    const tId = String(t.id || t.trip_id || '');
+                    const isSameOrOfflineClone = tId === targetStr || tId.startsWith('offline_') || String(t.update_id || '') === targetStr;
+                    if (isSameOrOfflineClone && t.title && t.title.trim().toLowerCase() === deletedTitle.trim().toLowerCase()) {
+                        if (t.id) window.markTripAsDeleted(t.id);
                         if (t.trip_id) window.markTripAsDeleted(t.trip_id);
                         if (t.local_id) window.markTripAsDeleted(t.local_id);
                         if (t.update_id) window.markTripAsDeleted(t.update_id);
@@ -4020,7 +4086,6 @@ $backRoute = 'itinerary';
                             const raw = targetStr.replace('offline_edit_', '');
                             if (idStr === raw || tripIdStr === raw || localIdStr === raw || updateIdStr === raw) return false;
                         }
-                        if (deletedTitle && t.title && t.title.trim().toLowerCase() === deletedTitle.trim().toLowerCase()) return false;
                         return true;
                     });
                 };
@@ -4136,14 +4201,15 @@ $backRoute = 'itinerary';
 
                 const primaryUrl = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || window.BACKEND_URL || '')).replace(/\/+$/, '');
                 const baseCandidates = [];
-                if (primaryUrl && !primaryUrl.includes('localhost') && !primaryUrl.includes('127.0.0.1')) {
+                if (primaryUrl) {
                     baseCandidates.push(primaryUrl);
                 }
-                baseCandidates.push('https://api.intan-elyu.online');
-                if (primaryUrl && !baseCandidates.includes(primaryUrl)) {
-                    baseCandidates.push(primaryUrl);
+                if (!baseCandidates.includes('https://api.intan-elyu.online')) {
+                    baseCandidates.push('https://api.intan-elyu.online');
                 }
-                baseCandidates.push('');
+                if (baseCandidates.length === 0) {
+                    baseCandidates.push('');
+                }
 
                 let serverDeleted = false;
                 for (const bUrl of baseCandidates) {
@@ -4201,7 +4267,7 @@ $backRoute = 'itinerary';
                 const tripTitle = container.dataset.tripTitle || 'this trip';
                 const content = container.querySelector('.trip-swipe-content');
                 const bg = container.querySelector('.trip-swipe-bg');
-                if (!content) return;
+                if (!content || !bg) return;
 
                 container.style.touchAction = 'pan-y';
                 content.style.touchAction = 'pan-y';

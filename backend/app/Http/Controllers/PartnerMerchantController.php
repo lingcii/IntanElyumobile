@@ -99,26 +99,36 @@ class PartnerMerchantController extends Controller
     public function show($id): JsonResponse
     {
         try {
-            $p = PartnerEstablishment::with('municipality')->find($id);
+            $p = PartnerEstablishment::with('municipality')
+                ->where(function ($q) {
+                    $q->where('status', 'active')->orWhereNull('status');
+                })
+                ->where(function ($q) {
+                    $q->where('partnership_status', 'approved')->orWhereNull('partnership_status');
+                })
+                ->find($id);
             if (!$p) {
                 return response()->json(['status' => 'error', 'message' => 'Partner merchant not found.'], 404);
             }
 
             $isMabanag = str_contains(strtolower($p->name), 'mabanag');
+            $hasPivot = \Illuminate\Support\Facades\Schema::hasTable('partner_establishment_voucher');
 
             // Find vouchers linked to this partner
-            $vouchers = Voucher::where(function ($q) use ($p, $isMabanag) {
-                $q->whereHas('partnerEstablishments', function ($pe) use ($p) {
-                    $pe->where('partner_establishments.id', $p->id);
-                })
-                ->orWhere('partner_establishment', 'LIKE', '%' . $p->name . '%')
-                ->orWhere('partner_establishments', 'LIKE', '%' . $p->name . '%');
+            $vouchers = Voucher::where(function ($q) use ($p, $isMabanag, $hasPivot) {
+                if ($hasPivot) {
+                    $q->whereHas('partnerEstablishments', function ($pe) use ($p) {
+                        $pe->where('partner_establishments.id', $p->id);
+                    });
+                }
+                $q->orWhere('partner_establishment', 'LIKE', '%' . $p->name . '%')
+                  ->orWhere('partner_establishments', 'LIKE', '%' . $p->name . '%');
 
                 if ($isMabanag) {
                     $q->orWhere('partner_establishment', 'LIKE', '%Mabanag%');
                 }
             })->where(function ($q) {
-                $q->whereIn(DB::raw('LOWER(COALESCE(status, "active"))'), ['active', 'upcoming'])
+                $q->whereIn(DB::raw("LOWER(COALESCE(status, 'active'))"), ['active', 'upcoming'])
                   ->orWhereNull('status');
             })->get();
 

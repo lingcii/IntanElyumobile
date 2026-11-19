@@ -20,7 +20,7 @@ assert.match(auth, /id="auth-keyboard-dismiss"[\s\S]*fa-chevron-down/,
     'auth must provide a keyboard-only down-arrow dismissal control');
 assert.match(auth, /id="login-email"[^>]*enterkeyhint="next"[\s\S]*id="login-password"[^>]*enterkeyhint="done"/,
     'login inputs must expose native Next and Done actions');
-assert.match(auth, /id="reg-first-name"[^>]*data-auth-focus-order="1"[\s\S]*id="reg-password"[^>]*data-auth-focus-order="4"/,
+assert.match(auth, /id="reg-first-name"[^>]*data-auth-focus-order="1"[\s\S]*id="reg-last-name"[^>]*data-auth-focus-order="2"[\s\S]*id="reg-email"[^>]*data-auth-focus-order="3"[\s\S]*type="hidden" id="reg-password" value="autogen-temp"/,
     'registration inputs must follow a stable sequential focus order');
 assert.match(auth, /function keepFocusedFieldVisible[\s\S]*function dismissKeyboard[\s\S]*keyboard\.hide/,
     'auth must keep focused fields visible and support native keyboard dismissal');

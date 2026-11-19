@@ -102,12 +102,8 @@ class FeedbackController extends Controller
         if (!$user) {
             $token = $request->bearerToken();
             if ($token) {
-                $user = \App\Models\User::where('api_token', $token)->first();
+                $user = \App\Models\User::where('api_token', $token)->where('status', 'active')->first();
             }
-        }
-        if (!$user) {
-            $defaultUser = \App\Models\User::where('role', 'tourist')->first();
-            $user = $defaultUser;
         }
 
         if (!$user) {
@@ -316,12 +312,16 @@ class FeedbackController extends Controller
         if (!$userId) {
             $token = $request->bearerToken();
             if ($token) {
-                $foundUser = \App\Models\User::where('api_token', $token)->first();
+                $foundUser = \App\Models\User::where('api_token', $token)->where('status', 'active')->first();
                 if ($foundUser) {
                     $user = $foundUser;
                     $userId = $foundUser->id;
                 }
             }
+        }
+
+        if (!$userId) {
+            return response()->json(['status' => 'error', 'message' => 'Please sign in to submit a review.'], 401);
         }
 
         if ($itineraryItemId) {
@@ -330,15 +330,6 @@ class FeedbackController extends Controller
                 ->first();
             if (!$reviewItem || (int) $reviewItem->tourist_spot_id !== (int) $spotId) {
                 return response()->json(['message' => 'This trip stop cannot be reviewed by this account.'], 422);
-            }
-        }
-
-        // If user is not authenticated, fallback to default user if available
-        if (!$userId) {
-            $defaultUser = \App\Models\User::where('role', 'tourist')->first();
-            $userId = $defaultUser ? $defaultUser->id : null;
-            if ($userId) {
-                $user = $defaultUser;
             }
         }
 

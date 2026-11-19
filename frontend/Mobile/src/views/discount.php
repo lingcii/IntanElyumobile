@@ -839,6 +839,7 @@ function getUserRedemptionItems() {
             qr_expires_at: r.qr_expires_at || null,
             expires_formatted: isUsed ? 'Redeemed & Recorded' : (isCancelled ? 'Claim Cancelled' : (isExpired ? 'Expired' : (match ? match.expires_formatted : 'Claimed & Usable'))),
             is_expired: isExpired,
+            isExpired: isExpired,
             is_upcoming: false,
             is_out_of_stock: false,
             id_needed: match ? match.id_needed : false,
@@ -933,7 +934,7 @@ async function fetchUserPointsAndRedemptions() {
     try {
         const u = JSON.parse(localStorage.getItem('auth_user') || '{}');
         if (u.points !== undefined || u.xp !== undefined) {
-            userPointsBalance = (u.points !== undefined) ? u.points : (u.xp ?? 0);
+            userPointsBalance = Number((u.points !== undefined && u.points !== null) ? u.points : (u.xp ?? 0)) || 0;
             const ptsBadge = document.getElementById('discount-user-pts');
             if (ptsBadge) ptsBadge.textContent = `${userPointsBalance.toLocaleString()} Points`;
         }
@@ -972,7 +973,13 @@ async function fetchUserPointsAndRedemptions() {
                 window._touristRedemptions = Array.isArray(data.vouchers) ? data.vouchers : [];
                 const rawPts = Number(data.points !== undefined ? data.points : (data.xp ?? 0)) || 0;
                 const rawXp = Number(data.xp !== undefined ? data.xp : (data.earned_total ?? rawPts)) || 0;
-                const redeemedTotal = Number(data.redeemed_total || 0) || window._touristRedemptions.reduce((sum, v) => sum + (Number(v && (v.points_cost || v.pointsCost) || 0) || 0), 0);
+                const redeemedTotal = data.redeemed_total !== undefined
+                    ? Number(data.redeemed_total || 0)
+                    : window._touristRedemptions.reduce((sum, v) => {
+                        const st = String(v && v.status || '').toLowerCase();
+                        if (st === 'cancelled' || st === 'expired') return sum;
+                        return sum + (Number(v && (v.points_cost || v.pointsCost) || 0) || 0);
+                    }, 0);
                 userPointsBalance = (redeemedTotal > 0 && rawPts === rawXp && rawXp > 0)
                     ? Math.max(0, rawXp - redeemedTotal)
                     : rawPts;
@@ -1124,9 +1131,11 @@ function renderDiscounts() {
         } else if (activeCategory === 'Upcoming') {
             msg = 'No upcoming promotions scheduled right now. Check back soon for new discounts!';
         } else if (activeCategory !== 'All') {
-            msg = `No vouchers found under the "${activeCategory}" category. Check back soon for new offers!`;
+            const safeCat = String(activeCategory).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+            msg = `No vouchers found under the "${safeCat}" category. Check back soon for new offers!`;
         } else if (searchQuery) {
-            msg = `No vouchers found matching "${searchQuery}". Try a different keyword or town.`;
+            const safeQ = String(searchQuery).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+            msg = `No vouchers found matching "${safeQ}". Try a different keyword or town.`;
         }
         grid.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; color: #ffffff; padding: 36px 20px; font-size: 13px; font-weight:700; background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%); border-radius: 20px; box-shadow: 0 4px 14px rgba(32, 63, 141, 0.28);">${msg}</div>`;
         return;
@@ -3336,7 +3345,7 @@ window._discountViewLoadedHandler = function(e) {
             try {
                 const u = JSON.parse(localStorage.getItem('auth_user') || '{}');
                 if (u.points !== undefined || u.xp !== undefined) {
-                    userPointsBalance = (u.points !== undefined) ? u.points : (u.xp ?? 0);
+                    userPointsBalance = Number((u.points !== undefined && u.points !== null) ? u.points : (u.xp ?? 0)) || 0;
                     const ptsBadge = document.getElementById('discount-user-pts');
                     if (ptsBadge) ptsBadge.textContent = `${userPointsBalance.toLocaleString()} Points`;
                 }
@@ -3362,5 +3371,12 @@ window._discountViewLoadedHandler = function(e) {
     }
 };
 window.addEventListener('viewLoaded', window._discountViewLoadedHandler);
+window._cleanupDiscount = function () {
+    stopVoucherCatalogSync();
+    if (typeof modalTimerInterval !== 'undefined' && modalTimerInterval) {
+        clearInterval(modalTimerInterval);
+        modalTimerInterval = null;
+    }
+};
 })();
 </script>

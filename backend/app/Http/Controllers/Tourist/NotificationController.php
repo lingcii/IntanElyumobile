@@ -15,11 +15,17 @@ class NotificationController extends Controller
         $user = $request->user();
 
         try {
-            if (!Schema::hasTable('notifications')) {
-                return response()->json([
-                    'notifications' => [],
-                    'unread_count'  => 0,
-                ]);
+            // Sync upcoming trip reminders (1 day before & day of trip)
+            ItineraryController::syncUpcomingTripReminders((int) $user->id);
+
+            // Auto-prune read notifications older than 30 days once per day per user
+            if (\Illuminate\Support\Facades\Cache::add("notif_prune:{$user->id}", 1, 86400)) {
+                try {
+                    Notification::where('user_id', $user->id)
+                        ->where('is_read', true)
+                        ->where('created_at', '<', now()->subDays(30))
+                        ->delete();
+                } catch (\Throwable $pruneErr) {}
             }
 
             $notifications = Notification::where('user_id', $user->id)
@@ -27,7 +33,8 @@ class NotificationController extends Controller
                 ->limit(50)
                 ->get()
                 ->map(function ($item) {
-                    $item->elapsed_seconds = max(0, now()->diffInSeconds($item->created_at));
+                    $createdTs = $item->created_at ? \Carbon\Carbon::parse($item->created_at)->timestamp : now()->timestamp;
+                    $item->elapsed_seconds = max(0, now()->timestamp - $createdTs);
                     $item->server_time = now()->timestamp;
                     return $item;
                 });
@@ -44,7 +51,6 @@ class NotificationController extends Controller
             return response()->json([
                 'notifications' => [],
                 'unread_count'  => 0,
-                'error'         => $e->getMessage()
             ]);
         }
     }
@@ -95,14 +101,16 @@ class NotificationController extends Controller
                     }
                     $notif->delete();
                 }
+
+                $unreadCount = Notification::where('user_id', $user->id)
+                    ->where('is_read', false)
+                    ->count();
+            } else {
+                $unreadCount = 0;
             }
         } catch (\Throwable $e) {
             return response()->json(['error' => 'Failed to delete notification.'], 500);
         }
-
-        $unreadCount = Notification::where('user_id', $user->id)
-            ->where('is_read', false)
-            ->count();
 
         return response()->json([
             'success' => true,

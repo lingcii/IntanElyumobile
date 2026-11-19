@@ -1768,7 +1768,7 @@ try {
         };
 
         // Clean up any lingering modals previously ported to document.body from past view loads
-        ['save-trip-modal', 'confirm-modal', 'leg-transport-modal', 'transit-summary-opensheet', 'travel-mode-starter-modal'].forEach(id => {
+        ['save-trip-modal', 'confirm-modal', 'focus-base-modal', 'custom-calendar-dropdown', 'leg-transport-modal', 'transit-summary-opensheet', 'travel-mode-starter-modal'].forEach(id => {
             const bodyModals = document.body.querySelectorAll(':scope > #' + id);
             bodyModals.forEach(m => {
                 try { m.remove(); } catch (e) { }
@@ -5137,6 +5137,7 @@ try {
             document.removeEventListener('gpsUpdated', window._itineraryGpsHandler);
         }
         window._itineraryGpsHandler = function (e) {
+            if (!document.getElementById('itinerary-timeline')) return;
             const lat = e.detail.lat;
             const lng = e.detail.lng;
             window.myLat = lat;
@@ -5207,6 +5208,7 @@ try {
                 // Recalculate the route to connect the path to the new physical GPS location
                 clearTimeout(_gpsUpdateTimeout);
                 _gpsUpdateTimeout = setTimeout(() => {
+                    if (!document.getElementById('itinerary-timeline')) return;
                     const currentDraft = JSON.parse(localStorage.getItem('intan_elyu_draft_itinerary') || '[]');
                     if (window.initDraftMap) window.initDraftMap(currentDraft, false);
                 }, 2000);
@@ -6302,6 +6304,8 @@ try {
             if (compK) compK.textContent = '0';
             if (compS) compS.textContent = '0';
             if (compP) compP.textContent = '0';
+            window.companionList = [];
+            if (typeof window.renderCompanionAgeRows === 'function') window.renderCompanionAgeRows();
             if (typeof window.updateCompanionHeadcountSummary === 'function') window.updateCompanionHeadcountSummary();
 
             sessionStorage.removeItem('editing_itinerary_id');
@@ -6316,6 +6320,7 @@ try {
             sessionStorage.removeItem('editing_companion_kids');
             sessionStorage.removeItem('editing_companion_seniors');
             sessionStorage.removeItem('editing_companion_pwds');
+            sessionStorage.removeItem('editing_companion_ages');
             sessionStorage.removeItem('editing_total_pax');
             sessionStorage.removeItem('editing_transport_initialized');
         };
@@ -6347,12 +6352,23 @@ try {
             sessionStorage.removeItem('intan_elyu_pre_edit_backup_draft');
 
             // Clear editing trip session keys
-            sessionStorage.removeItem('editing_itinerary_id');
-            sessionStorage.removeItem('editing_trip_title');
-            sessionStorage.removeItem('editing_trip_date');
-            sessionStorage.removeItem('editing_trip_budget');
-            sessionStorage.removeItem('editing_trip_transport');
-            sessionStorage.removeItem('editing_transport_initialized');
+            [
+                'editing_itinerary_id',
+                'editing_trip_title',
+                'editing_trip_date',
+                'editing_trip_budget',
+                'editing_trip_transport',
+                'editing_trip_type',
+                'editing_companion_males',
+                'editing_companion_females',
+                'editing_companion_adults',
+                'editing_companion_kids',
+                'editing_companion_seniors',
+                'editing_companion_pwds',
+                'editing_companion_ages',
+                'editing_total_pax',
+                'editing_transport_initialized'
+            ].forEach(k => sessionStorage.removeItem(k));
 
             if (typeof showToast === 'function') {
                 showToast(restored ? "Restored your draft itinerary." : "Exited trip edit mode.");
@@ -7211,11 +7227,15 @@ try {
             if (editingId) {
                 const savedTitle = sessionStorage.getItem('editing_trip_title') || '';
                 const savedDate = sessionStorage.getItem('editing_trip_date') || '';
+                const savedBudget = sessionStorage.getItem('editing_trip_budget') || '';
                 const savedTransport = sessionStorage.getItem('editing_trip_transport') || 'no_vehicle';
                 const savedTripType = sessionStorage.getItem('editing_trip_type') || 'solo';
 
                 const titleInput = document.getElementById('trip-title');
                 if (titleInput && savedTitle) titleInput.value = savedTitle;
+
+                const budgetInput = document.getElementById('trip-budget');
+                if (budgetInput) budgetInput.value = savedBudget;
 
                 if (savedDate) {
                     const targetDateStr = savedDate.split(/[T ]/)[0];
@@ -7263,18 +7283,41 @@ try {
                 if (sEl) sEl.textContent = isNaN(savedSeniors) ? '0' : savedSeniors;
                 if (pEl) pEl.textContent = isNaN(savedPwds) ? '0' : savedPwds;
 
-                // Restore individual companion age inputs
+                // Restore individual companion age inputs (supports backend int[] ages or full companion objects)
                 const savedAgesJson = sessionStorage.getItem('editing_companion_ages');
+                const totM = isNaN(savedMales) ? 0 : savedMales;
+                const totF = isNaN(savedFemales) ? 0 : savedFemales;
+                let parsedAges = null;
                 if (savedAgesJson) {
                     try {
-                        window.companionList = JSON.parse(savedAgesJson);
-                    } catch (e) {
-                        window.companionList = [];
-                    }
-                } else if ((isNaN(savedMales) ? 0 : savedMales) > 0 || (isNaN(savedFemales) ? 0 : savedFemales) > 0) {
+                        const raw = JSON.parse(savedAgesJson);
+                        if (Array.isArray(raw) && raw.length > 0) parsedAges = raw;
+                    } catch (e) { }
+                }
+                if (parsedAges) {
+                    let pwdLeft = isNaN(savedPwds) ? 0 : savedPwds;
+                    window.companionList = parsedAges.map((item, idx) => {
+                        if (item && typeof item === 'object') {
+                            return {
+                                id: item.id || ((item.gender === 'female' ? 'f_' : 'm_') + idx),
+                                gender: item.gender === 'female' ? 'female' : 'male',
+                                age: item.age !== undefined && item.age !== null && item.age !== '' ? Number(item.age) : 25,
+                                isPwd: Boolean(item.isPwd)
+                            };
+                        }
+                        const isMale = idx < totM;
+                        const isPwd = pwdLeft > 0;
+                        if (isPwd) pwdLeft--;
+                        const numAge = Number(item);
+                        return {
+                            id: (isMale ? 'm_' : 'f_') + (isMale ? idx : (idx - totM)),
+                            gender: isMale ? 'male' : 'female',
+                            age: (!isNaN(numAge) && numAge >= 3 && numAge <= 99) ? numAge : 25,
+                            isPwd
+                        };
+                    });
+                } else if (totM > 0 || totF > 0) {
                     window.companionList = [];
-                    const totM = isNaN(savedMales) ? 0 : savedMales;
-                    const totF = isNaN(savedFemales) ? 0 : savedFemales;
                     let kidLeft = isNaN(savedKids) ? 0 : savedKids;
                     let seniorLeft = isNaN(savedSeniors) ? 0 : savedSeniors;
                     let pwdLeft = isNaN(savedPwds) ? 0 : savedPwds;
@@ -7330,7 +7373,8 @@ try {
 
             const title = document.getElementById('trip-title').value.trim();
             const date = document.getElementById('trip-date').value;
-            const todayIso = new Date().toISOString().split('T')[0];
+            const nowLocal = new Date();
+            const todayIso = `${nowLocal.getFullYear()}-${String(nowLocal.getMonth() + 1).padStart(2, '0')}-${String(nowLocal.getDate()).padStart(2, '0')}`;
             if (date && date < todayIso) {
                 return showToast("Please select a current or future trip date");
             }
@@ -7440,6 +7484,15 @@ try {
             };
 
             const destinations = draft.map(place => extractTrueSpotId(place)).filter(id => id > 0);
+            if (destinations.length === 0) {
+                if (btn) {
+                    btn.innerHTML = editingId ? 'Update Trip' : 'Save Trip';
+                    btn.disabled = false;
+                }
+                window._isSubmittingItinerary = false;
+                showToast("Please add at least one valid destination to save your trip.");
+                return;
+            }
 
             // Universal local storage updater so saved_trips ALWAYS displays the new trip instantly (0ms)
             const persistTripLocally = function (tripObj) {
@@ -7512,16 +7565,23 @@ try {
                 localStorage.removeItem('intan_elyu_draft_itinerary');
                 localStorage.removeItem('intan_elyu_pre_edit_backup_draft');
                 sessionStorage.removeItem('intan_elyu_pre_edit_backup_draft');
-                sessionStorage.removeItem('editing_itinerary_id');
-                sessionStorage.removeItem('editing_trip_title');
-                sessionStorage.removeItem('editing_trip_date');
-                sessionStorage.removeItem('editing_trip_budget');
-                sessionStorage.removeItem('editing_trip_transport');
-                sessionStorage.removeItem('editing_trip_type');
-                sessionStorage.removeItem('editing_companion_males');
-                sessionStorage.removeItem('editing_companion_females');
-                sessionStorage.removeItem('editing_total_pax');
-                sessionStorage.removeItem('editing_transport_initialized');
+                [
+                    'editing_itinerary_id',
+                    'editing_trip_title',
+                    'editing_trip_date',
+                    'editing_trip_budget',
+                    'editing_trip_transport',
+                    'editing_trip_type',
+                    'editing_companion_males',
+                    'editing_companion_females',
+                    'editing_companion_adults',
+                    'editing_companion_kids',
+                    'editing_companion_seniors',
+                    'editing_companion_pwds',
+                    'editing_companion_ages',
+                    'editing_total_pax',
+                    'editing_transport_initialized'
+                ].forEach(k => sessionStorage.removeItem(k));
                 localStorage.removeItem('intan_elyu_draft_leg_vehicles');
                 localStorage.removeItem('intan_elyu_draft_trip_transport');
                 localStorage.removeItem('intan_elyu_draft_trip_transports');
@@ -7588,7 +7648,7 @@ try {
                 let finalTransport = effectiveTransport;
                 if (distinctLegModes.length > 0) {
                     finalTransport = distinctLegModes.join(' + ');
-                } else if (isNoVeh || finalTransport === 'own_car') {
+                } else if (isNoVeh) {
                     finalTransport = 'No Vehicle Selected';
                 }
 
@@ -7601,6 +7661,7 @@ try {
                 const compPwds = tripType === 'group' ? Math.max(0, parseInt(document.getElementById('companion-pwds-count')?.textContent || '0', 10)) : 0;
                 const addCompanions = Math.max(compMales + compFemales, compAdults + compKids + compSeniors + compPwds);
                 const totalPax = tripType === 'group' ? (1 + addCompanions) : 1;
+                const companionAgesPayload = tripType === 'group' ? (window.companionList || []).map(c => Number(c.age) || 25) : [];
 
                 tripPayload = {
                     title: title,
@@ -7616,7 +7677,7 @@ try {
                     companion_kids: compKids,
                     companion_seniors: compSeniors,
                     companion_pwds: compPwds,
-                    companion_ages: (window.companionList || []).map(c => Number(c.age) || 25),
+                    companion_ages: companionAgesPayload,
                     total_pax: totalPax,
                     client_request_id: clientRequestId,
                     leg_transports: legTransports,
@@ -7633,7 +7694,7 @@ try {
                         companion_kids: compKids,
                         companion_seniors: compSeniors,
                         companion_pwds: compPwds,
-                        companion_ages: (window.companionList || []).map(c => Number(c.age) || 25),
+                        companion_ages: companionAgesPayload,
                         total_pax: totalPax,
                         is_visited: false,
                         proof_image: null,
@@ -7681,7 +7742,7 @@ try {
                         budget: budget,
                         destinations: destinations,
                         route_type: activeRouteType,
-                        transport_mode: effectiveTransport,
+                        transport_mode: finalTransport,
                         trip_type: tripType,
                         companion_males: compMales,
                         companion_females: compFemales,
@@ -7689,7 +7750,7 @@ try {
                         companion_kids: compKids,
                         companion_seniors: compSeniors,
                         companion_pwds: compPwds,
-                        companion_ages: (window.companionList || []).map(c => Number(c.age) || 25),
+                        companion_ages: companionAgesPayload,
                         total_pax: totalPax,
                         client_request_id: clientRequestId,
                         leg_transports: legTransports
@@ -7709,7 +7770,7 @@ try {
                     }
                 }
 
-                const data = await response.json();
+                const data = await response.json().catch(() => ({}));
 
                 if (response.ok) {
                     const savedId = String(editingId || data.itinerary_id || (data.itinerary && data.itinerary.id) || ('trip_' + Date.now()));
@@ -7726,11 +7787,20 @@ try {
                     cleanupItineraryDraft(savedId);
                     navigateTo('saved_trips');
                 } else {
-                    throw new Error(data.message || (editingId ? "Failed to update trip" : "Failed to save trip"));
+                    const err = new Error(data.message || (editingId ? "Failed to update trip" : "Failed to save trip"));
+                    if (response.status >= 400 && response.status < 500) {
+                        err.isClientValidation = true;
+                    }
+                    throw err;
                 }
             } catch (error) {
                 console.error("Save Error:", error);
-                // Fallback: If network failed or offline or error occurred, ALWAYS queue on device so trip is NEVER lost!
+                // Do not wipe draft or queue permanently invalid 4xx validation rejections as offline trips
+                if (error && error.isClientValidation) {
+                    showToast(error.message || (editingId ? "Failed to update trip." : "Failed to save trip."), "error", 4500);
+                    return;
+                }
+                // Fallback: If network failed or server 5xx occurred, queue on device so trip is NEVER lost!
                 if (tripPayload) {
                     let queued = null;
                     if (window.OfflineTripManager && typeof window.OfflineTripManager.queueOfflineTrip === 'function') {
@@ -7752,8 +7822,10 @@ try {
                 }
                 showToast(error.message || "Failed to save. Check connection.");
             } finally {
-                btn.innerHTML = editingId ? 'Update Trip' : 'Save Trip';
-                btn.disabled = false;
+                if (btn) {
+                    btn.innerHTML = editingId ? 'Update Trip' : 'Save Trip';
+                    btn.disabled = false;
+                }
                 window._isSubmittingItinerary = false;
             }
         };
@@ -7968,6 +8040,9 @@ try {
                     draftMap.fitBounds(L.latLngBounds(latlngs), { padding: [30, 30] });
                 }
 
+                // Sequence guard prevents stale OSRM responses from overwriting newer route/stop changes or detached maps
+                const osrmSeq = (window._itineraryOsrmSeq = (window._itineraryOsrmSeq || 0) + 1);
+
                 // If Alternative and multiple stops: query leg-by-leg alternative corridors or multi-point route
                 const fetchRoutePromise = (!navigator.onLine || window.isAppOnline === false) ? Promise.resolve(null) : (async () => {
                     if (isAlt && fetchLatLngs.length >= 2) {
@@ -8048,6 +8123,7 @@ try {
                 })();
 
                 fetchRoutePromise.then(routeData => {
+                    if (osrmSeq !== window._itineraryOsrmSeq || !draftMap || !document.getElementById('itinerary-map')) return;
                     if (routeData && routeData.code === 'Ok') {
                         if (draftRouteLineBg) draftMap.removeLayer(draftRouteLineBg);
                         if (draftRouteLine) draftMap.removeLayer(draftRouteLine);
@@ -8175,7 +8251,10 @@ try {
                             if (typeof syncFullscreenMapLayers === 'function') syncFullscreenMapLayers();
                         }
 
-                        const updateRouteScale = () => {
+                        if (window._draftMapZoomHandler) {
+                            draftMap.off('zoom', window._draftMapZoomHandler);
+                        }
+                        window._draftMapZoomHandler = () => {
                             if (!draftMap) return;
                             const z = draftMap.getZoom();
                             const w = z >= 17 ? 12 : (z >= 15 ? 8 : (z >= 13 ? 5 : 3));
@@ -8183,9 +8262,8 @@ try {
                             if (draftRouteLine) draftRouteLine.setStyle({ weight: w });
                             if (draftRouteLineBg) draftRouteLineBg.setStyle({ weight: bgw });
                         };
-                        draftMap.off('zoom', updateRouteScale);
-                        draftMap.on('zoom', updateRouteScale);
-                        updateRouteScale();
+                        draftMap.on('zoom', window._draftMapZoomHandler);
+                        window._draftMapZoomHandler();
                     }
                 }).catch(err => console.error("OSRM Routing failed.", err));
             } else if (latlngs.length === 1) {

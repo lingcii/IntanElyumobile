@@ -80,12 +80,12 @@ $backRoute = 'dashboard';
             <i class="fa-solid fa-rotate" style="color: rgba(255,255,255,0.3); font-size: 12px;"></i>
         </div>
 
-        <div class="settings-row clickable" onclick="if (typeof window.checkForAppUpdate === 'function') { window.checkForAppUpdate(); } else { window.open('https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/apks/intan-elyu.apk', '_system'); }">
+        <div class="settings-row clickable" onclick="if (typeof window.checkForAppUpdate === 'function') { window.checkForAppUpdate(); } else { window.open('/index.php?action=download_apk', '_system'); }">
             <div class="settings-label-group">
                 <div class="settings-icon-box blue"><i class="fa-solid fa-cloud-arrow-down"></i></div>
                 <div>
                     <div class="settings-title">Check for App Updates</div>
-                    <div class="settings-subtitle">v0.0.0 (Dev Build 1) &bull; Tap to update</div>
+                    <div class="settings-subtitle">v1.4.11 &bull; Tap to update</div>
                 </div>
             </div>
             <span style="font-size: 10px; font-weight: 800; background: rgba(56,189,248,0.2); color: #38bdf8; padding: 3px 10px; border-radius: 100px; margin-right: 6px;">Check</span>
@@ -800,6 +800,18 @@ $backRoute = 'dashboard';
         };
 
         window.open2FAModal = function () {
+            const token = getSettingsToken();
+            const isGuest = (typeof window.isGuestUser === 'function' && window.isGuestUser()) ||
+                !token || token === 'guest_token' || token.startsWith('guest_') || token.startsWith('offline_') ||
+                localStorage.getItem('intan_elyu_guest') === 'true';
+            if (isGuest) {
+                if (typeof window.promptGuestLogin === 'function') {
+                    window.promptGuestLogin('configure Two-Factor Authentication');
+                } else if (typeof showToast === 'function') {
+                    showToast('Please sign in to configure Two-Factor Authentication.', 'info');
+                }
+                return;
+            }
             const isVerifying = document.getElementById('2fa-view-verify') && document.getElementById('2fa-view-verify').style.display === 'block';
             if (!isVerifying) {
                 update2FAState(getStored2FAState());
@@ -906,10 +918,12 @@ $backRoute = 'dashboard';
                     timerEl.style.display = 'inline';
                     timerEl.textContent = `(${timeLeft}s)`;
                 }
-                const timer = setInterval(() => {
+                if (window._settings2faResendTimer) clearInterval(window._settings2faResendTimer);
+                window._settings2faResendTimer = setInterval(() => {
                     timeLeft--;
                     if (timeLeft <= 0) {
-                        clearInterval(timer);
+                        clearInterval(window._settings2faResendTimer);
+                        window._settings2faResendTimer = null;
                         if (timerEl) timerEl.style.display = 'none';
                         if (resendBtn) {
                             resendBtn.style.display = 'inline';
@@ -931,8 +945,10 @@ $backRoute = 'dashboard';
             }
         };
 
+        let _verify2FAInFlight = false;
         window.handleVerify2FA = async function (e) {
             if (e) e.preventDefault();
+            if (_verify2FAInFlight) return;
             if (!navigator.onLine || window.isAppOnline === false) {
                 if (typeof showToast === 'function') showToast('Internet connection required to verify 2FA security.', 'warning');
                 return;
@@ -945,6 +961,7 @@ $backRoute = 'dashboard';
                 return;
             }
 
+            _verify2FAInFlight = true;
             const btn = document.getElementById('btn-settings-verify-2fa');
             if (btn) {
                 btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Verifying...';
@@ -986,6 +1003,7 @@ $backRoute = 'dashboard';
                 boxes.forEach(b => b.value = '');
                 if (boxes[0]) boxes[0].focus();
             } finally {
+                _verify2FAInFlight = false;
                 if (btn) {
                     btn.innerHTML = '<i class="fa-solid fa-circle-check" style="color: #16a34a !important; margin-right: 6px;"></i> Verify &amp; Activate 2FA';
                     btn.disabled = false;
@@ -1082,10 +1100,12 @@ $backRoute = 'dashboard';
                     timerEl.style.display = 'inline';
                     timerEl.textContent = `(${timeLeft}s)`;
                 }
-                const timer = setInterval(() => {
+                if (window._settings2faResendTimer) clearInterval(window._settings2faResendTimer);
+                window._settings2faResendTimer = setInterval(() => {
                     timeLeft--;
                     if (timeLeft <= 0) {
-                        clearInterval(timer);
+                        clearInterval(window._settings2faResendTimer);
+                        window._settings2faResendTimer = null;
                         if (timerEl) timerEl.style.display = 'none';
                         if (resendBtn) {
                             resendBtn.style.display = 'inline';
@@ -1139,8 +1159,10 @@ $backRoute = 'dashboard';
             }
         };
 
+        let _confirmDeactivate2FAInFlight = false;
         window.handleConfirmDeactivate2FA = async function (e) {
             if (e) e.preventDefault();
+            if (_confirmDeactivate2FAInFlight) return;
             if (!navigator.onLine || window.isAppOnline === false) {
                 if (typeof showToast === 'function') showToast('Internet connection required.', 'warning');
                 return;
@@ -1153,6 +1175,7 @@ $backRoute = 'dashboard';
                 return;
             }
 
+            _confirmDeactivate2FAInFlight = true;
             const btn = document.getElementById('btn-settings-confirm-deactivate-2fa');
             if (btn) {
                 btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Verifying...';
@@ -1192,6 +1215,7 @@ $backRoute = 'dashboard';
                 boxes.forEach(b => b.value = '');
                 if (boxes[0]) boxes[0].focus();
             } finally {
+                _confirmDeactivate2FAInFlight = false;
                 if (btn) {
                     btn.innerHTML = '<i class="fa-solid fa-shield-xmark" style="color: #e11d48 !important; margin-right: 6px;"></i> Confirm &amp; Deactivate 2FA';
                     btn.disabled = false;
@@ -1314,7 +1338,7 @@ $backRoute = 'dashboard';
             container.style.display = 'block';
             const len8 = pwd.length >= 8;
             const hasNum = /\d/.test(pwd);
-            const hasCap = /[A-Z]/.test(pwd);
+            const hasCap = /[A-Z]/.test(pwd) && /[a-z]/.test(pwd);
             const hasSym = /[^A-Za-z0-9]/.test(pwd);
 
             const score = [len8, hasNum, hasCap, hasSym].filter(Boolean).length;
@@ -1436,5 +1460,15 @@ $backRoute = 'dashboard';
         };
 
         window.submitChangePassword = window.executePasswordChange;
+        window._cleanupSettings = function () {
+            if (window._settings2faResendTimer) {
+                clearInterval(window._settings2faResendTimer);
+                window._settings2faResendTimer = null;
+            }
+            if (window._settingsDeactivate2faTimer) {
+                clearInterval(window._settingsDeactivate2faTimer);
+                window._settingsDeactivate2faTimer = null;
+            }
+        };
     })();
 </script>

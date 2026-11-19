@@ -34,6 +34,47 @@ class LoginController extends Controller
             return response()->json(['error' => 'Account is inactive.'], 403);
         }
 
+        // Enforce Two-Factor Authentication if enabled for this account
+        if (!empty($user->two_factor_enabled)) {
+            $submittedCode = trim((string) $request->input('two_factor_code', ''));
+            $loginOtpKey = "2fa_login_code:{$user->id}";
+
+            if ($submittedCode === '') {
+                $code = (string) random_int(100000, 999999);
+                $user->two_factor_code = $code;
+                $user->two_factor_expires_at = now()->addMinutes(10);
+                $user->save();
+                \Illuminate\Support\Facades\Cache::put($loginOtpKey, $code, 600);
+
+                $this->dispatchTwoFactorLoginEmail($user, $code);
+
+                return response()->json([
+                    'success'      => true,
+                    'requires_2fa' => true,
+                    'email'        => $this->maskEmail($user->email),
+                    'message'      => 'A 6-digit 2FA verification code has been sent to your email.',
+                ]);
+            }
+
+            $cachedCode = \Illuminate\Support\Facades\Cache::get($loginOtpKey);
+            $isDbValid = !empty($user->two_factor_code)
+                && hash_equals((string) $user->two_factor_code, $submittedCode)
+                && $user->two_factor_expires_at
+                && $user->two_factor_expires_at->isFuture();
+            $isCacheValid = !empty($cachedCode) && hash_equals((string) $cachedCode, $submittedCode);
+
+            if (!$isDbValid && !$isCacheValid) {
+                return response()->json([
+                    'error' => 'Invalid or expired 2FA verification code.',
+                ], 422);
+            }
+
+            \Illuminate\Support\Facades\Cache::forget($loginOtpKey);
+            $user->two_factor_code = null;
+            $user->two_factor_expires_at = null;
+            $user->save();
+        }
+
         // Store session
         $request->session()->put('user_id',              $user->id);
         $request->session()->put('user_name',            $user->name);
@@ -111,24 +152,49 @@ class LoginController extends Controller
         // Set 60-second cooldown
         \Illuminate\Support\Facades\Cache::put($cooldownKey, true, 60);
 
-        $code = (string) rand(100000, 999999);
+        $code = (string) random_int(100000, 999999);
         $user->two_factor_code = $code;
         $user->two_factor_expires_at = now()->addMinutes(10);
         $user->save();
+        \Illuminate\Support\Facades\Cache::put("2fa_login_code:{$user->id}", $code, 600);
 
-        try {
-            if ($user->email) {
-                \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\TwoFactorCodeMail($user, $code));
-            }
-        } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::warning("2FA login email resend failed: " . $e->getMessage());
-        }
+        $this->dispatchTwoFactorLoginEmail($user, $code);
 
         return response()->json([
             'success' => true,
             'email'   => $this->maskEmail($user->email),
             'message' => 'A new 2FA verification code has been sent to your email.'
         ]);
+    }
+
+    /**
+     * Dispatch 2FA login OTP email via Resend HTTPS API first, falling back to default mailer.
+     */
+    private function dispatchTwoFactorLoginEmail(User $user, string $code): bool
+    {
+        if (empty($user->email)) {
+            return false;
+        }
+        $mailable = new \App\Mail\TwoFactorCodeMail($user, $code);
+        try {
+            $res = \App\Services\ResendMailService::send(
+                $user->email,
+                'Intan Elyu — Your 2FA Login Verification Code',
+                $mailable->render()
+            );
+            if (!empty($res['success'])) {
+                return true;
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Resend 2FA login email failed: ' . $e->getMessage());
+        }
+        try {
+            \Illuminate\Support\Facades\Mail::to($user->email)->send($mailable);
+            return true;
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Fallback 2FA login email failed: ' . $e->getMessage());
+        }
+        return false;
     }
 
     /**
@@ -154,54 +220,77 @@ class LoginController extends Controller
      */
     public function googleLogin(Request $request): JsonResponse
     {
-        $email = $request->input('email');
-        $name = $request->input('name');
-        $google_id = $request->input('google_id');
-        $avatar = $request->input('avatar');
+        $email = null;
+        $name = null;
+        $google_id = null;
+        $avatar = null;
+        $clientId = env('GOOGLE_CLIENT_ID', '620598190857-37a0ucobfd4b3rct7ofti8rtvl3qt884.apps.googleusercontent.com');
 
-        if ($request->has('credential')) {
-            $credential = $request->input('credential');
-            $parts = explode('.', $credential);
-            if (count($parts) === 3) {
-                // Verify the JWT signature against Google's public keys
-                $header = json_decode(base64_decode(str_replace(['-', '_'], ['+', '/'], $parts[0])));
-                $payload = json_decode(base64_decode(str_replace(['-', '_'], ['+', '/'], $parts[1])));
-
-                if (!$header || !$payload) {
-                    return response()->json(['error' => 'Invalid Google credential.'], 400);
-                }
-
-                // Verify issuer
-                $validIssuers = ['accounts.google.com', 'https://accounts.google.com'];
-                if (!isset($payload->iss) || !in_array($payload->iss, $validIssuers)) {
-                    return response()->json(['error' => 'Invalid token issuer.'], 400);
-                }
-
-                // Verify audience (must match your Google Client ID)
-                $clientId = env('GOOGLE_CLIENT_ID', '620598190857-37a0ucobfd4b3rct7ofti8rtvl3qt884.apps.googleusercontent.com');
-                if (!isset($payload->aud) || $payload->aud !== $clientId) {
-                    return response()->json(['error' => 'Invalid token audience.'], 400);
-                }
-
-                // Verify expiry
-                if (!isset($payload->exp) || $payload->exp < time()) {
-                    return response()->json(['error' => 'Token has expired.'], 400);
-                }
-
-                $email = $payload->email ?? null;
-                $name = $payload->name ?? null;
-                $google_id = 'g_' . ($payload->sub ?? '');
-                $avatar = $payload->picture ?? null;
-            } else {
-                return response()->json(['error' => 'Malformed Google credential.'], 400);
+        if ($request->filled('credential')) {
+            // Verify Google ID token server-side against Google's tokeninfo endpoint (validates signature, iss, aud, exp)
+            $credential = trim((string) $request->input('credential'));
+            try {
+                $verifyRes = \Illuminate\Support\Facades\Http::acceptJson()
+                    ->timeout(8)
+                    ->get('https://oauth2.googleapis.com/tokeninfo', ['id_token' => $credential]);
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('Google tokeninfo verification failed: ' . $e->getMessage());
+                return response()->json(['error' => 'Could not verify Google credential. Please try again.'], 503);
             }
+
+            if (!$verifyRes->successful()) {
+                return response()->json(['error' => 'Invalid or expired Google credential.'], 401);
+            }
+
+            $payload = $verifyRes->json() ?? [];
+            $validIssuers = ['accounts.google.com', 'https://accounts.google.com'];
+            if (empty($payload['iss']) || !in_array($payload['iss'], $validIssuers, true)) {
+                return response()->json(['error' => 'Invalid token issuer.'], 401);
+            }
+            if (empty($payload['aud']) || $payload['aud'] !== $clientId) {
+                return response()->json(['error' => 'Invalid token audience.'], 401);
+            }
+            if (empty($payload['exp']) || (int) $payload['exp'] < time()) {
+                return response()->json(['error' => 'Token has expired.'], 401);
+            }
+            $emailVerified = ($payload['email_verified'] ?? false) === true || ($payload['email_verified'] ?? '') === 'true';
+            if (!$emailVerified || empty($payload['email']) || empty($payload['sub'])) {
+                return response()->json(['error' => 'Google account email is not verified.'], 401);
+            }
+
+            $email = strtolower(trim((string) $payload['email']));
+            $name = trim((string) ($payload['name'] ?? explode('@', $email)[0]));
+            $google_id = 'g_' . $payload['sub'];
+            $avatar = $payload['picture'] ?? null;
+        } elseif ($request->filled('access_token')) {
+            // Verify Google OAuth access_token server-side directly against Google's userinfo endpoint
+            $accessToken = trim((string) $request->input('access_token'));
+            try {
+                $userInfoRes = \Illuminate\Support\Facades\Http::withToken($accessToken)
+                    ->acceptJson()
+                    ->timeout(8)
+                    ->get('https://www.googleapis.com/oauth2/v3/userinfo');
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('Google userinfo verification failed: ' . $e->getMessage());
+                return response()->json(['error' => 'Could not verify Google session. Please try again.'], 503);
+            }
+
+            if (!$userInfoRes->successful()) {
+                return response()->json(['error' => 'Invalid or expired Google access token.'], 401);
+            }
+
+            $profile = $userInfoRes->json() ?? [];
+            $emailVerified = ($profile['email_verified'] ?? false) === true || ($profile['email_verified'] ?? '') === 'true';
+            if (!$emailVerified || empty($profile['email']) || empty($profile['sub'])) {
+                return response()->json(['error' => 'Google account email is not verified.'], 401);
+            }
+
+            $email = strtolower(trim((string) $profile['email']));
+            $name = trim((string) ($profile['name'] ?? trim(($profile['given_name'] ?? '') . ' ' . ($profile['family_name'] ?? '')) ?: explode('@', $email)[0]));
+            $google_id = 'g_' . $profile['sub'];
+            $avatar = $profile['picture'] ?? null;
         } else {
-            $request->validate([
-                'email'     => 'required|email',
-                'name'      => 'required|string',
-                'google_id' => 'required|string',
-                'avatar'    => 'nullable|string',
-            ]);
+            return response()->json(['error' => 'Google token verification is required. Please update the app or sign in again.'], 401);
         }
 
         if (!$email || !$name || !$google_id) {
@@ -349,12 +438,9 @@ class LoginController extends Controller
         $tokenHash = hash('sha256', $token);
         $otpCode = sprintf('%06d', random_int(100000, 999999));
 
-        // Always store OTP in Cache and User model for fast, reliable in-app reset (15 min expiration)
-        \Illuminate\Support\Facades\Cache::put("pwd_reset_otp:{$user->email}", $otpCode, 900);
-        try {
-            $user->remember_token = 'otp_' . $otpCode;
-            $user->saveQuietly();
-        } catch (\Throwable $err) {}
+        $emailKey = strtolower(trim($user->email));
+        // Store expiring OTP strictly in Cache (15 min expiration) — never persist indefinitely in remember_token
+        \Illuminate\Support\Facades\Cache::put("pwd_reset_otp:{$emailKey}", $otpCode, 900);
 
         // Record in DB if table exists (safely guarded against missing table in remote DBs)
         try {
@@ -517,7 +603,7 @@ class LoginController extends Controller
             'otp'   => 'required|string',
         ]);
 
-        $email = $request->email;
+        $email = strtolower(trim($request->email));
         $otp = trim($request->otp);
 
         $user = User::where('email', $email)->first();
@@ -526,7 +612,7 @@ class LoginController extends Controller
         }
 
         $cachedOtp = \Illuminate\Support\Facades\Cache::get("pwd_reset_otp:{$email}");
-        $isValidOtp = ($cachedOtp && (string)$cachedOtp === (string)$otp) || ($user->remember_token === 'otp_' . $otp);
+        $isValidOtp = !empty($cachedOtp) && hash_equals((string) $cachedOtp, (string) $otp);
 
         if (!$isValidOtp) {
             return response()->json(['error' => 'Invalid or expired verification code.'], 400);
@@ -550,7 +636,20 @@ class LoginController extends Controller
             'password'              => 'required|string|min:8|confirmed',
         ]);
 
-        $email = $request->email;
+        $newPassword = (string) $request->input('password');
+        if (
+            !preg_match('/[A-Z]/', $newPassword)
+            || !preg_match('/[a-z]/', $newPassword)
+            || !preg_match('/[0-9]/', $newPassword)
+            || !preg_match('/[^A-Za-z0-9]/', $newPassword)
+        ) {
+            return response()->json([
+                'error'   => 'Password must be at least 8 characters and include uppercase, lowercase, number, and symbol.',
+                'message' => 'Password must be at least 8 characters and include uppercase, lowercase, number, and symbol.',
+            ], 422);
+        }
+
+        $email = strtolower(trim($request->email));
         $otp = trim($request->otp);
 
         $user = User::where('email', $email)->first();
@@ -559,14 +658,18 @@ class LoginController extends Controller
         }
 
         $cachedOtp = \Illuminate\Support\Facades\Cache::get("pwd_reset_otp:{$email}");
-        $isValidOtp = ($cachedOtp && (string)$cachedOtp === (string)$otp) || ($user->remember_token === 'otp_' . $otp);
+        $isValidOtp = !empty($cachedOtp) && hash_equals((string) $cachedOtp, (string) $otp);
 
         if (!$isValidOtp) {
             return response()->json(['error' => 'Invalid or expired verification code.'], 400);
         }
 
-        $user->password = \Illuminate\Support\Facades\Hash::make($request->password);
-        $user->remember_token = null;
+        $authToken = \Illuminate\Support\Str::random(60);
+        $user->password = \Illuminate\Support\Facades\Hash::make($newPassword);
+        $user->api_token = $authToken;
+        try {
+            $user->must_change_password = false;
+        } catch (\Throwable $e) {}
         $user->save();
 
         \Illuminate\Support\Facades\Cache::forget("pwd_reset_otp:{$email}");
@@ -576,11 +679,6 @@ class LoginController extends Controller
                 \Illuminate\Support\Facades\DB::table('frontend_password_resets')->where('email', $email)->delete();
             }
         } catch (\Throwable $th) {}
-
-        $authToken = null;
-        try {
-            $authToken = $user->createToken('auth_token')->plainTextToken;
-        } catch (\Throwable $t) {}
 
         return response()->json([
             'success' => true,

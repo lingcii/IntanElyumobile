@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class LeaderboardController extends Controller
@@ -105,8 +106,10 @@ class LeaderboardController extends Controller
             'visited', 'most_visited', 'places_visited', 'visited_desc', 'least_activities', 'activities_asc'
         ], true);
 
+        $viewerId = $user ? (int) $user->id : 0;
+
         if ($period !== 'all') {
-            $periodResult = $this->queryForPeriod($period, $search, $isVisitedSort, $rawSort, $limit, $offset, $user);
+            $periodResult = $this->queryForPeriod($period, $search, $isVisitedSort, $rawSort, $limit, $offset, $user, $isStaff, $viewerId);
             $rows = $periodResult['rows'];
             $totalTourists = $periodResult['total'];
             $myRank = $periodResult['my_rank'];
@@ -126,10 +129,18 @@ class LeaderboardController extends Controller
                 default => 'total_points DESC, total_xp DESC, completed_activities DESC, user_id ASC',
             };
 
-            // Filter out users with zero score for the requested metric
-            $filterSql = $isVisitedSort
-                ? 'AND COALESCE(u.completed_activities, 0) > 0'
-                : 'AND (COALESCE(u.points, 0) > 0 OR COALESCE(u.xp, 0) > 0 OR COALESCE(u.completed_activities, 0) > 0)';
+            // Filter out users with zero score for the requested metric (using live visited_counts for Visited sort)
+            $isXpSort = in_array($rawSort, ['xp', 'top_xp', 'xp_desc', 'xp_asc'], true);
+            $isMetaSort = in_array($rawSort, ['name', 'name_asc', 'name_desc', 'recent', 'newest', 'latest'], true);
+            if ($isVisitedSort) {
+                $filterSql = 'AND COALESCE(NULLIF(vc.visited_cnt, 0), u.completed_activities, 0) > 0';
+            } elseif ($isXpSort) {
+                $filterSql = 'AND COALESCE(u.xp, 0) > 0';
+            } elseif ($isMetaSort) {
+                $filterSql = 'AND (COALESCE(u.points, 0) > 0 OR COALESCE(u.xp, 0) > 0 OR COALESCE(NULLIF(vc.visited_cnt, 0), u.completed_activities, 0) > 0)';
+            } else {
+                $filterSql = 'AND COALESCE(u.points, 0) > 0';
+            }
 
             if ($user) {
                 if (method_exists($user, 'syncPlacesVisitedCount')) {
@@ -142,7 +153,7 @@ class LeaderboardController extends Controller
 
             // Execute dynamic ranked query once (single CTE pass returns rows + total_count)
             $cachedData = $this->queryFromLiveCte($search, $orderSql, $limit, $offset, $filterSql);
-            $rows = $this->castRows($cachedData['rows']);
+            $rows = $this->castRows($cachedData['rows'], $isStaff, $viewerId);
             $totalTourists = (int) ($cachedData['total'] ?? count($rows));
 
             if ($user) {
@@ -165,7 +176,7 @@ class LeaderboardController extends Controller
                             );
                             if ($myRankRow) {
                                 $myRank = (int) $myRankRow->rank;
-                                $meRows = $this->castRows([(array) $myRankRow]);
+                                $meRows = $this->castRows([(array) $myRankRow], $isStaff, $viewerId);
                                 $me = $meRows[0] ?? null;
                             }
                         } catch (\Throwable $e) {
@@ -216,7 +227,7 @@ class LeaderboardController extends Controller
     /**
      * Aggregate points (from activity_logs) and visited stops (from itinerary_items) within week/month.
      */
-    private function queryForPeriod(string $period, string $search, bool $isVisitedSort, string $rawSort, int $limit, int $offset, $currentUser): array
+    private function queryForPeriod(string $period, string $search, bool $isVisitedSort, string $rawSort, int $limit, int $offset, $currentUser, bool $isStaff = false, int $viewerId = 0): array
     {
         $nowPh = now('Asia/Manila');
         $cutoffPh = $period === 'week'
@@ -228,7 +239,8 @@ class LeaderboardController extends Controller
         $latestAtByUser = [];
 
         try {
-            if (\Illuminate\Support\Facades\Schema::hasTable('activity_logs')) {
+            $hasActivityLogs = Cache::remember('schema:has_activity_logs_v1', 3600, fn() => \Illuminate\Support\Facades\Schema::hasTable('activity_logs'));
+            if ($hasActivityLogs) {
                 $logs = DB::table('activity_logs')
                     ->where('action', 'Points Awarded')
                     ->where('created_at', '>=', $cutoff)
@@ -295,8 +307,10 @@ class LeaderboardController extends Controller
             ])
             ->get();
 
-        $allTouristIds = DB::table('users')->where('role', 'tourist')->orderBy('id')->pluck('id')->all();
-        $touristNumMap = array_flip($allTouristIds);
+        $touristNumMap = Cache::remember('leaderboard:tourist_num_map_v1', 60, function () {
+            $ids = DB::table('users')->where('role', 'tourist')->orderBy('id')->pluck('id')->all();
+            return array_flip($ids);
+        });
 
         $candidates = [];
         foreach ($users as $u) {
@@ -365,14 +379,14 @@ class LeaderboardController extends Controller
             $ranked[] = $row;
             if ($currentUser && (int) $currentUser->id === (int) $row['user_id']) {
                 $myRank = $row['rank'];
-                $castMe = $this->castRows([$row]);
+                $castMe = $this->castRows([$row], $isStaff, $viewerId);
                 $me = $castMe[0] ?? null;
             }
         }
 
         $paged = array_slice($ranked, $offset, $limit);
         return [
-            'rows' => $this->castRows($paged),
+            'rows' => $this->castRows($paged, $isStaff, $viewerId),
             'total' => count($ranked),
             'my_rank' => $myRank,
             'me' => $me,
@@ -423,12 +437,14 @@ class LeaderboardController extends Controller
     /**
      * Cast & format each user row with all possible field variations.
      */
-    private function castRows(array $rows): array
+    private function castRows(array $rows, bool $isStaff = false, int $viewerId = 0): array
     {
-        return array_map(function ($r, $index) {
+        return array_map(function ($r, $index) use ($isStaff, $viewerId) {
             $r = (object) $r;
             $touristNumber = isset($r->tourist_number) && (int) $r->tourist_number > 0 ? (int) $r->tourist_number : (int) $r->user_id;
-            $displayName = !empty($r->name) ? $r->name : "Explorer #{$touristNumber}";
+            $canViewPii = $isStaff || ($viewerId > 0 && $viewerId === (int) $r->user_id);
+            $anonName = "Explorer #{$touristNumber}";
+            $displayName = ($canViewPii && !empty($r->name)) ? $r->name : $anonName;
             $realName = $displayName;
 
             $rankVal = isset($r->rank) && (int) $r->rank > 0 ? (int) $r->rank : ($index + 1);
@@ -443,7 +459,7 @@ class LeaderboardController extends Controller
                 'tourist_number' => $touristNumber,
                 'tourist_id' => $touristNumber,
                 'explorer_number' => $touristNumber,
-                'explorer_name' => "Explorer #{$touristNumber}",
+                'explorer_name' => $anonName,
                 'rank' => $rankVal,
                 'rank_number' => $rankVal,
                 'rank_no' => $rankVal,
@@ -453,7 +469,7 @@ class LeaderboardController extends Controller
                 'name' => $displayName,
                 'full_name' => $displayName,
                 'real_name' => $realName,
-                'email' => $r->email ?? null,
+                'email' => $canViewPii ? ($r->email ?? null) : null,
                 'avatar' => $r->avatar ?? null,
                 'home_location' => $muniVal,
                 'municipality' => $muniVal,

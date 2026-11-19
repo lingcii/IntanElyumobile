@@ -535,7 +535,8 @@ $backRoute = 'settings';
                 return;
             }
             const text = sec.innerText.toLowerCase();
-            if (text.includes(q)) {
+            const altQuery = (q === 'ar check-in' || q === 'ar checkin') ? 'check-in' : q;
+            if (text.includes(q) || text.includes(altQuery)) {
                 sec.style.display = 'block';
             } else {
                 sec.style.display = 'none';

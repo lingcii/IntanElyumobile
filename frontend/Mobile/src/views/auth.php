@@ -829,23 +829,35 @@
             });
         }
         updateOfflineStatus();
-        window.addEventListener('online', () => {
-            updateOfflineStatus();
-            if (typeof window.enforceAllOfflineBadgesHidden === 'function') window.enforceAllOfflineBadgesHidden();
-        });
-        window.addEventListener('offline', updateOfflineStatus);
-        window.addEventListener('appOnline', () => {
-            updateOfflineStatus();
-            if (typeof window.enforceAllOfflineBadgesHidden === 'function') window.enforceAllOfflineBadgesHidden();
-        });
-        window.addEventListener('appOffline', updateOfflineStatus);
+        if (window._authOfflineHandlers) {
+            window.removeEventListener('online', window._authOfflineHandlers.onOnline);
+            window.removeEventListener('offline', window._authOfflineHandlers.onOffline);
+            window.removeEventListener('appOnline', window._authOfflineHandlers.onOnline);
+            window.removeEventListener('appOffline', window._authOfflineHandlers.onOffline);
+        }
+        window._authOfflineHandlers = {
+            onOnline: () => {
+                updateOfflineStatus();
+                if (typeof window.enforceAllOfflineBadgesHidden === 'function') window.enforceAllOfflineBadgesHidden();
+            },
+            onOffline: updateOfflineStatus
+        };
+        window.addEventListener('online', window._authOfflineHandlers.onOnline);
+        window.addEventListener('offline', window._authOfflineHandlers.onOffline);
+        window.addEventListener('appOnline', window._authOfflineHandlers.onOnline);
+        window.addEventListener('appOffline', window._authOfflineHandlers.onOffline);
 
     window.showOfflineAuthModal = function (email) {
         const modal = document.getElementById('offline-auth-modal');
         if (!modal) return;
         const desc = document.getElementById('offline-auth-desc');
         if (desc && email) {
-            desc.innerHTML = `An active internet connection is required to log in with <strong>${email}</strong>. Please connect to Wi-Fi or mobile data, or explore saved guides in Offline Mode.`;
+            desc.textContent = '';
+            desc.appendChild(document.createTextNode('An active internet connection is required to log in with '));
+            const strong = document.createElement('strong');
+            strong.textContent = String(email);
+            desc.appendChild(strong);
+            desc.appendChild(document.createTextNode('. Please connect to Wi-Fi or mobile data, or explore saved guides in Offline Mode.'));
         }
         modal.style.display = 'flex';
         modal.classList.add('active');
@@ -986,6 +998,10 @@
     };
 
     window.closeAuthLogin2FAModal = function () {
+        if (window._login2faResendTimer) {
+            clearInterval(window._login2faResendTimer);
+            window._login2faResendTimer = null;
+        }
         const modal = document.getElementById('auth-login-2fa-modal');
         if (modal) modal.classList.remove('active');
         setTimeout(() => {
@@ -1094,7 +1110,6 @@
             if (typeof data.user !== 'undefined' && typeof data.user.two_factor_enabled !== 'undefined') {
                 localStorage.setItem('intan_elyu_2fa_active', data.user.two_factor_enabled ? 'true' : 'false');
             }
-            localStorage.setItem('intan_elyu_2fa_active', 'true');
             if (window.AppStorage) {
                 try {
                     window.AppStorage.setItem('auth_user', data.user);
@@ -1157,10 +1172,15 @@
                 timerEl.style.display = 'inline';
                 timerEl.textContent = `(Resend in ${timeLeft}s)`;
             }
-            const timer = setInterval(() => {
+            if (window._login2faResendTimer) {
+                clearInterval(window._login2faResendTimer);
+                window._login2faResendTimer = null;
+            }
+            window._login2faResendTimer = setInterval(() => {
                 timeLeft--;
                 if (timeLeft <= 0) {
-                    clearInterval(timer);
+                    clearInterval(window._login2faResendTimer);
+                    window._login2faResendTimer = null;
                     if (timerEl) timerEl.style.display = 'none';
                     if (resendBtn) {
                         resendBtn.style.display = 'inline';
@@ -1369,11 +1389,16 @@
         setTimeout(() => { positionTabGlider(Boolean(isRegisterMode), false); }, 180);
     };
 
-    window.addEventListener('resize', () => {
+    if (window._authResizeHandler) {
+        window.removeEventListener('resize', window._authResizeHandler);
+    }
+    window._authResizeHandler = () => {
         const wrapper = document.getElementById('forms-wrapper');
-        const isReg = wrapper && wrapper.classList.contains('show-register');
+        if (!wrapper) return;
+        const isReg = wrapper.classList.contains('show-register');
         positionTabGlider(Boolean(isReg), false);
-    });
+    };
+    window.addEventListener('resize', window._authResizeHandler);
 
     window.showForgotPassword = function (e) {
         if (e) e.preventDefault();
@@ -1652,6 +1677,18 @@
 
             if (!response.ok) {
                 throw new Error(data.error || data.message || 'Invalid login credentials.');
+            }
+
+            // Two-Factor Authentication challenge: prompt for 6-digit email OTP
+            if (data && data.requires_2fa === true) {
+                window._pending2FALogin = { email: email, password: password, remember: remember };
+                window.openAuthLogin2FAModal(data.email || email);
+                window._isLoggingIn = false;
+                if (btn) {
+                    btn.innerHTML = '<i class="fa-solid fa-arrow-right"></i>';
+                    btn.disabled = false;
+                }
+                return;
             }
 
             // Day 3 Flow: Check if user logged in with a temporary password and must set a permanent password
@@ -3502,13 +3539,10 @@
             let payloadData = {};
             if (response.credential) {
                 payloadData = { credential: response.credential };
-            } else if (response.profile) {
-                payloadData = {
-                    email: response.profile.email,
-                    name: response.profile.name,
-                    google_id: 'g_' + response.profile.sub,
-                    avatar: response.profile.picture
-                };
+            } else if (response.access_token) {
+                payloadData = { access_token: response.access_token };
+            } else {
+                throw new Error('Missing Google authentication token. Please sign in again.');
             }
 
             const backend = (typeof window.getBackendUrl === 'function') ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online');
@@ -3794,19 +3828,36 @@
 
         if (dismissButton) dismissButton.addEventListener('click', dismissKeyboard);
 
-        document.addEventListener('focusin', function (event) {
-            if (!isEditable(event.target)) return;
-            window.setTimeout(function () {
+        if (window._authKeyboardHandlers) {
+            document.removeEventListener('focusin', window._authKeyboardHandlers.onFocusIn, true);
+            document.removeEventListener('focusout', window._authKeyboardHandlers.onFocusOut, true);
+            if (viewport) {
+                viewport.removeEventListener('resize', window._authKeyboardHandlers.onViewportChange);
+                viewport.removeEventListener('scroll', window._authKeyboardHandlers.onViewportChange);
+            }
+        }
+        window._authKeyboardHandlers = {
+            onFocusIn: function (event) {
+                if (!document.querySelector('.auth-container') || !isEditable(event.target)) return;
+                window.setTimeout(function () {
+                    updateFromVisualViewport();
+                    keepFocusedFieldVisible(event.target);
+                }, 180);
+            },
+            onFocusOut: function () {
+                if (!document.querySelector('.auth-container')) return;
+                window.setTimeout(function () {
+                    if (!isEditable(document.activeElement)) setKeyboardState(false, 0);
+                }, 120);
+            },
+            onViewportChange: function () {
+                if (!document.querySelector('.auth-container')) return;
                 updateFromVisualViewport();
-                keepFocusedFieldVisible(event.target);
-            }, 180);
-        }, true);
+            }
+        };
 
-        document.addEventListener('focusout', function () {
-            window.setTimeout(function () {
-                if (!isEditable(document.activeElement)) setKeyboardState(false, 0);
-            }, 120);
-        }, true);
+        document.addEventListener('focusin', window._authKeyboardHandlers.onFocusIn, true);
+        document.addEventListener('focusout', window._authKeyboardHandlers.onFocusOut, true);
 
         document.querySelectorAll('#form-login, #form-register').forEach(function (form) {
             form.addEventListener('keydown', function (event) {
@@ -3825,23 +3876,26 @@
         });
 
         if (viewport) {
-            viewport.addEventListener('resize', updateFromVisualViewport);
-            viewport.addEventListener('scroll', updateFromVisualViewport);
+            viewport.addEventListener('resize', window._authKeyboardHandlers.onViewportChange);
+            viewport.addEventListener('scroll', window._authKeyboardHandlers.onViewportChange);
         }
 
-        try {
-            var nativeKeyboard = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Keyboard;
-            if (nativeKeyboard) {
-                nativeKeyboard.addListener('keyboardWillShow', function (event) {
-                    setKeyboardState(true, event && event.keyboardHeight);
-                });
-                nativeKeyboard.addListener('keyboardDidShow', function (event) {
-                    setKeyboardState(true, event && event.keyboardHeight);
-                });
-                nativeKeyboard.addListener('keyboardWillHide', function () { setKeyboardState(false, 0); });
-                nativeKeyboard.addListener('keyboardDidHide', function () { setKeyboardState(false, 0); });
-            }
-        } catch (err) { }
+        if (!window._authNativeKeyboardBound) {
+            try {
+                var nativeKeyboard = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Keyboard;
+                if (nativeKeyboard) {
+                    window._authNativeKeyboardBound = true;
+                    nativeKeyboard.addListener('keyboardWillShow', function (event) {
+                        setKeyboardState(true, event && event.keyboardHeight);
+                    });
+                    nativeKeyboard.addListener('keyboardDidShow', function (event) {
+                        setKeyboardState(true, event && event.keyboardHeight);
+                    });
+                    nativeKeyboard.addListener('keyboardWillHide', function () { setKeyboardState(false, 0); });
+                    nativeKeyboard.addListener('keyboardDidHide', function () { setKeyboardState(false, 0); });
+                }
+            } catch (err) { }
+        }
     })();
 
     if (typeof window.initAuthView === 'function') {

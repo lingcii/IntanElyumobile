@@ -98,6 +98,21 @@ $hideBottomNav = true; // Hide bottom nav for full immersive view
         let userLat = null;
         let userLng = null;
         let currentTriviaId = null;
+        let _arCheckinInFlight = false;
+
+        if (typeof window._cleanupArCheckin === 'function') {
+            try { window._cleanupArCheckin(); } catch (e) {}
+        }
+        window._cleanupArCheckin = function () {
+            if (window._arMediaStream) {
+                try { window._arMediaStream.getTracks().forEach(t => t.stop()); } catch (e) {}
+                window._arMediaStream = null;
+            }
+            if (window._arGpsWatchId != null && navigator.geolocation) {
+                try { navigator.geolocation.clearWatch(window._arGpsWatchId); } catch (e) {}
+                window._arGpsWatchId = null;
+            }
+        };
 
         // ── 1. Start Camera ────────────────────────────────────────────────────────
         async function initCamera() {
@@ -105,10 +120,17 @@ $hideBottomNav = true; // Hide bottom nav for full immersive view
                 const stream = await navigator.mediaDevices.getUserMedia({
                     video: { facingMode: 'environment' }
                 });
-                document.getElementById('camera-view').srcObject = stream;
+                window._arMediaStream = stream;
+                const camEl = document.getElementById('camera-view');
+                if (camEl) {
+                    camEl.srcObject = stream;
+                } else {
+                    window._cleanupArCheckin();
+                }
             } catch (e) {
                 console.error('Camera access denied', e);
-                document.getElementById('ar-status').innerHTML = '<i class="fa-solid fa-triangle-exclamation" style="color:#ef4444;"></i> Camera Blocked';
+                const statusEl = document.getElementById('ar-status');
+                if (statusEl) statusEl.innerHTML = '<i class="fa-solid fa-triangle-exclamation" style="color:#ef4444;"></i> Camera Blocked';
             }
         }
 
@@ -116,12 +138,19 @@ $hideBottomNav = true; // Hide bottom nav for full immersive view
         function initGPS() {
             if (!navigator.geolocation) return;
 
-            navigator.geolocation.watchPosition(pos => {
+            window._arGpsWatchId = navigator.geolocation.watchPosition(pos => {
                 userLat = pos.coords.latitude;
                 userLng = pos.coords.longitude;
 
                 const isOffline = !navigator.onLine || window.isAppOnline === false;
                 const statusEl = document.getElementById('ar-status');
+                const reticleEl = document.getElementById('ar-reticle');
+                const scanBtnEl = document.getElementById('btn-scan');
+                const hintEl = document.getElementById('scan-hint');
+                if (!statusEl && !reticleEl && !scanBtnEl) {
+                    window._cleanupArCheckin();
+                    return;
+                }
                 if (statusEl) {
                     if (isOffline) {
                         statusEl.innerHTML = '<i class="fa-solid fa-cloud-slash" style="color:#f59e0b;"></i> GPS Ready (Offline)';
@@ -130,9 +159,9 @@ $hideBottomNav = true; // Hide bottom nav for full immersive view
                     }
                 }
 
-                document.getElementById('ar-reticle').classList.add('active');
-                document.getElementById('btn-scan').style.display = 'flex';
-                document.getElementById('scan-hint').textContent = 'Tap to Check In!';
+                if (reticleEl) reticleEl.classList.add('active');
+                if (scanBtnEl) scanBtnEl.style.display = 'flex';
+                if (hintEl) hintEl.textContent = 'Tap to Check In!';
 
             }, err => {
                 console.warn('GPS Error', err);
@@ -141,14 +170,19 @@ $hideBottomNav = true; // Hide bottom nav for full immersive view
 
         // ── 3. Trigger Check-in (Fetch Trivia) ─────────────────────────────────────
         window.triggerCheckIn = async function () {
-            if (!spotId || !userLat || !userLng) return;
+            if (!spotId || !userLat || !userLng || _arCheckinInFlight) return;
 
             if (typeof window.isGuestUser === 'function' && window.isGuestUser()) {
                 window.promptGuestLogin('check-in');
                 return;
             }
 
-            document.getElementById('btn-scan').innerHTML = '<i class="fa-solid fa-spinner spinning"></i>';
+            _arCheckinInFlight = true;
+            const scanBtn = document.getElementById('btn-scan');
+            if (scanBtn) {
+                scanBtn.disabled = true;
+                scanBtn.innerHTML = '<i class="fa-solid fa-spinner spinning"></i>';
+            }
 
             // Strict 70m radius check (applies to both offline and online)
             if (spotLat !== null && spotLng !== null && !isNaN(spotLat) && !isNaN(spotLng)) {
@@ -165,7 +199,8 @@ $hideBottomNav = true; // Hide bottom nav for full immersive view
                     const distKm = (dist / 1000).toFixed(1);
                     const displayDist = dist >= 1000 ? `${distKm} km` : `${distM} meters`;
                     alert(`⚠️ Too far! You are ${displayDist} away from this tourist site. You must be within 70m to check in! 📍`);
-                    document.getElementById('btn-scan').innerHTML = '';
+                    if (scanBtn) { scanBtn.innerHTML = ''; scanBtn.disabled = false; }
+                    _arCheckinInFlight = false;
                     return; // Blocked!
                 }
             }
@@ -183,6 +218,7 @@ $hideBottomNav = true; // Hide bottom nav for full immersive view
                 } catch (err) {
                     console.warn('Offline queuing error:', err);
                 }
+                _arCheckinInFlight = false;
                 alert('📡 Low Signal / Offline Area Detected:\n\nYour GPS check-in was saved locally! Points will sync automatically as soon as internet connection is restored.');
                 history.back();
                 return;
@@ -200,25 +236,26 @@ $hideBottomNav = true; // Hide bottom nav for full immersive view
                 });
                 clearTimeout(timeoutId);
 
-                const data = await res.json();
-                document.getElementById('btn-scan').innerHTML = '';
+                const data = await res.json().catch(() => ({}));
+                if (scanBtn) { scanBtn.innerHTML = ''; scanBtn.disabled = false; }
+                _arCheckinInFlight = false;
 
-                if (data.status === 'error') {
-                    alert(`Too far! You are ${data.distance_m}m away. Need to be within ${data.required_m}m.`);
+                if (data.status === 'error' || !res.ok) {
+                    if (data.distance_m !== undefined) {
+                        alert(`Too far! You are ${data.distance_m}m away. Need to be within ${data.required_m || 70}m.`);
+                    } else {
+                        alert(data.message || 'Unable to verify GPS check-in right now. Please try again.');
+                    }
                     return;
                 }
 
-                if (data.status === 'success' || data.success) {
-                    alert(data.message || '🎉 GPS Check-in Verified! Points awarded!');
-                    history.back();
-                } else {
-                    alert(data.message || '🎉 GPS Check-in Verified! Points awarded!');
-                    history.back();
-                }
+                alert(data.message || '🎉 GPS Check-in Verified! Points awarded!');
+                history.back();
             } catch (e) {
                 clearTimeout(timeoutId);
                 console.warn('AR check-in failed or timed out:', e);
-                document.getElementById('btn-scan').innerHTML = '';
+                if (scanBtn) { scanBtn.innerHTML = ''; scanBtn.disabled = false; }
+                _arCheckinInFlight = false;
 
                 // Low-signal / Offline approach: queue checkin locally for background auto-sync
                 if (window.OfflineCheckinManager) {
