@@ -91,31 +91,21 @@ class ProfileController extends Controller
 
         // 2. Places Visited — Already reconciled via syncPlacesVisitedCount() above
 
-        // 3. Completed Trips (Trip History) — Filter out any with 0 visited destinations and deduplicate identical completed trips
+        // 3. Completed Trips (Trip History) — Filter out any with 0 visited destinations
         $completedTrips = Cache::remember("profile:trips:v3:{$user->id}", 60, function () use ($user) {
-            $seenTripSignatures = [];
             return Itinerary::where('user_id', $user->id)
                 ->where('status', 'completed')
                 ->whereHas('items')
                 ->with(['items.destination:id,name,photo_url,latitude,longitude,entrance_fee,adult_fee,kids_fee,pwd_fee,senior_citizen_fee,environmental_fee'])
                 ->orderByDesc('updated_at')
                 ->get()
-                ->filter(function ($trip) use (&$seenTripSignatures) {
+                ->filter(function ($trip) {
                     $totalItems = $trip->items->count();
                     $visitedItems = $trip->items->filter(function ($item) {
                         return (bool) $item->is_visited;
                     })->count();
                     $effectiveVisited = $visitedItems > 0 ? $visitedItems : $totalItems;
-                    if ($effectiveVisited <= 0) {
-                        return false;
-                    }
-                    $spotIds = $trip->items->pluck('tourist_spot_id')->filter()->values()->implode(',');
-                    $sig = strtolower(trim((string) $trip->title)) . '|' . ($trip->trip_date ? $trip->trip_date->format('Y-m-d') : '') . '|' . $spotIds;
-                    if (isset($seenTripSignatures[$sig])) {
-                        return false;
-                    }
-                    $seenTripSignatures[$sig] = true;
-                    return true;
+                    return $effectiveVisited > 0;
                 })
                 ->values()
                 ->map(function ($trip) {
@@ -733,6 +723,148 @@ class ProfileController extends Controller
             'success' => true,
             'message' => 'Password updated successfully!'
         ]);
+    }
+
+    /**
+     * DELETE / POST /api/tourist/account
+     * Soft-delete / anonymize the authenticated tourist account for App Store / Play Store compliance.
+     */
+    public function deleteAccount(Request $request): JsonResponse
+    {
+        $user = $request->user() ?: $request->get('_tourist_user');
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'Unauthenticated.'], 401);
+        }
+
+        $confirmText = strtoupper(trim((string) $request->input('confirm_text', '')));
+        $passwordInput = (string) $request->input('password', '');
+        $isGoogleOnly = !empty($user->google_id) && empty($passwordInput);
+
+        if ($confirmText !== 'DELETE') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Please type DELETE to confirm permanent account deletion.'
+            ], 422);
+        }
+
+        $hasPassword = !empty($user->password) && empty($user->google_id);
+        if ($hasPassword && !$isGoogleOnly) {
+            if ($passwordInput === '') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Please enter your current password to confirm account deletion.'
+                ], 422);
+            }
+            $isCorrect = \Illuminate\Support\Facades\Hash::check($passwordInput, $user->password)
+                || (strlen($user->password) === 32 && md5($passwordInput) === $user->password)
+                || ($passwordInput === $user->password);
+            if (!$isCorrect) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Incorrect password. Account deletion cancelled.'
+                ], 422);
+            }
+        }
+
+        \Illuminate\Support\Facades\DB::transaction(function () use ($user) {
+            $user->name = 'Deleted User #' . $user->id;
+            $user->email = 'deleted_' . $user->id . '_' . time() . '@deleted.intan-elyu.local';
+            $user->status = 'deleted';
+            $user->api_token = null;
+            $user->two_factor_enabled = false;
+            $user->two_factor_code = null;
+            $user->two_factor_expires_at = null;
+            foreach (['phone', 'bio', 'avatar', 'profile_photo', 'google_id', 'travel_preferences', 'municipality', 'home_location', 'last_gps_lat', 'last_gps_lng'] as $col) {
+                if (\Illuminate\Support\Facades\Schema::hasColumn('users', $col)) {
+                    $user->{$col} = null;
+                }
+            }
+            $user->save();
+
+            try {
+                if (method_exists($user, 'tokens')) {
+                    $user->tokens()->delete();
+                }
+            } catch (\Throwable $e) {}
+
+            try {
+                if (\Illuminate\Support\Facades\Schema::hasTable('activity_logs')) {
+                    \App\Models\ActivityLog::create([
+                        'user_id' => $user->id,
+                        'action' => 'Account Deleted',
+                        'module' => 'Security',
+                        'details' => 'Tourist permanently deleted and anonymized their account via mobile Settings.',
+                    ]);
+                }
+            } catch (\Throwable $e) {}
+        });
+
+        Cache::forget("2fa_enabled:{$user->id}");
+        Cache::forget("rank:user:{$user->id}");
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Your account has been permanently deleted.'
+        ]);
+    }
+
+    /**
+     * POST /api/support/ticket
+     * Submit an in-app support or bug report ticket (supports authenticated users & guests).
+     */
+    public function submitSupportTicket(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'category' => 'required|string|in:bug,account,trip,voucher,feedback,other',
+            'subject'  => 'required|string|min:3|max:120',
+            'message'  => 'required|string|min:10|max:2000',
+            'email'    => 'nullable|email|max:150',
+        ]);
+
+        $user = $request->user();
+        if (!$user) {
+            $token = $request->bearerToken();
+            if ($token && !str_starts_with($token, 'guest_') && !str_starts_with($token, 'offline_')) {
+                $user = \App\Models\User::where('api_token', $token)->where('status', 'active')->first();
+            }
+        }
+
+        $ticketId = 'SUP-' . strtoupper(substr(md5(uniqid('', true)), 0, 6));
+        $reporterEmail = $validated['email'] ?? ($user->email ?? 'guest@intan-elyu.online');
+        $reporterName = $user ? ($user->name ?? 'Tourist #' . $user->id) : 'Guest Explorer';
+        $category = strip_tags($validated['category']);
+        $subject = strip_tags(trim($validated['subject']));
+        $body = strip_tags(trim($validated['message']));
+
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('activity_logs')) {
+                \App\Models\ActivityLog::create([
+                    'user_id' => $user ? $user->id : null,
+                    'action'  => 'Support Ticket',
+                    'module'  => 'Support',
+                    'details' => "[{$ticketId}] ({$category}) {$subject} | From: {$reporterName} <{$reporterEmail}> | {$body}",
+                ]);
+            }
+        } catch (\Throwable $e) {}
+
+        $mailSent = false;
+        try {
+            $supportTo = env('SUPPORT_EMAIL', 'support@intan-elyu.online');
+            $mailer = app(\App\Services\ResendMailService::class);
+            $html = '<h3>New Intan Elyu Support Ticket (' . e($ticketId) . ')</h3>'
+                . '<p><strong>Category:</strong> ' . e(ucfirst($category)) . '</p>'
+                . '<p><strong>From:</strong> ' . e($reporterName) . ' (' . e($reporterEmail) . ')</p>'
+                . '<p><strong>Subject:</strong> ' . e($subject) . '</p>'
+                . '<p><strong>Message:</strong><br>' . nl2br(e($body)) . '</p>';
+            $mailSent = (bool) $mailer->send($supportTo, "[{$ticketId}] {$subject}", $html);
+        } catch (\Throwable $e) {}
+
+        return response()->json([
+            'success'   => true,
+            'ticket_id' => $ticketId,
+            'mail_sent' => $mailSent,
+            'message'   => "Support ticket {$ticketId} submitted! Our team will get back to you soon.",
+        ], 201);
     }
 }
 

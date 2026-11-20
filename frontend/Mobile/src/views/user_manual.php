@@ -75,8 +75,8 @@ $backRoute = 'settings';
                 <p>Build trips with live transport fares and route optimization.</p>
             </div>
             <div class="grid-card-item">
-                <h4>AR Check-In</h4>
-                <p>Scan your location & upload a visit photo to earn points per spot (25 for Existing, 35 for Potential, 45 for Emerging).</p>
+                <h4>GPS Check-In</h4>
+                <p>Verify your arrival within 70m or site boundary to instantly earn points per spot (25 for Existing, 35 for Potential, 45 for Emerging).</p>
             </div>
             <div class="grid-card-item">
                 <h4>GameZone</h4>
@@ -261,38 +261,34 @@ $backRoute = 'settings';
         </div>
     </div>
 
-    <!-- STEP 6: PHOTO CHECK-IN -->
+    <!-- STEP 6: GPS CHECK-IN -->
     <div class="manual-section" id="section-checkin">
         <div class="manual-section-header">
-            <div class="manual-section-icon red"><i class="fa-solid fa-camera"></i></div>
+            <div class="manual-section-icon red"><i class="fa-solid fa-location-crosshairs"></i></div>
             <div>
-                <h2 class="manual-section-title">Step 6 &mdash; Photo Check-In</h2>
-                <p class="manual-section-sub">Location verification and review approval</p>
+                <h2 class="manual-section-title">Step 6 &mdash; GPS Check-In</h2>
+                <p class="manual-section-sub">Instant GPS location verification and offline sync</p>
             </div>
         </div>
         <div class="step-card">
             <div class="step-num">1</div>
             <div class="step-content">
                 <div class="step-title">Arrive at Destination</div>
-                <div class="step-desc">Visit the tourist spot in your planned trip and open your trip route or saved
-                    trip stops.</div>
+                <div class="step-desc">Visit the tourist spot from your planned trip in <strong>My Saved Trips</strong> or the live <strong>Trip Map</strong>.</div>
             </div>
         </div>
         <div class="step-card">
             <div class="step-num">2</div>
             <div class="step-content">
-                <div class="step-title">Attach Photo &amp; Verify GPS</div>
-                <div class="step-desc">Capture a photo or selfie at the spot, then tap <strong>Verify Location &amp;
-                        Submit</strong>. Check-in is an explicit verification process rather than automatic detection.
-                </div>
+                <div class="step-title">Verify GPS Location (Within 70m or Site Boundary)</div>
+                <div class="step-desc">Once your GPS confirms you are within the spot boundary (or 70 meters of the landmark), tap <strong>Check In</strong>. In low-signal areas, your check-in is queued offline and syncs automatically when reconnected.</div>
             </div>
         </div>
         <div class="step-card">
             <div class="step-num">3</div>
             <div class="step-content">
-                <div class="step-title">Review &amp; Reward</div>
-                <div class="step-desc">Your check-in is set to <strong>Pending</strong>. Once reviewed and approved by
-                    tourism officers, you will be awarded <strong>+25 to +45 Points</strong> based on spot classification!</div>
+                <div class="step-title">Instant Points Reward</div>
+                <div class="step-desc">Verified check-ins immediately award <strong>+25 to +45 Points</strong> based on spot classification (Existing, Potential, or Emerging) and unlock the next stop in your trip!</div>
             </div>
         </div>
     </div>
@@ -483,14 +479,9 @@ $backRoute = 'settings';
             </thead>
             <tbody>
                 <tr>
-                    <td>AR / Photo Check-In</td>
+                    <td>GPS Check-In</td>
                     <td><strong style="color:#1e3a8a;">+25, +35, or +45 Points</strong> (Existing, Potential, Emerging)</td>
-                    <td>Explore Map / Saved Trips</td>
-                </tr>
-                <tr>
-                    <td>Complete Itinerary Trip</td>
-                    <td><strong style="color:#1e3a8a;">+100 Points</strong></td>
-                    <td>Trip Planner / Saved Trips</td>
+                    <td>Saved Trips / Trip Map</td>
                 </tr>
                 <tr>
                     <td>Solve Slide Puzzle</td>

@@ -1212,11 +1212,14 @@ $validateSpotCheckinRadius = function (\Illuminate\Http\Request $request, $spot)
 // ─────────────────────────────────────────────────────────────────────────────
 //  TOURIST (mobile app — Bearer token auth)
 // ─────────────────────────────────────────────────────────────────────────────
+Route::post('/support/ticket', [TouristProfileController::class, 'submitSupportTicket']);
 Route::prefix('tourist')->middleware('tourist.auth')->group(function () use ($validateSpotCheckinRadius) {
     Route::get('/dashboard', [TouristDashboardController::class, 'index']);
     Route::get('/profile', [TouristProfileController::class, 'show']);
     Route::post('/profile', [TouristProfileController::class, 'update']);
     Route::post('/change-password', [TouristProfileController::class, 'changePassword']);
+    Route::match(['delete', 'post'], '/account', [TouristProfileController::class, 'deleteAccount']);
+    Route::post('/account/delete', [TouristProfileController::class, 'deleteAccount']);
     Route::post('/2fa/toggle', [TouristProfileController::class, 'toggle2FA']);
     Route::post('/2fa/verify', [TouristProfileController::class, 'verify2FA']);
     Route::post('/2fa/request-disable', [TouristProfileController::class, 'requestDisable2FA']);
@@ -1292,12 +1295,12 @@ Route::prefix('tourist')->middleware('tourist.auth')->group(function () use ($va
     Route::delete('/itineraries/items/{id}/proof', [ItineraryItemController::class, 'deleteProof']);
 
     Route::get('/notifications', [NotificationController::class, 'index']);
-    Route::post('/notifications/{id}/read', [NotificationController::class, 'markRead']);
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead']);
-    Route::match(['delete', 'post'], '/notifications/{id}', [NotificationController::class, 'destroy']);
-    Route::post('/notifications/{id}/delete', [NotificationController::class, 'destroy']);
-    Route::delete('/notifications', [NotificationController::class, 'clearAll']);
     Route::post('/notifications/clear-all', [NotificationController::class, 'clearAll']);
+    Route::delete('/notifications', [NotificationController::class, 'clearAll']);
+    Route::post('/notifications/{id}/read', [NotificationController::class, 'markRead'])->whereNumber('id');
+    Route::post('/notifications/{id}/delete', [NotificationController::class, 'destroy'])->whereNumber('id');
+    Route::match(['delete', 'post'], '/notifications/{id}', [NotificationController::class, 'destroy'])->whereNumber('id');
 
     // Site Testimonies & Policy Recommendations
     Route::get('/feedback/user-reviewed-spots', [FeedbackController::class, 'userReviewedSpots']);

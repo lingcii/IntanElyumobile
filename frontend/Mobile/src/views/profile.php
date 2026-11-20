@@ -58,61 +58,71 @@ $activeTab = 'profile';
         <i class="fa-solid fa-cloud-arrow-down" style="margin-right: 5px;"></i> Browsing Offline Profile (Cached)
     </div>
 
-    <!-- Profile Main Header Card (Horizontal Modern Layout matching Mockup) -->
+    <!-- Profile Main Header Card (Clean Royal-Blue Hero + Unified Frosted Stat Strip) -->
     <div class="profile-header stagger-1"
-        style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border: none; outline: none; border-radius: 24px; padding: 18px 16px 14px; text-align: left; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); box-shadow: 0 8px 24px rgba(10, 25, 60, 0.25); margin-top: 12px; margin-bottom: 14px;">
-        <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 14px;">
+        style="position: relative; overflow: hidden; background: linear-gradient(135deg, #172e6e 0%, #1e3a8a 50%, #2563eb 100%); border: none; outline: none; border-radius: 24px; padding: 18px 16px 16px; text-align: left; box-shadow: 0 10px 26px rgba(15, 33, 82, 0.24); margin-top: 12px; margin-bottom: 14px;">
+        <!-- Subtle Top-Right Glow -->
+        <div aria-hidden="true" style="position: absolute; top: -48px; right: -48px; width: 150px; height: 150px; border-radius: 50%; background: radial-gradient(circle, rgba(56, 189, 248, 0.28) 0%, rgba(56, 189, 248, 0) 70%); pointer-events: none;"></div>
+
+        <!-- Quick Edit Profile Button -->
+        <button type="button" onclick="window.scrollTo(0, 0); navigateTo('edit_profile')" aria-label="Edit Profile" title="Edit Profile"
+            style="position: absolute; top: 14px; right: 14px; z-index: 2; width: 34px; height: 34px; border-radius: 50%; border: 1px solid rgba(255, 255, 255, 0.22) !important; background: rgba(255, 255, 255, 0.14) !important; color: #ffffff !important; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); transition: transform 0.15s ease;"
+            onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'" onpointerleave="this.style.transform='scale(1)'">
+            <i class="fa-solid fa-pen" style="font-size: 12px; color: #ffffff !important;"></i>
+        </button>
+
+        <div style="position: relative; z-index: 1; display: flex; align-items: center; gap: 14px; margin-bottom: 16px; padding-right: 36px;">
             <div class="profile-avatar-container" style="position: relative; flex-shrink: 0; margin-bottom: 0;">
                 <img src="https://ui-avatars.com/api/?name=User&background=007AFF&color=fff&rounded=true&bold=true&size=128"
                     alt="Profile" class="profile-avatar" id="profile-img"
-                    style="width: 76px; height: 76px; border-radius: 50%; border: none !important; outline: none !important; object-fit: cover; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);">
+                    style="width: 70px; height: 70px; border-radius: 50%; border: 2.5px solid rgba(255, 255, 255, 0.88) !important; outline: none !important; object-fit: cover; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22);">
                 <span id="profile-badge-icon"
-                    style="position: absolute; bottom: -2px; right: -2px; background: linear-gradient(135deg, #00f2fe, #0284c7); width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 11px; border: none !important; outline: none !important; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);"
+                    style="position: absolute; bottom: -1px; right: -1px; background: linear-gradient(135deg, #38bdf8, #0284c7); width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 10px; border: 2px solid #1e3a8a !important; outline: none !important; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.28);"
                     title="Verified Explorer"><i class="fa-solid fa-shield-halved"></i></span>
             </div>
             <div style="flex: 1; min-width: 0; text-align: left;">
                 <h2 class="profile-name" id="profile-name"
-                    style="margin: 0 0 3px 0; font-size: 20px; font-weight: 800; color: #ffffff; letter-spacing: -0.3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.25; text-align: left;">
+                    style="margin: 0 0 2px 0; font-size: 18.5px; font-weight: 800; color: #ffffff; letter-spacing: -0.3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.25; text-align: left;">
                     Explorer</h2>
                 <p class="profile-email" id="profile-email"
-                    style="margin: 0 0 6px 0; font-size: 12.5px; color: rgba(255, 255, 255, 0.9); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; text-align: left;"></p>
+                    style="margin: 0 0 6px 0; font-size: 12px; color: rgba(255, 255, 255, 0.78); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.25; text-align: left;"></p>
                 <div id="profile-meta"
-                    style="display: flex; align-items: center; justify-content: flex-start; gap: 6px;">
+                    style="display: flex; align-items: center; justify-content: flex-start; gap: 6px; flex-wrap: wrap;">
                 </div>
             </div>
         </div>
 
         <p id="profile-bio-text" style="display: none; margin: 0; padding: 0;"></p>
 
-        <!-- 3 Stats Cards inside Profile Card (Places Visited, Rank, Vouchers Available) -->
+        <!-- 3 Compact Frosted Stat Pills (Places | Rank | Vouchers) -->
         <div class="stats-container"
-            style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 0 !important;">
+            style="position: relative; z-index: 1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 0 !important;">
             <div class="stat-card"
-                style="background: linear-gradient(135deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.12) 100%) !important; border: none !important; outline: none !important; border-radius: 16px; padding: 10px 4px; text-align: center; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 4px 14px rgba(10, 25, 60, 0.18) !important; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 64px;">
+                style="background: rgba(255, 255, 255, 0.12) !important; border: 1px solid rgba(255, 255, 255, 0.22) !important; border-radius: 14px !important; box-shadow: none !important; padding: 10px 6px; text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center;">
                 <div class="stat-value" id="stat-places"
-                    style="font-size: 18px; font-weight: 900; color: #ffffff; margin-bottom: 2px; letter-spacing: -0.4px;">
+                    style="font-size: 18px; font-weight: 900; color: #ffffff; line-height: 1.15; letter-spacing: -0.3px; margin-bottom: 3px;">
                     0</div>
                 <div class="stat-label"
-                    style="font-size: 9.5px; font-weight: 800; color: #ffffff; opacity: 0.95; text-transform: uppercase; letter-spacing: 0.4px; line-height: 1.15;">
-                    Places<br>Visited</div>
+                    style="font-size: 10px; font-weight: 800; color: rgba(255, 255, 255, 0.85); text-transform: uppercase; letter-spacing: 0.4px; line-height: 1.1;">
+                    Places</div>
             </div>
-            <div class="stat-card"
-                style="background: linear-gradient(135deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.12) 100%) !important; border: none !important; outline: none !important; border-radius: 16px; padding: 10px 4px; text-align: center; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 4px 14px rgba(10, 25, 60, 0.18) !important; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 64px;">
+            <div class="stat-card" onclick="navigateTo('leaderboard')"
+                style="background: rgba(255, 255, 255, 0.12) !important; border: 1px solid rgba(255, 255, 255, 0.22) !important; border-radius: 14px !important; box-shadow: none !important; padding: 10px 6px; text-align: center; cursor: pointer; display: flex; flex-direction: column; justify-content: center; align-items: center;">
                 <div class="stat-value" id="stat-rank"
-                    style="font-size: 13.5px; font-weight: 900; color: #ffffff; margin-bottom: 2px; letter-spacing: -0.3px; line-height: 1.2;">
-                    Unranked</div>
+                    style="font-size: 18px; font-weight: 900; color: #ffffff; line-height: 1.15; letter-spacing: -0.3px; margin-bottom: 3px; white-space: nowrap;">
+                    --</div>
                 <div class="stat-label"
-                    style="font-size: 9.5px; font-weight: 800; color: #ffffff; opacity: 0.95; text-transform: uppercase; letter-spacing: 0.4px; line-height: 1.15;">
+                    style="font-size: 10px; font-weight: 800; color: rgba(255, 255, 255, 0.85); text-transform: uppercase; letter-spacing: 0.4px; line-height: 1.1;">
                     Rank</div>
             </div>
             <div class="stat-card" onclick="window.openFullVouchersModal ? window.openFullVouchersModal('all') : navigateTo('discount')"
-                style="background: linear-gradient(135deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.12) 100%) !important; border: none !important; outline: none !important; border-radius: 16px; padding: 10px 4px; text-align: center; cursor: pointer; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 4px 14px rgba(10, 25, 60, 0.18) !important; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 64px;">
+                style="background: rgba(255, 255, 255, 0.12) !important; border: 1px solid rgba(255, 255, 255, 0.22) !important; border-radius: 14px !important; box-shadow: none !important; padding: 10px 6px; text-align: center; cursor: pointer; display: flex; flex-direction: column; justify-content: center; align-items: center;">
                 <div class="stat-value" id="stat-vouchers-available"
-                    style="font-size: 18px; font-weight: 900; color: #ffffff; margin-bottom: 2px; letter-spacing: -0.4px;">
+                    style="font-size: 18px; font-weight: 900; color: #ffffff; line-height: 1.15; letter-spacing: -0.3px; margin-bottom: 3px;">
                     0</div>
                 <div class="stat-label"
-                    style="font-size: 9.5px; font-weight: 800; color: #ffffff; opacity: 0.95; text-transform: uppercase; letter-spacing: 0.4px; line-height: 1.15;">
-                    Vouchers<br>Available</div>
+                    style="font-size: 10px; font-weight: 800; color: rgba(255, 255, 255, 0.85); text-transform: uppercase; letter-spacing: 0.4px; line-height: 1.1;">
+                    Vouchers</div>
             </div>
             <span id="stat-points" style="display: none;">0</span>
         </div>
@@ -120,18 +130,18 @@ $activeTab = 'profile';
 
     <!-- Points & Rewards Banner Card (Mockup Style: Available Balance + Play & Earn) -->
     <div class="stagger-2"
-        style="background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%); border: none; outline: none; border-radius: 20px; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 6px 18px rgba(30, 58, 138, 0.25); margin-bottom: 20px;">
-        <div style="text-align: left;">
+        style="background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%); border: none; outline: none; border-radius: 20px; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; gap: 10px; box-shadow: 0 6px 18px rgba(30, 58, 138, 0.25); margin-bottom: 20px;">
+        <div style="text-align: left; min-width: 0;">
             <div style="font-size: 13.5px; font-weight: 800; color: #ffffff; margin-bottom: 2px; letter-spacing: -0.2px;">
                 Points & Rewards
             </div>
             <div style="font-size: 11px; font-weight: 600; color: rgba(255, 255, 255, 0.85); margin-bottom: 2px;">
                 Available Balance:
             </div>
-            <div style="display: flex; align-items: baseline; gap: 8px;">
-                <span id="profile-points-val" style="font-size: 18px; font-weight: 900; color: #ffffff;">0</span>
-                <span style="font-size: 12px; font-weight: 700; color: #ffffff;">Points</span>
-                <a href="javascript:void(0);" onclick="navigateTo('discount')" style="font-size: 11.5px; font-weight: 800; color: #38bdf8; text-decoration: none; margin-left: 2px;">
+            <div style="display: flex; align-items: baseline; gap: 6px; flex-wrap: nowrap;">
+                <span id="profile-points-val" style="font-size: 18px; font-weight: 900; color: #ffffff; white-space: nowrap;">0</span>
+                <span style="font-size: 12px; font-weight: 700; color: #ffffff; white-space: nowrap;">Points</span>
+                <a href="javascript:void(0);" onclick="navigateTo('discount')" style="font-size: 11.5px; font-weight: 800; color: #38bdf8; text-decoration: none; margin-left: 2px; white-space: nowrap;">
                     Redeem &gt;
                 </a>
             </div>
@@ -642,23 +652,14 @@ $activeTab = 'profile';
                     }, 0);
 
                     html += `
-                    <div onclick="window.showTripDetailsModal('${trip.id}')" role="button" tabindex="0" style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border: none !important; outline: none !important; border-radius: 20px; padding: 16px 18px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; gap: 10px; cursor: pointer; user-select: none; touch-action: manipulation; -webkit-tap-highlight-color: transparent; transition: transform 0.15s ease, opacity 0.15s ease; box-shadow: none;" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'" onpointerleave="this.style.transform='scale(1)'">
+                    <div onclick="window.showTripDetailsModal('${trip.id}')" role="button" tabindex="0" style="background: linear-gradient(135deg, #1e3a8a 0%, #3f7db7 100%); border: none !important; outline: none !important; border-radius: 18px; padding: 14px 18px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; gap: 10px; cursor: pointer; user-select: none; touch-action: manipulation; -webkit-tap-highlight-color: transparent; transition: transform 0.15s ease, opacity 0.15s ease; box-shadow: none;" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'" onpointerleave="this.style.transform='scale(1)'">
                         <div style="flex: 1; min-width: 0;">
-                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 2px;">
-                                <strong style="color: #ffffff; font-size: 14px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escProfileHtml(trip.title || 'Completed Trip')}</strong>
-                            </div>
-                            <div style="font-size: 11px; color: #ffffff; opacity: 0.95; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-                                <span><i class="fa-regular fa-calendar" style="color: #00f2fe; margin-right: 3px;"></i>${date}</span>
-                                <span>&bull;</span>
-                                <span><i class="fa-solid fa-coins" style="color: #fbbf24; margin-right: 3px;"></i>₱${cost}</span>
-                                <span>&bull;</span>
-                                <span><i class="fa-solid fa-location-dot" style="color: #00f2fe; margin-right: 3px;"></i>${count} Visited</span>
-                                ${photoCount > 0 ? `<span>&bull;</span><span><i class="fa-solid fa-camera" style="color: #38bdf8; margin-right: 3px;"></i>${photoCount}</span>` : ''}
+                            <strong style="color: #ffffff; font-size: 14.5px; font-weight: 800; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escProfileHtml(trip.title || 'Completed Trip')}</strong>
+                            <div style="font-size: 11px; color: rgba(255,255,255,0.85); margin-top: 2px; display: flex; align-items: center; gap: 5px;">
+                                <i class="fa-regular fa-calendar" style="color: #00f2fe; font-size: 10.5px;"></i><span>${date}</span>
                             </div>
                         </div>
-                        <span style="color: #ffffff !important; font-weight: 800; font-size: 11px; background: #10b981 !important; border: none !important; outline: none !important; padding: 4px 10px; border-radius: 100px; white-space: nowrap; flex-shrink: 0; display: inline-flex; align-items: center; gap: 4px; box-shadow: none;">
-                            <i class="fa-solid fa-check" style="color: #ffffff !important; font-size: 11px;"></i>Done
-                        </span>
+                        <i class="fa-solid fa-chevron-right" style="color: rgba(255,255,255,0.75); font-size: 12px; flex-shrink: 0;"></i>
                     </div>`;
                 });
                 historyList.innerHTML = html;
@@ -2205,24 +2206,14 @@ $activeTab = 'profile';
                 }, 0);
 
                 html += `
-                <div onclick="window.showTripDetailsModal('${trip.id}')" role="button" tabindex="0" style="background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline: none !important; box-shadow: none !important; border-radius: 18px; padding: 16px; margin-bottom: 12px; cursor: pointer; user-select: none; touch-action: manipulation; -webkit-tap-highlight-color: transparent; transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'" onpointerleave="this.style.transform='scale(1)'">
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
-                        <div>
-                            <div style="font-size:10px; font-weight:800; color:#00f2fe; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:2px;">Trip #${trips.length - idx}</div>
-                            <strong style="color: #ffffff; font-size: 16px; font-weight: 800; line-height: 1.3;">${escProfileHtml(trip.title || 'Completed Trip')}</strong>
+                <div onclick="window.showTripDetailsModal('${trip.id}')" role="button" tabindex="0" style="background: linear-gradient(135deg, #203f8d 0%, #2b549c 50%, #3568a9 100%) !important; border: none !important; outline: none !important; box-shadow: none !important; border-radius: 16px; padding: 14px 16px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; gap: 10px; cursor: pointer; user-select: none; touch-action: manipulation; -webkit-tap-highlight-color: transparent; transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'" onpointerleave="this.style.transform='scale(1)'">
+                    <div style="flex: 1; min-width: 0;">
+                        <strong style="color: #ffffff; font-size: 15px; font-weight: 800; line-height: 1.3; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escProfileHtml(trip.title || 'Completed Trip')}</strong>
+                        <div style="font-size: 11.5px; color: rgba(255,255,255,0.85); margin-top: 3px; display: flex; align-items: center; gap: 5px;">
+                            <i class="fa-regular fa-calendar" style="color: #00f2fe; font-size: 11px;"></i><span>${date}</span>
                         </div>
-                        <span style="color: #ffffff; font-weight: 800; font-size: 11px; background: #10b981; border: none !important; outline: none !important; box-shadow: none !important; padding: 4px 10px; border-radius: 100px; white-space: nowrap;">
-                            <i class="fa-solid fa-circle-check" style="margin-right: 4px; color: #ffffff;"></i>Completed
-                        </span>
                     </div>
-                    <div style="font-size: 12px; color: rgba(255, 255, 255, 0.95); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; background: rgba(255,255,255,0.14); border: none !important; outline: none !important; box-shadow: none !important; padding: 8px 12px; border-radius: 12px;">
-                        <span><i class="fa-regular fa-calendar" style="color: #00f2fe; margin-right: 4px;"></i>${date}</span>
-                        <span>&bull;</span>
-                        <span><i class="fa-solid fa-coins" style="color: #fbbf24; margin-right: 4px;"></i>₱${cost}</span>
-                        <span>&bull;</span>
-                        <span><i class="fa-solid fa-location-dot" style="color: #34d399; margin-right: 4px;"></i>${count} Destinations Visited</span>
-                        ${photoCount > 0 ? `<span>&bull;</span><span><i class="fa-solid fa-camera" style="color: #38bdf8; margin-right: 4px;"></i>${photoCount} ${photoCount === 1 ? 'Photo' : 'Photos'}</span>` : ''}
-                    </div>
+                    <i class="fa-solid fa-chevron-right" style="color: rgba(255,255,255,0.75); font-size: 12px; flex-shrink: 0;"></i>
                 </div>`;
             });
             container.innerHTML = html;
@@ -2378,25 +2369,14 @@ $activeTab = 'profile';
             const expiryText = window.formatVoucherExpiry ? window.formatVoucherExpiry(v) : (v.expires_at || 'No Expiration');
 
             return `
-            <div onclick="window.openActiveVoucherQrModal('${safeCode}')" role="button" tabindex="0" style="background:#f8fafc !important; border:1px solid #e2e8f0 !important; border-radius:18px; padding:16px; margin-bottom:12px; cursor:pointer; opacity:0.94; transition:transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
-                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
-                    <div style="flex: 1; min-width: 0; padding-right: 8px;">
-                        <div style="font-size:10px; font-weight:800; color:#64748b; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:2px;">Voucher History #${historyVouchers.length - idx}</div>
-                        <strong style="color:#1e293b; font-size:15px; font-weight:800; line-height:1.3; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${voucherTitle}</strong>
-                        <div style="font-size: 11px; font-weight: 600; color: #64748b; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${partnerName}</div>
-                    </div>
-                    <span style="color:#ffffff !important; font-weight:800; font-size:10.5px; background:#059669 !important; border:none !important; padding:4px 10px; border-radius:100px; white-space:nowrap; text-transform:uppercase; flex-shrink: 0;">
-                        <i class="fa-solid fa-check-double" style="margin-right:4px;"></i>Redeemed
-                    </span>
-                </div>
-
-                <div style="display:flex; align-items:center; gap:6px; font-size:11px; font-weight:600; color:#64748b; margin-bottom:8px;">
-                    <i class="fa-regular fa-calendar-xmark" style="color:#94a3b8; font-size:12px;"></i>
-                    <span>Expired/Valid until: <strong style="color:#475569;">${expiryText}</strong></span>
+            <div onclick="window.openActiveVoucherQrModal('${safeCode}')" role="button" tabindex="0" style="background:#f8fafc !important; border:1px solid #e2e8f0 !important; border-radius:16px; padding:14px 16px; margin-bottom:10px; cursor:pointer; transition:transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.98)'" onpointerup="this.style.transform='scale(1)'">
+                <div style="margin-bottom:8px;">
+                    <strong style="color:#1e293b; font-size:15px; font-weight:800; line-height:1.3; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${voucherTitle}</strong>
+                    <div style="font-size: 11.5px; font-weight: 600; color: #64748b; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${partnerName}</div>
                 </div>
 
                 <div style="display:flex; justify-content:space-between; align-items:center; font-size:11px; color:#64748b; font-weight:600; padding-top:8px; border-top:1px solid #e2e8f0;">
-                    <span><i class="fa-regular fa-clock" style="margin-right:4px; color:#94a3b8;"></i>Redeemed: ${redeemedDate}</span>
+                    <span><i class="fa-regular fa-clock" style="margin-right:4px; color:#94a3b8;"></i>${redeemedDate}</span>
                     <span style="color:#1e3a8a; font-weight:800; display:inline-flex; align-items:center; gap:3px;">View Details <i class="fa-solid fa-chevron-right" style="font-size:9px;"></i></span>
                 </div>
             </div>`;
@@ -3915,20 +3895,9 @@ $activeTab = 'profile';
         <!-- Header Banner -->
         <div
             style="background:linear-gradient(180deg, #1e3a8a 0%, #193375 100%) !important; padding:16px 20px; display:flex; justify-content:space-between; align-items:center; border:none !important; outline:none !important; box-shadow:none !important; flex-shrink:0;">
-            <div style="display:flex; align-items:center; gap:10px;">
-                <div
-                    style="width:34px; height:34px; border-radius:10px; background:#10b981; border:none !important; outline:none !important; box-shadow:none !important; display:flex; align-items:center; justify-content:center; color:#ffffff; font-size:15px;">
-                    <i class="fa-solid fa-flag-checkered"></i>
-                </div>
-                <div>
-                    <div
-                        style="font-size:10px; font-weight:800; color:#00f2fe; text-transform:uppercase; letter-spacing:0.5px;">
-                        Finished Trip Details</div>
-                    <h3 id="trip-detail-title"
-                        style="margin:0; color:#ffffff; font-size:17px; font-weight:800; letter-spacing:-0.2px;">Trip
-                        Details</h3>
-                </div>
-            </div>
+            <h3 id="trip-detail-title"
+                style="margin:0; color:#ffffff; font-size:17px; font-weight:800; letter-spacing:-0.2px; flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding-right:10px;">Trip
+                Details</h3>
             <button type="button" onclick="window.closeTripDetailsModal()"
                 style="background:#ffffff !important; border:none !important; outline:none !important; color:#1e3a8a !important; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:15px; box-shadow:0 2px 8px rgba(0,0,0,0.2) !important; position:relative; z-index:100; pointer-events:auto !important; touch-action:manipulation;"
                 aria-label="Close Trip Details Modal">

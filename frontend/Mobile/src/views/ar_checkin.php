@@ -74,11 +74,16 @@ $hideBottomNav = true; // Hide bottom nav for full immersive view
         const token = localStorage.getItem('intan_elyu_token') || localStorage.getItem('Intan_Elyu_Token');
         const headers = { 'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token };
 
-        // Get spot ID and coordinates from URL query params or storage
+        // Get spot ID and coordinates from URL query params or SPA sessionStorage
         const urlParams = new URLSearchParams(window.location.search);
-        const spotId = urlParams.get('spot_id');
-        let spotLat = urlParams.get('spot_lat') ? parseFloat(urlParams.get('spot_lat')) : null;
-        let spotLng = urlParams.get('spot_lng') ? parseFloat(urlParams.get('spot_lng')) : null;
+        let storedSpot = null;
+        try {
+            const rawStored = sessionStorage.getItem('ar_checkin_spot');
+            if (rawStored) storedSpot = JSON.parse(rawStored);
+        } catch (e) {}
+        const spotId = urlParams.get('spot_id') || (storedSpot && storedSpot.id ? String(storedSpot.id) : null);
+        let spotLat = urlParams.get('spot_lat') ? parseFloat(urlParams.get('spot_lat')) : (storedSpot && storedSpot.lat != null ? parseFloat(storedSpot.lat) : null);
+        let spotLng = urlParams.get('spot_lng') ? parseFloat(urlParams.get('spot_lng')) : (storedSpot && storedSpot.lng != null ? parseFloat(storedSpot.lng) : null);
 
         if ((spotLat === null || spotLng === null) && spotId) {
             try {

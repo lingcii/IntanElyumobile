@@ -48,6 +48,40 @@ $backRoute = 'dashboard';
 
     </div>
 
+    <!-- App Preferences Group -->
+    <div class="settings-group-title stagger-2">App Preferences</div>
+    <div class="settings-card stagger-2">
+
+        <div class="settings-row">
+            <div class="settings-label-group">
+                <div class="settings-icon-box teal"><i class="fa-solid fa-bell"></i></div>
+                <div>
+                    <div class="settings-title">Trip &amp; Voucher Reminders</div>
+                    <div class="settings-subtitle">Alerts for trips today/tomorrow &amp; expiring vouchers</div>
+                </div>
+            </div>
+            <label style="position:relative; display:inline-block; width:44px; height:24px; flex-shrink:0; cursor:pointer;">
+                <input type="checkbox" id="pref-toggle-notifications" onchange="window.toggleAppPref('notifications', this.checked)" style="opacity:0; width:0; height:0;">
+                <span class="pref-slider" style="position:absolute; inset:0; background:#cbd5e1; border-radius:999px; transition:0.25s;"></span>
+            </label>
+        </div>
+
+        <div class="settings-row">
+            <div class="settings-label-group">
+                <div class="settings-icon-box amber"><i class="fa-solid fa-signal"></i></div>
+                <div>
+                    <div class="settings-title">Data Saver Mode</div>
+                    <div class="settings-subtitle">Lower-res thumbnails, longer cache &amp; no preloading</div>
+                </div>
+            </div>
+            <label style="position:relative; display:inline-block; width:44px; height:24px; flex-shrink:0; cursor:pointer;">
+                <input type="checkbox" id="pref-toggle-datasaver" onchange="window.toggleAppPref('data_saver', this.checked)" style="opacity:0; width:0; height:0;">
+                <span class="pref-slider" style="position:absolute; inset:0; background:#cbd5e1; border-radius:999px; transition:0.25s;"></span>
+            </label>
+        </div>
+
+    </div>
+
     <!-- App Documentation & Support -->
     <div class="settings-group-title stagger-2">App Documentation & Support</div>
     <div class="settings-card stagger-2">
@@ -105,9 +139,65 @@ $backRoute = 'dashboard';
             <i class="fa-solid fa-chevron-right" style="color: #94a3b8; font-size: 11px;"></i>
         </div>
 
+        <div class="settings-row clickable" onclick="window.openDeleteAccountModal()">
+            <div class="settings-label-group">
+                <div class="settings-icon-box logout red"><i class="fa-solid fa-user-xmark"></i></div>
+                <div>
+                    <div class="settings-title" style="color: #dc2626;">Delete Account</div>
+                    <div class="settings-subtitle" style="color: #94a3b8;">Permanently delete &amp; anonymize your account</div>
+                </div>
+            </div>
+            <i class="fa-solid fa-chevron-right" style="color: #94a3b8; font-size: 11px;"></i>
+        </div>
+
     </div>
 
 
+</div>
+
+<style>
+    .settings-row input:checked + .pref-slider { background: #2563eb !important; }
+    .settings-row .pref-slider::before {
+        content: ""; position: absolute; height: 18px; width: 18px; left: 3px; bottom: 3px;
+        background: #ffffff; border-radius: 50%; transition: 0.25s; box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+    }
+    .settings-row input:checked + .pref-slider::before { transform: translateX(20px); }
+</style>
+
+<!-- Delete Account Confirmation Modal -->
+<div id="delete-account-modal" class="profile-modal-overlay" onclick="if(event.target===this) window.closeDeleteAccountModal();">
+    <div class="profile-modal-card"
+        style="background: #ffffff !important; border-radius: 22px; padding: 0 !important; max-width: 340px; width: 90%; overflow: hidden; box-shadow: 0 20px 50px rgba(15, 23, 42, 0.45); color: #0f172a !important; text-align: left;">
+        <div style="background: linear-gradient(135deg, #b91c1c 0%, #dc2626 100%) !important; padding: 14px 16px; display: flex; justify-content: space-between; align-items: center;">
+            <div style="display:flex; align-items:center; gap:8px; color:#ffffff; font-size:15px; font-weight:800;">
+                <i class="fa-solid fa-triangle-exclamation"></i> Delete Account
+            </div>
+            <button type="button" onclick="window.closeDeleteAccountModal()" style="background:#ffffff; border:none; color:#b91c1c; width:28px; height:28px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center;">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        <div style="padding: 16px;">
+            <p style="margin: 0 0 12px 0; font-size: 12.5px; color: #475569; line-height: 1.5;">
+                This action is <strong>permanent</strong>. Your personal details will be anonymized, active sessions revoked, and you will no longer be able to log in with this account.
+            </p>
+            <div id="delete-acct-pwd-wrap" style="margin-bottom: 10px;">
+                <label for="delete-acct-password" style="display:block; font-size:11.5px; font-weight:700; color:#334155; margin-bottom:4px;">Current Password</label>
+                <input id="delete-acct-password" type="password" placeholder="Enter your password"
+                    style="width:100%; padding:10px 12px; border-radius:10px; border:1.5px solid #cbd5e1; font-size:13px; box-sizing:border-box;">
+            </div>
+            <div style="margin-bottom: 14px;">
+                <label for="delete-acct-confirm-input" style="display:block; font-size:11.5px; font-weight:700; color:#334155; margin-bottom:4px;">Type <strong>DELETE</strong> to confirm</label>
+                <input id="delete-acct-confirm-input" type="text" placeholder="DELETE" autocomplete="off"
+                    style="width:100%; padding:10px 12px; border-radius:10px; border:1.5px solid #cbd5e1; font-size:13px; box-sizing:border-box; text-transform:uppercase;">
+            </div>
+            <div style="display:flex; gap:8px;">
+                <button type="button" onclick="window.closeDeleteAccountModal()"
+                    style="flex:1; padding:10px; border-radius:12px; border:1.5px solid #cbd5e1; background:#ffffff; color:#334155; font-size:13px; font-weight:700; cursor:pointer;">Cancel</button>
+                <button type="button" id="btn-confirm-delete-account" onclick="window.executeDeleteAccount()"
+                    style="flex:1; padding:10px; border-radius:12px; border:none; background:#dc2626; color:#ffffff; font-size:13px; font-weight:800; cursor:pointer;">Delete Forever</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- Change Password Modal -->
@@ -1460,6 +1550,110 @@ $backRoute = 'dashboard';
         };
 
         window.submitChangePassword = window.executePasswordChange;
+
+        // ── App Preferences Toggles (Trip & Voucher Reminders, Data Saver) ──
+        function syncSettingsPrefControls() {
+            const notifEl = document.getElementById('pref-toggle-notifications');
+            const saverEl = document.getElementById('pref-toggle-datasaver');
+            if (notifEl) notifEl.checked = localStorage.getItem('intan_elyu_pref_notifications') !== 'false';
+            if (saverEl) saverEl.checked = localStorage.getItem('intan_elyu_pref_data_saver') === 'true';
+        }
+        syncSettingsPrefControls();
+
+        window.toggleAppPref = function (key, val) {
+            if (key === 'notifications') {
+                localStorage.setItem('intan_elyu_pref_notifications', val ? 'true' : 'false');
+                if (val) {
+                    if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
+                        try { Notification.requestPermission(); } catch (e) {}
+                    }
+                    const fired = (typeof window.checkLocalAppReminders === 'function')
+                        ? window.checkLocalAppReminders({ forceCheck: true })
+                        : 0;
+                    if (!fired && typeof showToast === 'function') {
+                        showToast('Trip & voucher reminders enabled.', 'success');
+                    }
+                } else if (typeof showToast === 'function') {
+                    showToast('Trip & voucher reminders paused.', 'info');
+                }
+            } else if (key === 'data_saver') {
+                localStorage.setItem('intan_elyu_pref_data_saver', val ? 'true' : 'false');
+                if (typeof showToast === 'function') {
+                    showToast(val ? 'Data Saver enabled (lighter images & longer cache).' : 'Data Saver disabled.', 'info');
+                }
+            }
+        };
+
+        // ── Delete Account Flow ──
+        window.openDeleteAccountModal = function () {
+            const token = getSettingsToken();
+            const isGuest = (typeof window.isGuestUser === 'function' && window.isGuestUser()) ||
+                !token || token === 'guest_token' || token.startsWith('guest_') || token.startsWith('offline_');
+            if (isGuest) {
+                if (typeof window.promptGuestLogin === 'function') window.promptGuestLogin('manage your account');
+                return;
+            }
+            try {
+                const u = JSON.parse(localStorage.getItem('auth_user') || '{}');
+                const pwdWrap = document.getElementById('delete-acct-pwd-wrap');
+                if (pwdWrap) pwdWrap.style.display = u.google_id ? 'none' : 'block';
+            } catch (e) {}
+            const pwdInput = document.getElementById('delete-acct-password');
+            const confInput = document.getElementById('delete-acct-confirm-input');
+            if (pwdInput) pwdInput.value = '';
+            if (confInput) confInput.value = '';
+            const modal = document.getElementById('delete-account-modal');
+            if (modal) modal.classList.add('active');
+        };
+
+        window.closeDeleteAccountModal = function () {
+            const modal = document.getElementById('delete-account-modal');
+            if (modal) modal.classList.remove('active');
+        };
+
+        window.executeDeleteAccount = async function () {
+            if (!navigator.onLine || window.isAppOnline === false) {
+                if (typeof showToast === 'function') showToast('Internet connection required to delete your account.', 'warning');
+                return;
+            }
+            const confirmText = (document.getElementById('delete-acct-confirm-input')?.value || '').trim().toUpperCase();
+            const password = document.getElementById('delete-acct-password')?.value || '';
+            if (confirmText !== 'DELETE') {
+                if (typeof showToast === 'function') showToast('Please type DELETE to confirm.', 'warning');
+                return;
+            }
+            const btn = document.getElementById('btn-confirm-delete-account');
+            const origText = btn ? btn.textContent : 'Delete Forever';
+            if (btn) { btn.disabled = true; btn.textContent = 'Deleting...'; }
+            try {
+                const token = getSettingsToken();
+                const backendUrl = getSettingsBackendUrl();
+                const res = await fetch(backendUrl + '/api/tourist/account/delete', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ confirm_text: confirmText, password })
+                });
+                const data = await res.json().catch(() => ({}));
+                if (res.ok && data.success) {
+                    window.closeDeleteAccountModal();
+                    try { localStorage.clear(); sessionStorage.clear(); } catch (e) {}
+                    if (typeof showToast === 'function') showToast('Your account has been permanently deleted.', 'info');
+                    if (typeof window.navigateTo === 'function') window.navigateTo('auth');
+                    else window.location.href = '?view=auth';
+                } else {
+                    if (typeof showToast === 'function') showToast(data.message || 'Could not delete account.', 'error');
+                }
+            } catch (err) {
+                if (typeof showToast === 'function') showToast('Network error while deleting account.', 'error');
+            } finally {
+                if (btn) { btn.disabled = false; btn.textContent = origText; }
+            }
+        };
+
         window._cleanupSettings = function () {
             if (window._settings2faResendTimer) {
                 clearInterval(window._settings2faResendTimer);

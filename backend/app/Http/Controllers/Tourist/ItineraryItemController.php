@@ -281,7 +281,7 @@ class ItineraryItemController extends Controller
                         $user->id,
                         'checkin_approved',
                         'Check-in Verified!',
-                        "You checked in at {$spot->name}! Earned +{$rewardPoints} Points & XP ({$canonical})."
+                        "You checked in at {$spot->name}! Earned +{$rewardPoints} Points ({$canonical})."
                     );
                 } catch (\Throwable $e) {
                     Log::warning("Points awarding on check-in failed: " . $e->getMessage());

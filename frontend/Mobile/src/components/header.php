@@ -25,9 +25,14 @@
         <span style="display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 800; color: #ffffff; letter-spacing: -0.3px;">
             <i class="fa-solid fa-bell" style="color: #00f2fe; font-size: 15px;"></i> Notifications
         </span>
-        <button type="button" onclick="toggleNotifications()" style="background: #ffffff !important; border: none !important; outline: none !important; color: #1e3a8a !important; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18) !important; flex-shrink: 0; transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">
-            <i class="fa-solid fa-xmark" style="color: #1e3a8a !important; font-size: 14px;"></i>
-        </button>
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <button type="button" onclick="toggleNotifications(); navigateTo('notifications');" style="background: rgba(255,255,255,0.18) !important; border: none !important; outline: none !important; color: #ffffff !important; font-size: 11px; font-weight: 800; padding: 6px 10px; border-radius: 100px; cursor: pointer;">
+                View All
+            </button>
+            <button type="button" onclick="toggleNotifications()" style="background: #ffffff !important; border: none !important; outline: none !important; color: #1e3a8a !important; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18) !important; flex-shrink: 0; transition: transform 0.15s ease;" onpointerdown="this.style.transform='scale(0.92)'" onpointerup="this.style.transform='scale(1)'">
+                <i class="fa-solid fa-xmark" style="color: #1e3a8a !important; font-size: 14px;"></i>
+            </button>
+        </div>
     </div>
 
     <!-- Scrollable Middle Body (White Background) -->
@@ -90,6 +95,10 @@
                 <a href="#" onclick="closeSidebarInstantly(); navigateTo('saved_trips'); return false;" style="color: #0f172a !important; text-decoration: none; font-size: 13px; font-weight: 800; display: flex; align-items: center; gap: 10px; padding: 7px 11px; border-radius: 12px; background: #ffffff !important; border: 1.5px solid #e2e8f0 !important; outline: none !important; box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04) !important; transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;" onpointerdown="this.style.transform='scale(0.98)'; this.style.background='#f8fafc';" onpointerup="this.style.transform='scale(1)'; this.style.background='#ffffff';" onpointercancel="this.style.transform='scale(1)'; this.style.background='#ffffff';">
                     <span style="width: 28px; height: 28px; border-radius: 8px; background: #eff6ff !important; border: 1px solid #dbeafe !important; display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><i class="fa-solid fa-route" style="color: #1e3a8a !important; font-size: 12px;"></i></span>
                     Saved Trips
+                </a>
+                <a href="#" onclick="closeSidebarInstantly(); navigateTo('notifications'); return false;" style="color: #0f172a !important; text-decoration: none; font-size: 13px; font-weight: 800; display: flex; align-items: center; gap: 10px; padding: 7px 11px; border-radius: 12px; background: #ffffff !important; border: 1.5px solid #e2e8f0 !important; outline: none !important; box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04) !important; transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;" onpointerdown="this.style.transform='scale(0.98)'; this.style.background='#f8fafc';" onpointerup="this.style.transform='scale(1)'; this.style.background='#ffffff';" onpointercancel="this.style.transform='scale(1)'; this.style.background='#ffffff';">
+                    <span style="width: 28px; height: 28px; border-radius: 8px; background: #eff6ff !important; border: 1px solid #dbeafe !important; display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><i class="fa-solid fa-bell" style="color: #1e3a8a !important; font-size: 12px;"></i></span>
+                    Notifications
                 </a>
             </div>
         </div>
@@ -698,6 +707,7 @@
         }
 
         return cleaned
+            .replace(/\s*(?:&|and)\s*XP\b/gi, '')
             .replace(/\.\.+/g, '.')
             .replace(/!+/g, '!')
             .replace(/\s+/g, ' ')
@@ -1092,6 +1102,7 @@
         // Immediate persistent deletion: record in deleted list so it NEVER resurfaces
         markNotifIdDeleted(id);
         delete window._notifItemsMap[id];
+        window.dispatchEvent(new CustomEvent('notificationsUpdated', { detail: { action: 'delete', id: id } }));
 
         // Immediate cache synchronization
         try {
@@ -1167,6 +1178,7 @@
         if (dot) dot.classList.remove('show');
         const footer = document.getElementById('notifications-footer');
         if (footer) footer.style.display = 'none';
+        window.dispatchEvent(new CustomEvent('notificationsUpdated', { detail: { action: 'clear-all' } }));
 
         if (!token) return;
 
@@ -1201,6 +1213,7 @@
             });
             if (changed) saveCachedNotifs(cached);
         } catch(e) {}
+        window.dispatchEvent(new CustomEvent('notificationsUpdated', { detail: { action: 'read', id: id } }));
 
         try {
             const backendUrl = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');
@@ -1240,6 +1253,7 @@
             cached.forEach(n => { n.is_read = true; });
             saveCachedNotifs(cached);
         } catch(e) {}
+        window.dispatchEvent(new CustomEvent('notificationsUpdated', { detail: { action: 'read-all' } }));
 
         try {
             const backendUrl = (typeof window.getBackendUrl === 'function' ? window.getBackendUrl() : (window.backendUrl || 'https://api.intan-elyu.online')).replace(/\/+$/, '');

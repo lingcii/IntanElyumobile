@@ -9122,17 +9122,25 @@ window.navigateTo = navigateTo;
         `;
     };
 
+    window.isDataSaverEnabled = function () {
+        try { return localStorage.getItem('intan_elyu_pref_data_saver') === 'true'; } catch (e) { return false; }
+    };
+
     window.getDestImage = function (dest, width) {
         if (!width) width = 600;
+        var dataSaver = window.isDataSaverEnabled();
+        if (dataSaver) width = Math.min(width, 240);
         var backendUrl = window.getBackendUrl ? window.getBackendUrl() : (window.backendUrl || '').replace(/\/+$/, '');
         var r2PublicBase = 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev';
 
-        // Phase 1: Extract URL string from dest (photo_url, image, avatar, profile_picture)
+        // Phase 1: Extract URL string from dest (prefer thumbnail_url when Data Saver is active)
         var rawUrl = null;
         if (typeof dest === 'string') {
             rawUrl = dest;
         } else if (dest && typeof dest === 'object') {
-            rawUrl = dest.photo_url || dest.image || dest.avatar || dest.profile_picture || null;
+            rawUrl = (dataSaver && dest.thumbnail_url)
+                ? dest.thumbnail_url
+                : (dest.photo_url || dest.image || dest.avatar || dest.profile_picture || null);
         }
 
         if (rawUrl && typeof rawUrl === 'string' && rawUrl.trim() !== '') {
@@ -9781,7 +9789,10 @@ window.navigateTo = navigateTo;
                     // Stale-While-Revalidate: render cached data immediately
                     if (typeof callback === 'function') callback(cachedData.data, true);
                     const age = Date.now() - (cachedData.timestamp || 0);
-                    isExpired = age > ttl;
+                    const effectiveTtl = (typeof window.isDataSaverEnabled === 'function' && window.isDataSaverEnabled())
+                        ? Math.max(ttl * 5, 300000)
+                        : ttl;
+                    isExpired = age > effectiveTtl;
                 }
             } catch (e) {
                 console.warn("Error parsing cache for " + cacheKey, e);
@@ -10275,7 +10286,105 @@ window.navigateTo = navigateTo;
         document.body.appendChild(modal);
     };
 
+    // =========================================================================
+    // Local Trip & Voucher Reminders Engine
+    // =========================================================================
+    window.checkLocalAppReminders = function (opts = {}) {
+        if (localStorage.getItem('intan_elyu_pref_notifications') === 'false') return 0;
+        const forceCheck = Boolean(opts && opts.forceCheck);
+        const now = new Date();
+        const pad = n => String(n).padStart(2, '0');
+        const toLocalYmd = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+        const todayStr = toLocalYmd(now);
+        const tomorrowDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+        const tomorrowStr = toLocalYmd(tomorrowDate);
+        let firedCount = 0;
+
+        const dispatchLocalAlert = (key, title, body) => {
+            const sentKey = 'elyu_local_reminder_' + key + '_' + todayStr;
+            if (!forceCheck && localStorage.getItem(sentKey)) return;
+            localStorage.setItem(sentKey, '1');
+            firedCount++;
+            try {
+                if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.LocalNotifications) {
+                    window.Capacitor.Plugins.LocalNotifications.schedule({
+                        notifications: [{ id: Math.floor(Math.random() * 100000), title, body, schedule: { at: new Date(Date.now() + 1000) } }]
+                    }).catch(() => {});
+                } else if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+                    new Notification(title, { body });
+                }
+            } catch (e) {}
+            if (typeof showToast === 'function') showToast(`${title}: ${body}`, 'info', 4500);
+        };
+
+        // Gather trips from all cached keys and deduplicate by ID
+        const seenTripIds = new Set();
+        const allTrips = [];
+        const addTripsFromList = (list) => {
+            if (!Array.isArray(list)) return;
+            list.forEach(t => {
+                if (!t || typeof t !== 'object') return;
+                const tid = String(t.id || t.trip_id || t.local_id || '');
+                if (tid && seenTripIds.has(tid)) return;
+                if (tid) seenTripIds.add(tid);
+                allTrips.push(t);
+            });
+        };
+
+        try {
+            for (let i = 0; i < localStorage.length; i++) {
+                const k = localStorage.key(i);
+                if (!k) continue;
+                if (k === 'intan_elyu_saved_trips' || k.startsWith('saved_trips_') || k.startsWith('dashboard_data_')) {
+                    const parsed = JSON.parse(localStorage.getItem(k) || 'null');
+                    if (!parsed) continue;
+                    addTripsFromList(Array.isArray(parsed) ? parsed : (parsed.itineraries || parsed.trips || parsed.data?.itineraries || parsed.data?.trips || parsed.data));
+                }
+            }
+            allTrips.forEach(t => {
+                if (String(t?.status || '').toLowerCase() === 'completed') return;
+                const rawDate = String(t?.travel_date || t?.date || '').slice(0, 10);
+                const title = t.title || 'La Union Trip';
+                if (rawDate === todayStr) {
+                    dispatchLocalAlert('trip_today_' + (t.id || title), 'Trip Day Today', `Your trip "${title}" is scheduled for today!`);
+                } else if (rawDate === tomorrowStr) {
+                    dispatchLocalAlert('trip_tomorrow_' + (t.id || title), 'Trip Tomorrow', `Reminder: "${title}" is scheduled for tomorrow!`);
+                }
+            });
+        } catch (e) {}
+
+        try {
+            const token = localStorage.getItem('intan_elyu_token') || '';
+            const rawPts = token ? localStorage.getItem('points_balance_' + token.substring(0, 10)) : null;
+            if (rawPts) {
+                const parsed = JSON.parse(rawPts);
+                const vouchers = (parsed?.data?.vouchers || parsed?.vouchers || []);
+                const nowMs = Date.now();
+                vouchers.forEach(v => {
+                    const st = String(v?.status || '').toLowerCase();
+                    if (st !== 'claimed' && st !== 'active') return;
+                    const expMs = v?.voucher_expires_at ? new Date(v.voucher_expires_at).getTime() : 0;
+                    if (expMs > nowMs && (expMs - nowMs) <= 86400000) {
+                        dispatchLocalAlert('voucher_' + (v.voucher_code || v.id), 'Voucher Expiring Soon', `"${v.type || v.title || 'Your voucher'}" expires within 24 hours!`);
+                    }
+                });
+            }
+        } catch (e) {}
+
+        return firedCount;
+    };
+
+    // Clean up any leftover dark-mode preference from earlier test
+    try {
+        document.documentElement.removeAttribute('data-theme');
+        if (document.body) document.body.classList.remove('dark-mode');
+        localStorage.removeItem('intan_elyu_pref_theme');
+        localStorage.removeItem('intan_elyu_pref_lang');
+    } catch (e) {}
+    setTimeout(() => window.checkLocalAppReminders(), 3500);
+
     const schedulePrewarm = () => {
+        if (window.isDataSaverEnabled()) return;
         if ('requestIdleCallback' in window) requestIdleCallback(window.prewarmAllViews, { timeout: 4000 });
         else setTimeout(window.prewarmAllViews, 1800);
     };
