@@ -9,7 +9,8 @@ $spotsPhotoMap = [];
 $allSpotsList = [];
 try {
     if (class_exists('App\Models\TouristSpot')) {
-        $spots = App\Models\TouristSpot::with('municipality:id,name')
+        $spots = App\Models\TouristSpot::activeForTourists()
+            ->with('municipality:id,name')
             ->whereNotNull('name')
             ->where('name', '!=', '')
             ->get(['id', 'name', 'municipality_id', 'barangay', 'category', 'entrance_fee', 'environmental_fee', 'photo_url', 'latitude', 'longitude', 'rating', 'description', 'opening_time', 'closing_time', 'is_open_24_hours']);
