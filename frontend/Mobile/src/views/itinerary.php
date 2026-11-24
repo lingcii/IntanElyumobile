@@ -6683,22 +6683,8 @@ try {
                 return hay.includes(searchQuery);
             });
 
-            // Sort by rating desc
+            // Sort by rating desc (show all matching sites without artificial cap)
             filtered.sort((a, b) => (b.rating || 0) - (a.rating || 0));
-
-            if (baseMuniList.length > 1 && !searchQuery) {
-                // Multi-municipality browsing: show up to 2 top spots per selected municipality so every selected hub is represented
-                const grouped = new Map(baseMuniList.map(m => [m, []]));
-                filtered.forEach(s => {
-                    const key = normalizeMuni(typeof window.getSpotMuniName === 'function' ? window.getSpotMuniName(s) : (s.municipality || ''));
-                    const bucket = grouped.get(key);
-                    if (bucket && bucket.length < 2) bucket.push(s);
-                });
-                filtered = Array.from(grouped.values()).flat();
-            } else if (!searchQuery) {
-                // Limit to top 24 curated recommendations for swift mobile performance
-                filtered = filtered.slice(0, 24);
-            }
 
             let draft = [];
             try {
