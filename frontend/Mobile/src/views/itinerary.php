@@ -212,7 +212,28 @@ try {
         }
 
         /* Suggested Stops Slider & Category Pills */
+        #itin-slider-categories {
+            display: flex;
+            flex-wrap: nowrap;
+            align-items: center;
+            gap: 6px;
+            overflow-x: auto;
+            overflow-y: hidden;
+            padding-bottom: 6px;
+            margin-bottom: 8px;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            -webkit-overflow-scrolling: touch;
+            touch-action: pan-x;
+            scroll-snap-type: x proximity;
+        }
+        #itin-slider-categories::-webkit-scrollbar {
+            display: none;
+        }
         .itin-cat-pill {
+            flex: 0 0 auto;
+            flex-shrink: 0;
+            scroll-snap-align: start;
             background: #f1f5f9;
             border: 1.5px solid #cbd5e1 !important;
             color: #475569;
@@ -708,12 +729,23 @@ try {
             </div>
 
             <!-- Category Filter Pills -->
-            <div id="itin-slider-categories" class="hide-scrollbar" style="display:flex; gap:6px; overflow-x:auto; padding-bottom:6px; margin-bottom:8px; scrollbar-width:none; -webkit-overflow-scrolling:touch;">
-                <button type="button" class="itin-cat-pill active" onclick="window.filterStep2Slider('all', this)">All</button>
-                <button type="button" class="itin-cat-pill" onclick="window.filterStep2Slider('beach', this)">Beaches</button>
-                <button type="button" class="itin-cat-pill" onclick="window.filterStep2Slider('nature', this)">Nature</button>
-                <button type="button" class="itin-cat-pill" onclick="window.filterStep2Slider('culture', this)">Culture</button>
-                <button type="button" class="itin-cat-pill" onclick="window.filterStep2Slider('food', this)">Food</button>
+            <div id="itin-slider-categories" class="hide-scrollbar">
+                <button type="button" class="itin-cat-pill active" data-cat="all" onclick="window.filterStep2Slider('all', this)">All</button>
+                <button type="button" class="itin-cat-pill" data-cat="beach" onclick="window.filterStep2Slider('beach', this)">Beaches</button>
+                <button type="button" class="itin-cat-pill" data-cat="nature" onclick="window.filterStep2Slider('nature', this)">Nature</button>
+                <button type="button" class="itin-cat-pill" data-cat="park" onclick="window.filterStep2Slider('park', this)">Parks</button>
+                <button type="button" class="itin-cat-pill" data-cat="cultural" onclick="window.filterStep2Slider('cultural', this)">Cultural</button>
+                <button type="button" class="itin-cat-pill" data-cat="heritage" onclick="window.filterStep2Slider('heritage', this)">Heritage</button>
+                <button type="button" class="itin-cat-pill" data-cat="restaurant" onclick="window.filterStep2Slider('restaurant', this)">Restaurants</button>
+                <button type="button" class="itin-cat-pill" data-cat="cafe" onclick="window.filterStep2Slider('cafe', this)">Cafes</button>
+                <button type="button" class="itin-cat-pill" data-cat="mountains" onclick="window.filterStep2Slider('mountains', this)">Mountains</button>
+                <button type="button" class="itin-cat-pill" data-cat="lakes" onclick="window.filterStep2Slider('lakes', this)">Lakes</button>
+                <button type="button" class="itin-cat-pill" data-cat="waterfall" onclick="window.filterStep2Slider('waterfall', this)">Waterfalls</button>
+                <button type="button" class="itin-cat-pill" data-cat="farm" onclick="window.filterStep2Slider('farm', this)">Farms</button>
+                <button type="button" class="itin-cat-pill" data-cat="museum" onclick="window.filterStep2Slider('museum', this)">Museums</button>
+                <button type="button" class="itin-cat-pill" data-cat="religious" onclick="window.filterStep2Slider('religious', this)">Churches</button>
+                <button type="button" class="itin-cat-pill" data-cat="adventure" onclick="window.filterStep2Slider('adventure', this)">Adventure</button>
+                <button type="button" class="itin-cat-pill" data-cat="nightlife" onclick="window.filterStep2Slider('nightlife', this)">Nightlife</button>
             </div>
 
             <!-- Horizontal Scroll Slider Track -->
@@ -6273,6 +6305,9 @@ try {
             if (titleInput) titleInput.value = '';
             window.customClearDate();
             window.toggleCustomCalendar(null, false);
+            const muniInput = document.getElementById('trip-municipality');
+            if (muniInput) muniInput.value = '';
+            if (typeof window.syncFocusBaseModalUI === 'function') window.syncFocusBaseModalUI();
             const transInput = document.getElementById('trip-transport');
             if (transInput) transInput.value = 'no_vehicle';
             const budgetInput = document.getElementById('trip-budget');
@@ -6425,7 +6460,12 @@ try {
             document.querySelectorAll('#itin-slider-categories .itin-cat-pill').forEach(pill => {
                 pill.classList.remove('active');
             });
-            if (btnEl) btnEl.classList.add('active');
+            if (btnEl) {
+                btnEl.classList.add('active');
+                try {
+                    btnEl.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+                } catch (e) { }
+            }
             window.renderStep2SpotsSlider(category);
         };
 
@@ -6570,47 +6610,81 @@ try {
                 return;
             }
 
+            // Enable horizontal wheel scrolling for the category pill bar on desktop browsers
+            const catBar = document.getElementById('itin-slider-categories');
+            if (catBar && !catBar.dataset.wheelBound) {
+                catBar.dataset.wheelBound = '1';
+                catBar.addEventListener('wheel', (e) => {
+                    if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+                        e.preventDefault();
+                        catBar.scrollLeft += e.deltaY;
+                    }
+                }, { passive: false });
+            }
+
             // Get base municipality/municipalities selected in Step 1 (supports multiselect)
+            const normalizeMuni = (name) => String(name || '')
+                .toLowerCase()
+                .replace(/^(municipality of|city of)\s+/i, '')
+                .replace(/,\s*la\s*union$/i, '')
+                .replace(/\s+city$/i, '')
+                .trim();
+
             const baseMuniSelect = document.getElementById('trip-municipality');
-            const baseMuniRaw = (baseMuniSelect ? baseMuniSelect.value : '').toLowerCase().trim();
-            const baseMuniList = baseMuniRaw
-                ? baseMuniRaw.split(',').map(m => m.replace(/\s+city$/i, '').trim()).filter(m => m && !m.includes('all'))
+            const baseMuniRaw = (baseMuniSelect ? baseMuniSelect.value : '').trim();
+            const baseMuniLabels = baseMuniRaw
+                ? baseMuniRaw.split(',').map(m => m.trim()).filter(m => m && !m.toLowerCase().includes('all'))
                 : [];
+            const baseMuniList = baseMuniLabels.map(normalizeMuni).filter(Boolean);
             const hasBaseMuni = baseMuniList.length > 0;
 
-            // Category filter check
+            const matchesFocusBase = (spot) => {
+                if (!hasBaseMuni) return true;
+                const rawMuni = (typeof window.getSpotMuniName === 'function')
+                    ? window.getSpotMuniName(spot)
+                    : (spot.municipality || '');
+                const spotMuni = normalizeMuni(rawMuni);
+                return Boolean(spotMuni) && baseMuniList.includes(spotMuni);
+            };
+
+            // Category filter check (aligned with house categories in categories.php)
             const catMatches = (spot, cat) => {
-                if (cat === 'all') return true;
-                const spotCat = String(spot.category || '').toLowerCase();
-                const name = String(spot.name || '').toLowerCase();
-                if (cat === 'beach') return /beach|surf|coast|sea|island/.test(spotCat) || /beach|surf|point/.test(name);
-                if (cat === 'nature') return /nature|waterfall|fall|mountain|peak|river|forest|cave|eco|park/.test(spotCat) || /falls|tangadan|lake/.test(name);
-                if (cat === 'culture') return /culture|heritage|church|historical|shrine|museum|monument|religious/.test(spotCat) || /church|basilica|shrine|machu|watchtower/.test(name);
-                if (cat === 'food') return /food|dining|restaurant|cafe|bistro|bar|coffee/.test(spotCat) || /cafe|dining|restaurant|grill|bistro/.test(name);
-                return true;
+                const t = String(cat || 'all').toLowerCase().trim();
+                if (!t || t === 'all') return true;
+                const c = String(spot.category || '').toLowerCase().trim();
+                const n = String(spot.name || '').toLowerCase().trim();
+                const combined = `${c} ${n}`;
+
+                if (c && (c === t || c.includes(t) || (c.length >= 3 && t.includes(c)))) return true;
+                if (t === 'beach') return /beach|surf|coast|seascape|sea|island/.test(combined);
+                if (t === 'nature') return /nature|garden|mangrove|forest|eco/.test(combined);
+                if (t === 'park') return /park|plaza|baywalk/.test(combined);
+                if (t === 'cultural' || t === 'culture') return /cultural|culture|pottery|weaving|traditional art|craft/.test(combined);
+                if (t === 'heritage') return /heritage|historic|landmark|monument|watchtower|ancestral/.test(combined);
+                if (t === 'restaurant' || t === 'food') return /food|dining|restaurant|bistro|eatery|kitchen|grill/.test(combined);
+                if (t === 'cafe') return /cafe|coffee/.test(combined);
+                if (t === 'mountains' || t === 'mountain') return /mountain|peak|hiking|trail|view deck|viewdeck|mt\./.test(combined);
+                if (t === 'lakes' || t === 'lake') return /lake|river|dam|spring/.test(combined);
+                if (t === 'waterfall') return /waterfall|falls|tangadan/.test(combined);
+                if (t === 'farm') return /farm|grapes|plantation|agri|vineyard/.test(combined);
+                if (t === 'museum') return /museum|gallery/.test(combined);
+                if (t === 'religious') return /church|shrine|basilica|cathedral|chapel|parish|religious/.test(combined);
+                if (t === 'adventure') return /adventure|camp|glamping|trek/.test(combined);
+                if (t === 'nightlife') return /nightlife|\bbar\b|\bpub\b|club|lounge/.test(combined);
+                return false;
             };
 
             const searchQuery = (document.getElementById('step2-spot-search')?.value || '').toLowerCase().trim();
             let filtered = spotsPool.filter(s => {
+                if (!matchesFocusBase(s)) return false;
                 if (!catMatches(s, activeCat)) return false;
                 if (!searchQuery) return true;
                 const hay = `${s.name || ''} ${s.municipality || ''} ${s.category || ''}`.toLowerCase();
                 return hay.includes(searchQuery);
             });
 
-            // Sort: Prioritize matching base municipality hub(s)
-            filtered.sort((a, b) => {
-                const aMuni = String(a.municipality || '').toLowerCase();
-                const bMuni = String(b.municipality || '').toLowerCase();
-                const aIsBase = hasBaseMuni && baseMuniList.some(bm => aMuni.includes(bm));
-                const bIsBase = hasBaseMuni && baseMuniList.some(bm => bMuni.includes(bm));
-
-                if (aIsBase && !bIsBase) return -1;
-                if (!aIsBase && bIsBase) return 1;
-
-                // Secondary sort: rating desc
-                return (b.rating || 0) - (a.rating || 0);
-            });
+            // Sort by rating desc
+            filtered.sort((a, b) => (b.rating || 0) - (a.rating || 0));
 
             // Limit to top 24 curated recommendations for swift mobile performance
             filtered = filtered.slice(0, 24);
@@ -6622,9 +6696,12 @@ try {
             const draftIds = new Set(draft.map(s => String(s.id)));
 
             if (filtered.length === 0) {
+                const esc = (v) => String(v).replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                const muniSuffix = hasBaseMuni ? ` in ${esc(baseMuniLabels.join(', '))}` : '';
+                const searchSuffix = searchQuery ? ` for "${esc(searchQuery)}"` : '';
                 track.innerHTML = `<div style="width:100%; padding:18px 12px; text-align:center; color:#64748b; font-size:12px; font-weight:600; background:#f8fafc; border:1px dashed #cbd5e1; border-radius:12px;">
                     <i class="fa-solid fa-magnifying-glass" style="display:block; font-size:16px; color:#94a3b8; margin-bottom:6px;"></i>
-                    No tourist sites found${searchQuery ? ' for "' + searchQuery.replace(/</g, '&lt;') + '"' : ''}.
+                    No tourist sites found${muniSuffix}${searchSuffix}.
                 </div>`;
                 return;
             }
@@ -6637,7 +6714,7 @@ try {
                     : (spot.photo_url || 'https://pub-268a50c87a9249ccbf90d35e77ddc65b.r2.dev/tourist_spots/spot_6a686f4d0f48b.jpg');
                 const ratingVal = (spot.rating && spot.rating > 0) ? Number(spot.rating).toFixed(1) : ((spot.reviews_avg_rating && spot.reviews_avg_rating > 0) ? Number(spot.reviews_avg_rating).toFixed(1) : null);
                 const muniName = spot.municipality || 'La Union';
-                const isBaseMatch = hasBaseMuni && String(muniName).toLowerCase().includes(baseMuniRaw);
+                const isBaseMatch = hasBaseMuni && matchesFocusBase(spot);
 
                 const btnText = isAdded ? '<i class="fa-solid fa-check"></i> Added' : '<i class="fa-solid fa-plus"></i> Add';
                 const btnBg = isAdded ? '#ecfdf5' : '#e0f2fe';
